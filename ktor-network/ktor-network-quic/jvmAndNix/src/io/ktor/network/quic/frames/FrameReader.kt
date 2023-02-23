@@ -5,6 +5,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
@@ -16,7 +17,7 @@ internal object FrameReader {
     suspend inline fun readFrame(
         processor: FrameProcessor,
         payload: ByteReadPacket,
-        packetTransportParameters: PacketTransportParameters,
+        transportParameters: TransportParameters,
         maxCIDLength: UInt8,
         onError: (QUICTransportError_v1, FrameType_v1) -> Unit,
     ) {
@@ -39,14 +40,14 @@ internal object FrameReader {
             FrameType_v1.ACK -> readAndProcessACK(
                 processor = processor,
                 payload = payload,
-                ack_delay_exponent = packetTransportParameters.ack_delay_exponent,
+                ack_delay_exponent = transportParameters.ack_delay_exponent,
                 withECN = false
             )
 
             FrameType_v1.ACK_ECN -> readAndProcessACK(
                 processor = processor,
                 payload = payload,
-                ack_delay_exponent = packetTransportParameters.ack_delay_exponent,
+                ack_delay_exponent = transportParameters.ack_delay_exponent,
                 withECN = true
             )
 

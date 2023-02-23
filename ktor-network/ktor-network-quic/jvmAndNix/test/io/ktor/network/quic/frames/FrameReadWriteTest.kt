@@ -5,6 +5,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
@@ -30,7 +31,7 @@ class FrameReadWriteTest {
 
     @Test
     fun testAckFrame() {
-        val params = TestPacketTransportParameters(ack_delay_exponent = 2)
+        val params = TransportParameters(ack_delay_exponent = 2)
         val ranges1 = LongArray(8) { 18L - it * 2 }
         val ranges2 = longArrayOf(20, 17, 11, 3)
         val ranges3 = longArrayOf(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
@@ -642,7 +643,7 @@ class FrameReadWriteTest {
     )
 
     private fun frameTest(
-        parameters: TestPacketTransportParameters = TestPacketTransportParameters(),
+        parameters: TransportParameters = TransportParameters(),
         expectedBytesToLeft: Long = 0,
         writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
