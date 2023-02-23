@@ -5,6 +5,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
 import io.ktor.network.quic.packets.*
@@ -16,6 +17,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         payload: ByteReadPacket,
         packetTransportParameters: PacketTransportParameters,
+        maxCIDLength: UInt8,
         onError: (QUICTransportError_v1, FrameType_v1) -> Unit,
     ) {
         if (payload.isEmpty) {
@@ -75,7 +77,7 @@ internal object FrameReader {
                 payload
             )
 
-            FrameType_v1.NEW_CONNECTION_ID -> readAndProcessNewConnectionId(processor, payload)
+            FrameType_v1.NEW_CONNECTION_ID -> readAndProcessNewConnectionId(processor, maxCIDLength, payload)
             FrameType_v1.RETIRE_CONNECTION_ID -> readAndProcessRetireConnectionId(processor, payload)
             FrameType_v1.PATH_CHALLENGE -> readAndProcessPathChallenge(processor, payload)
             FrameType_v1.PATH_RESPONSE -> readAndProcessPathResponse(processor, payload)
@@ -332,9 +334,9 @@ internal object FrameReader {
         return processor.acceptStreamsBlockedUnidirectional(maximumStreams)
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     private suspend fun readAndProcessNewConnectionId(
         processor: FrameProcessor,
+        maxCIDLength: UInt8,
         payload: ByteReadPacket,
     ): QUICTransportError_v1? {
         val sequenceNumber = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
@@ -344,9 +346,9 @@ internal object FrameReader {
             return FRAME_ENCODING_ERROR
         }
 
-        val length = payload.readUByteOrElse { return FRAME_ENCODING_ERROR }.toInt()
+        val length = payload.readUInt8 { return FRAME_ENCODING_ERROR }.toInt()
 
-        if (length !in 1..20 || payload.remaining < length) {
+        if (length < 1 || length > maxCIDLength.toInt() || payload.remaining < length) {
             return FRAME_ENCODING_ERROR
         }
 
@@ -442,8 +444,7 @@ internal object FrameReader {
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    @OptIn(ExperimentalUnsignedTypes::class)
     private inline fun ByteReadPacket.readFrameType(): FrameType_v1? {
-        return FrameType_v1.fromByte(readUByteOrElse { return null })
+        return FrameType_v1.fromByte(readUInt8 { return null })
     }
 }

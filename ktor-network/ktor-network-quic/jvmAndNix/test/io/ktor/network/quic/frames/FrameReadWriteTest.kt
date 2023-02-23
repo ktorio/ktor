@@ -5,6 +5,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
 import io.ktor.network.quic.util.*
@@ -657,7 +658,7 @@ class FrameReadWriteTest {
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
         for (i in 0 until writer.writtenFramesCnt) {
-            FrameReader.readFrame(processor, packet, parameters, onReaderError)
+            FrameReader.readFrame(processor, packet, parameters, maxCIDLength = 20u, onReaderError)
         }
 
         assertEquals(expectedBytesToLeft, packet.remaining, "Wrong number of remaining bytes")
