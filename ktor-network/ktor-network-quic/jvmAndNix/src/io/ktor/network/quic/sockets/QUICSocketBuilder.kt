@@ -11,12 +11,12 @@ import io.ktor.util.*
 
 public class QUICSocketBuilder(
     private val selector: SelectorManager,
-    override var options: SocketOptions.QUICSocketOptions
+    override var options: SocketOptions.QUICSocketOptions,
 ) : Configurable<QUICSocketBuilder, SocketOptions.QUICSocketOptions> {
     @OptIn(InternalAPI::class)
     public fun bind(
         localAddress: SocketAddress? = null,
-        configure: SocketOptions.QUICSocketOptions.() -> Unit = {}
+        configure: SocketOptions.QUICSocketOptions.() -> Unit = {},
     ): BoundQUICSocket = bindQUIC(selector, localAddress, options.quic().apply(configure))
 
     public companion object
