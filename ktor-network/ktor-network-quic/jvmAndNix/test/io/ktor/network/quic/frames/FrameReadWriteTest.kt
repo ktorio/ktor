@@ -8,6 +8,7 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*

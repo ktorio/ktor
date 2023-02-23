@@ -3,6 +3,7 @@
  */
 
 @file:Suppress("NOTHING_TO_INLINE", "unused")
+@file:OptIn(ExperimentalUnsignedTypes::class)
 
 package io.ktor.network.quic.bytes
 
@@ -28,25 +29,17 @@ internal inline fun UInt64.toUInt16(): UInt16 = toUShort()
 internal inline fun UInt32.toUInt16(): UInt16 = toUShort()
 internal inline fun UInt64.toUInt32(): UInt32 = toUInt()
 
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt8(): UInt8 = readUByte()
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt16(): UInt16 = readUShort()
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt24(): UInt24 = (readUShort().toUInt32() shl 8) + readUByte()
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun ByteReadPacket.readUInt32(): UInt32 = readUInt()
 
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun BytePacketBuilder.writeUInt8(value: UInt8) = writeUByte(value)
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun BytePacketBuilder.writeUInt16(value: UInt16) = writeUShort(value)
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun BytePacketBuilder.writeUInt24(value: UInt24) {
     writeUByte((value.toInt() ushr 16).toUByte())
     writeUShort(value.toUInt16())
 }
-@OptIn(ExperimentalUnsignedTypes::class)
 internal inline fun BytePacketBuilder.writeUInt32(value: UInt32) = writeUInt(value)
 
 /**

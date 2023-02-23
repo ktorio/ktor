@@ -2,7 +2,7 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.network.quic.consts
+package io.ktor.network.quic.util
 
 internal const val POW_2_06 = 64L
 internal const val POW_2_07 = 128L

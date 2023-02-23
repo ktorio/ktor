@@ -5,7 +5,7 @@
 package io.ktor.network.quic.other
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.consts.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 import kotlin.math.*
 import kotlin.test.*

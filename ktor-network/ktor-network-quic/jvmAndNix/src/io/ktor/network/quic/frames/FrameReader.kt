@@ -9,6 +9,7 @@ import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 internal object FrameReader {

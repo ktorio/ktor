@@ -4,8 +4,8 @@
 
 package io.ktor.network.quic.other
 
-import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.util.*
 import kotlin.test.*
 
 class PacketNumberCoderTest {

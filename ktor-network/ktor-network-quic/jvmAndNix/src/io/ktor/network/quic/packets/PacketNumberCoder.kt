@@ -5,7 +5,7 @@
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.consts.*
+import io.ktor.network.quic.util.*
 
 /**
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-sample-packet-number-decodi)
