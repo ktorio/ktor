@@ -110,4 +110,12 @@ class URLBuilderTestJvm {
             takeFrom(URI("/test"))
         }.buildString().let { url -> assertEquals("http://localhost:9093/test", url) }
     }
+
+    @Test
+    fun testUnderscoreInHost() {
+        assertEquals(
+            "http://my_service:8080",
+            URLBuilder().takeFrom(URL("http://my_service:8080")).buildString()
+        )
+    }
 }
