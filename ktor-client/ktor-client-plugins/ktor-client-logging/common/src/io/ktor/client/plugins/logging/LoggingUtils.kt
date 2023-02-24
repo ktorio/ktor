@@ -10,11 +10,15 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-internal fun Appendable.logHeaders(headers: Set<Map.Entry<String, List<String>>>) {
+internal fun Appendable.logHeaders(
+    headers: Set<Map.Entry<String, List<String>>>,
+    sanitizedHeaders: List<SanitizedHeader>
+) {
     val sortedHeaders = headers.toList().sortedBy { it.key }
 
     sortedHeaders.forEach { (key, values) ->
-        logHeader(key, values.joinToString("; "))
+        val placeholder = sanitizedHeaders.firstOrNull { it.predicate(key) }?.placeholder
+        logHeader(key, placeholder ?: values.joinToString("; "))
     }
 }
 
@@ -22,7 +26,12 @@ internal fun Appendable.logHeader(key: String, value: String) {
     appendLine("-> $key: $value")
 }
 
-internal fun logResponseHeader(log: StringBuilder, response: HttpResponse, level: LogLevel) {
+internal fun logResponseHeader(
+    log: StringBuilder,
+    response: HttpResponse,
+    level: LogLevel,
+    sanitizedHeaders: List<SanitizedHeader>
+) {
     with(log) {
         if (level.info) {
             appendLine("RESPONSE: ${response.status}")
@@ -32,7 +41,7 @@ internal fun logResponseHeader(log: StringBuilder, response: HttpResponse, level
 
         if (level.headers) {
             appendLine("COMMON HEADERS")
-            logHeaders(response.headers.entries())
+            logHeaders(response.headers.entries(), sanitizedHeaders)
         }
     }
 }
