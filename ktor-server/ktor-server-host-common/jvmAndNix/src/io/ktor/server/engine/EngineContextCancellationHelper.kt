@@ -12,9 +12,12 @@ import kotlinx.coroutines.*
  * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
  */
 @OptIn(InternalAPI::class)
-public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
+public fun ApplicationEngine.stopServerOnCancellation(
+    gracePeriodMillis: Long = 50,
+    timeoutMillis: Long = 5000
+): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
-        stop(50, 5000)
+        stop(gracePeriodMillis, timeoutMillis)
     } ?: Job()
 
 /**

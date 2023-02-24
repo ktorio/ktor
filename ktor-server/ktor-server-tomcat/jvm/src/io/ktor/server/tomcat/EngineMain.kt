@@ -21,15 +21,6 @@ public object EngineMain {
         val engine = TomcatApplicationEngine(applicationEnvironment) {
             loadConfiguration(applicationEnvironment.config)
         }
-        val gracePeriod =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownGracePeriod")?.getString()?.toLong()
-                ?: 3000
-        val timeout =
-            engine.environment.config.propertyOrNull("ktor.deployment.shutdownTimeout")?.getString()?.toLong()
-                ?: 5000
-        engine.addShutdownHook {
-            engine.stop(gracePeriod, timeout)
-        }
         engine.start(true)
     }
 

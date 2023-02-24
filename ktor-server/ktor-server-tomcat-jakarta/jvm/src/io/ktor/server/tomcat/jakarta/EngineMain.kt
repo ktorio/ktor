@@ -6,7 +6,6 @@ package io.ktor.server.tomcat.jakarta
 
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Tomcat engine
@@ -21,9 +20,6 @@ public object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = TomcatApplicationEngine(applicationEnvironment) {
             loadConfiguration(applicationEnvironment.config)
-        }
-        engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
         }
         engine.start(true)
     }

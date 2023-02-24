@@ -21,7 +21,6 @@ import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.slf4j.*
 import java.nio.file.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -156,6 +155,10 @@ public class TomcatApplicationEngine(
     private val stopped = atomic(false)
 
     override fun start(wait: Boolean): TomcatApplicationEngine {
+        addShutdownHook {
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        }
+
         environment.start()
         server.start()
 
@@ -164,10 +167,11 @@ public class TomcatApplicationEngine(
         resolvedConnectors.complete(connectors)
         environment.monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred = stopServerOnCancellation()
+        cancellationDeferred =
+            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         if (wait) {
             server.server.await()
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         }
         return this
     }
