@@ -231,8 +231,8 @@ public class RoutingResolveContext(
         trait: ArrayList<RoutingResolveResult.Success>
     ) {
         val current = failedEvaluation ?: return
-        if ((current.quality < new.quality || failedEvaluationDepth < trait.size)
-            && trait.all {
+        if ((current.quality < new.quality || failedEvaluationDepth < trait.size) &&
+            trait.all {
                 it.quality == RouteSelectorEvaluation.qualityTransparent ||
                     it.quality == RouteSelectorEvaluation.qualityConstant
             }
