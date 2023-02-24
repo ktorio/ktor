@@ -132,10 +132,10 @@ public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymen
     }
     deploymentConfig.propertyOrNull("shutdownGracePeriod")?.getString()?.toLong()?.let {
         shutdownGracePeriod = it
-    } ?: { shutdownGracePeriod = 1000 }
+    }
     deploymentConfig.propertyOrNull("shutdownTimeout")?.getString()?.toLong()?.let {
         shutdownTimeout = it
-    } ?: { shutdownTimeout = 5000 }
+    }
 }
 
 internal fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
