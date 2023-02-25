@@ -7,6 +7,7 @@
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
@@ -61,8 +62,8 @@ internal object PacketReader {
             // Connection ID max size may vary between versions
             val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { raiseError(FRAME_ENCODING_ERROR) }
 
-            val destinationConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
-            val sourceConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
+            val destinationConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
+            val sourceConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
 
             // End of version independent properties
 
@@ -88,7 +89,7 @@ internal object PacketReader {
 
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ByteArray = bytes.readBytes(dcidLength.toInt())
+            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt())
 
             // End of version independent properties
 
@@ -116,8 +117,8 @@ internal object PacketReader {
 
     private inline fun readVersionNegotiationPacket(
         bytes: ByteReadPacket,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): VersionNegotiationPacket {
         // supportedVersions is an array of 32-bit integers with no specified length
@@ -140,8 +141,8 @@ internal object PacketReader {
         headerProtectionKey: String,
         flags: UInt8,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.LongHeader {
         // The next bit (0x40) of byte 0 is set to 1, unless the packet is a Version Negotiation packet.
@@ -237,7 +238,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         headerProtectionKey: String,
         flags: UInt8,
-        destinationConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
         val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
@@ -255,7 +256,7 @@ internal object PacketReader {
         val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
         return OneRTTPacket_v1(
-            destinationConnectionId = destinationConnectionID,
+            destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
             reservedBits = reservedBits,
             keyPhase = keyPhase,

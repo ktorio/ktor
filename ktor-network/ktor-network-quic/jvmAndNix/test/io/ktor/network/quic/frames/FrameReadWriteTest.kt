@@ -9,6 +9,7 @@ import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
+import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -31,7 +32,7 @@ class FrameReadWriteTest {
 
     @Test
     fun testAckFrame() {
-        val params = TransportParameters(ack_delay_exponent = 2)
+        val params = transportParameters { ack_delay_exponent = 2 }
         val ranges1 = LongArray(8) { 18L - it * 2 }
         val ranges2 = longArrayOf(20, 17, 11, 3)
         val ranges3 = longArrayOf(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
@@ -643,7 +644,7 @@ class FrameReadWriteTest {
     )
 
     private fun frameTest(
-        parameters: TransportParameters = TransportParameters(),
+        parameters: TransportParameters = transportParameters(),
         expectedBytesToLeft: Long = 0,
         writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
@@ -654,15 +655,17 @@ class FrameReadWriteTest {
 
         writer.writeFrames(builder)
 
-        val packet = builder.build()
+        val payload = builder.build()
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
+        val packet = OneRTTPacket_v1(byteArrayOf(), false, 0, false, 0)
+
         for (i in 0 until writer.writtenFramesCnt) {
-            FrameReader.readFrame(processor, packet, parameters, maxCIDLength = 20u, onReaderError)
+            FrameReader.readFrame(processor, packet, payload, parameters, maxCIDLength = 20u, onReaderError)
         }
 
-        assertEquals(expectedBytesToLeft, packet.remaining, "Wrong number of remaining bytes")
+        assertEquals(expectedBytesToLeft, payload.remaining, "Wrong number of remaining bytes")
 
         processor.assertNoExpectedFramesLeft()
     }

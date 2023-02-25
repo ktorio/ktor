@@ -4,8 +4,10 @@
 
 package io.ktor.network.quic.frames.base
 
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
+import io.ktor.network.quic.packets.*
 import kotlin.test.*
 
 internal class TestFrameProcessor(
@@ -14,11 +16,12 @@ internal class TestFrameProcessor(
 ) : FrameProcessor {
     private val expectedFrames = mutableListOf(*expectedFrames.toTypedArray())
 
-    override suspend fun acceptPadding() = testAccept(FrameType_v1.PADDING)
+    override suspend fun acceptPadding(packet: QUICPacket) = testAccept(FrameType_v1.PADDING)
 
-    override suspend fun acceptPing() = testAccept(FrameType_v1.PING)
+    override suspend fun acceptPing(packet: QUICPacket) = testAccept(FrameType_v1.PING)
 
     override suspend fun acceptACK(
+        packet: QUICPacket,
         ackDelay: Long,
         ackRanges: LongArray,
     ) = testAccept(FrameType_v1.ACK) {
@@ -26,6 +29,7 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptACKWithECN(
+        packet: QUICPacket,
         ackDelay: Long,
         ackRanges: LongArray,
         ect0: Long,
@@ -36,6 +40,7 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptResetStream(
+        packet: QUICPacket,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finalSize: Long,
@@ -44,6 +49,7 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptStopSending(
+        packet: QUICPacket,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
     ) = testAccept(FrameType_v1.STOP_SENDING) {
@@ -51,6 +57,7 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptCrypto(
+        packet: QUICPacket,
         offset: Long,
         cryptoData: ByteArray,
     ) = testAccept(FrameType_v1.CRYPTO) {
@@ -58,12 +65,14 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptNewToken(
+        packet: QUICPacket,
         token: ByteArray,
     ) = testAccept(FrameType_v1.NEW_TOKEN) {
         listNewTokenValidators[it](token)
     }
 
     override suspend fun acceptStream(
+        packet: QUICPacket,
         streamId: Long,
         offset: Long,
         fin: Boolean,
@@ -73,12 +82,14 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptMaxData(
+        packet: QUICPacket,
         maximumData: Long,
     ) = testAccept(FrameType_v1.MAX_DATA) {
         listMaxDataValidators[it](maximumData)
     }
 
     override suspend fun acceptMaxStreamData(
+        packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
     ) = testAccept(FrameType_v1.MAX_STREAM_DATA) {
@@ -86,24 +97,28 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptMaxStreamsBidirectional(
+        packet: QUICPacket,
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL) {
         listMaxStreamsBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptMaxStreamsUnidirectional(
+        packet: QUICPacket,
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL) {
         listMaxStreamsUnidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptDataBlocked(
+        packet: QUICPacket,
         maximumData: Long,
     ) = testAccept(FrameType_v1.DATA_BLOCKED) {
         listDataBlockedValidators[it](maximumData)
     }
 
     override suspend fun acceptStreamDataBlocked(
+        packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
     ) = testAccept(FrameType_v1.STREAM_DATA_BLOCKED) {
@@ -111,45 +126,52 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptStreamsBlockedBidirectional(
+        packet: QUICPacket,
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL) {
         listStreamsBlockedBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptStreamsBlockedUnidirectional(
+        packet: QUICPacket,
         maximumStreams: Long,
     ) = testAccept(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL) {
         listStreamsBlockedUnidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptNewConnectionId(
+        packet: QUICPacket,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionId: ByteArray,
-        statelessResetToken: ByteArray,
+        connectionID: ConnectionID,
+        statelessResetToken: ByteArray?,
     ) = testAccept(FrameType_v1.NEW_CONNECTION_ID) {
-        listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, connectionId, statelessResetToken)
+        listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, connectionID, statelessResetToken)
     }
 
     override suspend fun acceptRetireConnectionId(
+        packet: QUICPacket,
         sequenceNumber: Long,
     ) = testAccept(FrameType_v1.RETIRE_CONNECTION_ID) {
         listRetireConnectionIdValidators[it](sequenceNumber)
     }
 
     override suspend fun acceptPathChallenge(
+        packet: QUICPacket,
         data: ByteArray,
     ) = testAccept(FrameType_v1.PATH_CHALLENGE) {
         listPathChallengeValidators[it](data)
     }
 
     override suspend fun acceptPathResponse(
+        packet: QUICPacket,
         data: ByteArray,
     ) = testAccept(FrameType_v1.PATH_RESPONSE) {
         listPathResponseValidators[it](data)
     }
 
     override suspend fun acceptConnectionCloseWithTransportError(
+        packet: QUICPacket,
         errorCode: QUICTransportError_v1,
         frameType: FrameType_v1,
         reasonPhrase: ByteArray,
@@ -158,13 +180,14 @@ internal class TestFrameProcessor(
     }
 
     override suspend fun acceptConnectionCloseWithAppError(
+        packet: QUICPacket,
         errorCode: AppError,
         reasonPhrase: ByteArray,
     ) = testAccept(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
         listConnectionCloseWithAppErrorValidators[it](errorCode, reasonPhrase)
     }
 
-    override suspend fun acceptHandshakeDone() = testAccept(FrameType_v1.HANDSHAKE_DONE)
+    override suspend fun acceptHandshakeDone(packet: QUICPacket) = testAccept(FrameType_v1.HANDSHAKE_DONE)
 
     private val mapAccess = mutableMapOf<FrameType_v1, Int>()
 
@@ -268,8 +291,8 @@ internal class ReadFramesValidator {
     val listNewConnectionIdValidators = mutableListOf<(
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionId: ByteArray,
-        statelessResetToken: ByteArray,
+        connectionID: ConnectionID,
+        statelessResetToken: ByteArray?,
     ) -> Unit>()
 
     val listRetireConnectionIdValidators = mutableListOf<(
@@ -356,7 +379,7 @@ internal class ReadFramesValidator {
     }
 
     fun validateNewConnectionId(
-        body: (sequenceNumber: Long, retirePriorTo: Long, connectionId: ByteArray, resetToken: ByteArray) -> Unit,
+        body: (sequenceNumber: Long, retirePriorTo: Long, connectionID: ConnectionID, resetToken: ByteArray?) -> Unit,
     ) {
         listNewConnectionIdValidators.add(body)
     }
