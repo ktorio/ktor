@@ -30,7 +30,7 @@ internal class TransportParameters {
      * see [Section 10.1](https://www.rfc-editor.org/rfc/rfc9000.html#idle-timeout).
      * Idle timeout is disabled when both endpoints omit this transport parameter or specify a value of 0.
      */
-    var max_idle_timeout: Int = 0
+    var max_idle_timeout: Long = 0
 
     /**
      * A stateless reset token is used in verifying a stateless reset;
@@ -50,7 +50,7 @@ internal class TransportParameters {
      * The default for this parameter is the maximum permitted UDP payload of 65527.
      * Values below 1200 are invalid.
      */
-    var max_udp_payload_size: Int = 65527
+    var max_udp_payload_size: Long = 65527
 
     /**
      * The initial maximum data parameter is an integer value
@@ -58,7 +58,7 @@ internal class TransportParameters {
      * This is equivalent to sending a MAX_DATA
      * for the connection immediately after completing the handshake.
      */
-    var initial_max_data: Int = 0
+    var initial_max_data: Long = 0
 
     /**
      * This parameter is an integer value
@@ -69,7 +69,7 @@ internal class TransportParameters {
      * this applies to streams with an identifier with the least significant two bits set to 0x00;
      * in server transport parameters this applies to streams with the least significant two bits set to 0x01.
      */
-    var initial_max_stream_data_bidi_local: Int = 0
+    var initial_max_stream_data_bidi_local: Long = 0
 
     /**
      * This parameter is an integer value
@@ -80,7 +80,7 @@ internal class TransportParameters {
      * this applies to streams with an identifier with the least significant two bits set to 0x01;
      * in server transport parameters this applies to streams with the least significant two bits set to 0x00.
      */
-    var initial_max_stream_data_bidi_remote: Int = 0
+    var initial_max_stream_data_bidi_remote: Long = 0
 
     /**
      * This parameter is an integer value specifying the initial flow control limit for unidirectional streams.
@@ -90,7 +90,7 @@ internal class TransportParameters {
      * this applies to streams with an identifier with the least significant two bits set to 0x03;
      * in server transport parameters this applies to streams with the least significant two bits set to 0x02.
      */
-    var initial_max_stream_data_uni: Int = 0
+    var initial_max_stream_data_uni: Long = 0
 
     /**
      * The initial maximum bidirectional streams parameter is an integer value
@@ -101,7 +101,7 @@ internal class TransportParameters {
      * Setting this parameter is equivalent to sending a MAX_STREAMS
      * of the corresponding type with the same value.
      */
-    var initial_max_streams_bidi: Int = 0
+    var initial_max_streams_bidi: Long = 0
 
     /**
      * The initial maximum unidirectional streams parameter is an integer value
@@ -112,7 +112,7 @@ internal class TransportParameters {
      * Setting this parameter is equivalent to sending a MAX_STREAMS
      * of the corresponding type with the same value.
      */
-    var initial_max_streams_uni: Int = 0
+    var initial_max_streams_uni: Long = 0
 
     /**
      * The acknowledgment delay exponent is an integer value
@@ -120,7 +120,7 @@ internal class TransportParameters {
      * If this value is absent a default value of 3 is assumed (indicating a multiplier of 8).
      * The values above 20 are invalid.
      */
-    var ack_delay_exponent: Int = 3
+    var ack_delay_exponent: Long = 3
 
     /**
      * The maximum acknowledgment delay is an integer value
@@ -132,7 +132,7 @@ internal class TransportParameters {
      * If this value is absent a default of 25 milliseconds is assumed.
      * Values of 214 or greater are invalid.
      */
-    var max_ack_delay: Int = 25
+    var max_ack_delay: Long = 25
 
     /**
      * The disable active migration transport parameter is included
@@ -144,7 +144,7 @@ internal class TransportParameters {
      * after a client has acted on a preferred_address transport parameter.
      * This parameter is a zero-length value.
      */
-    var disable_active_migration: Int = 0
+    var disable_active_migration: Long = 0
 
     /**
      * The server's preferred address is used to effect a change in server address at the end of the handshake

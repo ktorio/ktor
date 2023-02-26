@@ -183,12 +183,15 @@ internal object PacketReader {
 
                 val payload = readAndDecryptPacketPayload(bytes, length)
 
+                if (reservedBits != 0) {
+                    raiseError(PROTOCOL_VIOLATION)
+                }
+
                 when (type) {
                     PacketType_v1.Initial -> InitialPacket_v1(
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         token = token!!,
                         packetNumber = packetNumber,
                         payload = payload,
@@ -198,7 +201,6 @@ internal object PacketReader {
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         packetNumber = packetNumber,
                         payload = payload,
                     )
@@ -207,7 +209,6 @@ internal object PacketReader {
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         packetNumber = packetNumber,
                         payload = payload,
                     )
@@ -255,13 +256,18 @@ internal object PacketReader {
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
         val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
+        val payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
+
+        if (reservedBits != 0) {
+            raiseError(PROTOCOL_VIOLATION)
+        }
+
         return OneRTTPacket_v1(
             destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
-            reservedBits = reservedBits,
             keyPhase = keyPhase,
             packetNumber = packetNumber,
-            payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
+            payload = payload,
         )
     }
 

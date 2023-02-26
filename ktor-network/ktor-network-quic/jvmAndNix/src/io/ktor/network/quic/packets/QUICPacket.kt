@@ -60,7 +60,6 @@ internal class InitialPacket_v1(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
-    val reservedBits: Int,
     val token: ByteArray,
     val packetNumber: Long,
     val payload: ByteReadPacket = ByteReadPacket.Empty,
@@ -75,7 +74,6 @@ internal class ZeroRTTPacket_v1(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
-    val reservedBits: Int,
     val packetNumber: Long,
     val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader
@@ -89,7 +87,6 @@ internal class HandshakePacket_v1(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
-    val reservedBits: Int,
     val packetNumber: Long,
     val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader
@@ -115,8 +112,18 @@ internal class RetryPacket_v1(
 internal class OneRTTPacket_v1(
     override val destinationConnectionID: ConnectionID,
     val spinBit: Boolean,
-    val reservedBits: Int,
     val keyPhase: Boolean,
     val packetNumber: Long,
     val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.ShortHeader
+
+/**
+ * Returns Packet Number field if the packet contains it, otherwise -1
+ */
+internal val QUICPacket.packetNumber: Long get() = when(this) {
+    is OneRTTPacket_v1 -> this.packetNumber
+    is ZeroRTTPacket_v1 -> this.packetNumber
+    is InitialPacket_v1 -> this.packetNumber
+    is HandshakePacket_v1 -> this.packetNumber
+    else -> -1
+}

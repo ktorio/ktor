@@ -13,22 +13,36 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.sync.*
 
 internal class QUICConnection_v1(
+    private val isServer: Boolean,
+    private var initialFrameToken: ByteArray,
     initialLocalConnectionID: ConnectionID,
     initialPeerConnectionID: ConnectionID,
     private val localTransportParameters: TransportParameters,
     private val peerTransportParameters: TransportParameters,
     private val connectionIDLength: Int,
 ) {
+    private val processor = PayloadProcessor()
+
     private val localConnectionIDs = ConnectionIDRecordList(localTransportParameters.active_connection_id_limit)
     private val peerConnectionIDs = ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit)
-    private val processor = Processor()
+
+    private var peerMaxData: Long = peerTransportParameters.initial_max_data
+    private var localMaxData: Long = localTransportParameters.initial_max_data
+
+    private var localMaxStreamsBidirectional: Long = localTransportParameters.initial_max_streams_bidi
+    private var peerMaxStreamsBidirectional: Long = peerTransportParameters.initial_max_streams_bidi
+
+    private var localMaxStreamsUnidirectional: Long = localTransportParameters.initial_max_streams_uni
+    private var peerMaxStreamsUnidirectional: Long = peerTransportParameters.initial_max_streams_uni
+
+    private val maxStreamData = hashMapOf<Long, Long>()
 
     init {
         val initialLocalSequenceNumber = localTransportParameters.preferred_address?.let { 1L } ?: 0
         val initialPeerSequenceNumber = peerTransportParameters.preferred_address?.let { 1L } ?: 0
 
         localConnectionIDs.add(ConnectionIDRecord(initialLocalConnectionID, initialLocalSequenceNumber))
-        localConnectionIDs.add(ConnectionIDRecord(initialPeerConnectionID, initialPeerSequenceNumber))
+        peerConnectionIDs.add(ConnectionIDRecord(initialPeerConnectionID, initialPeerSequenceNumber))
     }
 
     suspend fun terminate() {
@@ -47,9 +61,9 @@ internal class QUICConnection_v1(
         // todo keep this as small as possible
     }
 
-    private inner class Processor : FrameProcessor {
+    private inner class PayloadProcessor : FrameProcessor {
         override suspend fun acceptPadding(packet: QUICPacket): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            return null
         }
 
         override suspend fun acceptPing(packet: QUICPacket): QUICTransportError_v1? {
@@ -101,7 +115,13 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptNewToken(packet: QUICPacket, token: ByteArray): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            if (isServer) {
+                return TransportError_v1.PROTOCOL_VIOLATION
+            }
+
+            initialFrameToken = token
+
+            return null
         }
 
         override suspend fun acceptStream(
@@ -115,7 +135,9 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptMaxData(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            peerMaxData = maximumData.coerceAtLeast(peerMaxData)
+
+            return null
         }
 
         override suspend fun acceptMaxStreamData(
@@ -123,21 +145,29 @@ internal class QUICConnection_v1(
             streamId: Long,
             maximumStreamData: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            maxStreamData[streamId] = maximumStreamData.coerceAtLeast(maxStreamData[streamId] ?: 0)
+
+            // todo check receive-only and not created streams
+
+            return null
         }
 
         override suspend fun acceptMaxStreamsBidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            peerMaxStreamsBidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsBidirectional)
+
+            return null
         }
 
         override suspend fun acceptMaxStreamsUnidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            peerMaxStreamsUnidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsUnidirectional)
+
+            return null
         }
 
         override suspend fun acceptDataBlocked(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
@@ -212,6 +242,7 @@ internal class QUICConnection_v1(
                 return TransportError_v1.CONNECTION_ID_LIMIT_ERROR
             }
 
+            // todo wait for ack frames, send in batches
             send { builder, _ ->
                 retired.forEach { retireSequenceNumber ->
                     writeRetireConnectionId(builder, retireSequenceNumber)
@@ -229,7 +260,9 @@ internal class QUICConnection_v1(
                 return TransportError_v1.PROTOCOL_VIOLATION
             }
 
-            // todo check packet
+            if (localConnectionIDs[sequenceNumber]?.connectionID eq packet.destinationConnectionID) {
+                return TransportError_v1.PROTOCOL_VIOLATION
+            }
 
             if (connectionIDLength == 0) {
                 return TransportError_v1.PROTOCOL_VIOLATION
@@ -241,10 +274,16 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            send { builder, _ ->
+                writePathResponse(builder, data)
+            }
+
+            return null
         }
 
         override suspend fun acceptPathResponse(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
+            // todo check data is eq to PATH_CHALLENGE
+
             TODO("Not yet implemented")
         }
 
@@ -266,6 +305,10 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptHandshakeDone(packet: QUICPacket): QUICTransportError_v1? {
+            if (isServer) {
+                return TransportError_v1.PROTOCOL_VIOLATION
+            }
+
             TODO("Not yet implemented")
         }
     }
