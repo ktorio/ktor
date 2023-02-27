@@ -4,9 +4,16 @@
 
 package io.ktor.network.quic.connections
 
+/**
+ * Manages list of available CIDs, insures capacity restrictions, tracks removed CIDs
+ */
 internal class ConnectionIDRecordList(private var capacity: Int) {
     private val pool = mutableListOf<ConnectionIDRecord>()
     private val removed = mutableSetOf<Long>()
+
+    /**
+     * All CIDs with sequence number lower than [threshold] has been retired
+     */
     var threshold: Long = -1
         private set
 
@@ -64,6 +71,9 @@ internal class ConnectionIDRecordList(private var capacity: Int) {
 
     private var nextCounter = 0L
 
+    /**
+     * Used to get available CID for using in package header
+     */
     fun nextConnectionID(): ConnectionID {
         return pool[(nextCounter % pool.size).toInt()].connectionID.also { nextCounter++ }
     }
