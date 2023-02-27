@@ -17,21 +17,6 @@ private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
 
-private val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
-
-/**
- * Supported pre compressed file types and associated extensions
- *
- * **See Also:** [Accept-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding)
- */
-public enum class CompressedFileType(public val extension: String, public val encoding: String = extension) {
-    // https://www.theregister.co.uk/2015/10/11/googles_bro_file_format_changed_to_br_after_gender_politics_worries/
-    BROTLI("br"),
-    GZIP("gz", "gzip");
-
-    public fun file(plain: File): File = File("${plain.absolutePath}.$extension")
-}
-
 /**
  * Support pre-compressed files in the file system only (not just any classpath resource)
  *
@@ -42,7 +27,7 @@ public enum class CompressedFileType(public val extension: String, public val en
  *
  * Notes:
  *
- * * The order in types is *important*, it will determine the priority of serving one versus serving another
+ * * The order in types is *important*. It will determine the priority of serving one versus serving another
  *
  * * This can't be disabled in a child route if it was enabled in the root route
  */
@@ -56,9 +41,6 @@ public fun Route.preCompressed(
     configure()
     attributes.remove(compressedKey)
 }
-
-private val Route.staticContentEncodedTypes: List<CompressedFileType>?
-    get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
 
 /**
  * Base folder for relative files calculations for static content
@@ -179,54 +161,6 @@ internal fun Route.filesWithDefaultFile(
     }
 }
 
-private suspend inline fun ApplicationCall.respondStaticFile(
-    requestedFile: File,
-    compressedTypes: List<CompressedFileType>?
-) {
-    val bestCompressionFit = requestedFile.bestCompressionFit(request.acceptEncodingItems(), compressedTypes)
-    bestCompressionFit?.run {
-        attributes.put(SuppressionAttribute, true)
-    }
-    val localFile = bestCompressionFit?.file(requestedFile) ?: requestedFile
-    if (localFile.isFile) {
-        val localFileContent = LocalFileContent(localFile, ContentType.defaultForFile(requestedFile))
-        respond(PreCompressedResponse(localFileContent, bestCompressionFit?.encoding))
-    }
-}
-
-private class PreCompressedResponse(
-    val original: ReadChannelContent,
-    val encoding: String?,
-) : OutgoingContent.ReadChannelContent() {
-    override val contentLength get() = original.contentLength
-    override val contentType get() = original.contentType
-    override val status get() = original.status
-    override fun readFrom() = original.readFrom()
-    override fun readFrom(range: LongRange) = original.readFrom(range)
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        if (encoding != null) {
-            Headers.build {
-                appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
-                append(HttpHeaders.ContentEncoding, encoding)
-            }
-        } else original.headers
-    }
-
-    override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
-    override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
-}
-
-private fun File.bestCompressionFit(
-    acceptEncoding: List<HeaderValue>,
-    compressedTypes: List<CompressedFileType>?
-): CompressedFileType? {
-    val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
-    // We respect the order in compressedTypes, not the one on Accept header
-    return compressedTypes?.filter {
-        it.encoding in acceptedEncodings
-    }?.firstOrNull { it.file(this).isFile }
-}
-
 private val staticBasePackageName = AttributeKey<String>("BasePackage")
 
 /**
@@ -252,12 +186,14 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
  */
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
+    val compressedTypes = staticContentEncodedTypes
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get(remotePath) {
-        val content = call.resolveResource(resource, packageName)
-        if (content != null) {
-            call.respond(content)
-        }
+        call.respondStaticResource(
+            requestedResource = resource,
+            packageName = packageName,
+            compressedTypes = compressedTypes
+        )
     }
 }
 
@@ -272,22 +208,30 @@ internal fun Route.resourceWithDefault(
     shouldFileBeIgnored: (String) -> Boolean
 ) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
+    val compressedTypes = staticContentEncodedTypes
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
 
         if (shouldFileBeIgnored.invoke(relativePath)) {
-            call.resolveResource(defaultResource, packageName)?.let {
-                call.respond(it)
-            }
+            call.respondStaticResource(
+                requestedResource = defaultResource,
+                packageName = packageName,
+                compressedTypes = compressedTypes
+            )
+            return@get
         }
 
-        val content = call.resolveResource(relativePath, packageName)
-        if (content != null) {
-            call.respond(content)
-        } else {
-            call.resolveResource(defaultResource, packageName)?.let {
-                call.respond(it)
-            }
+        call.respondStaticResource(
+            requestedResource = relativePath,
+            packageName = packageName,
+            compressedTypes = compressedTypes
+        )
+        if (!call.isHandled) {
+            call.respondStaticResource(
+                requestedResource = defaultResource,
+                packageName = packageName,
+                compressedTypes = compressedTypes
+            )
         }
     }
 }
@@ -297,12 +241,14 @@ internal fun Route.resourceWithDefault(
  */
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
+    val compressedTypes = staticContentEncodedTypes
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-        val content = call.resolveResource(relativePath, packageName)
-        if (content != null) {
-            call.respond(content)
-        }
+        call.respondStaticResource(
+            requestedResource = relativePath,
+            packageName = packageName,
+            compressedTypes = compressedTypes
+        )
     }
 }
 
@@ -311,11 +257,13 @@ public fun Route.resources(resourcePackage: String? = null) {
  */
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
+    val compressedTypes = staticContentEncodedTypes
     get {
-        val content = call.resolveResource(resource, packageName)
-        if (content != null) {
-            call.respond(content)
-        }
+        call.respondStaticResource(
+            requestedResource = resource,
+            packageName = packageName,
+            compressedTypes = compressedTypes
+        )
     }
 }
 

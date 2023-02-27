@@ -34,8 +34,7 @@ class StaticContentResolutionTest {
         }
 
         assertNotNull(content)
-        assertTrue { content is OutgoingContent.ReadChannelContent }
-        with(content as OutgoingContent.ReadChannelContent) {
+        with(content) {
             val data = String(runBlocking { readFrom().toByteArray() })
             assertEquals("test\n", data)
         }

@@ -7,6 +7,6 @@ package io.ktor.server.http.content
 import io.ktor.util.*
 
 /**
- * Attribute that could be added to an application call to prevent it's response from being compressed
+ * Attribute that could be added to an application call to prevent its response from being compressed
  */
 public val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
