@@ -75,7 +75,12 @@ internal object FrameReader {
             FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL -> readAndProcessMaxStreamUnidirectional(processor, packet, payload)
             FrameType_v1.DATA_BLOCKED -> readAndProcessDataBlocked(processor, packet, payload)
             FrameType_v1.STREAM_DATA_BLOCKED -> readAndProcessStreamDataBlocked(processor, packet, payload)
-            FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL -> readAndProcessStreamsBlockedBidirectional(processor, packet, payload)
+            FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL -> readAndProcessStreamsBlockedBidirectional(
+                processor,
+                packet,
+                payload
+            )
+
             FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL -> readAndProcessStreamsBlockedUnidirectional(
                 processor,
                 packet,
@@ -92,7 +97,12 @@ internal object FrameReader {
                 payload
             )
 
-            FrameType_v1.CONNECTION_CLOSE_APP_ERR -> readAndProcessConnectionCloseWithAppError(processor, packet, payload)
+            FrameType_v1.CONNECTION_CLOSE_APP_ERR -> readAndProcessConnectionCloseWithAppError(
+                processor,
+                packet,
+                payload
+            )
+
             FrameType_v1.HANDSHAKE_DONE -> processor.acceptHandshakeDone(packet)
         }
 
