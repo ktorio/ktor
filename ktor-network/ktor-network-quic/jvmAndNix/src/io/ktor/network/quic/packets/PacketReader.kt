@@ -48,6 +48,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         negotiatedVersion: UInt32,
         dcidLength: UInt8,
+        matchConnection: (destinationCID: ConnectionID) -> Unit,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
@@ -71,6 +72,8 @@ internal object PacketReader {
                 return readVersionNegotiationPacket(bytes, destinationConnectionID, sourceConnectionID, raiseError)
             }
 
+            val cryptoKeys = matchConnection(destinationConnectionID)
+
             return readLongHeader_v1(
                 bytes = bytes,
                 headerProtectionKey = headerProtectionKey,
@@ -92,6 +95,8 @@ internal object PacketReader {
             val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt())
 
             // End of version independent properties
+
+            val cryptoKeys = matchConnection(destinationConnectionID)
 
             return readShortHeader_v1(
                 bytes = bytes,

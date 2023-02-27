@@ -120,7 +120,7 @@ internal class OneRTTPacket_v1(
 /**
  * Returns Packet Number field if the packet contains it, otherwise -1
  */
-internal val QUICPacket.packetNumber: Long get() = when(this) {
+internal val QUICPacket.packetNumber: Long get() = when (this) {
     is OneRTTPacket_v1 -> this.packetNumber
     is ZeroRTTPacket_v1 -> this.packetNumber
     is InitialPacket_v1 -> this.packetNumber
