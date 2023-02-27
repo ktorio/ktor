@@ -659,7 +659,7 @@ class FrameReadWriteTest {
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
-        val packet = OneRTTPacket_v1(byteArrayOf(), false, 0, false, 0)
+        val packet = OneRTTPacket_v1(byteArrayOf(), spinBit = false, keyPhase = false, packetNumber = 0)
 
         for (i in 0 until writer.writtenFramesCnt) {
             FrameReader.readFrame(processor, packet, payload, parameters, maxCIDLength = 20u, onReaderError)

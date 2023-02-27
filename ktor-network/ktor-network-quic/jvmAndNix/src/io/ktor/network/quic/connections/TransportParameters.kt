@@ -120,7 +120,7 @@ internal class TransportParameters {
      * If this value is absent a default value of 3 is assumed (indicating a multiplier of 8).
      * The values above 20 are invalid.
      */
-    var ack_delay_exponent: Long = 3
+    var ack_delay_exponent: Int = 3
 
     /**
      * The maximum acknowledgment delay is an integer value
