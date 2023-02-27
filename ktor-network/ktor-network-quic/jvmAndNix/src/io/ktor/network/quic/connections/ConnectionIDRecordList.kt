@@ -43,19 +43,22 @@ internal class ConnectionIDRecordList(private var capacity: Int) {
     }
 
     fun remove(sequenceNumber: Long) {
-        if (pool.removeIf { it.sequenceNumber == sequenceNumber }) {
-            removed.add(sequenceNumber)
+        for (cid in pool) {
+            if (cid.sequenceNumber == sequenceNumber) {
+                pool.remove(cid)
+                removed.add(sequenceNumber)
+                return
+            }
         }
     }
 
     fun removePriorToAndSetThreshold(newThreshold: Long): List<Long> {
         val removed = mutableListOf<Long>()
         if (threshold < newThreshold) {
-            pool.removeIf { cid ->
-                (cid.sequenceNumber < newThreshold).also { lower ->
-                    if (lower) {
-                        removed.add(cid.sequenceNumber)
-                    }
+            for (cid in pool) {
+                if (cid.sequenceNumber < newThreshold) {
+                    pool.remove(cid)
+                    removed.add(cid.sequenceNumber)
                 }
             }
             threshold = newThreshold
