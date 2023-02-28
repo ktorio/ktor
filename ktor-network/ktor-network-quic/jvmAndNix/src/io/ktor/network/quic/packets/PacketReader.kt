@@ -2,11 +2,12 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("FunctionName", "UNUSED_PARAMETER")
+@file:Suppress("FunctionName", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
 
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
@@ -47,6 +48,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         negotiatedVersion: UInt32,
         dcidLength: UInt8,
+        matchConnection: (destinationCID: ConnectionID) -> Unit,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
@@ -61,14 +63,16 @@ internal object PacketReader {
             // Connection ID max size may vary between versions
             val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { raiseError(FRAME_ENCODING_ERROR) }
 
-            val destinationConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
-            val sourceConnectionID: ByteArray = readConnectionID(bytes, maxCIDLength, raiseError)
+            val destinationConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
+            val sourceConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
 
             // End of version independent properties
 
             if (version == QUICVersion.VersionNegotiation) {
                 return readVersionNegotiationPacket(bytes, destinationConnectionID, sourceConnectionID, raiseError)
             }
+
+            val cryptoKeys = matchConnection(destinationConnectionID)
 
             return readLongHeader_v1(
                 bytes = bytes,
@@ -88,9 +92,11 @@ internal object PacketReader {
 
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ByteArray = bytes.readBytes(dcidLength.toInt())
+            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt()).asCID()
 
             // End of version independent properties
+
+            val cryptoKeys = matchConnection(destinationConnectionID)
 
             return readShortHeader_v1(
                 bytes = bytes,
@@ -106,18 +112,18 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         maxCIDLength: UInt8,
         raiseError: (QUICTransportError) -> Nothing,
-    ): ByteArray {
+    ): ConnectionID {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
         if (connectionIDLength > maxCIDLength) {
             raiseError(PROTOCOL_VIOLATION)
         }
-        return bytes.readBytes(connectionIDLength.toInt())
+        return bytes.readBytes(connectionIDLength.toInt()).asCID()
     }
 
     private inline fun readVersionNegotiationPacket(
         bytes: ByteReadPacket,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): VersionNegotiationPacket {
         // supportedVersions is an array of 32-bit integers with no specified length
@@ -140,8 +146,8 @@ internal object PacketReader {
         headerProtectionKey: String,
         flags: UInt8,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.LongHeader {
         // The next bit (0x40) of byte 0 is set to 1, unless the packet is a Version Negotiation packet.
@@ -182,12 +188,15 @@ internal object PacketReader {
 
                 val payload = readAndDecryptPacketPayload(bytes, length)
 
+                if (reservedBits != 0) {
+                    raiseError(PROTOCOL_VIOLATION)
+                }
+
                 when (type) {
                     PacketType_v1.Initial -> InitialPacket_v1(
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         token = token!!,
                         packetNumber = packetNumber,
                         payload = payload,
@@ -197,7 +206,6 @@ internal object PacketReader {
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         packetNumber = packetNumber,
                         payload = payload,
                     )
@@ -206,7 +214,6 @@ internal object PacketReader {
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
-                        reservedBits = reservedBits,
                         packetNumber = packetNumber,
                         payload = payload,
                     )
@@ -237,7 +244,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         headerProtectionKey: String,
         flags: UInt8,
-        destinationConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
         raiseError: (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
         val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
@@ -254,13 +261,18 @@ internal object PacketReader {
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
         val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
+        val payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
+
+        if (reservedBits != 0) {
+            raiseError(PROTOCOL_VIOLATION)
+        }
+
         return OneRTTPacket_v1(
-            destinationConnectionId = destinationConnectionID,
+            destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
-            reservedBits = reservedBits,
             keyPhase = keyPhase,
             packetNumber = packetNumber,
-            payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
+            payload = payload,
         )
     }
 
