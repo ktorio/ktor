@@ -4,4 +4,17 @@
 
 package io.ktor.network.quic.util
 
+import kotlin.contracts.*
+
 internal fun unreachable(): Nothing = error("unreachable")
+
+@OptIn(ExperimentalContracts::class)
+internal inline fun fastRepeat(times: Int, action: () -> Unit) {
+    contract { callsInPlace(action) }
+
+    var i = 0
+    while (i < times) {
+        action()
+        i++
+    }
+}
