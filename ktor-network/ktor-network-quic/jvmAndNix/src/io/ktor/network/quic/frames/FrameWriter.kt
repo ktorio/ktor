@@ -7,6 +7,7 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.util.*
@@ -132,7 +133,7 @@ internal interface FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionId: ByteArray,
+        connectionID: ConnectionID,
         statelessResetToken: ByteArray,
     )
 
@@ -433,14 +434,14 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionId: ByteArray,
+        connectionID: ConnectionID,
         statelessResetToken: ByteArray,
     ) = with(packetBuilder) {
         require(retirePriorTo <= sequenceNumber) {
             "The value in the 'Retire Prior To' field in NEW_CONNECTION_ID frame " +
                 "MUST be less than or equal to the value in the 'Sequence Number' field"
         }
-        require(connectionId.size in 1..20) {
+        require(connectionID.size in 1..20) {
             "The size of the value in the 'Connection ID' field in NEW_CONNECTION_ID frame " +
                 "MUST be at least 1 byte and at most 20 bytes"
         }
@@ -452,7 +453,7 @@ internal object FrameWriterImpl : FrameWriter {
         writeFrameType(FrameType_v1.NEW_CONNECTION_ID)
         writeVarInt(sequenceNumber)
         writeVarInt(retirePriorTo)
-        writeConnectionId(connectionId)
+        writeConnectionId(connectionID)
         writeFully(statelessResetToken)
     }
 
@@ -523,8 +524,8 @@ internal object FrameWriterImpl : FrameWriter {
         writeUInt8(typeV1.typeValue)
     }
 
-    private fun BytePacketBuilder.writeConnectionId(id: ByteArray) {
+    private fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
         writeUInt8(id.size.toUByte())
-        writeFully(id)
+        writeFully(id.value)
     }
 }
