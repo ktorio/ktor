@@ -33,6 +33,7 @@ internal abstract class QUICSocketBase(
                 bytes = datagram.packet,
                 negotiatedVersion = 0u, // todo
                 dcidLength = 0u, // todo
+                matchConnection = { },
                 raiseError = {
                     handleTransportError(it)
                     return

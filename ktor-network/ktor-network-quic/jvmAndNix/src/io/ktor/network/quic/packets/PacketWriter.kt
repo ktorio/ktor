@@ -7,6 +7,7 @@
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_LONG_MASK
@@ -30,8 +31,8 @@ internal object PacketWriter {
     fun writeVersionNegotiationPacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         vararg supportedVersions: UInt32,
     ) = with(packetBuilder) {
         @Suppress("KotlinConstantConditions")
@@ -66,10 +67,10 @@ internal object PacketWriter {
      */
     fun writeRetryPacket(
         packetBuilder: BytePacketBuilder,
-        originalDestinationConnectionID: ByteArray,
+        originalDestinationConnectionID: ConnectionID,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         retryToken: ByteArray,
     ) {
         checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
@@ -102,8 +103,8 @@ internal object PacketWriter {
     inline fun writeInitialPacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         token: ByteArray,
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
@@ -131,8 +132,8 @@ internal object PacketWriter {
     inline fun writeHandshakePacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
@@ -155,8 +156,8 @@ internal object PacketWriter {
     inline fun writeZeroRTTPacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
@@ -182,8 +183,8 @@ internal object PacketWriter {
         packetBuilder: BytePacketBuilder,
         packetType: UInt8,
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
         writeBeforeLength: BytePacketBuilder.() -> Unit = {},
@@ -224,7 +225,7 @@ internal object PacketWriter {
         packetBuilder: BytePacketBuilder,
         spinBit: Boolean,
         keyPhase: Boolean,
-        destinationConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
@@ -243,7 +244,7 @@ internal object PacketWriter {
 
             with(packetBuilder) {
                 writeUInt8(first xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK))
-                writeFully(destinationConnectionID) // no length as it should be known for the connection
+                writeFully(destinationConnectionID.value) // no length as it should be known for the connection
                 encryptAndWritePacketNumber(packetNumber, packetNumberLength, headerProtectionMask)
                 writeFully(encryptedPayload)
             }
@@ -294,15 +295,15 @@ internal object PacketWriter {
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun BytePacketBuilder.writeConnectionID(connectionID: ByteArray) {
+    private inline fun BytePacketBuilder.writeConnectionID(connectionID: ConnectionID) {
         writeUInt8(connectionID.size.toUByte())
-        writeFully(connectionID)
+        writeFully(connectionID.value)
     }
 
     private fun checkVersionConstraints(
         version: UInt32,
-        destinationConnectionID: ByteArray,
-        sourceConnectionID: ByteArray,
+        destinationConnectionID: ConnectionID,
+        sourceConnectionID: ConnectionID,
     ) {
         checkCIDLength(version, destinationConnectionID) {
             "DCID length must be less then $it in QUIC version $version"
@@ -314,7 +315,7 @@ internal object PacketWriter {
 
     private inline fun checkCIDLength(
         version: UInt32,
-        connectionID: ByteArray,
+        connectionID: ConnectionID,
         message: (UInt8) -> String,
     ) {
         val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { error("unknown version: $version") }

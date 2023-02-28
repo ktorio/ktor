@@ -4,6 +4,7 @@
 
 package io.ktor.network.quic.frames.base
 
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.utils.io.core.*
@@ -163,10 +164,10 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionId: ByteArray,
+        connectionID: ConnectionID,
         statelessResetToken: ByteArray,
     ) = withLog(FrameType_v1.NEW_CONNECTION_ID) {
-        writeNewConnectionId(packetBuilder, sequenceNumber, retirePriorTo, connectionId, statelessResetToken)
+        writeNewConnectionId(packetBuilder, sequenceNumber, retirePriorTo, connectionID, statelessResetToken)
     }
 
     override fun writeRetireConnectionId(
