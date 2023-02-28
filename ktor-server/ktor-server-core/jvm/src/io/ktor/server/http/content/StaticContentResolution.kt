@@ -25,7 +25,7 @@ public fun ApplicationCall.resolveResource(
     resourcePackage: String? = null,
     classLoader: ClassLoader = application.environment.classLoader,
     mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
-): OutgoingContent? {
+): OutgoingContent.ReadChannelContent? {
     if (path.endsWith("/") || path.endsWith("\\")) {
         return null
     }
@@ -35,7 +35,7 @@ public fun ApplicationCall.resolveResource(
             path.split('/', '\\')
         ).normalizePathComponents().joinToString("/")
 
-    // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
+    // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
 
     for (url in classLoader.getResources(normalizedPath).asSequence()) {
         resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { content ->
@@ -51,7 +51,11 @@ public fun ApplicationCall.resolveResource(
  * to improve performance and unnecessary [java.io.InputStream] creation.
  */
 @InternalAPI
-public fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
+public fun resourceClasspathResource(
+    url: URL,
+    path: String,
+    mimeResolve: (String) -> ContentType
+): OutgoingContent.ReadChannelContent? {
     return when (url.protocol) {
         "file" -> {
             val file = File(url.path.decodeURLPart())
@@ -84,7 +88,7 @@ internal fun findContainingJarFile(url: String): File {
     throw IllegalArgumentException("Only local jars are supported (jar:file:)")
 }
 
-private fun String.extension(): String {
+internal fun String.extension(): String {
     val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
     return if (indexOfDot >= 0) substring(indexOfDot) else ""

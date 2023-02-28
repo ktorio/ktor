@@ -4,6 +4,8 @@
 
 package io.ktor.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -508,6 +510,84 @@ class StaticContentTest {
 
         handleRequest(HttpMethod.Get, "/after").let { result ->
             assertEquals("after", result.response.content)
+        }
+    }
+
+    @Test
+    fun testPreCompressedResourceServeEncodedFile() = testApplication {
+        routing {
+            static {
+                preCompressed {
+                    resources()
+                }
+            }
+        }
+
+        client.get("/test-resource.txt") {
+            header(HttpHeaders.AcceptEncoding, "br")
+        }.let { result ->
+            assertEquals("br\n", result.bodyAsText())
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertEquals("br", result.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        client.get("/test-resource.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }.let { result ->
+            assertEquals("gz\n", result.bodyAsText())
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertEquals("gzip", result.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testPreCompressedResourceSuppressCompressionIfAlreadyCompressed() = testApplication {
+        install(Compression)
+
+        routing {
+            static {
+                preCompressed {
+                    resources()
+                }
+            }
+        }
+
+        client.get("/test-resource.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }.let { result ->
+            assertEquals("gz\n", result.bodyAsText())
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertEquals("gzip", result.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testPreCompressedResourceTypesOrder() = testApplication {
+        routing {
+            static("firstgz") {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI) {
+                    resources()
+                }
+            }
+            static("firstbr") {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP) {
+                    resources()
+                }
+            }
+        }
+
+        client.get("/firstgz/test-resource.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertEquals("gzip", result.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        client.get("/firstbr/test-resource.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertEquals("br", result.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
     }
 }
