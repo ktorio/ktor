@@ -526,6 +526,6 @@ internal object FrameWriterImpl : FrameWriter {
 
     private fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
         writeUInt8(id.size.toUByte())
-        writeFully(id)
+        writeFully(id.value)
     }
 }

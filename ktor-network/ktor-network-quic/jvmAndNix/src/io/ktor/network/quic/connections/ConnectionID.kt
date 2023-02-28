@@ -4,25 +4,24 @@
 
 package io.ktor.network.quic.connections
 
-internal typealias ConnectionID = ByteArray
+import kotlin.jvm.*
 
-internal infix fun ConnectionID?.neq(other: ConnectionID?): Boolean {
+@JvmInline
+internal value class ConnectionID(val value: ByteArray) {
+    val size get() = value.size
+
+    companion object {
+        val EMPTY = ConnectionID(byteArrayOf())
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun ByteArray.asCID() = ConnectionID(this)
+
+internal infix fun ConnectionID.neq(other: ConnectionID): Boolean {
     return !eq(other)
 }
 
-internal infix fun ConnectionID?.eq(other: ConnectionID?): Boolean {
-    if (this == null && other == null) return true
-    if (this == null || other == null) return false
-
-    if (size != other.size) {
-        return false
-    }
-    var i = 0
-    while (i < size) {
-        if (this[i] != other[i]) {
-            return false
-        }
-        i++
-    }
-    return true
+internal infix fun ConnectionID.eq(other: ConnectionID): Boolean {
+    return value.contentEquals(other.value)
 }

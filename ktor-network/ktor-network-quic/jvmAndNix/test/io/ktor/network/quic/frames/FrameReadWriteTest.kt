@@ -405,7 +405,7 @@ class FrameReadWriteTest {
 
     @Test
     fun testNewConnectionId() {
-        val bytes1 = ByteArray(2) { 0x00 }
+        val bytes1 = ByteArray(2) { 0x00 }.asCID()
         val bytes2 = ByteArray(16) { 0x00 }
 
         var errCnt = 0
@@ -416,13 +416,13 @@ class FrameReadWriteTest {
                 writeNewConnectionId(packetBuilder, 2, 1, bytes1, bytes2)
 
                 assertFails("Connection id length not in 1..20 (1)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(0), bytes2)
+                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Connection id length not in 1..20 (2)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(21), bytes2)
+                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(21).asCID(), bytes2)
                 }
                 assertFails("Retire Prior To >= Sequence Number") {
-                    writeNewConnectionId(packetBuilder, 1, 2, ByteArray(0), bytes2)
+                    writeNewConnectionId(packetBuilder, 1, 2, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Stateless Reset Token != 16 bytes") {
                     writeNewConnectionId(packetBuilder, 2, 1, bytes1, ByteArray(10))
@@ -456,7 +456,7 @@ class FrameReadWriteTest {
                 validateNewConnectionId { sequenceNumber, retirePriorTo, connectionId, resetToken ->
                     assertEquals(2, sequenceNumber, "Sequence Number")
                     assertEquals(1, retirePriorTo, "Retire Prior To")
-                    assertContentEquals(bytes1, connectionId, "Connection Id")
+                    assertContentEquals(bytes1.value, connectionId.value, "Connection Id")
                     assertContentEquals(bytes2, resetToken, "Stateless Reset Token")
                 }
             },
@@ -659,7 +659,7 @@ class FrameReadWriteTest {
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
-        val packet = OneRTTPacket_v1(byteArrayOf(), spinBit = false, keyPhase = false, packetNumber = 0)
+        val packet = OneRTTPacket_v1(ConnectionID.EMPTY, spinBit = false, keyPhase = false, packetNumber = 0)
 
         for (i in 0 until writer.writtenFramesCnt) {
             FrameReader.readFrame(processor, packet, payload, parameters, maxCIDLength = 20u, onReaderError)

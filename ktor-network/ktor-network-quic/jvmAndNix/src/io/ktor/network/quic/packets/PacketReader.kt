@@ -92,7 +92,7 @@ internal object PacketReader {
 
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt())
+            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt()).asCID()
 
             // End of version independent properties
 
@@ -112,12 +112,12 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         maxCIDLength: UInt8,
         raiseError: (QUICTransportError) -> Nothing,
-    ): ByteArray {
+    ): ConnectionID {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PROTOCOL_VIOLATION) }
         if (connectionIDLength > maxCIDLength) {
             raiseError(PROTOCOL_VIOLATION)
         }
-        return bytes.readBytes(connectionIDLength.toInt())
+        return bytes.readBytes(connectionIDLength.toInt()).asCID()
     }
 
     private inline fun readVersionNegotiationPacket(

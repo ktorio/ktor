@@ -244,7 +244,7 @@ internal object PacketWriter {
 
             with(packetBuilder) {
                 writeUInt8(first xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK))
-                writeFully(destinationConnectionID) // no length as it should be known for the connection
+                writeFully(destinationConnectionID.value) // no length as it should be known for the connection
                 encryptAndWritePacketNumber(packetNumber, packetNumberLength, headerProtectionMask)
                 writeFully(encryptedPayload)
             }
@@ -297,7 +297,7 @@ internal object PacketWriter {
     @Suppress("NOTHING_TO_INLINE")
     private inline fun BytePacketBuilder.writeConnectionID(connectionID: ConnectionID) {
         writeUInt8(connectionID.size.toUByte())
-        writeFully(connectionID)
+        writeFully(connectionID.value)
     }
 
     private fun checkVersionConstraints(

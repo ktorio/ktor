@@ -265,7 +265,10 @@ internal class QUICConnection_v1(
                     return TransportError_v1.PROTOCOL_VIOLATION
                 }
 
-                if (it.resetToken != null && statelessResetToken != null && it.resetToken neq statelessResetToken) {
+                if (it.resetToken != null &&
+                    statelessResetToken != null &&
+                    !it.resetToken.contentEquals(statelessResetToken)
+                ) {
                     return TransportError_v1.PROTOCOL_VIOLATION
                 }
             }
@@ -325,7 +328,7 @@ internal class QUICConnection_v1(
             // The sequence number specified in a RETIRE_CONNECTION_ID frame
             // MUST NOT refer to the Destination Connection ID field of the packet in which the frame is contained.
             // The peer MAY treat this as a connection error of type PROTOCOL_VIOLATION.
-            if (localConnectionIDs[sequenceNumber]?.connectionID eq packet.destinationConnectionID) {
+            if (localConnectionIDs[sequenceNumber]?.connectionID?.eq(packet.destinationConnectionID) == true) {
                 return TransportError_v1.PROTOCOL_VIOLATION
             }
 

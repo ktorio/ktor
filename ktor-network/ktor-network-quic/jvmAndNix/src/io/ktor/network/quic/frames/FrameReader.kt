@@ -385,7 +385,7 @@ internal object FrameReader {
             return FRAME_ENCODING_ERROR
         }
 
-        val connectionID: ConnectionID = payload.readBytes(length) // todo remove allocation?
+        val connectionID: ConnectionID = payload.readBytes(length).asCID() // todo remove allocation?
 
         if (payload.remaining < 16) {
             return FRAME_ENCODING_ERROR
