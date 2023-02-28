@@ -5,9 +5,11 @@
 package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
+import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -30,7 +32,7 @@ class FrameReadWriteTest {
 
     @Test
     fun testAckFrame() {
-        val params = TestPacketTransportParameters(ack_delay_exponent = 2)
+        val params = transportParameters { ack_delay_exponent = 2 }
         val ranges1 = LongArray(8) { 18L - it * 2 }
         val ranges2 = longArrayOf(20, 17, 11, 3)
         val ranges3 = longArrayOf(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
@@ -403,7 +405,7 @@ class FrameReadWriteTest {
 
     @Test
     fun testNewConnectionId() {
-        val bytes1 = ByteArray(2) { 0x00 }
+        val bytes1 = ByteArray(2) { 0x00 }.asCID()
         val bytes2 = ByteArray(16) { 0x00 }
 
         var errCnt = 0
@@ -414,13 +416,13 @@ class FrameReadWriteTest {
                 writeNewConnectionId(packetBuilder, 2, 1, bytes1, bytes2)
 
                 assertFails("Connection id length not in 1..20 (1)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(0), bytes2)
+                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Connection id length not in 1..20 (2)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(21), bytes2)
+                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(21).asCID(), bytes2)
                 }
                 assertFails("Retire Prior To >= Sequence Number") {
-                    writeNewConnectionId(packetBuilder, 1, 2, ByteArray(0), bytes2)
+                    writeNewConnectionId(packetBuilder, 1, 2, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Stateless Reset Token != 16 bytes") {
                     writeNewConnectionId(packetBuilder, 2, 1, bytes1, ByteArray(10))
@@ -454,7 +456,7 @@ class FrameReadWriteTest {
                 validateNewConnectionId { sequenceNumber, retirePriorTo, connectionId, resetToken ->
                     assertEquals(2, sequenceNumber, "Sequence Number")
                     assertEquals(1, retirePriorTo, "Retire Prior To")
-                    assertContentEquals(bytes1, connectionId, "Connection Id")
+                    assertContentEquals(bytes1.value, connectionId.value, "Connection Id")
                     assertContentEquals(bytes2, resetToken, "Stateless Reset Token")
                 }
             },
@@ -642,7 +644,7 @@ class FrameReadWriteTest {
     )
 
     private fun frameTest(
-        parameters: TestPacketTransportParameters = TestPacketTransportParameters(),
+        parameters: TransportParameters = transportParameters(),
         expectedBytesToLeft: Long = 0,
         writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
@@ -653,15 +655,17 @@ class FrameReadWriteTest {
 
         writer.writeFrames(builder)
 
-        val packet = builder.build()
+        val payload = builder.build()
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
+        val packet = OneRTTPacket_v1(ConnectionID.EMPTY, spinBit = false, keyPhase = false, packetNumber = 0)
+
         for (i in 0 until writer.writtenFramesCnt) {
-            FrameReader.readFrame(processor, packet, parameters, maxCIDLength = 20u, onReaderError)
+            FrameReader.readFrame(processor, packet, payload, parameters, maxCIDLength = 20u, onReaderError)
         }
 
-        assertEquals(expectedBytesToLeft, packet.remaining, "Wrong number of remaining bytes")
+        assertEquals(expectedBytesToLeft, payload.remaining, "Wrong number of remaining bytes")
 
         processor.assertNoExpectedFramesLeft()
     }
