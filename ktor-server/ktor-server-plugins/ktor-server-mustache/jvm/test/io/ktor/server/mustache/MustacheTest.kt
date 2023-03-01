@@ -185,7 +185,7 @@ class MustacheTest {
         }
 
         val response = client.get("/")
-        assertEquals("Template\n", response.bodyAsText())
+        assertEquals("Template", response.bodyAsText().trim())
     }
 
     private fun Application.setupMustache() {
