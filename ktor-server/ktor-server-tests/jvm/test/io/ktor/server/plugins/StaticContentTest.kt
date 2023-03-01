@@ -526,7 +526,7 @@ class StaticContentTest {
         client.get("/test-resource.txt") {
             header(HttpHeaders.AcceptEncoding, "br")
         }.let { result ->
-            assertEquals("br\n", result.bodyAsText())
+            assertEquals("br", result.bodyAsText().trim())
             assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
             assertEquals("br", result.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -534,9 +534,15 @@ class StaticContentTest {
         client.get("/test-resource.txt") {
             header(HttpHeaders.AcceptEncoding, "gzip")
         }.let { result ->
-            assertEquals("gz\n", result.bodyAsText())
+            assertEquals("gz", result.bodyAsText().trim())
             assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
             assertEquals("gzip", result.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        client.get("/test-resource.txt").let { result ->
+            assertEquals("plain", result.bodyAsText().trim())
+            assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
+            assertNull(result.headers[HttpHeaders.ContentEncoding])
         }
     }
 
@@ -555,7 +561,7 @@ class StaticContentTest {
         client.get("/test-resource.txt") {
             header(HttpHeaders.AcceptEncoding, "gzip")
         }.let { result ->
-            assertEquals("gz\n", result.bodyAsText())
+            assertEquals("gz", result.bodyAsText().trim())
             assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
             assertEquals("gzip", result.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
