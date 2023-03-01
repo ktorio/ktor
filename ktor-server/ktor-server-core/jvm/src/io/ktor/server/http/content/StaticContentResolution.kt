@@ -30,16 +30,33 @@ public fun ApplicationCall.resolveResource(
         return null
     }
 
-    val normalizedPath = (
-        resourcePackage.orEmpty().split('.', '/', '\\') +
-            path.split('/', '\\')
-        ).normalizePathComponents().joinToString("/")
+    val normalizedPath = normalisedPath(resourcePackage, path)
 
-    // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
+    for (url in classLoader.getResources(normalizedPath).asSequence()) {
+        resourceClasspathResource(url, normalizedPath) { mimeResolve(it.path.extension()) }?.let { content ->
+            return content
+        }
+    }
+
+    return null
+}
+
+@OptIn(InternalAPI::class)
+internal fun Application.resolveResource(
+    path: String,
+    resourcePackage: String? = null,
+    classLoader: ClassLoader = environment.classLoader,
+    mimeResolve: (URL) -> ContentType
+): Pair<URL, OutgoingContent.ReadChannelContent>? {
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
+    val normalizedPath = normalisedPath(resourcePackage, path)
 
     for (url in classLoader.getResources(normalizedPath).asSequence()) {
         resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { content ->
-            return content
+            return url to content
         }
     }
 
@@ -54,25 +71,28 @@ public fun ApplicationCall.resolveResource(
 public fun resourceClasspathResource(
     url: URL,
     path: String,
-    mimeResolve: (String) -> ContentType
+    mimeResolve: (URL) -> ContentType
 ): OutgoingContent.ReadChannelContent? {
     return when (url.protocol) {
         "file" -> {
             val file = File(url.path.decodeURLPart())
-            if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
+            if (file.isFile) LocalFileContent(file, mimeResolve(url)) else null
         }
+
         "jar" -> {
             if (path.endsWith("/")) {
                 null
             } else {
                 val zipFile = findContainingJarFile(url.toString())
-                val content = JarFileContent(zipFile, path, mimeResolve(url.path.extension()))
+                val content = JarFileContent(zipFile, path, mimeResolve(url))
                 if (content.isFile) content else null
             }
         }
+
         "jrt", "resource" -> {
-            URIFileContent(url, mimeResolve(url.path.extension()))
+            URIFileContent(url, mimeResolve(url))
         }
+
         else -> null
     }
 }
@@ -92,4 +112,11 @@ internal fun String.extension(): String {
     val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
     return if (indexOfDot >= 0) substring(indexOfDot) else ""
+}
+
+private fun normalisedPath(resourcePackage: String?, path: String): String {
+    // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
+    return (resourcePackage.orEmpty().split('.', '/', '\\') + path.split('/', '\\'))
+        .normalizePathComponents()
+        .joinToString("/")
 }

@@ -11,6 +11,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
 import io.ktor.util.*
+import java.net.*
 import kotlin.random.*
 
 /**
@@ -39,7 +40,7 @@ constructor() {
     /**
      * Content-type resolution, uses [defaultForFileExtension] by default
      */
-    public var mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
+    public var mimeResolve: (URL) -> ContentType = { ContentType.defaultForFilePath(it.path) }
 
     /**
      * Add [predicate] to [includes]

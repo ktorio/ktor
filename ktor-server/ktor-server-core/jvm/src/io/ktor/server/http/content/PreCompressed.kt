@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
+import java.net.*
 
 /**
  * Supported pre compressed file types and associated extensions
@@ -19,7 +20,6 @@ import java.io.*
  * **See Also:** [Accept-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding)
  */
 public enum class CompressedFileType(public val extension: String, public val encoding: String = extension) {
-    // https://www.theregister.co.uk/2015/10/11/googles_bro_file_format_changed_to_br_after_gender_politics_worries/
     BROTLI("br"),
     GZIP("gz", "gzip");
 
@@ -67,31 +67,48 @@ internal fun bestCompressionFit(
         ?.firstOrNull { it.file(file).isFile }
 }
 
+internal class CompressedResource(
+    val url: URL,
+    val content: OutgoingContent.ReadChannelContent,
+    val compression: CompressedFileType
+)
+
 internal fun bestCompressionFit(
     call: ApplicationCall,
     resource: String,
     packageName: String?,
     acceptEncoding: List<HeaderValue>,
-    compressedTypes: List<CompressedFileType>?
-): CompressedFileType? {
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (URL) -> ContentType
+): CompressedResource? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
     // We respect the order in compressedTypes, not the one on Accept header
     return compressedTypes
+        ?.asSequence()
         ?.filter { it.encoding in acceptedEncodings }
-        ?.firstOrNull {
+        ?.mapNotNull {
             val compressed = "$resource.${it.extension}"
-            call.resolveResource(compressed, packageName) != null
+            val resolved = call.application.resolveResource(compressed, packageName) { url ->
+                val requestPath = url.path.replace(Regex("${Regex.escapeReplacement(compressed)}$"), resource)
+                contentType(URL(url.protocol, url.host, url.port, requestPath))
+            } ?: return@mapNotNull null
+            CompressedResource(resolved.first, resolved.second, it)
         }
+        ?.firstOrNull()
 }
 
-internal suspend inline fun ApplicationCall.respondStaticFile(
+internal suspend fun ApplicationCall.respondStaticFile(
     requestedFile: File,
-    compressedTypes: List<CompressedFileType>?
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
+    cacheControl: (File) -> List<CacheControl> = { emptyList() }
 ) {
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
+    val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
     if (bestCompressionFit == null) {
         if (requestedFile.isFile) {
-            respond(LocalFileContent(requestedFile, ContentType.defaultForFile(requestedFile)))
+            if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+            respond(LocalFileContent(requestedFile, contentType(requestedFile)))
         }
         return
     }
@@ -99,39 +116,44 @@ internal suspend inline fun ApplicationCall.respondStaticFile(
     @Suppress("DEPRECATION")
     val compressedFile = bestCompressionFit.file(requestedFile)
     if (compressedFile.isFile) {
-        val localFileContent = LocalFileContent(compressedFile, ContentType.defaultForFile(requestedFile))
+        if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile))
         respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
     }
 }
 
-internal suspend inline fun ApplicationCall.respondStaticResource(
+internal suspend fun ApplicationCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
-    compressedTypes: List<CompressedFileType>?
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
+    cacheControl: (URL) -> List<CacheControl> = { emptyList() }
 ) {
     val bestCompressionFit = bestCompressionFit(
         call = this,
         resource = requestedResource,
         packageName = packageName,
         acceptEncoding = request.acceptEncodingItems(),
-        compressedTypes = compressedTypes
+        compressedTypes = compressedTypes,
+        contentType = contentType
     )
 
-    if (bestCompressionFit == null) {
-        val content = resolveResource(path = requestedResource, resourcePackage = packageName)
-        if (content != null) {
-            respond(content)
-        }
+    if (bestCompressionFit != null) {
+        attributes.put(SuppressionAttribute, true)
+        val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
+        if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        respond(PreCompressedResponse(bestCompressionFit.content, bestCompressionFit.compression.encoding))
         return
     }
-    attributes.put(SuppressionAttribute, true)
-    val compressedResource = resolveResource(
-        path = "$requestedResource.${bestCompressionFit.extension}",
-        resourcePackage = packageName
-    ) {
-        ContentType.defaultForFileExtension(requestedResource.extension())
-    }
-    if (compressedResource != null) {
-        respond(PreCompressedResponse(compressedResource, bestCompressionFit.encoding))
+
+    val content = application.resolveResource(
+        path = requestedResource,
+        resourcePackage = packageName,
+        mimeResolve = contentType
+    )
+    if (content != null) {
+        val cacheControlValues = cacheControl(content.first).joinToString(", ")
+        if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        respond(content.second)
     }
 }

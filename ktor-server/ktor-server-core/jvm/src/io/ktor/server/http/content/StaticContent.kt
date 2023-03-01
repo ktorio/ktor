@@ -12,13 +12,136 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
+import java.net.URL
 
 private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
 
 /**
- * Support pre-compressed files in the file system only (not just any classpath resource)
+ * A config for serving static content
+ */
+public class StaticContentConfig<Resource : Any> internal constructor() {
+
+    internal var contentType: (Resource) -> ContentType = {
+        when (it) {
+            is File -> ContentType.defaultForFile(it)
+            is URL -> ContentType.defaultForFilePath(it.path)
+            else -> throw IllegalArgumentException("Argument can be only of type File or String, but was ${it::class}")
+        }
+    }
+    internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
+
+    /**
+     * Support pre-compressed files or resources.
+     *
+     * For example, for static files, by setting `preCompressed = listOf(CompressedFileType.BROTLI)`, the local file
+     * /foo/bar.js.br can be found at "/foo/bar.js"
+     *
+     * Appropriate headers will be set and compression will be suppressed if pre-compressed file is found.
+     *
+     * The order in types is *important*.
+     * It will determine the priority of serving one versus serving another.
+     */
+    public var preCompressedFileTypes: List<CompressedFileType> = emptyList()
+
+    /**
+     * Configures [ContentType] for requested static content.
+     * For files, [Resource] is a request [File].
+     * For resources, [Resource] is a path to requested resource.
+     */
+    public fun contentType(block: (Resource) -> ContentType) {
+        contentType = block
+    }
+
+    /**
+     * Configures [CacheControl] for requested static content.
+     * For files, [Resource] is a request [File].
+     * For resources, [Resource] is a path to requested resource.
+     */
+    public fun cacheControl(block: (Resource) -> List<CacheControl>) {
+        cacheControl = block
+    }
+}
+
+/**
+ * Sets up [Routing] to serve static files.
+ * All files inside [dir] will be accessible recursively at "[remotePath]/path/to/file".
+ * If requested file is a directory and [index] is not `null`,
+ * then response will be [index] file in the requested directory.
+ *
+ * If requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ */
+public fun Route.staticFiles(
+    remotePath: String,
+    dir: File,
+    index: String? = "index.html",
+    block: StaticContentConfig<File>.() -> Unit = {}
+): Route {
+    val staticRoute = StaticContentConfig<File>().apply(block)
+    val compressedTypes = staticRoute.preCompressedFileTypes
+    val contentType = staticRoute.contentType
+    val cacheControl = staticRoute.cacheControl
+    return route(remotePath) {
+        get("{$pathParameterName...}") {
+            val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
+            val requestedFile = dir.combineSafe(relativePath)
+            val file = if (index != null && requestedFile.isDirectory) {
+                File(dir.combineSafe(relativePath), index)
+            } else {
+                requestedFile
+            }
+            call.respondStaticFile(file, compressedTypes, contentType, cacheControl)
+        }
+    }
+}
+
+/**
+ * Sets up [Routing] to serve resources as static content.
+ * All resources inside [basePackage] will be accessible recursively at "[remotePath]/path/to/resource".
+ * If requested resource doesn't exist and [index] is not `null`,
+ * then response will be [index] resource in the requested package.
+ *
+ * If requested resource doesn't exist and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ */
+public fun Route.staticResources(
+    remotePath: String,
+    basePackage: String?,
+    index: String? = "index.html",
+    block: StaticContentConfig<URL>.() -> Unit = {}
+): Route {
+    val staticRoute = StaticContentConfig<URL>().apply(block)
+    val compressedTypes = staticRoute.preCompressedFileTypes
+    val contentType = staticRoute.contentType
+    val cacheControl = staticRoute.cacheControl
+    return route(remotePath) {
+        get("{$pathParameterName...}") {
+            val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
+            call.respondStaticResource(
+                requestedResource = relativePath,
+                packageName = basePackage,
+                compressedTypes = compressedTypes,
+                contentType = contentType,
+                cacheControl = cacheControl
+            )
+            if (call.isHandled || index == null) return@get
+            call.respondStaticResource(
+                requestedResource = "$relativePath${File.separator}$index",
+                packageName = basePackage,
+                compressedTypes = compressedTypes,
+                contentType = contentType,
+                cacheControl = cacheControl
+            )
+        }
+    }
+}
+
+/**
+ * Support pre-compressed files and resources
  *
  * For example, by using [preCompressed()] (or [preCompressed(CompressedFileType.BROTLI)]), the local file
  * /foo/bar.js.br can be found @ http..../foo/bar.js
@@ -150,6 +273,7 @@ internal fun Route.filesWithDefaultFile(
 
         if (shouldFileBeIgnored.invoke(relativePath)) {
             call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
+            return@get
         }
 
         val file = dir.combineSafe(relativePath)
