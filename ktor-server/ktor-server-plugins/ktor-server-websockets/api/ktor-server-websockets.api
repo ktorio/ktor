@@ -2,6 +2,7 @@ public abstract interface class io/ktor/server/websocket/DefaultWebSocketServerS
 }
 
 public final class io/ktor/server/websocket/DefaultWebSocketServerSession$DefaultImpls {
+	public static fun getConverter (Lio/ktor/server/websocket/DefaultWebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
 	public static fun send (Lio/ktor/server/websocket/DefaultWebSocketServerSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -42,17 +43,19 @@ public final class io/ktor/server/websocket/RoutingKt {
 	public static synthetic fun webSocketRaw$default (Lio/ktor/server/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 }
 
-public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/websocket/WebSocketSession {
+public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/serialization/WebSocketSessionWithContentConverter {
 	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public abstract fun getConverter ()Lio/ktor/serialization/WebsocketContentConverter;
 }
 
 public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls {
+	public static fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
 	public static fun send (Lio/ktor/server/websocket/WebSocketServerSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/websocket/WebSocketServerSessionKt {
 	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/Application;
-	public static final fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
+	public static final synthetic fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
 }
 
 public final class io/ktor/server/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {

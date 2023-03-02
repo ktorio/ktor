@@ -32,7 +32,6 @@ internal abstract class KotlinxSerializationBase<T>(
 }
 
 internal open class SerializationParameters(
-    open val format: SerialFormat,
     open val value: Any?,
     open val typeInfo: TypeInfo,
     open val charset: Charset
@@ -41,9 +40,8 @@ internal open class SerializationParameters(
 }
 
 internal class SerializationNegotiationParameters(
-    override val format: SerialFormat,
     override val value: Any?,
     override val typeInfo: TypeInfo,
     override val charset: Charset,
     val contentType: ContentType
-) : SerializationParameters(format, value, typeInfo, charset)
+) : SerializationParameters(value, typeInfo, charset)

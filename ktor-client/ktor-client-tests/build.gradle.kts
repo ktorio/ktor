@@ -7,7 +7,7 @@ import test.server.*
 description = "Common tests for client"
 
 plugins {
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
 }
 
 apply<TestServerPlugin>()

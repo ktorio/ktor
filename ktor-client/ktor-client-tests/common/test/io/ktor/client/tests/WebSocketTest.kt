@@ -10,11 +10,15 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.*
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Curl", "DarwinLegacy")
@@ -171,6 +175,29 @@ class WebSocketTest : ClientLoader() {
                     sendSerialized(originalData)
                     val actual = receiveDeserialized<Data>()
                     assertTrue { actual == originalData }
+                }
+            }
+        }
+    }
+
+    @Serializer(forClass = Data::class)
+    object DataSerializer
+
+    @Test
+    fun testWebSocketSerializationWithCustomSerializer() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            WebSockets {
+                contentConverter = KotlinxWebsocketSerializationConverter(Json)
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(TEST_SIZE) {
+                    val originalData = Data("hello")
+                    sendSerialized(originalData, DataSerializer)
+                    val actual = receiveDeserialized(DataSerializer)
+                    assertEquals(originalData, actual)
                 }
             }
         }

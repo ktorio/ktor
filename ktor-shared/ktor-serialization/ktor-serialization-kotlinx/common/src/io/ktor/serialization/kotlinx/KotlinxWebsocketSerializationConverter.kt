@@ -20,7 +20,7 @@ import kotlinx.serialization.*
  */
 @OptIn(ExperimentalSerializationApi::class)
 public class KotlinxWebsocketSerializationConverter(
-    private val format: SerialFormat,
+    internal val format: SerialFormat,
 ) : WebsocketContentConverter {
 
     init {
@@ -33,7 +33,6 @@ public class KotlinxWebsocketSerializationConverter(
     override suspend fun serializeNullable(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         return serializationBase.serialize(
             SerializationParameters(
-                format,
                 value,
                 typeInfo,
                 charset
@@ -42,10 +41,14 @@ public class KotlinxWebsocketSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any? {
+        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        return deserialize(serializer, content)
+    }
+
+    internal fun <T> deserialize(serializer: DeserializationStrategy<T>, content: Frame): T {
         if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
 
         return when (format) {
             is StringFormat -> {
@@ -80,30 +83,52 @@ public class KotlinxWebsocketSerializationConverter(
 
     private val serializationBase = object : KotlinxSerializationBase<Frame>(format) {
         override suspend fun serializeContent(parameters: SerializationParameters): Frame {
+            @Suppress("UNCHECKED_CAST")
+            val serializer = parameters.serializer as KSerializer<Any?>
             return serializeContent(
-                parameters.serializer,
-                parameters.format,
+                serializer,
                 parameters.value
             )
         }
     }
 
-    private fun serializeContent(
-        serializer: KSerializer<*>,
-        format: SerialFormat,
-        value: Any?
+    internal fun <T> serializeContent(
+        serializer: SerializationStrategy<T>,
+        value: T
     ): Frame {
-        @Suppress("UNCHECKED_CAST")
         return when (format) {
             is StringFormat -> {
-                val content = format.encodeToString(serializer as KSerializer<Any?>, value)
+                val content = format.encodeToString(serializer, value)
                 Frame.Text(content)
             }
             is BinaryFormat -> {
-                val content = format.encodeToByteArray(serializer as KSerializer<Any?>, value)
+                val content = format.encodeToByteArray(serializer, value)
                 Frame.Binary(true, content)
             }
             else -> error("Unsupported format $format")
         }
     }
+}
+
+public suspend fun <T> WebSocketSessionWithContentConverter.sendSerialized(
+    data: T,
+    serializer: SerializationStrategy<T>
+) {
+    val converter = converter as? KotlinxWebsocketSerializationConverter
+        ?: throw WebsocketConverterNotFoundException(
+            "No KotlinxWebsocketSerializationConverter was found for websocket"
+        )
+    val frame = converter.serializeContent(serializer, data)
+    send(frame)
+}
+
+public suspend fun <T> WebSocketSessionWithContentConverter.receiveDeserialized(
+    deserializer: DeserializationStrategy<T>
+): T {
+    val converter = converter as? KotlinxWebsocketSerializationConverter
+        ?: throw WebsocketConverterNotFoundException(
+            "No KotlinxWebsocketSerializationConverter was found for websocket"
+        )
+    val frame = incoming.receive()
+    return converter.deserialize(deserializer, frame)
 }
