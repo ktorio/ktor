@@ -16,6 +16,16 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
     internal var forceProxyTunneling: Boolean = false
 
     /**
+     * Sets path to Certificate Authority (CA) bundle using `CURLOPT_CAINFO`.
+     */
+    public var caInfo: String? = null
+
+    /**
+     * Sets directory that holds Certificate Authority (CA) certificates using `CURLOPT_CAPATH`.
+     */
+    public var caPath: String? = null
+
+    /**
      * Enables TLS host and certificate verification by setting the
      * `CURLOPT_SSL_VERIFYPEER` and `CURLOPT_SSL_VERIFYHOST` options.
      * Similar to `-k/--insecure` curl option.

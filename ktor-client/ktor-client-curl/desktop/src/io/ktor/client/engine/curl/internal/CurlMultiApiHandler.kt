@@ -109,6 +109,8 @@ internal class CurlMultiApiHandler : Closeable {
                 option(CURLOPT_SSL_VERIFYPEER, 0L)
                 option(CURLOPT_SSL_VERIFYHOST, 0L)
             }
+            request.caPath?.let { option(CURLOPT_CAPATH, it) }
+            request.caInfo?.let { option(CURLOPT_CAINFO, it) }
         }
 
         curl_multi_add_handle(multiHandle, easyHandle).verify()
@@ -160,6 +162,7 @@ internal class CurlMultiApiHandler : Closeable {
                     option(CURLOPT_POST, 1L)
                     option(CURLOPT_POSTFIELDSIZE, size)
                 }
+
                 "HEAD" -> option(CURLOPT_NOBODY, 1L)
                 else -> {
                     if (size > 0) option(CURLOPT_POST, 1L)
