@@ -642,9 +642,11 @@ public final class io/ktor/http/HttpProtocolVersion$Companion {
 	public final fun parse (Ljava/lang/CharSequence;)Lio/ktor/http/HttpProtocolVersion;
 }
 
-public final class io/ktor/http/HttpStatusCode {
+public final class io/ktor/http/HttpStatusCode : java/lang/Comparable {
 	public static final field Companion Lio/ktor/http/HttpStatusCode$Companion;
 	public fun <init> (ILjava/lang/String;)V
+	public fun compareTo (Lio/ktor/http/HttpStatusCode;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public final fun component1 ()I
 	public final fun component2 ()Ljava/lang/String;
 	public final fun copy (ILjava/lang/String;)Lio/ktor/http/HttpStatusCode;
