@@ -16,6 +16,7 @@ import org.apache.hc.client5.http.impl.nio.*
 import org.apache.hc.client5.http.ssl.*
 import org.apache.hc.core5.http.*
 import org.apache.hc.core5.http.ssl.*
+import org.apache.hc.core5.io.*
 import org.apache.hc.core5.reactor.*
 import org.apache.hc.core5.ssl.*
 import java.net.*
@@ -52,7 +53,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
         super.close()
 
         coroutineContext[Job]!!.invokeOnCompletion {
-            engine?.close()
+            engine?.close(CloseMode.IMMEDIATE)
         }
     }
 
