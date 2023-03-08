@@ -399,7 +399,6 @@ class MicrometerMetricsTests {
         assertEquals("OK", response.bodyAsText())
     }
 
-
     private fun TestApplicationEngine.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
         vararg meterNames: String
