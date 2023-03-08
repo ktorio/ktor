@@ -203,9 +203,7 @@ class TestApplicationEngine(
             handleRequestNonBlocking(closeRequest, setup)
         }
 
-        return runBlocking(coroutineContext) {
-            callJob.await()
-        }
+        return runBlocking { callJob.await() }
     }
 
     internal suspend fun handleRequestNonBlocking(
