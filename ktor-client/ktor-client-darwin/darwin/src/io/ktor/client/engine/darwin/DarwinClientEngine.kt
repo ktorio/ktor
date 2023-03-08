@@ -18,7 +18,11 @@ import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
-    private val requestQueue: NSOperationQueue? = NSOperationQueue.currentQueue()
+
+    private val requestQueue: NSOperationQueue? = when (val queue = NSOperationQueue.currentQueue()) {
+        NSOperationQueue.mainQueue -> NSOperationQueue()
+        else -> queue
+    }
 
     override val dispatcher = Dispatchers.Unconfined
 
