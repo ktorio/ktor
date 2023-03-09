@@ -185,6 +185,7 @@ class ContentTest : ClientLoader(5 * 60) {
                 }
                 append("hello", 5)
                 append("world", true)
+                append("engines[]", listOf("Jvm", "Js", "Native"))
             }
         }
 

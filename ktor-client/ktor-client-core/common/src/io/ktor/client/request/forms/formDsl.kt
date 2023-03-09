@@ -140,6 +140,25 @@ public class FormBuilder internal constructor() {
     }
 
     /**
+     * Appends a pair [key]:[values] with optional [headers].
+     */
+    public fun append(key: String, values: Iterable<String>, headers: Headers = Headers.Empty) {
+        require(key.endsWith("[]")) {
+            "Array parameter must be suffixed with square brackets ie `$key[]`"
+        }
+        values.forEach { value ->
+            parts += FormPart(key, value, headers)
+        }
+    }
+
+    /**
+     * Appends a pair [key]:[values] with optional [headers].
+     */
+    public fun append(key: String, values: Array<String>, headers: Headers = Headers.Empty) {
+        return append(key, values.asIterable(), headers)
+    }
+
+    /**
      * Appends a pair [key]:[ChannelProvider] with optional [headers].
      */
     public fun append(key: String, value: ChannelProvider, headers: Headers = Headers.Empty) {
