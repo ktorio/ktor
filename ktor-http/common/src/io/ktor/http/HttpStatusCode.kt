@@ -21,7 +21,7 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
      * Returns a copy of `this` code with a description changed to [value].
      */
     public fun description(value: String): HttpStatusCode = copy(description = value)
-    
+
     override fun compareTo(other: HttpStatusCode): Int = value - other.value
 
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
