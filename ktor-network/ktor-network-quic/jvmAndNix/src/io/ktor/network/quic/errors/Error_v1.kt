@@ -102,3 +102,22 @@ internal class CryptoHandshakeError_v1(val tlsAlertCode: UInt8) : QUICTransportE
         packetBuilder.writeUInt8(tlsAlertCode)
     }
 }
+
+internal class ReasonedError(
+    val error: QUICTransportError,
+    val reasonPhrase: ByteArray,
+) : QUICTransportError {
+    override fun toString(): String {
+        return "Error: $error, reason: ${String(reasonPhrase)}"
+    }
+}
+
+internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTransportError {
+    if (reasonPhrase.isEmpty()) return this
+
+    val bytes = reasonPhrase.toByteArray(Charsets.UTF_8)
+    return when(this) {
+        is ReasonedError -> ReasonedError(error, bytes)
+        else -> ReasonedError(this, bytes)
+    }
+}

@@ -65,7 +65,7 @@ internal class QUICConnection_v1(
     private val localConnectionIDs = ConnectionIDRecordList(localTransportParameters.active_connection_id_limit)
 
     /**
-     * Pool of CIDs which the peer willing to accept
+     * Pool of CIDs which the peer is willing to accept
      */
     private val peerConnectionIDs = ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit)
 

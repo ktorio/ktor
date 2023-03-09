@@ -44,6 +44,6 @@ internal object HeaderProtection {
         headerProtectionKey: String,
         sample: ByteArray,
     ): Long {
-        TODO("crypto")
+        return 0.inv()
     }
 }
