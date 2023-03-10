@@ -128,6 +128,7 @@ internal class ApacheRequestEntityProducer(
         } while (result > 0)
 
         if (this.channel.isClosedForRead) {
+            this.channel.closedCause?.let { throw it }
             channel.endStream()
             return
         }

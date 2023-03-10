@@ -90,6 +90,7 @@ internal class ApacheRequestProducer(
         } while (result > 0)
 
         if (channel.isClosedForRead) {
+            channel.closedCause?.let { throw it }
             encoder.complete()
             return
         }
@@ -130,7 +131,7 @@ internal class ApacheRequestProducer(
         if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
             builder.entity = BasicHttpEntity().apply {
                 val lengthResult = length
-                if (lengthResult == null || lengthResult.isBlank()) {
+                if (lengthResult.isNullOrBlank()) {
                     isChunked = true
                 } else {
                     contentLength = lengthResult.toLong()

@@ -95,7 +95,6 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
             while (true) {
                 val buffer = request(0, 1)
                 if (buffer == null) {
-//                        if (channel.isClosedForRead) break
                     if (!awaitAtLeast(1)) break
                     continue
                 }

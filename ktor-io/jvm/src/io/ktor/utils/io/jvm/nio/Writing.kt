@@ -17,7 +17,10 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         throw IllegalArgumentException("Non-blocking channels are not supported")
     }
 
-    if (isClosedForRead) return 0
+    if (isClosedForRead) {
+        closedCause?.let { throw it }
+        return 0
+    }
 
     var copied = 0L
     val copy = { bb: ByteBuffer ->
@@ -47,6 +50,8 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         read(min = 0, consumer = copy)
         if (isClosedForRead) break
     }
+
+    closedCause?.let { throw it }
 
     return copied
 }
