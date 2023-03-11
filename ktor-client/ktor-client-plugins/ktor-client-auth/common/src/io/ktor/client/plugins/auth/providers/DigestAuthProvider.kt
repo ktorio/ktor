@@ -163,7 +163,7 @@ public class DigestAuthProvider(
         val realm = realm ?: authHeader?.let { auth ->
             (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
         }
-        
+
         val credentials = tokenHolder.loadToken() ?: return
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
