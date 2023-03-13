@@ -248,6 +248,8 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
 
             languageSettings.apply {
                 progressiveMode = true
+                languageVersion = "2.0"
+                apiVersion = "2.0"
             }
         }
 
