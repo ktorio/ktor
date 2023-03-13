@@ -81,7 +81,6 @@ internal class BasicResponseConsumer(private val dataConsumer: ApacheResponseCon
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 @OptIn(InternalCoroutinesApi::class)
 internal class ApacheResponseConsumer(
     parentContext: CoroutineContext,
@@ -101,8 +100,7 @@ internal class ApacheResponseConsumer(
     private val messagesQueue = Channel<Any>(capacity = UNLIMITED)
 
     internal val responseChannel: ByteReadChannel = channel
-    private val messagesCount = atomic(0)
-    private val mactiveMessagesCount = atomic(0)
+    private val capacity = atomic(channel.availableForWrite)
 
     init {
         coroutineContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
@@ -112,26 +110,16 @@ internal class ApacheResponseConsumer(
         }
 
         launch(coroutineContext) {
-            for (message1 in messagesQueue) {
-                val (count, message) = message1 as Pair<Int, Any>
-                val value = mactiveMessagesCount.decrementAndGet()
+            for (message in messagesQueue) {
                 when (message) {
-                    is CloseChannel -> {
-                        println("received close $count queue $value")
-                        close()
-                    }
+                    is CloseChannel -> close()
 
                     is ByteBuffer -> {
-                        try {
-                            println("received message $count queue $value")
-                            val remaining = message.remaining()
-                            channel.writeFully(message)
-                            println("write success")
-                            capacityChannel?.update(remaining)
-                            println("notify success $capacityChannel")
-                        } catch (cause: Throwable) {
-                            println(cause)
-                            throw cause
+                        val written = message.remaining()
+                        channel.writeFully(message)
+                        when (capacityChannel) {
+                            null -> capacity.addAndGet(written)
+                            else -> capacityChannel!!.update(written)
                         }
                     }
 
@@ -142,20 +130,13 @@ internal class ApacheResponseConsumer(
     }
 
     override fun releaseResources() {
-        println("close messages")
         messagesQueue.close()
     }
 
     override fun updateCapacity(capacityChannel: CapacityChannel) {
-        println("update capacity")
-        if (this.capacityChannel != null && this.capacityChannel != capacityChannel) {
-            throw IllegalStateException("AAAA")
-        }
         if (this.capacityChannel == null) {
             this.capacityChannel = capacityChannel
-            val availableForWrite = channel.availableForWrite
-            println("updating new channel $availableForWrite")
-            capacityChannel.update(4088) // BBC capacity
+            capacityChannel.update(capacity.value)
         }
     }
 
@@ -163,17 +144,11 @@ internal class ApacheResponseConsumer(
         if (channel.isClosedForWrite) {
             channel.closedCause?.let { throw it }
         }
-        val value = messagesCount.incrementAndGet()
-        val count = mactiveMessagesCount.incrementAndGet()
-        println("sending data $value count $count")
-        messagesQueue.trySend(value to src.copy())
+        messagesQueue.trySend(src.copy())
     }
 
     override fun streamEnd(trailers: List<Header>?) {
-        val value = messagesCount.incrementAndGet()
-        val count = mactiveMessagesCount.incrementAndGet()
-        println("closing messages $value count $count")
-        messagesQueue.trySend(value to CloseChannel)
+        messagesQueue.trySend(CloseChannel)
     }
 
     override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {}
