@@ -27,7 +27,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         when (it) {
             is File -> ContentType.defaultForFile(it)
             is URL -> ContentType.defaultForFilePath(it.path)
-            else -> throw IllegalArgumentException("Argument can be only of type File or String, but was ${it::class}")
+            else -> throw IllegalArgumentException("Argument can be only of type File or URL, but was ${it::class}")
         }
     }
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
