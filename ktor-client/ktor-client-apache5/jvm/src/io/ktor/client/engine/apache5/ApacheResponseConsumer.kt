@@ -100,6 +100,7 @@ internal class ApacheResponseConsumer(
     private val messagesQueue = Channel<Any>(capacity = UNLIMITED)
 
     internal val responseChannel: ByteReadChannel = channel
+    private val capacity = atomic(channel.availableForWrite)
 
     init {
         coroutineContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
@@ -114,9 +115,12 @@ internal class ApacheResponseConsumer(
                     is CloseChannel -> close()
 
                     is ByteBuffer -> {
-                        val remaining = message.remaining()
+                        val written = message.remaining()
                         channel.writeFully(message)
-                        capacityChannel?.update(remaining)
+                        when (capacityChannel) {
+                            null -> capacity.addAndGet(written)
+                            else -> capacityChannel!!.update(written)
+                        }
                     }
 
                     else -> throw IllegalStateException("Unknown message $message")
@@ -132,7 +136,7 @@ internal class ApacheResponseConsumer(
     override fun updateCapacity(capacityChannel: CapacityChannel) {
         if (this.capacityChannel == null) {
             this.capacityChannel = capacityChannel
-            capacityChannel.update(channel.availableForWrite)
+            capacityChannel.update(capacity.value)
         }
     }
 
