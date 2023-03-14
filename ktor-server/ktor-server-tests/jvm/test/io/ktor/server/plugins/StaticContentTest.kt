@@ -179,6 +179,27 @@ class StaticContentTest {
     }
 
     @Test
+    fun testStaticFilesExtensions() = testApplication {
+        routing {
+            staticFiles("static", basedir) {
+                extensions("kt")
+            }
+        }
+
+        val responseFile = client.get("static/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertTrue(responseFile.bodyAsText().contains("class CookiesTest {"))
+        assertEquals(ContentType.Application.OctetStream, responseFile.contentType())
+        assertNull(responseFile.headers[HttpHeaders.CacheControl])
+
+        val responseFileNoExtension = client.get("static/plugins/CookiesTest")
+        assertEquals(HttpStatusCode.OK, responseFileNoExtension.status)
+        assertTrue(responseFileNoExtension.bodyAsText().contains("class CookiesTest {"))
+        assertEquals(ContentType.Application.OctetStream, responseFileNoExtension.contentType())
+        assertNull(responseFileNoExtension.headers[HttpHeaders.CacheControl])
+    }
+
+    @Test
     fun testStaticFilesPreCompressed() = testApplication {
         val filesDir = Files.createTempDirectory("assets").toFile()
         val tempFile = File(filesDir, "testServeEncodedFile.txt")
@@ -290,6 +311,27 @@ class StaticContentTest {
         assertEquals(HttpStatusCode.NotFound, noIndex.status)
         val fileNoIndex = client.get("static_no_index/file.txt")
         assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+    }
+
+    @Test
+    fun testStaticResourcesExtensions() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                extensions("txt")
+            }
+        }
+
+        val responseFile = client.get("static/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("file.txt", responseFile.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
+        assertNull(responseFile.headers[HttpHeaders.CacheControl])
+
+        val responseFileNoExtension = client.get("static/file")
+        assertEquals(HttpStatusCode.OK, responseFileNoExtension.status)
+        assertEquals("file.txt", responseFileNoExtension.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFileNoExtension.contentType()!!.withoutParameters())
+        assertNull(responseFileNoExtension.headers[HttpHeaders.CacheControl])
     }
 
     @Test
