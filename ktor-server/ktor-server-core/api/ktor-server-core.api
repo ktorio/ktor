@@ -430,6 +430,13 @@ public final class io/ktor/server/http/content/SinglePageApplicationKt {
 	public static final fun vue (Lio/ktor/server/http/content/SPAConfig;Ljava/lang/String;)V
 }
 
+public final class io/ktor/server/http/content/StaticContentConfig {
+	public final fun cacheControl (Lkotlin/jvm/functions/Function1;)V
+	public final fun contentType (Lkotlin/jvm/functions/Function1;)V
+	public final fun getPreCompressedFileTypes ()Ljava/util/List;
+	public final fun setPreCompressedFileTypes (Ljava/util/List;)V
+}
+
 public final class io/ktor/server/http/content/StaticContentKt {
 	public static final fun default (Lio/ktor/server/routing/Route;Ljava/io/File;)V
 	public static final fun default (Lio/ktor/server/routing/Route;Ljava/lang/String;)V
@@ -453,6 +460,10 @@ public final class io/ktor/server/http/content/StaticContentKt {
 	public static final fun setStaticRootFolder (Lio/ktor/server/routing/Route;Ljava/io/File;)V
 	public static final fun static (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun static (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun staticFiles (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun staticFiles$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static final fun staticResources (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun staticResources$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 }
 
 public final class io/ktor/server/http/content/StaticContentResolutionKt {

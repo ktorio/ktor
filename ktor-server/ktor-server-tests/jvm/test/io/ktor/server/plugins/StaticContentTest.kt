@@ -129,6 +129,178 @@ class StaticContentTest {
         }
     }
 
+    object Immutable : CacheControl(null) {
+        override fun toString(): String = "immutable"
+    }
+
+    @Test
+    fun testStaticFiles() = testApplication {
+        routing {
+            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+                cacheControl {
+                    when (it.name) {
+                        "PartialContentTest.kt" -> listOf(Immutable, CacheControl.MaxAge(1))
+                        else -> emptyList()
+                    }
+                }
+                contentType {
+                    when (it.name) {
+                        "PartialContentTest.kt" -> ContentType.Application.Json
+                        else -> ContentType.defaultForFile(it)
+                    }
+                }
+            }
+            staticFiles("static_no_index", basedir, null)
+        }
+
+        val responseDefault = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseDefault.status)
+        assertTrue(responseDefault.bodyAsText().contains("class StaticContentTest {"))
+
+        val responseCustom = client.get("static/plugins/PartialContentTest.kt")
+        assertEquals(HttpStatusCode.OK, responseCustom.status)
+        assertTrue(responseCustom.bodyAsText().contains("class PartialContentTest {"))
+        assertEquals(ContentType.Application.Json, responseCustom.contentType())
+        assertEquals("immutable, max-age=1", responseCustom.headers[HttpHeaders.CacheControl])
+
+        val responseFile = client.get("static/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertTrue(responseFile.bodyAsText().contains("class CookiesTest {"))
+        assertEquals(ContentType.Application.OctetStream, responseFile.contentType())
+        assertNull(responseFile.headers[HttpHeaders.CacheControl])
+
+        val notFound = client.get("static/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFound.status)
+
+        val noIndex = client.get("static_no_index")
+        assertEquals(HttpStatusCode.NotFound, noIndex.status)
+        val fileNoIndex = client.get("static_no_index/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+    }
+
+    @Test
+    fun testStaticFilesPreCompressed() = testApplication {
+        val filesDir = Files.createTempDirectory("assets").toFile()
+        val tempFile = File(filesDir, "testServeEncodedFile.txt")
+        val brFile = File(filesDir, "testServeEncodedFile.txt.br")
+        val gzFile = File(filesDir, "testServeEncodedFile.txt.gz")
+        tempFile.writeText("temp")
+        brFile.writeText("temp.br")
+        gzFile.writeText("temp.gz")
+
+        routing {
+            staticFiles("static", filesDir) {
+                preCompressedFileTypes = CompressedFileType.values().toList()
+            }
+        }
+
+        val responseFile = client.get("static/testServeEncodedFile.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("temp", responseFile.bodyAsText())
+        assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
+
+        val responseFileBr = client.get("static/testServeEncodedFile.txt") {
+            header(HttpHeaders.AcceptEncoding, "br")
+        }
+        assertEquals(HttpStatusCode.OK, responseFileBr.status)
+        assertEquals("temp.br", responseFileBr.bodyAsText())
+        assertEquals("br", responseFileBr.headers[HttpHeaders.ContentEncoding])
+        assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
+
+        val responseFileGz = client.get("static/testServeEncodedFile.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.OK, responseFileGz.status)
+        assertEquals("temp.gz", responseFileGz.bodyAsText())
+        assertEquals("gzip", responseFileGz.headers[HttpHeaders.ContentEncoding])
+        assertEquals(ContentType.Text.Plain, responseFileGz.contentType()!!.withoutParameters())
+    }
+
+    @Test
+    fun testStaticResources() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                cacheControl {
+                    when {
+                        it.path.endsWith("file-nested.txt") -> listOf(Immutable, CacheControl.MaxAge(1))
+                        else -> emptyList()
+                    }
+                }
+                contentType {
+                    when {
+                        it.path.endsWith("file-nested.txt") -> ContentType.Application.Json
+                        else -> ContentType.defaultForFilePath(it.path)
+                    }
+                }
+            }
+            staticResources("static_no_index", "public", null)
+        }
+
+        val responseIndex = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseIndex.status)
+        assertEquals("index", responseIndex.bodyAsText().trim())
+        assertEquals(ContentType.Text.Html, responseIndex.contentType()!!.withoutParameters())
+
+        val responseIndexNested = client.get("static/nested")
+        assertEquals(HttpStatusCode.OK, responseIndexNested.status)
+        assertEquals("nested index", responseIndexNested.bodyAsText().trim())
+
+        val responseCustom = client.get("static/nested/file-nested.txt")
+        assertEquals(HttpStatusCode.OK, responseCustom.status)
+        assertEquals("file-nested.txt", responseCustom.bodyAsText().trim())
+        assertEquals(ContentType.Application.Json, responseCustom.contentType())
+        assertEquals("immutable, max-age=1", responseCustom.headers[HttpHeaders.CacheControl])
+
+        val responseFile = client.get("static/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("file.txt", responseFile.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
+        assertNull(responseFile.headers[HttpHeaders.CacheControl])
+
+        val notFound = client.get("static/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFound.status)
+
+        val noIndex = client.get("static_no_index")
+        assertEquals(HttpStatusCode.NotFound, noIndex.status)
+        val fileNoIndex = client.get("static_no_index/file.txt")
+        assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+    }
+
+    @Test
+    fun testStaticResourcesPreCompressed() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                preCompressedFileTypes = CompressedFileType.values().toList()
+            }
+        }
+
+        val responseIndex = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseIndex.status)
+        assertEquals("index", responseIndex.bodyAsText().trim())
+        assertEquals(ContentType.Text.Html, responseIndex.contentType()!!.withoutParameters())
+
+        val responseIndexCompressed = client.get("static") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.OK, responseIndexCompressed.status)
+        assertEquals("index.gz", responseIndexCompressed.bodyAsText().trim())
+        assertEquals(ContentType.Text.Html, responseIndexCompressed.contentType()!!.withoutParameters())
+        assertEquals("gzip", responseIndexCompressed.headers[HttpHeaders.ContentEncoding])
+
+        val responseResource = client.get("static/nested/file-nested.txt")
+        assertEquals(HttpStatusCode.OK, responseResource.status)
+        assertEquals("file-nested.txt", responseResource.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseResource.contentType()!!.withoutParameters())
+
+        val responseResourceCompressed = client.get("static/nested/file-nested.txt") {
+            header(HttpHeaders.AcceptEncoding, "br")
+        }
+        assertEquals(HttpStatusCode.OK, responseResourceCompressed.status)
+        assertEquals("file-nested.txt.br", responseResourceCompressed.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseResourceCompressed.contentType()!!.withoutParameters())
+        assertEquals("br", responseResourceCompressed.headers[HttpHeaders.ContentEncoding])
+    }
+
     @Test
     fun testNullJarFile() = withTestApplication {
         application.routing {
@@ -514,7 +686,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedResourceServeEncodedFile() = testApplication {
+    fun testPreCompressedResourceServeEncodedResource() = testApplication {
         routing {
             static {
                 preCompressed {

@@ -312,7 +312,7 @@ public fun Route.options(body: PipelineInterceptor<Unit, ApplicationCall>): Rout
 }
 
 /**
- * Creates a routing entry for specified path.
+ * Creates a routing entry for the specified path.
  */
 public fun Route.createRouteFromPath(path: String): Route {
     val parts = RoutingPath.parse(path).parts

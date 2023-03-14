@@ -86,7 +86,7 @@ public fun Route.webResources(subPath: String = "/", configure: WebResourcesConf
         }
 
         val url = application.attributes.getOrNull(ServletContextAttribute)?.getResource(path) ?: return@get
-        val content = resourceClasspathResource(url, path, config.mimeResolve) ?: return@get
+        val content = resourceClasspathResource(url, path) { config.mimeResolve(it.toString()) } ?: return@get
         call.respond(content)
     }
 }
