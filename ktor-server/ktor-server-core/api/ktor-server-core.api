@@ -436,6 +436,7 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun extensions ([Ljava/lang/String;)V
 	public final fun getAutoHeadResponse ()Z
 	public final fun getPreCompressedFileTypes ()Ljava/util/List;
+	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun setAutoHeadResponse (Z)V
 	public final fun setPreCompressedFileTypes (Ljava/util/List;)V
 }

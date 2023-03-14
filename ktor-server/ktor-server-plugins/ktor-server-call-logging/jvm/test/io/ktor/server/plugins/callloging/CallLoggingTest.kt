@@ -448,11 +448,7 @@ class CallLoggingTest {
         }
         application {
             routing {
-                static {
-                    staticRootFolder = File("jvm/test/io/ktor/server/plugins/callloging")
-                    files(".")
-                    default("CallLoggingTest.kt")
-                }
+                staticFiles("/", File("jvm/test/io/ktor/server/plugins/callloging"), index = "CallLoggingTest.kt")
             }
         }
         val response = client.get("/CallLoggingTest.kt")
