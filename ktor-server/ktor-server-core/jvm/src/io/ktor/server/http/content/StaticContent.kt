@@ -50,6 +50,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         }
     }
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
+    internal var extensions: List<String> = emptyList()
 
     /**
      * Support pre-compressed files or resources.
@@ -86,6 +87,15 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     public fun cacheControl(block: (Resource) -> List<CacheControl>) {
         cacheControl = block
     }
+
+    /**
+     * Configures file extension fallbacks.
+     * When set, if a file is not found, the search will repeat with the given extensions added to the file name.
+     * The first match will be served.
+     */
+    public fun extensions(vararg extensions: String) {
+        this.extensions = extensions.toList()
+    }
 }
 
 /**
@@ -109,6 +119,7 @@ public fun Route.staticFiles(
     val compressedTypes = staticRoute.preCompressedFileTypes
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
+    val extensions = staticRoute.extensions
     return route(remotePath) {
         route("{$pathParameterName...}") {
             suspend fun handler(call: ApplicationCall) {
@@ -120,6 +131,12 @@ public fun Route.staticFiles(
                     requestedFile
                 }
                 call.respondStaticFile(file, compressedTypes, contentType, cacheControl)
+                if (call.isHandled || file != requestedFile) return
+                for (extension in extensions) {
+                    val fileWithExtension = File("${file.path}.$extension")
+                    call.respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl)
+                    if (call.isHandled) return
+                }
             }
 
             get {
@@ -156,6 +173,7 @@ public fun Route.staticResources(
     val compressedTypes = staticRoute.preCompressedFileTypes
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
+    val extensions = staticRoute.extensions
     return route(remotePath) {
         route("{$pathParameterName...}") {
             suspend fun handler(call: ApplicationCall) {
@@ -175,6 +193,17 @@ public fun Route.staticResources(
                     contentType = contentType,
                     cacheControl = cacheControl
                 )
+                if (call.isHandled) return
+                for (extension in extensions) {
+                    call.respondStaticResource(
+                        requestedResource = "$relativePath.$extension",
+                        packageName = basePackage,
+                        compressedTypes = compressedTypes,
+                        contentType = contentType,
+                        cacheControl = cacheControl
+                    )
+                    if (call.isHandled) return
+                }
             }
 
             get {
