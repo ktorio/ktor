@@ -22,10 +22,10 @@ public abstract class ByteChannelSequentialBase(
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
     private val _lastReadView: AtomicRef<ChunkBuffer> = atomic(ChunkBuffer.Empty)
 
-    private val _totalBytesRead = atomic(0L)
-    private val _totalBytesWritten = atomic(0L)
-    private val _availableForRead = atomic(0)
-    private val channelSize = atomic(0)
+    private val _totalBytesRead = atomic<Long>(0L) //TODO dumanskaya
+    private val _totalBytesWritten = atomic<Long>(0L) //TODO dumanskaya
+    private val _availableForRead = atomic<Int>(0) //TODO dumanskaya
+    private val channelSize = atomic<Int>(0) //TODO dumanskaya
 
     private val _closed = atomic<CloseElement?>(null)
     private val isCancelled: Boolean get() = _closed.value?.cause != null
@@ -39,7 +39,7 @@ public abstract class ByteChannelSequentialBase(
     protected val writable: BytePacketBuilder = BytePacketBuilder(pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
 
-    private var lastReadAvailable: Int by atomic(0)
+    private var lastReadAvailable: Int by atomic<Int>(0) //TODO dumanskaya
     private var lastReadView: ChunkBuffer by atomic(ChunkBuffer.Empty)
 
     private val slot = AwaitingSlot()
