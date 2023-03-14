@@ -29,11 +29,26 @@ public fun commandLineEnvironment(
             else -> File(it).toURI().toURL()
         }
     }
-    val configFile = argsMap["-config"]?.let { File(it) }
+
+    var fileConfig = ConfigFactory.load()
+    val notFoundConfigs = ArrayList<String>()
+    args
+        .mapNotNull { it.splitPair('=') }
+        .filter { it.first == "-config" }
+        .forEach {
+            val configFileName = it.second
+            val configFile = File(configFileName)
+            if (configFile.exists()) {
+                val newConfig = ConfigFactory.parseFile(configFile)
+                fileConfig = newConfig.withFallback(fileConfig)
+            } else {
+                notFoundConfigs.add(configFileName)
+            }
+        }
+
     val commandLineMap = argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }
 
     val environmentConfig = ConfigFactory.systemProperties().withOnlyPath("ktor")
-    val fileConfig = configFile?.let { ConfigFactory.parseFile(it) } ?: ConfigFactory.load()
     val argConfig = ConfigFactory.parseMap(commandLineMap, "Command-line options")
     val combinedConfig = argConfig.withFallback(fileConfig).withFallback(environmentConfig).resolve()
 
@@ -55,8 +70,10 @@ public fun commandLineEnvironment(
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val appLog = LoggerFactory.getLogger(applicationId)
-    if (configFile != null && !configFile.exists()) {
-        appLog.error("Configuration file '$configFile' specified as command line argument was not found")
+    if (notFoundConfigs.isNotEmpty()) {
+        appLog.error(
+            "One or more configuration file specified as command line argument was not found: $notFoundConfigs"
+        )
         appLog.warn("Will attempt to start without loading configuration…")
     }
     val rootPath = argsMap["-path"] ?: combinedConfig.tryGetString(rootPathPath) ?: ""

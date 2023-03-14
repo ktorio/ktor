@@ -131,6 +131,21 @@ class CommandLineTest {
         assertEquals("id1", tasks[1].property("id").getString())
     }
 
+    @Test
+    fun testAdditionalConfigFile() {
+        val configPath = CommandLineTest::class.java.classLoader.getResource("application.conf").toURI().path
+        val additionalConfigPath = CommandLineTest::class.java.classLoader
+            .getResource("applicationAdditional.conf").toURI().path
+        val args = arrayOf("-config=$configPath", "-config=$additionalConfigPath")
+
+        val config = commandLineEnvironment(args) {}.config
+
+        assertEquals("<org.company.ApplicationClass>", config.property("ktor.application.class").getString())
+        assertEquals("8085", config.property("ktor.deployment.port").getString())
+        assertEquals("TestValue", config.property("ktor.deployment.testProperty").getString())
+        assertEquals("Config value", config.property("config.configurationProperty").getString())
+    }
+
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
             return Pair(File(uri.path.substringBefore("!")), null)
