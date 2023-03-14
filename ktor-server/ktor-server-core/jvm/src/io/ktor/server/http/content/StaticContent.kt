@@ -7,16 +7,35 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import java.io.*
 import java.net.URL
 
 private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
+
+private val StaticContentAutoHead = createRouteScopedPlugin("StaticContentAutoHead") {
+
+    class HeadResponse(val original: OutgoingContent) : OutgoingContent.NoContent() {
+        override val status: HttpStatusCode? get() = original.status
+        override val contentType: ContentType? get() = original.contentType
+        override val contentLength: Long? get() = original.contentLength
+        override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
+        override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
+        override val headers get() = original.headers
+    }
+
+    on(ResponseBodyReadyForSend) { call, content ->
+        check(call.request.local.method == HttpMethod.Head)
+        transformBodyTo(HeadResponse(content))
+    }
+}
 
 /**
  * A config for serving static content
@@ -44,6 +63,11 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * It will determine the priority of serving one versus serving another.
      */
     public var preCompressedFileTypes: List<CompressedFileType> = emptyList()
+
+    /**
+     * If set to true, automatically responds to a `HEAD` request for every file/resource that has a `GET` defined.
+     */
+    public var autoHeadResponse: Boolean = false
 
     /**
      * Configures [ContentType] for requested static content.
@@ -81,19 +105,32 @@ public fun Route.staticFiles(
     block: StaticContentConfig<File>.() -> Unit = {}
 ): Route {
     val staticRoute = StaticContentConfig<File>().apply(block)
+    val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     return route(remotePath) {
-        get("{$pathParameterName...}") {
-            val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-            val requestedFile = dir.combineSafe(relativePath)
-            val file = if (index != null && requestedFile.isDirectory) {
-                File(dir.combineSafe(relativePath), index)
-            } else {
-                requestedFile
+        route("{$pathParameterName...}") {
+            suspend fun handler(call: ApplicationCall) {
+                val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+                val requestedFile = dir.combineSafe(relativePath)
+                val file = if (index != null && requestedFile.isDirectory) {
+                    File(dir.combineSafe(relativePath), index)
+                } else {
+                    requestedFile
+                }
+                call.respondStaticFile(file, compressedTypes, contentType, cacheControl)
             }
-            call.respondStaticFile(file, compressedTypes, contentType, cacheControl)
+
+            get {
+                handler(call)
+            }
+            if (autoHead) {
+                method(HttpMethod.Head) {
+                    install(StaticContentAutoHead)
+                    handle { handler(call) }
+                }
+            }
         }
     }
 }
@@ -115,27 +152,40 @@ public fun Route.staticResources(
     block: StaticContentConfig<URL>.() -> Unit = {}
 ): Route {
     val staticRoute = StaticContentConfig<URL>().apply(block)
+    val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     return route(remotePath) {
-        get("{$pathParameterName...}") {
-            val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-            call.respondStaticResource(
-                requestedResource = relativePath,
-                packageName = basePackage,
-                compressedTypes = compressedTypes,
-                contentType = contentType,
-                cacheControl = cacheControl
-            )
-            if (call.isHandled || index == null) return@get
-            call.respondStaticResource(
-                requestedResource = "$relativePath${File.separator}$index",
-                packageName = basePackage,
-                compressedTypes = compressedTypes,
-                contentType = contentType,
-                cacheControl = cacheControl
-            )
+        route("{$pathParameterName...}") {
+            suspend fun handler(call: ApplicationCall) {
+                val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+                call.respondStaticResource(
+                    requestedResource = relativePath,
+                    packageName = basePackage,
+                    compressedTypes = compressedTypes,
+                    contentType = contentType,
+                    cacheControl = cacheControl
+                )
+                if (call.isHandled || index == null) return
+                call.respondStaticResource(
+                    requestedResource = "$relativePath${File.separator}$index",
+                    packageName = basePackage,
+                    compressedTypes = compressedTypes,
+                    contentType = contentType,
+                    cacheControl = cacheControl
+                )
+            }
+
+            get {
+                handler(call)
+            }
+            if (autoHead) {
+                method(HttpMethod.Head) {
+                    install(StaticContentAutoHead)
+                    handle { handler(call) }
+                }
+            }
         }
     }
 }
