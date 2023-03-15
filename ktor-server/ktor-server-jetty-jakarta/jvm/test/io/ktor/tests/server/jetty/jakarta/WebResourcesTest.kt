@@ -49,7 +49,7 @@ class WebResourcesTest {
         application {
             attributes.put(ServletContextAttribute, TestContext())
             routing {
-                static("webapp") {
+                route("webapp") {
                     webResources("pages") {
                         include { it.endsWith(".txt") }
                         include { it.endsWith(".html") }

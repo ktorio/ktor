@@ -50,6 +50,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         }
     }
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
+    internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
     internal var extensions: List<String> = emptyList()
 
     /**
@@ -72,8 +73,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures [ContentType] for requested static content.
-     * For files, [Resource] is a request [File].
-     * For resources, [Resource] is a path to requested resource.
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to requested resource.
      */
     public fun contentType(block: (Resource) -> ContentType) {
         contentType = block
@@ -81,11 +82,21 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures [CacheControl] for requested static content.
-     * For files, [Resource] is a request [File].
-     * For resources, [Resource] is a path to requested resource.
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to requested resource.
      */
     public fun cacheControl(block: (Resource) -> List<CacheControl>) {
         cacheControl = block
+    }
+
+    /**
+     * Configures modification of a call for requested content.
+     * Useful to add headers to the response, such as [HttpHeaders.ETag]
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to requested resource.
+     */
+    public fun modify(block: suspend (Resource, ApplicationCall) -> Unit) {
+        modifier = block
     }
 
     /**
@@ -120,6 +131,7 @@ public fun Route.staticFiles(
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
+    val modify = staticRoute.modifier
     return route(remotePath) {
         route("{$pathParameterName...}") {
             suspend fun handler(call: ApplicationCall) {
@@ -130,11 +142,11 @@ public fun Route.staticFiles(
                 } else {
                     requestedFile
                 }
-                call.respondStaticFile(file, compressedTypes, contentType, cacheControl)
+                call.respondStaticFile(file, compressedTypes, contentType, cacheControl, modify)
                 if (call.isHandled || file != requestedFile) return
                 for (extension in extensions) {
                     val fileWithExtension = File("${file.path}.$extension")
-                    call.respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl)
+                    call.respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, modify)
                     if (call.isHandled) return
                 }
             }
@@ -174,6 +186,7 @@ public fun Route.staticResources(
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
+    val modifier = staticRoute.modifier
     return route(remotePath) {
         route("{$pathParameterName...}") {
             suspend fun handler(call: ApplicationCall) {
@@ -183,7 +196,8 @@ public fun Route.staticResources(
                     packageName = basePackage,
                     compressedTypes = compressedTypes,
                     contentType = contentType,
-                    cacheControl = cacheControl
+                    cacheControl = cacheControl,
+                    modifier = modifier
                 )
                 if (call.isHandled || index == null) return
                 call.respondStaticResource(
@@ -191,7 +205,8 @@ public fun Route.staticResources(
                     packageName = basePackage,
                     compressedTypes = compressedTypes,
                     contentType = contentType,
-                    cacheControl = cacheControl
+                    cacheControl = cacheControl,
+                    modifier = modifier
                 )
                 if (call.isHandled) return
                 for (extension in extensions) {
@@ -200,7 +215,8 @@ public fun Route.staticResources(
                         packageName = basePackage,
                         compressedTypes = compressedTypes,
                         contentType = contentType,
-                        cacheControl = cacheControl
+                        cacheControl = cacheControl,
+                        modifier = modifier
                     )
                     if (call.isHandled) return
                 }
@@ -265,21 +281,26 @@ private fun File?.combine(file: File) = when {
 /**
  * Create a block for static content
  */
+@Deprecated("Please use `staticFiles` or `staticResources` instead")
 public fun Route.static(configure: Route.() -> Unit): Route = apply(configure)
 
 /**
  * Create a block for static content at specified [remotePath]
  */
+@Deprecated("Please use `staticFiles` or `staticResources` instead")
 public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route = route(remotePath, configure)
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.default(localPath: String): Unit = default(File(localPath))
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -291,11 +312,14 @@ public fun Route.default(localPath: File) {
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.file(remotePath: String, localPath: String = remotePath): Unit = file(remotePath, File(localPath))
 
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -307,6 +331,8 @@ public fun Route.file(remotePath: String, localPath: File) {
 /**
  * Sets up routing to serve all files from [folder]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
@@ -324,6 +350,7 @@ internal fun Route.filesWithDefault(
 /**
  * Sets up routing to serve all files from [folder]
  */
+@Deprecated("Please use `staticFiles` instead")
 public fun Route.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes
@@ -369,6 +396,8 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 /**
  * Base package for relative resources calculations for static content
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticResources` instead")
 public var Route.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
@@ -388,6 +417,8 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 /**
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticResources` instead")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val compressedTypes = staticContentEncodedTypes
     val packageName = staticBasePackage.combinePackage(resourcePackage)
@@ -405,6 +436,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  * Serves [defaultFile] if a missing file is requested.
  * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
  */
+@Suppress("DEPRECATION")
 internal fun Route.resourceWithDefault(
     resourcePackage: String? = null,
     defaultResource: String,
@@ -442,6 +474,8 @@ internal fun Route.resourceWithDefault(
 /**
  * Sets up routing to serve all resources in [resourcePackage]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticResources` instead")
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
@@ -458,6 +492,8 @@ public fun Route.resources(resourcePackage: String? = null) {
 /**
  * Specifies [resource] as a default resources to serve when folder is requested
  */
+@Suppress("DEPRECATION")
+@Deprecated("Please use `staticResources` instead")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
