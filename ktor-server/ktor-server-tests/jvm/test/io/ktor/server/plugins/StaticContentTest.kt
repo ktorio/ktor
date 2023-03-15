@@ -149,6 +149,7 @@ class StaticContentTest {
                         else -> ContentType.defaultForFile(it)
                     }
                 }
+                default("/plugins/AutoHeadResponseJvmTest.kt")
             }
             staticFiles("static_no_index", basedir, null)
         }
@@ -170,12 +171,16 @@ class StaticContentTest {
         assertNull(responseFile.headers[HttpHeaders.CacheControl])
 
         val notFound = client.get("static/not-existing")
-        assertEquals(HttpStatusCode.NotFound, notFound.status)
+        assertEquals(HttpStatusCode.OK, notFound.status)
+        assertTrue(notFound.bodyAsText().contains("class AutoHeadResponseJvmTest {"))
 
         val noIndex = client.get("static_no_index")
         assertEquals(HttpStatusCode.NotFound, noIndex.status)
         val fileNoIndex = client.get("static_no_index/plugins/CookiesTest.kt")
         assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+
+        val notFoundNoDefault = client.get("static_no_index/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFoundNoDefault.status)
     }
 
     @Test
@@ -197,6 +202,30 @@ class StaticContentTest {
         assertTrue(responseFileNoExtension.bodyAsText().contains("class CookiesTest {"))
         assertEquals(ContentType.Application.OctetStream, responseFileNoExtension.contentType())
         assertNull(responseFileNoExtension.headers[HttpHeaders.CacheControl])
+    }
+
+    @Test
+    fun testStaticFilesExclude() = testApplication {
+        routing {
+            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+                exclude { it.path.contains("CookiesTest") }
+                exclude { it.path.contains("PartialContentTest") }
+                extensions("kt")
+            }
+        }
+
+        val responseFileNoIgnore = client.get("static/plugins/CompressionTest.kt")
+        assertEquals(HttpStatusCode.OK, responseFileNoIgnore.status)
+        assertTrue(responseFileNoIgnore.bodyAsText().contains("class CompressionTest {"))
+
+        val responseFile = client.get("static/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.Forbidden, responseFile.status)
+
+        val responseFileOther = client.get("static/plugins/PartialContentTest.kt")
+        assertEquals(HttpStatusCode.Forbidden, responseFileOther.status)
+
+        val responseFileNoExtension = client.get("static/plugins/CookiesTest")
+        assertEquals(HttpStatusCode.Forbidden, responseFileNoExtension.status)
     }
 
     @Test
@@ -298,6 +327,7 @@ class StaticContentTest {
                         else -> ContentType.defaultForFilePath(it.path)
                     }
                 }
+                default("default.txt")
             }
             staticResources("static_no_index", "public", null)
         }
@@ -324,12 +354,15 @@ class StaticContentTest {
         assertNull(responseFile.headers[HttpHeaders.CacheControl])
 
         val notFound = client.get("static/not-existing")
-        assertEquals(HttpStatusCode.NotFound, notFound.status)
+        assertEquals(HttpStatusCode.OK, notFound.status)
+        assertEquals("default", notFound.bodyAsText().trim())
 
         val noIndex = client.get("static_no_index")
         assertEquals(HttpStatusCode.NotFound, noIndex.status)
         val fileNoIndex = client.get("static_no_index/file.txt")
         assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+        val notFoundNoDefault = client.get("static_no_index/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFoundNoDefault.status)
     }
 
     @Test
@@ -351,6 +384,28 @@ class StaticContentTest {
         assertEquals("file.txt", responseFileNoExtension.bodyAsText().trim())
         assertEquals(ContentType.Text.Plain, responseFileNoExtension.contentType()!!.withoutParameters())
         assertNull(responseFileNoExtension.headers[HttpHeaders.CacheControl])
+    }
+
+    @Test
+    fun testStaticResourcesExclude() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                exclude { it.path.contains("ignore") }
+                extensions("txt")
+            }
+        }
+
+        val responseFile = client.get("static/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("file.txt", responseFile.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
+        assertNull(responseFile.headers[HttpHeaders.CacheControl])
+
+        val responseIgnoreFile = client.get("static/ignore.txt")
+        assertEquals(HttpStatusCode.Forbidden, responseIgnoreFile.status)
+
+        val responseIgnoreFileNoExtension = client.get("static/ignore")
+        assertEquals(HttpStatusCode.Forbidden, responseIgnoreFileNoExtension.status)
     }
 
     @Test

@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import java.io.*
-import java.net.URL
+import java.net.*
 
 private const val pathParameterName = "static-content-path-parameter"
 
@@ -51,7 +51,9 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     }
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
     internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
+    internal var exclude: (Resource) -> Boolean = { false }
     internal var extensions: List<String> = emptyList()
+    internal var defaultPath: String? = null
 
     /**
      * Support pre-compressed files or resources.
@@ -72,9 +74,16 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     public var autoHeadResponse: Boolean = false
 
     /**
+     * Configures default [Resource] to respond with, when requested file is not found.
+     */
+    public fun default(path: String?) {
+        this.defaultPath = path
+    }
+
+    /**
      * Configures [ContentType] for requested static content.
      * For files, [Resource] is a requested [File].
-     * For resources, [Resource] is a [URL] to requested resource.
+     * For resources, [Resource] is a [URL] to a requested resource.
      */
     public fun contentType(block: (Resource) -> ContentType) {
         contentType = block
@@ -83,7 +92,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     /**
      * Configures [CacheControl] for requested static content.
      * For files, [Resource] is a requested [File].
-     * For resources, [Resource] is a [URL] to requested resource.
+     * For resources, [Resource] is a [URL] to a requested resource.
      */
     public fun cacheControl(block: (Resource) -> List<CacheControl>) {
         cacheControl = block
@@ -93,10 +102,25 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Configures modification of a call for requested content.
      * Useful to add headers to the response, such as [HttpHeaders.ETag]
      * For files, [Resource] is a requested [File].
-     * For resources, [Resource] is a [URL] to requested resource.
+     * For resources, [Resource] is a [URL] to a requested resource.
      */
     public fun modify(block: suspend (Resource, ApplicationCall) -> Unit) {
         modifier = block
+    }
+
+    /**
+     * Configures resources that should not be served.
+     * If this block returns `true` for [Resource], [Application] will respond with [HttpStatusCode.Forbidden].
+     * Can be invoked multiple times.
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to a requested resource.
+     */
+    public fun exclude(block: (Resource) -> Boolean) {
+        val oldBlock = exclude
+        exclude = {
+            if (oldBlock(it)) true
+            else block(it)
+        }
     }
 
     /**
@@ -132,35 +156,20 @@ public fun Route.staticFiles(
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
     val modify = staticRoute.modifier
-    return route(remotePath) {
-        route("{$pathParameterName...}") {
-            suspend fun handler(call: ApplicationCall) {
-                val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
-                val requestedFile = dir.combineSafe(relativePath)
-                val file = if (index != null && requestedFile.isDirectory) {
-                    File(dir.combineSafe(relativePath), index)
-                } else {
-                    requestedFile
-                }
-                call.respondStaticFile(file, compressedTypes, contentType, cacheControl, modify)
-                if (call.isHandled || file != requestedFile) return
-                for (extension in extensions) {
-                    val fileWithExtension = File("${file.path}.$extension")
-                    call.respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, modify)
-                    if (call.isHandled) return
-                }
-            }
-
-            get {
-                handler(call)
-            }
-            if (autoHead) {
-                method(HttpMethod.Head) {
-                    install(StaticContentAutoHead)
-                    handle { handler(call) }
-                }
-            }
-        }
+    val exclude = staticRoute.exclude
+    val defaultPath = staticRoute.defaultPath
+    return staticContentRoute(remotePath, autoHead) {
+        respondStaticFile(
+            index = index,
+            dir = dir,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modify = modify,
+            exclude = exclude,
+            extensions = extensions,
+            defaultPath = defaultPath
+        )
     }
 }
 
@@ -187,51 +196,20 @@ public fun Route.staticResources(
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
     val modifier = staticRoute.modifier
-    return route(remotePath) {
-        route("{$pathParameterName...}") {
-            suspend fun handler(call: ApplicationCall) {
-                val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
-                call.respondStaticResource(
-                    requestedResource = relativePath,
-                    packageName = basePackage,
-                    compressedTypes = compressedTypes,
-                    contentType = contentType,
-                    cacheControl = cacheControl,
-                    modifier = modifier
-                )
-                if (call.isHandled || index == null) return
-                call.respondStaticResource(
-                    requestedResource = "$relativePath${File.separator}$index",
-                    packageName = basePackage,
-                    compressedTypes = compressedTypes,
-                    contentType = contentType,
-                    cacheControl = cacheControl,
-                    modifier = modifier
-                )
-                if (call.isHandled) return
-                for (extension in extensions) {
-                    call.respondStaticResource(
-                        requestedResource = "$relativePath.$extension",
-                        packageName = basePackage,
-                        compressedTypes = compressedTypes,
-                        contentType = contentType,
-                        cacheControl = cacheControl,
-                        modifier = modifier
-                    )
-                    if (call.isHandled) return
-                }
-            }
-
-            get {
-                handler(call)
-            }
-            if (autoHead) {
-                method(HttpMethod.Head) {
-                    install(StaticContentAutoHead)
-                    handle { handler(call) }
-                }
-            }
-        }
+    val exclude = staticRoute.exclude
+    val defaultPath = staticRoute.defaultPath
+    return staticContentRoute(remotePath, autoHead) {
+        respondStaticResource(
+            index = index,
+            basePackage = basePackage,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modifier = modifier,
+            exclude = exclude,
+            extensions = extensions,
+            defaultPath = defaultPath
+        )
     }
 }
 
@@ -336,18 +314,6 @@ public fun Route.file(remotePath: String, localPath: File) {
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
- * Sets up routing to serve all files from [folder].
- * Serves [defaultFile] if a missing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
- */
-internal fun Route.filesWithDefault(
-    folder: String,
-    defaultFile: String,
-    shouldFileBeIgnored: (String) -> Boolean
-): Unit =
-    filesWithDefaultFile(File(folder), File(defaultFile), shouldFileBeIgnored)
-
-/**
  * Sets up routing to serve all files from [folder]
  */
 @Deprecated("Please use `staticFiles` instead")
@@ -358,36 +324,6 @@ public fun Route.files(folder: File) {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val file = dir.combineSafe(relativePath)
         call.respondStaticFile(file, compressedTypes)
-    }
-}
-
-/**
- * Sets up routing to serve all files from [folder].
- * Serves [defaultFile] if a missing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
- */
-internal fun Route.filesWithDefaultFile(
-    folder: File,
-    defaultFile: File,
-    shouldFileBeIgnored: (String) -> Boolean
-) {
-    val dir = staticRootFolder.combine(folder)
-
-    val compressedTypes = staticContentEncodedTypes
-    get("{$pathParameterName...}") {
-        val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-
-        if (shouldFileBeIgnored.invoke(relativePath)) {
-            call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
-            return@get
-        }
-
-        val file = dir.combineSafe(relativePath)
-        call.respondStaticFile(file, compressedTypes)
-
-        if (!call.isHandled) {
-            call.respondStaticFile(dir.combine(defaultFile), compressedTypes)
-        }
     }
 }
 
@@ -432,46 +368,6 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 }
 
 /**
- * Sets up routing to serve all resources in [resourcePackage].
- * Serves [defaultFile] if a missing file is requested.
- * Serves [defaultFile] if the requested file should be ignored by [shouldFileBeIgnored].
- */
-@Suppress("DEPRECATION")
-internal fun Route.resourceWithDefault(
-    resourcePackage: String? = null,
-    defaultResource: String,
-    shouldFileBeIgnored: (String) -> Boolean
-) {
-    val packageName = staticBasePackage.combinePackage(resourcePackage)
-    val compressedTypes = staticContentEncodedTypes
-    get("{$pathParameterName...}") {
-        val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-
-        if (shouldFileBeIgnored.invoke(relativePath)) {
-            call.respondStaticResource(
-                requestedResource = defaultResource,
-                packageName = packageName,
-                compressedTypes = compressedTypes
-            )
-            return@get
-        }
-
-        call.respondStaticResource(
-            requestedResource = relativePath,
-            packageName = packageName,
-            compressedTypes = compressedTypes
-        )
-        if (!call.isHandled) {
-            call.respondStaticResource(
-                requestedResource = defaultResource,
-                packageName = packageName,
-                compressedTypes = compressedTypes
-            )
-        }
-    }
-}
-
-/**
  * Sets up routing to serve all resources in [resourcePackage]
  */
 @Suppress("DEPRECATION")
@@ -510,3 +406,123 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
  *  Checks if the application call is requesting static content
  */
 public fun ApplicationCall.isStaticContent(): Boolean = parameters.contains(pathParameterName)
+
+private fun Route.staticContentRoute(
+    remotePath: String,
+    autoHead: Boolean,
+    handler: suspend (ApplicationCall).() -> Unit
+) = route(remotePath) {
+    route("{$pathParameterName...}") {
+        get {
+            call.handler()
+        }
+        if (autoHead) {
+            method(HttpMethod.Head) {
+                install(StaticContentAutoHead)
+                handle {
+                    call.handler()
+                }
+            }
+        }
+    }
+}
+
+private suspend fun ApplicationCall.respondStaticFile(
+    index: String?,
+    dir: File,
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (File) -> ContentType,
+    cacheControl: (File) -> List<CacheControl>,
+    modify: suspend (File, ApplicationCall) -> Unit,
+    exclude: (File) -> Boolean,
+    extensions: List<String>,
+    defaultPath: String?
+) {
+    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+    val requestedFile = dir.combineSafe(relativePath)
+
+    suspend fun checkExclude(file: File): Boolean {
+        if (!exclude(file)) return false
+        respond(HttpStatusCode.Forbidden)
+        return true
+    }
+
+    val isDirectory = requestedFile.isDirectory
+    if (index != null && isDirectory) {
+        respondStaticFile(File(requestedFile, index), compressedTypes, contentType, cacheControl, modify)
+    } else if (!isDirectory) {
+        if (checkExclude(requestedFile)) return
+
+        respondStaticFile(requestedFile, compressedTypes, contentType, cacheControl, modify)
+        if (isHandled) return
+        for (extension in extensions) {
+            val fileWithExtension = File("${requestedFile.path}.$extension")
+            if (checkExclude(fileWithExtension)) return
+            respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, modify)
+            if (isHandled) return
+        }
+    }
+
+    if (defaultPath != null) {
+        respondStaticFile(File(dir, defaultPath), compressedTypes, contentType, cacheControl, modify)
+    }
+}
+
+private suspend fun ApplicationCall.respondStaticResource(
+    index: String?,
+    basePackage: String?,
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (URL) -> ContentType,
+    cacheControl: (URL) -> List<CacheControl>,
+    modifier: suspend (URL, ApplicationCall) -> Unit,
+    exclude: (URL) -> Boolean,
+    extensions: List<String>,
+    defaultPath: String?
+) {
+    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+
+    respondStaticResource(
+        requestedResource = relativePath,
+        packageName = basePackage,
+        compressedTypes = compressedTypes,
+        contentType = contentType,
+        cacheControl = cacheControl,
+        modifier = modifier,
+        exclude = exclude
+    )
+
+    if (isHandled) return
+    for (extension in extensions) {
+        respondStaticResource(
+            requestedResource = "$relativePath.$extension",
+            packageName = basePackage,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modifier = modifier,
+            exclude = exclude
+        )
+        if (isHandled) return
+    }
+
+    if (index != null) {
+        respondStaticResource(
+            requestedResource = "$relativePath${File.separator}$index",
+            packageName = basePackage,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modifier = modifier
+        )
+    }
+    if (isHandled || defaultPath == null) return
+
+    respondStaticResource(
+        requestedResource = defaultPath,
+        packageName = basePackage,
+        compressedTypes = compressedTypes,
+        contentType = contentType,
+        cacheControl = cacheControl,
+        modifier = modifier
+    )
+}
