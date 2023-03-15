@@ -264,6 +264,25 @@ class StaticContentTest {
     }
 
     @Test
+    fun testStaticFilesModifier() = testApplication {
+        routing {
+            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+                modify { url, call ->
+                    call.response.headers.append(HttpHeaders.ETag, url.path.substringAfterLast(File.separatorChar))
+                }
+            }
+        }
+
+        val responseDefault = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseDefault.status)
+        assertEquals("StaticContentTest.kt", responseDefault.headers[HttpHeaders.ETag])
+
+        val responseFile = client.get("static/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("CookiesTest.kt", responseFile.headers[HttpHeaders.ETag])
+    }
+
+    @Test
     fun testStaticResources() = testApplication {
         routing {
             staticResources("static", "public") {
@@ -332,6 +351,23 @@ class StaticContentTest {
         assertEquals("file.txt", responseFileNoExtension.bodyAsText().trim())
         assertEquals(ContentType.Text.Plain, responseFileNoExtension.contentType()!!.withoutParameters())
         assertNull(responseFileNoExtension.headers[HttpHeaders.CacheControl])
+    }
+
+    @Test
+    fun testStaticResourcesModifier() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                modify { url, call -> call.response.headers.append(HttpHeaders.ETag, url.path.substringAfterLast('/')) }
+            }
+        }
+
+        val responseIndex = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseIndex.status)
+        assertEquals("index.html", responseIndex.headers[HttpHeaders.ETag])
+
+        val responseFile = client.get("static/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("file.txt", responseFile.headers[HttpHeaders.ETag])
     }
 
     @Test

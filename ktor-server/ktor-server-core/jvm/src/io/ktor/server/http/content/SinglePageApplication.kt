@@ -26,6 +26,7 @@ import java.io.*
  * }
  * ```
  */
+@Suppress("DEPRECATION")
 public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
     val config = SPAConfig()
     configBuilder.invoke(config)

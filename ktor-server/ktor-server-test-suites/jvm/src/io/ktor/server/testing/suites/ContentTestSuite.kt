@@ -416,9 +416,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     @Test
     fun testStaticServe() {
         createAndStartServer {
-            static("/files/") {
-                resources("io/ktor/server/testing/suites")
-            }
+            staticResources("/files/", "io/ktor/server/testing/suites")
         }
 
         withUrl("/files/${ContentTestSuite::class.simpleName}.class") {
@@ -458,9 +456,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            static("/files") {
-                files(location.path)
-            }
+            staticFiles("/files", location)
         }
 
         withUrl("/files/${file.toRelativeString(location).urlPath()}") {

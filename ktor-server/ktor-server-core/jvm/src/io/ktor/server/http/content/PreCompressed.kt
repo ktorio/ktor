@@ -104,13 +104,15 @@ internal suspend fun ApplicationCall.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
-    cacheControl: (File) -> List<CacheControl> = { emptyList() }
+    cacheControl: (File) -> List<CacheControl> = { emptyList() },
+    modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
 ) {
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
     val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
     if (bestCompressionFit == null) {
         if (requestedFile.isFile) {
             if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+            modify(requestedFile, this)
             respond(LocalFileContent(requestedFile, contentType(requestedFile)))
         }
         return
@@ -120,6 +122,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
     val compressedFile = bestCompressionFit.file(requestedFile)
     if (compressedFile.isFile) {
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        modify(requestedFile, this)
         val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile))
         respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
     }
@@ -130,7 +133,8 @@ internal suspend fun ApplicationCall.respondStaticResource(
     packageName: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
-    cacheControl: (URL) -> List<CacheControl> = { emptyList() }
+    cacheControl: (URL) -> List<CacheControl> = { emptyList() },
+    modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> }
 ) {
     val bestCompressionFit = bestCompressionFit(
         call = this,
@@ -145,6 +149,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         attributes.put(SuppressionAttribute, true)
         val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        modifier(bestCompressionFit.url, this)
         respond(PreCompressedResponse(bestCompressionFit.content, bestCompressionFit.compression.encoding))
         return
     }
@@ -157,6 +162,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     if (content != null) {
         val cacheControlValues = cacheControl(content.first).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+        modifier(content.first, this)
         respond(content.second)
     }
 }
