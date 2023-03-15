@@ -61,6 +61,10 @@ ws-version = "8.5.0"
 xmlutil-version = "0.84.3"
 yamlkt-version = "0.12.0"
 
+swagger-codegen-version = "3.0.41"
+swagger-codegen-generators-version = "1.0.38"
+swagger-parser-version = "2.1.12"
+
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin-version" }
@@ -167,3 +171,7 @@ jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref 
 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }
 yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt-version" }
+
+swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen-version" }
+swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators-version" }
+swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser-version" }
