@@ -1,4 +1,4 @@
-public final class io/ktor/server/pebble/PebbleConfiguration : com/mitchellbosecke/pebble/PebbleEngine$Builder {
+public final class io/ktor/server/pebble/PebbleConfiguration : io/pebbletemplates/pebble/PebbleEngine$Builder {
 	public fun <init> ()V
 	public final fun getAvailableLanguages ()Ljava/util/List;
 	public final fun setAvailableLanguages (Ljava/util/List;)V
