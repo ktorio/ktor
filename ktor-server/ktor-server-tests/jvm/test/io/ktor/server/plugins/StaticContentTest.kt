@@ -217,6 +217,32 @@ class StaticContentTest {
     }
 
     @Test
+    fun testStaticFilesAutoHead() = testApplication {
+        routing {
+            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+                autoHeadResponse = true
+            }
+        }
+
+        val responseDefault = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseDefault.status)
+        assertTrue(responseDefault.bodyAsText().contains("class StaticContentTest {"))
+
+        val responseDefaultHead = client.head("static")
+        assertEquals(HttpStatusCode.OK, responseDefaultHead.status)
+        assertTrue(responseDefaultHead.bodyAsText().isEmpty())
+        assertTrue(responseDefaultHead.contentLength()!! > 0)
+
+        val responseFileHead = client.head("static/plugins/CookiesTest.kt")
+        assertEquals(HttpStatusCode.OK, responseFileHead.status)
+        assertTrue(responseFileHead.bodyAsText().isEmpty())
+        assertTrue(responseFileHead.contentLength()!! > 0)
+
+        val notFound = client.head("static/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFound.status)
+    }
+
+    @Test
     fun testStaticResources() = testApplication {
         routing {
             staticResources("static", "public") {
@@ -264,6 +290,33 @@ class StaticContentTest {
         assertEquals(HttpStatusCode.NotFound, noIndex.status)
         val fileNoIndex = client.get("static_no_index/file.txt")
         assertEquals(HttpStatusCode.OK, fileNoIndex.status)
+    }
+
+    @Test
+    fun testStaticResourcesAutoHead() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                autoHeadResponse = true
+            }
+        }
+
+        val responseIndex = client.get("static")
+        assertEquals(HttpStatusCode.OK, responseIndex.status)
+        assertEquals("index", responseIndex.bodyAsText().trim())
+        assertEquals(ContentType.Text.Html, responseIndex.contentType()!!.withoutParameters())
+
+        val responseIndexHead = client.head("static")
+        assertEquals(HttpStatusCode.OK, responseIndexHead.status)
+        assertTrue(responseIndexHead.bodyAsText().isEmpty())
+        assertTrue(responseIndexHead.contentLength()!! > 0)
+
+        val responseFileHead = client.head("static/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFileHead.status)
+        assertTrue(responseFileHead.bodyAsText().isEmpty())
+        assertTrue(responseFileHead.contentLength()!! > 0)
+
+        val notFoundHead = client.head("static/not-existing")
+        assertEquals(HttpStatusCode.NotFound, notFoundHead.status)
     }
 
     @Test
