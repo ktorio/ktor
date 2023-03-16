@@ -8,9 +8,9 @@ kotlin {
             dependencies {
                 implementation(project(":ktor-server:ktor-server-plugins:ktor-server-html-builder"))
 
-                api(libs.swagger.codegen)
-                api(libs.swagger.codegen.generators)
-                api(libs.swagger.parser)
+                implementation(libs.swagger.codegen)
+                implementation(libs.swagger.codegen.generators)
+                implementation(libs.swagger.parser)
             }
         }
     }
