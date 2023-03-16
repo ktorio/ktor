@@ -4,7 +4,6 @@
 
 package io.ktor.server.pebble
 
-import com.mitchellbosecke.pebble.loader.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -20,6 +19,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.pebbletemplates.pebble.loader.*
 import java.util.zip.*
 import kotlin.test.*
 import kotlin.text.Charsets

@@ -7,7 +7,7 @@ serialization-version = "1.4.1"
 validator-version = "0.8.0"
 ktlint-version = "3.10.0"
 
-netty-version = "4.1.86.Final"
+netty-version = "4.1.90.Final"
 netty-tcnative-version = "2.0.54.Final"
 
 jetty-version = "9.4.49.v20220914"
@@ -26,7 +26,7 @@ okhttp-version = "4.10.0"
 
 json-simple-version = "1.1.1"
 gson-version = "2.10"
-jackson-version = "2.14.1"
+jackson-version = "2.14.2"
 
 junit-version = "4.13.2"
 slf4j-version = "2.0.4"
@@ -41,12 +41,12 @@ typesafe-version = "1.4.2"
 mockk-version = "1.13.3"
 mokito-kotlin-version = "1.6.0"
 
-java-jwt-version = "3.19.3"
+java-jwt-version = "4.3.0"
 
-jwks-rsa-version = "0.21.2"
+jwks-rsa-version = "0.22.0"
 mustache-version = "0.9.10"
 freemarker-version = "2.3.31"
-pebble-version = "3.1.6"
+pebble-version = "3.2.0"
 velocity-version = "2.3"
 velocity-tools-version = "3.1"
 webjars-locator-version = "0.52"
@@ -60,6 +60,10 @@ abort-controller-version = "3.0.0"
 ws-version = "8.5.0"
 xmlutil-version = "0.84.3"
 yamlkt-version = "0.12.0"
+
+swagger-codegen-version = "3.0.41"
+swagger-codegen-generators-version = "1.0.38"
+swagger-parser-version = "2.1.12"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
@@ -167,3 +171,7 @@ jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref 
 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }
 yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt-version" }
+
+swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen-version" }
+swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators-version" }
+swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser-version" }
