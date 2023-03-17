@@ -183,7 +183,7 @@ internal class JavaHttpWebSocket(
     }.asCompletableFuture()
 
     override fun onError(webSocket: WebSocket, error: Throwable) {
-        val cause = WebSocketException("${error.message}")
+        val cause = WebSocketException(error.message ?: "web socket failed", error)
         _incoming.close(cause)
         _outgoing.cancel()
         socketJob.complete()
