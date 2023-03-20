@@ -6,6 +6,7 @@ package io.ktor.network.quic.connections
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.errors.*
+import io.ktor.network.quic.util.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 
@@ -23,7 +24,7 @@ internal class TransportParameters {
      * sent by the client; see [Section 7.3](https://www.rfc-editor.org/rfc/rfc9000.html#cid-auth).
      * This transport parameter is only sent by a server.
      */
-    val original_destination_connection_id: ByteArray? = null
+    var original_destination_connection_id: ByteArray? = null
 
     /**
      * The maximum idle timeout is a value in milliseconds that is encoded as an integer;
@@ -144,7 +145,7 @@ internal class TransportParameters {
      * after a client has acted on a preferred_address transport parameter.
      * This parameter is a zero-length value.
      */
-    var disable_active_migration: Long = 0
+    var disable_active_migration: Boolean = false
 
     /**
      * The server's preferred address is used to effect a change in server address at the end of the handshake
@@ -186,13 +187,96 @@ internal class TransportParameters {
      */
     var retry_source_connection_id: ByteArray? = null
 
-    fun toBytes(): ByteArray {
-        TODO()
-    }
+    fun toBytes(isServer: Boolean): ByteArray = buildPacket {
+        if (isServer) {
+            encodeTransportParameter(ID.original_destination_connection_id, original_destination_connection_id)
+        }
+
+        encodeTransportParameter(ID.max_idle_timeout, max_idle_timeout)
+
+        if (isServer) {
+            encodeTransportParameter(ID.stateless_reset_token, stateless_reset_token)
+        }
+
+        encodeTransportParameter(ID.max_udp_payload_size, max_udp_payload_size)
+        encodeTransportParameter(ID.initial_max_data, initial_max_data)
+        encodeTransportParameter(ID.initial_max_stream_data_bidi_local, initial_max_stream_data_bidi_local)
+        encodeTransportParameter(ID.initial_max_stream_data_bidi_remote, initial_max_stream_data_bidi_remote)
+        encodeTransportParameter(ID.initial_max_stream_data_uni, initial_max_stream_data_uni)
+        encodeTransportParameter(ID.initial_max_streams_bidi, initial_max_streams_bidi)
+        encodeTransportParameter(ID.initial_max_streams_uni, initial_max_streams_uni)
+        encodeTransportParameter(ID.ack_delay_exponent, ack_delay_exponent)
+        encodeTransportParameter(ID.max_ack_delay, max_ack_delay)
+        encodeTransportParameter(ID.disable_active_migration, disable_active_migration)
+//        encodeTransportParameter(ID.preferred_address, preferred_address) // unsupported
+        encodeTransportParameter(ID.active_connection_id_limit, active_connection_id_limit)
+        encodeTransportParameter(ID.initial_source_connection_id, initial_source_connection_id)
+
+        if (isServer) {
+            encodeTransportParameter(ID.retry_source_connection_id, retry_source_connection_id)
+        }
+
+    }.readBytes()
 
     companion object {
-        fun fromBytes(bytes: ByteArray): TransportParameters {
-            TODO()
+        fun fromBytes(bytes: ByteReadPacket, length: Int, isServer: Boolean): TransportParameters {
+            val start = bytes.remaining
+            return transportParameters {
+                while (start - bytes.remaining < length) {
+                    readTransportParameter(
+                        bytes = bytes,
+                        isServer = isServer,
+                        raiseError = { error("parsing failed") }
+                    ) // todo change to raiseError
+                }
+            }.also {
+                if (start - bytes.remaining != length.toLong()) {
+                    error("wrong encoding") // todo change to raiseError
+                }
+            }
+        }
+
+        @OptIn(ExperimentalUnsignedTypes::class)
+        @Suppress("UNUSED_PARAMETER")
+        private fun TransportParameters.readTransportParameter(
+            bytes: ByteReadPacket,
+            isServer: Boolean,
+            raiseError: () -> Nothing,
+        ) {
+            val id = ID.fromInt(bytes.readUByte().toInt()) // same as readVarInt
+            val size = bytes.readVarIntOrElse(raiseError).toInt()
+
+            if (size > bytes.remaining) {
+                raiseError()
+            }
+
+            val start = bytes.remaining
+
+            // todo check for client/server only params
+            when (id) {
+                ID.original_destination_connection_id -> original_destination_connection_id = bytes.readBytes(size)
+                ID.max_idle_timeout -> max_idle_timeout = bytes.readVarIntOrElse(raiseError)
+                ID.stateless_reset_token -> stateless_reset_token = bytes.readBytes(size)
+                ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_data -> initial_max_data = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_stream_data_bidi_local -> initial_max_stream_data_bidi_local = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_stream_data_bidi_remote -> initial_max_stream_data_bidi_remote = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_stream_data_uni -> initial_max_stream_data_uni = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_streams_bidi -> initial_max_streams_bidi = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_streams_uni -> initial_max_streams_uni = bytes.readVarIntOrElse(raiseError)
+                ID.ack_delay_exponent -> ack_delay_exponent = bytes.readVarIntOrElse(raiseError).toInt()
+                ID.max_ack_delay -> max_ack_delay = bytes.readVarIntOrElse(raiseError)
+                ID.disable_active_migration -> disable_active_migration = true
+//                ID.preferred_address -> {}
+                ID.active_connection_id_limit -> active_connection_id_limit = bytes.readVarIntOrElse(raiseError).toInt()
+                ID.initial_source_connection_id -> initial_source_connection_id = bytes.readBytes(size)
+                ID.retry_source_connection_id -> retry_source_connection_id = bytes.readBytes(size)
+                else -> bytes.readBytes(size) // skip unknown parameter
+            }
+
+            if (start - bytes.remaining != size.toLong()) {
+                raiseError()
+            }
         }
     }
 }
@@ -208,3 +292,65 @@ internal class PreferredAddress(
     val connectionID: ConnectionID,
     val statelessResetToken: ByteArray,
 )
+
+@Suppress("EnumEntryName")
+private enum class ID(val value: Int) {
+    original_destination_connection_id(0x00),
+    max_idle_timeout(0x01),
+    stateless_reset_token(0x02),
+    max_udp_payload_size(0x03),
+    initial_max_data(0x04),
+    initial_max_stream_data_bidi_local(0x05),
+    initial_max_stream_data_bidi_remote(0x06),
+    initial_max_stream_data_uni(0x07),
+    initial_max_streams_bidi(0x08),
+    initial_max_streams_uni(0x09),
+    ack_delay_exponent(0x0A),
+    max_ack_delay(0x0B),
+    disable_active_migration(0x0C),
+    preferred_address(0x0D),
+    active_connection_id_limit(0x0E),
+    initial_source_connection_id(0x0F),
+    retry_source_connection_id(0x10);
+
+    companion object {
+        fun fromInt(value: Int): ID? {
+            return ID.values().firstOrNull { it.value == value }
+        }
+    }
+}
+
+private fun BytePacketBuilder.encodeTransportParameter(id: ID, parameter: Boolean) {
+    if (parameter) {
+        writeID(id)
+    }
+}
+
+private fun BytePacketBuilder.encodeTransportParameter(id: ID, parameter: Int) {
+    encodeTransportParameter(id, parameter.toLong())
+}
+
+private fun BytePacketBuilder.encodeTransportParameter(id: ID, parameter: Long) {
+    writeID(id)
+    val size = when {
+        parameter < POW_2_06 -> 1
+        parameter < POW_2_14 -> 2
+        parameter < POW_2_30 -> 4
+        parameter < POW_2_62 -> 8
+        else -> unreachable()
+    }
+    writeVarInt(size)
+    writeVarInt(parameter)
+}
+
+private fun BytePacketBuilder.encodeTransportParameter(id: ID, parameter: ByteArray?) {
+    parameter ?: return
+
+    writeID(id)
+    writeVarInt(parameter.size)
+    writeFully(parameter)
+}
+
+private fun BytePacketBuilder.writeID(id: ID) {
+    writeByte(id.value.toByte()) // same as varint encoding
+}
