@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
@@ -454,6 +455,27 @@ class CallLoggingTest {
         val response = client.get("/CallLoggingTest.kt")
         assertEquals(HttpStatusCode.OK, response.status)
         assertFalse("INFO: 200 OK: GET - /CallLoggingTest.kt in 0ms" in messages)
+    }
+
+    @Test
+    fun logsErrorWithMdc() = testApplication {
+        environment {
+            log = logger
+            config = MapApplicationConfig("ktor.test.throwOnException" to "false")
+        }
+        install(CallLogging) {
+            callIdMdc()
+            disableDefaultColors()
+            clock { 0 }
+        }
+        routing {
+            get("/error") {
+                throw Exception("Unexpected")
+            }
+        }
+        val response = client.get("/error")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertContains(messages, "INFO: 500 Internal Server Error: GET - /error in 0ms")
     }
 
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)

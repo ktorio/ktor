@@ -86,9 +86,8 @@ private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (Applic
         withMDC(entries, call, block)
     }
 
-    on(MDCHook(ApplicationCallPipeline.Fallback)) { call, block ->
+    on(ResponseSent) { call ->
         withMDC(entries, call) {
-            block()
             logSuccess(call)
         }
     }
