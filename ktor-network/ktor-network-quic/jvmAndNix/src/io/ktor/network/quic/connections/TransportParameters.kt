@@ -185,6 +185,16 @@ internal class TransportParameters {
      * This transport parameter is only sent by a server.
      */
     var retry_source_connection_id: ByteArray? = null
+
+    fun toBytes(): ByteArray {
+        TODO()
+    }
+
+    companion object {
+        fun fromBytes(bytes: ByteArray): TransportParameters {
+            TODO()
+        }
+    }
 }
 
 /**

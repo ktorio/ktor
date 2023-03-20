@@ -10,6 +10,13 @@ kotlin {
                 api(project(":ktor-utils"))
             }
         }
+        jvmMain {
+            dependencies {
+                // temporary replacement for TLS implementation
+                implementation(files("lib/agent15.jar"))
+                implementation("at.favre.lib:hkdf:1.0.1") // dependency of agent15
+            }
+        }
         jvmTest {
             dependencies {
                 implementation(libs.kotlin.test.junit)
