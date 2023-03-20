@@ -628,7 +628,7 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
                                 password
                             )
 
-                            val jsonMap = buildMap<String, JsonElement> {
+                            val jsonMap = buildMap {
                                 put(OAuth2ResponseParameters.AccessToken, JsonPrimitive(tokens.accessToken))
                                 put(OAuth2ResponseParameters.TokenType, JsonPrimitive(tokens.tokenType))
                                 put(OAuth2ResponseParameters.ExpiresIn, JsonPrimitive(tokens.expiresIn))
@@ -636,6 +636,7 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
                                 for (extraParam in tokens.extraParameters.flattenEntries()) {
                                     put(extraParam.first, JsonPrimitive(extraParam.second))
                                 }
+                                put("NOT_PRIMITIVE", JsonObject(mapOf("test" to JsonPrimitive("value"))))
                             }
                             JsonObject(jsonMap)
                         } catch (cause: OAuth2Exception) {
