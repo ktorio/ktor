@@ -33,6 +33,7 @@ private val StaticContentAutoHead = createRouteScopedPlugin("StaticContentAutoHe
 
     on(ResponseBodyReadyForSend) { call, content ->
         check(call.request.local.method == HttpMethod.Head)
+        if (content is OutgoingContent.ReadChannelContent) content.readFrom().cancel(null)
         transformBodyTo(HeadResponse(content))
     }
 }
@@ -112,10 +113,10 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 /**
  * Sets up [Routing] to serve static files.
  * All files inside [dir] will be accessible recursively at "[remotePath]/path/to/file".
- * If requested file is a directory and [index] is not `null`,
+ * If the requested file is a directory and [index] is not `null`,
  * then response will be [index] file in the requested directory.
  *
- * If requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
+ * If the requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
  *
  * You can use [block] for additional set up.
  */

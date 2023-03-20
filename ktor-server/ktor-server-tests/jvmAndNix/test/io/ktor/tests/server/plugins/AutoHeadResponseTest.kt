@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -156,6 +157,22 @@ class AutoHeadResponseTest {
             assertEquals("Not found".length.toString(), call.response.headers[HttpHeaders.ContentLength])
             assertNull(call.response.content)
         }
+    }
+
+    @Test
+    fun testDisposesContent() = testApplication {
+        val channel = ByteChannel()
+
+        install(AutoHeadResponse)
+        routing {
+            get("/test") {
+                call.respond(channel)
+            }
+        }
+        val response = client.head("test")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue(channel.isClosedForRead)
+        assertTrue(channel.isClosedForWrite)
     }
 
     private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
