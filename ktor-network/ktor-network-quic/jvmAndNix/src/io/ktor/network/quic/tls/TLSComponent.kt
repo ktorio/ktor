@@ -6,7 +6,7 @@ package io.ktor.network.quic.tls
 
 import io.ktor.network.quic.connections.*
 
-internal sealed interface TLSComponent {
+internal interface TLSComponent {
     suspend fun decrypt(
         payload: ByteArray,
         associatedData: ByteArray,
