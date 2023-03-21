@@ -230,6 +230,15 @@ public final class io/ktor/util/PathKt {
 	public static final fun normalizeAndRelativize (Ljava/io/File;)Ljava/io/File;
 }
 
+public final class io/ktor/util/Platform : java/lang/Enum {
+	public static final field Browser Lio/ktor/util/Platform;
+	public static final field Jvm Lio/ktor/util/Platform;
+	public static final field Native Lio/ktor/util/Platform;
+	public static final field Node Lio/ktor/util/Platform;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/Platform;
+	public static fun values ()[Lio/ktor/util/Platform;
+}
+
 public final class io/ktor/util/PlatformUtils {
 	public static final field INSTANCE Lio/ktor/util/PlatformUtils;
 	public final fun getIS_BROWSER ()Z
@@ -238,6 +247,10 @@ public final class io/ktor/util/PlatformUtils {
 	public final fun getIS_NATIVE ()Z
 	public final fun getIS_NEW_MM_ENABLED ()Z
 	public final fun getIS_NODE ()Z
+}
+
+public final class io/ktor/util/PlatformUtilsJvmKt {
+	public static final fun getPlatform (Lio/ktor/util/PlatformUtils;)Lio/ktor/util/Platform;
 }
 
 public abstract interface annotation class io/ktor/util/PublicAPICandidate : java/lang/annotation/Annotation {

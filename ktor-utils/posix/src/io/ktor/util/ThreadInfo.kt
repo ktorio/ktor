@@ -31,7 +31,7 @@ public object ThreadInfo {
     }
 
     public fun getAllStackTraces(): List<WorkerStacktrace> {
-        if (Platform.osFamily == OsFamily.WINDOWS) return emptyList()
+        if (kotlin.native.Platform.osFamily == OsFamily.WINDOWS) return emptyList()
 
         val result = mutableListOf<WorkerStacktrace>()
         val removed = mutableSetOf<Worker>()

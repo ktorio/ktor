@@ -5,14 +5,12 @@
 
 package io.ktor.util
 
-public actual object PlatformUtils {
-    public actual val IS_BROWSER: Boolean = false
-    public actual val IS_NODE: Boolean = false
-    public actual val IS_JVM: Boolean = false
-    public actual val IS_NATIVE: Boolean = true
+internal actual val PlatformUtils.isDevelopmentMode: Boolean
+    get() = false
 
-    public actual val IS_DEVELOPMENT_MODE: Boolean = false
+@OptIn(ExperimentalStdlibApi::class)
+internal actual val PlatformUtils.isNewMemoryModel: Boolean
+    get() = isExperimentalMM()
 
-    @OptIn(ExperimentalStdlibApi::class)
-    public actual val IS_NEW_MM_ENABLED: Boolean = isExperimentalMM()
-}
+public actual val PlatformUtils.platform: Platform
+    get() = Platform.Native
