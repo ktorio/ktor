@@ -116,7 +116,7 @@ internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTrans
     if (reasonPhrase.isEmpty()) return this
 
     val bytes = reasonPhrase.toByteArray(Charsets.UTF_8)
-    return when(this) {
+    return when (this) {
         is ReasonedError -> ReasonedError(error, bytes)
         else -> ReasonedError(this, bytes)
     }

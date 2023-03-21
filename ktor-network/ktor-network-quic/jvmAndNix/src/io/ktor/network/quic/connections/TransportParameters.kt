@@ -215,7 +215,6 @@ internal class TransportParameters {
         if (isServer) {
             encodeTransportParameter(ID.retry_source_connection_id, retry_source_connection_id)
         }
-
     }.readBytes()
 
     companion object {

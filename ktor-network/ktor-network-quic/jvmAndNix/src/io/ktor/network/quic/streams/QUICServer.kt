@@ -47,14 +47,13 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
             |version: ${packet.version}
         """.trimMargin().toByteArray()
         )
-        //|payload: ${packet.payload.readBytes().joinToString(" ") { "%02x".format(it) }}
+        // |payload: ${packet.payload.readBytes().joinToString(" ") { "%02x".format(it) }}
         packet.payload.readBytes()
     }
 
     override fun createConnection(peerSourceConnectionID: ConnectionID): QUICConnection_v1 {
         val communicationProvider = ProtocolCommunicationProvider(
             sendCryptoFrame = {
-
             },
             raiseError = {
                 handleTransportError(it)

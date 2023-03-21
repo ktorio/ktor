@@ -278,6 +278,10 @@ public final class io/ktor/network/sockets/SocketOptions$QUICSocketOptions : io/
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$UDPSocketOptions;
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public final fun getCertificatePath ()Ljava/lang/String;
+	public final fun getPrivateKeyPath ()Ljava/lang/String;
+	public final fun setCertificatePath (Ljava/lang/String;)V
+	public final fun setPrivateKeyPath (Ljava/lang/String;)V
 }
 
 public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {

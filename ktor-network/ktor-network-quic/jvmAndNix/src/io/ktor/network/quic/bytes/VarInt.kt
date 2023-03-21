@@ -63,8 +63,6 @@ internal fun BytePacketBuilder.writeVarInt(varInt: Int) = writeVarInt(varInt.toL
  * Writes variable-length non-negative integer value
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-variable-length-integer-enc)
- *
- * @return size of the written integer in bytes
  */
 internal fun BytePacketBuilder.writeVarInt(value: Long) {
     require(value >= 0) { "Variable-length integer cannot be negative, actual: $value" }

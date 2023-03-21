@@ -4,7 +4,7 @@
 
 package io.ktor.network.quic.tls
 
-internal expect class TLSServerComponentFactory{
+internal expect class TLSServerComponentFactory {
     fun createTLSServerComponent(protocolProvider: ProtocolCommunicationProvider): TLSComponent
 }
 
