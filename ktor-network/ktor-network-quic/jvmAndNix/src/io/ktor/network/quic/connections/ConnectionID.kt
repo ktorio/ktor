@@ -4,6 +4,8 @@
 
 package io.ktor.network.quic.connections
 
+import io.ktor.network.quic.bytes.*
+import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 import kotlin.random.*
 
@@ -30,4 +32,9 @@ internal infix fun ConnectionID.neq(other: ConnectionID): Boolean {
 
 internal infix fun ConnectionID.eq(other: ConnectionID): Boolean {
     return value.contentEquals(other.value)
+}
+
+internal fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
+    writeUInt8(id.size.toUByte())
+    writeFully(id.value)
 }

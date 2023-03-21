@@ -72,7 +72,7 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
     }
 
     private val writeCipher by lazy {
-        Cipher.getInstance("AES/ECB/NoPadding") ?: error("Expected cipher")
+        Cipher.getInstance("AES/GCM/NoPadding") ?: error("Expected cipher")
     }
 
     private val keySpec by lazy {

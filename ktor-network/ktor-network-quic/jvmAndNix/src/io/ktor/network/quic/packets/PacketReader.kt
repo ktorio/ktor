@@ -3,6 +3,7 @@
  */
 
 @file:Suppress("FunctionName", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
+@file:OptIn(ExperimentalUnsignedTypes::class)
 
 package io.ktor.network.quic.packets
 
@@ -204,16 +205,43 @@ internal object PacketReader {
                 println("encoded flags: $flags")
                 println("decoded flags: $decodedFlags")
 
-                val packetNumber: Long = readAndDecodePacketNumber(
+                val packetNumberLength = decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH
+
+                val rawPacketNumber: UInt32 = readAndDecodePacketNumber(
                     bytes = bytes,
                     headerProtectionMask = headerProtectionMask,
-                    packetNumberLength = decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH,
-                    largestPacketNumberInSpace = 0, // todo
+                    packetNumberLength = packetNumberLength,
+                )
+
+                val packetNumber = decodePacketNumber(
+                    largestPn = 0, // todo
+                    truncatedPn = rawPacketNumber,
+                    pnLen = packetNumberLength.toUInt32(),
                 )
 
                 val reservedBits: Int = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
 
-                val payload = readAndDecryptPacketPayload(connection.tlsComponent, bytes, length)
+                val associatedData = buildPacket {
+                    writeUByte(decodedFlags)
+                    writeUInt(version)
+                    writeConnectionId(destinationConnectionID)
+                    writeConnectionId(sourceConnectionID)
+                    if (type == PacketType_v1.Initial) {
+                        writeVarInt(token!!.size)
+                        writeFully(token)
+                    }
+                    writeVarInt(length)
+                    writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+                }.readBytes()
+
+                val payload = readAndDecryptPacketPayload(
+                    tlsComponent = connection.tlsComponent,
+                    associatedData = associatedData,
+                    bytes = bytes,
+                    length = (length - packetNumberLength.toLong() - 1).toInt(),
+                    packetNumber = packetNumber,
+                    level = encryptionLevel,
+                )
 
                 if (reservedBits != 0) {
                     raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
@@ -274,21 +302,42 @@ internal object PacketReader {
         destinationConnectionID: ConnectionID,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
-        val headerProtectionMask: Long = getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.App, raiseError)
+        val headerProtectionMask: Long =
+            getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.App, raiseError)
         val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
-        val packetNumber: Long = readAndDecodePacketNumber(
+        val packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH
+
+        val rawPacketNumber: UInt32 = readAndDecodePacketNumber(
             bytes = bytes,
             headerProtectionMask = headerProtectionMask,
-            packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH,
-            largestPacketNumberInSpace = -2, // todo
+            packetNumberLength = packetNumberLength,
+        )
+
+        val packetNumber = decodePacketNumber(
+            largestPn = -1, // todo
+            truncatedPn = rawPacketNumber,
+            pnLen = packetNumberLength.toUInt32(),
         )
 
         val spinBit: Boolean = decodedFlags and PktConst.SHORT_HEADER_SPIN_BIT == PktConst.SHORT_HEADER_SPIN_BIT
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
         val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
-        val payload = readAndDecryptPacketPayload(connection.tlsComponent, bytes, bytes.remaining)
+        val associatedData = buildPacket {
+            writeUByte(decodedFlags)
+            writeConnectionId(destinationConnectionID)
+            writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+        }.readBytes()
+
+        val payload = readAndDecryptPacketPayload(
+            tlsComponent = connection.tlsComponent,
+            associatedData = associatedData,
+            bytes = bytes,
+            length = bytes.remaining.toInt(),
+            packetNumber = packetNumber,
+            level = EncryptionLevel.App,
+        )
 
         if (reservedBits != 0) {
             raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
@@ -303,12 +352,24 @@ internal object PacketReader {
         )
     }
 
-    private fun readAndDecryptPacketPayload(
+    private fun BytePacketBuilder.writeRawPacketNumber(length: UByte, number: UInt32) {
+        when (length.toInt()) {
+            0 -> writeUInt8(number.toUByte())
+            1 -> writeUInt16(number.toUShort())
+            2 -> writeUInt24(number)
+            3 -> writeUInt32(number)
+        }
+    }
+
+    private suspend fun readAndDecryptPacketPayload(
         tlsComponent: TLSComponent,
+        associatedData: ByteArray,
         bytes: ByteReadPacket,
-        length: Long,
+        length: Int,
+        packetNumber: Long,
+        level: EncryptionLevel,
     ): ByteReadPacket {
-        return bytes
+        return ByteReadPacket(tlsComponent.decrypt(bytes.readBytes(length), associatedData, packetNumber, level))
     }
 
     /**
@@ -340,23 +401,16 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         packetNumberLength: UInt8,
         headerProtectionMask: Long,
-        largestPacketNumberInSpace: Long,
-    ): Long {
+    ): UInt32 {
         // read packet number and decrypt it with the header protection mask
         // see: https://www.rfc-editor.org/rfc/rfc9001#name-header-protection-applicati
-        val packetNumberEncoded: UInt32 = when (packetNumberLength.toInt()) {
+        return when (packetNumberLength.toInt()) {
             0 -> (bytes.readUInt8() xor pnHPMask1(headerProtectionMask)).toUInt32()
             1 -> (bytes.readUInt16() xor pnHPMask2(headerProtectionMask)).toUInt32()
             2 -> bytes.readUInt24() xor pnHPMask3(headerProtectionMask)
             3 -> bytes.readUInt32() xor pnHPMask4(headerProtectionMask)
             else -> unreachable()
         }
-
-        return decodePacketNumber(
-            largestPn = largestPacketNumberInSpace,
-            truncatedPn = packetNumberEncoded,
-            pnLen = packetNumberLength.toUInt32(),
-        )
     }
 
     private val PACKET_END

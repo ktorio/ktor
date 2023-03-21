@@ -119,7 +119,7 @@ internal actual class TLSServerComponent(
 
     private fun createNonce(keys: CryptoKeys, packetNumber: Long): ByteArray {
         return ByteBuffer.allocate(keys.iv.size).apply {
-            for (i in 0..keys.iv.size - 8) {
+            for (i in 0 until keys.iv.size - 8) {
                 put(0x00)
             }
             putLong(packetNumber)
