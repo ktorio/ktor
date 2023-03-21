@@ -9,6 +9,10 @@ import io.ktor.network.quic.errors.CryptoHandshakeError_v1
 import io.ktor.network.quic.frames.FrameWriter
 
 internal actual class TLSServerComponent : TLSComponent {
+    actual suspend fun acceptOriginalDcid(originalDcid: ConnectionID) {
+        TODO("Not yet implemented")
+    }
+
     actual suspend fun acceptHandshake(
         originalDcid: ByteArray,
         cryptoFramePayload: ByteArray,
@@ -39,6 +43,10 @@ internal actual class TLSServerComponent : TLSComponent {
     }
 
     override suspend fun headerProtectionMask(sample: ByteArray, level: EncryptionLevel, isDecrypting: Boolean): Long {
+        TODO("Not yet implemented")
+    }
+
+    override fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit) {
         TODO("Not yet implemented")
     }
 }

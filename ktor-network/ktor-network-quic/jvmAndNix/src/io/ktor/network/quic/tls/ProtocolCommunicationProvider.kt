@@ -9,6 +9,6 @@ import io.ktor.network.quic.errors.*
 
 internal data class ProtocolCommunicationProvider(
     val sendCryptoFrame: (ByteArray) -> Unit,
-    val raiseError: (CryptoHandshakeError_v1) -> Nothing,
+    val raiseError: suspend (CryptoHandshakeError_v1) -> Nothing,
     val getTransportParameters: (peerParameters: TransportParameters) -> TransportParameters,
 )

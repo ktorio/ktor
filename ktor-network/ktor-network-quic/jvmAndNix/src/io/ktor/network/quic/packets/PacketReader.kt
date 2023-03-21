@@ -11,14 +11,15 @@ import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.errors.TransportError_v1.*
-import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_LONG_MASK
-import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_SHORT_MASK
-import io.ktor.network.quic.packets.HeaderProtection.flagsHPMask
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask1
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask2
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask3
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask4
+import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_LONG_MASK
+import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_SHORT_MASK
+import io.ktor.network.quic.packets.HeaderProtectionUtils.flagsHPMask
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask1
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask2
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask3
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask4
 import io.ktor.network.quic.packets.PktConst.HP_SAMPLE_LENGTH
+import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
@@ -48,7 +49,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         negotiatedVersion: UInt32,
         dcidLength: UInt8,
-        matchConnection: (destinationCID: ConnectionID, packetType: PacketType_v1?) -> Unit,
+        matchConnection: (destinationCID: ConnectionID, sourceCID: ConnectionID?, packetType: PacketType_v1?) -> QUICConnection_v1,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
@@ -80,12 +81,12 @@ internal object PacketReader {
                 else -> unreachable()
             }
 
-            val cryptoKeys = matchConnection(destinationConnectionID, type)
+            val connection = matchConnection(destinationConnectionID, sourceConnectionID, type)
 
             return readLongHeader_v1(
                 bytes = bytes,
                 type = type,
-                headerProtectionKey = headerProtectionKey,
+                connection = connection,
                 flags = flags,
                 version = version,
                 destinationConnectionID = destinationConnectionID,
@@ -105,11 +106,11 @@ internal object PacketReader {
 
             // End of version independent properties
 
-            val cryptoKeys = matchConnection(destinationConnectionID, null)
+            val tlsComponent = matchConnection(destinationConnectionID, null, null)
 
             return readShortHeader_v1(
                 bytes = bytes,
-                headerProtectionKey = headerProtectionKey,
+                connection = tlsComponent,
                 flags = flags,
                 destinationConnectionID = destinationConnectionID,
                 raiseError = raiseError
@@ -153,7 +154,7 @@ internal object PacketReader {
     private suspend fun readLongHeader_v1(
         bytes: ByteReadPacket,
         type: PacketType_v1,
-        headerProtectionKey: String,
+        connection: QUICConnection_v1,
         flags: UInt8,
         version: UInt32,
         destinationConnectionID: ConnectionID,
@@ -172,23 +173,47 @@ internal object PacketReader {
                 if (type == PacketType_v1.Initial) {
                     val tokenLength = bytes.readVarIntOrElse { raiseError(PACKET_END) }
                     token = bytes.readBytes(tokenLength.toInt())
+
+                    if (connection.tlsComponent is TLSServerComponent) {
+                        connection.tlsComponent.acceptOriginalDcid(destinationConnectionID)
+                    }
                 }
 
                 val length: Long = bytes.readVarIntOrElse { raiseError(PACKET_END) }
 
-                val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
+                val encryptionLevel = when (type) {
+                    PacketType_v1.Initial -> EncryptionLevel.Initial
+                    PacketType_v1.Handshake -> EncryptionLevel.Handshake
+                    PacketType_v1.ZeroRTT -> error("unsupported")
+                    else -> unreachable()
+                }
+
+                println("Encryption level: $encryptionLevel")
+
+                val headerProtectionMask: Long = getHeaderProtectionMask(
+                    bytes = bytes,
+                    tlsComponent = connection.tlsComponent,
+                    level = encryptionLevel,
+                    raiseError = raiseError
+                )
+
+                println("header protection mask: $headerProtectionMask")
+
                 val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_LONG_MASK)
+
+                println("encoded flags: $flags")
+                println("decoded flags: $decodedFlags")
 
                 val packetNumber: Long = readAndDecodePacketNumber(
                     bytes = bytes,
                     headerProtectionMask = headerProtectionMask,
                     packetNumberLength = decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH,
-                    largestPacketNumberInSpace = -1, // todo
+                    largestPacketNumberInSpace = 0, // todo
                 )
 
                 val reservedBits: Int = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
 
-                val payload = readAndDecryptPacketPayload(bytes, length)
+                val payload = readAndDecryptPacketPayload(connection.tlsComponent, bytes, length)
 
                 if (reservedBits != 0) {
                     raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
@@ -244,12 +269,12 @@ internal object PacketReader {
      */
     private suspend fun readShortHeader_v1(
         bytes: ByteReadPacket,
-        headerProtectionKey: String,
+        connection: QUICConnection_v1,
         flags: UInt8,
         destinationConnectionID: ConnectionID,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
-        val headerProtectionMask: Long = getHeaderProtectionMask(bytes, headerProtectionKey, raiseError)
+        val headerProtectionMask: Long = getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.App, raiseError)
         val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
         val packetNumber: Long = readAndDecodePacketNumber(
@@ -263,7 +288,7 @@ internal object PacketReader {
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
         val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
 
-        val payload = readAndDecryptPacketPayload(bytes, bytes.remaining)
+        val payload = readAndDecryptPacketPayload(connection.tlsComponent, bytes, bytes.remaining)
 
         if (reservedBits != 0) {
             raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
@@ -278,7 +303,11 @@ internal object PacketReader {
         )
     }
 
-    private fun readAndDecryptPacketPayload(bytes: ByteReadPacket, length: Long): ByteReadPacket {
+    private fun readAndDecryptPacketPayload(
+        tlsComponent: TLSComponent,
+        bytes: ByteReadPacket,
+        length: Long,
+    ): ByteReadPacket {
         return bytes
     }
 
@@ -289,7 +318,8 @@ internal object PacketReader {
      */
     private suspend fun getHeaderProtectionMask(
         bytes: ByteReadPacket,
-        headerProtectionKey: String,
+        tlsComponent: TLSComponent,
+        level: EncryptionLevel,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): Long {
         if (bytes.remaining < 132) { // 4 bytes - max packet number size, 128 bytes - sample
@@ -301,7 +331,9 @@ internal object PacketReader {
             bytes.peekTo(it, destinationOffset = 0, offset = 4)
         }
 
-        return HeaderProtection.headerProtection(headerProtectionKey, array)
+        println("sample: ${array.joinToString(" ") { it.toUByte().toString(16) }}")
+
+        return tlsComponent.headerProtectionMask(array, level, isDecrypting = true)
     }
 
     private fun readAndDecodePacketNumber(

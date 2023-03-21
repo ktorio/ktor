@@ -5,6 +5,7 @@
 package io.ktor.network.quic.connections
 
 import kotlin.jvm.*
+import kotlin.random.*
 
 @JvmInline
 internal value class ConnectionID(val value: ByteArray) {
@@ -12,6 +13,11 @@ internal value class ConnectionID(val value: ByteArray) {
 
     companion object {
         val EMPTY = ConnectionID(byteArrayOf())
+
+        fun new(size: Int): ConnectionID {
+            // todo fix random
+            return ConnectionID(Random.nextBytes(size))
+        }
     }
 }
 

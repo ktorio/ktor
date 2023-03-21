@@ -6,9 +6,11 @@
 
 package io.ktor.network.quic.sockets
 
+import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.streams.*
+import io.ktor.network.quic.tls.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -16,6 +18,7 @@ import kotlinx.coroutines.*
 internal abstract class QUICSocketBase(
     private val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
+    private val connections = mutableListOf<Pair<ConnectionID, QUICConnection_v1>>()
 
     override fun dispose() {
         datagramSocket.dispose()
@@ -30,7 +33,7 @@ internal abstract class QUICSocketBase(
             while (true) {
                 try {
                     receiveAndProcessDatagram()
-                } catch (e : Exception) {
+                } catch (e: Exception) {
                     println(e)
 //                    e.printStackTrace()
                 }
@@ -49,7 +52,10 @@ internal abstract class QUICSocketBase(
                 bytes = datagram.packet,
                 negotiatedVersion = 0u, // todo
                 dcidLength = 0u, // todo
-                matchConnection = { dcid, type -> },
+                matchConnection = { dcid, scid, _ ->
+                    val connection = connections.find { it.first.eq(dcid) }
+                    connection?.second ?: createConnection(scid!!).also { connections.add(dcid to it) }
+                },
                 raiseError = {
                     handleTransportError(it)
                     error(it.toString())
@@ -60,7 +66,9 @@ internal abstract class QUICSocketBase(
         }
     }
 
+    abstract fun createConnection(peerSourceConnectionID: ConnectionID): QUICConnection_v1
+
     abstract suspend fun processIncomingPacket(address: SocketAddress, packet: QUICPacket)
 
-    private suspend fun handleTransportError(error: QUICTransportError) {}
+    protected suspend fun handleTransportError(error: QUICTransportError) {}
 }

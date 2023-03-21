@@ -4,7 +4,9 @@
 
 package io.ktor.network.quic.tls
 
-internal interface TLSComponent {
+import io.ktor.network.quic.connections.*
+
+internal sealed interface TLSComponent {
     suspend fun decrypt(
         payload: ByteArray,
         associatedData: ByteArray,
@@ -24,4 +26,6 @@ internal interface TLSComponent {
         level: EncryptionLevel,
         isDecrypting: Boolean,
     ): Long
+
+    fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit)
 }

@@ -38,9 +38,12 @@ internal actual class TLSServerComponent(
         this.engine = engine
     }
 
-    actual suspend fun acceptInitialHandshake(originalDcid: ByteArray, cryptoFramePayload: ByteArray) {
-        this.originalDcid = originalDcid
+    actual suspend fun acceptOriginalDcid(originalDcid: ConnectionID) {
+        this.originalDcid = originalDcid.value
         calculateInitialKeys()
+    }
+
+    actual suspend fun acceptInitialHandshake(cryptoFramePayload: ByteArray) {
         processCryptoFrame(cryptoFramePayload, ProtectionKeysType.None)
     }
 
@@ -55,6 +58,7 @@ internal actual class TLSServerComponent(
                 EncryptionLevel.Handshake -> clientHandshakeKeys
                 EncryptionLevel.App -> client1RTTKeys
             }
+
             else -> when (level) {
                 EncryptionLevel.Initial -> serverInitialKeys
                 EncryptionLevel.Handshake -> serverHandshakeKeys
@@ -129,13 +133,13 @@ internal actual class TLSServerComponent(
     private fun calculateInitialKeys() {
         val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
 
-        clientInitialKeys.complete(CryptoKeys(keys, QUICVersion.V1))
-        clientInitialKeys.complete(CryptoKeys(keys, QUICVersion.V1))
+        clientInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = false))
+        serverInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = true))
     }
 
     // Helper methods
 
-    private fun processCryptoFrame(payload: ByteArray, keysType: ProtectionKeysType) {
+    private suspend fun processCryptoFrame(payload: ByteArray, keysType: ProtectionKeysType) {
         try {
             messageParser.parseAndProcessHandshakeMessage(ByteBuffer.wrap(payload), engine, keysType)
         } catch (e: TlsProtocolException) {
@@ -161,6 +165,8 @@ internal actual class TLSServerComponent(
         // nothing for server to do here
     }
 
+    private lateinit var onTransportParametersKnown: (local: TransportParameters, peer: TransportParameters) -> Unit
+
     override fun extensionsReceived(extensions: MutableList<Extension>?) {
         val peerTransportParameters: TransportParameters = extensions
             ?.filterIsInstance<QUICServerTLSExtension>()
@@ -170,7 +176,13 @@ internal actual class TLSServerComponent(
 
         val endpointTransportParameters = communicationProvider.getTransportParameters(peerTransportParameters)
 
+        onTransportParametersKnown(endpointTransportParameters, peerTransportParameters)
+
         engine.addServerExtensions(QUICServerTLSExtension(endpointTransportParameters, true))
+    }
+
+    override fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit) {
+        onTransportParametersKnown = run
     }
 
     override fun isEarlyDataAccepted(): Boolean {
