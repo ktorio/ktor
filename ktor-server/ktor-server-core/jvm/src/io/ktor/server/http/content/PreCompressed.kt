@@ -134,7 +134,8 @@ internal suspend fun ApplicationCall.respondStaticResource(
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
-    modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> }
+    modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
+    exclude: (URL) -> Boolean = { false }
 ) {
     val bestCompressionFit = bestCompressionFit(
         call = this,
@@ -146,6 +147,10 @@ internal suspend fun ApplicationCall.respondStaticResource(
     )
 
     if (bestCompressionFit != null) {
+        if (exclude(bestCompressionFit.url)) {
+            respond(HttpStatusCode.Forbidden)
+            return
+        }
         attributes.put(SuppressionAttribute, true)
         val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
@@ -160,6 +165,10 @@ internal suspend fun ApplicationCall.respondStaticResource(
         mimeResolve = contentType
     )
     if (content != null) {
+        if (exclude(content.first)) {
+            respond(HttpStatusCode.Forbidden)
+            return
+        }
         val cacheControlValues = cacheControl(content.first).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
         modifier(content.first, this)

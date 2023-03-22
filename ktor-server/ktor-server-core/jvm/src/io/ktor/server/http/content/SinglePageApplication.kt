@@ -26,25 +26,27 @@ import java.io.*
  * }
  * ```
  */
-@Suppress("DEPRECATION")
 public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
     val config = SPAConfig()
     configBuilder.invoke(config)
 
-    static(config.applicationRoute) {
-        val shouldFileBeIgnored = { filePath: String ->
-            config.ignoredFiles.firstOrNull { it.invoke(filePath) } != null
+    if (config.useResources) {
+        staticResources(config.applicationRoute, config.filesPath, index = config.defaultPage) {
+            default(config.defaultPage)
+            config.ignoredFiles.forEach { ignoreConfig ->
+                exclude { url ->
+                    ignoreConfig(url.path)
+                }
+            }
         }
-
-        if (config.useResources) {
-            resourceWithDefault(
-                config.filesPath,
-                config.defaultPage,
-                shouldFileBeIgnored
-            )
-        } else {
-            staticRootFolder = File(config.filesPath)
-            filesWithDefault(".", config.defaultPage, shouldFileBeIgnored)
+    } else {
+        staticFiles(config.applicationRoute, File(config.filesPath), index = config.defaultPage) {
+            default(config.defaultPage)
+            config.ignoredFiles.forEach { ignoreConfig ->
+                exclude { url ->
+                    ignoreConfig(url.path)
+                }
+            }
         }
     }
 }
@@ -54,7 +56,7 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
  */
 public class SPAConfig(
     /**
-     * The default name of a file or resource to serve when [applicationRoute] is requested
+     * The default name of a file or resource to serve when path inside [applicationRoute] is requested
      */
     public var defaultPage: String = "index.html",
 
@@ -65,18 +67,18 @@ public class SPAConfig(
 
     /**
      * The path under which the static content is located.
-     * Corresponds to the folder path if the [useResources] is false, resource path otherwise
+     * Corresponds to the folder path if the [useResources] is false, a resource path otherwise
      */
     public var filesPath: String = "",
 
     /**
-     * Specifies if static content is a resource package with true or folder with false
+     * Specifies if static content is a resource package with `true` or folder with `false`
      */
     public var useResources: Boolean = false,
 
     /**
      * A list of callbacks checking if a file or resource in [filesPath] is ignored.
-     * Requests for such files or resources fails with the 403 Forbidden status
+     * Requests for such files or resources fail with the 403 Forbidden status code
      */
     internal val ignoredFiles: MutableList<(String) -> Boolean> = mutableListOf()
 )
