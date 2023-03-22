@@ -86,13 +86,12 @@ internal fun CoroutineScope.pinger(
                     }
                 }
 
-                LOGGER.trace("WebSocket pinger has timed out")
-
                 if (rc == null) {
                     // timeout
                     // we were unable to send the ping or hadn't got a valid pong message in time,
                     // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
+                    LOGGER.trace("WebSocket pinger has timed out")
                     onTimeout(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Ping timeout"))
                     break
                 }
