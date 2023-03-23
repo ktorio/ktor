@@ -5,14 +5,22 @@
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.logging.*
+import kotlinx.atomicfu.*
+import kotlinx.atomicfu.locks.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.auth.Auth")
+
+private class AtomicHolder {
+    val atomic = atomic(0)
+}
 
 /**
  * A client's plugin that handles authentication and authorization.
@@ -39,12 +47,19 @@ public class Auth private constructor(
             return Auth().apply(block)
         }
 
-        @OptIn(InternalAPI::class)
+        private val tokenVersions = ConcurrentMap<AuthProvider, AtomicHolder>()
+        private val tokenVersionsAttributeKey =
+            AttributeKey<MutableMap<AuthProvider, Int>>("ProviderVersionAttributeKey")
+
         override fun install(plugin: Auth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                plugin.providers.filter { it.sendWithoutRequest(context) }.forEach {
-                    LOGGER.trace("Adding auth headers for ${context.url} from provider $it")
-                    it.addRequestHeaders(context)
+                plugin.providers.filter { it.sendWithoutRequest(context) }.forEach { provider ->
+                    LOGGER.trace("Adding auth headers for ${context.url} from provider $provider")
+                    val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicHolder() }
+                    val requestTokenVersions = context.attributes
+                        .computeIfAbsent(tokenVersionsAttributeKey) { mutableMapOf() }
+                    requestTokenVersions[provider] = tokenVersion.atomic.value
+                    provider.addRequestHeaders(context)
                 }
             }
 
@@ -59,54 +74,85 @@ public class Auth private constructor(
 
                 while (call.response.status == HttpStatusCode.Unauthorized) {
                     LOGGER.trace("Received 401 for ${call.request.url}")
-                    val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
-                    val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
-                    var providerOrNull: AuthProvider? = null
-                    var authHeader: HttpAuthHeader? = null
-
-                    when {
-                        authHeaders.isEmpty() && candidateProviders.size == 1 -> {
-                            providerOrNull = candidateProviders.first()
-                        }
-
-                        authHeaders.isEmpty() -> {
-                            LOGGER.trace(
-                                "401 response ${call.request.url} has no or empty \"WWW-Authenticate\" header. " +
-                                    "Can not add or refresh token"
-                            )
-                            return@intercept call
-                        }
-
-                        else -> authHeader = authHeaders.find { header ->
-                            providerOrNull = candidateProviders.find { it.isApplicable(header) }
-                            providerOrNull != null
-                        }
-                    }
-                    val provider = providerOrNull ?: run {
-                        LOGGER.trace("Can not provider find auth provider for ${call.request.url}")
+                    val (provider, authHeader) = findProvider(call, candidateProviders) ?: run {
+                        LOGGER.trace("Can not find auth provider for ${call.request.url}")
                         return@intercept call
                     }
+
                     LOGGER.trace("Using provider $provider for ${call.request.url}")
 
-                    LOGGER.trace("Refreshing token for ${call.request.url}")
-                    if (!provider.refreshToken(call.response)) {
-                        LOGGER.trace("Refreshing token failed for ${call.request.url}")
-                        return@intercept call
-                    }
-
                     candidateProviders.remove(provider)
-
-                    val request = HttpRequestBuilder()
-                    request.takeFromWithExecutionContext(context)
-                    provider.addRequestHeaders(request, authHeader)
-                    request.attributes.put(AuthCircuitBreaker, Unit)
-
-                    LOGGER.trace("Sending new request to ${call.request.url}")
-                    call = execute(request)
+                    if (!refreshTokenIfNeeded(call, provider, context)) return@intercept call
+                    call = executeWithNewToken(call, provider, context, authHeader)
                 }
                 return@intercept call
             }
+        }
+
+        @OptIn(InternalAPI::class)
+        private fun findProvider(
+            call: HttpClientCall,
+            candidateProviders: Set<AuthProvider>
+        ): Pair<AuthProvider, HttpAuthHeader?>? {
+            val headerValues = call.response.headers.getAll(HttpHeaders.WWWAuthenticate)
+            val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
+
+            return when {
+                authHeaders.isEmpty() && candidateProviders.size == 1 -> {
+                    candidateProviders.first() to null
+                }
+
+                authHeaders.isEmpty() -> {
+                    LOGGER.trace(
+                        "401 response ${call.request.url} has no or empty \"WWW-Authenticate\" header. " +
+                            "Can not add or refresh token"
+                    )
+                    null
+                }
+
+                else -> authHeaders.firstNotNullOfOrNull { header ->
+                    candidateProviders.find { it.isApplicable(header) }?.let { it to header }
+                }
+            }
+        }
+
+        private suspend fun refreshTokenIfNeeded(
+            call: HttpClientCall,
+            provider: AuthProvider,
+            request: HttpRequestBuilder
+        ): Boolean {
+            val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicHolder() }
+            val requestTokenVersions = request.attributes
+                .computeIfAbsent(tokenVersionsAttributeKey) { mutableMapOf() }
+            val requestTokenVersion = requestTokenVersions[provider]
+
+            if (requestTokenVersion != null && requestTokenVersion >= tokenVersion.atomic.value) {
+                LOGGER.trace("Refreshing token for ${call.request.url}")
+                if (!provider.refreshToken(call.response)) {
+                    LOGGER.trace("Refreshing token failed for ${call.request.url}")
+                    return false
+                } else {
+                    requestTokenVersions[provider] = tokenVersion.atomic.incrementAndGet()
+                }
+            }
+            return true
+        }
+
+        @OptIn(InternalAPI::class)
+        private suspend fun Sender.executeWithNewToken(
+            call: HttpClientCall,
+            provider: AuthProvider,
+            oldRequest: HttpRequestBuilder,
+            authHeader: HttpAuthHeader?
+        ): HttpClientCall {
+            val request = HttpRequestBuilder()
+            request.takeFromWithExecutionContext(oldRequest)
+            provider.addRequestHeaders(request, authHeader)
+            request.attributes.put(AuthCircuitBreaker, Unit)
+
+            LOGGER.trace("Sending new request to ${call.request.url}")
+            return execute(request)
         }
     }
 }

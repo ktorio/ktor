@@ -76,7 +76,7 @@ public class RequestValidationConfig {
         }
 
         internal fun build(): Validator {
-            check(::validationBlock.isInitialized) { "`validation { ... } block is not ser`" }
+            check(::validationBlock.isInitialized) { "`validation { ... } block is not set`" }
             check(::filterBlock.isInitialized) { "`filter { ... } block is not set`" }
             return object : Validator {
                 override suspend fun validate(value: Any) = validationBlock(value)
