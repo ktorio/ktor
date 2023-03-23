@@ -231,4 +231,28 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             assertEquals("OK", it.bodyAsText())
         }
     }
+
+    @Test
+    fun testRespondWithTypeInfoAny() = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, converter)
+        }
+
+        fun buildResponse(): Any = Wrapper("abc")
+
+        routing {
+            get("/") {
+                call.respond(buildResponse())
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""{"value":"abc"}""", response.bodyAsText())
+        }
+    }
 }
