@@ -6,12 +6,15 @@ package io.ktor.client.plugins.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -112,6 +115,40 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testAuthDoesntRefreshBeforeSend() = testWithEngine(MockEngine) {
+        var refreshCount = 0
+        config {
+            install(Auth) {
+                providers += object : AuthProvider {
+                    @Deprecated("Please use sendWithoutRequest function instead")
+                    override val sendWithoutRequest: Boolean = false
+                    override fun isApplicable(auth: HttpAuthHeader): Boolean = true
+
+                    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+                        request.headers.append(HttpHeaders.Authorization, "Auth1")
+                    }
+
+                    override suspend fun refreshToken(response: HttpResponse): Boolean {
+                        refreshCount++
+                        return true
+                    }
+                }
+            }
+            engine {
+                addHandler { respond("ERROR", HttpStatusCode.Unauthorized) }
+                addHandler { respond("OK", HttpStatusCode.OK) }
+            }
+        }
+
+        test { client ->
+            refreshCount = 0
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(0, refreshCount)
+        }
+    }
+
+    @Test
     fun testBasicAuthWithoutNegotiationLegacy() = clientTests {
         config {
             install(Auth) {
@@ -183,7 +220,6 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testBasicAuthMultiple() = clientTests(listOf("Js")) {
         config {
@@ -267,6 +303,63 @@ class AuthTest : ClientLoader() {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
+    }
+
+    @Test
+    fun testUsesFreshTokenIfAvailable() = testSuspend {
+        val request1FinishMonitor = Job()
+        val request2StartMonitor = Job()
+        var refreshCount = 0
+        val client = HttpClient(MockEngine) {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        BearerTokens("initial", "initial")
+                    }
+
+                    refreshTokens {
+                        val tokens = BearerTokens("new$refreshCount", "new$refreshCount")
+                        refreshCount++
+                        tokens
+                    }
+                }
+            }
+
+            engine {
+                addHandler { request ->
+                    fun respond(): HttpResponseData {
+                        return if (request.headers[HttpHeaders.Authorization] != "Bearer initial") respond("OK")
+                        else respond("Error", HttpStatusCode.Unauthorized, headersOf("WWW-Authenticate", "Bearer"))
+                    }
+
+                    when (request.url.encodedPath) {
+                        "/url1" -> {
+                            request2StartMonitor.join()
+                            respond()
+                        }
+                        "/url2" -> {
+                            request1FinishMonitor.join()
+                            respond()
+                        }
+
+                        else -> throw IllegalStateException()
+                    }
+                }
+            }
+        }
+
+        val request1 = launch {
+            client.get("/url1")
+            request1FinishMonitor.complete()
+        }
+        val request2 = launch {
+            request2StartMonitor.complete()
+            client.get("/url2")
+        }
+
+        request1.join()
+        request2.join()
+        assertEquals(1, refreshCount)
     }
 
     @Test
@@ -468,12 +561,10 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var refreshRequestsCount = 0
-
     @Test
     @OptIn(DelicateCoroutinesApi::class)
     fun testMultipleRefreshShouldMakeSingleCall() = clientTests {
-        refreshRequestsCount = 0
+        var refreshRequestsCount = 0
         config {
             install(Auth) {
                 bearer {
@@ -488,6 +579,7 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
+            refreshRequestsCount = 0
             client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
 
             val jobs = mutableListOf<Job>()

@@ -109,7 +109,8 @@ class DigestProviderTest {
         providerWithoutRealm.addRequestHeaders(requestBuilder, authHeader)
 
         val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
-        val response = (parseAuthorizationHeader(resultAuthHeader) as HttpAuthHeader.Parameterized).parameter("response")!!
+        val response = (parseAuthorizationHeader(resultAuthHeader) as HttpAuthHeader.Parameterized)
+            .parameter("response")!!
         assertEquals("d51dd4b72db592e321b80d006d24c34c", response)
     }
 
