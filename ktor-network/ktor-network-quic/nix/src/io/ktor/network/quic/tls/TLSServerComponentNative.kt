@@ -6,18 +6,13 @@
 package io.ktor.network.quic.tls
 
 import io.ktor.network.quic.connections.*
-import io.ktor.network.quic.errors.CryptoHandshakeError_v1
-import io.ktor.network.quic.frames.FrameWriter
 
 internal actual class TLSServerComponent : TLSComponent {
     actual suspend fun acceptOriginalDcid(originalDcid: ConnectionID) {
         TODO("Not yet implemented")
     }
 
-    actual suspend fun acceptHandshake(
-        originalDcid: ByteArray,
-        cryptoFramePayload: ByteArray,
-    ) {
+    actual suspend fun acceptInitialHandshake(cryptoFramePayload: ByteArray) {
         TODO("Not yet implemented")
     }
 

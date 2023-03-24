@@ -8,7 +8,6 @@ package io.ktor.network.quic.errors
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.utils.io.core.*
-import kotlin.jvm.*
 
 /**
  * 0b01000001, where 0100 prefix - varint length, 0001 byte - prefix of crypto error.
@@ -115,7 +114,7 @@ internal class ReasonedError(
 internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTransportError {
     if (reasonPhrase.isEmpty()) return this
 
-    val bytes = reasonPhrase.toByteArray(Charsets.UTF_8)
+    val bytes = reasonPhrase.toByteArray()
     return when (this) {
         is ReasonedError -> ReasonedError(error, bytes)
         else -> ReasonedError(this, bytes)

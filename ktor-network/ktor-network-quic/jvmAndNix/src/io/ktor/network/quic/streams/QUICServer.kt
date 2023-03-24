@@ -11,7 +11,6 @@ import io.ktor.network.quic.tls.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
-import kotlin.text.toByteArray
 
 internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOptions.QUICSocketOptions) :
     QUICSocketBase(datagramSocket),
@@ -41,8 +40,8 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
             """
             |packet overview 
             |packet number: ${packet.packetNumber} 
-            |scid: ${packet.sourceConnectionID.value.joinToString(" ") { "%02x".format(it) }}
-            |dcid: ${packet.destinationConnectionID.value.joinToString(" ") { "%02x".format(it) }}
+            |scid: ${packet.sourceConnectionID.value.joinToString(" ") { it.toString16Byte() }}
+            |dcid: ${packet.destinationConnectionID.value.joinToString(" ") { it.toString16Byte() }}
             |token: ${packet.token.joinToString("")}
             |version: ${packet.version}
         """.trimMargin().toByteArray()
@@ -74,5 +73,9 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
             initialPeerConnectionID = peerSourceConnectionID,
             connectionIDLength = peerSourceConnectionID.size
         )
+    }
+
+    private fun Byte.toString16Byte(): String {
+        return toUByte().toString(16).padStart(2, '0')
     }
 }

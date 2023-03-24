@@ -29,7 +29,7 @@ internal abstract class QUICSocketBase(
     }
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             while (true) {
                 try {
                     receiveAndProcessDatagram()
