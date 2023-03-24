@@ -38,7 +38,7 @@ public inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memor
         "At most ${Long.MAX_VALUE} (kotlin.Long.MAX_VALUE) bytes range is supported."
     }
 
-    return of(pointer, size.convert()) // TODO investigate
+    return of(pointer, size.convert()) // TODO dumanskaya KT-57568
 }
 
 /**
