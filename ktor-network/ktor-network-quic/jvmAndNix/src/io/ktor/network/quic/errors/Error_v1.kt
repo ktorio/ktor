@@ -8,6 +8,7 @@ package io.ktor.network.quic.errors
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.utils.io.core.*
+import kotlin.jvm.JvmInline
 
 /**
  * 0b01000001, where 0100 prefix - varint length, 0001 byte - prefix of crypto error.
