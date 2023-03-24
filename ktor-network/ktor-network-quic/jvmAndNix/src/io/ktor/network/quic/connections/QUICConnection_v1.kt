@@ -9,6 +9,7 @@ package io.ktor.network.quic.connections
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.tls.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.sync.*
 
@@ -21,31 +22,18 @@ import kotlinx.coroutines.sync.*
  */
 @Suppress("CanBeParameter", "UNUSED_PARAMETER")
 internal class QUICConnection_v1(
+    val tlsComponent: TLSComponent,
     private val isServer: Boolean,
 
     /**
      * Initial CID used by this endpoint during the handshake.
      */
-    initialLocalConnectionID: ConnectionID,
+    private val initialLocalConnectionID: ConnectionID,
 
     /**
      * Initial CID used by the peer during the handshake.
      */
-    initialPeerConnectionID: ConnectionID,
-
-    /**
-     * [TransportParameters] that were announced to the peer.
-     *
-     * Peer should comply with them and can request some changes during the connection if needed.
-     */
-    private val localTransportParameters: TransportParameters,
-
-    /**
-     * [TransportParameters] that were announced by the peer.
-     *
-     * This endpoint should comply with them and can request some changes during the connection if needed.
-     */
-    private val peerTransportParameters: TransportParameters,
+    private val initialPeerConnectionID: ConnectionID,
 
     /**
      * Negotiated length of the CIDs used during this connection
@@ -55,6 +43,20 @@ internal class QUICConnection_v1(
     private val processor = PayloadProcessor()
 
     /**
+     * [TransportParameters] that were announced to the peer.
+     *
+     * Peer should comply with them and can request some changes during the connection if needed.
+     */
+    private var localTransportParameters: TransportParameters = transportParameters()
+
+    /**
+     * [TransportParameters] that were announced by the peer.
+     *
+     * This endpoint should comply with them and can request some changes during the connection if needed.
+     */
+    private var peerTransportParameters: TransportParameters = transportParameters()
+
+    /**
      * Token to send in the header of an Initial packet for a future connection.
      */
     private var initialFrameToken: ByteArray? = null
@@ -62,12 +64,16 @@ internal class QUICConnection_v1(
     /**
      * Pool of CIDs which this endpoint willing to accept
      */
-    private val localConnectionIDs = ConnectionIDRecordList(localTransportParameters.active_connection_id_limit)
+    private val localConnectionIDs by lazy {
+        ConnectionIDRecordList(localTransportParameters.active_connection_id_limit)
+    }
 
     /**
-     * Pool of CIDs which the peer willing to accept
+     * Pool of CIDs, which the peer is willing to accept
      */
-    private val peerConnectionIDs = ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit)
+    private val peerConnectionIDs by lazy {
+        ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit)
+    }
 
     private var peerMaxData: Long = peerTransportParameters.initial_max_data
     private var localMaxData: Long = localTransportParameters.initial_max_data
@@ -84,11 +90,29 @@ internal class QUICConnection_v1(
     private val maxStreamData = hashMapOf<Long, Long>()
 
     init {
+        tlsComponent.onTransportParametersKnown { local, peer ->
+            localTransportParameters = local
+            peerTransportParameters = peer
+
+            onTransportParametersKnown()
+        }
+    }
+
+    private fun onTransportParametersKnown() {
         val initialLocalSequenceNumber = localTransportParameters.preferred_address?.let { 1L } ?: 0
         val initialPeerSequenceNumber = peerTransportParameters.preferred_address?.let { 1L } ?: 0
 
         localConnectionIDs.add(ConnectionIDRecord(initialLocalConnectionID, initialLocalSequenceNumber))
         peerConnectionIDs.add(ConnectionIDRecord(initialPeerConnectionID, initialPeerSequenceNumber))
+
+        peerMaxData = peerTransportParameters.initial_max_data
+        localMaxData = localTransportParameters.initial_max_data
+
+        localMaxStreamsBidirectional = localTransportParameters.initial_max_streams_bidi
+        peerMaxStreamsBidirectional = peerTransportParameters.initial_max_streams_bidi
+
+        localMaxStreamsUnidirectional = localTransportParameters.initial_max_streams_uni
+        peerMaxStreamsUnidirectional = peerTransportParameters.initial_max_streams_uni
     }
 
     /**

@@ -10,13 +10,14 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.frames.*
-import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_LONG_MASK
-import io.ktor.network.quic.packets.HeaderProtection.HP_FLAGS_SHORT_MASK
-import io.ktor.network.quic.packets.HeaderProtection.flagsHPMask
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask1
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask2
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask3
-import io.ktor.network.quic.packets.HeaderProtection.pnHPMask4
+import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_LONG_MASK
+import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_SHORT_MASK
+import io.ktor.network.quic.packets.HeaderProtectionUtils.flagsHPMask
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask1
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask2
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask3
+import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask4
+import io.ktor.network.quic.tls.*
 import io.ktor.utils.io.core.*
 
 internal object PacketWriter {
@@ -100,7 +101,8 @@ internal object PacketWriter {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
      */
-    inline fun writeInitialPacket(
+    suspend inline fun writeInitialPacket(
+        tlsComponent: TLSComponent,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
@@ -110,6 +112,7 @@ internal object PacketWriter {
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
         writeLongHeaderPacket_v1(
+            tlsComponent = tlsComponent,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_INITIAL,
             version = version,
@@ -129,7 +132,8 @@ internal object PacketWriter {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-handshake-packet)
      */
-    inline fun writeHandshakePacket(
+    suspend inline fun writeHandshakePacket(
+        tlsComponent: TLSComponent,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
@@ -138,6 +142,7 @@ internal object PacketWriter {
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
         writeLongHeaderPacket_v1(
+            tlsComponent = tlsComponent,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE,
             version = version,
@@ -153,7 +158,8 @@ internal object PacketWriter {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-0-rtt)
      */
-    inline fun writeZeroRTTPacket(
+    suspend inline fun writeZeroRTTPacket(
+        tlsComponent: TLSComponent,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
@@ -162,6 +168,7 @@ internal object PacketWriter {
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
         writeLongHeaderPacket_v1(
+            tlsComponent = tlsComponent,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_0_RTT,
             version = version,
@@ -179,7 +186,8 @@ internal object PacketWriter {
      */
     private const val LONG_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0xC0u
 
-    private inline fun writeLongHeaderPacket_v1(
+    private suspend inline fun writeLongHeaderPacket_v1(
+        tlsComponent: TLSComponent,
         packetBuilder: BytePacketBuilder,
         packetType: UInt8,
         version: UInt32,
@@ -190,9 +198,12 @@ internal object PacketWriter {
         writeBeforeLength: BytePacketBuilder.() -> Unit = {},
     ) {
         checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
-        val headerProtectionKey = "" // todo crypto
 
-        withEncryptedPayloadAndHPMask(headerProtectionKey, payload) { encryptedPayload, headerProtectionMask ->
+        withEncryptedPayloadAndHPMask(
+            tlsComponent = tlsComponent,
+            level = EncryptionLevel.App,
+            payload = payload,
+        ) { encryptedPayload, headerProtectionMask ->
             val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)
             val first: UInt8 = LONG_HEADER_FIRST_BYTE_TEMPLATE or packetType or packetNumberLength
 
@@ -221,7 +232,8 @@ internal object PacketWriter {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-1-rtt-packet)
      */
-    fun writeOneRTTPacket(
+    suspend fun writeOneRTTPacket(
+        tlsComponent: TLSComponent,
         packetBuilder: BytePacketBuilder,
         spinBit: Boolean,
         keyPhase: Boolean,
@@ -229,9 +241,11 @@ internal object PacketWriter {
         packetNumber: Long,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
     ) {
-        val headerProtectionKey = " " // todo crypto
-
-        withEncryptedPayloadAndHPMask(headerProtectionKey, payload) { encryptedPayload, headerProtectionMask ->
+        withEncryptedPayloadAndHPMask(
+            tlsComponent = tlsComponent,
+            level = EncryptionLevel.App,
+            payload = payload
+        ) { encryptedPayload, headerProtectionMask ->
             val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)
 
             val spinBitValue: UInt8 = if (spinBit) PktConst.SHORT_HEADER_SPIN_BIT else 0x00u
@@ -269,8 +283,9 @@ internal object PacketWriter {
     /**
      * Execute payload, encrypt it and calculate headerProtectionMask based on the sample from the encrypted payload
      */
-    private inline fun withEncryptedPayloadAndHPMask(
-        headerProtectionKey: String,
+    private suspend inline fun withEncryptedPayloadAndHPMask(
+        tlsComponent: TLSComponent,
+        level: EncryptionLevel,
         payload: FrameWriter.(BytePacketBuilder) -> Unit,
         body: (encryptedPayload: ByteArray, headerProtectionMask: Long) -> Unit,
     ) {
@@ -285,7 +300,7 @@ internal object PacketWriter {
         }
 
         val sample: ByteArray = encryptedPayload.copyOfRange(0, PktConst.HP_SAMPLE_LENGTH)
-        val headerProtectionMask: Long = HeaderProtection.headerProtection(headerProtectionKey, sample)
+        val headerProtectionMask: Long = tlsComponent.headerProtectionMask(sample, level, isDecrypting = false)
 
         return body(encryptedPayload, headerProtectionMask)
     }
