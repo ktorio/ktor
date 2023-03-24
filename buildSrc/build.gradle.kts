@@ -9,6 +9,9 @@ plugins {
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
+extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+val kotlin_repo_url: String? by extra
+
 repositories {
     mavenCentral()
     maven("https://plugins.gradle.org/m2")
@@ -19,6 +22,9 @@ repositories {
     mavenLocal()
     if (buildSnapshotTrain) {
         mavenLocal()
+    }
+    if (kotlin_repo_url != null) {
+        maven(kotlin_repo_url!!)
     }
 }
 
@@ -77,9 +83,24 @@ kotlin {
     }
 }
 
+
+extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
+val kotlin_language_version: String? by extra
+
+extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
+val kotlin_api_version: String? by extra
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions.freeCompilerArgs += listOf(
         "-Xsuppress-version-warnings",
         "-Xskip-metadata-version-check",
+        "-version"
     )
+
+    if (kotlin_language_version != null) {
+        kotlinOptions.languageVersion = kotlin_language_version
+    }
+    if (kotlin_language_version != null) {
+        kotlinOptions.apiVersion = kotlin_api_version
+    }
 }

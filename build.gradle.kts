@@ -44,12 +44,18 @@ buildscript {
     // This flag is also used in settings.gradle to exclude native-only projects
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
+    extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+    val kotlin_repo_url: String? by extra
+
     repositories {
         mavenLocal()
         mavenCentral()
         google()
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        if (kotlin_repo_url != null) {
+            maven(kotlin_repo_url!!)
+        }
     }
 
     dependencies {
@@ -109,11 +115,17 @@ allprojects {
 
     setupTrainForSubproject()
 
+    extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+    val kotlin_repo_url: String? by extra
+
     repositories {
         mavenLocal()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        if (kotlin_repo_url != null) {
+            maven(kotlin_repo_url!!)
+        }
     }
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
@@ -236,6 +248,14 @@ fun KotlinMultiplatformExtension.setCompilationOptions() {
 }
 
 fun KotlinMultiplatformExtension.configureSourceSets() {
+
+    extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
+    val kotlin_language_version: String? by extra
+
+    extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
+    val kotlin_api_version: String? by extra
+
+
     sourceSets
         .matching { it.name !in listOf("main", "test") }
         .all {
@@ -248,6 +268,8 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
 
             languageSettings.apply {
                 progressiveMode = true
+                languageVersion = kotlin_language_version
+                apiVersion = kotlin_api_version
             }
         }
 
