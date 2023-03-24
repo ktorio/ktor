@@ -523,9 +523,4 @@ internal object FrameWriterImpl : FrameWriter {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
         writeUInt8(typeV1.typeValue)
     }
-
-    private fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
-        writeUInt8(id.size.toUByte())
-        writeFully(id.value)
-    }
 }

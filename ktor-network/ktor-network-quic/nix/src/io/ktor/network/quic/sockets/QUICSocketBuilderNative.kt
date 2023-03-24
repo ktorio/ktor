@@ -11,7 +11,7 @@ import io.ktor.network.sockets.*
 internal actual fun QUICSocketBuilder.Companion.bindQUIC(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions,
+    options: SocketOptions.QUICSocketOptions,
 ): BoundQUICSocket {
     TODO("QUIC protocol is not supported for native platforms")
 }
