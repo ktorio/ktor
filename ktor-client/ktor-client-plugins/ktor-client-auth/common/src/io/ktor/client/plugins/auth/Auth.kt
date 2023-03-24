@@ -14,11 +14,11 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.logging.*
 import kotlinx.atomicfu.*
-import kotlinx.atomicfu.locks.*
+import kotlinx.atomicfu.locks.*x
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.auth.Auth")
 
-private class AtomicHolder {
+private class AtomicCounter {
     val atomic = atomic(0)
 }
 
@@ -47,7 +47,7 @@ public class Auth private constructor(
             return Auth().apply(block)
         }
 
-        private val tokenVersions = ConcurrentMap<AuthProvider, AtomicHolder>()
+        private val tokenVersions = ConcurrentMap<AuthProvider, AtomicCounter>()
         private val tokenVersionsAttributeKey =
             AttributeKey<MutableMap<AuthProvider, Int>>("ProviderVersionAttributeKey")
 
@@ -55,7 +55,7 @@ public class Auth private constructor(
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
                 plugin.providers.filter { it.sendWithoutRequest(context) }.forEach { provider ->
                     LOGGER.trace("Adding auth headers for ${context.url} from provider $provider")
-                    val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicHolder() }
+                    val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicCounter() }
                     val requestTokenVersions = context.attributes
                         .computeIfAbsent(tokenVersionsAttributeKey) { mutableMapOf() }
                     requestTokenVersions[provider] = tokenVersion.atomic.value
@@ -122,7 +122,7 @@ public class Auth private constructor(
             provider: AuthProvider,
             request: HttpRequestBuilder
         ): Boolean {
-            val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicHolder() }
+            val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicCounter() }
             val requestTokenVersions = request.attributes
                 .computeIfAbsent(tokenVersionsAttributeKey) { mutableMapOf() }
             val requestTokenVersion = requestTokenVersions[provider]
