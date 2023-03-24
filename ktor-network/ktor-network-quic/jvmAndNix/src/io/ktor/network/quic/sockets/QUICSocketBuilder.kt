@@ -25,5 +25,5 @@ public class QUICSocketBuilder(
 internal expect fun QUICSocketBuilder.Companion.bindQUIC(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions,
+    options: SocketOptions.QUICSocketOptions,
 ): BoundQUICSocket
