@@ -168,8 +168,20 @@ public sealed class SocketOptions(
      * Represents QUIC socket options
      */
     public class QUICSocketOptions internal constructor(
-        customOptions: MutableMap<Any, Any?>
+        customOptions: MutableMap<Any, Any?>,
     ) : UDPSocketOptions(customOptions) {
+        public var certificatePath: String? = null
+
+        public var privateKeyPath: String? = null
+
+        override fun copyCommon(from: SocketOptions) {
+            super.copyCommon(from)
+            if (from is QUICSocketOptions) {
+                certificatePath = from.certificatePath
+                privateKeyPath = from.privateKeyPath
+            }
+        }
+
         override fun copy(): QUICSocketOptions {
             return QUICSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@QUICSocketOptions)

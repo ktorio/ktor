@@ -14,12 +14,12 @@ import io.ktor.util.*
 internal actual fun QUICSocketBuilder.Companion.bindQUIC(
     selector: SelectorManager,
     localAddress: SocketAddress?,
-    options: SocketOptions.UDPSocketOptions,
+    options: SocketOptions.QUICSocketOptions,
 ): BoundQUICSocket {
     val datagramSocket = bindUDPConfigurable(selector, localAddress, options) {
         // https://www.rfc-editor.org/rfc/rfc9000.html#name-datagram-size
         // todo requires java 19 and gradle 7.6
 //        setOption(ExtendedSocketOptions.IP_DONTFRAGMENT, true)
     }
-    return QUICServer(datagramSocket)
+    return QUICServer(datagramSocket, options)
 }
