@@ -6,13 +6,17 @@ import java.util.Properties
 */
 pluginManagement {
     val build_snapshot_train: String? by settings
+    val kotlin_repo_url: String? by settings
     repositories {
         maven("https://plugins.gradle.org/m2")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        mavenCentral()
         if (build_snapshot_train?.toBoolean() == true) {
             mavenLocal()
         }
-
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        if (kotlin_repo_url != null) {
+            maven(kotlin_repo_url!!)
+        }
     }
 }
 
