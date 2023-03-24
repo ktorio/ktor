@@ -434,13 +434,11 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun cacheControl (Lkotlin/jvm/functions/Function1;)V
 	public final fun contentType (Lkotlin/jvm/functions/Function1;)V
 	public final fun default (Ljava/lang/String;)V
+	public final fun enableAutoHeadResponse ()V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun extensions ([Ljava/lang/String;)V
-	public final fun getAutoHeadResponse ()Z
-	public final fun getPreCompressedFileTypes ()Ljava/util/List;
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
-	public final fun setAutoHeadResponse (Z)V
-	public final fun setPreCompressedFileTypes (Ljava/util/List;)V
+	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
 }
 
 public final class io/ktor/server/http/content/StaticContentKt {

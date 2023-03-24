@@ -43,23 +43,26 @@ private val StaticContentAutoHead = createRouteScopedPlugin("StaticContentAutoHe
  */
 public class StaticContentConfig<Resource : Any> internal constructor() {
 
-    internal var contentType: (Resource) -> ContentType = {
+    private val defaultContentType: (Resource) -> ContentType = {
         when (it) {
             is File -> ContentType.defaultForFile(it)
             is URL -> ContentType.defaultForFilePath(it.path)
             else -> throw IllegalArgumentException("Argument can be only of type File or URL, but was ${it::class}")
         }
     }
+    internal var contentType: (Resource) -> ContentType = defaultContentType
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
     internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
     internal var exclude: (Resource) -> Boolean = { false }
     internal var extensions: List<String> = emptyList()
     internal var defaultPath: String? = null
+    internal var preCompressedFileTypes: List<CompressedFileType> = emptyList()
+    internal var autoHeadResponse: Boolean = false
 
     /**
-     * Support pre-compressed files or resources.
+     * Enables pre-compressed files or resources.
      *
-     * For example, for static files, by setting `preCompressed = listOf(CompressedFileType.BROTLI)`, the local file
+     * For example, for static files, by setting `preCompressed(CompressedFileType.BROTLI)`, the local file
      * /foo/bar.js.br can be found at "/foo/bar.js"
      *
      * Appropriate headers will be set and compression will be suppressed if pre-compressed file is found.
@@ -67,12 +70,16 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * The order in types is *important*.
      * It will determine the priority of serving one versus serving another.
      */
-    public var preCompressedFileTypes: List<CompressedFileType> = emptyList()
+    public fun preCompressed(vararg types: CompressedFileType) {
+        preCompressedFileTypes = types.toList()
+    }
 
     /**
-     * If set to true, automatically responds to a `HEAD` request for every file/resource that has a `GET` defined.
+     * Enables automatic response to a `HEAD` request for every file/resource that has a `GET` defined.
      */
-    public var autoHeadResponse: Boolean = false
+    public fun enableAutoHeadResponse() {
+        autoHeadResponse = true
+    }
 
     /**
      * Configures default [Resource] to respond with, when requested file is not found.
@@ -83,11 +90,12 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures [ContentType] for requested static content.
+     * If the [block] returns `null`, default behaviour of guessing [ContentType] from the header will be used.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
      */
-    public fun contentType(block: (Resource) -> ContentType) {
-        contentType = block
+    public fun contentType(block: (Resource) -> ContentType?) {
+        contentType = { resource -> block(resource) ?: defaultContentType(resource) }
     }
 
     /**
