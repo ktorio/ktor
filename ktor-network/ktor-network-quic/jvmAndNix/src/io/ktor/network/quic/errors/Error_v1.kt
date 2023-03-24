@@ -8,7 +8,7 @@ package io.ktor.network.quic.errors
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.utils.io.core.*
-import kotlin.jvm.*
+import kotlin.jvm.JvmInline
 
 /**
  * 0b01000001, where 0100 prefix - varint length, 0001 byte - prefix of crypto error.
@@ -100,5 +100,24 @@ internal class CryptoHandshakeError_v1(val tlsAlertCode: UInt8) : QUICTransportE
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         packetBuilder.writeUInt8(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
         packetBuilder.writeUInt8(tlsAlertCode)
+    }
+}
+
+internal class ReasonedError(
+    val error: QUICTransportError,
+    val reasonPhrase: ByteArray,
+) : QUICTransportError {
+    override fun toString(): String {
+        return "Error: $error, reason: ${String(reasonPhrase)}"
+    }
+}
+
+internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTransportError {
+    if (reasonPhrase.isEmpty()) return this
+
+    val bytes = reasonPhrase.toByteArray()
+    return when (this) {
+        is ReasonedError -> ReasonedError(error, bytes)
+        else -> ReasonedError(this, bytes)
     }
 }

@@ -4,7 +4,10 @@
 
 package io.ktor.network.quic.connections
 
+import io.ktor.network.quic.bytes.*
+import io.ktor.utils.io.core.*
 import kotlin.jvm.*
+import kotlin.random.*
 
 @JvmInline
 internal value class ConnectionID(val value: ByteArray) {
@@ -12,6 +15,11 @@ internal value class ConnectionID(val value: ByteArray) {
 
     companion object {
         val EMPTY = ConnectionID(byteArrayOf())
+
+        fun new(size: Int): ConnectionID {
+            // todo fix random
+            return ConnectionID(Random.nextBytes(size))
+        }
     }
 }
 
@@ -24,4 +32,9 @@ internal infix fun ConnectionID.neq(other: ConnectionID): Boolean {
 
 internal infix fun ConnectionID.eq(other: ConnectionID): Boolean {
     return value.contentEquals(other.value)
+}
+
+internal fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
+    writeUInt8(id.size.toUByte())
+    writeFully(id.value)
 }
