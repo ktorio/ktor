@@ -51,8 +51,8 @@ public abstract class NoPoolImpl<T : Any> : ObjectPool<T> {
  * A pool that produces at most one instance
  */
 public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
-    private val borrowed = atomic(0) // TODO dumanskaya KT-57341
-    private val disposed = atomic(false) // TODO dumanskaya KT-57341
+    private val borrowed = atomic(0)
+    private val disposed = atomic(false)
 
     private val instance = atomic<T?>(null)
 

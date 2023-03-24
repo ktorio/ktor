@@ -16,7 +16,7 @@ public open class ChunkBuffer(
     }
 
     private val nextRef: AtomicRef<ChunkBuffer?> = atomic(null)
-    private val refCount = atomic<Int>(1) // TODO dumanskaya KT-57341
+    private val refCount = atomic<Int>(1)
 
     /**
      * Reference to an origin buffer view this was copied from
@@ -84,7 +84,7 @@ public open class ChunkBuffer(
      * Increase ref-count. May fail if already released.
      */
     internal fun acquire() {
-        refCount.update { old -> // TODO dumanskaya KT-57341
+        refCount.update { old ->
             if (old <= 0) throw IllegalStateException("Unable to acquire chunk: it is already released.") // TODO dumanskaya because of KT-57341
             old + 1
         }
@@ -94,11 +94,11 @@ public open class ChunkBuffer(
      * Invoked by a pool before return the instance to a user.
      */
     internal fun unpark() {
-        refCount.update { old -> // TODO dumanskaya KT-57341
-            if (old < 0) { // TODO dumanskaya because of KT-57341
+        refCount.update { old ->
+            if (old < 0) {
                 throw IllegalStateException("This instance is already disposed and couldn't be borrowed.")
             }
-            if (old > 0) { // TODO dumanskaya because of KT-57341
+            if (old > 0) {
                 throw IllegalStateException("This instance is already in use but somehow appeared in the pool.")
             }
 
@@ -111,9 +111,9 @@ public open class ChunkBuffer(
      * @return `true` if the last usage was released
      */
     internal fun release(): Boolean {
-        return refCount.updateAndGet { old -> // TODO dumanskaya KT-57341
-            if (old <= 0) throw IllegalStateException("Unable to release: it is already released.") // TODO dumanskaya because of KT-57341
-            old - 1 // TODO dumanskaya because of KT-57341
+        return refCount.updateAndGet { old ->
+            if (old <= 0) throw IllegalStateException("Unable to release: it is already released.")
+            old - 1
         } == 0
     }
 
