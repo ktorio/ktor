@@ -8,4 +8,7 @@ internal expect class TLSServerComponentFactory {
     fun createTLSServerComponent(protocolProvider: ProtocolCommunicationProvider): TLSComponent
 }
 
-internal expect fun tlsServerComponentFactory(certificatePath: String, privateKeyPath: String): TLSServerComponentFactory
+internal expect fun tlsServerComponentFactory(
+    certificatePath: String,
+    privateKeyPath: String,
+): TLSServerComponentFactory

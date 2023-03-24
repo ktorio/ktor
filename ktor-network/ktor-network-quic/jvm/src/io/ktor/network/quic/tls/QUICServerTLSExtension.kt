@@ -25,7 +25,7 @@ internal class QUICServerTLSExtension(
         fun fromBytes(bytes: ByteReadPacket, isServer: Boolean): QUICServerTLSExtension {
             val extensionType = bytes.readShort()
             if (extensionType != EXTENSION_TYPE) {
-                error("") // todo raise error
+                error("unsupported extension type") // todo raise error
             }
 
             val length = bytes.readShort().toInt()

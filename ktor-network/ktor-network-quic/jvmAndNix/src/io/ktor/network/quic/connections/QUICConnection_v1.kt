@@ -64,12 +64,16 @@ internal class QUICConnection_v1(
     /**
      * Pool of CIDs which this endpoint willing to accept
      */
-    private val localConnectionIDs by lazy { ConnectionIDRecordList(localTransportParameters.active_connection_id_limit) }
+    private val localConnectionIDs by lazy {
+        ConnectionIDRecordList(localTransportParameters.active_connection_id_limit)
+    }
 
     /**
-     * Pool of CIDs which the peer is willing to accept
+     * Pool of CIDs, which the peer is willing to accept
      */
-    private val peerConnectionIDs by lazy { ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit) }
+    private val peerConnectionIDs by lazy {
+        ConnectionIDRecordList(peerTransportParameters.active_connection_id_limit)
+    }
 
     private var peerMaxData: Long = peerTransportParameters.initial_max_data
     private var localMaxData: Long = localTransportParameters.initial_max_data

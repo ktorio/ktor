@@ -258,8 +258,12 @@ internal class TransportParameters {
                 ID.stateless_reset_token -> stateless_reset_token = bytes.readBytes(size)
                 ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_data -> initial_max_data = bytes.readVarIntOrElse(raiseError)
-                ID.initial_max_stream_data_bidi_local -> initial_max_stream_data_bidi_local = bytes.readVarIntOrElse(raiseError)
-                ID.initial_max_stream_data_bidi_remote -> initial_max_stream_data_bidi_remote = bytes.readVarIntOrElse(raiseError)
+                ID.initial_max_stream_data_bidi_local -> {
+                    initial_max_stream_data_bidi_local = bytes.readVarIntOrElse(raiseError)
+                }
+                ID.initial_max_stream_data_bidi_remote -> {
+                    initial_max_stream_data_bidi_remote = bytes.readVarIntOrElse(raiseError)
+                }
                 ID.initial_max_stream_data_uni -> initial_max_stream_data_uni = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_streams_bidi -> initial_max_streams_bidi = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_streams_uni -> initial_max_streams_uni = bytes.readVarIntOrElse(raiseError)

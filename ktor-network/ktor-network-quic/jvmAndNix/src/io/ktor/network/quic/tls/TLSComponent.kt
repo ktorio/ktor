@@ -6,6 +6,12 @@ package io.ktor.network.quic.tls
 
 import io.ktor.network.quic.connections.*
 
+/**
+ * TLS Component - is a part of TLS that QUIC uses to do it's job.
+ * It only manages TLS Handshake flow and keys and provides them to QUIC
+ *
+ * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9001.html)
+ */
 internal interface TLSComponent {
     suspend fun decrypt(
         payload: ByteArray,

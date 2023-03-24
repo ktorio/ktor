@@ -50,7 +50,11 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         negotiatedVersion: UInt32,
         dcidLength: UInt8,
-        matchConnection: (destinationCID: ConnectionID, sourceCID: ConnectionID?, packetType: PacketType_v1?) -> QUICConnection_v1,
+        matchConnection: (
+            destinationCID: ConnectionID,
+            sourceCID: ConnectionID?,
+            packetType: PacketType_v1?,
+        ) -> QUICConnection_v1,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
