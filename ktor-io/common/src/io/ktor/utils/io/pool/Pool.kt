@@ -51,8 +51,8 @@ public abstract class NoPoolImpl<T : Any> : ObjectPool<T> {
  * A pool that produces at most one instance
  */
 public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
-    private val borrowed = atomic(0)
-    private val disposed = atomic(false)
+    private val borrowed = atomic(0) // TODO dumanskaya KT-57341
+    private val disposed = atomic(false) // TODO dumanskaya KT-57341
 
     private val instance = atomic<T?>(null)
 
@@ -69,8 +69,8 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
     final override val capacity: Int get() = 1
 
     final override fun borrow(): T {
-        borrowed.update {
-            if (it != 0) throw IllegalStateException("Instance is already consumed")
+        borrowed.update { // TODO dumanskaya KT-57341
+            if (it != 0) throw IllegalStateException("Instance is already consumed")  // TODO dumanskaya because of KT-57341
             1
         }
 
@@ -82,7 +82,7 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
 
     final override fun recycle(instance: T) {
         if (this.instance.value !== instance) {
-            if (this.instance.value == null && borrowed.value != 0) {
+            if (this.instance.value == null && borrowed.value != 0) {  // TODO dumanskaya because of KT-57341
                 throw IllegalStateException("Already recycled or an irrelevant instance tried to be recycled")
             }
 
@@ -91,7 +91,7 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
 
         this.instance.value = null
 
-        if (!disposed.compareAndSet(false, true)) {
+        if (!disposed.compareAndSet(false, true)) {  // TODO dumanskaya because of KT-57341
             throw IllegalStateException("An instance is already disposed")
         }
 
@@ -99,7 +99,7 @@ public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
     }
 
     final override fun dispose() {
-        if (disposed.compareAndSet(false, true)) {
+        if (disposed.compareAndSet(false, true)) {  // TODO dumanskaya because of KT-57341
             val value = instance.value ?: return
             instance.value = null
 

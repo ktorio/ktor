@@ -22,10 +22,10 @@ public abstract class ByteChannelSequentialBase(
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
     private val _lastReadView: AtomicRef<ChunkBuffer> = atomic(ChunkBuffer.Empty)
 
-    private val _totalBytesRead = atomic<Long>(0L) //TODO dumanskaya
-    private val _totalBytesWritten = atomic<Long>(0L) //TODO dumanskaya
-    private val _availableForRead = atomic<Int>(0) //TODO dumanskaya
-    private val channelSize = atomic<Int>(0) //TODO dumanskaya
+    private val _totalBytesRead = atomic(0L) // TODO dumanskaya KT-57341
+    private val _totalBytesWritten = atomic(0L) // TODO dumanskaya KT-57341
+    private val _availableForRead = atomic(0) // TODO dumanskaya KT-57341
+    private val channelSize = atomic(0) // TODO dumanskaya KT-57341
 
     private val _closed = atomic<CloseElement?>(null)
     private val isCancelled: Boolean get() = _closed.value?.cause != null
@@ -39,7 +39,7 @@ public abstract class ByteChannelSequentialBase(
     protected val writable: BytePacketBuilder = BytePacketBuilder(pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
 
-    private var lastReadAvailable: Int by atomic<Int>(0) //TODO dumanskaya
+    private var lastReadAvailable: Int by atomic(0) // TODO dumanskaya KT-57341
     private var lastReadView: ChunkBuffer by atomic(ChunkBuffer.Empty)
 
     private val slot = AwaitingSlot()
@@ -47,18 +47,18 @@ public abstract class ByteChannelSequentialBase(
     override val availableForRead: Int get() = _availableForRead.value
 
     override val availableForWrite: Int
-        get() = maxOf(0, EXPECTED_CAPACITY.toInt() - channelSize.value)
+        get() = maxOf(0, EXPECTED_CAPACITY.toInt() - channelSize.value)  // TODO dumanskaya because of KT-57341
 
     override val isClosedForRead: Boolean
-        get() = isCancelled || (closed && channelSize.value == 0)
+        get() = isCancelled || (closed && channelSize.value == 0) // TODO dumanskaya because of KT-57341
 
     override val isClosedForWrite: Boolean
         get() = closed
 
     override val totalBytesRead: Long
-        get() = _totalBytesRead.value
+        get() = _totalBytesRead.value // TODO dumanskaya because of KT-57341
 
-    override val totalBytesWritten: Long get() = _totalBytesWritten.value
+    override val totalBytesWritten: Long get() = _totalBytesWritten.value // TODO dumanskaya because of KT-57341
 
     final override var closedCause: Throwable?
         get() = _closed.value?.cause
@@ -72,7 +72,7 @@ public abstract class ByteChannelSequentialBase(
     init {
         val count = initial.remainingAll().toInt()
         afterWrite(count)
-        _availableForRead.addAndGet(count)
+        _availableForRead.addAndGet(count) // TODO dumanskaya because of KT-57341
     }
 
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
@@ -114,7 +114,7 @@ public abstract class ByteChannelSequentialBase(
             val size = writable.size
             val buffer = writable.stealAll()!!
             flushBuffer.writeChunkBuffer(buffer)
-            _availableForRead.addAndGet(size)
+            _availableForRead.addAndGet(size) // TODO dumanskaya because of KT-57341
         }
     }
 
@@ -759,7 +759,7 @@ public abstract class ByteChannelSequentialBase(
             size
         } else {
             0
-        }
+        }// TODO dumanskaya KT-57341
     }
 
     @Suppress("DEPRECATION")
@@ -826,20 +826,20 @@ public abstract class ByteChannelSequentialBase(
     private fun addBytesRead(count: Int) {
         require(count >= 0) { "Can't read negative amount of bytes: $count" }
 
-        channelSize.minusAssign(count)
-        _totalBytesRead.addAndGet(count.toLong())
-        _availableForRead.minusAssign(count)
+        channelSize.minusAssign(count)  // TODO dumanskaya because of KT-57341
+        _totalBytesRead.addAndGet(count.toLong())  // TODO dumanskaya because of KT-57341
+        _availableForRead.minusAssign(count)  // TODO dumanskaya because of KT-57341
 
-        check(channelSize.value >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
+        check(channelSize.value >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" } // TODO dumanskaya because of KT-57341
         check(availableForRead >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
     }
 
     private fun addBytesWritten(count: Int) {
         require(count >= 0) { "Can't write negative amount of bytes: $count" }
 
-        channelSize.plusAssign(count)
-        _totalBytesWritten.addAndGet(count.toLong())
+        channelSize.plusAssign(count) // TODO dumanskaya because of KT-57341
+        _totalBytesWritten.addAndGet(count.toLong()) // TODO dumanskaya because of KT-57341
 
-        check(channelSize.value >= 0) { "Readable bytes count is negative: ${channelSize.value}, $count in $this" }
+        check(channelSize.value >= 0) { "Readable bytes count is negative: ${channelSize.value}, $count in $this" } // TODO dumanskaya because of KT-57341
     }
 }
