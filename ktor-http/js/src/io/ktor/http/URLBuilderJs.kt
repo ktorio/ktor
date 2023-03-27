@@ -12,7 +12,7 @@ import io.ktor.util.*
  * It uses "localhost" for all platforms except js.
  */
 public actual val URLBuilder.Companion.origin: String
-    get() = when(PlatformUtils.platform) {
+    get() = when (PlatformUtils.platform) {
         Platform.Browser -> {
             js(
                 """

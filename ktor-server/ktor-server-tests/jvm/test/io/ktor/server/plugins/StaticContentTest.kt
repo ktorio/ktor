@@ -146,7 +146,7 @@ class StaticContentTest {
                 contentType {
                     when (it.name) {
                         "PartialContentTest.kt" -> ContentType.Application.Json
-                        else -> ContentType.defaultForFile(it)
+                        else -> null
                     }
                 }
                 default("/plugins/AutoHeadResponseJvmTest.kt")
@@ -240,7 +240,7 @@ class StaticContentTest {
 
         routing {
             staticFiles("static", filesDir) {
-                preCompressedFileTypes = CompressedFileType.values().toList()
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
             }
         }
 
@@ -270,7 +270,7 @@ class StaticContentTest {
     fun testStaticFilesAutoHead() = testApplication {
         routing {
             staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
-                autoHeadResponse = true
+                enableAutoHeadResponse()
             }
         }
 
@@ -324,7 +324,7 @@ class StaticContentTest {
                 contentType {
                     when {
                         it.path.endsWith("file-nested.txt") -> ContentType.Application.Json
-                        else -> ContentType.defaultForFilePath(it.path)
+                        else -> null
                     }
                 }
                 default("default.txt")
@@ -429,7 +429,7 @@ class StaticContentTest {
     fun testStaticResourcesAutoHead() = testApplication {
         routing {
             staticResources("static", "public") {
-                autoHeadResponse = true
+                enableAutoHeadResponse()
             }
         }
 
@@ -456,7 +456,7 @@ class StaticContentTest {
     fun testStaticResourcesPreCompressed() = testApplication {
         routing {
             staticResources("static", "public") {
-                preCompressedFileTypes = CompressedFileType.values().toList()
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
             }
         }
 
