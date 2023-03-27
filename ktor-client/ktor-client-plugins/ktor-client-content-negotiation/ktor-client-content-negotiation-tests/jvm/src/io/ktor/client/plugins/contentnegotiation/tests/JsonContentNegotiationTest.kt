@@ -20,7 +20,7 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-abstract class JsonContentNegotiationTest(private val converter: ContentConverter) {
+abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
 
     @Serializable
@@ -255,4 +255,71 @@ abstract class JsonContentNegotiationTest(private val converter: ContentConverte
             assertEquals("""{"value":"abc"}""", response.bodyAsText())
         }
     }
+
+    @Test
+    fun testRespondSealedWithTypeInfoAny() = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, converter)
+        }
+
+        fun buildResponse(): Any = DataType("abc")
+
+        routing {
+            get("/") {
+                call.respond(buildResponse())
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""{"value":"abc"}""", response.bodyAsText())
+        }
+    }
+
+    @Test
+    open fun testRespondNestedSealedWithTypeInfoAny() = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, converter)
+        }
+
+        fun buildResponse(): Any = SealedWrapper(Sealed.A("abc"))
+
+        routing {
+            get("/") {
+                call.respond(buildResponse())
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""{"value":{"value":"abc"}}""", response.bodyAsText())
+        }
+    }
+}
+
+@Serializable
+sealed class Data
+
+@Serializable
+class DataType(val value: String) : Data()
+
+
+@Serializable
+class SealedWrapper(val value: Sealed)
+
+@Serializable
+sealed class Sealed {
+    @Serializable
+    data class A(val value: String) : Sealed()
+
+    @Serializable
+    data class B(val value: String) : Sealed()
 }
