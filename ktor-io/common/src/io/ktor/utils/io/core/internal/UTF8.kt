@@ -349,7 +349,7 @@ private const val MaxCodePoint = 0x10ffff
 private const val MinLowSurrogate = 0xdc00
 private const val MinHighSurrogate = 0xd800
 private const val MinSupplementary = 0x10000
-private const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)  // TODO dumanskaya KT-56023
+private const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
 
 @PublishedApi
 internal fun isBmpCodePoint(cp: Int): Boolean = cp ushr 16 == 0
