@@ -5,7 +5,7 @@
 package io.ktor.network.quic.tls
 
 internal actual class TLSServerComponentFactory {
-    actual fun createTLSServerComponent(protocolProvider: ProtocolCommunicationProvider): TLSComponent {
+    actual fun createTLSServerComponent(protocolProvider: ProtocolCommunicationProvider): TLSServerComponent {
         TODO("Not yet implemented")
     }
 }

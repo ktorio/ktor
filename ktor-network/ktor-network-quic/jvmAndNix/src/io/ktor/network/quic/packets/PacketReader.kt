@@ -38,19 +38,11 @@ internal object PacketReader {
     private const val SHORT_HEADER_PACKET_NUMBER_LENGTH: UInt8 = 0x03u
 
     /**
-     * Reads a single QUIC packet.
-     *
-     * @param negotiatedVersion - used for the short headers.
-     * Version of the protocol that is used for this connection.
-     *
-     * @param dcidLength - used for the short headers
-     * Length of the destinationConnectionID parameter that is used for this connection
+     * Reads a single QUIC packet. Handles its decryption
      */
     suspend fun readSinglePacket(
         bytes: ByteReadPacket,
-        negotiatedVersion: UInt32,
-        dcidLength: UInt8,
-        matchConnection: (
+        matchConnection: suspend (
             destinationCID: ConnectionID,
             sourceCID: ConnectionID?,
             packetType: PacketType_v1?,
@@ -97,23 +89,21 @@ internal object PacketReader {
                 raiseError = raiseError
             )
         } else { // Short Header bit is set
-            val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(negotiatedVersion) { raiseError(FRAME_ENCODING_ERROR) }
-
-            if (dcidLength > maxCIDLength) {
-                raiseError(PROTOCOL_VIOLATION("Actual CID length exceeds protocol's maximum"))
-            }
-
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt()).asCID()
+            if (bytes.remaining < ConnectionID.endpointSCIDLength) {
+                raiseError(PACKET_END)
+            }
+
+            val destinationConnectionID: ConnectionID = bytes.readBytes(ConnectionID.endpointSCIDLength).asCID()
 
             // End of version independent properties
 
-            val tlsComponent = matchConnection(destinationConnectionID, null, null)
+            val connection = matchConnection(destinationConnectionID, null, null)
 
             return readShortHeader_v1(
                 bytes = bytes,
-                connection = tlsComponent,
+                connection = connection,
                 flags = flags,
                 destinationConnectionID = destinationConnectionID,
                 raiseError = raiseError
@@ -129,6 +119,9 @@ internal object PacketReader {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
         if (connectionIDLength > maxCIDLength) {
             raiseError(PROTOCOL_VIOLATION("Actual CID length exceeds protocol's maximum"))
+        }
+        if (bytes.remaining < connectionIDLength.toInt()) {
+            raiseError(PACKET_END)
         }
         return bytes.readBytes(connectionIDLength.toInt()).asCID()
     }
@@ -175,6 +168,9 @@ internal object PacketReader {
                 var token: ByteArray? = null
                 if (type == PacketType_v1.Initial) {
                     val tokenLength = bytes.readVarIntOrElse { raiseError(PACKET_END) }
+                    if (bytes.remaining < tokenLength) {
+                        raiseError(PACKET_END)
+                    }
                     token = bytes.readBytes(tokenLength.toInt())
 
                     if (connection.tlsComponent is TLSServerComponent) {
@@ -233,7 +229,7 @@ internal object PacketReader {
                         writeFully(token)
                     }
                     writeVarInt(length)
-                    writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+                    PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
                 }.readBytes()
 
                 val payload = readAndDecryptPacketPayload(
@@ -243,6 +239,7 @@ internal object PacketReader {
                     length = (length - packetNumberLength.toLong() - 1).toInt(),
                     packetNumber = packetNumber,
                     level = encryptionLevel,
+                    raiseError = raiseError,
                 )
 
                 if (reservedBits != 0) {
@@ -304,8 +301,13 @@ internal object PacketReader {
         destinationConnectionID: ConnectionID,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
-        val headerProtectionMask: Long =
-            getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.AppData, raiseError)
+        val headerProtectionMask: Long = getHeaderProtectionMask(
+            bytes = bytes,
+            tlsComponent = connection.tlsComponent,
+            level = EncryptionLevel.AppData,
+            raiseError = raiseError
+        )
+
         val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
         val packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH
@@ -329,7 +331,7 @@ internal object PacketReader {
         val associatedData = buildPacket {
             writeUByte(decodedFlags)
             writeConnectionId(destinationConnectionID)
-            writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+            PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
         }.readBytes()
 
         val payload = readAndDecryptPacketPayload(
@@ -339,6 +341,7 @@ internal object PacketReader {
             length = bytes.remaining.toInt(),
             packetNumber = packetNumber,
             level = EncryptionLevel.AppData,
+            raiseError = raiseError,
         )
 
         if (reservedBits != 0) {
@@ -354,15 +357,6 @@ internal object PacketReader {
         )
     }
 
-    private fun BytePacketBuilder.writeRawPacketNumber(length: UByte, number: UInt32) {
-        when (length.toInt()) {
-            0 -> writeUInt8(number.toUByte())
-            1 -> writeUInt16(number.toUShort())
-            2 -> writeUInt24(number)
-            3 -> writeUInt32(number)
-        }
-    }
-
     private suspend fun readAndDecryptPacketPayload(
         tlsComponent: TLSComponent,
         associatedData: ByteArray,
@@ -370,7 +364,12 @@ internal object PacketReader {
         length: Int,
         packetNumber: Long,
         level: EncryptionLevel,
+        raiseError: suspend (QUICTransportError) -> Nothing,
     ): ByteReadPacket {
+        if (bytes.remaining < length) {
+            raiseError(PACKET_END)
+        }
+
         return ByteReadPacket(tlsComponent.decrypt(bytes.readBytes(length), associatedData, packetNumber, level))
     }
 

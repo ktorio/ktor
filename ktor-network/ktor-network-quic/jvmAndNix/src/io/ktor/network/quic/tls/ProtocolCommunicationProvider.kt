@@ -7,8 +7,10 @@ package io.ktor.network.quic.tls
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 
-internal data class ProtocolCommunicationProvider(
-    val sendCryptoFrame: (ByteArray) -> Unit,
-    val raiseError: suspend (CryptoHandshakeError_v1) -> Nothing,
-    val getTransportParameters: (peerParameters: TransportParameters) -> TransportParameters,
-)
+internal interface ProtocolCommunicationProvider {
+    fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean = false)
+
+    suspend fun raiseError(error: CryptoHandshakeError_v1)
+
+    fun getTransportParameters(peerParameters: TransportParameters): TransportParameters
+}

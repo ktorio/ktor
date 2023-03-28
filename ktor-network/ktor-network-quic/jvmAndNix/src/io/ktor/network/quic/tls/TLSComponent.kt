@@ -4,8 +4,6 @@
 
 package io.ktor.network.quic.tls
 
-import io.ktor.network.quic.connections.*
-
 /**
  * TLS Component - is a part of TLS that QUIC uses to do it's job.
  * It only manages TLS Handshake flow and keys and provides them to QUIC
@@ -32,6 +30,4 @@ internal interface TLSComponent {
         level: EncryptionLevel,
         isDecrypting: Boolean,
     ): Long
-
-    fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit)
 }

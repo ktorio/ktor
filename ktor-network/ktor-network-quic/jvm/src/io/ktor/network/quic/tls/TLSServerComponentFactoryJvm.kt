@@ -12,7 +12,7 @@ internal actual class TLSServerComponentFactory(
 ) {
     actual fun createTLSServerComponent(
         protocolProvider: ProtocolCommunicationProvider,
-    ): TLSComponent {
+    ): TLSServerComponent {
         val component = TLSServerComponent(protocolProvider)
         val engine = internalFactory.createServerEngine(component, component)
         component.initEngine(engine)

@@ -61,3 +61,15 @@ internal inline fun ByteReadPacket.readUInt32(elseBlock: () -> UInt32): UInt32 {
     }
     return readUInt32()
 }
+
+internal fun ByteArray.toDebugString() = joinToString(" ") { it.toString16Byte() }
+
+internal fun Byte.toString16Byte(): String {
+    return toUByte().toString(16).padStart(2, '0')
+}
+
+internal fun ByteReadPacket.toDebugString(showAll: Boolean = false): String {
+    return if (showAll) copy().readBytes().toDebugString() else "$remaining bytes"
+}
+
+internal val EMPTY_BYTE_ARRAY = ByteArray(0)

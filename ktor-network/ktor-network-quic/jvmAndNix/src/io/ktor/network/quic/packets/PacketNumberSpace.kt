@@ -12,7 +12,7 @@ import kotlinx.atomicfu.*
  */
 internal class PacketNumberSpace {
     private val increment = atomic(0L)
-    private val largestAcknowledged = atomic(0L)
+    private val _largestAcknowledged = atomic(-1L) // -1 for no acknowledgements yet
 
     private val unacknowledgedLocalPacketNumbers = mutableSetOf<Long>()
     private val unacknowledgedPeerPacketNumbers = mutableSetOf<Long>()
@@ -20,6 +20,7 @@ internal class PacketNumberSpace {
     private val sentAckPackets = mutableMapOf<Long, Set<Long>>()
 
     val largestPacketNumber: Long get() = increment.getAndAdd(0)
+    val largestAcknowledged: Long get() = _largestAcknowledged.getAndAdd(0)
 
     fun next(): Long {
         return increment.getAndIncrement().apply { unacknowledgedLocalPacketNumbers.add(this) }
@@ -45,19 +46,17 @@ internal class PacketNumberSpace {
             }
         }
 
-        largestAcknowledged.updateAndGet { maxOf(ackRanges.first(), it) }
+        _largestAcknowledged.updateAndGet { maxOf(ackRanges.first(), it) }
     }
 
     /**
-     * @param packetNumber the number of the packet that will hold this ackRange
+     * @return pair of `ackRanges` to write via [io.ktor.network.quic.frames.FrameWriter.writeACK]
+     * and hook that will remember the number of a packet in which these ranges ere sent.
      *
-     * @return ackRanges to write via [io.ktor.network.quic.frames.FrameWriter.writeACK].
      * Null if everything is acknowledged
      */
-    fun getAckRanges(packetNumber: Long): LongArray? {
+    fun getAckRanges(): Pair<LongArray, (Long) -> Unit>? {
         if (unacknowledgedPeerPacketNumbers.isEmpty()) return null
-
-        sentAckPackets[packetNumber] = unacknowledgedPeerPacketNumbers.toSet()
 
         val result = mutableListOf<Long>()
         var last = unacknowledgedPeerPacketNumbers.first()
@@ -71,12 +70,15 @@ internal class PacketNumberSpace {
             last = it
         }
 
-        return result.toLongArray()
+        return result.toLongArray() to { packetNumber ->
+            sentAckPackets[packetNumber] = unacknowledgedPeerPacketNumbers.toSet()
+        }
     }
 
     /**
      * @return set of packet numbers issued locally that had not been acknowledged yet (possibly lost)
      */
+    @Suppress("unused")
     fun getUnacknowledgedLocalPacketNumbers(): Set<Long> {
         return unacknowledgedLocalPacketNumbers
     }

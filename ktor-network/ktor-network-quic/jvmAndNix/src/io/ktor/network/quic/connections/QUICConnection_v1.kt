@@ -6,13 +6,17 @@
 
 package io.ktor.network.quic.connections
 
+import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
+import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.sync.*
 
 /**
@@ -24,7 +28,7 @@ import kotlinx.coroutines.sync.*
  */
 @Suppress("CanBeParameter", "UNUSED_PARAMETER")
 internal class QUICConnection_v1(
-    val tlsComponent: TLSComponent,
+    private val coroutineScope: CoroutineScope,
     private val isServer: Boolean,
 
     /**
@@ -41,7 +45,26 @@ internal class QUICConnection_v1(
      * Negotiated length of the CIDs used during this connection
      */
     private val connectionIDLength: Int,
+
+    private val outgoingDatagramChannel: SendChannel<Datagram>,
+    initialSocketAddress: SocketAddress,
+    tlsComponentProvider: (ProtocolCommunicationProvider) -> TLSServerComponent,
 ) {
+    /**
+     * Negotiated QUIC version that is used during this connection
+     */
+    val version: UInt32 = QUICVersion.V1
+
+    /**
+     * Underlying TLS Component that handles encryption and handshake during this connection
+     */
+    val tlsComponent = tlsComponentProvider(ProtocolCommunicationProviderImpl(coroutineScope))
+
+    /**
+     * Peer's [SocketAddress]. Can change during connection via connection migration.
+     */
+    private var peerSocketAddress: SocketAddress = initialSocketAddress
+
     private val maxCIDLength = MaxCIDLength.fromVersion(QUICVersion.V1) { unreachable() }
 
     /**
@@ -100,15 +123,6 @@ internal class QUICConnection_v1(
      */
     private val maxStreamData = hashMapOf<Long, Long>()
 
-    init {
-        tlsComponent.onTransportParametersKnown { local, peer ->
-            localTransportParameters = local
-            peerTransportParameters = peer
-
-            onTransportParametersKnown()
-        }
-    }
-
     suspend fun processPacket(packet: QUICPacket) {
         packet.encryptionLevel?.let { level ->
             packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
@@ -148,21 +162,162 @@ internal class QUICConnection_v1(
         peerMaxStreamsUnidirectional = peerTransportParameters.initial_max_streams_uni
     }
 
-    /**
-     * Sends frame(s) to the peer. Provides information about the packet which will contain the frame(s).
-     *
-     * todo: what about frames that exceeds the max_udp_size?
-     */
-    private suspend inline fun send(
-        flush: Boolean = false,
-        frames: FrameWriter.(BytePacketBuilder, QUICPacket) -> Unit,
+    private val outgoingDatagramHandler = OutgoingDatagramHandler(
+        outgoingChannel = outgoingDatagramChannel,
+        getAddress = { peerSocketAddress },
+    )
+
+    private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
+
+    private val initialPacketCandidate = PacketSendCandidate.Initial(tlsComponent, readyPacketHandler)
+    private val handshakePacketCandidate = PacketSendCandidate.Handshake(tlsComponent, readyPacketHandler)
+    private val oneRTTPacketCandidate = PacketSendCandidate.OneRTT(tlsComponent, readyPacketHandler)
+
+    private suspend fun sendInInitialPacket(
+        forceEndPacket: Boolean = false,
+        forceEndDatagram: Boolean = false,
+        write: FrameWriteFunction,
+    ) = send(initialPacketCandidate, forceEndPacket, forceEndDatagram, write)
+
+    private suspend fun sendInHandshakePacket(
+        forceEndPacket: Boolean = false,
+        forceEndDatagram: Boolean = false,
+        write: FrameWriteFunction,
+    ) = send(handshakePacketCandidate, forceEndPacket, forceEndDatagram, write)
+
+    private suspend fun sendInOneRTT(
+        forceEndPacket: Boolean = false,
+        forceEndDatagram: Boolean = false,
+        write: FrameWriteFunction,
+    ) = send(oneRTTPacketCandidate, forceEndPacket, forceEndDatagram, write)
+
+    private suspend fun send(
+        packetSendCandidate: PacketSendCandidate,
+        forceEndPacket: Boolean = false,
+        forceEndDatagram: Boolean = false,
+        write: FrameWriteFunction,
     ) {
-        // todo keep this as small as possible
+        packetSendCandidate.writeFrame(write)
+        if (forceEndPacket) {
+            packetSendCandidate.finish(lastPacketInDatagram = forceEndDatagram)
+        }
+        if (forceEndDatagram) {
+            outgoingDatagramHandler.flush()
+        }
+    }
+
+    /**
+     * Used inside [tlsComponent] to expose necessary QUIC functions to TLS
+     */
+    private inner class ProtocolCommunicationProviderImpl(
+        private val coroutineScope: CoroutineScope,
+    ) : ProtocolCommunicationProvider {
+        private val buffer = LockablePacketBuilder()
+
+        override fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
+            buffer.withLock {
+                it.writeFully(cryptoPayload)
+            }
+
+            coroutineScope.launch {
+                when {
+                    flush && inHandshakePacket -> sendInHandshakePacket(
+                        forceEndPacket = true,
+                        forceEndDatagram = true,
+                    ) { builder, _ ->
+                        writeCrypto(builder, 0, buffer.flush().readBytes())
+                    }
+
+                    flush -> sendInInitialPacket(
+                        forceEndPacket = true,
+                    ) { builder, hookConsumer ->
+                        writeCrypto(
+                            packetBuilder = builder,
+                            offset = 0,
+                            data = buffer.flush().readBytes(),
+                        )
+
+                        packetNumberSpacePool[EncryptionLevel.Initial].getAckRanges()?.let { (ranges, hook) ->
+                            hookConsumer(hook)
+
+                            writeACK(
+                                packetBuilder = builder,
+                                ackDelay = 0,
+                                ack_delay_exponent = localTransportParameters.ack_delay_exponent,
+                                ackRanges = ranges,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        override suspend fun raiseError(error: CryptoHandshakeError_v1) {
+            handleError(error)
+        }
+
+        override fun getTransportParameters(peerParameters: TransportParameters): TransportParameters {
+            peerTransportParameters = peerParameters
+
+            return transportParameters().also {
+                localTransportParameters = it
+                onTransportParametersKnown()
+            }
+        }
+    }
+
+    private inner class ReadyPacketHandlerImpl(
+        private val outgoingDatagramHandler: OutgoingDatagramHandler,
+    ) :
+        ReadyPacketHandler.VersionNegotiation,
+        ReadyPacketHandler.Initial,
+        ReadyPacketHandler.Retry,
+        ReadyPacketHandler.OneRTT {
+
+        override val destinationConnectionID: ConnectionID
+            get() = peerConnectionIDs.nextConnectionID()
+
+        override val sourceConnectionID: ConnectionID
+            get() = localConnectionIDs.nextConnectionID()
+
+        override suspend fun withDatagramBuilder(body: suspend (BytePacketBuilder) -> Unit) {
+            outgoingDatagramHandler.write(body)
+        }
+
+        override val usedDatagramSize: Int
+            get() = outgoingDatagramHandler.usedSize
+
+        override fun getPacketNumber(encryptionLevel: EncryptionLevel): Long {
+            return packetNumberSpacePool[encryptionLevel].next()
+        }
+
+        override fun getLargestAcknowledged(encryptionLevel: EncryptionLevel): Long {
+            return packetNumberSpacePool[encryptionLevel].largestAcknowledged
+        }
+
+        // Initial packet
+        override val token: ByteArray
+            get() = TODO("Not yet implemented")
+
+        // Retry packet
+        override val originalDestinationConnectionID: ConnectionID
+            get() = TODO("Not yet implemented")
+        override val retryToken: ByteArray
+            get() = TODO("Not yet implemented")
+
+        // 1-RTT packet
+        override val spinBit: Boolean
+            get() = TODO("Not yet implemented")
+        override val keyPhase: Boolean
+            get() = TODO("Not yet implemented")
+
+        // Version Negotiation
+        override val supportedVersions: Array<UInt32> = arrayOf(QUICVersion.V1)
     }
 
     private inner class PayloadProcessor : FrameProcessor {
         override suspend fun acceptPadding(packet: QUICPacket): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.PADDING)
+//            logAcceptedFrame(FrameType_v1.PADDING)
             return null
         }
 
@@ -177,6 +332,11 @@ internal class QUICConnection_v1(
             ackRanges: LongArray,
         ): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.ACK)
+
+            packet.encryptionLevel?.let { level ->
+                packetNumberSpacePool[level].processAcknowledgements(ackRanges)
+            }
+
             return null
         }
 
@@ -189,6 +349,11 @@ internal class QUICConnection_v1(
             ectCE: Long,
         ): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.ACK_ECN)
+
+            packet.encryptionLevel?.let { level ->
+                packetNumberSpacePool[level].processAcknowledgements(ackRanges)
+            }
+
             return null
         }
 
@@ -217,6 +382,14 @@ internal class QUICConnection_v1(
             cryptoData: ByteArray,
         ): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.CRYPTO)
+
+            when (packet.encryptionLevel) {
+                EncryptionLevel.Initial -> tlsComponent.acceptInitialHandshake(cryptoData)
+                EncryptionLevel.Handshake -> tlsComponent.finishHandshake(cryptoData)
+                EncryptionLevel.AppData -> TODO("Not implemented yet")
+                else -> return TransportError_v1.PROTOCOL_VIOLATION
+            }
+
             return null
         }
 
@@ -361,7 +534,7 @@ internal class QUICConnection_v1(
             }
 
             if (sequenceNumber < peerConnectionIDs.threshold) {
-                send { builder, _ ->
+                sendInOneRTT { builder, _ ->
                     writeRetireConnectionId(builder, sequenceNumber)
                 }
                 return null
@@ -374,7 +547,7 @@ internal class QUICConnection_v1(
             val retired = peerConnectionIDs.removePriorToAndSetThreshold(retirePriorTo)
 
             // todo wait for ack frames, send in batches, cache new CID and proceed here
-            send { builder, _ ->
+            sendInOneRTT { builder, _ ->
                 retired.forEach { retireSequenceNumber ->
                     writeRetireConnectionId(builder, retireSequenceNumber)
                 }
@@ -425,7 +598,7 @@ internal class QUICConnection_v1(
 
         override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.PATH_CHALLENGE)
-            send { builder, _ ->
+            sendInOneRTT { builder, _ ->
                 writePathResponse(builder, data)
             }
 

@@ -166,8 +166,6 @@ internal actual class TLSServerComponent(
         // nothing for server to do here
     }
 
-    private lateinit var onTransportParametersKnown: (local: TransportParameters, peer: TransportParameters) -> Unit
-
     override fun extensionsReceived(extensions: MutableList<Extension>?) {
         val peerTransportParameters: TransportParameters = extensions
             ?.filterIsInstance<QUICServerTLSExtension>()
@@ -177,34 +175,28 @@ internal actual class TLSServerComponent(
 
         val endpointTransportParameters = communicationProvider.getTransportParameters(peerTransportParameters)
 
-        onTransportParametersKnown(endpointTransportParameters, peerTransportParameters)
-
         engine.addServerExtensions(QUICServerTLSExtension(endpointTransportParameters, true))
-    }
-
-    override fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit) {
-        onTransportParametersKnown = run
     }
 
     override fun isEarlyDataAccepted(): Boolean {
         return false
     }
 
-    override fun send(message: ServerHello?) = sendMessage(message)
+    override fun send(message: ServerHello?) = sendMessage(message, isHandshakeMessage = false)
 
-    override fun send(message: EncryptedExtensions?) = sendMessage(message)
+    override fun send(message: EncryptedExtensions?) = sendMessage(message, isHandshakeMessage = true)
 
-    override fun send(message: CertificateMessage?) = sendMessage(message)
+    override fun send(message: CertificateMessage?) = sendMessage(message, isHandshakeMessage = true)
 
-    override fun send(message: CertificateVerifyMessage?) = sendMessage(message)
+    override fun send(message: CertificateVerifyMessage?) = sendMessage(message, isHandshakeMessage = true)
 
-    override fun send(message: FinishedMessage?) = sendMessage(message)
+    override fun send(message: FinishedMessage?) = sendMessage(message, isHandshakeMessage = true, flush = true)
 
-    override fun send(message: NewSessionTicketMessage?) = sendMessage(message)
+    override fun send(message: NewSessionTicketMessage?) = TODO("Not yet implemented")
 
-    private fun sendMessage(message: HandshakeMessage?) {
+    private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean = false) {
         message ?: return
 
-        communicationProvider.sendCryptoFrame(message.bytes)
+        communicationProvider.sendCryptoFrame(message.bytes, isHandshakeMessage, flush)
     }
 }
