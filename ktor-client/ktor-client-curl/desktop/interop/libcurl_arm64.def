@@ -35,16 +35,3 @@ compilerOpts.linux =         -I/usr/include/curl \
                              -I/usr/include/x86_64-linux-gnu/curl \
                              -I/opt/homebrew/opt/curl/include/curl
 
-linkerOpts.mingw_x64 =       -lcurl \
-                             -L/usr/lib64 \
-                             -L/usr/lib/x86_64-linux-gnu \
-                             -L/opt/local/lib \
-                             -L/usr/local/lib \
-                             -L/opt/homebrew/opt/curl/lib \
-                             -LC:/msys64/mingw64/lib \
-                             -LC:/Tools/msys64/mingw64/lib \
-                             -LC:/Tools/msys2/mingw64/lib
-
-compilerOpts.mingw_x64 =     -I/usr/include/curl \
-                             -I/usr/include/x86_64-linux-gnu/curl \
-                             -I/opt/homebrew/opt/curl/include/curl

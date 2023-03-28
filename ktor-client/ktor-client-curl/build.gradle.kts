@@ -2,9 +2,6 @@ import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 
 apply<test.server.TestServerPlugin>()
 
-val WIN_LIBRARY_PATH =
-    "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
-
 val paths = if (HOST_NAME == "windows") {
     listOf(
         "C:/msys64/mingw64/include/curl",
@@ -60,7 +57,4 @@ kotlin {
             }
         }
     }
-
-
-    tasks.findByName("linkDebugTestMingwX64")?.onlyIf { false }
 }
