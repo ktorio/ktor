@@ -31,18 +31,18 @@ public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
     }
 
     override fun debug(message: String) {
-        console.info("DEBUG: $message")
+        console.debug("DEBUG: $message")
     }
 
     override fun debug(message: String, cause: Throwable) {
-        console.info("DEBUG: $message, cause: $cause")
+        console.debug("DEBUG: $message, cause: $cause")
     }
 
     override fun trace(message: String) {
-        console.info("TRACE: $message")
+        console.debug("TRACE: $message")
     }
 
     override fun trace(message: String, cause: Throwable) {
-        console.info("TRACE: $message, cause: $cause")
+        console.debug("TRACE: $message, cause: $cause")
     }
 }
