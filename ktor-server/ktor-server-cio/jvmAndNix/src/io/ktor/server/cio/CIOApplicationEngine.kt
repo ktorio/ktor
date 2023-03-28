@@ -5,12 +5,16 @@
 package io.ktor.server.cio
 
 import io.ktor.events.*
+import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
@@ -113,6 +117,46 @@ public class CIOApplicationEngine(
         }
     }
 
+    private suspend fun addHandlerForExpectedHeader(output: ByteWriteChannel, call: CIOApplicationCall) {
+        val continueResponse = "HTTP/1.1 100 Continue\r\n"
+        val expectHeaderValue = "100-continue"
+
+        val expectHeader = call.request.headers[HttpHeaders.Expect]?.lowercase()
+        var closeConnection = true
+
+        val expectedHeaderPhase = PipelinePhase("ExpectedHeaderPhase")
+        call.request.pipeline.insertPhaseBefore(ApplicationReceivePipeline.Before, expectedHeaderPhase)
+        call.request.pipeline.intercept(expectedHeaderPhase) {
+            val request = call.request
+            val version = HttpProtocolVersion.parse(request.httpVersion)
+            val alreadyRead = request.receiveChannel().totalBytesRead > 0
+            val noBody = request.headers[HttpHeaders.ContentLength]?.let { it.toInt() == 0 } ?: true
+
+            if (expectHeader == null || version == HttpProtocolVersion.HTTP_1_0 || noBody || alreadyRead) {
+                return@intercept
+            }
+
+            if (expectHeader != expectHeaderValue) {
+                call.respond(HttpStatusCode.ExpectationFailed)
+            } else {
+                output.apply {
+                    output.writeStringUtf8(continueResponse)
+                    output.flush()
+                }
+                closeConnection = false
+            }
+        }
+
+        call.response.pipeline.intercept(ApplicationSendPipeline.Transform) {
+            if (expectHeader == null) {
+                return@intercept
+            }
+
+            val connection = if (closeConnection) "close" else "keep-alive"
+            call.response.headers.append(HttpHeaders.Connection, connection)
+        }
+    }
+
     private suspend fun ServerRequestScope.handleRequest(request: Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(
@@ -128,6 +172,7 @@ public class CIOApplicationEngine(
             )
 
             try {
+                addHandlerForExpectedHeader(output, call)
                 pipeline.execute(call)
             } catch (error: Throwable) {
                 handleFailure(call, error)
