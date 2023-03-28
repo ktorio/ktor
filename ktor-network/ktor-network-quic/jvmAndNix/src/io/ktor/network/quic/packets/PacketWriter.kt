@@ -201,7 +201,7 @@ internal object PacketWriter {
 
         withEncryptedPayloadAndHPMask(
             tlsComponent = tlsComponent,
-            level = EncryptionLevel.App,
+            level = EncryptionLevel.AppData,
             payload = payload,
         ) { encryptedPayload, headerProtectionMask ->
             val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)
@@ -243,7 +243,7 @@ internal object PacketWriter {
     ) {
         withEncryptedPayloadAndHPMask(
             tlsComponent = tlsComponent,
-            level = EncryptionLevel.App,
+            level = EncryptionLevel.AppData,
             payload = payload
         ) { encryptedPayload, headerProtectionMask ->
             val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)

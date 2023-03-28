@@ -59,8 +59,6 @@ internal object PacketReader {
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
 
-        val headerProtectionKey = "" // todo crypto
-
         if (flags and HEADER_TYPE == HEADER_TYPE) { // Long Header bit is set
             // Version independent properties of packets with the Long Header
 
@@ -218,7 +216,7 @@ internal object PacketReader {
                 )
 
                 val packetNumber = decodePacketNumber(
-                    largestPn = 0, // todo
+                    largestPn = connection.packetNumberSpacePool[encryptionLevel].largestPacketNumber,
                     truncatedPn = rawPacketNumber,
                     pnLen = packetNumberLength.toUInt32(),
                 )
@@ -307,7 +305,7 @@ internal object PacketReader {
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
         val headerProtectionMask: Long =
-            getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.App, raiseError)
+            getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.AppData, raiseError)
         val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
         val packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH
@@ -319,7 +317,7 @@ internal object PacketReader {
         )
 
         val packetNumber = decodePacketNumber(
-            largestPn = -1, // todo
+            largestPn = connection.packetNumberSpacePool[EncryptionLevel.AppData].largestPacketNumber,
             truncatedPn = rawPacketNumber,
             pnLen = packetNumberLength.toUInt32(),
         )
@@ -340,7 +338,7 @@ internal object PacketReader {
             bytes = bytes,
             length = bytes.remaining.toInt(),
             packetNumber = packetNumber,
-            level = EncryptionLevel.App,
+            level = EncryptionLevel.AppData,
         )
 
         if (reservedBits != 0) {

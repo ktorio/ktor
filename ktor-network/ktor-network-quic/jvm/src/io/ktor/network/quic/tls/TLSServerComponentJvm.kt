@@ -57,13 +57,13 @@ internal actual class TLSServerComponent(
             isDecrypting -> when (level) {
                 EncryptionLevel.Initial -> clientInitialKeys
                 EncryptionLevel.Handshake -> clientHandshakeKeys
-                EncryptionLevel.App -> client1RTTKeys
+                EncryptionLevel.AppData -> client1RTTKeys
             }
 
             else -> when (level) {
                 EncryptionLevel.Initial -> serverInitialKeys
                 EncryptionLevel.Handshake -> serverHandshakeKeys
-                EncryptionLevel.App -> server1RTTKeys
+                EncryptionLevel.AppData -> server1RTTKeys
             }
         }.await()
 
@@ -79,7 +79,7 @@ internal actual class TLSServerComponent(
         val keys = when (level) {
             EncryptionLevel.Initial -> clientInitialKeys
             EncryptionLevel.Handshake -> clientHandshakeKeys
-            EncryptionLevel.App -> client1RTTKeys
+            EncryptionLevel.AppData -> client1RTTKeys
         }.await()
 
         return decrypt(payload, associatedData, packetNumber, keys)
@@ -94,7 +94,7 @@ internal actual class TLSServerComponent(
         val keys = when (level) {
             EncryptionLevel.Initial -> serverInitialKeys
             EncryptionLevel.Handshake -> serverHandshakeKeys
-            EncryptionLevel.App -> server1RTTKeys
+            EncryptionLevel.AppData -> server1RTTKeys
         }.await()
 
         return encrypt(payload, associatedData, packetNumber, keys)

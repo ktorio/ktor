@@ -6,10 +6,12 @@
 
 package io.ktor.network.quic.connections
 
+import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.sync.*
 
@@ -40,6 +42,15 @@ internal class QUICConnection_v1(
      */
     private val connectionIDLength: Int,
 ) {
+    private val maxCIDLength = MaxCIDLength.fromVersion(QUICVersion.V1) { unreachable() }
+
+    /**
+     * Holds packet number spaces - one for each encryption level.
+     *
+     * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-packet-numbers)
+     */
+    val packetNumberSpacePool = PacketNumberSpace.Pool()
+
     private val processor = PayloadProcessor()
 
     /**
@@ -98,6 +109,28 @@ internal class QUICConnection_v1(
         }
     }
 
+    suspend fun processPacket(packet: QUICPacket) {
+        packet.encryptionLevel?.let { level ->
+            packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
+        }
+
+        if (packet.payload == null) {
+            // todo
+            return
+        }
+
+        while (packet.payload!!.isNotEmpty) {
+            FrameReader.readFrame(processor, packet, peerTransportParameters, maxCIDLength) { error, frame ->
+                handleError(error, frame)
+                return
+            }
+        }
+    }
+
+    private fun handleError(error: QUICTransportError, frameType: FrameType_v1? = null) {
+        error("Error occurred: $error${frameType?.let { "in frame $it" } ?: ""}")
+    }
+
     private fun onTransportParametersKnown() {
         val initialLocalSequenceNumber = localTransportParameters.preferred_address?.let { 1L } ?: 0
         val initialPeerSequenceNumber = peerTransportParameters.preferred_address?.let { 1L } ?: 0
@@ -120,17 +153,22 @@ internal class QUICConnection_v1(
      *
      * todo: what about frames that exceeds the max_udp_size?
      */
-    private suspend inline fun send(frames: FrameWriter.(BytePacketBuilder, QUICPacket) -> Unit) {
+    private suspend inline fun send(
+        flush: Boolean = false,
+        frames: FrameWriter.(BytePacketBuilder, QUICPacket) -> Unit,
+    ) {
         // todo keep this as small as possible
     }
 
     private inner class PayloadProcessor : FrameProcessor {
         override suspend fun acceptPadding(packet: QUICPacket): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.PADDING)
             return null
         }
 
         override suspend fun acceptPing(packet: QUICPacket): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.PING)
+            return null
         }
 
         override suspend fun acceptACK(
@@ -138,7 +176,8 @@ internal class QUICConnection_v1(
             ackDelay: Long,
             ackRanges: LongArray,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.ACK)
+            return null
         }
 
         override suspend fun acceptACKWithECN(
@@ -149,7 +188,8 @@ internal class QUICConnection_v1(
             ect1: Long,
             ectCE: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.ACK_ECN)
+            return null
         }
 
         override suspend fun acceptResetStream(
@@ -158,7 +198,8 @@ internal class QUICConnection_v1(
             applicationProtocolErrorCode: AppError,
             finalSize: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.RESET_STREAM)
+            return null
         }
 
         override suspend fun acceptStopSending(
@@ -166,7 +207,8 @@ internal class QUICConnection_v1(
             streamId: Long,
             applicationProtocolErrorCode: AppError,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.STOP_SENDING)
+            return null
         }
 
         override suspend fun acceptCrypto(
@@ -174,10 +216,12 @@ internal class QUICConnection_v1(
             offset: Long,
             cryptoData: ByteArray,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.CRYPTO)
+            return null
         }
 
         override suspend fun acceptNewToken(packet: QUICPacket, token: ByteArray): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.NEW_TOKEN)
             // A server MUST treat receipt of a NEW_TOKEN frame as a connection error of type PROTOCOL_VIOLATION
             if (isServer) {
                 return TransportError_v1.PROTOCOL_VIOLATION
@@ -195,10 +239,12 @@ internal class QUICConnection_v1(
             fin: Boolean,
             streamData: ByteArray,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.STREAM)
+            return null
         }
 
         override suspend fun acceptMaxData(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.MAX_DATA)
             peerMaxData = maximumData.coerceAtLeast(peerMaxData)
 
             return null
@@ -209,6 +255,7 @@ internal class QUICConnection_v1(
             streamId: Long,
             maximumStreamData: Long,
         ): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.MAX_STREAM_DATA)
             maxStreamData[streamId] = maximumStreamData.coerceAtLeast(maxStreamData[streamId] ?: 0)
 
             // todo check receive-only and not created streams
@@ -220,6 +267,7 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL)
             peerMaxStreamsBidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsBidirectional)
 
             return null
@@ -229,13 +277,15 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL)
             peerMaxStreamsUnidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsUnidirectional)
 
             return null
         }
 
         override suspend fun acceptDataBlocked(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.DATA_BLOCKED)
+            return null
         }
 
         override suspend fun acceptStreamDataBlocked(
@@ -243,21 +293,24 @@ internal class QUICConnection_v1(
             streamId: Long,
             maximumStreamData: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.STREAM_DATA_BLOCKED)
+            return null
         }
 
         override suspend fun acceptStreamsBlockedBidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL)
+            return null
         }
 
         override suspend fun acceptStreamsBlockedUnidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL)
+            return null
         }
 
         override suspend fun acceptNewConnectionId(
@@ -267,6 +320,7 @@ internal class QUICConnection_v1(
             connectionID: ConnectionID,
             statelessResetToken: ByteArray?,
         ): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.NEW_CONNECTION_ID)
             // An endpoint that is sending packets with a zero-length Destination Connection ID
             // MUST treat receipt of a NEW_CONNECTION_ID frame as a connection error of type PROTOCOL_VIOLATION.
             if (connectionIDLength == 0) {
@@ -343,6 +397,7 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             sequenceNumber: Long,
         ): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.RETIRE_CONNECTION_ID)
             // Receipt of a RETIRE_CONNECTION_ID frame containing a sequence number greater than any previously sent
             // to the peer MUST be treated as a connection error of type PROTOCOL_VIOLATION.
             if (localConnectionIDs.threshold < sequenceNumber) {
@@ -369,6 +424,7 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.PATH_CHALLENGE)
             send { builder, _ ->
                 writePathResponse(builder, data)
             }
@@ -377,9 +433,10 @@ internal class QUICConnection_v1(
         }
 
         override suspend fun acceptPathResponse(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.PATH_RESPONSE)
             // todo check data is eq to PATH_CHALLENGE
 
-            TODO("Not yet implemented")
+            return null
         }
 
         override suspend fun acceptConnectionCloseWithTransportError(
@@ -388,7 +445,8 @@ internal class QUICConnection_v1(
             frameType: FrameType_v1,
             reasonPhrase: ByteArray,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR)
+            return null
         }
 
         override suspend fun acceptConnectionCloseWithAppError(
@@ -396,15 +454,21 @@ internal class QUICConnection_v1(
             errorCode: AppError,
             reasonPhrase: ByteArray,
         ): QUICTransportError_v1? {
-            TODO("Not yet implemented")
+            logAcceptedFrame(FrameType_v1.CONNECTION_CLOSE_APP_ERR)
+            return null
         }
 
         override suspend fun acceptHandshakeDone(packet: QUICPacket): QUICTransportError_v1? {
+            logAcceptedFrame(FrameType_v1.HANDSHAKE_DONE)
             if (isServer) {
                 return TransportError_v1.PROTOCOL_VIOLATION
             }
 
-            TODO("Not yet implemented")
+            return null
+        }
+
+        private fun logAcceptedFrame(frameType: FrameType_v1) {
+            println("Accepted frame: $frameType")
         }
     }
 }

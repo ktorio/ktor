@@ -18,6 +18,16 @@ internal sealed interface QUICPacket {
     val destinationConnectionID: ConnectionID
 
     /**
+     * Packet Number field if applicable, otherwise -1
+     */
+    val packetNumber: Long
+
+    /**
+     * Packet's payload if applicable, otherwise null
+     */
+    val payload: ByteReadPacket?
+
+    /**
      * Long header for QUIC packets with version independent properties.
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc8999.html#name-long-header)
@@ -49,6 +59,8 @@ internal class VersionNegotiationPacket(
     val supportedVersions: Array<Int>,
 ) : QUICPacket.LongHeader {
     override val version: UInt32 = QUICVersion.VersionNegotiation
+    override val packetNumber: Long = -1
+    override val payload: ByteReadPacket? = null
 }
 
 /**
@@ -61,8 +73,8 @@ internal class InitialPacket_v1(
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
     val token: ByteArray,
-    val packetNumber: Long,
-    val payload: ByteReadPacket = ByteReadPacket.Empty,
+    override val packetNumber: Long,
+    override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader
 
 /**
@@ -74,8 +86,8 @@ internal class ZeroRTTPacket_v1(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
-    val packetNumber: Long,
-    val payload: ByteReadPacket = ByteReadPacket.Empty,
+    override val packetNumber: Long,
+    override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader
 
 /**
@@ -87,8 +99,8 @@ internal class HandshakePacket_v1(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
-    val packetNumber: Long,
-    val payload: ByteReadPacket = ByteReadPacket.Empty,
+    override val packetNumber: Long,
+    override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader
 
 /**
@@ -102,7 +114,10 @@ internal class RetryPacket_v1(
     override val sourceConnectionID: ConnectionID,
     val retryToken: ByteArray,
     val retryIntegrityTag: ByteArray,
-) : QUICPacket.LongHeader
+) : QUICPacket.LongHeader {
+    override val packetNumber: Long = -1
+    override val payload: ByteReadPacket? = null
+}
 
 /**
  * 1-RTT packet as it defined in QUIC version 1.
@@ -113,17 +128,6 @@ internal class OneRTTPacket_v1(
     override val destinationConnectionID: ConnectionID,
     val spinBit: Boolean,
     val keyPhase: Boolean,
-    val packetNumber: Long,
-    val payload: ByteReadPacket = ByteReadPacket.Empty,
+    override val packetNumber: Long,
+    override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.ShortHeader
-
-/**
- * Returns Packet Number field if the packet contains it, otherwise -1
- */
-internal val QUICPacket.packetNumber: Long get() = when (this) {
-    is OneRTTPacket_v1 -> this.packetNumber
-    is ZeroRTTPacket_v1 -> this.packetNumber
-    is InitialPacket_v1 -> this.packetNumber
-    is HandshakePacket_v1 -> this.packetNumber
-    else -> -1
-}
