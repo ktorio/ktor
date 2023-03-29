@@ -129,10 +129,9 @@ public class CIOApplicationEngine(
         call.request.pipeline.intercept(expectedHeaderPhase) {
             val request = call.request
             val version = HttpProtocolVersion.parse(request.httpVersion)
-            val alreadyRead = request.receiveChannel().totalBytesRead > 0
-            val noBody = request.headers[HttpHeaders.ContentLength]?.let { it.toInt() == 0 } ?: true
+            val hasBody = hasBody(request)
 
-            if (expectHeader == null || version == HttpProtocolVersion.HTTP_1_0 || noBody || alreadyRead) {
+            if (expectHeader == null || version == HttpProtocolVersion.HTTP_1_0 || !hasBody) {
                 return@intercept
             }
 
@@ -155,6 +154,12 @@ public class CIOApplicationEngine(
             val connection = if (closeConnection) "close" else "keep-alive"
             call.response.headers.append(HttpHeaders.Connection, connection)
         }
+    }
+
+    private fun hasBody(request: CIOApplicationRequest): Boolean {
+        val contentLength = request.headers[HttpHeaders.ContentLength]?.toInt()
+        val transferEncoding = request.headers[HttpHeaders.TransferEncoding]
+        return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
 
     private suspend fun ServerRequestScope.handleRequest(request: Request) {
