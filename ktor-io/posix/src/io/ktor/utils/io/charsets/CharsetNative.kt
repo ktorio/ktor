@@ -7,7 +7,7 @@ import kotlinx.cinterop.*
 import platform.iconv.*
 import platform.posix.*
 
-public actual abstract class Charset(internal val _name: String) {  // TODO dumanskaya KT-57361
+public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
     public actual abstract fun newDecoder(): CharsetDecoder
 
