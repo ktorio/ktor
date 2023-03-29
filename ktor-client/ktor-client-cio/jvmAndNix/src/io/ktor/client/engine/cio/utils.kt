@@ -235,7 +235,7 @@ internal fun ByteWriteChannel.withoutClosePropagation(
         // Pure output represents a socket output channel that is closed when request fully processed or after
         // request sent in case TCP half-close is allowed.
         coroutineContext[Job]!!.invokeOnCompletion {
-            close()
+            close(it)
         }
     }
 
