@@ -6,6 +6,7 @@ package io.ktor.server.websocket
 
 import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
@@ -46,17 +47,29 @@ public val WebSocketServerSession.converter: WebsocketContentConverter?
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
  *
+ * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] function.
+ *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
-public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data: T) {
+@OptIn(InternalAPI::class)
+public suspend fun WebSocketServerSession.sendSerialized(data: Any?, typeInfo: TypeInfo) {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    sendSerializedBase(
-        data,
-        converter,
-        call.request.headers.suitableCharset()
-    )
+    sendSerializedBase(data, typeInfo, converter, call.request.headers.suitableCharset())
+}
+
+/**
+ * Serializes [data] to a frame and enqueues this frame.
+ * May suspend if the outgoing queue is full.
+ * If the outgoing channel is already closed, throws an exception, so it is impossible to transfer any message.
+ * Frames sent after a Close frame are silently ignored.
+ * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
+ *
+ * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ */
+public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data: T) {
+    sendSerialized(data, typeInfo<T>())
 }
 
 /**
@@ -66,18 +79,22 @@ public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
  *
+ * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] function.
+
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
-public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized(): T {
+@OptIn(InternalAPI::class)
+public suspend fun <T> WebSocketServerSession.receiveDeserialized(typeInfo: TypeInfo): T {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
 
-    return receiveDeserializedBase<T>(
-        converter,
-        call.request.headers.suitableCharset()
-    ) as T
+    @Suppress("UNCHECKED_CAST")
+    return receiveDeserializedBase(typeInfo, converter, call.request.headers.suitableCharset()) as T
 }
+
+public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized(): T =
+    receiveDeserialized(typeInfo<T>())
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)

@@ -11,6 +11,7 @@ kotlin.sourceSets {
     jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-websockets"))
         }
     }
 }

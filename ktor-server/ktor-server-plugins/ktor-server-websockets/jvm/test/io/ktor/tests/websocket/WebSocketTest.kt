@@ -4,11 +4,13 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.server.websocket.WebSockets
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -108,6 +110,33 @@ class WebSocketTest {
                 assertEquals(FrameType.TEXT, frame.frameType)
                 assertEquals(jsonData, frame.readText())
             }
+        }
+    }
+
+    @Test
+    fun testJsonConverterWithExplicitTypeInfo() = testApplication {
+        install(WebSockets) {
+            contentConverter = customContentConverter
+        }
+
+        routing {
+            webSocket("/echo") {
+                val data = receiveDeserialized<Data>(typeInfo<Data>())
+                sendSerialized(data, typeInfo<Data>())
+                outgoing.send(Frame.Close())
+            }
+        }
+
+        val jsonData = "[hello]"
+
+        createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }.webSocket("/echo") {
+            outgoing.send(Frame.Text(jsonData))
+
+            val frame = incoming.receive() as Frame.Text
+            assertEquals(FrameType.TEXT, frame.frameType)
+            assertEquals(jsonData, frame.readText())
         }
     }
 

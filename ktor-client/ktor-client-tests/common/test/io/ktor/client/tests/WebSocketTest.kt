@@ -177,6 +177,26 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    fun testWebSocketSerializationWithExplicitTypeInfo() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            WebSockets {
+                contentConverter = customContentConverter
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(TEST_SIZE) {
+                    val originalData = Data("hello")
+                    sendSerialized(originalData, typeInfo<Data>())
+                    val actual = receiveDeserialized<Data>(typeInfo<Data>())
+                    assertTrue { actual == originalData }
+                }
+            }
+        }
+    }
+
+    @Test
     fun testSerializationWithNoConverter() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             WebSockets {
