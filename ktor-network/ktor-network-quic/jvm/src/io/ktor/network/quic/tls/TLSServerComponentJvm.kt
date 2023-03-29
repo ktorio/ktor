@@ -8,7 +8,6 @@ package io.ktor.network.quic.tls
 import at.favre.lib.crypto.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import net.luminis.tls.*
 import net.luminis.tls.extension.*
@@ -23,7 +22,7 @@ internal actual class TLSServerComponent(
     private lateinit var originalDcid: ByteArray
 
     private val messageParser = TlsMessageParser { bytes, _ ->
-        QUICServerTLSExtension.fromBytes(ByteReadPacket(bytes), true)
+        QUICServerTLSExtension.fromBytes(bytes, true)
     }
 
     private val clientInitialKeys = CompletableDeferred<CryptoKeys>()
@@ -182,7 +181,7 @@ internal actual class TLSServerComponent(
         return false
     }
 
-    override fun send(message: ServerHello?) = sendMessage(message, isHandshakeMessage = false)
+    override fun send(message: ServerHello?) = sendMessage(message, isHandshakeMessage = false, flush = true)
 
     override fun send(message: EncryptedExtensions?) = sendMessage(message, isHandshakeMessage = true)
 
@@ -197,6 +196,9 @@ internal actual class TLSServerComponent(
     private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean = false) {
         message ?: return
 
-        communicationProvider.sendCryptoFrame(message.bytes, isHandshakeMessage, flush)
+        println("Send TLS Message: ${message.type}")
+
+        // todo result handler?
+        communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, isHandshakeMessage, flush))
     }
 }

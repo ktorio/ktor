@@ -27,7 +27,7 @@ internal class PacketNumberSpace {
     }
 
     fun receivedPacket(packetNumber: Long) {
-        increment.getAndUpdate { maxOf(packetNumber, it) }
+        increment.getAndUpdate { maxOf(packetNumber + 1, it) }
         unacknowledgedPeerPacketNumbers.add(packetNumber)
     }
 
@@ -62,13 +62,14 @@ internal class PacketNumberSpace {
         var last = unacknowledgedPeerPacketNumbers.first()
         result.add(last)
         unacknowledgedPeerPacketNumbers.sortedDescending().forEach {
-            if (it != last - 1) {
+            if (it != last - 1 && it != last) {
                 result.add(last)
                 result.add(it)
             }
 
             last = it
         }
+        result.add(last)
 
         return result.toLongArray() to { packetNumber ->
             sentAckPackets[packetNumber] = unacknowledgedPeerPacketNumbers.toSet()

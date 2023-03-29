@@ -86,6 +86,15 @@ internal object PacketWriter {
 
         val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
 
+        // debug only
+        RetryPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            retryToken = retryToken,
+            retryIntegrityTag = integrityTag,
+        ).apply(::debugLog)
+
         // skip originalDestinationConnectionID and it's length
         packetBuilder.writeFully(pseudoPacket, offset = 1 + originalDestinationConnectionID.size)
         packetBuilder.writeFully(integrityTag)
@@ -111,8 +120,19 @@ internal object PacketWriter {
         packetNumber: Long,
         payload: ByteArray,
     ) {
+        // debug only
+        InitialPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            token = token,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.Initial,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_INITIAL,
@@ -143,8 +163,18 @@ internal object PacketWriter {
         packetNumber: Long,
         payload: ByteArray,
     ) {
+        // debug only
+        HandshakePacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.Handshake,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE,
@@ -171,8 +201,18 @@ internal object PacketWriter {
         packetNumber: Long,
         payload: ByteArray,
     ) {
+        // debug only
+        ZeroRTTPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.AppData,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_0_RTT,
@@ -193,6 +233,7 @@ internal object PacketWriter {
 
     private suspend inline fun writeLongHeaderPacket_v1(
         tlsComponent: TLSComponent,
+        encryptionLevel: EncryptionLevel,
         largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         packetType: UInt8,
@@ -221,7 +262,7 @@ internal object PacketWriter {
         withEncryptedPayloadAndHPMask(
             tlsComponent = tlsComponent,
             packetNumber = packetNumber,
-            level = EncryptionLevel.AppData,
+            level = encryptionLevel,
             unencryptedHeader = unencryptedHeader,
             unencryptedPayload = payload,
         ) { encryptedPayload, headerProtectionMask ->
@@ -260,6 +301,15 @@ internal object PacketWriter {
         packetNumber: Long,
         payload: ByteArray,
     ) {
+        // debug only
+        OneRTTPacket_v1(
+            destinationConnectionID = destinationConnectionID,
+            spinBit = spinBit,
+            keyPhase = keyPhase,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload),
+        ).apply(::debugLog)
+
         val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcknowledged)
 
         val spinBitValue: UInt8 = if (spinBit) PktConst.SHORT_HEADER_SPIN_BIT else 0x00u
@@ -370,5 +420,10 @@ internal object PacketWriter {
             2 -> writeUInt24(number)
             3 -> writeUInt32(number)
         }
+    }
+
+    private fun debugLog(packet: QUICPacket) {
+        println("Writing packet:")
+        println(packet.toDebugString(withPayload = false))
     }
 }

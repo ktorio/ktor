@@ -13,7 +13,7 @@ import io.ktor.utils.io.core.*
 
 internal typealias FrameWriteFunction = FrameWriter.(
     builder: BytePacketBuilder,
-    onPacketNumberKnown: (hook: (Long) -> Unit) -> Unit,
+    hookConsumer: (hook: (Long) -> Unit) -> Unit,
 ) -> Unit
 
 // todo handle dividing long contents
@@ -40,7 +40,7 @@ internal sealed class PacketSendCandidate(
                     buffer.writeFully(
                         src = PADDING_SAMPLE,
                         offset = 0,
-                        length = MIN_PACKET_SIZE_IN_BYTES - buffer.size - datagramUsedSize()
+                        length = maxOf(MIN_PACKET_SIZE_IN_BYTES - buffer.size - datagramUsedSize(), 0)
                     )
                 }
             }.readBytes()

@@ -40,7 +40,6 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
 
         return coroutineScope {
             QUICConnection_v1(
-                coroutineScope = this,
                 isServer = true,
                 initialLocalConnectionID = sourceConnectionID,
                 initialPeerConnectionID = peerSourceConnectionID,

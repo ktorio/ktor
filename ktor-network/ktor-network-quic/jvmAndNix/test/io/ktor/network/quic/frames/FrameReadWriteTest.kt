@@ -36,6 +36,7 @@ class FrameReadWriteTest {
         val ranges1 = LongArray(8) { 18L - it * 2 }
         val ranges2 = longArrayOf(20, 17, 11, 3)
         val ranges3 = longArrayOf(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
+        val ranges4 = longArrayOf(0, 0)
 
         var errCnt = 0
 
@@ -70,6 +71,8 @@ class FrameReadWriteTest {
 
                 writeACKWithECN(packetBuilder, 4, params.ack_delay_exponent, ranges3, 42, 4242, 424242)
 
+                writeACK(packetBuilder, 4, params.ack_delay_exponent, ranges4)
+
                 assertFails("Odd ACK ranges") {
                     writeACK(packetBuilder, 1, 1, LongArray(3))
                 }
@@ -95,6 +98,11 @@ class FrameReadWriteTest {
                     assertEquals(42, ect0, "ECT0")
                     assertEquals(4242, ect1, "ECT1")
                     assertEquals(424242, ectCE, "ECT_CE")
+                }
+
+                validateACK { ackDelay, ackRanges ->
+                    assertEquals(4, ackDelay, "ACK delay 4")
+                    assertContentEquals(ranges4, ackRanges, "ACK Ranges 4")
                 }
             },
             onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.ACK) {
@@ -648,7 +656,7 @@ class FrameReadWriteTest {
         expectedBytesToLeft: Long = 0,
         writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
-        onReaderError: (QUICTransportError_v1, FrameType_v1) -> Unit = { _, _ -> },
+        onReaderError: (QUICTransportError, FrameType_v1) -> Unit = { _, _ -> },
     ) = runBlocking {
         val builder = BytePacketBuilder()
         val writer = TestFrameWriter()
@@ -659,10 +667,16 @@ class FrameReadWriteTest {
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
-        val packet = OneRTTPacket_v1(ConnectionID.EMPTY, spinBit = false, keyPhase = false, packetNumber = 0)
+        val packet = OneRTTPacket_v1(
+            destinationConnectionID = ConnectionID.EMPTY,
+            spinBit = false,
+            keyPhase = false,
+            packetNumber = 0,
+            payload = payload
+        )
 
         for (i in 0 until writer.writtenFramesCnt) {
-            FrameReader.readFrame(processor, packet, payload, parameters, maxCIDLength = 20u, onReaderError)
+            FrameReader.readFrame(processor, packet, parameters, maxCIDLength = 20u, onReaderError)
         }
 
         assertEquals(expectedBytesToLeft, payload.remaining, "Wrong number of remaining bytes")
@@ -672,15 +686,15 @@ class FrameReadWriteTest {
 
     @Suppress("SameParameterValue")
     private fun expectError(
-        expectedError: QUICTransportError_v1,
+        expectedError: QUICTransportError,
         vararg expectedFrames: FrameType_v1,
         onErr: () -> Unit,
-    ): (QUICTransportError_v1, FrameType_v1) -> Unit {
+    ): (QUICTransportError, FrameType_v1) -> Unit {
         return { actualError, actualFrame ->
             if (actualError == expectedError && actualFrame in expectedFrames) {
                 onErr()
             } else {
-                fail("Unexpected error $actualError while reading $actualFrame frame")
+                fail("Unexpected error ${actualError.toDebugString()} while reading $actualFrame frame")
             }
         }
     }

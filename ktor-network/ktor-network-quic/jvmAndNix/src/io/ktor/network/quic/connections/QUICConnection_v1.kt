@@ -28,7 +28,6 @@ import kotlinx.coroutines.sync.*
  */
 @Suppress("CanBeParameter", "UNUSED_PARAMETER")
 internal class QUICConnection_v1(
-    private val coroutineScope: CoroutineScope,
     private val isServer: Boolean,
 
     /**
@@ -58,7 +57,7 @@ internal class QUICConnection_v1(
     /**
      * Underlying TLS Component that handles encryption and handshake during this connection
      */
-    val tlsComponent = tlsComponentProvider(ProtocolCommunicationProviderImpl(coroutineScope))
+    val tlsComponent = tlsComponentProvider(ProtocolCommunicationProviderImpl())
 
     /**
      * Peer's [SocketAddress]. Can change during connection via connection migration.
@@ -128,12 +127,9 @@ internal class QUICConnection_v1(
             packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
         }
 
-        if (packet.payload == null) {
-            // todo
-            return
-        }
+        val payload = packet.payload ?: return // todo
 
-        while (packet.payload!!.isNotEmpty) {
+        while (payload.isNotEmpty) {
             FrameReader.readFrame(processor, packet, peerTransportParameters, maxCIDLength) { error, frame ->
                 handleError(error, frame)
                 return
@@ -141,8 +137,8 @@ internal class QUICConnection_v1(
         }
     }
 
-    private fun handleError(error: QUICTransportError, frameType: FrameType_v1? = null) {
-        error("Error occurred: $error${frameType?.let { "in frame $it" } ?: ""}")
+    private fun handleError(raisedError: QUICTransportError, frameType: FrameType_v1? = null) {
+        error("Error occurred: ${raisedError.toDebugString()}${frameType?.let { "in frame $it" } ?: ""}")
     }
 
     private fun onTransportParametersKnown() {
@@ -209,26 +205,48 @@ internal class QUICConnection_v1(
     /**
      * Used inside [tlsComponent] to expose necessary QUIC functions to TLS
      */
-    private inner class ProtocolCommunicationProviderImpl(
-        private val coroutineScope: CoroutineScope,
-    ) : ProtocolCommunicationProvider {
+    private inner class ProtocolCommunicationProviderImpl : ProtocolCommunicationProvider {
         private val buffer = LockablePacketBuilder()
 
-        override fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
+        override val messageChannel: Channel<TLSMessage> = Channel(Channel.UNLIMITED)
+
+        init {
+            CoroutineScope(Dispatchers.Default).launch {
+                while (isActive) {
+                    val result = messageChannel.receive()
+                    sendCryptoFrame(result.message, result.isHandshakeMessage, result.flush)
+                }
+            }
+        }
+
+        private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
+            println(
+                """
+                CommunicationProvider: buffer crypto payload, inHandshakePacket: $inHandshakePacket, flush: $flush
+            """.trimIndent()
+            )
             buffer.withLock {
                 it.writeFully(cryptoPayload)
             }
 
-            coroutineScope.launch {
-                when {
-                    flush && inHandshakePacket -> sendInHandshakePacket(
+            when {
+                flush && inHandshakePacket -> {
+                    println("CommunicationProvider: flush Handshake packet")
+                    sendInHandshakePacket(
                         forceEndPacket = true,
                         forceEndDatagram = true,
                     ) { builder, _ ->
-                        writeCrypto(builder, 0, buffer.flush().readBytes())
+                        writeCrypto(
+                            packetBuilder = builder,
+                            offset = 0,
+                            data = buffer.flush().readBytes()
+                        )
                     }
+                }
 
-                    flush -> sendInInitialPacket(
+                flush -> {
+                    println("CommunicationProvider: flush Initial packet")
+                    sendInInitialPacket(
                         forceEndPacket = true,
                     ) { builder, hookConsumer ->
                         writeCrypto(
@@ -237,22 +255,13 @@ internal class QUICConnection_v1(
                             data = buffer.flush().readBytes(),
                         )
 
-                        packetNumberSpacePool[EncryptionLevel.Initial].getAckRanges()?.let { (ranges, hook) ->
-                            hookConsumer(hook)
-
-                            writeACK(
-                                packetBuilder = builder,
-                                ackDelay = 0,
-                                ack_delay_exponent = localTransportParameters.ack_delay_exponent,
-                                ackRanges = ranges,
-                            )
-                        }
+                        withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Initial)
                     }
                 }
             }
         }
 
-        override suspend fun raiseError(error: CryptoHandshakeError_v1) {
+        override suspend fun raiseError(error: QUICTransportError) {
             handleError(error)
         }
 
@@ -261,6 +270,8 @@ internal class QUICConnection_v1(
 
             return transportParameters().also {
                 localTransportParameters = it
+
+                println("Transport parameters are known")
                 onTransportParametersKnown()
             }
         }
@@ -268,8 +279,7 @@ internal class QUICConnection_v1(
 
     private inner class ReadyPacketHandlerImpl(
         private val outgoingDatagramHandler: OutgoingDatagramHandler,
-    ) :
-        ReadyPacketHandler.VersionNegotiation,
+    ) : ReadyPacketHandler.VersionNegotiation,
         ReadyPacketHandler.Initial,
         ReadyPacketHandler.Retry,
         ReadyPacketHandler.OneRTT {
@@ -296,8 +306,12 @@ internal class QUICConnection_v1(
         }
 
         // Initial packet
-        override val token: ByteArray
-            get() = TODO("Not yet implemented")
+        /**
+         * Initial packets sent by the server MUST set the Token Length field to 0.
+         *
+         * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-initial-packet)
+         */
+        override val token: ByteArray = EMPTY_BYTE_ARRAY
 
         // Retry packet
         override val originalDestinationConnectionID: ConnectionID
@@ -311,7 +325,7 @@ internal class QUICConnection_v1(
         override val keyPhase: Boolean
             get() = TODO("Not yet implemented")
 
-        // Version Negotiation
+        // Version Negotiation packet
         override val supportedVersions: Array<UInt32> = arrayOf(QUICVersion.V1)
     }
 
@@ -385,7 +399,18 @@ internal class QUICConnection_v1(
 
             when (packet.encryptionLevel) {
                 EncryptionLevel.Initial -> tlsComponent.acceptInitialHandshake(cryptoData)
-                EncryptionLevel.Handshake -> tlsComponent.finishHandshake(cryptoData)
+                EncryptionLevel.Handshake -> {
+                    tlsComponent.finishHandshake(cryptoData)
+
+                    sendInHandshakePacket(forceEndPacket = true) { builder, hookConsumer ->
+                        withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Handshake)
+                    }
+
+                    sendInOneRTT { builder, _ ->
+                        writeHandshakeDone(builder)
+                    }
+                }
+
                 EncryptionLevel.AppData -> TODO("Not implemented yet")
                 else -> return TransportError_v1.PROTOCOL_VIOLATION
             }
@@ -642,6 +667,23 @@ internal class QUICConnection_v1(
 
         private fun logAcceptedFrame(frameType: FrameType_v1) {
             println("Accepted frame: $frameType")
+        }
+    }
+
+    private fun FrameWriter.withAckFrameIfAny(
+        builder: BytePacketBuilder,
+        hookConsumer: ((Long) -> Unit) -> Unit,
+        encryptionLevel: EncryptionLevel,
+    ) {
+        packetNumberSpacePool[encryptionLevel].getAckRanges()?.let { (ranges, hook) ->
+            hookConsumer(hook)
+
+            writeACK(
+                packetBuilder = builder,
+                ackDelay = 0,
+                ack_delay_exponent = localTransportParameters.ack_delay_exponent,
+                ackRanges = ranges,
+            )
         }
     }
 }

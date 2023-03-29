@@ -8,11 +8,11 @@ import io.ktor.network.quic.errors.*
 import net.luminis.tls.*
 import net.luminis.tls.alert.*
 
-internal fun TlsProtocolException.toError(): CryptoHandshakeError_v1 {
+internal fun TlsProtocolException.toError(): QUICTransportError {
     val code = when (this) {
         is ErrorAlert -> alertDescription().value
         else -> error("Unexpected alert from TLS component")
     }
 
-    return CryptoHandshakeError_v1(code.toUByte())
+    return CryptoHandshakeError_v1(code.toUByte()).invoke("${alertDescription()} - $message")
 }

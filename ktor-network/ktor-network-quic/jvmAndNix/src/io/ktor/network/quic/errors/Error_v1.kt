@@ -8,7 +8,6 @@ package io.ktor.network.quic.errors
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.utils.io.core.*
-import kotlin.jvm.JvmInline
 
 /**
  * 0b01000001, where 0100 prefix - varint length, 0001 byte - prefix of crypto error.
@@ -84,6 +83,10 @@ internal enum class TransportError_v1(val intCode: UInt8) : QUICTransportError_v
         packetBuilder.writeUInt8(intCode)
     }
 
+    override fun toDebugString(): String {
+        return "Transport Error $name, code: $intCode"
+    }
+
     companion object {
         private val array = TransportError_v1.values()
 
@@ -101,14 +104,18 @@ internal class CryptoHandshakeError_v1(val tlsAlertCode: UInt8) : QUICTransportE
         packetBuilder.writeUInt8(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
         packetBuilder.writeUInt8(tlsAlertCode)
     }
+
+    override fun toDebugString(): String {
+        return "Crypto Handshake Error: $tlsAlertCode"
+    }
 }
 
 internal class ReasonedError(
     val error: QUICTransportError,
     val reasonPhrase: ByteArray,
 ) : QUICTransportError {
-    override fun toString(): String {
-        return "Error: $error, reason: ${String(reasonPhrase)}"
+    override fun toDebugString(): String {
+        return "Error: ${error.toDebugString()}, reason: ${String(reasonPhrase)}"
     }
 }
 
