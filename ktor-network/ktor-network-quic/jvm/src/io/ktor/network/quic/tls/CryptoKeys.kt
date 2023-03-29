@@ -53,7 +53,8 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
 
     fun headerProtectionMask(sample: ByteArray): Long {
         return headerProtectionCipher.doFinal(sample).let { array ->
-            println("hp array: ${array.joinToString(" ") { it.toUByte().toString(16) }}")
+//            println("sample: ${sample.toDebugString()}")
+//            println("hp array: ${array.toDebugString()}")
             var i = 0
             var long = 0L
             while (i < 5) {

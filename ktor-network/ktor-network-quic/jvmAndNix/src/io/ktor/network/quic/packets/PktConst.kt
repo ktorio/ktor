@@ -14,7 +14,15 @@ internal object PktConst {
 
     const val RETRY_PACKET_INTEGRITY_TAG_LENGTH = 16
 
+    /**
+     * Length of sample ciphertext used for header protection
+     */
     const val HP_SAMPLE_LENGTH = 16
+
+    /**
+     * Length of the header that gets appended during encryption
+     */
+    const val ENCRYPTION_HEADER_LENGTH = 16
 
     const val SHORT_HEADER_SPIN_BIT: UInt8 = 0x20u
     const val SHORT_HEADER_KEY_PHASE: UInt8 = 0x04u

@@ -11,7 +11,11 @@ import io.ktor.utils.io.core.*
 internal sealed interface ReadyPacketHandler {
     val destinationConnectionID: ConnectionID
 
+    val destinationConnectionIDSize: Int
+
     val sourceConnectionID: ConnectionID
+
+    val sourceConnectionIDSize: Int
 
     suspend fun withDatagramBuilder(body: suspend (BytePacketBuilder) -> Unit)
 
@@ -20,6 +24,10 @@ internal sealed interface ReadyPacketHandler {
     fun getLargestAcknowledged(encryptionLevel: EncryptionLevel): Long
 
     val usedDatagramSize: Int
+
+    val maxUdpPayloadSize: Int
+
+    suspend fun forceEndDatagram()
 
     interface Initial : ReadyPacketHandler {
         val token: ByteArray

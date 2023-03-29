@@ -165,9 +165,9 @@ internal class QUICConnection_v1(
 
     private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
 
-    private val initialPacketCandidate = PacketSendCandidate.Initial(tlsComponent, readyPacketHandler)
-    private val handshakePacketCandidate = PacketSendCandidate.Handshake(tlsComponent, readyPacketHandler)
-    private val oneRTTPacketCandidate = PacketSendCandidate.OneRTT(tlsComponent, readyPacketHandler)
+    private val initialPacketCandidate = PacketSendHandler.Initial(tlsComponent, readyPacketHandler)
+    private val handshakePacketCandidate = PacketSendHandler.Handshake(tlsComponent, readyPacketHandler)
+    private val oneRTTPacketCandidate = PacketSendHandler.OneRTT(tlsComponent, readyPacketHandler)
 
     private suspend fun sendInInitialPacket(
         forceEndPacket: Boolean = false,
@@ -188,14 +188,14 @@ internal class QUICConnection_v1(
     ) = send(oneRTTPacketCandidate, forceEndPacket, forceEndDatagram, write)
 
     private suspend fun send(
-        packetSendCandidate: PacketSendCandidate,
+        packetSendHandler: PacketSendHandler,
         forceEndPacket: Boolean = false,
         forceEndDatagram: Boolean = false,
         write: FrameWriteFunction,
     ) {
-        packetSendCandidate.writeFrame(write)
+        packetSendHandler.writeFrame(write)
         if (forceEndPacket) {
-            packetSendCandidate.finish(lastPacketInDatagram = forceEndDatagram)
+            packetSendHandler.finish()
         }
         if (forceEndDatagram) {
             outgoingDatagramHandler.flush()
@@ -225,6 +225,7 @@ internal class QUICConnection_v1(
                 CommunicationProvider: buffer crypto payload, inHandshakePacket: $inHandshakePacket, flush: $flush
             """.trimIndent()
             )
+
             buffer.withLock {
                 it.writeFully(cryptoPayload)
             }
@@ -290,12 +291,14 @@ internal class QUICConnection_v1(
         override val sourceConnectionID: ConnectionID
             get() = localConnectionIDs.nextConnectionID()
 
+        // These sizes are static during connection
+        override val destinationConnectionIDSize: Int by lazy { destinationConnectionID.size }
+
+        override val sourceConnectionIDSize: Int by lazy { sourceConnectionID.size }
+
         override suspend fun withDatagramBuilder(body: suspend (BytePacketBuilder) -> Unit) {
             outgoingDatagramHandler.write(body)
         }
-
-        override val usedDatagramSize: Int
-            get() = outgoingDatagramHandler.usedSize
 
         override fun getPacketNumber(encryptionLevel: EncryptionLevel): Long {
             return packetNumberSpacePool[encryptionLevel].next()
@@ -303,6 +306,16 @@ internal class QUICConnection_v1(
 
         override fun getLargestAcknowledged(encryptionLevel: EncryptionLevel): Long {
             return packetNumberSpacePool[encryptionLevel].largestAcknowledged
+        }
+
+        override val usedDatagramSize: Int
+            get() = outgoingDatagramHandler.usedSize
+
+        override val maxUdpPayloadSize: Int
+            get() = peerTransportParameters.max_udp_payload_size
+
+        override suspend fun forceEndDatagram() {
+            outgoingDatagramHandler.flush()
         }
 
         // Initial packet

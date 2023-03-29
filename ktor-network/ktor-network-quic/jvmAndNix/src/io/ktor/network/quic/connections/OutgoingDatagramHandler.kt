@@ -22,8 +22,11 @@ internal class OutgoingDatagramHandler(
     }
 
     suspend fun flush() {
-        println("OutgoingDatagramHandler: flush, used size: $usedSize")
-        val datagram = Datagram(buffer.flush(), getAddress())
-        outgoingChannel.send(datagram)
+        println("[OutgoingDatagramHandler] flush, used size: $usedSize")
+        val payload = buffer.flush()
+        if (payload.isNotEmpty) {
+            val datagram = Datagram(payload, getAddress())
+            outgoingChannel.send(datagram)
+        }
     }
 }

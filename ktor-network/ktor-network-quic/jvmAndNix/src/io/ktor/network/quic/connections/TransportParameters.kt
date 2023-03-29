@@ -51,7 +51,7 @@ internal class TransportParameters {
      * The default for this parameter is the maximum permitted UDP payload of 65527.
      * Values below 1200 are invalid.
      */
-    var max_udp_payload_size: Long = 65527
+    var max_udp_payload_size: Int = 65527
 
     /**
      * The initial maximum data parameter is an integer value
@@ -256,7 +256,7 @@ internal class TransportParameters {
                 ID.original_destination_connection_id -> original_destination_connection_id = bytes.readBytes(size)
                 ID.max_idle_timeout -> max_idle_timeout = bytes.readVarIntOrElse(raiseError)
                 ID.stateless_reset_token -> stateless_reset_token = bytes.readBytes(size)
-                ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError)
+                ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError).toInt()
                 ID.initial_max_data -> initial_max_data = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_stream_data_bidi_local -> {
                     initial_max_stream_data_bidi_local = bytes.readVarIntOrElse(raiseError)

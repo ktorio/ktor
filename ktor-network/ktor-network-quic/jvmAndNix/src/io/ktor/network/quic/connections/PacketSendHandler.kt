@@ -16,48 +16,90 @@ internal typealias FrameWriteFunction = FrameWriter.(
     hookConsumer: (hook: (Long) -> Unit) -> Unit,
 ) -> Unit
 
-// todo handle dividing long contents
-internal sealed class PacketSendCandidate(
+internal sealed class PacketSendHandler(
     private val hasPayload: Boolean = true,
-    private val datagramUsedSize: () -> Int = { 0 },
+    private val packetHandler: ReadyPacketHandler,
+    type: PacketType_v1,
     private val onPacketPayloadReady: suspend (payload: (Long) -> ByteArray) -> Unit,
 ) {
     private val buffer = LockablePacketBuilder()
     private val packetNumberHooks = mutableListOf<(Long) -> Unit>()
 
-    fun writeFrame(write: FrameWriteFunction) = buffer.withLock {
-        write(FrameWriterImpl, it) { hook ->
-            packetNumberHooks.add(hook)
+    private val maximumHeaderSize: Int by lazy {
+        when (type) {
+            PacketType_v1.Initial -> {
+                byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
+                    byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
+                    byteArrayFrameSize((packetHandler as ReadyPacketHandler.Initial).token.size) +
+                    1 + 4 + 4 + 4 // flags, version, max length, max packet number
+            }
+
+            PacketType_v1.OneRTT -> packetHandler.destinationConnectionIDSize + 1 + 4 // flags, max packet number
+
+            PacketType_v1.Retry -> TODO("Not yet implemented")
+            PacketType_v1.VersionNegotiation -> TODO("Not yet implemented")
+
+            // Handshake, 0-RTT
+            PacketType_v1.Handshake, PacketType_v1.ZeroRTT -> {
+                byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
+                    byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
+                    1 + 4 + 4 + 4 // flags, version, max length, max packet number
+            }
         }
     }
 
-    suspend fun finish(lastPacketInDatagram: Boolean = false) {
-        onPacketPayloadReady { packetNumber ->
-            packetNumberHooks.forEach { hook -> hook(packetNumber) }
+    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock {
+        val temp = buildPacket {
+            write(FrameWriterImpl, this) { hook ->
+                packetNumberHooks.add(hook)
+            }
+        }.readBytes()
 
-            if (!hasPayload) EMPTY_BYTE_ARRAY else buffer.flush { buffer ->
-                if (lastPacketInDatagram) {
-                    buffer.writeFully(
-                        src = PADDING_SAMPLE,
-                        offset = 0,
-                        length = maxOf(MIN_PACKET_SIZE_IN_BYTES - buffer.size - datagramUsedSize(), 0)
-                    )
-                }
-            }.readBytes()
+        val usedSize = it.size +
+            temp.size +
+            maximumHeaderSize +
+            packetHandler.usedDatagramSize +
+            PktConst.ENCRYPTION_HEADER_LENGTH
+
+        // send an already pending packet as this one does not fit into datagram size limits
+        if (usedSize > packetHandler.maxUdpPayloadSize) {
+            println("Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram")
+            finish(getPacketPayloadNonBlocking())
+
+            packetHandler.forceEndDatagram()
+        }
+
+        it.writeFully(temp)
+    }
+
+    suspend fun finish() {
+        finish(getPacketPayload())
+    }
+
+    private suspend fun finish(payload: ByteArray) {
+        if (payload.isNotEmpty() || !hasPayload) {
+            onPacketPayloadReady { packetNumber ->
+                packetNumberHooks.forEach { hook -> hook(packetNumber) }
+
+                payload
+            }
         }
     }
 
-    companion object {
-        private const val MIN_PACKET_SIZE_IN_BYTES = 1200
+    private fun getPacketPayload(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
+        buffer.flush().readBytes()
+    }
 
-        private val PADDING_SAMPLE = ByteArray(1200) { 0x00 }
+    private fun getPacketPayloadNonBlocking(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
+        buffer.flushNonBlocking().readBytes()
     }
 
     class Initial(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.Initial,
-    ) : PacketSendCandidate(
-        datagramUsedSize = { packetHandler.usedDatagramSize },
+    ) : PacketSendHandler(
+        type = PacketType_v1.Initial,
+        packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Initial)
 
@@ -80,8 +122,9 @@ internal sealed class PacketSendCandidate(
     class Handshake(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler,
-    ) : PacketSendCandidate(
-        datagramUsedSize = { packetHandler.usedDatagramSize },
+    ) : PacketSendHandler(
+        type = PacketType_v1.Handshake,
+        packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Handshake)
 
@@ -103,8 +146,9 @@ internal sealed class PacketSendCandidate(
     class OneRTT(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.OneRTT,
-    ) : PacketSendCandidate(
-        datagramUsedSize = { packetHandler.usedDatagramSize },
+    ) : PacketSendHandler(
+        type = PacketType_v1.OneRTT,
+        packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.AppData)
 
@@ -126,8 +170,10 @@ internal sealed class PacketSendCandidate(
     @Suppress("unused")
     class VersionNegotiation(
         packetHandler: ReadyPacketHandler.VersionNegotiation,
-    ) : PacketSendCandidate(
+    ) : PacketSendHandler(
+        type = PacketType_v1.VersionNegotiation,
         hasPayload = false,
+        packetHandler = packetHandler,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeVersionNegotiationPacket(
@@ -144,8 +190,10 @@ internal sealed class PacketSendCandidate(
     @Suppress("unused")
     class Retry(
         packetHandler: ReadyPacketHandler.Retry,
-    ) : PacketSendCandidate(
+    ) : PacketSendHandler(
+        type = PacketType_v1.Retry,
         hasPayload = false,
+        packetHandler = packetHandler,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeRetryPacket(

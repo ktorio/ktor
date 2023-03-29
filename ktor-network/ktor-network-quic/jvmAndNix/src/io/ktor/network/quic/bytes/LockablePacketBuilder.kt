@@ -18,8 +18,12 @@ internal class LockablePacketBuilder {
     }
 
     fun flush(body: (BytePacketBuilder) -> Unit = {}): ByteReadPacket = lock.withLock {
+        flushNonBlocking(body)
+    }
+
+    fun flushNonBlocking(body: (BytePacketBuilder) -> Unit = {}): ByteReadPacket {
         body(builder)
 
-        builder.build().also { builder = BytePacketBuilder() }
+        return builder.build().also { builder = BytePacketBuilder() }
     }
 }

@@ -40,7 +40,7 @@ internal infix fun ConnectionID.eq(other: ConnectionID): Boolean {
     return value.contentEquals(other.value)
 }
 
-internal fun BytePacketBuilder.writeConnectionId(id: ConnectionID) {
-    writeUInt8(id.size.toUByte())
+internal fun BytePacketBuilder.writeConnectionID(id: ConnectionID) {
+    writeVarInt(id.size)
     writeFully(id.value)
 }

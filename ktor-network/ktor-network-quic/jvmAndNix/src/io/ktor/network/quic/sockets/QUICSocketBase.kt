@@ -33,7 +33,7 @@ internal abstract class QUICSocketBase(
                     receiveAndProcessDatagram()
                 } catch (e: Exception) {
                     println(e)
-//                    e.printStackTrace()
+                    e.printStackTrace()
                 }
                 println("-".repeat(70))
             }
