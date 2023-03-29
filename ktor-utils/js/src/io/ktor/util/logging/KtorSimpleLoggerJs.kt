@@ -46,3 +46,14 @@ public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
         console.debug("TRACE: $message, cause: $cause")
     }
 }
+
+// kotlin Console class doesn't expose `debug` method
+private external interface Console {
+    fun error(vararg o: Any?)
+    fun info(vararg o: Any?)
+    fun log(vararg o: Any?)
+    fun warn(vararg o: Any?)
+    fun debug(vararg o: Any?)
+}
+
+private external val console: Console
