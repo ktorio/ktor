@@ -82,8 +82,6 @@ public fun HttpClient.defaultTransformers() {
 
                 val contentLength = response.contentLength()
                 val notEncoded = !PlatformUtils.IS_BROWSER && response.headers[HttpHeaders.ContentEncoding] == null
-                // HEAD requests could have a non-zero Content-Length
-                // See https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.2-2
                 val notHead = context.request.method != HttpMethod.Head
                 if (notEncoded && notHead && contentLength != null && contentLength > 0) {
                     check(bytes.size == contentLength.toInt()) { "Expected $contentLength, actual ${bytes.size}" }

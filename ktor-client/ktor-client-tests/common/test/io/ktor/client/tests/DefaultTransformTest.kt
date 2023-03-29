@@ -8,15 +8,17 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import kotlin.test.*
 
 class DefaultTransformTest {
 
     @Test
     fun testVerifyByteArrayLength() = testSuspend {
+        if (PlatformUtils.IS_BROWSER) return@testSuspend
+
         val httpClient = HttpClient(MockEngine) {
             engine {
                 addHandler { _ ->
@@ -28,5 +30,18 @@ class DefaultTransformTest {
         assertFailsWith<IllegalStateException> {
             httpClient.get("http://host/path").body<ByteArray>()
         }
+    }
+
+    @Test
+    fun testReadingHeadResponseAsByteArray() = testSuspend {
+        val httpClient = HttpClient(MockEngine) {
+            engine {
+                addHandler { _ ->
+                    respond("", headers = headersOf(HttpHeaders.ContentLength, "123"))
+                }
+            }
+        }
+
+        httpClient.head("http://host/path").body<ByteArray>()
     }
 }
