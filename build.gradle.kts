@@ -247,7 +247,7 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
             resources.srcDir("$platform/${resourcesPrefix}resources")
 
             languageSettings.apply {
-                progressiveMode = true
+//                progressiveMode = true
                 languageVersion = "2.0"
                 apiVersion = "2.0"
             }
