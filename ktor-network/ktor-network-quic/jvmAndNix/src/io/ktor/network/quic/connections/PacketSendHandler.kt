@@ -63,7 +63,7 @@ internal sealed class PacketSendHandler(
 
         // send an already pending packet as this one does not fit into datagram size limits
         if (usedSize > packetHandler.maxUdpPayloadSize) {
-            println("[PacketSendHandler] Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram")
+            println("[PacketSendHandler] Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram") // ktlint-disable max-line-length
             finish(getPacketPayloadNonBlocking())
 
             packetHandler.forceEndDatagram()

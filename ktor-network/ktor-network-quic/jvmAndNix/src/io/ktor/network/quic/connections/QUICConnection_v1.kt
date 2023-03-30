@@ -135,7 +135,8 @@ internal class QUICConnection_v1(
      */
     fun match(destinationConnectionID: ConnectionID): Boolean {
         // todo invalidate original dcid?
-        return destinationConnectionID.eq(originalDestinationConnectionID) || localConnectionIDs[destinationConnectionID] != null
+        return destinationConnectionID.eq(originalDestinationConnectionID) ||
+            localConnectionIDs[destinationConnectionID] != null
     }
 
     suspend fun processPacket(packet: QUICPacket) {
