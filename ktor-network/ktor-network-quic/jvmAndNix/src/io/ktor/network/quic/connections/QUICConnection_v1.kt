@@ -225,7 +225,7 @@ internal class QUICConnection_v1(
      * Used inside [tlsComponent] to expose necessary QUIC functions to TLS
      */
     private inner class ProtocolCommunicationProviderImpl : ProtocolCommunicationProvider {
-        private val buffer = LockablePacketBuilder()
+        private val buffer = MutexPacketBuilder()
 
         override val messageChannel: Channel<TLSMessage> = Channel(Channel.UNLIMITED)
 
@@ -259,7 +259,7 @@ internal class QUICConnection_v1(
                         writeCrypto(
                             packetBuilder = builder,
                             offset = 0,
-                            data = buffer.flush().readBytes()
+                            data = buffer.flush().readBytes(),
                         )
                     }
                 }

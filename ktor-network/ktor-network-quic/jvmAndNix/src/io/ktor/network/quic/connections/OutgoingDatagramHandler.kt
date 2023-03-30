@@ -13,11 +13,11 @@ internal class OutgoingDatagramHandler(
     private val outgoingChannel: SendChannel<Datagram>,
     private val getAddress: () -> SocketAddress,
 ) {
-    private val buffer = LockablePacketBuilder()
+    private val buffer = MutexPacketBuilder()
 
     val usedSize: Int get() = buffer.size
 
-    suspend fun write(body: suspend (BytePacketBuilder) -> Unit) = buffer.withLockSuspend {
+    suspend fun write(body: suspend (BytePacketBuilder) -> Unit) = buffer.withLock {
         body(it)
     }
 

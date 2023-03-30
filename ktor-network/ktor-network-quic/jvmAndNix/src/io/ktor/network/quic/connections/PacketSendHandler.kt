@@ -11,7 +11,7 @@ import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.tls.*
 import io.ktor.utils.io.core.*
 
-internal typealias FrameWriteFunction = FrameWriter.(
+internal typealias FrameWriteFunction = suspend FrameWriter.(
     builder: BytePacketBuilder,
     hookConsumer: (hook: (Long) -> Unit) -> Unit,
 ) -> Unit
@@ -22,7 +22,7 @@ internal sealed class PacketSendHandler(
     type: PacketType_v1,
     private val onPacketPayloadReady: suspend (payload: (Long) -> ByteArray) -> Unit,
 ) {
-    private val buffer = LockablePacketBuilder()
+    private val buffer = MutexPacketBuilder()
     private val packetNumberHooks = mutableListOf<(Long) -> Unit>()
 
     private val maximumHeaderSize: Int by lazy {
@@ -48,14 +48,14 @@ internal sealed class PacketSendHandler(
         }
     }
 
-    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLockSuspend {
+    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock { buffer ->
         val temp = buildPacket {
             write(FrameWriterImpl, this) { hook ->
                 packetNumberHooks.add(hook)
             }
         }.readBytes()
 
-        val usedSize = it.size +
+        val usedSize = buffer.size +
             temp.size +
             maximumHeaderSize +
             packetHandler.usedDatagramSize +
@@ -69,7 +69,7 @@ internal sealed class PacketSendHandler(
             packetHandler.forceEndDatagram()
         }
 
-        it.writeFully(temp)
+        buffer.writeFully(temp)
     }
 
     suspend fun finish() {
@@ -86,7 +86,7 @@ internal sealed class PacketSendHandler(
         }
     }
 
-    private fun getPacketPayload(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
+    private suspend fun getPacketPayload(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
         buffer.flush().readBytes()
     }
 
