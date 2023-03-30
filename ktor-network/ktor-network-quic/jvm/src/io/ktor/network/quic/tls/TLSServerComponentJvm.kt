@@ -227,7 +227,11 @@ internal actual class TLSServerComponent(
 
     override fun send(message: ServerHello?) = sendMessage(message, isHandshakeMessage = false, flush = true)
 
-    override fun send(message: EncryptedExtensions?) = sendMessage(message, isHandshakeMessage = true)
+    override fun send(message: EncryptedExtensions?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = true, // true - to make CERT, CV, FIN in one packet
+    )
 
     override fun send(message: CertificateMessage?) = sendMessage(message, isHandshakeMessage = true)
 

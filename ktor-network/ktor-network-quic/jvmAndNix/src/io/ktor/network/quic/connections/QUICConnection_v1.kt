@@ -184,27 +184,41 @@ internal class QUICConnection_v1(
 
     private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
 
-    private val initialPacketCandidate = PacketSendHandler.Initial(tlsComponent, readyPacketHandler)
-    private val handshakePacketCandidate = PacketSendHandler.Handshake(tlsComponent, readyPacketHandler)
-    private val oneRTTPacketCandidate = PacketSendHandler.OneRTT(tlsComponent, readyPacketHandler)
+    private val initialPacketHandler = PacketSendHandler.Initial(tlsComponent, readyPacketHandler)
+    private val handshakePacketHandler = PacketSendHandler.Handshake(tlsComponent, readyPacketHandler)
+    private val oneRTTPacketHandler = PacketSendHandler.OneRTT(tlsComponent, readyPacketHandler)
 
     private suspend fun sendInInitialPacket(
         forceEndPacket: Boolean = false,
         forceEndDatagram: Boolean = false,
         write: FrameWriteFunction,
-    ) = send(initialPacketCandidate, forceEndPacket, forceEndDatagram, write)
+    ) = send(initialPacketHandler, forceEndPacket, forceEndDatagram, write)
 
     private suspend fun sendInHandshakePacket(
         forceEndPacket: Boolean = false,
         forceEndDatagram: Boolean = false,
         write: FrameWriteFunction,
-    ) = send(handshakePacketCandidate, forceEndPacket, forceEndDatagram, write)
+    ) = send(handshakePacketHandler, forceEndPacket, forceEndDatagram, write)
 
     private suspend fun sendInOneRTT(
         forceEndPacket: Boolean = false,
         forceEndDatagram: Boolean = false,
         write: FrameWriteFunction,
-    ) = send(oneRTTPacketCandidate, forceEndPacket, forceEndDatagram, write)
+    ) = send(oneRTTPacketHandler, forceEndPacket, forceEndDatagram, write)
+
+    private suspend fun send(
+        encryptionLevel: EncryptionLevel,
+        forceEndPacket: Boolean = false,
+        forceEndDatagram: Boolean = false,
+        write: FrameWriteFunction,
+    ) {
+        val handler = when (encryptionLevel) {
+            EncryptionLevel.Initial -> initialPacketHandler
+            EncryptionLevel.Handshake -> handshakePacketHandler
+            EncryptionLevel.AppData -> oneRTTPacketHandler
+        }
+        send(handler, forceEndPacket, forceEndDatagram, write)
+    }
 
     private suspend fun send(
         packetSendHandler: PacketSendHandler,
@@ -213,7 +227,7 @@ internal class QUICConnection_v1(
         write: FrameWriteFunction,
     ) {
         packetSendHandler.writeFrame(write)
-        if (forceEndPacket) {
+        if (forceEndPacket || forceEndDatagram) {
             packetSendHandler.finish()
         }
         if (forceEndDatagram) {
@@ -225,7 +239,7 @@ internal class QUICConnection_v1(
      * Used inside [tlsComponent] to expose necessary QUIC functions to TLS
      */
     private inner class ProtocolCommunicationProviderImpl : ProtocolCommunicationProvider {
-        private val buffer = MutexPacketBuilder()
+        private var offset = 0L
 
         override val messageChannel: Channel<TLSMessage> = Channel(Channel.UNLIMITED)
 
@@ -239,46 +253,37 @@ internal class QUICConnection_v1(
         }
 
         private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
-            println(
-                """
-                [CommunicationProvider] buffer crypto payload, inHandshakePacket: $inHandshakePacket, flush: $flush
-            """.trimIndent()
-            )
-
-            buffer.withLock {
-                it.writeFully(cryptoPayload)
-            }
+            println("[CommunicationProvider] offset: $offset, payload.size: ${cryptoPayload.size}, flush: $flush, handshake: $inHandshakePacket") // ktlint-disable max-line-length
 
             when {
-                flush && inHandshakePacket -> {
-                    println("[CommunicationProvider] flush Handshake packet")
+                inHandshakePacket -> {
                     sendInHandshakePacket(
-                        forceEndPacket = true,
-                        forceEndDatagram = true,
+                        forceEndDatagram = flush,
                     ) { builder, _ ->
                         writeCrypto(
                             packetBuilder = builder,
-                            offset = 0,
-                            data = buffer.flush().readBytes(),
+                            offset = offset,
+                            data = cryptoPayload,
                         )
                     }
                 }
 
-                flush -> {
-                    println("[CommunicationProvider] flush Initial packet")
+                else -> {
                     sendInInitialPacket(
-                        forceEndPacket = true,
+                        forceEndPacket = flush,
                     ) { builder, hookConsumer ->
                         writeCrypto(
                             packetBuilder = builder,
-                            offset = 0,
-                            data = buffer.flush().readBytes(),
+                            offset = offset,
+                            data = cryptoPayload,
                         )
 
                         withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Initial)
                     }
                 }
             }
+
+            offset = if (flush) 0 else offset + cryptoPayload.size.toLong()
         }
 
         override suspend fun raiseError(error: QUICTransportError) {
@@ -288,7 +293,12 @@ internal class QUICConnection_v1(
         override fun getTransportParameters(peerParameters: TransportParameters): TransportParameters {
             peerTransportParameters = peerParameters
 
-            return transportParameters().also {
+            return transportParameters {
+                original_destination_connection_id = originalDestinationConnectionID
+                disable_active_migration = true
+                active_connection_id_limit = 1
+                initial_source_connection_id = initialLocalConnectionID
+            }.also {
                 localTransportParameters = it
 
                 println("[Connection] Transport parameters are known")
@@ -369,6 +379,15 @@ internal class QUICConnection_v1(
 
         override suspend fun acceptPing(packet: QUICPacket): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.PING)
+            // The receiver of a PING frame simply needs to acknowledge the packet containing this frame.
+
+            val encryptionLevel = packet.encryptionLevel ?: return TransportError_v1.PROTOCOL_VIOLATION
+
+            // todo remove force after adding packet auto sending loop
+            send(encryptionLevel, forceEndDatagram = true) { builder, hookConsumer ->
+                withAckFrameIfAny(builder, hookConsumer, encryptionLevel)
+            }
+
             return null
         }
 

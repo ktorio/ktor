@@ -58,10 +58,11 @@ internal class PacketNumberSpace {
     fun getAckRanges(): Pair<LongArray, (Long) -> Unit>? {
         if (unacknowledgedPeerPacketNumbers.isEmpty()) return null
 
+        val sorted = unacknowledgedPeerPacketNumbers.sortedDescending()
         val result = mutableListOf<Long>()
-        var last = unacknowledgedPeerPacketNumbers.first()
+        var last = sorted.first()
         result.add(last)
-        unacknowledgedPeerPacketNumbers.sortedDescending().forEach {
+        sorted.forEach {
             if (it != last - 1 && it != last) {
                 result.add(last)
                 result.add(it)
@@ -71,8 +72,10 @@ internal class PacketNumberSpace {
         }
         result.add(last)
 
+        println("[PacketNumberSpace] generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length
+
         return result.toLongArray() to { packetNumber ->
-            sentAckPackets[packetNumber] = unacknowledgedPeerPacketNumbers.toSet()
+            sentAckPackets[packetNumber] = sorted.toSet()
         }
     }
 
