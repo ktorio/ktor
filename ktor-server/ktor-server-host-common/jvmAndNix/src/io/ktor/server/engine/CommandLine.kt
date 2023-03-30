@@ -10,25 +10,25 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 
 internal object ConfigKeys {
-    val applicationIdPath = "ktor.application.id"
-    val hostConfigPath = "ktor.deployment.host"
-    val hostPortPath = "ktor.deployment.port"
-    val hostWatchPaths = "ktor.deployment.watch"
+    const val applicationIdPath = "ktor.application.id"
+    const val hostConfigPath = "ktor.deployment.host"
+    const val hostPortPath = "ktor.deployment.port"
+    const val hostWatchPaths = "ktor.deployment.watch"
 
-    val rootPathPath = "ktor.deployment.rootPath"
+    const val rootPathPath = "ktor.deployment.rootPath"
 
-    val hostSslPortPath = "ktor.deployment.sslPort"
-    val hostSslKeyStore = "ktor.security.ssl.keyStore"
-    val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
-    val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
-    val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
-    val developmentModeKey = "ktor.development"
+    const val hostSslPortPath = "ktor.deployment.sslPort"
+    const val hostSslKeyStore = "ktor.security.ssl.keyStore"
+    const val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
+    const val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
+    const val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
+    const val developmentModeKey = "ktor.development"
 }
 
-/**
- * Creates an [ApplicationEngineEnvironment] instance from command line arguments
- */
-public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
+internal fun buildCommandLineEnvironment(
+    args: Array<String>,
+    environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+): ApplicationEngineEnvironment {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }.toMap()
     val configuration = buildApplicationConfig(args)
     val applicationId = configuration.tryGetString(ConfigKeys.applicationIdPath) ?: "Application"
@@ -84,10 +84,18 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
         (argumentsPairs["-watch"]?.split(",") ?: configuration.tryGetStringList(ConfigKeys.hostWatchPaths))?.let {
             watchPaths = it
         }
+
+        environmentBuilder()
     }
 
     return environment
 }
+
+/**
+ * Creates an [ApplicationEngineEnvironment] instance from command line arguments
+ */
+public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment =
+    buildCommandLineEnvironment(args) {}
 
 internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }
@@ -95,11 +103,18 @@ internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
         .filter { it.first.startsWith("-P:") }
         .map { it.first.removePrefix("-P:") to it.second }
 
-    val configPath = argumentsPairs.firstOrNull { it.first == "-config" }?.second
+    val configPaths = argumentsPairs.filter { it.first == "-config" }.map { it.second }
 
     val commandLineConfig = MapApplicationConfig(commandLineProperties)
     val environmentConfig = getConfigFromEnvironment()
-    val fileConfig = ConfigLoader.load(configPath)
+
+    val fileConfig = when (configPaths.size) {
+        0 -> ConfigLoader.load()
+        1 -> ConfigLoader.load(configPaths.single())
+        else -> configPaths.fold(MapApplicationConfig() as ApplicationConfig) { config, path ->
+            config.mergeWith(ConfigLoader.load(path))
+        }
+    }
 
     return fileConfig.mergeWith(environmentConfig).mergeWith(commandLineConfig)
 }

@@ -60,7 +60,7 @@ class CommandLineTest {
 
     @Test
     fun configFileWithEnvironmentVariables() {
-        val configPath = CommandLineTest::class.java.classLoader.getResource("applicationWithEnv.conf").toURI().path
+        val configPath = CommandLineTest::class.java.classLoader.getResource("applicationWithEnv.conf")!!.toURI().path
         val port = commandLineEnvironment(arrayOf("-config=$configPath"))
             .config.property("ktor.deployment.port").getString()
         assertEquals("8080", port)
@@ -68,7 +68,7 @@ class CommandLineTest {
 
     @Test
     fun configYamlFile() {
-        val configPath = CommandLineTest::class.java.classLoader.getResource("application.yaml").toURI().path
+        val configPath = CommandLineTest::class.java.classLoader.getResource("application.yaml")!!.toURI().path
         val port = commandLineEnvironment(arrayOf("-config=$configPath"))
             .config.property("ktor.deployment.port").getString()
         assertEquals("8081", port)
@@ -133,17 +133,20 @@ class CommandLineTest {
 
     @Test
     fun testAdditionalConfigFile() {
-        val configPath = CommandLineTest::class.java.classLoader.getResource("application.conf").toURI().path
+        val configPath = CommandLineTest::class.java.classLoader
+            .getResource("application-main.conf")!!.toURI().path
         val additionalConfigPath = CommandLineTest::class.java.classLoader
-            .getResource("applicationAdditional.conf").toURI().path
+            .getResource("application-additional.conf")!!.toURI().path
         val args = arrayOf("-config=$configPath", "-config=$additionalConfigPath")
 
         val config = commandLineEnvironment(args) {}.config
 
         assertEquals("<org.company.ApplicationClass>", config.property("ktor.application.class").getString())
         assertEquals("8085", config.property("ktor.deployment.port").getString())
-        assertEquals("TestValue", config.property("ktor.deployment.testProperty").getString())
-        assertEquals("Config value", config.property("config.configurationProperty").getString())
+        assertEquals("additional_value", config.property("ktor.property").getString())
+        assertEquals("additional_value", config.property("ktor.config.property").getString())
+        assertEquals("main_value", config.property("ktor.config.old_property").getString())
+        assertEquals("additional_value", config.property("ktor.config.new_property").getString())
     }
 
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
