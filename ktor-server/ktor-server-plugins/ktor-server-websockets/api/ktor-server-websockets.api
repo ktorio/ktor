@@ -53,6 +53,8 @@ public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls 
 public final class io/ktor/server/websocket/WebSocketServerSessionKt {
 	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/Application;
 	public static final fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
+	public static final fun receiveDeserialized (Lio/ktor/server/websocket/WebSocketServerSession;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun sendSerialized (Lio/ktor/server/websocket/WebSocketServerSession;Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {

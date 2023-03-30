@@ -311,7 +311,6 @@ sealed class Data
 @Serializable
 class DataType(val value: String) : Data()
 
-
 @Serializable
 class SealedWrapper(val value: Sealed)
 
