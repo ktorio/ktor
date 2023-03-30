@@ -139,6 +139,9 @@ internal class QUICConnection_v1(
     }
 
     suspend fun processPacket(packet: QUICPacket) {
+        println("[Connection] Decrypted packet overview:")
+        println(packet.toDebugString(withPayload = false).prependIndent("\t"))
+
         packet.encryptionLevel?.let { level ->
             packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
         }
@@ -238,7 +241,7 @@ internal class QUICConnection_v1(
         private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
             println(
                 """
-                CommunicationProvider: buffer crypto payload, inHandshakePacket: $inHandshakePacket, flush: $flush
+                [CommunicationProvider] buffer crypto payload, inHandshakePacket: $inHandshakePacket, flush: $flush
             """.trimIndent()
             )
 
@@ -248,7 +251,7 @@ internal class QUICConnection_v1(
 
             when {
                 flush && inHandshakePacket -> {
-                    println("CommunicationProvider: flush Handshake packet")
+                    println("[CommunicationProvider] flush Handshake packet")
                     sendInHandshakePacket(
                         forceEndPacket = true,
                         forceEndDatagram = true,
@@ -262,7 +265,7 @@ internal class QUICConnection_v1(
                 }
 
                 flush -> {
-                    println("CommunicationProvider: flush Initial packet")
+                    println("[CommunicationProvider] flush Initial packet")
                     sendInInitialPacket(
                         forceEndPacket = true,
                     ) { builder, hookConsumer ->
@@ -288,7 +291,7 @@ internal class QUICConnection_v1(
             return transportParameters().also {
                 localTransportParameters = it
 
-                println("Transport parameters are known")
+                println("[Connection] Transport parameters are known")
                 onTransportParametersKnown()
             }
         }
@@ -695,7 +698,7 @@ internal class QUICConnection_v1(
         }
 
         private fun logAcceptedFrame(frameType: FrameType_v1) {
-            println("Accepted frame: $frameType")
+            println("[FrameProcessor] Accepted frame: $frameType")
         }
     }
 

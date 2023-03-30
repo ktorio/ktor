@@ -183,7 +183,7 @@ internal object PacketReader {
                     else -> unreachable()
                 }
 
-                println("Packet type: $type")
+                println("[PacketReader] Packet type: $type")
 
                 val headerProtectionMask: Long = getHeaderProtectionMask(
                     bytes = bytes,

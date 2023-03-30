@@ -240,7 +240,7 @@ internal actual class TLSServerComponent(
     private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean = false) {
         message ?: return
 
-        println("Send TLS Message: ${message.type}")
+        println("[TLSServerComponentJvm] Send TLS Message: ${message.type}")
 
         // todo result handler?
         communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, isHandshakeMessage, flush))

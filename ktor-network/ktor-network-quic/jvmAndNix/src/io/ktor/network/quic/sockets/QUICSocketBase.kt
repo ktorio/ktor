@@ -32,15 +32,14 @@ internal abstract class QUICSocketBase(
                     println(e)
                     e.printStackTrace()
                 }
-                println("-".repeat(70))
             }
         }
     }
 
     private suspend fun receiveAndProcessDatagram() {
         val datagram = datagramSocket.receive()
-        println("Accepted datagram from ${datagram.address}")
-        println("Datagram size: ${datagram.packet.remaining}")
+        println("[QUICSocketBase] Accepted datagram from ${datagram.address}")
+        println("[QUICSocketBase] Datagram size: ${datagram.packet.remaining}")
 
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(
@@ -53,9 +52,6 @@ internal abstract class QUICSocketBase(
                     error(it.toString())
                 }
             )
-
-            println("Decrypted packet overview:")
-            println(packet.toDebugString())
 
             // todo can here be null connection?
             packet.destinationConnectionID.connection!!.processPacket(packet)

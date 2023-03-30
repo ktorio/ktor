@@ -9,7 +9,6 @@ package io.ktor.network.quic.packets
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_LONG_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_SHORT_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.flagsHPMask
@@ -424,6 +423,6 @@ internal object PacketWriter {
 
     private fun debugLog(packet: QUICPacket) {
         println("[PacketWriter] writing packet:")
-        println(packet.toDebugString(withPayload = false))
+        println(packet.toDebugString(withPayload = false).prependIndent("\t"))
     }
 }
