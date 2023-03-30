@@ -13,7 +13,11 @@ internal class LockablePacketBuilder {
 
     val size get() = builder.size
 
-    inline fun <T> withLock(body: (BytePacketBuilder) -> T) = lock.withLock {
+    fun <T> withLock(body: (BytePacketBuilder) -> T) = lock.withLock {
+        body(builder)
+    }
+
+    suspend fun <T> withLockSuspend(body: suspend (BytePacketBuilder) -> T) = lock.withLock {
         body(builder)
     }
 

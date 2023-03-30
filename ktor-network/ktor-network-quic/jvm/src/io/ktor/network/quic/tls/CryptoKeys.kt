@@ -13,7 +13,7 @@ import java.nio.charset.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-internal class CryptoKeys(secret: ByteArray, version: UInt32) {
+internal class CryptoKeys(secret: ByteArray, version: UInt32, private val debugLabel: String? = null) {
     private val key: ByteArray
     val iv: ByteArray
     private val hp: ByteArray
@@ -26,6 +26,8 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
         key = hkdfExpandLabel(secret, TLSConstants.V1.KEY_LABEL.labeled(version), 16)
         iv = hkdfExpandLabel(secret, TLSConstants.V1.IV_LABEL.labeled(version), 12)
         hp = hkdfExpandLabel(secret, TLSConstants.V1.HP_LABEL.labeled(version), 16)
+
+        debugLog("init keys")
     }
 
     private fun String.labeled(version: UInt32): String {
@@ -53,8 +55,8 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
 
     fun headerProtectionMask(sample: ByteArray): Long {
         return headerProtectionCipher.doFinal(sample).let { array ->
-//            println("sample: ${sample.toDebugString()}")
-//            println("hp array: ${array.toDebugString()}")
+            debugLog("Sample: ${sample.toDebugString()}")
+            debugLog("Mask: ${array.toDebugString()}")
             var i = 0
             var long = 0L
             while (i < 5) {
@@ -66,6 +68,7 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
     }
 
     private val headerProtectionCipher by lazy {
+        debugLog("Call init hp cipher")
         Cipher.getInstance("AES/ECB/NoPadding")?.apply {
             val keySpec = SecretKeySpec(hp, "AES")
             init(Cipher.ENCRYPT_MODE, keySpec)
@@ -83,9 +86,9 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
     companion object {
         private val ISO_8859_1 = Charset.forName("ISO-8859-1")
 
-        fun initial(secret: ByteArray, version: UInt32, isServer: Boolean): CryptoKeys {
+        fun initial(secret: ByteArray, version: UInt32, isServer: Boolean, debugLabel: String? = null): CryptoKeys {
             val withLabel = hkdfExpandLabel(secret, if (isServer) "server in" else "client in", 32)
-            return CryptoKeys(withLabel, version)
+            return CryptoKeys(withLabel, version, debugLabel)
         }
 
         private fun hkdfExpandLabel(secret: ByteArray, label: String, length: Short): ByteArray {
@@ -107,5 +110,11 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32) {
             val hkdf = HKDF.fromHmacSha256()
             return hkdf.expand(secret, hkdfLabel.array(), length.toInt())
         }
+    }
+
+    private fun debugLog(message: String) {
+        @Suppress("UNUSED_VARIABLE")
+        val log = "[Crypto Keys] [$debugLabel] $message"
+//        println(log)
     }
 }

@@ -131,10 +131,26 @@ internal actual class TLSServerComponent(
     }
 
     private fun calculateInitialKeys() {
-        val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
+        if (!clientInitialKeys.isCompleted) {
+            val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
 
-        clientInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = false))
-        serverInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = true))
+            clientInitialKeys.complete(
+                CryptoKeys.initial(
+                    secret = keys,
+                    version = QUICVersion.V1,
+                    isServer = false,
+                    debugLabel = "initial client"
+                )
+            )
+            serverInitialKeys.complete(
+                CryptoKeys.initial(
+                    secret = keys,
+                    version = QUICVersion.V1,
+                    isServer = true,
+                    debugLabel = "initial server"
+                )
+            )
+        }
     }
 
     // Helper methods
@@ -152,13 +168,41 @@ internal actual class TLSServerComponent(
     }
 
     override fun handshakeSecretsKnown() {
-        clientHandshakeKeys.complete(CryptoKeys(engine.clientHandshakeTrafficSecret, QUICVersion.V1))
-        serverHandshakeKeys.complete(CryptoKeys(engine.serverHandshakeTrafficSecret, QUICVersion.V1))
+        if (!clientHandshakeKeys.isCompleted) {
+            clientHandshakeKeys.complete(
+                CryptoKeys(
+                    secret = engine.clientHandshakeTrafficSecret,
+                    version = QUICVersion.V1,
+                    debugLabel = "handshake client"
+                )
+            )
+            serverHandshakeKeys.complete(
+                CryptoKeys(
+                    secret = engine.serverHandshakeTrafficSecret,
+                    version = QUICVersion.V1,
+                    debugLabel = "handshake server"
+                )
+            )
+        }
     }
 
     override fun handshakeFinished() {
-        client1RTTKeys.complete(CryptoKeys(engine.clientApplicationTrafficSecret, QUICVersion.V1))
-        server1RTTKeys.complete(CryptoKeys(engine.serverApplicationTrafficSecret, QUICVersion.V1))
+        if (!client1RTTKeys.isCompleted) {
+            client1RTTKeys.complete(
+                CryptoKeys(
+                    secret = engine.clientApplicationTrafficSecret,
+                    version = QUICVersion.V1,
+                    debugLabel = "1-RTT client"
+                )
+            )
+            server1RTTKeys.complete(
+                CryptoKeys(
+                    secret = engine.serverApplicationTrafficSecret,
+                    version = QUICVersion.V1,
+                    debugLabel = "1-RTT server"
+                )
+            )
+        }
     }
 
     override fun newSessionTicketReceived(newSessionTicket: NewSessionTicket?) {

@@ -17,7 +17,7 @@ internal class OutgoingDatagramHandler(
 
     val usedSize: Int get() = buffer.size
 
-    suspend fun write(body: suspend (BytePacketBuilder) -> Unit) = buffer.withLock {
+    suspend fun write(body: suspend (BytePacketBuilder) -> Unit) = buffer.withLockSuspend {
         body(it)
     }
 

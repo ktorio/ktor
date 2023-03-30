@@ -35,6 +35,7 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
     override suspend fun createConnection(
         address: SocketAddress,
         peerSourceConnectionID: ConnectionID,
+        originalDestinationConnectionID: ConnectionID,
     ): QUICConnection_v1 {
         val sourceConnectionID = ConnectionID.new()
 
@@ -42,12 +43,15 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
             QUICConnection_v1(
                 isServer = true,
                 initialLocalConnectionID = sourceConnectionID,
+                originalDestinationConnectionID = originalDestinationConnectionID,
                 initialPeerConnectionID = peerSourceConnectionID,
                 connectionIDLength = sourceConnectionID.size,
                 tlsComponentProvider = { tlsServerComponentFactory.createTLSServerComponent(it) },
                 outgoingDatagramChannel = datagramSocket.outgoing,
                 initialSocketAddress = address,
-            )
+            ).apply {
+                tlsComponent.acceptOriginalDcid(originalDestinationConnectionID)
+            }
         }
     }
 }

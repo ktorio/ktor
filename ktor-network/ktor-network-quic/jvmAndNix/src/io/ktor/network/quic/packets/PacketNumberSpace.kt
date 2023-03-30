@@ -9,6 +9,7 @@ import kotlinx.atomicfu.*
 
 /**
  * This class takes care of handling packet numbers, issuing and acknowledging them.
+ * It handles both local and peer packet numbers
  */
 internal class PacketNumberSpace {
     private val increment = atomic(0L)
@@ -27,7 +28,6 @@ internal class PacketNumberSpace {
     }
 
     fun receivedPacket(packetNumber: Long) {
-        increment.getAndUpdate { maxOf(packetNumber + 1, it) }
         unacknowledgedPeerPacketNumbers.add(packetNumber)
     }
 

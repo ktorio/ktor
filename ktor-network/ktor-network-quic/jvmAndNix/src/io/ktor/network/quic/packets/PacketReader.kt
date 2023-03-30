@@ -2,7 +2,7 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("FunctionName", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
+@file:Suppress("FunctionName")
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package io.ktor.network.quic.packets
@@ -172,10 +172,6 @@ internal object PacketReader {
                         raiseError(PACKET_END)
                     }
                     token = bytes.readBytes(tokenLength.toInt())
-
-                    if (connection.tlsComponent is TLSServerComponent) {
-                        connection.tlsComponent.acceptOriginalDcid(destinationConnectionID)
-                    }
                 }
 
                 val length: Long = bytes.readVarIntOrElse { raiseError(PACKET_END) }

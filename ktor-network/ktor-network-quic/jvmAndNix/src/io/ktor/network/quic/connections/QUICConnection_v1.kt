@@ -17,7 +17,6 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.sync.*
 
 /**
  * This class represents [QUIC connection](https://www.rfc-editor.org/rfc/rfc9000.html#name-connections).
@@ -26,7 +25,7 @@ import kotlinx.coroutines.sync.*
  *
  * This class is used for already established connections, the handshake process is managed by todo
  */
-@Suppress("CanBeParameter", "UNUSED_PARAMETER")
+@Suppress("CanBeParameter")
 internal class QUICConnection_v1(
     private val isServer: Boolean,
 
@@ -34,6 +33,11 @@ internal class QUICConnection_v1(
      * Initial CID used by this endpoint during the handshake.
      */
     private val initialLocalConnectionID: ConnectionID,
+
+    /**
+     * CID that was used by the peer as first Destination Connection ID.
+     */
+    private val originalDestinationConnectionID: ConnectionID,
 
     /**
      * Initial CID used by the peer during the handshake.
@@ -121,6 +125,18 @@ internal class QUICConnection_v1(
      * Map of Stream IDs to the corresponding MAX_STREAM_DATA parameters
      */
     private val maxStreamData = hashMapOf<Long, Long>()
+
+    init {
+        println("[Connection] Init connection from ${initialPeerConnectionID.value.toDebugString()}")
+    }
+
+    /**
+     * @return true if this connection has active [destinationConnectionID] in its pool
+     */
+    fun match(destinationConnectionID: ConnectionID): Boolean {
+        // todo invalidate original dcid?
+        return destinationConnectionID.eq(originalDestinationConnectionID) || localConnectionIDs[destinationConnectionID] != null
+    }
 
     suspend fun processPacket(packet: QUICPacket) {
         packet.encryptionLevel?.let { level ->

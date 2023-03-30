@@ -48,7 +48,7 @@ internal sealed class PacketSendHandler(
         }
     }
 
-    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock {
+    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLockSuspend {
         val temp = buildPacket {
             write(FrameWriterImpl, this) { hook ->
                 packetNumberHooks.add(hook)
