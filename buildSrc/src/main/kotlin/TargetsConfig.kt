@@ -222,9 +222,4 @@ fun Project.configureTargets() {
             }
         }
     }
-
-    tasks.findByName("mingwX64Test")?.apply {
-        if (this !is KotlinNativeTest) return@apply
-        environment("PATH", "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin")
-    }
 }

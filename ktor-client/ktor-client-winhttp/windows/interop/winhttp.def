@@ -1,4 +1,4 @@
-package = ktor.cinterop.winhttp
+package = io.ktor.cinterop.winhttp
 headers = wtypes.h winhttp.h
 headerFilter = winhttp.h
 
@@ -19,8 +19,8 @@ typedef enum _WINHTTP_WEB_SOCKET_OPERATION
 
 typedef enum _WINHTTP_WEB_SOCKET_BUFFER_TYPE
 {
-    WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE       = 0,
     WINHTTP_WEB_SOCKET_BINARY_FRAGMENT_BUFFER_TYPE      = 1,
+    WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE       = 0,
     WINHTTP_WEB_SOCKET_UTF8_MESSAGE_BUFFER_TYPE         = 2,
     WINHTTP_WEB_SOCKET_UTF8_FRAGMENT_BUFFER_TYPE        = 3,
     WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE                = 4

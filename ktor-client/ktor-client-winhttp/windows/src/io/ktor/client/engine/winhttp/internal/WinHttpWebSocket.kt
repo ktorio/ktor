@@ -4,7 +4,6 @@
 
 package io.ktor.client.engine.winhttp.internal
 
-import io.ktor.client.engine.winhttp.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import io.ktor.websocket.*
@@ -12,8 +11,8 @@ import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import ktor.cinterop.winhttp.*
 import platform.windows.*
+import platform.winhttp.*
 import kotlin.coroutines.*
 
 private object WinHttpWebSocketBuffer {

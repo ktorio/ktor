@@ -5,16 +5,17 @@
 package io.ktor.client.engine.winhttp.internal
 
 import io.ktor.client.engine.winhttp.*
+import io.ktor.client.engine.winhttp.internal.WinHttpConnect
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
-import ktor.cinterop.winhttp.*
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_CN_INVALID
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
-import ktor.cinterop.winhttp.SECURITY_FLAG_IGNORE_UNKNOWN_CA
 import platform.windows.*
+import platform.windows.SECURITY_FLAG_IGNORE_CERT_CN_INVALID
+import platform.windows.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
+import platform.windows.SECURITY_FLAG_IGNORE_UNKNOWN_CA
+import platform.winhttp.*
 import kotlin.coroutines.*
 
 internal class WinHttpRequest(

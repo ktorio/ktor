@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 
 apply<test.server.TestServerPlugin>()
 
@@ -10,6 +9,7 @@ kotlin {
     if (fastTarget()) return@kotlin
 
     createCInterop("winhttp", windowsTargets()) {
+        defFile = File(projectDir, "windows/interop/libcurl.def")
         defFile = File(projectDir, "windows/interop/winhttp.def")
     }
 
