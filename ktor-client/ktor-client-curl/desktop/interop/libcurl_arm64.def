@@ -34,5 +34,3 @@ linkerOpts.linux =           -lcurl \
 compilerOpts.linux =         -I/usr/include/curl \
                              -I/usr/include/x86_64-linux-gnu/curl \
                              -I/opt/homebrew/opt/curl/include/curl
-
-linkerOpts.mingw_x64 =       C:/Tools/msys64/mingw64/lib/libcurl.a

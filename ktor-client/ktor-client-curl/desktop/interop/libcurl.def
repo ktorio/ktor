@@ -34,4 +34,23 @@ compilerOpts.linux =         -I/usr/include/curl \
                              -I/usr/include/x86_64-linux-gnu/curl \
                              -I/opt/homebrew/opt/curl/include/curl
 
-linkerOpts.mingw_x64 =       C:/Tools/msys64/mingw64/lib/libcurl.a
+staticLibraries.mingw_x64 = \
+libcurl.a \
+libcrypto.a \
+libbrotlidec.a \
+libcrypto.a \
+libidn2.a \
+libnghttp2.a \
+libpsl.a \
+libssh2.a \
+libz.a \
+libssl.a \
+libbrotlicommon.a \
+libiconv.a \
+libzstd.a \
+libgettextlib.a \
+libunistring.a \
+libgettextpo.a
+
+libraryPaths.mingw_x64 = C:/msys64/mingw64/lib C:/Tools/msys64/mingw64/lib C:/Tools/msys2/mingw64/lib
+linkerOpts.mingw_x64 = -fstack-protector -lcrypt32 -lwldap32
