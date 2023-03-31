@@ -123,7 +123,7 @@ internal class DatagramSendChannel(
 
     private fun closeAndCheckHandler() {
         while (true) {
-            val handler = onCloseHandler.value
+            val handler: (Throwable?) -> Unit = onCloseHandler.value!!
             if (handler === CLOSED_INVOKED) break
             if (handler == null) {
                 if (onCloseHandler.compareAndSet(null, CLOSED)) break
