@@ -44,10 +44,6 @@ internal fun Input.completeReadHead(current: ChunkBuffer) {
 @Suppress("DEPRECATION")
 @PublishedApi
 internal fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
-    if (current === this) {
-        return if (canRead()) this else null
-    }
-
     return ensureNextHead(current)
 }
 

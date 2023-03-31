@@ -273,7 +273,6 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
             resources.srcDir("$platform/${resourcesPrefix}resources")
 
             languageSettings.apply {
-                progressiveMode = true
                 languageVersion = kotlin_language_version
                 apiVersion = kotlin_api_version
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
