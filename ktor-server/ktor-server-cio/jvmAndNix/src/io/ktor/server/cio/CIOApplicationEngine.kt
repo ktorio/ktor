@@ -121,14 +121,12 @@ public class CIOApplicationEngine(
         val continueResponse = "HTTP/1.1 100 Continue\r\n"
         val expectHeaderValue = "100-continue"
 
-        val expectHeader = call.request.headers[HttpHeaders.Expect]?.lowercase()
-        var closeConnection = true
-
         val expectedHeaderPhase = PipelinePhase("ExpectedHeaderPhase")
         call.request.pipeline.insertPhaseBefore(ApplicationReceivePipeline.Before, expectedHeaderPhase)
         call.request.pipeline.intercept(expectedHeaderPhase) {
             val request = call.request
             val version = HttpProtocolVersion.parse(request.httpVersion)
+            val expectHeader = call.request.headers[HttpHeaders.Expect]?.lowercase()
             val hasBody = hasBody(request)
 
             if (expectHeader == null || version == HttpProtocolVersion.HTTP_1_0 || !hasBody) {
@@ -142,17 +140,7 @@ public class CIOApplicationEngine(
                     output.writeStringUtf8(continueResponse)
                     output.flush()
                 }
-                closeConnection = false
             }
-        }
-
-        call.response.pipeline.intercept(ApplicationSendPipeline.Transform) {
-            if (expectHeader == null) {
-                return@intercept
-            }
-
-            val connection = if (closeConnection) "close" else "keep-alive"
-            call.response.headers.append(HttpHeaders.Connection, connection)
         }
     }
 
