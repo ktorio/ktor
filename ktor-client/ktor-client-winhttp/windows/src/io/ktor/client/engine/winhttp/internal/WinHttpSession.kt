@@ -22,7 +22,7 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
     init {
         hSession = WinHttpOpen(
             WINHTTP_NO_USER_AGENT,
-            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY.toUInt(),
             WINHTTP_NO_PROXY_NAME,
             WINHTTP_NO_PROXY_BYPASS,
             WINHTTP_FLAG_ASYNC.convert()
@@ -67,7 +67,7 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
             value = protocol.value.convert()
         }
         val dwSize = sizeOf<UIntVar>().convert<UInt>()
-        WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS, options.ptr, dwSize)
+        WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS.toUInt(), options.ptr, dwSize)
     }
 
     private fun setTimeouts(resolveTimeout: Int, connectTimeout: Int, sendTimeout: Int, receiveTimeout: Int) {
@@ -86,7 +86,7 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
 
                 if (WinHttpSetOption(
                         hSession,
-                        WINHTTP_OPTION_PROXY,
+                        WINHTTP_OPTION_PROXY.toUInt(),
                         proxyInfo.ptr,
                         sizeOf<WINHTTP_PROXY_INFO>().convert()
                     ) == 0

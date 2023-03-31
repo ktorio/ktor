@@ -10,6 +10,6 @@ import platform.posix.*
 @OptIn(UnsafeNumber::class)
 internal actual val WORKING_DIRECTORY_PATH: String get() = memScoped {
     val result = allocArray<ByteVar>(512)
-    getcwd(result, 512)
+    getcwd(result, 512.toULong())
     result.toKString()
 }
