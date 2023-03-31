@@ -124,7 +124,7 @@ internal class DatagramSendChannel(
                     bytes.size.convert(),
                     0,
                     null,
-                    0
+                    0.toUInt()
                 ).toInt()
             }
         }

@@ -31,7 +31,7 @@ internal class WinHttpRequest(
     val chunkedMode: WinHttpChunkedMode
 
     init {
-        val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0)
+        val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0.toUInt())
             ?: throw getWinHttpException("Unable to create connection")
         connect = WinHttpConnect(hConnect)
         connectReference = StableRef.create(connect)
@@ -74,7 +74,7 @@ internal class WinHttpRequest(
     }
 
     fun upgradeToWebSocket() {
-        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET, null, 0) == 0) {
+        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET.toUInt(), null, 0.toUInt()) == 0) {
             throw getWinHttpException("Unable to request WebSocket upgrade")
         }
     }
@@ -102,8 +102,8 @@ internal class WinHttpRequest(
                     headersString,
                     headersString.length.convert(),
                     WINHTTP_NO_REQUEST_DATA,
-                    0,
-                    WINHTTP_IGNORE_REQUEST_TOTAL_LENGTH,
+                    0.toUInt(),
+                    WINHTTP_IGNORE_REQUEST_TOTAL_LENGTH.toUInt(),
                     statePtr.convert()
                 ) == 0
             ) {
@@ -239,7 +239,7 @@ internal class WinHttpRequest(
 
         if (WinHttpSetOption(
                 hRequest,
-                WINHTTP_OPTION_DISABLE_FEATURE,
+                WINHTTP_OPTION_DISABLE_FEATURE.toUInt(),
                 options.ptr,
                 sizeOf<DWORDVar>().convert()
             ) == 0
@@ -257,7 +257,7 @@ internal class WinHttpRequest(
             staticCFunction(::winHttpCallback)
         } else null
 
-        val oldStatusCallback = WinHttpSetStatusCallback(hRequest, callback, notifications, 0)
+        val oldStatusCallback = WinHttpSetStatusCallback(hRequest, callback, notifications, 0.toULong())
         if (oldStatusCallback?.rawValue?.toLong() == WINHTTP_INVALID_STATUS_CALLBACK) {
             val errorCode = GetLastError()
             if (errorCode != ERROR_INVALID_HANDLE) {
@@ -291,7 +291,7 @@ internal class WinHttpRequest(
                     SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
                 ).convert()
         }
-        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, flags.ptr, UINT_SIZE) == 0) {
+        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS.toUInt(), flags.ptr, UINT_SIZE) == 0) {
             throw getWinHttpException("Unable to disable TLS verification")
         }
     }

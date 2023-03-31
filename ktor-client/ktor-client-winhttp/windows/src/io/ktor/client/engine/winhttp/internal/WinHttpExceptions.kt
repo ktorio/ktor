@@ -96,7 +96,7 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
         errorCode,
         languageId,
         bufferPtr.reinterpret(),
-        0,
+        0.toUInt(),
         null
     )
 
