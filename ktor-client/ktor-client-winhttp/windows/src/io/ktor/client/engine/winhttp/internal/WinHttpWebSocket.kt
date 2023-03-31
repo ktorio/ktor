@@ -230,7 +230,7 @@ internal class WinHttpWebSocket(
                     hWebSocket,
                     status.ptr,
                     null,
-                    0,
+                    0.toUInt(),
                     reasonLengthConsumed.ptr
                 ) != 0u
             ) {
@@ -274,7 +274,7 @@ internal class WinHttpWebSocket(
             hWebSocket,
             WINHTTP_WEB_SOCKET_SUCCESS_CLOSE_STATUS.convert(),
             NULL,
-            0
+            0.toUInt()
         )
         platform.winhttp.WinHttpCloseHandle(hWebSocket)
         connect.close()
