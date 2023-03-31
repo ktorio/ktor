@@ -4,7 +4,13 @@
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -33,5 +39,169 @@ class CIOEngineTest {
         }
 
         assertTrue(received)
+    }
+
+    @Test
+    fun testExpectHeader(): Unit = runBlocking {
+        val body = "Hello World"
+
+        withServerSocket {
+            val client = HttpClient(CIO)
+            launch {
+                sendExpectRequest(client, body).apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                }
+            }
+
+            accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
+
+                val headers = readAvailableLines(readChannel)
+                assertTrue(headers.contains(EXPECT_HEADER))
+                assertFalse(headers.contains(body))
+
+                writeContinueResponse(writeChannel)
+                val actualBody = readAvailableLine(readChannel)
+                assertEquals(body, actualBody)
+                writeOkResponse(writeChannel)
+            }
+        }
+    }
+
+    @Test
+    fun testNoExpectHeaderIfNoBody(): Unit = runBlocking {
+        withServerSocket {
+            val client = HttpClient(CIO)
+            launch {
+                sendExpectRequest(client).apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                }
+            }
+
+            accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
+
+                val headers = readAvailableLines(readChannel)
+                assertFalse(headers.contains(EXPECT_HEADER))
+                writeOkResponse(writeChannel)
+            }
+        }
+    }
+
+    @Test
+    fun testDontWaitForContinueResponse(): Unit = runBlocking {
+        val body = "Hello World\n"
+
+        withServerSocket {
+            val client = HttpClient(CIO) {
+                engine {
+                    requestTimeout = 0
+                }
+            }
+            launch {
+                sendExpectRequest(client, body).apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                }
+            }
+
+            accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
+
+                val headers = readAvailableLines(readChannel)
+                delay(2000)
+                val actualBody = readAvailableLine(readChannel)
+                assertTrue(headers.contains(EXPECT_HEADER))
+                assertEquals(body, actualBody)
+                writeOkResponse(writeChannel)
+            }
+        }
+    }
+
+    @Test
+    fun testRepeatRequestAfterExpectationFailed(): Unit = runBlocking {
+        val body = "Hello World"
+
+        withServerSocket {
+            val client = HttpClient(CIO)
+            launch {
+                sendExpectRequest(client, body).apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                }
+            }
+
+            accept().use { socket ->
+                val readChannel = socket.openReadChannel()
+                val writeChannel = socket.openWriteChannel()
+
+                val headers = readAvailableLines(readChannel)
+                assertTrue(headers.contains(EXPECT_HEADER))
+                writeExpectationFailedResponse(writeChannel)
+
+                delay(100) // because channel.flush() happens between writing headers and body
+                val newRequest = readAvailableLines(readChannel)
+                assertFalse(newRequest.contains(EXPECT_HEADER))
+                assertTrue(newRequest.contains(body))
+                writeOkResponse(writeChannel)
+            }
+        }
+    }
+
+    private suspend fun sendExpectRequest(client: HttpClient, body: String? = null) = client.post {
+        url(host = TEST_SERVER_SOCKET_HOST, port = TEST_SERVER_SOCKET_PORT, path = "/")
+        header(HttpHeaders.Expect, "100-continue")
+        if (body != null) setBody(body)
+    }
+
+    private suspend fun readAvailableLine(channel: ByteReadChannel): String {
+        val buffer = ByteArray(1024)
+        val length = channel.readAvailable(buffer)
+        return String(buffer, length = length)
+    }
+
+    private suspend fun readAvailableLines(channel: ByteReadChannel): List<String> {
+        return readAvailableLine(channel).split("\r\n")
+    }
+
+    private suspend fun writeContinueResponse(channel: ByteWriteChannel) {
+        channel.apply {
+            writeStringUtf8("HTTP/1.1 100 Continue\r\n")
+            writeStringUtf8("\r\n")
+            flush()
+        }
+    }
+
+    private suspend fun writeOkResponse(channel: ByteWriteChannel) {
+        channel.apply {
+            writeStringUtf8("HTTP/1.1 200 Ok\r\n")
+            writeStringUtf8("Content-Length: 0\r\n")
+            writeStringUtf8("\r\n")
+            flush()
+        }
+    }
+
+    private suspend fun writeExpectationFailedResponse(channel: ByteWriteChannel) {
+        channel.apply {
+            writeStringUtf8("HTTP/1.1 417 Expectation Failed\r\n")
+            writeStringUtf8("Content-Length: 0\r\n")
+            writeStringUtf8("\r\n")
+            flush()
+        }
+    }
+
+    private suspend fun withServerSocket(block: suspend ServerSocket.() -> Unit) {
+        SelectorManager().use {
+            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, TEST_SERVER_SOCKET_PORT).use { socket ->
+                block(socket)
+            }
+        }
+    }
+
+    companion object {
+        private const val TEST_SERVER_SOCKET_HOST = "0.0.0.0"
+        private const val TEST_SERVER_SOCKET_PORT = 47521
+        private const val EXPECT_HEADER = "Expect: 100-continue"
     }
 }
