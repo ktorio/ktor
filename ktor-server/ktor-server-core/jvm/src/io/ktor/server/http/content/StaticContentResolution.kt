@@ -7,6 +7,7 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.util.*
 import java.io.*
@@ -116,7 +117,11 @@ internal fun String.extension(): String {
 
 private fun normalisedPath(resourcePackage: String?, path: String): String {
     // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
-    return (resourcePackage.orEmpty().split('.', '/', '\\') + path.split('/', '\\'))
+    val pathComponents = path.split('/', '\\')
+    if (pathComponents.contains("..")) {
+        throw BadRequestException("Relative path should not contain path traversing characters: $path")
+    }
+    return (resourcePackage.orEmpty().split('.', '/', '\\') + pathComponents)
         .normalizePathComponents()
         .joinToString("/")
 }
