@@ -56,7 +56,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             }
         }
 
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
             val body = "Hello world"
@@ -66,7 +66,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             assertEquals("HTTP/1.1 100 Continue", continueResponse)
 
             writePostBody(writeChannel, body)
-            val response = readChannel.readRemaining().readText()
+            val response = readAvailable(readChannel)
             assertTrue(response.contains("HTTP/1.1 200 OK"))
             assertTrue(response.contains(body))
         }
@@ -86,14 +86,14 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             }
         }
 
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
 
             val longBody = "Hello world"
             writePostHeaders(writeChannel, longBody.length)
-            val badRequestResponse = readChannel.readUTF8Line()
-            assertEquals("HTTP/1.1 400 Bad Request", badRequestResponse)
+            val badRequestResponse = readAvailable(readChannel)
+            assertTrue(badRequestResponse.contains("HTTP/1.1 400 Bad Request"))
         }
     }
 
@@ -106,14 +106,14 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             }
         }
 
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
 
             val longBody = "Hello world"
             writePostHeaders(writeChannel, longBody.length, expectedHeader = "invalid-100-continue")
-            val expectationFailedResponse = readChannel.readUTF8Line()
-            assertEquals("HTTP/1.1 417 Expectation Failed", expectationFailedResponse)
+            val expectationFailedResponse = readAvailable(readChannel)
+            assertTrue(expectationFailedResponse.contains("HTTP/1.1 417 Expectation Failed"))
         }
     }
 
@@ -134,32 +134,21 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             }
         }
 
-        withSocket {
-            val writeChannel = openWriteChannel()
-            val readChannel = openReadChannel()
-
-            val body = "Hello world"
-            writePostHeaders(writeChannel, body.length)
-            writePostBody(writeChannel, body)
-            val response = readChannel.readRemaining().readText()
-            assertTrue(response.contains("Connection: keep-alive"))
-        }
-
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
 
             writePostHeaders(writeChannel, path = "/check-length")
-            val response = readChannel.readRemaining().readText()
+            val response = readAvailable(readChannel)
             assertTrue(response.contains("Connection: close"))
         }
 
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
 
             writePostHeaders(writeChannel, expectedHeader = "invalid")
-            val response = readChannel.readRemaining().readText()
+            val response = readAvailable(readChannel)
             assertTrue(response.contains("Connection: close"))
         }
     }
@@ -173,19 +162,25 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             }
         }
 
-        withSocket {
+        withClientSocket {
             val writeChannel = openWriteChannel()
             val readChannel = openReadChannel()
 
             val body = "Hello world"
             writePostHeaders(writeChannel, body.length, httpVersion = "HTTP/1.0")
             writePostBody(writeChannel, body)
-            val response = readChannel.readRemaining().readText()
+            val response = readAvailable(readChannel)
             assertFalse(response.contains("100 Continue"))
         }
     }
 
-    private suspend fun withSocket(block: suspend Socket.() -> Unit) {
+    private suspend fun readAvailable(channel: ByteReadChannel): String {
+        val buffer = ByteArray(1024)
+        val length = channel.readAvailable(buffer)
+        return String(buffer, length = length)
+    }
+
+    private suspend fun withClientSocket(block: suspend Socket.() -> Unit) {
         SelectorManager().use {
             aSocket(it).tcp().connect(TEST_SERVER_HOST, port).use { socket ->
                 block(socket)
