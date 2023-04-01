@@ -19,6 +19,16 @@ class ContentDispositionTest {
     }
 
     @Test
+    fun testMultiByteFilename() {
+        val attachment = ContentDisposition.Attachment.withParameter(
+            ContentDisposition.Parameters.FileNameAsterisk,
+            "a©あ𠮷.txt"
+        ).toString()
+
+        assertEquals("attachment; filename*=utf-8''a%C2%A9%E3%81%82%F0%A0%AE%B7.txt", attachment)
+    }
+
+    @Test
     fun testNoEncodeTwice() {
         val value = "UTF-8''%27%27malicious.sh%2500%27normal.txt"
         val attachment = ContentDisposition.Attachment.withParameter(
