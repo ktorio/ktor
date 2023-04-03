@@ -126,8 +126,10 @@ internal class QUICConnection_v1(
      */
     private val maxStreamData = hashMapOf<Long, Long>()
 
+    private val logger = logger()
+
     init {
-        println("[Connection] Init connection from ${initialPeerConnectionID.value.toDebugString()}")
+        logger.info("Init connection from ${initialPeerConnectionID.value.toDebugString()}")
     }
 
     /**
@@ -140,8 +142,7 @@ internal class QUICConnection_v1(
     }
 
     suspend fun processPacket(packet: QUICPacket) {
-        println("[Connection] Decrypted packet overview:")
-        println(packet.toDebugString(withPayload = false).prependIndent("\t"))
+        logger.info("Decrypted packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
 
         packet.encryptionLevel?.let { level ->
             packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
@@ -240,6 +241,7 @@ internal class QUICConnection_v1(
      * Used inside [tlsComponent] to expose necessary QUIC functions to TLS
      */
     private inner class ProtocolCommunicationProviderImpl : ProtocolCommunicationProvider {
+        private val logger = logger()
         private var offset = 0L
 
         override val messageChannel: Channel<TLSMessage> = Channel(Channel.UNLIMITED)
@@ -254,7 +256,7 @@ internal class QUICConnection_v1(
         }
 
         private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
-            println("[CommunicationProvider] offset: $offset, payload.size: ${cryptoPayload.size}, flush: $flush, handshake: $inHandshakePacket") // ktlint-disable max-line-length
+            logger.info("offset: $offset, payload.size: ${cryptoPayload.size}, flush: $flush, handshake: $inHandshakePacket") // ktlint-disable max-line-length
 
             when {
                 inHandshakePacket -> {
@@ -302,7 +304,7 @@ internal class QUICConnection_v1(
             }.also {
                 localTransportParameters = it
 
-                println("[Connection] Transport parameters are known")
+                logger.info("Transport parameters are known")
                 onTransportParametersKnown()
             }
         }
@@ -718,8 +720,10 @@ internal class QUICConnection_v1(
         }
 
         private fun logAcceptedFrame(frameType: FrameType_v1) {
-            println("[FrameProcessor] Accepted frame: $frameType")
+            logger.info("Accepted frame: $frameType")
         }
+
+        private val logger = logger()
     }
 
     private fun FrameWriter.withAckFrameIfAny(

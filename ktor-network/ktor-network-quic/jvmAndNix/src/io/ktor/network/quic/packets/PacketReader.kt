@@ -26,6 +26,8 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 
 internal object PacketReader {
+    private val logger = logger()
+
     private const val HEADER_TYPE: UInt8 = 0x80u
     private const val FIXED_BIT: UInt8 = 0x40u
 
@@ -183,7 +185,7 @@ internal object PacketReader {
                     else -> unreachable()
                 }
 
-                println("[PacketReader] Packet type: $type")
+                logger.info("Packet type: $type")
 
                 val headerProtectionMask: Long = getHeaderProtectionMask(
                     bytes = bytes,

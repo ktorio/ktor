@@ -8,6 +8,7 @@ package io.ktor.network.quic.tls
 import at.favre.lib.crypto.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
+import io.ktor.network.quic.util.*
 import kotlinx.coroutines.*
 import net.luminis.tls.*
 import net.luminis.tls.extension.*
@@ -18,6 +19,8 @@ import kotlin.experimental.*
 internal actual class TLSServerComponent(
     private val communicationProvider: ProtocolCommunicationProvider,
 ) : TLSComponent, TlsStatusEventHandler, ServerMessageSender {
+    private val logger = logger()
+
     private lateinit var engine: TlsServerEngine
     private lateinit var originalDcid: ByteArray
 
@@ -131,26 +134,27 @@ internal actual class TLSServerComponent(
     }
 
     private fun calculateInitialKeys() {
-        if (!clientInitialKeys.isCompleted) {
-            val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
+        if (clientInitialKeys.isCompleted) return
 
-            clientInitialKeys.complete(
-                CryptoKeys.initial(
-                    secret = keys,
-                    version = QUICVersion.V1,
-                    isServer = false,
-                    debugLabel = "initial client"
-                )
+        val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
+
+        clientInitialKeys.complete(
+            CryptoKeys.initial(
+                secret = keys,
+                version = QUICVersion.V1,
+                isServer = false,
+                debugLabel = "initial client"
             )
-            serverInitialKeys.complete(
-                CryptoKeys.initial(
-                    secret = keys,
-                    version = QUICVersion.V1,
-                    isServer = true,
-                    debugLabel = "initial server"
-                )
+        )
+        serverInitialKeys.complete(
+            CryptoKeys.initial(
+                secret = keys,
+                version = QUICVersion.V1,
+                isServer = true,
+                debugLabel = "initial server"
             )
-        }
+        )
+
     }
 
     // Helper methods
@@ -168,41 +172,42 @@ internal actual class TLSServerComponent(
     }
 
     override fun handshakeSecretsKnown() {
-        if (!clientHandshakeKeys.isCompleted) {
-            clientHandshakeKeys.complete(
-                CryptoKeys(
-                    secret = engine.clientHandshakeTrafficSecret,
-                    version = QUICVersion.V1,
-                    debugLabel = "handshake client"
-                )
+        if (clientHandshakeKeys.isCompleted) return
+
+        clientHandshakeKeys.complete(
+            CryptoKeys(
+                secret = engine.clientHandshakeTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "handshake client"
             )
-            serverHandshakeKeys.complete(
-                CryptoKeys(
-                    secret = engine.serverHandshakeTrafficSecret,
-                    version = QUICVersion.V1,
-                    debugLabel = "handshake server"
-                )
+        )
+        serverHandshakeKeys.complete(
+            CryptoKeys(
+                secret = engine.serverHandshakeTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "handshake server"
             )
-        }
+        )
+
     }
 
     override fun handshakeFinished() {
-        if (!client1RTTKeys.isCompleted) {
-            client1RTTKeys.complete(
-                CryptoKeys(
-                    secret = engine.clientApplicationTrafficSecret,
-                    version = QUICVersion.V1,
-                    debugLabel = "1-RTT client"
-                )
+        if (client1RTTKeys.isCompleted) return
+
+        client1RTTKeys.complete(
+            CryptoKeys(
+                secret = engine.clientApplicationTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "1-RTT client"
             )
-            server1RTTKeys.complete(
-                CryptoKeys(
-                    secret = engine.serverApplicationTrafficSecret,
-                    version = QUICVersion.V1,
-                    debugLabel = "1-RTT server"
-                )
+        )
+        server1RTTKeys.complete(
+            CryptoKeys(
+                secret = engine.serverApplicationTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "1-RTT server"
             )
-        }
+        )
     }
 
     override fun newSessionTicketReceived(newSessionTicket: NewSessionTicket?) {
@@ -244,7 +249,7 @@ internal actual class TLSServerComponent(
     private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean = false) {
         message ?: return
 
-        println("[TLSServerComponentJvm] Send TLS Message: ${message.type}")
+        logger.info("Send TLS Message: ${message.type}")
 
         // todo result handler?
         communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, isHandshakeMessage, flush))

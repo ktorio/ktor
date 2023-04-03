@@ -5,6 +5,7 @@
 package io.ktor.network.quic.connections
 
 import io.ktor.network.quic.bytes.*
+import io.ktor.network.quic.util.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
@@ -13,6 +14,8 @@ internal class OutgoingDatagramHandler(
     private val outgoingChannel: SendChannel<Datagram>,
     private val getAddress: () -> SocketAddress,
 ) {
+    private val logger = logger()
+
     private val buffer = MutexPacketBuilder()
 
     val usedSize: Int get() = buffer.size
@@ -22,7 +25,7 @@ internal class OutgoingDatagramHandler(
     }
 
     suspend fun flush() {
-        println("[OutgoingDatagramHandler] flush, used size: $usedSize")
+        logger.info("flush, used size: $usedSize")
         val payload = buffer.flush()
         if (payload.isNotEmpty) {
             val datagram = Datagram(payload, getAddress())

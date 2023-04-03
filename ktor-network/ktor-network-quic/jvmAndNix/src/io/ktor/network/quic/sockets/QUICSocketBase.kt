@@ -11,12 +11,14 @@ import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.streams.*
 import io.ktor.network.sockets.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
+    protected abstract val logger: Logger
     protected val connections = mutableListOf<QUICConnection_v1>()
 
     override fun dispose() {
@@ -29,8 +31,7 @@ internal abstract class QUICSocketBase(
                 try {
                     receiveAndProcessDatagram()
                 } catch (e: Exception) {
-                    println(e)
-                    e.printStackTrace()
+                    logger.error(e)
                 }
             }
         }
@@ -38,8 +39,8 @@ internal abstract class QUICSocketBase(
 
     private suspend fun receiveAndProcessDatagram() {
         val datagram = datagramSocket.receive()
-        println("[QUICSocketBase] Accepted datagram from ${datagram.address}")
-        println("[QUICSocketBase] Datagram size: ${datagram.packet.remaining}")
+        logger.info("Accepted datagram from ${datagram.address}")
+        logger.info("Datagram size: ${datagram.packet.remaining}")
 
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(

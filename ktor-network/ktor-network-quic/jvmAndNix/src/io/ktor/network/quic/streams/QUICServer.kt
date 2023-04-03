@@ -7,7 +7,9 @@ package io.ktor.network.quic.streams
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.sockets.*
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
 import io.ktor.network.sockets.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
@@ -15,6 +17,9 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
     QUICSocketBase(datagramSocket),
     BoundQUICSocket,
     AReadable by datagramSocket {
+
+    override val logger: Logger = logger()
+
     private val tlsServerComponentFactory: TLSServerComponentFactory
 
     init {

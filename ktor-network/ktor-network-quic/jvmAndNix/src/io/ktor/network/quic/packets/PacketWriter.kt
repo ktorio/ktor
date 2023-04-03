@@ -17,9 +17,12 @@ import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask2
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask3
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask4
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 internal object PacketWriter {
+    private val logger = logger()
+
     /**
      * Writes a Version Negotiation packet to [packetBuilder] according to specification.
      * If it is QUIC version 1, sets second bit to 1.
@@ -422,7 +425,6 @@ internal object PacketWriter {
     }
 
     private fun debugLog(packet: QUICPacket) {
-        println("[PacketWriter] writing packet:")
-        println(packet.toDebugString(withPayload = false).prependIndent("\t"))
+        logger.info("writing packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
     }
 }

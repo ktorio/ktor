@@ -9,6 +9,8 @@ import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 
 internal typealias FrameWriteFunction = suspend FrameWriter.(
@@ -22,6 +24,8 @@ internal sealed class PacketSendHandler(
     type: PacketType_v1,
     private val onPacketPayloadReady: suspend (payload: (Long) -> ByteArray) -> Unit,
 ) {
+    protected abstract val logger: Logger
+
     private val buffer = MutexPacketBuilder()
     private val packetNumberHooks = mutableListOf<(Long) -> Unit>()
 
@@ -31,10 +35,15 @@ internal sealed class PacketSendHandler(
                 byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
                     byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
                     byteArrayFrameSize((packetHandler as ReadyPacketHandler.Initial).token.size) +
-                    1 + 4 + 4 + 4 // flags, version, max length, max packet number
+                    PktConst.HEADER_FLAGS_LENGTH +
+                    PktConst.LONG_HEADER_VERSION_LENGTH +
+                    PktConst.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
+                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
             }
 
-            PacketType_v1.OneRTT -> packetHandler.destinationConnectionIDSize + 1 + 4 // flags, max packet number
+            PacketType_v1.OneRTT -> packetHandler.destinationConnectionIDSize +
+                PktConst.HEADER_FLAGS_LENGTH +
+                PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
 
             PacketType_v1.Retry -> TODO("Not yet implemented")
             PacketType_v1.VersionNegotiation -> TODO("Not yet implemented")
@@ -43,7 +52,10 @@ internal sealed class PacketSendHandler(
             PacketType_v1.Handshake, PacketType_v1.ZeroRTT -> {
                 byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
                     byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
-                    1 + 4 + 4 + 4 // flags, version, max length, max packet number
+                    PktConst.HEADER_FLAGS_LENGTH +
+                    PktConst.LONG_HEADER_VERSION_LENGTH +
+                    PktConst.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
+                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
             }
         }
     }
@@ -63,7 +75,7 @@ internal sealed class PacketSendHandler(
 
         // send an already pending packet as this one does not fit into datagram size limits
         if (usedSize > packetHandler.maxUdpPayloadSize) {
-            println("[PacketSendHandler] Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram") // ktlint-disable max-line-length
+            logger.info("Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram")
             finish(getPacketPayloadNonBlocking())
 
             packetHandler.forceEndDatagram()
@@ -117,7 +129,9 @@ internal sealed class PacketSendHandler(
                 )
             }
         }
-    )
+    ) {
+        override val logger: Logger = logger()
+    }
 
     class Handshake(
         tlsComponent: TLSComponent,
@@ -141,7 +155,9 @@ internal sealed class PacketSendHandler(
                 )
             }
         }
-    )
+    ) {
+        override val logger: Logger = logger()
+    }
 
     class OneRTT(
         tlsComponent: TLSComponent,
@@ -165,7 +181,9 @@ internal sealed class PacketSendHandler(
                 )
             }
         }
-    )
+    ) {
+        override val logger: Logger = logger()
+    }
 
     @Suppress("unused")
     class VersionNegotiation(
@@ -185,7 +203,9 @@ internal sealed class PacketSendHandler(
                 )
             }
         }
-    )
+    ) {
+        override val logger: Logger = logger()
+    }
 
     @Suppress("unused")
     class Retry(
@@ -206,5 +226,7 @@ internal sealed class PacketSendHandler(
                 )
             }
         }
-    )
+    ) {
+        override val logger: Logger = logger()
+    }
 }

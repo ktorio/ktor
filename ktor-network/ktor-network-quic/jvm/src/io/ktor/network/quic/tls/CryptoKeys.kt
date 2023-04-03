@@ -18,6 +18,8 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32, private val debugL
     val iv: ByteArray
     private val hp: ByteArray
 
+    private val logger = logger()
+
     init {
         if (version != QUICVersion.V1) {
             error("Unsupported version")
@@ -113,8 +115,6 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32, private val debugL
     }
 
     private fun debugLog(message: String) {
-        @Suppress("UNUSED_VARIABLE")
-        val log = "[Crypto Keys] [$debugLabel] $message"
-//        println(log)
+        logger.debug("[$debugLabel] $message")
     }
 }

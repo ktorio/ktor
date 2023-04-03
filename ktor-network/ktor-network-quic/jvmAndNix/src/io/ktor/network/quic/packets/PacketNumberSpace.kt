@@ -5,6 +5,7 @@
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
 import kotlinx.atomicfu.*
 
 /**
@@ -12,6 +13,7 @@ import kotlinx.atomicfu.*
  * It handles both local and peer packet numbers
  */
 internal class PacketNumberSpace {
+    private val logger = logger()
     private val increment = atomic(0L)
     private val _largestAcknowledged = atomic(-1L) // -1 for no acknowledgements yet
 
@@ -72,7 +74,7 @@ internal class PacketNumberSpace {
         }
         result.add(last)
 
-        println("[PacketNumberSpace] generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length
+        logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length
 
         return result.toLongArray() to { packetNumber ->
             sentAckPackets[packetNumber] = sorted.toSet()
