@@ -4,11 +4,18 @@
 
 package io.ktor.tests.http.content
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.application.*
 import io.ktor.server.http.content.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import java.io.*
 import java.net.*
 import kotlin.test.*
 
@@ -38,5 +45,29 @@ class StaticContentResolutionTest {
             val data = String(runBlocking { readFrom().toByteArray() })
             assertEquals("test\n", data)
         }
+    }
+
+    @Test
+    fun testNoPassTraversalAllowed() = testApplication {
+        routing {
+            get("/static/{staticPath...}") {
+                val path = call.parameters.getAll("staticPath")?.joinToString(File.separator) ?: return@get
+                val content = call.resolveResource(path, "public")
+                if (content != null) {
+                    call.respond(content)
+                }
+            }
+        }
+
+        val allowed = client.get("/static/allowed.txt").bodyAsText()
+        assertEquals("allowed", allowed.trim())
+        val secret = client.get("/static/../secret.txt")
+        assertEquals(HttpStatusCode.BadRequest, secret.status)
+        val secretEscaped1 = client.get("/static/\\.\\./secret.txt")
+        assertEquals(HttpStatusCode.NotFound, secretEscaped1.status)
+        val secretEscaped2 = client.get("/static/^.^./secret.txt")
+        assertEquals(HttpStatusCode.NotFound, secretEscaped2.status)
+        val secretEncoded = client.get("/static/%2e%2e/secret.txt")
+        assertEquals(HttpStatusCode.BadRequest, secretEncoded.status)
     }
 }
