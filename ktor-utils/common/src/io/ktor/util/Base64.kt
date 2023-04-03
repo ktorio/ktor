@@ -21,7 +21,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
  * Encode [String] in base64 format and UTF-8 character encoding.
  */
 public fun String.encodeBase64(): String = buildPacket {
-    writeText(this@encodeBase64)
+    writeText(this@encodeBase64) // TODO dumanskaya KT-57760
 }.encodeBase64()
 
 /**
@@ -80,7 +80,7 @@ public fun String.decodeBase64String(): String = String(decodeBase64Bytes(), cha
  * Decode [String] from base64 format
  */
 public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
-    writeText(dropLastWhile { it == BASE64_PAD })
+    writeText(dropLastWhile { it == BASE64_PAD }) // TODO dumanskaya KT-57760
 }.decodeBase64Bytes().readBytes()
 
 /**
