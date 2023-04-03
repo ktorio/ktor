@@ -216,7 +216,7 @@ internal class Endpoint(
                 }
 
                 val socket = when (connectTimeout) {
-                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
+                    HttpTimeout.INFINITE_TIMEOUT_MS -> coroutineScope { connect() }
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
                         if (connection == null) {
