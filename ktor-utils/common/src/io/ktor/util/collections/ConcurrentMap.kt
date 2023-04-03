@@ -21,5 +21,5 @@ public expect class ConcurrentMap<Key, Value>(
     /**
      * Removes [key] from map if it is mapped to [value].
      */
-    public fun remove(key: Key, value: Value): Boolean
+    public fun remove(key: Key, value: Value): Boolean // TODO dumanskaya KT-57735
 }
