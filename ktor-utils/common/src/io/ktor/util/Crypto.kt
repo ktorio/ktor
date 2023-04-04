@@ -56,7 +56,7 @@ public expect fun generateNonce(): String
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  */
 public fun generateNonce(size: Int): ByteArray = buildPacket {
-    while (this.size < size) {
+    while (this.size < size) { // TODO dumanskaya KT-57786
         writeText(generateNonce()) // TODO dumanskaya KT-57786
     }
 }.readBytes(size)
