@@ -14,7 +14,7 @@ internal actual fun secureRandom(bytes: ByteArray) {
             null,
             pinned.addressOf(0),
             bytes.size.convert(),
-            BCRYPT_USE_SYSTEM_PREFERRED_RNG
+            BCRYPT_USE_SYSTEM_PREFERRED_RNG.toUInt()
         )
         if (result != 0) {
             error("Can't generate random values using BCryptGenRandom: $result")

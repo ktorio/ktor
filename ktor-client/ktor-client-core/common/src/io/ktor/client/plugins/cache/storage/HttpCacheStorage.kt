@@ -53,8 +53,8 @@ public abstract class HttpCacheStorage {
     }
 }
 
-internal suspend fun HttpCacheStorage.store(url: Url, value: HttpResponse): HttpCacheEntry {
-    val result = HttpCacheEntry(value)
+internal suspend fun HttpCacheStorage.store(url: Url, value: HttpResponse, isShared: Boolean): HttpCacheEntry {
+    val result = HttpCacheEntry(isShared, value)
     store(url, result)
     return result
 }
@@ -102,8 +102,20 @@ public suspend fun CacheStorage.store(response: HttpResponse): CachedResponseDat
 /**
  * Store [response] with [varyKeys] in cache storage.
  */
-@OptIn(InternalAPI::class)
+@Deprecated("Please use method with `isShared` argument", level = DeprecationLevel.HIDDEN)
 public suspend fun CacheStorage.store(response: HttpResponse, varyKeys: Map<String, String>): CachedResponseData {
+    return store(response, varyKeys)
+}
+
+/**
+ * Store [response] with [varyKeys] in cache storage.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun CacheStorage.store(
+    response: HttpResponse,
+    varyKeys: Map<String, String>,
+    isShared: Boolean = false
+): CachedResponseData {
     val url = response.call.request.url
     val body = response.content.readRemaining().readBytes()
     response.complete()
@@ -115,7 +127,7 @@ public suspend fun CacheStorage.store(response: HttpResponse, varyKeys: Map<Stri
         version = response.version,
         body = body,
         responseTime = response.responseTime,
-        expires = response.cacheExpires(),
+        expires = response.cacheExpires(isShared),
         varyKeys = varyKeys
     )
     store(url, data)

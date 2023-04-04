@@ -278,11 +278,10 @@ private suspend fun oauth2RequestAccessToken(
 private fun decodeContent(content: String, contentType: ContentType): Parameters = when {
     contentType.match(ContentType.Application.FormUrlEncoded) -> content.parseUrlEncodedParameters()
     contentType.match(ContentType.Application.Json) -> Parameters.build {
-        Json.decodeFromString(JsonObject.serializer(), content).forEach {
-            append(it.key, it.value.jsonPrimitive.content)
+        Json.decodeFromString(JsonObject.serializer(), content).forEach { (key, element) ->
+            (element as? JsonPrimitive)?.content?.let { append(key, it) }
         }
     }
-// TODO text/xml
     else -> {
         // some servers may respond with a wrong content type, so we have to try to guess
         when {

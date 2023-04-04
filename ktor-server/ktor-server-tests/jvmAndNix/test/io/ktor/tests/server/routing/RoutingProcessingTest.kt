@@ -464,8 +464,8 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testAcceptHeaderProcessing() = withTestApplication {
-        application.routing {
+    fun testAcceptHeaderProcessing() = testApplication {
+        routing {
             route("/") {
                 accept(ContentType.Text.Plain) {
                     handle {
@@ -477,36 +477,52 @@ class RoutingProcessingTest {
                         call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
                     }
                 }
+                accept(ContentType.Application.Xml, ContentType.Text.CSS) {
+                    handle {
+                        call.respondText("XML or CSS")
+                    }
+                }
             }
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/plain")
-        }.let { call ->
-            assertEquals("OK", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/plain")
+        }.let {
+            assertEquals("OK", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "application/json")
-        }.let { call ->
-            assertEquals("{\"status\": \"OK\"}", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/json")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-        }.let { call ->
-            assertEquals("OK", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/xml")
+        }.let {
+            assertEquals("XML or CSS", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/html")
-        }.let { call ->
-            assertFalse(call.response.status()!!.isSuccess())
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/css")
+        }.let {
+            assertEquals("XML or CSS", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "...lla..laa..la")
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        client.get("/").let {
+            assertEquals("OK", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "...lla..laa..la")
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.status)
         }
     }
 
@@ -522,6 +538,20 @@ class RoutingProcessingTest {
                 contentType(ContentType.Application.Any) {
                     handle {
                         call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
+                    }
+                }
+            }
+            route("/nested", HttpMethod.Post) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
+                    }
+                }
+            }
+            route("/nested", HttpMethod.Get) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
                     }
                 }
             }
@@ -546,6 +576,12 @@ class RoutingProcessingTest {
         }
 
         client.get("/") {
+            header(HttpHeaders.ContentType, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
+        }
+
+        client.get("/nested") {
             header(HttpHeaders.ContentType, "text/html")
         }.let {
             assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)

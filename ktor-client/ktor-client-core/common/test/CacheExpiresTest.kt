@@ -24,7 +24,7 @@ class CacheExpiresTest {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires()
+        val result = response.cacheExpires(false)
         assertEquals(parsed, result)
     }
 
@@ -37,7 +37,7 @@ class CacheExpiresTest {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(false) { expected }
         assertEquals(expected, result)
     }
 
@@ -50,7 +50,7 @@ class CacheExpiresTest {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(false) { expected }
         assertEquals(expected, result)
     }
 
@@ -63,7 +63,7 @@ class CacheExpiresTest {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(false) { expected }
         assertEquals(expected, result)
     }
 
@@ -76,21 +76,55 @@ class CacheExpiresTest {
             append(HttpHeaders.Expires, dateText)
         }
 
-        val result = response.cacheExpires { expected }
+        val result = response.cacheExpires(false) { expected }
         assertEquals(expected, result)
     }
 
-    private fun response(builder: HeadersBuilder.() -> Unit): HttpResponse {
-        return Response(buildHeaders(builder))
+    @Test
+    fun testMaxAgePrivate() {
+        val now = GMTDate(10)
+        val response = response(now) {
+            append(HttpHeaders.CacheControl, "s-maxage=5, max-age=15")
+        }
+
+        val result = response.cacheExpires(false)
+        assertEquals(GMTDate(now.timestamp + 15 * 1000), result)
     }
 
-    private class Response(override val headers: Headers) : HttpResponse() {
+    @Test
+    fun testMaxAgeShared() {
+        val now = GMTDate(10)
+        val response = response(now) {
+            append(HttpHeaders.CacheControl, "s-maxage=5, max-age=15")
+        }
+
+        val result = response.cacheExpires(true)
+        assertEquals(GMTDate(now.timestamp + 5 * 1000), result)
+    }
+
+    @Test
+    fun testMaxAgeSharedNoSMaxAge() {
+        val now = GMTDate(10)
+        val response = response(now) {
+            append(HttpHeaders.CacheControl, "max-age=15")
+        }
+
+        val result = response.cacheExpires(true)
+        assertEquals(GMTDate(now.timestamp + 15 * 1000), result)
+    }
+
+    private fun response(requestTime: GMTDate = GMTDate(), builder: HeadersBuilder.() -> Unit): HttpResponse {
+        return Response(buildHeaders(builder), requestTime)
+    }
+
+    private class Response(
+        override val headers: Headers,
+        override val requestTime: GMTDate = GMTDate()
+    ) : HttpResponse() {
         override val call: HttpClientCall get() = error("Shouldn't be used")
         override val status: HttpStatusCode
             get() = error("Shouldn't be used")
         override val version: HttpProtocolVersion
-            get() = error("Shouldn't be used")
-        override val requestTime: GMTDate
             get() = error("Shouldn't be used")
         override val responseTime: GMTDate
             get() = error("Shouldn't be used")

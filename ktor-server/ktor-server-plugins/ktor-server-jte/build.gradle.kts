@@ -3,7 +3,7 @@
  */
 
 kotlin.sourceSets {
-    val jteVersion = "2.2.4"
+    val jteVersion = "2.3.0"
     val jvmMain by getting {
         dependencies {
             api("gg.jte:jte:$jteVersion")
@@ -15,6 +15,7 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
             api("gg.jte:jte-kotlin:$jteVersion")
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
         }
     }
 }

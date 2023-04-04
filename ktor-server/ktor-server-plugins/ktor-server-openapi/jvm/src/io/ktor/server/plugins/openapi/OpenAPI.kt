@@ -42,11 +42,7 @@ public fun Route.openAPI(
         generator.opts(opts)
         generator.generate()
 
-        static(path) {
-            staticRootFolder = File("docs")
-            files(".")
-            default("index.html")
-        }
+        staticFiles(path, File("docs"))
     }
 }
 

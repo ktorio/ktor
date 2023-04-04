@@ -27,17 +27,16 @@ private val DisableLogging = AttributeKey<Unit>("DisableLogging")
 public class Logging private constructor(
     public val logger: Logger,
     public var level: LogLevel,
-    public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
+    public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList(),
+    private val sanitizedHeaders: List<SanitizedHeader>
 ) {
     /**
      * A configuration for the [Logging] plugin.
      */
     @KtorDsl
     public class Config {
-        /**
-         * filters
-         */
         internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
+        internal val sanitizedHeaders = mutableListOf<SanitizedHeader>()
 
         private var _logger: Logger? = null
 
@@ -60,6 +59,17 @@ public class Logging private constructor(
          */
         public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
             filters.add(predicate)
+        }
+
+        /**
+         * Allows you to sanitize sensitive headers to avoid their values appearing in the logs.
+         * In the example below, Authorization header value will be replaced with '***' when logging:
+         * ```kotlin
+         * sanitizeHeader { header -> header == HttpHeaders.Authorization }
+         * ```
+         */
+        public fun sanitizeHeader(placeholder: String = "***", predicate: (String) -> Boolean) {
+            sanitizedHeaders.add(SanitizedHeader(placeholder, predicate))
         }
     }
 
@@ -99,12 +109,22 @@ public class Logging private constructor(
 
             if (level.headers) {
                 appendLine("COMMON HEADERS")
-                logHeaders(request.headers.entries())
+                logHeaders(request.headers.entries(), sanitizedHeaders)
 
                 appendLine("CONTENT HEADERS")
-                content.contentLength?.let { logHeader(HttpHeaders.ContentLength, it.toString()) }
-                content.contentType?.let { logHeader(HttpHeaders.ContentType, it.toString()) }
-                logHeaders(content.headers.entries())
+                val contentLengthPlaceholder = sanitizedHeaders
+                    .firstOrNull { it.predicate(HttpHeaders.ContentLength) }
+                    ?.placeholder
+                val contentTypePlaceholder = sanitizedHeaders
+                    .firstOrNull { it.predicate(HttpHeaders.ContentType) }
+                    ?.placeholder
+                content.contentLength?.let {
+                    logHeader(HttpHeaders.ContentLength, contentLengthPlaceholder ?: it.toString())
+                }
+                content.contentType?.let {
+                    logHeader(HttpHeaders.ContentType, contentTypePlaceholder ?: it.toString())
+                }
+                logHeaders(content.headers.entries(), sanitizedHeaders)
             }
         }
 
@@ -160,7 +180,7 @@ public class Logging private constructor(
 
             var failed = false
             try {
-                logResponseHeader(header, response.call.response, level)
+                logResponseHeader(header, response.call.response, level, sanitizedHeaders)
                 proceedWith(subject)
             } catch (cause: Throwable) {
                 logResponseException(header, response.call.request, cause)
@@ -220,7 +240,7 @@ public class Logging private constructor(
 
         override fun prepare(block: Config.() -> Unit): Logging {
             val config = Config().apply(block)
-            return Logging(config.logger, config.level, config.filters)
+            return Logging(config.logger, config.level, config.filters, config.sanitizedHeaders)
         }
 
         override fun install(plugin: Logging, scope: HttpClient) {
@@ -238,3 +258,8 @@ public class Logging private constructor(
 public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }
+
+internal class SanitizedHeader(
+    val placeholder: String,
+    val predicate: (String) -> Boolean
+)

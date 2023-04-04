@@ -7,6 +7,7 @@ package io.ktor.server.resources
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -99,6 +100,20 @@ public inline fun <reified T : Any> Route.post(
 }
 
 /**
+ * Registers a typed handler [body] for a `POST` resource defined by the [T] class.
+ *
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
+ *
+ * @param body receives an instance of the typed resource [T] as the first parameter
+ * and typed request body [R] as second parameter.
+ */
+public inline fun <reified T : Any, reified R : Any> Route.post(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T, R) -> Unit,
+): Route = post<T> { resource ->
+    body(resource, call.receive())
+}
+
+/**
  * Registers a typed handler [body] for a `PUT` resource defined by the [T] class.
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
@@ -115,6 +130,20 @@ public inline fun <reified T : Any> Route.put(
         }
     }
     return builtRoute
+}
+
+/**
+ * Registers a typed handler [body] for a `PUT` resource defined by the [T] class.
+ *
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
+ *
+ * @param body receives an instance of the typed resource [T] as the first parameter
+ * and typed request body [R] as second parameter.
+ */
+public inline fun <reified T : Any, reified R : Any> Route.put(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T, R) -> Unit,
+): Route = put<T> { resource ->
+    body(resource, call.receive())
 }
 
 /**
@@ -153,6 +182,20 @@ public inline fun <reified T : Any> Route.patch(
         }
     }
     return builtRoute
+}
+
+/**
+ * Registers a typed handler [body] for a `PATCH` resource defined by the [T] class.
+ *
+ * A class [T] **must** be annotated with [io.ktor.resources.Resource].
+ *
+ * @param body receives an instance of the typed resource [T] as the first parameter
+ * and typed request body [R] as second parameter.
+ */
+public inline fun <reified T : Any, reified R : Any> Route.patch(
+    noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T, R) -> Unit,
+): Route = patch<T> { resource ->
+    body(resource, call.receive())
 }
 
 /**

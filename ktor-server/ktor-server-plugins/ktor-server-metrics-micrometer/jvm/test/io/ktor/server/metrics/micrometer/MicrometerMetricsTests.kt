@@ -4,8 +4,11 @@
 
 package io.ktor.server.metrics.micrometer
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.metrics.dropwizard.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -376,6 +379,24 @@ class MicrometerMetricsTests {
             val configurableGauge = find(activeRequestsGaugeName).gauge()
             assertEquals(gauge, configurableGauge)
         }
+    }
+
+    @Test
+    fun `with DropwizardMetrics plugin`(): Unit = testApplication {
+        application {
+            install(MicrometerMetrics)
+            install(DropwizardMetrics)
+
+            routing {
+                get("/") {
+                    call.respondText { "OK" }
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("OK", response.bodyAsText())
     }
 
     private fun TestApplicationEngine.metersAreRegistered(

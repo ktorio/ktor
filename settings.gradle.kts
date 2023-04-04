@@ -78,6 +78,7 @@ include(":ktor-client")
 include(":ktor-client:ktor-client-core")
 include(":ktor-client:ktor-client-tests")
 include(":ktor-client:ktor-client-apache")
+include(":ktor-client:ktor-client-apache5")
 include(":ktor-client:ktor-client-android")
 include(":ktor-client:ktor-client-cio")
 if (native_targets_enabled) {
@@ -89,6 +90,11 @@ if (native_targets_enabled) {
 }
 if (currentJdk >= 11) {
     include(":ktor-client:ktor-client-java")
+    include(":ktor-client:ktor-client-jetty-jakarta")
+    include(":ktor-server:ktor-server-servlet-jakarta")
+    include(":ktor-server:ktor-server-jetty-jakarta")
+    include(":ktor-server:ktor-server-jetty-jakarta:ktor-server-jetty-test-http2-jakarta")
+    include(":ktor-server:ktor-server-tomcat-jakarta")
 }
 include(":ktor-client:ktor-client-jetty")
 include(":ktor-client:ktor-client-js")
@@ -166,6 +172,7 @@ include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-seriali
 include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-protobuf")
 include(":ktor-shared:ktor-serialization:ktor-serialization-gson")
 include(":ktor-shared:ktor-serialization:ktor-serialization-jackson")
+include(":ktor-shared:ktor-serialization:ktor-serialization-tests")
 include(":ktor-shared:ktor-events")
 include(":ktor-shared:ktor-websocket-serialization")
 include(":ktor-shared:ktor-websockets")

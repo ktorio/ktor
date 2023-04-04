@@ -6,55 +6,36 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import io.ktor.serialization.test.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import java.nio.charset.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-class ServerJacksonTest {
-    @Test
-    fun testMap() = withTestApplication {
-        val uc = "\u0422"
-        application.install(ContentNegotiation) {
-            register(ContentType.Application.Json, JacksonConverter())
-        }
-        application.routing {
-            val model = mapOf("id" to 1, "title" to "Hello, World!", "unicode" to uc)
-            get("/") {
-                call.respond(model)
-            }
-            post("/") {
-                val map = call.receive<Map<*, *>>()
-                val text = map.entries.joinToString { "${it.key}=${it.value}" }
-                call.respond(text)
-            }
-        }
+class ServerJacksonTest : AbstractServerSerializationTest() {
+    private val objectMapper = jacksonObjectMapper()
+    override val defaultContentType: ContentType = ContentType.Application.Json
+    override val customContentType: ContentType = ContentType.parse("application/x-json")
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader("Accept", "application/json")
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
-            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
-        }
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
+        register(contentType, JacksonConverter(objectMapper, false))
+    }
 
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Accept", "text/plain")
-            addHeader("Content-Type", "application/json")
-            setBody("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""")
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(listOf("""id=1, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
-            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-        }
+    override fun simpleDeserialize(t: ByteArray): MyEntity {
+        return objectMapper.readValue(String(t), jacksonTypeRef<MyEntity>())
+    }
+
+    override fun simpleDeserializeList(t: ByteArray, charset: Charset): List<MyEntity> {
+        return objectMapper.readValue(String(t, charset), jacksonTypeRef<List<MyEntity>>())
+    }
+
+    override fun simpleSerialize(any: MyEntity): ByteArray {
+        return objectMapper.writeValueAsBytes(any)
     }
 
     @Test
@@ -94,71 +75,6 @@ class ServerJacksonTest {
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(listOf("""id=1, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
-            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-        }
-    }
-
-    @Test
-    fun testEntity() = withTestApplication {
-        val uc = "\u0422"
-        application.install(ContentNegotiation) {
-            register(ContentType.Application.Json, JacksonConverter())
-            ignoreType<String>()
-        }
-
-        application.routing {
-            val model = MyEntity(
-                777,
-                "Cargo",
-                listOf(
-                    ChildEntity("Qube", 1),
-                    ChildEntity("Sphere", 2),
-                    ChildEntity(uc, 3)
-                )
-            )
-
-            get("/") {
-                call.respond(model)
-            }
-            post("/") {
-                val entity = call.receive<MyEntity>()
-                call.respond(entity.toString())
-            }
-        }
-
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader("Accept", "application/json")
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(
-                listOf(
-                    """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
-                        """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
-                ),
-                response.content!!.lines()
-            )
-            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
-        }
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Content-Type", "application/json")
-            setBody(
-                """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},""" +
-                    """{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""
-            )
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(
-                listOf(
-                    """MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), """ +
-                        """ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""
-                ),
-                response.content!!.lines()
-            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -209,6 +125,4 @@ class ServerJacksonTest {
     }
 }
 
-data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
-data class ChildEntity(val item: String, val quantity: Int)
 data class WithDefaultValueEntity(val value: String = "asd")

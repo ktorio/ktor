@@ -16,7 +16,11 @@ import platform.Foundation.*
 internal class DarwinLegacyClientEngine(
     override val config: DarwinLegacyClientEngineConfig
 ) : HttpClientEngineBase("ktor-darwin-legacy") {
-    private val requestQueue: NSOperationQueue? = NSOperationQueue.currentQueue()
+
+    private val requestQueue: NSOperationQueue? = when (val queue = NSOperationQueue.currentQueue()) {
+        NSOperationQueue.mainQueue -> NSOperationQueue()
+        else -> queue
+    }
 
     override val dispatcher = Dispatchers.Unconfined
 

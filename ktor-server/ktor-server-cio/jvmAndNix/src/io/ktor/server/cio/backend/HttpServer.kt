@@ -13,6 +13,7 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 
 /**
@@ -27,7 +28,6 @@ public fun CoroutineScope.httpServer(
 
     val serverLatch: CompletableJob = Job()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val serverJob = launch(
         context = CoroutineName("server-root-${settings.port}"),
         start = CoroutineStart.UNDISPATCHED
@@ -60,7 +60,11 @@ public fun CoroutineScope.httpServer(
 
             try {
                 while (true) {
-                    val client: Socket = server.accept()
+                    val client: Socket = try {
+                        server.accept()
+                    } catch (cause: IOException) {
+                        continue
+                    }
 
                     val connection = ServerIncomingConnection(
                         client.openReadChannel(),

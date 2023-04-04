@@ -6,8 +6,10 @@ package io.ktor.client.plugins
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.*
 import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -167,14 +169,16 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         /**
          * Enables retrying a request if an exception is thrown during the [HttpSend] phase
          * and specifies the number of retries.
-         * By default, [HttpRequestTimeoutException] is not retried. Set [retryOnTimeout] to `true` to retry on timeout.
+         * By default, [HttpRequestTimeoutException], [ConnectTimeoutException] and [SocketTimeoutException]
+         * are not retried.
+         * Set [retryOnTimeout] to `true` to retry on timeout.
          * Note, that in this case, [HttpTimeout] plugin should be installed after [HttpRequestRetry].
          */
         public fun retryOnException(maxRetries: Int = -1, retryOnTimeout: Boolean = false) {
             retryOnExceptionIf(maxRetries) { _, cause ->
                 when {
+                    cause.isTimeoutException() -> retryOnTimeout
                     cause is CancellationException -> false
-                    cause is HttpRequestTimeoutException && retryOnTimeout -> true
                     else -> true
                 }
             }
@@ -392,3 +396,10 @@ private val RetryDelayPerRequestAttributeKey =
     AttributeKey<HttpRequestRetry.DelayContext.(Int) -> Long>(
         "RetryDelayPerRequestAttributeKey"
     )
+
+private fun Throwable.isTimeoutException(): Boolean {
+    val exception = unwrapCancellationException()
+    return exception is HttpRequestTimeoutException ||
+        exception is ConnectTimeoutException ||
+        exception is SocketTimeoutException
+}

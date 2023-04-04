@@ -160,6 +160,10 @@ public class DigestAuthProvider(
         val serverOpaque = opaque.value
         val actualQop = qop.value
 
+        val realm = realm ?: authHeader?.let { auth ->
+            (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
+        }
+
         val credentials = tokenHolder.loadToken() ?: return
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
@@ -172,9 +176,6 @@ public class DigestAuthProvider(
         }
 
         val token = makeDigest(tokenSequence.joinToString(":"))
-        val realm = realm ?: authHeader?.let { auth ->
-            (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
-        }
 
         val auth = HttpAuthHeader.Parameterized(
             AuthScheme.Digest,

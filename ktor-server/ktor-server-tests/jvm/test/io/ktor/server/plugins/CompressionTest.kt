@@ -4,6 +4,8 @@
 
 package io.ktor.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -650,6 +652,23 @@ class CompressionTest {
 
         handleAndAssert("/1", "*", "deflate", textToCompress)
         handleAndAssert("/2", "*", null, textToCompress)
+    }
+
+    @Test
+    fun testResponseShouldBeSentAfterCompression(): Unit = testApplication {
+        install(Compression)
+        routing {
+            get("/isSent") {
+                call.respond(textToCompress)
+                assertTrue(call.response.isSent)
+            }
+        }
+
+        client.get("/isSent") {
+            headers {
+                append(HttpHeaders.AcceptEncoding, "gzip")
+            }
+        }
     }
 
     private fun TestApplicationEngine.handleAndAssert(

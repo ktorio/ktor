@@ -156,7 +156,6 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getAtom ()Lio/ktor/http/ContentType;
 	public final fun getCbor ()Lio/ktor/http/ContentType;
 	public final fun getDocx ()Lio/ktor/http/ContentType;
-	public final fun getFontWoff ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
 	public final fun getHalJson ()Lio/ktor/http/ContentType;
@@ -187,6 +186,17 @@ public final class io/ktor/http/ContentType$Audio {
 public final class io/ktor/http/ContentType$Companion {
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun parse (Ljava/lang/String;)Lio/ktor/http/ContentType;
+}
+
+public final class io/ktor/http/ContentType$Font {
+	public static final field INSTANCE Lio/ktor/http/ContentType$Font;
+	public final fun getAny ()Lio/ktor/http/ContentType;
+	public final fun getCollection ()Lio/ktor/http/ContentType;
+	public final fun getOtf ()Lio/ktor/http/ContentType;
+	public final fun getSfnt ()Lio/ktor/http/ContentType;
+	public final fun getTtf ()Lio/ktor/http/ContentType;
+	public final fun getWoff ()Lio/ktor/http/ContentType;
+	public final fun getWoff2 ()Lio/ktor/http/ContentType;
 }
 
 public final class io/ktor/http/ContentType$Image {
@@ -416,6 +426,7 @@ public final class io/ktor/http/HeadersImpl : io/ktor/util/StringValuesImpl, io/
 }
 
 public final class io/ktor/http/HeadersKt {
+	public static final fun headers (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Headers;
 	public static final fun headersOf ()Lio/ktor/http/Headers;
 	public static final fun headersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Headers;
 	public static final fun headersOf (Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/Headers;
@@ -631,9 +642,11 @@ public final class io/ktor/http/HttpProtocolVersion$Companion {
 	public final fun parse (Ljava/lang/CharSequence;)Lio/ktor/http/HttpProtocolVersion;
 }
 
-public final class io/ktor/http/HttpStatusCode {
+public final class io/ktor/http/HttpStatusCode : java/lang/Comparable {
 	public static final field Companion Lio/ktor/http/HttpStatusCode$Companion;
 	public fun <init> (ILjava/lang/String;)V
+	public fun compareTo (Lio/ktor/http/HttpStatusCode;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public final fun component1 ()I
 	public final fun component2 ()Ljava/lang/String;
 	public final fun copy (ILjava/lang/String;)Lio/ktor/http/HttpStatusCode;
@@ -801,6 +814,7 @@ public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, 
 public final class io/ktor/http/ParametersKt {
 	public static final fun ParametersBuilder (I)Lio/ktor/http/ParametersBuilder;
 	public static synthetic fun ParametersBuilder$default (IILjava/lang/Object;)Lio/ktor/http/ParametersBuilder;
+	public static final fun parameters (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf ()Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Parameters;
 	public static final fun parametersOf (Ljava/lang/String;Ljava/util/List;)Lio/ktor/http/Parameters;

@@ -26,9 +26,11 @@ class ServerSocketTest : CoroutineScope {
     private val selector = ActorSelectorManager(exec.asCoroutineDispatcher() + testJob)
     private var client: Pair<java.net.Socket, Thread>? = null
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var serverSocket = CompletableDeferred<ServerSocket>()
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var server: Job? = null
     private var failure: Throwable? = null

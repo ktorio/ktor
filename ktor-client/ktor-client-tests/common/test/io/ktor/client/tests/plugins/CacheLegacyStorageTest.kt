@@ -589,29 +589,18 @@ class CacheLegacyStorageTest : ClientLoader() {
             assertEquals(firstPrivate, "private")
             assertEquals(1, privateCache().size)
             assertEquals(0, publicCache().size)
-
             val privateCacheEntry = privateCache().first()
 
             val firstPublic = client.get(publicUrl).body<String>()
             assertEquals(firstPublic, "public")
             assertEquals(1, publicCache().size)
             assertEquals(1, privateCache().size)
-
-            assertSame(privateCacheEntry, privateCache().first())
             val publicCacheEntry = publicCache().first()
 
-            // Private is updated from server by server implementation.
             val secondPrivate = client.get(privateUrl).body<String>()
             assertEquals(secondPrivate, "private")
 
-            // Old entry should be replaced.
-            assertEquals(1, privateCache().size)
-
-            // Public keeps the same.
-            assertEquals(1, publicCache().size)
-
-            val actual = privateCache().first()
-            assertNotSame(privateCacheEntry, actual)
+            assertSame(privateCacheEntry, privateCache().first())
 
             // Public from cache.
             val secondPublic = client.get(publicUrl).body<String>()

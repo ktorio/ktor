@@ -47,7 +47,8 @@ public class HttpCache private constructor(
     public val privateStorage: HttpCacheStorage,
     private val publicStorageNew: CacheStorage,
     private val privateStorageNew: CacheStorage,
-    private val useOldStorage: Boolean
+    private val useOldStorage: Boolean,
+    internal val isSharedClient: Boolean
 ) {
     /**
      * A configuration for the [HttpCache] plugin.
@@ -57,6 +58,12 @@ public class HttpCache private constructor(
         internal var publicStorageNew: CacheStorage = CacheStorage.Unlimited()
         internal var privateStorageNew: CacheStorage = CacheStorage.Unlimited()
         internal var useOldStorage = false
+
+        /**
+         * Specifies if the client where this plugin is installed is shared among multiple users.
+         * When set to true, all responses with `private` Cache-Control directive will not be cached.
+         */
+        public var isShared: Boolean = false
 
         /**
          * Specifies a storage for public cache entries.
@@ -114,7 +121,14 @@ public class HttpCache private constructor(
             val config = Config().apply(block)
 
             with(config) {
-                return HttpCache(publicStorage, privateStorage, publicStorageNew, privateStorageNew, useOldStorage)
+                return HttpCache(
+                    publicStorage = publicStorage,
+                    privateStorage = privateStorage,
+                    publicStorageNew = publicStorageNew,
+                    privateStorageNew = privateStorageNew,
+                    useOldStorage = useOldStorage,
+                    isSharedClient = isShared
+                )
             }
         }
 
@@ -255,7 +269,12 @@ public class HttpCache private constructor(
         val responseCacheControl: List<HeaderValue> = response.cacheControl()
         val requestCacheControl: List<HeaderValue> = request.cacheControl()
 
-        val storage = if (CacheControl.PRIVATE in responseCacheControl) privateStorageNew else publicStorageNew
+        val isPrivate = CacheControl.PRIVATE in responseCacheControl
+        val storage = when {
+            isPrivate && isSharedClient -> return null
+            isPrivate -> privateStorageNew
+            else -> publicStorageNew
+        }
 
         if (CacheControl.NO_STORE in responseCacheControl || CacheControl.NO_STORE in requestCacheControl) {
             return null
@@ -268,12 +287,17 @@ public class HttpCache private constructor(
         val url = response.call.request.url
         val cacheControl = response.cacheControl()
 
-        val storage = if (CacheControl.PRIVATE in cacheControl) privateStorageNew else publicStorageNew
+        val isPrivate = CacheControl.PRIVATE in cacheControl
+        val storage = when {
+            isPrivate && isSharedClient -> return null
+            isPrivate -> privateStorageNew
+            else -> publicStorageNew
+        }
 
         val varyKeysFrom304 = response.varyKeys()
         val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
         val newVaryKeys = varyKeysFrom304.ifEmpty { cache.varyKeys }
-        storage.store(request.url, cache.copy(newVaryKeys, response.cacheExpires()))
+        storage.store(request.url, cache.copy(newVaryKeys, response.cacheExpires(isSharedClient)))
         return cache.createResponse(request.call.client, request, response.coroutineContext)
     }
 

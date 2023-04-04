@@ -59,8 +59,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     ) : AuthenticationProvider.Config(name) {
         internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
-        internal var challengeFunction: SessionAuthChallengeFunction<T> = {
-        }
+        internal var challengeFunction: SessionAuthChallengeFunction<T> = { call.respond(UnauthorizedResponse()) }
 
         /**
          * Specifies a response to send back if authentication failed.

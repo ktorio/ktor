@@ -79,6 +79,133 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
+    fun testNumberQuoted() = testSuspend {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("not_a_forty_two", 1337)
+            },
+            boundary = "boundary",
+        )
+
+        assertEquals(
+            listOf(
+                "--boundary",
+                "Content-Disposition: form-data; name=not_a_forty_two",
+                "Content-Length: 4",
+                "",
+                "1337", // note quotes
+                "--boundary--",
+                ""
+            ).joinToString(separator = "\r\n"),
+            data.readString()
+        )
+    }
+
+    @Test
+    fun testBooleanQuoted() = testSuspend {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("is_forty_two", false)
+            },
+            boundary = "boundary",
+        )
+
+        assertEquals(
+            listOf(
+                "--boundary",
+                "Content-Disposition: form-data; name=is_forty_two",
+                "Content-Length: 5",
+                "",
+                "false", // note quotes
+                "--boundary--",
+                ""
+            ).joinToString(separator = "\r\n"),
+            data.readString()
+        )
+    }
+
+    @Test
+    fun testStringsList() = testSuspend {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("platforms[]", listOf("windows", "linux", "osx"))
+            },
+            boundary = "boundary",
+        )
+
+        assertEquals(
+            listOf(
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 7",
+                "",
+                "windows",
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 5",
+                "",
+                "linux",
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 3",
+                "",
+                "osx",
+                "--boundary--",
+                ""
+            ).joinToString(separator = "\r\n"),
+            data.readString()
+        )
+    }
+
+    @Test
+    fun testStringsArray() = testSuspend {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("platforms[]", arrayOf("windows", "linux", "osx"))
+            },
+            boundary = "boundary",
+        )
+
+        assertEquals(
+            listOf(
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 7",
+                "",
+                "windows",
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 5",
+                "",
+                "linux",
+                "--boundary",
+                "Content-Disposition: form-data; name=\"platforms[]\"",
+                "Content-Length: 3",
+                "",
+                "osx",
+                "--boundary--",
+                ""
+            ).joinToString(separator = "\r\n"),
+            data.readString()
+        )
+    }
+
+    @Test
+    fun testStringsListBadKey() = testSuspend {
+        val attempt = {
+            MultiPartFormDataContent(
+                formData {
+                    append("bad_key", listOf("whatever", "values"))
+                },
+                boundary = "boundary",
+            )
+        }
+
+        val ex = assertFails { attempt() }
+        assertEquals(ex.message, "Array parameter must be suffixed with square brackets ie `bad_key[]`")
+    }
+
+    @Test
     fun testByteReadChannelOverBufferSize() = testSuspend {
         val body = ByteArray(4089) { 'k'.code.toByte() }
         val data = MultiPartFormDataContent(

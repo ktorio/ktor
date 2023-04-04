@@ -15,6 +15,7 @@ public class Serializer {
 
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
+    private var lastDataFrameType: FrameType? = null
 
     public var masking: Boolean = false
 
@@ -52,11 +53,31 @@ public class Serializer {
             else -> 127
         }
 
+        val continuationOpcode = when (lastDataFrameType) {
+            null -> {
+                if (!frame.fin) {
+                    lastDataFrameType = frame.frameType
+                }
+                frame.frameType.opcode
+            }
+            frame.frameType -> {
+                if (frame.fin) {
+                    lastDataFrameType = null
+                }
+                0
+            }
+            else -> {
+                if (!frame.frameType.controlFrame) {
+                    throw IllegalStateException("Can't continue with different data frame opcode")
+                }
+                frame.frameType.opcode
+            }
+        }
         val header = frame.fin.flagAt(7) or
             frame.rsv1.flagAt(6) or
             frame.rsv2.flagAt(5) or
             frame.rsv3.flagAt(4) or
-            frame.frameType.opcode
+            continuationOpcode
 
         buffer.put(header.toByte())
         buffer.put((mask.flagAt(7) or formattedLength).toByte())

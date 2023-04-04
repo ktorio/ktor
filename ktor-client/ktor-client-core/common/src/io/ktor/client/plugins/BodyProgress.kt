@@ -62,7 +62,7 @@ public class BodyProgress internal constructor() {
 @OptIn(InternalAPI::class)
 internal fun HttpResponse.withObservableDownload(listener: ProgressListener): HttpResponse {
     val observableByteChannel = content.observable(coroutineContext, contentLength(), listener)
-    return wrapWithContent(observableByteChannel)
+    return call.wrapWithContent(observableByteChannel).response
 }
 
 /**

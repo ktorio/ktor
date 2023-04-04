@@ -98,6 +98,22 @@ class DigestProviderTest {
         checkStandardFields(authHeader)
     }
 
+    @Test
+    fun testTokenWhenMissingRealmAndQop() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
+        val authHeader = parseAuthorizationHeader(authMissingQopAndOpaque)!!
+
+        assertTrue(providerWithoutRealm.isApplicable(authHeader))
+        providerWithoutRealm.addRequestHeaders(requestBuilder, authHeader)
+
+        val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
+        val response = (parseAuthorizationHeader(resultAuthHeader) as HttpAuthHeader.Parameterized)
+            .parameter("response")!!
+        assertEquals("d51dd4b72db592e321b80d006d24c34c", response)
+    }
+
     private fun runIsApplicable(headerValue: String) =
         digestAuthProvider.isApplicable(parseAuthorizationHeader(headerValue)!!)
 

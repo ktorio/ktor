@@ -38,6 +38,7 @@ public class RoutingResolveContext(
     private val resolveResult: ArrayList<RoutingResolveResult.Success> = ArrayList(ROUTING_DEFAULT_CAPACITY)
 
     private var failedEvaluation: RouteSelectorEvaluation.Failure? = RouteSelectorEvaluation.FailedPath
+    private var failedEvaluationDepth = 0
 
     init {
         try {
@@ -103,7 +104,7 @@ public class RoutingResolveContext(
                 RoutingResolveResult.Failure(entry, "Selector didn't match", evaluation.failureStatusCode)
             )
             if (segmentIndex == segments.size) {
-                failedEvaluation = bestFailedEvaluation(failedEvaluation, evaluation, trait)
+                updateFailedEvaluation(evaluation, trait)
             }
             return MIN_QUALITY
         }
@@ -225,17 +226,19 @@ public class RoutingResolveContext(
         return secondQuality > firstQuality
     }
 
-    private fun bestFailedEvaluation(
-        current: RouteSelectorEvaluation.Failure?,
-        new: RouteSelectorEvaluation.Failure?,
+    private fun updateFailedEvaluation(
+        new: RouteSelectorEvaluation.Failure,
         trait: ArrayList<RoutingResolveResult.Success>
-    ): RouteSelectorEvaluation.Failure? = when {
-        current == null || new == null -> null
-        current.quality >= new.quality -> current
-        trait.all {
-            it.quality == RouteSelectorEvaluation.qualityTransparent ||
-                it.quality == RouteSelectorEvaluation.qualityConstant
-        } -> new
-        else -> current
+    ) {
+        val current = failedEvaluation ?: return
+        if ((current.quality < new.quality || failedEvaluationDepth < trait.size) &&
+            trait.all {
+                it.quality == RouteSelectorEvaluation.qualityTransparent ||
+                    it.quality == RouteSelectorEvaluation.qualityConstant
+            }
+        ) {
+            failedEvaluation = new
+            failedEvaluationDepth = trait.size
+        }
     }
 }

@@ -24,7 +24,7 @@ buildscript {
         val kotlin_version: String? by extra
         if (kotlin_version == null) {
             throw IllegalArgumentException(
-                "'kotlin_snapshot_version' should be defined when building with snapshot compiler"
+                "'kotlin_snapshot_version' should be defined when building with snapshot compiler",
             )
         }
         repositories {
@@ -61,6 +61,10 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
     }
+
+    dependencies {
+        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
+    }
 }
 
 val releaseVersion: String? by extra
@@ -86,7 +90,7 @@ apply(from = "gradle/verifier.gradle")
 extra["skipPublish"] = mutableListOf<String>()
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
-    "ktor-java-modules-test"
+    "ktor-java-modules-test",
 )
 
 val disabledExplicitApiModeProjects = listOf(
@@ -204,10 +208,9 @@ fun configureDokka() {
     val dokkaOutputDir = "../versions"
 
     tasks.withType<DokkaMultiModuleTask> {
-        val mapOf = mapOf(
-            "org.jetbrains.dokka.versioning.VersioningPlugin" to
-                """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
-        )
+        val id = "org.jetbrains.dokka.versioning.VersioningPlugin"
+        val config = """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
+        val mapOf = mapOf(id to config)
 
         outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
         pluginsMapConfiguration.set(mapOf)
@@ -280,4 +283,23 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
         findByName("jvmMain")?.resources?.srcDirs("jvmAndNix/resources")
         findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
     }
+}
+
+allprojects {
+    val jsTest = tasks.findByName("jsTest") ?: return@allprojects
+    val cleanJsTest = tasks.findByName("cleanJsTest") ?: return@allprojects
+
+    val cleanJsIrTest by tasks.creating {
+        dependsOn(cleanJsTest)
+    }
+
+    val jsIrTest by tasks.creating {
+        dependsOn(jsTest)
+    }
+}
+
+val jsLegacyTest by tasks.creating {
+}
+
+val cleanJsLegacyTest by tasks.creating {
 }

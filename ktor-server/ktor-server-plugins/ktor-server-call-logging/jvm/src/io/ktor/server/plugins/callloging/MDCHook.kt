@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.callloging
 
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 
 internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ApplicationCall, suspend () -> Unit) -> Unit> {
@@ -17,6 +18,15 @@ internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ApplicationC
 
         pipeline.intercept(mdcPhase) {
             handler(call, ::proceed)
+        }
+    }
+}
+
+internal object ResponseSent : Hook<suspend (ApplicationCall) -> Unit> {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Engine) {
+            proceed()
+            handler(call)
         }
     }
 }

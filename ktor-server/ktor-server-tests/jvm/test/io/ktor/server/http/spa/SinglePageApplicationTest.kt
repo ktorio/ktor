@@ -37,8 +37,7 @@ class SinglePageApplicationTest {
         }
 
         client.get("/selected/Empty2.kt").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals(it.bodyAsText().trimIndent(), empty3)
+            assertEquals(it.status, HttpStatusCode.Forbidden)
         }
 
         client.get("/selected/Empty1.kt").let {
@@ -88,13 +87,11 @@ class SinglePageApplicationTest {
         }
 
         client.get("/a").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals(it.bodyAsText().trimIndent(), empty3)
+            assertEquals(it.status, HttpStatusCode.Forbidden)
         }
 
         client.get("/Empty1.kt").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals(it.bodyAsText().trimIndent(), empty3)
+            assertEquals(it.status, HttpStatusCode.Forbidden)
         }
     }
 
@@ -104,17 +101,30 @@ class SinglePageApplicationTest {
             routing {
                 singlePageApplication {
                     useResources = true
-                    filesPath = "io.ktor.server.http.spa"
+                    filesPath = "public"
                     applicationRoute = "selected"
-                    defaultPage = "Empty3.class"
-                    ignoreFiles { it.contains("Empty2.class") }
+                    defaultPage = "default.txt"
+                    ignoreFiles { it.contains("ignore.txt") }
                 }
             }
         }
-        assertEquals(client.get("/selected").status, HttpStatusCode.OK)
-        assertEquals(client.get("/selected/a").status, HttpStatusCode.OK)
-        assertEquals(client.get("/selected/Empty2.kt").status, HttpStatusCode.OK)
-        assertEquals(client.get("/selected/Empty1.kt").status, HttpStatusCode.OK)
+
+        client.get("/selected").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "default")
+        }
+
+        client.get("/selected/a").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "default")
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, client.get("/selected/ignore.txt").status)
+
+        client.get("/selected/file.txt").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "file.txt")
+        }
     }
 
     @Test
@@ -123,16 +133,26 @@ class SinglePageApplicationTest {
             routing {
                 singlePageApplication {
                     useResources = true
-                    filesPath = "io.ktor.server.http.spa"
-                    defaultPage = "SinglePageApplicationTest.class"
+                    filesPath = "public"
+                    defaultPage = "default.txt"
                 }
             }
         }
 
-        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/SinglePageApplicationTest.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/a").status)
-        assertEquals(HttpStatusCode.OK, client.get("/").status)
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "default")
+        }
+
+        client.get("/a").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "default")
+        }
+
+        client.get("/file.txt").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "file.txt")
+        }
     }
 
     @Test
@@ -141,18 +161,31 @@ class SinglePageApplicationTest {
             routing {
                 singlePageApplication {
                     useResources = true
-                    filesPath = "io.ktor.server.http.spa"
-                    defaultPage = "SinglePageApplicationTest.class"
-                    ignoreFiles { it.contains("Empty1.class") }
-                    ignoreFiles { it.endsWith("Empty2.class") }
+                    filesPath = "public"
+                    defaultPage = "default.txt"
+                    ignoreFiles { it.contains("ignore.txt") }
+                    ignoreFiles { it.endsWith("file.txt") }
                 }
             }
         }
 
-        assertEquals(HttpStatusCode.OK, client.get("/Empty3.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/").status)
-        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/Empty2.class").status)
+        client.get("/index.html").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "index")
+        }
+
+        client.get("/a").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals(it.bodyAsText().trimIndent(), "default")
+        }
+
+        client.get("/ignore.txt").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
+
+        client.get("/file.txt").let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
     }
 
     @Test
@@ -161,17 +194,23 @@ class SinglePageApplicationTest {
             routing {
                 singlePageApplication {
                     useResources = true
-                    filesPath = "io.ktor.server.http.spa"
-                    defaultPage = "SinglePageApplicationTest.class"
+                    filesPath = "public"
+                    defaultPage = "default.txt"
                     ignoreFiles { true }
                 }
             }
         }
 
-        assertEquals(HttpStatusCode.OK, client.get("/SinglePageApplicationTest.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/Empty1.class").status)
-        assertEquals(HttpStatusCode.OK, client.get("/a").status)
-        assertEquals(HttpStatusCode.OK, client.get("/").status)
+        assertEquals(HttpStatusCode.Forbidden, client.get("/file.txt").status)
+
+        client.get("/a").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals("default", it.bodyAsText().trimIndent())
+        }
+        client.get("/").let {
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals("default", it.bodyAsText().trimIndent())
+        }
     }
 
     @Test

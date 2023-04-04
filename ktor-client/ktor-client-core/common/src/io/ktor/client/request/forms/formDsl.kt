@@ -37,6 +37,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
         val part = when (value) {
             is String -> PartData.FormItem(value, {}, partHeaders.build())
             is Number -> PartData.FormItem(value.toString(), {}, partHeaders.build())
+            is Boolean -> PartData.FormItem(value.toString(), {}, partHeaders.build())
             is ByteArray -> {
                 partHeaders.append(HttpHeaders.ContentLength, value.size.toString())
                 PartData.BinaryItem({ ByteReadPacket(value) }, {}, partHeaders.build())
@@ -106,6 +107,13 @@ public class FormBuilder internal constructor() {
     /**
      * Appends a pair [key]:[value] with optional [headers].
      */
+    public fun append(key: String, value: Boolean, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Appends a pair [key]:[value] with optional [headers].
+     */
     public fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
@@ -129,6 +137,25 @@ public class FormBuilder internal constructor() {
      */
     public fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Appends a pair [key]:[values] with optional [headers].
+     */
+    public fun append(key: String, values: Iterable<String>, headers: Headers = Headers.Empty) {
+        require(key.endsWith("[]")) {
+            "Array parameter must be suffixed with square brackets ie `$key[]`"
+        }
+        values.forEach { value ->
+            parts += FormPart(key, value, headers)
+        }
+    }
+
+    /**
+     * Appends a pair [key]:[values] with optional [headers].
+     */
+    public fun append(key: String, values: Array<String>, headers: Headers = Headers.Empty) {
+        return append(key, values.asIterable(), headers)
     }
 
     /**

@@ -67,9 +67,7 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
                 }
             }
 
-            if (this is ByteChannel) {
-                closedCause?.let { throw it }
-            }
+            closedCause?.let { throw it }
         } catch (cause: Throwable) {
             first.close(cause)
             second.close(cause)

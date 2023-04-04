@@ -152,7 +152,7 @@ internal class JavaHttpRequestBodyPublisher(
         }
 
         private fun tryToSignalOnErrorFromChannel() {
-            (inputChannel as? ByteWriteChannel)?.closedCause?.let { cause ->
+            inputChannel.closedCause?.let { cause ->
                 signalOnError(cause)
             }
         }
