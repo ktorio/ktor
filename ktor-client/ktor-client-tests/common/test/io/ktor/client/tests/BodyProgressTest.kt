@@ -29,7 +29,7 @@ private val TEST_ARRAY = ByteArray(8 * 1025) { 1 }
 private val TEST_NAME = "123".repeat(5000)
 
 @OptIn(DelicateCoroutinesApi::class)
-class BodyProgressTest : ClientLoader(timeoutSeconds = 10) {
+class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
 
     @Serializable
     data class User(val login: String, val id: Long)

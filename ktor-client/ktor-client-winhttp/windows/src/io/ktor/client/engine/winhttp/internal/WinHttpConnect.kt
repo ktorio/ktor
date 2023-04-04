@@ -8,8 +8,8 @@ import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
-import ktor.cinterop.winhttp.*
 import platform.windows.*
+import platform.winhttp.*
 
 internal typealias WinHttpStatusHandler = (statusInfo: LPVOID?, statusInfoLength: DWORD) -> Unit
 
