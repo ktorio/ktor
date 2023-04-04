@@ -57,7 +57,7 @@ public expect fun generateNonce(): String
  */
 public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
-        writeText(generateNonce())
+        writeText(generateNonce()) // TODO dumanskaya KT-57786
     }
 }.readBytes(size)
 

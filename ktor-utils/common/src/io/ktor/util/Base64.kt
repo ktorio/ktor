@@ -98,7 +98,7 @@ public fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
 
         for (index in data.size - 2 downTo (data.size - read)) {
             val origin = (chunk shr (8 * index)) and 0xff
-            writeByte(origin.toByte())
+            writeByte(origin.toByte()) // TODO dumanskaya KT-57786
         }
     }
 }
