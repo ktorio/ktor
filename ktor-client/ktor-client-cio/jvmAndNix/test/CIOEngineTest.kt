@@ -17,6 +17,8 @@ import kotlin.test.*
 
 class CIOEngineTest {
 
+    private val selectorManager = SelectorManager()
+
     @Test
     fun testRequestTimeoutIgnoredWithWebSocket(): Unit = runBlocking {
         val client = HttpClient(CIO) {
@@ -45,15 +47,15 @@ class CIOEngineTest {
     fun testExpectHeader(): Unit = runBlocking {
         val body = "Hello World"
 
-        withServerSocket {
+        withServerSocket { socket ->
             val client = HttpClient(CIO)
             launch {
-                sendExpectRequest(client, body).apply {
+                sendExpectRequest(socket, client, body).apply {
                     assertEquals(HttpStatusCode.OK, status)
                 }
             }
 
-            accept().use {
+            socket.accept().use {
                 val readChannel = it.openReadChannel()
                 val writeChannel = it.openWriteChannel()
 
@@ -71,15 +73,15 @@ class CIOEngineTest {
 
     @Test
     fun testNoExpectHeaderIfNoBody(): Unit = runBlocking {
-        withServerSocket {
+        withServerSocket { socket ->
             val client = HttpClient(CIO)
             launch {
-                sendExpectRequest(client).apply {
+                sendExpectRequest(socket, client).apply {
                     assertEquals(HttpStatusCode.OK, status)
                 }
             }
 
-            accept().use {
+            socket.accept().use {
                 val readChannel = it.openReadChannel()
                 val writeChannel = it.openWriteChannel()
 
@@ -94,19 +96,19 @@ class CIOEngineTest {
     fun testDontWaitForContinueResponse(): Unit = runBlocking {
         val body = "Hello World\n"
 
-        withServerSocket {
+        withServerSocket { socket ->
             val client = HttpClient(CIO) {
                 engine {
                     requestTimeout = 0
                 }
             }
             launch {
-                sendExpectRequest(client, body).apply {
+                sendExpectRequest(socket, client, body).apply {
                     assertEquals(HttpStatusCode.OK, status)
                 }
             }
 
-            accept().use {
+            socket.accept().use {
                 val readChannel = it.openReadChannel()
                 val writeChannel = it.openWriteChannel()
 
@@ -124,17 +126,17 @@ class CIOEngineTest {
     fun testRepeatRequestAfterExpectationFailed(): Unit = runBlocking {
         val body = "Hello World"
 
-        withServerSocket {
+        withServerSocket { socket ->
             val client = HttpClient(CIO)
             launch {
-                sendExpectRequest(client, body).apply {
+                sendExpectRequest(socket, client, body).apply {
                     assertEquals(HttpStatusCode.OK, status)
                 }
             }
 
-            accept().use { socket ->
-                val readChannel = socket.openReadChannel()
-                val writeChannel = socket.openWriteChannel()
+            socket.accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
 
                 val headers = readAvailableLines(readChannel)
                 assertTrue(headers.contains(EXPECT_HEADER))
@@ -149,11 +151,13 @@ class CIOEngineTest {
         }
     }
 
-    private suspend fun sendExpectRequest(client: HttpClient, body: String? = null) = client.post {
-        url(host = TEST_SERVER_SOCKET_HOST, port = TEST_SERVER_SOCKET_PORT, path = "/")
-        header(HttpHeaders.Expect, "100-continue")
-        if (body != null) setBody(body)
-    }
+    private suspend fun sendExpectRequest(socket: ServerSocket, client: HttpClient, body: String? = null) =
+        client.post {
+            val serverPort = (socket.localAddress as InetSocketAddress).port
+            url(host = TEST_SERVER_SOCKET_HOST, port = serverPort, path = "/")
+            header(HttpHeaders.Expect, "100-continue")
+            if (body != null) setBody(body)
+        }
 
     private suspend fun readAvailableLine(channel: ByteReadChannel): String {
         val buffer = ByteArray(1024)
@@ -191,9 +195,9 @@ class CIOEngineTest {
         }
     }
 
-    private suspend fun withServerSocket(block: suspend ServerSocket.() -> Unit) {
-        SelectorManager().use {
-            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, TEST_SERVER_SOCKET_PORT).use { socket ->
+    private suspend fun withServerSocket(block: suspend (ServerSocket) -> Unit) {
+        selectorManager.use {
+            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
                 block(socket)
             }
         }
@@ -201,7 +205,6 @@ class CIOEngineTest {
 
     companion object {
         private const val TEST_SERVER_SOCKET_HOST = "0.0.0.0"
-        private const val TEST_SERVER_SOCKET_PORT = 47521
         private const val EXPECT_HEADER = "Expect: 100-continue"
     }
 }
