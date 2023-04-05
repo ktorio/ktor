@@ -68,7 +68,7 @@ class RegexRoutingTest {
             }
         }
 
-        val routeWithGet = client.get("/hello/123456").bodyAsText().toInt()
+        val routeWithGet = client.get("/hello/123456/").bodyAsText().toInt()
         assertEquals(123456, routeWithGet)
         val get = client.get("tag_1/tags/list").bodyAsText()
         assertEquals("tag_1", get)
@@ -203,5 +203,101 @@ class RegexRoutingTest {
 
         client.get("/(<notGroup>")
         client.get("/ok")
+    }
+
+    @Test
+    fun testUnneededEscaping() = testApplication {
+        application {
+            routing {
+                get(Regex("""\/abc""")) {
+                    call.respondText("OK")
+                }
+                get(Regex("""def\/""")) {
+                    call.respondText("OK")
+                }
+            }
+        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/abc").status)
+        assertEquals(HttpStatusCode.OK, client.get("abc").status)
+        assertEquals(HttpStatusCode.OK, client.get("def/").status)
+
+        assertEquals(HttpStatusCode.NotFound, client.get("""\/abc""").status)
+        assertEquals(HttpStatusCode.NotFound, client.get("""def\/""").status)
+    }
+
+    @Test
+    fun testNestedRegex() = testApplication {
+        application {
+            routing {
+                route(Regex("/abc/")) {
+                    get(Regex("def")) {
+                        call.respondText("/abc/def")
+                    }
+
+                    handle {
+                        call.respondText("/abc/")
+                    }
+                }
+                route(Regex("qwe")) {
+                    get(Regex("/rty/")) {
+                        call.respondText("qwe/rty/")
+                    }
+
+                    handle {
+                        call.respondText("qwe")
+                    }
+                }
+                route(Regex("a")) {
+                    route(Regex("b")) {
+                        get(Regex("c")) {
+                            call.respondText("a/b/c")
+                        }
+                    }
+                }
+            }
+        }
+
+        assertEquals("/abc/def", client.get("/abc/def").bodyAsText())
+        assertEquals("/abc/def", client.get("abc/def").bodyAsText())
+        assertEquals("/abc/", client.get("abc/").bodyAsText())
+        assertEquals(HttpStatusCode.NotFound, client.get("/abc").status)
+
+        assertEquals("qwe/rty/", client.get("qwe/rty/").bodyAsText())
+        assertEquals("qwe", client.get("/qwe").bodyAsText())
+        assertEquals(HttpStatusCode.NotFound, client.get("qwe/rty").status)
+        assertEquals(HttpStatusCode.NotFound, client.get("qwe/").status)
+
+        assertEquals("a/b/c", client.get("/a/b/c").bodyAsText())
+        assertEquals(HttpStatusCode.NotFound, client.get("a/b/c/").status)
+    }
+
+    @Test
+    fun testWithTrailingSlash() = testApplication {
+        application {
+            install(IgnoreTrailingSlash)
+
+            routing {
+                get(Regex("/abc/")) {
+                    call.respondText("/abc/")
+                }
+
+                route(Regex("qwe")) {
+                    get(Regex("/rty/")) {
+                        call.respondText("qwe/rty/")
+                    }
+
+                    handle {
+                        call.respondText("qwe")
+                    }
+                }
+            }
+        }
+
+        assertEquals("/abc/", client.get("abc").bodyAsText())
+        assertEquals("/abc/", client.get("/abc/").bodyAsText())
+
+        assertEquals("qwe/rty/", client.get("qwe/rty").bodyAsText())
+        assertEquals("qwe", client.get("qwe/").bodyAsText())
     }
 }
