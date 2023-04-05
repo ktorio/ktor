@@ -118,7 +118,7 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
 ) {
     val boundary = "ktor-boundary-" + hex(Random.nextBytes(16))
 
-    call.attributes.put(SuppressionAttribute, true) // multirange with compression is not supported yet
+    call.suppressCompression() // multirange with compression is not supported yet (KTOR-5794)
 
     LOGGER.trace(
         "Responding 206 PartialContent for ${call.request.uri}: multiple range ${ranges.joinToString(",")}"

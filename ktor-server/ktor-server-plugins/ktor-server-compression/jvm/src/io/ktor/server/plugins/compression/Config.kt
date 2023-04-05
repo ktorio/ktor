@@ -28,13 +28,9 @@ public data class CompressionOptions(
  */
 public data class CompressionEncoderConfig(
     /**
-     * An encoder name matched against an entry in the `Accept-Encoding` header.
-     */
-    val name: String,
-    /**
      * An encoder implementation.
      */
-    val encoder: CompressionEncoder,
+    val encoder: ContentEncoder,
     /**
      * Conditions for an encoder.
      */
@@ -58,19 +54,17 @@ public class CompressionConfig : ConditionsHolderBuilder {
     override val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
-     * Appends an encoder with the specified [name] and [block] configuration.
+     * Appends an [encoder] with the [block] configuration.
      */
     public fun encoder(
-        name: String,
-        encoder: CompressionEncoder,
+        encoder: ContentEncoder,
         block: CompressionEncoderBuilder.() -> Unit = {}
     ) {
-        require(name.isNotBlank()) { "encoder name couldn't be blank" }
-        if (name in encoders) {
-            throw IllegalArgumentException("Encoder $name is already registered")
+        if (encoder.name in encoders) {
+            throw IllegalArgumentException("Encoder ${encoder.name} is already registered")
         }
 
-        encoders[name] = CompressionEncoderBuilder(name, encoder).apply(block)
+        encoders[encoder.name] = CompressionEncoderBuilder(encoder).apply(block)
     }
 
     /**
@@ -95,16 +89,6 @@ public class CompressionConfig : ConditionsHolderBuilder {
         },
         conditions = conditions.toList()
     )
-
-    /**
-     * Builds [CompressionOptions]
-     */
-    @Deprecated(
-        "This is going to become internal. " +
-            "Please stop building it manually or file a ticket with explanation why do you need it.",
-        level = DeprecationLevel.ERROR
-    )
-    public fun build(): CompressionOptions = buildOptions()
 }
 
 /**
@@ -124,8 +108,7 @@ public interface ConditionsHolderBuilder {
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class CompressionEncoderBuilder internal constructor(
-    public val name: String,
-    public val encoder: CompressionEncoder
+    public val encoder: ContentEncoder
 ) : ConditionsHolderBuilder {
     /**
      * A list of conditions for this encoder
@@ -137,18 +120,8 @@ public class CompressionEncoderBuilder internal constructor(
      */
     public var priority: Double = 1.0
 
-    /**
-     * Builds the [CompressionEncoderConfig] instance
-     */
-    @Deprecated(
-        "This is going to become internal. " +
-            "Please stop building it manually or file a ticket with explanation why do you need it.",
-        level = DeprecationLevel.ERROR
-    )
-    public fun build(): CompressionEncoderConfig = buildConfig()
-
     internal fun buildConfig(): CompressionEncoderConfig {
-        return CompressionEncoderConfig(name, encoder, conditions.toList(), priority)
+        return CompressionEncoderConfig(encoder, conditions.toList(), priority)
     }
 }
 
@@ -156,14 +129,14 @@ public class CompressionEncoderBuilder internal constructor(
  * Appends the `gzip` encoder with the [block] configuration.
  */
 public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
-    encoder("gzip", GzipEncoder, block)
+    encoder(GZipEncoder, block)
 }
 
 /**
  * Appends the `deflate` encoder with the [block] configuration and the 0.9 priority.
  */
 public fun CompressionConfig.deflate(block: CompressionEncoderBuilder.() -> Unit = {}) {
-    encoder("deflate", DeflateEncoder) {
+    encoder(DeflateEncoder) {
         priority = 0.9
         block()
     }
@@ -173,7 +146,7 @@ public fun CompressionConfig.deflate(block: CompressionEncoderBuilder.() -> Unit
  * Appends the `identity` encoder with the [block] configuration.
  */
 public fun CompressionConfig.identity(block: CompressionEncoderBuilder.() -> Unit = {}) {
-    encoder("identity", IdentityEncoder, block)
+    encoder(IdentityEncoder, block)
 }
 
 /**

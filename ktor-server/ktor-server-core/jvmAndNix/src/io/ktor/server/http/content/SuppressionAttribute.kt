@@ -4,9 +4,25 @@
 
 package io.ktor.server.http.content
 
+import io.ktor.server.application.*
 import io.ktor.util.*
 
 /**
  * Attribute that could be added to an application call to prevent its response from being compressed
  */
+@Deprecated("Please use suppressCompression() and isCompressionSuppressed) instead")
 public val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
+
+/**
+ * Suppress response body compression plugin for this [ApplicationCall].
+ */
+@Suppress("DEPRECATION")
+public fun ApplicationCall.suppressCompression() {
+    attributes.put(SuppressionAttribute, true)
+}
+
+/**
+ * Checks if response body compression is suppressed for this [ApplicationCall].
+ */
+@Suppress("DEPRECATION")
+public val ApplicationCall.isCompressionSuppressed: Boolean get() = SuppressionAttribute in attributes

@@ -1171,6 +1171,11 @@ public final class io/ktor/http/content/ChannelWriterContent : io/ktor/http/cont
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/content/CompressedContentKt {
+	public static final fun compressed (Lio/ktor/http/content/OutgoingContent;Lio/ktor/util/ContentEncoder;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/http/content/OutgoingContent;
+	public static synthetic fun compressed$default (Lio/ktor/http/content/OutgoingContent;Lio/ktor/util/ContentEncoder;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+}
+
 public final class io/ktor/http/content/EntityTagVersion : io/ktor/http/content/Version {
 	public static final field Companion Lio/ktor/http/content/EntityTagVersion$Companion;
 	public fun <init> (Ljava/lang/String;Z)V
