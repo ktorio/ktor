@@ -130,16 +130,22 @@ internal fun String.percentEncode(allowedSet: Set<Char>): String {
     val encodedCount = count { it !in allowedSet }
     if (encodedCount == 0) return this
 
-    val resultSize = length + encodedCount * 2
+    val content = toByteArray(Charsets.UTF_8)
+
+    val rawCount = length - encodedCount
+    val resultSize = rawCount + (content.size - rawCount) * 3
     val result = CharArray(resultSize)
 
     var writeIndex = 0
-    for (index in 0 until length) {
-        val current = this[index]
-        if (current in allowedSet) {
-            result[writeIndex++] = current
+
+    content.forEach {
+        val char = it.toInt().toChar()
+
+        if (char in allowedSet) {
+            result[writeIndex++] = char
         } else {
-            val code = current.code
+            val code = it.toInt() and 0xff
+
             result[writeIndex++] = '%'
             result[writeIndex++] = hexDigitToChar(code shr 4)
             result[writeIndex++] = hexDigitToChar(code and 0xf)
