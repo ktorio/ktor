@@ -18,7 +18,7 @@ public expect val Charset.name: String
 // ----------------------------- ENCODER -------------------------------------------------------------------------------
 public expect abstract class CharsetEncoder
 
-public expect val CharsetEncoder.charset: Charset
+public expect val CharsetEncoder.charset: Charset // TODO dumanskaya KT-57700
 
 @Deprecated(
     "Use writeText on Output instead.",
@@ -91,7 +91,7 @@ public expect abstract class CharsetDecoder
 /**
  * Decoder's charset it is created for.
  */
-public expect val CharsetDecoder.charset: Charset
+public expect val CharsetDecoder.charset: Charset  // TODO dumanskaya KT-57700
 
 public fun CharsetDecoder.decode(input: Input, max: Int = Int.MAX_VALUE): String =
     buildString(minOf(max.toLong(), input.sizeEstimate()).toInt()) {
