@@ -35,6 +35,10 @@ public class CIOApplicationEngine(
          * A connection is IDLE if there are no active requests running.
          */
         public var connectionIdleTimeoutSeconds: Int = 45
+        /**
+         * Allow the server to bind to an address that is already in use
+         */
+        public var reuseAddress: Boolean = false
     }
 
     private val configuration: Configuration = Configuration().apply(configure)
@@ -109,7 +113,8 @@ public class CIOApplicationEngine(
         val settings = HttpServerSettings(
             host = host,
             port = port,
-            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
+            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
+            reuseAddress = configuration.reuseAddress
         )
 
         return httpServer(settings) { request ->

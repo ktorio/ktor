@@ -27,11 +27,13 @@ public class HttpServer(
  * @property host to listen to
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
+ * @property reuseAddress allow the server to bind to an address that is already in use
  */
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
-    val connectionIdleTimeoutSeconds: Long = 45
+    val connectionIdleTimeoutSeconds: Long = 45,
+    val reuseAddress: Boolean = false
 )
 
 /**
