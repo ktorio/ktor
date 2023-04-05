@@ -28,7 +28,7 @@ import kotlinx.coroutines.*
  * cannot be invoked concurrently with themselves. Exceptions are [close] and [flush] which can be invoked
  * concurrently with any other operations and between themselves at any time.
  */
-public interface ByteChannel : ByteReadChannel, ByteWriteChannel {
+public interface ByteChannel : ByteReadChannel, ByteWriteChannel { // TODO dumanskaya KT-57833
     public fun attachJob(job: Job)
 }
 
