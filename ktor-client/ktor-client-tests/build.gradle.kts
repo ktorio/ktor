@@ -42,7 +42,6 @@ kotlin.sourceSets {
             api(project(":ktor-server"))
             api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
-            api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
@@ -56,6 +55,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
+            api(project(":ktor-client:ktor-client-apache5"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
             if (currentJdk >= 11) {

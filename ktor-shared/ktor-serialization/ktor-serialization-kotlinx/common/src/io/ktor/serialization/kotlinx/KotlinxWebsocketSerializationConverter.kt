@@ -7,6 +7,7 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -18,7 +19,7 @@ import kotlinx.serialization.*
  * Creates a converter for WebSocket serializing with the specified string [format] and
  * [defaultCharset] (optional, usually it is UTF-8).
  */
-@OptIn(ExperimentalSerializationApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 public class KotlinxWebsocketSerializationConverter(
     private val format: SerialFormat,
 ) : WebsocketContentConverter {
@@ -31,21 +32,19 @@ public class KotlinxWebsocketSerializationConverter(
     }
 
     override suspend fun serializeNullable(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
-        return serializationBase.serialize(
-            SerializationParameters(
-                format,
-                value,
-                typeInfo,
-                charset
-            )
-        )
+        val serializer = try {
+            format.serializersModule.serializerForTypeInfo(typeInfo)
+        } catch (cause: SerializationException) {
+            guessSerializer(value, format.serializersModule)
+        }
+        return serializeContent(serializer, format, value)
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any? {
         if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
-        val serializer = serializerFromTypeInfo(typeInfo, format.serializersModule)
+        val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
 
         return when (format) {
             is StringFormat -> {
@@ -76,16 +75,6 @@ public class KotlinxWebsocketSerializationConverter(
 
     override fun isApplicable(frame: Frame): Boolean {
         return frame is Frame.Text || frame is Frame.Binary
-    }
-
-    private val serializationBase = object : KotlinxSerializationBase<Frame>(format) {
-        override suspend fun serializeContent(parameters: SerializationParameters): Frame {
-            return serializeContent(
-                parameters.serializer,
-                parameters.format,
-                parameters.value
-            )
-        }
     }
 
     private fun serializeContent(

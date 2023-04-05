@@ -20,12 +20,12 @@ fun Project.configureJs() {
         }
     }
 
-    configureTestTask()
+    configureJsTestTasks()
 }
 
 private fun Project.configureJsTasks() {
     kotlin {
-        js {
+        js(IR) {
             nodejs {
                 testTask {
                     useMocha {
@@ -64,12 +64,12 @@ private fun Project.configureJsTasks() {
     }
 }
 
-private fun Project.configureTestTask() {
+private fun Project.configureJsTestTasks() {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
+    if (shouldRunJsBrowserTest) return
 
-    val jsLegacyBrowserTest by tasks.getting
-    jsLegacyBrowserTest.onlyIf { shouldRunJsBrowserTest }
-
-    val jsIrBrowserTest by tasks.getting
-    jsIrBrowserTest.onlyIf { shouldRunJsBrowserTest }
+    val cleanJsBrowserTest by tasks.getting
+    val jsBrowserTest by tasks.getting
+    cleanJsBrowserTest.onlyIf { false }
+    jsBrowserTest.onlyIf { false }
 }

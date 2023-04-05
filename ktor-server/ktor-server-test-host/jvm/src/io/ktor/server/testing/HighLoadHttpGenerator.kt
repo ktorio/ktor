@@ -75,9 +75,11 @@ public class HighLoadHttpGenerator(
     private val writeErrors = AtomicLong()
     private val connectErrors = AtomicLong()
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var cancelled = false
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var shutdown = false
 

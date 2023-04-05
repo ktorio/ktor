@@ -57,9 +57,7 @@ internal fun CoroutineScope.attachForWritingImpl(
         val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
         source.cancel(cause)
     } else {
-        if (source is ByteChannel) {
-            source.closedCause?.let { throw it }
-        }
+        source.closedCause?.let { throw it }
     }
 }.apply {
     invokeOnCompletion {

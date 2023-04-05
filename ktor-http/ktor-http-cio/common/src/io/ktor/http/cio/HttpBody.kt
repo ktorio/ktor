@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
+
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
  * parsed [connectionOptions]
@@ -66,13 +67,15 @@ public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
 
 /**
  * Parse HTTP request or response body using [contentLength], [transferEncoding] and [connectionOptions]
- * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
+ * writing it to [out].
+ * Usually doesn't fail but closing [out] channel with error.
  *
  * @param contentLength from the corresponding header or -1
  * @param transferEncoding header or `null`
  * @param
  */
 public suspend fun parseHttpBody(
+    version: HttpProtocolVersion?,
     contentLength: Long,
     transferEncoding: CharSequence?,
     connectionOptions: ConnectionOptions?,
@@ -88,7 +91,7 @@ public suspend fun parseHttpBody(
         return
     }
 
-    if (connectionOptions?.close == true) {
+    if (connectionOptions?.close == true || (connectionOptions == null && version == HttpProtocolVersion.HTTP_1_0)) {
         input.copyTo(out, Long.MAX_VALUE)
         return
     }
@@ -105,6 +108,26 @@ public suspend fun parseHttpBody(
 }
 
 /**
+ * Parse HTTP request or response body using [contentLength], [transferEncoding] and [connectionOptions]
+ * writing it to [out].
+ * Usually doesn't fail but closing [out] channel with error.
+ *
+ * @param contentLength from the corresponding header or -1
+ * @param transferEncoding header or `null`
+ * @param
+ */
+@Deprecated("Please use method with version parameter")
+public suspend fun parseHttpBody(
+    contentLength: Long,
+    transferEncoding: CharSequence?,
+    connectionOptions: ConnectionOptions?,
+    input: ByteReadChannel,
+    out: ByteWriteChannel
+) {
+    parseHttpBody(null, contentLength, transferEncoding, connectionOptions, input, out)
+}
+
+/**
  * Parse HTTP request or response body using request/response's [headers]
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  */
@@ -113,6 +136,7 @@ public suspend fun parseHttpBody(
     input: ByteReadChannel,
     out: ByteWriteChannel
 ): Unit = parseHttpBody(
+    null,
     headers["Content-Length"]?.parseDecLong() ?: -1,
     headers["Transfer-Encoding"],
     ConnectionOptions.parse(headers["Connection"]),
@@ -137,9 +161,11 @@ private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
                 }
                 chunked = true
             }
+
             "identity" -> {
                 // ignore this token
             }
+
             else -> throw IllegalArgumentException("Unsupported transfer encoding $name")
         }
     }

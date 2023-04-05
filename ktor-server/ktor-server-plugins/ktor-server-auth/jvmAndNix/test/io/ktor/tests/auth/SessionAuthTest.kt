@@ -98,7 +98,10 @@ class SessionAuthTest {
                 cookie<MySession>("S")
             }
             application.install(Authentication) {
-                session<MySession>()
+                session<MySession> {
+                    challenge {}
+                    validate { session -> session }
+                }
                 form("f") {
                     challenge("/login")
                     validate { null }
@@ -123,6 +126,29 @@ class SessionAuthTest {
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
         }
+    }
+
+    @Test
+    fun testSessionWithEmptyValidateRespondsWith401() = testApplication {
+        application {
+            install(Sessions) {
+                cookie<MySession>("cookie")
+            }
+            install(Authentication) {
+                session<MySession>("auth-session")
+            }
+
+            routing {
+                authenticate("auth-session") {
+                    get("/") {
+                        call.respondText { "OK" }
+                    }
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
     @Serializable

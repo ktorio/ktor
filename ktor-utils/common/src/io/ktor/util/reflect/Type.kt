@@ -36,7 +36,6 @@ public expect inline fun <reified T> typeInfo(): TypeInfo
 public expect fun Any.instanceOf(type: KClass<*>): Boolean
 
 @PublishedApi
-@OptIn(ExperimentalStdlibApi::class)
 internal inline fun <reified T> tryGetType(): KType? = try {
     // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
     typeOf<T>()

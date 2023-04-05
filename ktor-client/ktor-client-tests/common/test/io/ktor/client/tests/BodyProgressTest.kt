@@ -8,7 +8,9 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.content.*
+import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.json.*
 import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.client.request.*
@@ -263,6 +265,24 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 10) {
                 assertContentEquals(DOUBLE_TEST_ARRAY, it)
             }
             assertTrue(invokedCount > 2)
+        }
+    }
+
+    @Test
+    fun testWithCache() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    respond(DOUBLE_TEST_ARRAY)
+                }
+            }
+            install(HttpCache)
+        }
+        test { client ->
+            val response = client.get("$TEST_SERVER/content/echo") {
+                onDownload { _, _ -> }
+            }.body<ByteArray>()
+            assertContentEquals(DOUBLE_TEST_ARRAY, response)
         }
     }
 }

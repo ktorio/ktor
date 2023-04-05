@@ -16,6 +16,7 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * A client attached to [TestApplication].
@@ -172,7 +173,8 @@ public open class TestApplicationBuilder {
     @KtorDsl
     public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
-        environmentBuilder = block
+        val oldBuilder = environmentBuilder
+        environmentBuilder = { oldBuilder(); block() }
     }
 
     /**
@@ -281,11 +283,58 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  */
 @KtorDsl
+public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+    testApplication(EmptyCoroutineContext, block)
+}
+
+/**
+ * Creates a test using [TestApplication].
+ * To test a server Ktor application, do the following:
+ * 1. Use [testApplication] function to set up a configured instance of a test application running locally.
+ * 2. Use the [HttpClient] instance inside a test application to make a request to your server,
+ * receive a response, and make assertions.
+ *
+ * Suppose, you have the following route that accepts GET requests made to the `/` path
+ * and responds with a plain text response:
+ * ```kotlin
+ * routing {
+ *     get("/") {
+ *         call.respondText("Hello, world!")
+ *     }
+ * }
+ * ```
+ *
+ * A test for this route will look as follows:
+ * ```kotlin
+ * @Test
+ * fun testRoot() = testApplication {
+ *     val response = client.get("/")
+ *     assertEquals(HttpStatusCode.OK, response.status)
+ *     assertEquals("Hello, world!", response.bodyAsText())
+ * }
+ * ```
+ *
+ * _Note: If you have the `application.conf` file in the `resources` folder,
+ * [testApplication] loads all modules and properties specified in the configuration file automatically._
+ *
+ * You can learn more from [Testing](https://ktor.io/docs/testing.html).
+ */
+@KtorDsl
 public fun testApplication(
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
 ) {
     val builder = ApplicationTestBuilder()
-        .apply { runBlocking { block() } }
+        .apply {
+            runBlocking(parentCoroutineContext) {
+                if (parentCoroutineContext != EmptyCoroutineContext) {
+                    environment {
+                        this.parentCoroutineContext = parentCoroutineContext
+                    }
+                }
+                block()
+            }
+        }
 
     val testApplication = TestApplication(builder)
     testApplication.start()

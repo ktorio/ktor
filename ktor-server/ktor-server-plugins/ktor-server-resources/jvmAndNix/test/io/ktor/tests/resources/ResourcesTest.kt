@@ -5,6 +5,7 @@
 package io.ktor.tests.resources
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
@@ -501,6 +502,32 @@ class ResourcesTest {
             put<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
             delete<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
             patch<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+        }
+    }
+
+    @Resource("/body")
+    object resourceWithBody
+
+    @Test
+    fun resourceWithBody() = withResourcesApplication {
+        routing {
+            post<resourceWithBody, String> { _, body ->
+                call.respondText(body)
+            }
+            put<resourceWithBody, String> { _, body ->
+                call.respondText(body)
+            }
+            patch<resourceWithBody, String> { _, body ->
+                call.respondText(body)
+            }
+        }
+
+        val body = "test"
+
+        runBlocking {
+            assertEquals(client.post("/body") { setBody(body) }.bodyAsText(), body)
+            assertEquals(client.put("/body") { setBody(body) }.bodyAsText(), body)
+            assertEquals(client.patch("/body") { setBody(body) }.bodyAsText(), body)
         }
     }
 }

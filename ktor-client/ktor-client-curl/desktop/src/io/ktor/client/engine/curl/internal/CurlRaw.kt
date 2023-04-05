@@ -28,7 +28,9 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
     executionContext = executionContext,
     forceProxyTunneling = config.forceProxyTunneling,
-    sslVerify = config.sslVerify
+    sslVerify = config.sslVerify,
+    caInfo = config.caInfo,
+    caPath = config.caPath
 )
 
 internal class CurlRequestData(
@@ -41,7 +43,9 @@ internal class CurlRequestData(
     val connectTimeout: Long?,
     val executionContext: Job,
     val forceProxyTunneling: Boolean,
-    val sslVerify: Boolean
+    val sslVerify: Boolean,
+    val caInfo: String?,
+    val caPath: String?
 ) {
     override fun toString(): String =
         "CurlRequestData(url='$url', method='$method', content: $contentLength bytes)"
@@ -75,9 +79,11 @@ internal suspend fun OutgoingContent.toByteChannel(): ByteReadChannel = when (th
         val bytes = bytes()
         ByteReadChannel(bytes, 0, bytes.size)
     }
+
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
         writeTo(channel)
     }.channel
+
     is OutgoingContent.ReadChannelContent -> readFrom()
     is OutgoingContent.NoContent -> ByteReadChannel.Empty
     else -> throw UnsupportedContentTypeException(this@toByteChannel)

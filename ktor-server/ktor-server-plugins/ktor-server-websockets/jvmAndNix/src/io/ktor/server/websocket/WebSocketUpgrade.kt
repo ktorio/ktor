@@ -79,7 +79,6 @@ public class WebSocketUpgrade(
         }
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun upgrade(
         input: ByteReadChannel,
         output: ByteWriteChannel,

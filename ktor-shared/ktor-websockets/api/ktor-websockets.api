@@ -171,6 +171,14 @@ public final class io/ktor/websocket/FrameType$Companion {
 	public final fun get (I)Lio/ktor/websocket/FrameType;
 }
 
+public final class io/ktor/websocket/ProtocolViolationException : java/lang/Exception, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Ljava/lang/String;)V
+	public fun createCopy ()Lio/ktor/websocket/ProtocolViolationException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getViolation ()Ljava/lang/String;
+}
+
 public final class io/ktor/websocket/RawWebSocketCommonKt {
 	public static final fun readFrame (Lio/ktor/utils/io/ByteReadChannel;JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeFrame (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/websocket/Frame;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;

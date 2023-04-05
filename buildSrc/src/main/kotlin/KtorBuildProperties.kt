@@ -35,7 +35,12 @@ val HOST_NAME = when {
 val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
 
 val jdk11Modules = listOf(
-    "ktor-client-java"
+    "ktor-client-java",
+    "ktor-server-servlet-jakarta",
+    "ktor-client-jetty-jakarta",
+    "ktor-server-jetty-jakarta",
+    "ktor-server-jetty-test-http2-jakarta",
+    "ktor-server-tomcat-jakarta",
 )
 
 fun Project.useJdkVersionForJvmTests(version: Int) {

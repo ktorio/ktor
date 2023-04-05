@@ -13,7 +13,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*
-import kotlin.reflect.*
 
 /**
  * A custom content converter that could be registered in [ContentNegotiation] plugin for any particular content type

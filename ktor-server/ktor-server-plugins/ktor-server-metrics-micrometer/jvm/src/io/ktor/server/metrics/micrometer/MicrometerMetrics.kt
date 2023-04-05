@@ -114,7 +114,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         val activeRequestsGaugeName = "$metricName.active"
         val registry = pluginConfig.registry
         val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
-        val measureKey = AttributeKey<CallMeasure>("metrics")
+        val measureKey = AttributeKey<CallMeasure>("micrometerMetrics")
 
         fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
             val route = call.attributes[measureKey].route

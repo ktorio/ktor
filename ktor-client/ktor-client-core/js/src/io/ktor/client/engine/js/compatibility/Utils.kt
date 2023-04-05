@@ -23,10 +23,9 @@ internal suspend fun commonFetch(
         controller.abort()
     }
 
-    val promise: Promise<org.w3c.fetch.Response> = if (PlatformUtils.IS_BROWSER) {
-        fetch(input, init)
-    } else {
-        jsRequireNodeFetch()(input, init)
+    val promise: Promise<org.w3c.fetch.Response> = when (PlatformUtils.platform) {
+        Platform.Browser -> fetch(input, init)
+        else -> jsRequireNodeFetch()(input, init)
     }
 
     promise.then(
@@ -40,21 +39,21 @@ internal suspend fun commonFetch(
 }
 
 internal fun AbortController(): AbortController {
-    return if (PlatformUtils.IS_BROWSER) {
-        js("new AbortController()")
-    } else {
-        @Suppress("UNUSED_VARIABLE")
-        val controller = js("eval('require')('abort-controller')")
-        js("new controller()")
+    return when (PlatformUtils.platform) {
+        Platform.Browser -> js("new AbortController()")
+        else -> {
+            @Suppress("UNUSED_VARIABLE")
+            val controller = js("eval('require')('abort-controller')")
+            js("new controller()")
+        }
     }
 }
 
 internal fun CoroutineScope.readBody(
     response: org.w3c.fetch.Response
-): ByteReadChannel = if (PlatformUtils.IS_BROWSER) {
-    readBodyBrowser(response)
-} else {
-    readBodyNode(response)
+): ByteReadChannel = when (PlatformUtils.platform) {
+    Platform.Node -> readBodyNode(response)
+    else -> readBodyBrowser(response)
 }
 
 private fun jsRequireNodeFetch(): dynamic = try {

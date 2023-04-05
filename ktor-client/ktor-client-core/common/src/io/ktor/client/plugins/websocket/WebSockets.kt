@@ -201,4 +201,7 @@ public class WebSockets internal constructor(
 }
 
 @Suppress("KDocMissingDocumentation")
-public class WebSocketException(message: String) : IllegalStateException(message)
+public class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
+    // required for backwards binary compatibility
+    public constructor(message: String) : this(message, cause = null)
+}

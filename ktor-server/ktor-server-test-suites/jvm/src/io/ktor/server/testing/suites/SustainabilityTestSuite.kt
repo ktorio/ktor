@@ -514,6 +514,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         } finally {
             e.shutdownNow()
         }
+        TimeUnit.SECONDS.sleep(10)
     }
 
     @Test

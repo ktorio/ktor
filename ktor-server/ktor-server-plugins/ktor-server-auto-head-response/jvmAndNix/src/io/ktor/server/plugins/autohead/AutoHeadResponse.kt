@@ -26,7 +26,7 @@ public val AutoHeadResponse: ApplicationPlugin<Unit> = createApplicationPlugin("
     on(ResponseBodyReadyForSend) { call, content ->
         if (call.request.local.method != HttpMethod.Head) return@on
         if (content is OutgoingContent.NoContent) return@on
-
+        if (content is OutgoingContent.ReadChannelContent) content.readFrom().cancel(null)
         transformBodyTo(HeadResponse(content))
     }
 }

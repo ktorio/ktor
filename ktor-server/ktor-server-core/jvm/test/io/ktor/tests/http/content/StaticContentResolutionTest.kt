@@ -20,7 +20,7 @@ class StaticContentResolutionTest {
     @Test
     fun testResourceClasspathResourceWithDirectoryInsideJar() {
         val content = resourceClasspathResource(URL("jar:$baseUrl!/testdir"), "testdir") {
-            ContentType.defaultForFileExtension(it)
+            ContentType.defaultForFileExtension(it.path.extension())
         }
 
         assertNull(content)
@@ -30,12 +30,11 @@ class StaticContentResolutionTest {
     @Test
     fun testResourceClasspathResourceWithFileInsideJar() {
         val content = resourceClasspathResource(URL("jar:$baseUrl!/testdir/testfile"), "testdir/testfile") {
-            ContentType.defaultForFileExtension(it)
+            ContentType.defaultForFileExtension(it.path.extension())
         }
 
         assertNotNull(content)
-        assertTrue { content is OutgoingContent.ReadChannelContent }
-        with(content as OutgoingContent.ReadChannelContent) {
+        with(content) {
             val data = String(runBlocking { readFrom().toByteArray() })
             assertEquals("test\n", data)
         }

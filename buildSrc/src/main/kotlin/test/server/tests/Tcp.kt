@@ -44,6 +44,7 @@ internal suspend fun tcpServerHandler(socket: Socket) {
             },
             "{\"status\": \"ok\"}"
         )
+
         "GET /?ktor-test-tunnel HTTP/1.1" -> buildResponse(HttpStatusCode.OK, listOf("X-Proxy: yes\r\n"))
         "GET /headers-merge HTTP/1.1" -> buildResponse(
             HttpStatusCode.OK,
@@ -52,10 +53,12 @@ internal suspend fun tcpServerHandler(socket: Socket) {
             },
             requestData.toString()
         )
+
         "GET /wrong-value HTTP/1.1" -> buildResponse(
             HttpStatusCode.OK,
             listOf("${HttpHeaders.SetCookie}: ___utmvazauvysSB=kDu\u0001xSkE; path=/; Max-Age=900\r\n")
         )
+
         "GET /errors/few-bytes HTTP/1.1" -> buildResponse(
             HttpStatusCode.OK,
             buildHeaders {
@@ -64,6 +67,7 @@ internal suspend fun tcpServerHandler(socket: Socket) {
             },
             "Hello, world!"
         )
+
         else -> buildResponse(HttpStatusCode.BadRequest)
     }
 
@@ -74,9 +78,7 @@ internal suspend fun tcpServerHandler(socket: Socket) {
         input.readUTF8Line()
     }
 
-    if (input is ByteChannel) {
-        input.closedCause?.let { throw it }
-    }
+    input.closedCause?.let { throw it }
 }
 
 private suspend fun handleProxyTunnel(

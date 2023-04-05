@@ -25,7 +25,7 @@ internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, a
         url: String,
         headers: Headers,
         content: OutgoingContent,
-        coroutineContext: CoroutineContext
+        callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession>
 }
 
@@ -40,7 +40,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = dispatcher + clientJob
+    override val coroutineContext: CoroutineContext = app.environment.parentCoroutineContext + dispatcher + clientJob
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {

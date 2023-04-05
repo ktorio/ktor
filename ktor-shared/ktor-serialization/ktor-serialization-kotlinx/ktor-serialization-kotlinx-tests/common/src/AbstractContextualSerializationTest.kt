@@ -35,7 +35,6 @@ public object UserDataSerializer : KSerializer<UserData> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 public abstract class AbstractContextualSerializationTest<T : SerialFormat> {
     protected abstract val defaultContentType: ContentType
     protected abstract val defaultSerializationFormat: T

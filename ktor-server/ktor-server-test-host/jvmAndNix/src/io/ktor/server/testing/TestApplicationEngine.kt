@@ -39,8 +39,10 @@ class TestApplicationEngine(
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
     internal val state = atomic(State.Stopped)
+    internal val configuration = Configuration().apply(configure)
 
-    override val coroutineContext: CoroutineContext = testEngineJob
+    override val coroutineContext: CoroutineContext =
+        environment.parentCoroutineContext + testEngineJob + configuration.dispatcher
 
     /**
      * An engine configuration for a test application.
@@ -49,8 +51,6 @@ class TestApplicationEngine(
     class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = Dispatchers.IOBridge
     }
-
-    internal val configuration = Configuration().apply(configure)
 
     /**
      * An interceptor for engine calls.
@@ -203,9 +203,7 @@ class TestApplicationEngine(
             handleRequestNonBlocking(closeRequest, setup)
         }
 
-        return runBlocking(coroutineContext) {
-            callJob.await()
-        }
+        return runBlocking { callJob.await() }
     }
 
     internal suspend fun handleRequestNonBlocking(
@@ -220,8 +218,8 @@ class TestApplicationEngine(
             context = Dispatchers.IOBridge + job
         )
 
-        val context = configuration.dispatcher + SupervisorJob(job) + CoroutineName("request")
-        withContext(context) {
+        val context = SupervisorJob(job) + CoroutineName("request")
+        withContext(coroutineContext + context) {
             pipeline.execute(call)
             call.response.awaitForResponseCompletion()
         }

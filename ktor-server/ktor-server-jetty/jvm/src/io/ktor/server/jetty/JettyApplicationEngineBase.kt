@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
-import java.util.concurrent.*
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
@@ -46,10 +45,15 @@ public open class JettyApplicationEngineBase(
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
+        addShutdownHook {
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        }
+
         environment.start()
 
         server.start()
-        cancellationDeferred = stopServerOnCancellation()
+        cancellationDeferred =
+            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
 
         val connectors = server.connectors.zip(environment.connectors)
             .map { it.second.withPort((it.first as ServerConnector).localPort) }
@@ -59,7 +63,7 @@ public open class JettyApplicationEngineBase(
 
         if (wait) {
             server.join()
-            stop(1, 5, TimeUnit.SECONDS)
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         }
         return this
     }

@@ -89,12 +89,26 @@ public class FrameParser {
         rsv2 = flagsAndOpcode and 0x20 != 0
         rsv3 = flagsAndOpcode and 0x10 != 0
 
-        opcode = (flagsAndOpcode and 0x0f).let { new -> if (new == 0) lastOpcode else new }
+        opcode = flagsAndOpcode and 0x0f
+        if (opcode == 0 && lastOpcode == 0) {
+            throw ProtocolViolationException("Can't continue finished frames")
+        } else if (opcode == 0) {
+            opcode = lastOpcode
+        } else if (lastOpcode != 0 && !frameType.controlFrame) {
+            // lastOpcode != 0 && opcode != 0, trying to intermix data frames
+            throw ProtocolViolationException("Can't start new data frame before finishing previous one")
+        }
         if (!frameType.controlFrame) {
-            lastOpcode = opcode
+            lastOpcode = if (fin) 0 else opcode
+        } else if (!fin) {
+            throw ProtocolViolationException("control frames can't be fragmented")
         }
         mask = maskAndLength1 and 0x80 != 0
         val length1 = maskAndLength1 and 0x7f
+
+        if (frameType.controlFrame && length1 > 125) {
+            throw ProtocolViolationException("control frames can't be larger than 125 bytes")
+        }
 
         lengthLength = when (length1) {
             126 -> 2
