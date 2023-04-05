@@ -116,7 +116,7 @@ public fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChan
 /**
  * Represents a connected socket
  */
-public interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket
+public interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket, CoroutineScope
 
 /**
  * Represents a server bound socket ready for accepting connections
