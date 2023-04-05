@@ -248,7 +248,7 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
                 context.segments.size - segmentIndex
             } else if (pathSegments[consumedLength] == '/') {
                 countSegments(result, consumedLength, prefix)
-            } else if (pathSegments[consumedLength - 1] == '/') {
+            } else if (consumedLength >= 1 && pathSegments[consumedLength - 1] == '/') {
                 countSegments(result, consumedLength - 1, prefix)
             } else {
                 return RouteSelectorEvaluation.Failed
@@ -258,7 +258,7 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
         val groups = result.groups as MatchNamedGroupCollection
         val parameters = Parameters.build {
             GROUP_NAME_MATCHER.findAll(regex.pattern).forEach { matchResult ->
-                val (name) = matchResult.destructured
+                val (_, name) = matchResult.destructured
                 val value = groups[name]?.value ?: ""
                 append(name, value)
             }
@@ -279,6 +279,6 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
     override fun toString(): String = "Regex(${regex.pattern})"
 
     public companion object {
-        private val GROUP_NAME_MATCHER = Regex("\\(\\?<(\\p{Alpha}\\p{Alnum}*)>[^)]*\\)")
+        private val GROUP_NAME_MATCHER = Regex("""(^|[^\\])\(\?<(\p{Alpha}\p{Alnum}*)>(.*?[^\\])?\)""")
     }
 }

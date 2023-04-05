@@ -198,11 +198,17 @@ class RegexRoutingTest {
                 get(Regex("/(?<group1>ok)")) {
                     assertEquals(1, call.parameters.names().size)
                 }
+
+                get(Regex("(?<a>\\(\\))")) {
+                    val a = call.parameters["a"]
+                    assertEquals("()", a)
+                }
             }
         }
 
         client.get("/(<notGroup>")
         client.get("/ok")
+        client.get("/()")
     }
 
     @Test
@@ -299,5 +305,19 @@ class RegexRoutingTest {
 
         assertEquals("qwe/rty/", client.get("qwe/rty").bodyAsText())
         assertEquals("qwe", client.get("qwe/").bodyAsText())
+    }
+
+    @Test
+    fun testNotGroup() = testApplication {
+        application {
+            routing {
+                get(Regex("""\(?<a>\)""")) {
+                    call.respondText("ok")
+                }
+            }
+        }
+
+        assertEquals("ok", client.get("/<a>)").bodyAsText())
+        assertEquals("ok", client.get("(<a>)").bodyAsText())
     }
 }
