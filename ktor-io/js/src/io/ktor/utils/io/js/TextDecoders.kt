@@ -13,7 +13,7 @@ import org.khronos.webgl.*
     )
 )
 public fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String =
-    readText(Charset.forName(encoding), max)
+    readText(charsetForName(encoding), max)
 
 @Deprecated(
     "Use readText with charset instead",
@@ -24,7 +24,7 @@ public fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): 
     )
 )
 public fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
-    return readText(out, Charset.forName(encoding), max)
+    return readText(out, charsetForName(encoding), max)
 }
 
 internal inline fun <R> decodeWrap(block: () -> R): R {
