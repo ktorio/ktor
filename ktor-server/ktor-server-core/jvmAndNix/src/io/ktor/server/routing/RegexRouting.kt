@@ -238,8 +238,8 @@ private fun Route.createRouteFromRegexPath(regex: Regex): Route {
 public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val prefix = if (regex.pattern.startsWith('/')) "/" else ""
-        val postfix = if (regex.pattern.endsWith('/')) "/" else ""
+        val prefix = if (regex.pattern.startsWith('/') || regex.pattern.startsWith("""\/""")) "/" else ""
+        val postfix = if (regex.pattern.endsWith('/') && context.call.ignoreTrailingSlash) "/" else ""
         val pathSegments = context.segments.drop(segmentIndex).joinToString("/", prefix, postfix)
         val result = regex.find(pathSegments) ?: return RouteSelectorEvaluation.Failed
 
@@ -247,9 +247,9 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
             if (pathSegments.length == consumedLength) {
                 context.segments.size - segmentIndex
             } else if (pathSegments[consumedLength] == '/') {
-                val segments = result.value.substring(0, consumedLength)
-                val count = segments.count { it == '/' }
-                if (prefix == "/") count else count + 1
+                countSegments(result, consumedLength, prefix)
+            } else if (consumedLength >= 1 && pathSegments[consumedLength - 1] == '/') {
+                countSegments(result, consumedLength - 1, prefix)
             } else {
                 return RouteSelectorEvaluation.Failed
             }
@@ -258,7 +258,7 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
         val groups = result.groups as MatchNamedGroupCollection
         val parameters = Parameters.build {
             GROUP_NAME_MATCHER.findAll(regex.pattern).forEach { matchResult ->
-                val (name) = matchResult.destructured
+                val (_, name) = matchResult.destructured
                 val value = groups[name]?.value ?: ""
                 append(name, value)
             }
@@ -270,9 +270,15 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
         )
     }
 
+    private fun countSegments(result: MatchResult, lastSlashPosition: Int, prefix: String): Int {
+        val segments = result.value.substring(0, lastSlashPosition)
+        val count = segments.count { it == '/' }
+        return if (prefix == "/") count else count + 1
+    }
+
     override fun toString(): String = "Regex(${regex.pattern})"
 
     public companion object {
-        private val GROUP_NAME_MATCHER = Regex("\\(\\?<(\\p{Alpha}\\p{Alnum}*)>[^)]*\\)")
+        private val GROUP_NAME_MATCHER = Regex("""(^|[^\\])\(\?<(\p{Alpha}\p{Alnum}*)>(.*?[^\\])?\)""")
     }
 }
