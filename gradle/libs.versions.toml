@@ -1,10 +1,10 @@
 [versions]
-kotlin-version = "1.8.22"
+kotlin-version = "1.9.20"
 kotlinx-html-version = "0.10.1"
-kotlinx-datetime = "0.4.1"
-coroutines-version = "1.7.2"
-atomicfu-version = "0.20.2"
-serialization-version = "1.5.1"
+kotlinx-datetime = "0.4.1-wasm1"
+coroutines-version = "1.7.2-wasm3"
+atomicfu-version = "0.22.0-wasm2"
+serialization-version = "1.6.1-wasm1"
 ktlint-version = "3.15.0"
 
 netty-version = "4.1.97.Final"

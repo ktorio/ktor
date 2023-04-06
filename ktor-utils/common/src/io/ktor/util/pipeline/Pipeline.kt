@@ -12,6 +12,9 @@ import kotlin.coroutines.*
 internal typealias PipelineInterceptorFunction<TSubject, TContext> =
     (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
 
+internal expect fun <TSubject : Any, TContext : Any> PipelineInterceptor<TSubject, TContext>.toPipelineInterceptor():
+    PipelineInterceptorFunction<TSubject, TContext>
+
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
@@ -144,15 +147,14 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         val phaseContent = findPhase(phase)
             ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
-        @Suppress("UNCHECKED_CAST")
-        block as PipelineInterceptorFunction<TSubject, TContext>
+        val suspendBlock = block.toPipelineInterceptor()
 
-        if (tryAddToPhaseFastPath(phase, block)) {
+        if (tryAddToPhaseFastPath(phase, suspendBlock)) {
             interceptorsQuantity++
             return
         }
 
-        phaseContent.addInterceptor(block)
+        phaseContent.addInterceptor(suspendBlock)
         interceptorsQuantity++
         resetInterceptorsList()
 

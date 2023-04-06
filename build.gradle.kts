@@ -5,6 +5,7 @@
 import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.*
+import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -45,6 +46,7 @@ buildscript {
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
     repositories {
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         mavenLocal()
         mavenCentral()
         google()
@@ -92,12 +94,8 @@ apply(from = "gradle/compatibility.gradle")
 plugins {
     id("org.jetbrains.dokka") version "1.9.10" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
-    id("kotlinx-atomicfu") version "0.22.0" apply false
+    id("kotlinx-atomicfu") version "0.22.0-wasm2" apply false
     id("com.osacky.doctor") version "0.9.0"
-}
-
-doctor {
-    enableTestCaching = false
 }
 
 doctor {
@@ -112,6 +110,7 @@ allprojects {
     setupTrainForSubproject()
 
     repositories {
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         mavenLocal()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
@@ -231,5 +230,35 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
         findByName("jvmTest")?.kotlin?.srcDirs("jvmAndNix/test")
         findByName("jvmMain")?.resources?.srcDirs("jvmAndNix/resources")
         findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
+    }
+}
+
+allprojects.forEach {
+    it.tasks.withType<KotlinJsCompile>().configureEach {
+        kotlinOptions.freeCompilerArgs += listOf(
+            "-Xskip-prerelease-check",
+        )
+    }
+}
+
+// Drop this configuration when the Node.JS version in KGP will support wasm gc milestone 4
+// check it here:
+// https://github.com/JetBrains/kotlin/blob/master/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/nodejs/NodeJsRootExtension.kt
+with(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.apply(rootProject)) {
+    // canary nodejs that supports recent Wasm GC changes
+    nodeVersion = "21.0.0-v8-canary202309167e82ab1fa2"
+    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
+}
+// Drop this when node js version become stable
+tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask::class).configureEach {
+    args.add("--ignore-engines")
+}
+
+
+allprojects.forEach {
+    it.tasks.whenTaskAdded {
+        if (name == "compileJsAndWasmSharedMainKotlinMetadata") {
+            enabled = false
+        }
     }
 }

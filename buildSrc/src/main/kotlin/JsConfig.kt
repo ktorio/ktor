@@ -14,7 +14,7 @@ fun Project.configureJs() {
         sourceSets {
             val jsTest by getting {
                 dependencies {
-                    implementation(npm("puppeteer", "*"))
+                    implementation(npm("puppeteer", "21.5.0"))
                 }
             }
         }
@@ -40,6 +40,7 @@ private fun Project.configureJsTasks() {
                 testTask(
                     Action {
                         useKarma {
+                            version = "3.2.0"
                             useChromeHeadless()
                             useConfigDirectory(File(project.rootProject.projectDir, "karma"))
                         }

@@ -6,6 +6,7 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -17,7 +18,9 @@ val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.n
 val Project.hasLinux: Boolean get() = hasNix || files.any { it.name == "linux" }
 val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
 val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
-val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" }
+val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWasmShared" }
+val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
+val Project.hasWasm: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
 val Project.hasNative: Boolean get() =
     hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
@@ -38,9 +41,43 @@ fun Project.configureTargets() {
             configureJs()
         }
 
+        if (hasWasm) {
+            @OptIn(ExperimentalWasmDsl::class)
+            wasmJs {
+                nodejs()
+                browser()
+            }
+
+            configureWasm()
+        }
+
         if (hasPosix || hasLinux || hasDarwin || hasWindows) extra.set("hasNative", true)
 
         sourceSets {
+            if (hasJsAndWasmShared) {
+                val commonMain by getting {}
+                val jsAndWasmSharedMain by creating {
+                    dependsOn(commonMain)
+                }
+                val commonTest by getting {}
+                val jsAndWasmSharedTest by creating {
+                    dependsOn(commonTest)
+                }
+
+                jsMain {
+                    dependsOn(jsAndWasmSharedMain)
+                }
+                jsTest {
+                    dependsOn(jsAndWasmSharedTest)
+                }
+                wasmJsMain {
+                    dependsOn(jsAndWasmSharedMain)
+                }
+                wasmJsTest {
+                    dependsOn(jsAndWasmSharedTest)
+                }
+            }
+
             if (hasPosix) {
                 val posixMain by creating
                 val posixTest by creating

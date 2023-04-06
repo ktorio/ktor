@@ -4,6 +4,7 @@
 
 pluginManagement {
     repositories {
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
         mavenCentral()
         google()
         gradlePluginPortal()
