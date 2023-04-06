@@ -172,11 +172,6 @@ internal class JavaHttpWebSocket(
         webSocket.request(1)
     }.asCompletableFuture()
 
-    override fun onPing(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.trySend(Frame.Ping(message)).isSuccess
-        webSocket.request(1)
-    }.asCompletableFuture()
-
     override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
         _incoming.trySend(Frame.Pong(message)).isSuccess
         webSocket.request(1)
