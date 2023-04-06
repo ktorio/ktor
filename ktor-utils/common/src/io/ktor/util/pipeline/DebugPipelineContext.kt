@@ -76,8 +76,7 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
             }
             val executeInterceptor = interceptors[index]
             this.index = index + 1
-            @Suppress("UNCHECKED_CAST")
-            (executeInterceptor as PipelineInterceptor<TSubject, TContext>).invoke(this, subject)
+            executeInterceptor.toInterceptor().invoke(this, subject)
         } while (true)
 
         return subject
