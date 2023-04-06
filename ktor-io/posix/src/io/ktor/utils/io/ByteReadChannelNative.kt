@@ -30,7 +30,7 @@ public actual interface ByteReadChannel {
      * Returns `true` if the channel is closed from the writer side.
      * The [availableForRead] can be > 0.
      */
-    public actual val isClosedForWrite: Boolean
+    public actual val isClosedForWrite2: Boolean
 
     /**
      * A closure causes exception or `null` if closed successfully or not yet closed

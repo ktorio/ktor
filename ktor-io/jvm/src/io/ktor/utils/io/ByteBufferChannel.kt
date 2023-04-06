@@ -101,6 +101,9 @@ internal open class ByteBufferChannel(
     override val isClosedForWrite: Boolean
         get() = closed != null
 
+    override val isClosedForWrite2: Boolean
+        get() = closed != null
+
     @Volatile
     override var totalBytesRead: Long = 0L
         internal set
@@ -2053,7 +2056,7 @@ internal open class ByteBufferChannel(
         return sb.toString()
     }
 
-    override suspend fun readRemaining(limit: Long): ByteReadPacket = if (isClosedForWrite) {
+    override suspend fun readRemaining(limit: Long): ByteReadPacket = if (isClosedForWrite2) {
         closedCause?.let { rethrowClosed(it) }
         remainingPacket(limit)
     } else {

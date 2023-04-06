@@ -23,7 +23,7 @@ public expect interface ByteReadChannel {
      */
     public val isClosedForRead: Boolean
 
-    public val isClosedForWrite: Boolean
+    public val isClosedForWrite2: Boolean
 
     /**
      * A closure causes exception or `null` if closed successfully or not yet closed

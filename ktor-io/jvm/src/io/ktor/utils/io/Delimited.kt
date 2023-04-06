@@ -83,7 +83,7 @@ private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
                     endFound = true
                     break
                 }
-                if (isClosedForWrite) {
+                if (isClosedForWrite2) {
                     break
                 } else {
                     awaitAtLeast(delimiter.remaining())
@@ -102,7 +102,7 @@ private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
     }
 
     return when {
-        copied > 0 && isClosedForWrite && !endFound -> copied + readAvailable(dst).coerceAtLeast(0)
+        copied > 0 && isClosedForWrite2 && !endFound -> copied + readAvailable(dst).coerceAtLeast(0)
         copied == 0 && isClosedForRead -> -1
         else -> copied
     }

@@ -172,7 +172,7 @@ class AutoHeadResponseTest {
         val response = client.head("test")
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(channel.isClosedForRead)
-        assertTrue(channel.isClosedForWrite)
+        assertTrue(channel.isClosedForWrite2)
     }
 
     private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {

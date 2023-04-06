@@ -55,6 +55,9 @@ public abstract class ByteChannelSequentialBase(
     override val isClosedForWrite: Boolean
         get() = closed
 
+    override val isClosedForWrite2: Boolean
+        get() = closed
+
     override val totalBytesRead: Long
         get() = _totalBytesRead.value
 

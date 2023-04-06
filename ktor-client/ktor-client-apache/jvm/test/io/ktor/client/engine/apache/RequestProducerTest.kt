@@ -229,7 +229,7 @@ private class TestEncoder : ContentEncoder {
         channel.close()
     }
 
-    override fun isCompleted(): Boolean = channel.isClosedForWrite
+    override fun isCompleted(): Boolean = channel.isClosedForWrite2
 }
 
 private class TestIOControl : IOControl {

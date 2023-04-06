@@ -27,7 +27,7 @@ public suspend inline fun ByteReadChannel.consumeEachBufferRange(visitor: Consum
                 else -> Memory.Empty.buffer
             }
 
-            lastChunkReported = nioBuffer.remaining() == availableForRead && isClosedForWrite
+            lastChunkReported = nioBuffer.remaining() == availableForRead && isClosedForWrite2
             continueFlag = visitor(nioBuffer, lastChunkReported)
 
             nioBuffer.position()

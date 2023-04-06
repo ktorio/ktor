@@ -141,7 +141,7 @@ internal class ApacheResponseConsumer(
     }
 
     override fun consume(src: ByteBuffer) {
-        if (channel.isClosedForWrite) {
+        if (channel.isClosedForWrite2) {
             channel.closedCause?.let { throw it }
         }
         messagesQueue.trySend(src.copy())

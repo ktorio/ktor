@@ -25,7 +25,7 @@ public actual interface ByteReadChannel {
      */
     public actual val isClosedForRead: Boolean
 
-    public actual val isClosedForWrite: Boolean
+    public actual val isClosedForWrite2: Boolean
 
     /**
      * A closure causes exception or `null` if closed successfully or not yet closed

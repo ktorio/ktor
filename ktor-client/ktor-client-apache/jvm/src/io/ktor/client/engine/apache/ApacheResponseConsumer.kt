@@ -93,7 +93,7 @@ internal class ApacheResponseConsumer(
     override fun getResult() {
     }
 
-    override fun isDone(): Boolean = channel.isClosedForWrite
+    override fun isDone(): Boolean = channel.isClosedForWrite2
 
     override fun responseCompleted(context: HttpContext) {
     }

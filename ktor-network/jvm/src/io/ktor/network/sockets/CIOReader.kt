@@ -91,7 +91,7 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
             null
         }
 
-        while (!channel.isClosedForWrite) {
+        while (!channel.isClosedForWrite2) {
             timeout.withTimeout {
                 val rc = channel.readFrom(nioChannel)
 
