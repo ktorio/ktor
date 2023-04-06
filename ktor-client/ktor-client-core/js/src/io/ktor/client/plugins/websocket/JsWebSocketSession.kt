@@ -127,7 +127,9 @@ internal class JsWebSocketSession(
             if (cause == null) {
                 websocket.close()
             } else {
-                websocket.close(CloseReason.Codes.INTERNAL_ERROR.code, "Client failed")
+                // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
+                // as sending it is not supported by browsers.
+                websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
             }
         }
     }
