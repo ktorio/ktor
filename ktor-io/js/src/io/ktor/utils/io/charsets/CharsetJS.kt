@@ -55,18 +55,18 @@ public actual val Charset.name: String get() = _name
 public actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 
-public actual val CharsetEncoder.charset: Charset get() = _charset
+public actual val CharsetEncoder.charset2: Charset get() = _charset
 
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
     encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     require(fromIndex <= toIndex)
-    if (charset == Charsets.ISO_8859_1) {
+    if (charset2 == Charsets.ISO_8859_1) {
         return encodeISO88591(input, fromIndex, toIndex, dst)
     }
 
-    require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
+    require(charset2 === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
     val encoder = TextEncoder() // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
@@ -92,7 +92,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
-    require(charset === Charsets.UTF_8)
+    require(charset2 === Charsets.UTF_8)
     // we only support UTF-8 so as far as input is UTF-8 encoded string then we simply copy bytes
     dst.writePacket(input)
 }

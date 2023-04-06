@@ -18,7 +18,7 @@ public actual val Charset.name: String get() = name()
 
 public actual typealias CharsetEncoder = java.nio.charset.CharsetEncoder
 
-public actual val CharsetEncoder.charset: Charset get() = charset()
+public actual val CharsetEncoder.charset2: Charset get() = charset()
 
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
@@ -56,7 +56,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
-    if (charset === Charsets.UTF_8) {
+    if (charset2 === Charsets.UTF_8) {
         dst.writePacket(input)
         return
     }

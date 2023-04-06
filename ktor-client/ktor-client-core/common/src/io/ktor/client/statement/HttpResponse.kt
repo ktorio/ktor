@@ -73,7 +73,7 @@ internal fun HttpResponse.complete() {
 }
 
 /**
- * Reads the [HttpResponse.content] as a String. You can pass an optional [charset]
+ * Reads the [HttpResponse.content] as a String. You can pass an optional [charset2]
  * to specify a charset in the case no one is specified as part of the `Content-Type` response.
  * If no charset specified either as parameter or as part of the response,
  * [io.ktor.client.plugins.HttpPlainText] settings will be used.

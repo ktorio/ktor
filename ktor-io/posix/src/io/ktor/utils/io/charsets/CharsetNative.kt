@@ -64,7 +64,7 @@ public actual val Charset.name: String get() = _name
 public actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 
-public actual val CharsetEncoder.charset: Charset get() = _charset
+public actual val CharsetEncoder.charset2: Charset get() = _charset
 
 private fun iconvCharsetName(name: String) = when (name) {
     "UTF-16" -> platformUtf16
@@ -124,7 +124,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
-    val cd = iconv_open(charset.name, "UTF-8")
+    val cd = iconv_open(charset2.name, "UTF-8")
     checkErrors(cd, "UTF-8")
 
     try {

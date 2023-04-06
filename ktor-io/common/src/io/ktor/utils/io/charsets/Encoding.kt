@@ -18,7 +18,7 @@ public expect val Charset.name: String
 // ----------------------------- ENCODER -------------------------------------------------------------------------------
 public expect abstract class CharsetEncoder
 
-public expect val CharsetEncoder.charset: Charset // TODO dumanskaya KT-57700
+public expect val CharsetEncoder.charset2: Charset // TODO dumanskaya KT-57700
 
 @Deprecated(
     "Use writeText on Output instead.",
