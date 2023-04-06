@@ -38,7 +38,7 @@ public expect interface ByteWriteChannel {
     /**
      * A closure causes exception or `null` if closed successfully or not yet closed
      */
-    public val closedCause: Throwable?
+    public val closedCause2: Throwable?
 
     /**
      * Writes as much as possible and only suspends if buffer is full

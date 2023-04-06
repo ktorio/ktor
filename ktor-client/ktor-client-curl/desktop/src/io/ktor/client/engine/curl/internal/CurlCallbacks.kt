@@ -38,7 +38,7 @@ internal fun onBodyChunkReceived(
 
     val body = wrapper.body
     if (body.isClosedForWrite) {
-        return if (body.closedCause != null) -1 else 0
+        return if (body.closedCause2 != null) -1 else 0
     }
 
     val chunkSize = (size * count).toInt()

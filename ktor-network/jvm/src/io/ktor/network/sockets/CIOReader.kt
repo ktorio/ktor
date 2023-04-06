@@ -112,7 +112,7 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
         }
 
         timeout?.finish()
-        channel.closedCause?.let { throw it }
+        channel.closedCause2?.let { throw it }
         channel.close()
     } finally {
         if (nioChannel is SocketChannel) {

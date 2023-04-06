@@ -115,6 +115,9 @@ internal open class ByteBufferChannel(
     override val closedCause: Throwable?
         get() = closed?.cause
 
+    override val closedCause2: Throwable?
+        get() = closed?.cause
+
     override fun close(cause: Throwable?): Boolean {
         if (closed != null) {
             return false
@@ -1175,8 +1178,8 @@ internal open class ByteBufferChannel(
             if (joined != null) {
                 check(src.tryCompleteJoining(joined))
             }
-            if (src.closedCause != null) {
-                close(src.closedCause)
+            if (src.closedCause2 != null) {
+                close(src.closedCause2)
             }
             return 0L
         }
@@ -1763,7 +1766,7 @@ internal open class ByteBufferChannel(
 
     @Deprecated("Use read { } instead.")
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
-        closedCause?.let { return visitor(FailedLookAhead(it)) }
+        closedCause2?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
             return visitor(TerminatedLookAhead)
         }
@@ -1775,7 +1778,7 @@ internal open class ByteBufferChannel(
         }
 
         if (!continueReading) {
-            closedCause?.let { return visitor(FailedLookAhead(it)) }
+            closedCause2?.let { return visitor(FailedLookAhead(it)) }
             return visitor(TerminatedLookAhead)
         }
 
@@ -1784,7 +1787,7 @@ internal open class ByteBufferChannel(
 
     @Deprecated("Use read { } instead.")
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
-        closedCause?.let { return visitor(FailedLookAhead(it)) }
+        closedCause2?.let { return visitor(FailedLookAhead(it)) }
         if (state === ReadWriteBufferState.Terminated) {
             return visitor(TerminatedLookAhead)
         }
@@ -1796,7 +1799,7 @@ internal open class ByteBufferChannel(
         }
 
         if (!rc) {
-            closedCause?.let { return visitor(FailedLookAhead(it)) }
+            closedCause2?.let { return visitor(FailedLookAhead(it)) }
             if (state === ReadWriteBufferState.Terminated) {
                 return visitor(TerminatedLookAhead)
             }
@@ -1932,7 +1935,7 @@ internal open class ByteBufferChannel(
 
     private suspend fun readUTF8LineToAscii(out: Appendable, limit: Int): Boolean {
         if (state === ReadWriteBufferState.Terminated) {
-            val cause = closedCause
+            val cause = closedCause2
             if (cause != null) throw cause
             return false
         }
@@ -2057,7 +2060,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun readRemaining(limit: Long): ByteReadPacket = if (isClosedForWrite2) {
-        closedCause?.let { rethrowClosed(it) }
+        closedCause2?.let { rethrowClosed(it) }
         remainingPacket(limit)
     } else {
         readRemainingSuspend(limit)
@@ -2090,7 +2093,7 @@ internal open class ByteBufferChannel(
             remaining > 0L && !isClosedForRead && readSuspend(1)
         }
 
-        closedCause?.let { throw it }
+        closedCause2?.let { throw it }
     }
 
     private fun resumeReadOp() {

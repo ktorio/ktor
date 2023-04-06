@@ -111,7 +111,7 @@ internal suspend fun writeRequest(
             chunkedJob?.channel?.close()
             chunkedJob?.join()
 
-            output.closedCause?.unwrapCancellationException()?.takeIf { it !is CancellationException }?.let {
+            output.closedCause2?.unwrapCancellationException()?.takeIf { it !is CancellationException }?.let {
                 throw it
             }
             if (closeChannel) {

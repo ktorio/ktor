@@ -40,7 +40,7 @@ public actual interface ByteWriteChannel {
     /**
      * A closure causes exception or `null` if closed successfully or not yet closed
      */
-    public actual val closedCause: Throwable?
+    public actual val closedCause2: Throwable?
 
     /**
      * Writes as much as possible and only suspends if buffer is full

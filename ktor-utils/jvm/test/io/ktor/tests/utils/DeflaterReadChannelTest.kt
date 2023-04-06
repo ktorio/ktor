@@ -167,6 +167,6 @@ class DeflaterReadChannelTest : CoroutineScope {
             }
         }
 
-        assertFailsWith(IOException::class) { throw deflateInputChannel!!.closedCause!! }
+        assertFailsWith(IOException::class) { throw deflateInputChannel!!.closedCause2!! }
     }
 }

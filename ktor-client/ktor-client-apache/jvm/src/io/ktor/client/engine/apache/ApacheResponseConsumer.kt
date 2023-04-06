@@ -88,7 +88,7 @@ internal class ApacheResponseConsumer(
         consumerJob.complete()
     }
 
-    override fun getException(): Exception? = channel.closedCause as? Exception
+    override fun getException(): Exception? = channel.closedCause2 as? Exception
 
     override fun getResult() {
     }

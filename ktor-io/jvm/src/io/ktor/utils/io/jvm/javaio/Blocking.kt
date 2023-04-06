@@ -90,7 +90,7 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
                         break
                     } else if (task === FlushToken) {
                         channel.flush()
-                        channel.closedCause?.let { throw it }
+                        channel.closedCause2?.let { throw it }
                     } else if (task is ByteArray) channel.writeFully(task, offset, length)
                 }
             } catch (t: Throwable) {
@@ -100,7 +100,7 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
                 throw t
             } finally {
                 if (!channel.close()) {
-                    channel.closedCause?.let { throw it }
+                    channel.closedCause2?.let { throw it }
                 }
             }
         }

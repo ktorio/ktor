@@ -69,6 +69,12 @@ public abstract class ByteChannelSequentialBase(
             error("Closed cause shouldn't be changed directly")
         }
 
+    final override var closedCause2: Throwable?
+        get() = _closed.value?.cause
+        set(_) {
+            error("Closed cause shouldn't be changed directly")
+        }
+
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
 
