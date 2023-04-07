@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  */
 internal fun recoverStackTraceBridge(exception: Throwable, continuation: Continuation<*>): Throwable = try {
     @Suppress("INVISIBLE_REFERENCE")
-    recoverStackTrace(exception, continuation).withCause(exception.cause)
+    recoverStackTrace(exception, continuation).withCause(exception.cause) //TODO dumanskaya KT-57776???
 } catch (_: Throwable) {
     exception
 }
