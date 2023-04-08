@@ -12,6 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -22,6 +23,7 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -40,6 +42,60 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 val text = call.receiveText()
                 call.respondText(text)
             }
+
+            route("/sse") {
+                val messages = Channel<String>()
+                get("/stream") {
+                    val body = object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.EventStream
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            for (message in messages) {
+                                channel.writeStringUtf8(message)
+                                channel.flush()
+                            }
+                        }
+                    }
+
+                    call.respond(body)
+                }
+                post("/next") {
+                    val message = call.receiveText()
+                    messages.send(message)
+                    call.respond("OK")
+                }
+                get("/done") {
+                    messages.close()
+                    call.respond("OK")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testClientSSE() = runBlocking {
+        val client = HttpClient(factory) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+                socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+                connectTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+            }
+        }
+
+        client.prepareGet("http://localhost:$serverPort/sse/stream").execute {
+            val body = it.bodyAsChannel()
+
+            repeat(10) {
+                client.post("http://localhost:$serverPort/sse/next") {
+                    setBody(TextContent("hello\n", ContentType.Text.Plain))
+                }
+
+                assertEquals("hello", body.readUTF8Line())
+            }
+
+            client.get("http://localhost:$serverPort/sse/done")
+            assertEquals(null, body.readUTF8Line())
         }
     }
 
@@ -61,7 +117,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 override fun resumeWith(result: Result<Unit>) {
                     latch.put(result)
                 }
-            }
+            },
         )
 
         latch.take().exceptionOrNull()?.let { throw it }

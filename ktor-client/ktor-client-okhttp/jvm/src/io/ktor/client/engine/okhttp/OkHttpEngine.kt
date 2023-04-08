@@ -170,6 +170,7 @@ private fun BufferedSource.toChannel(context: CoroutineContext, requestData: Htt
                         throw mapExceptions(cause, requestData)
                     }
                 }
+                channel.flush()
             }
         }
     }.channel
