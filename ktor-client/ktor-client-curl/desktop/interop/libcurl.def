@@ -1,6 +1,7 @@
 package = libcurl
-headers = curl.h
-headerFilter = *
+headers = curl/curl.h
+headerFilter = curl/*
+compilerOpts.mingw_x64 = -DCURL_STATICLIB
 
 linkerOpts.osx =             -lcurl \
                              -L/usr/lib64 \
@@ -9,19 +10,19 @@ linkerOpts.osx =             -lcurl \
                              -L/usr/local/opt/curl/lib \
                              -L/opt/homebrew/opt/curl/lib
 
-compilerOpts.osx =           -I/opt/local/include/curl \
-                             -I/usr/bin/curl \
-                             -I/usr/local/include/curl \
-                             -I/usr/include/curl \
-                             -I/usr/local/Cellar/curl/7.83.1/include/curl \
-                             -I/usr/local/Cellar/curl/7.81.0/include/curl \
-                             -I/usr/local/Cellar/curl/7.80.0_1/include/curl \
-                             -I/usr/local/Cellar/curl/7.80.0/include/curl \
-                             -I/usr/local/Cellar/curl/7.62.0/include/curl \
-                             -I/usr/local/Cellar/curl/7.63.0/include/curl \
-                             -I/usr/local/Cellar/curl/7.65.3/include/curl \
-                             -I/usr/local/Cellar/curl/7.66.0/include/curl \
-                             -I/opt/homebrew/opt/curl/include/curl
+compilerOpts.osx =           -I/opt/local/include/ \
+                             -I/usr/bin/ \
+                             -I/usr/local/include/ \
+                             -I/usr/include/ \
+                             -I/usr/local/Cellar/curl/7.83.1/include/ \
+                             -I/usr/local/Cellar/curl/7.81.0/include/ \
+                             -I/usr/local/Cellar/curl/7.80.0_1/include/ \
+                             -I/usr/local/Cellar/curl/7.80.0/include/ \
+                             -I/usr/local/Cellar/curl/7.62.0/include/ \
+                             -I/usr/local/Cellar/curl/7.63.0/include/ \
+                             -I/usr/local/Cellar/curl/7.65.3/include/ \
+                             -I/usr/local/Cellar/curl/7.66.0/include/ \
+                             -I/opt/homebrew/opt/curl/include/
 
 linkerOpts.linux =           -lcurl \
                              -L/usr/lib64 \
@@ -30,27 +31,29 @@ linkerOpts.linux =           -lcurl \
                              -L/usr/local/opt/curl/lib \
                              -L/opt/homebrew/opt/curl/lib
 
-compilerOpts.linux =         -I/usr/include/curl \
-                             -I/usr/include/x86_64-linux-gnu/curl \
-                             -I/opt/homebrew/opt/curl/include/curl
+compilerOpts.linux =         -I/usr/include/ \
+                             -I/usr/include/x86_64-linux-gnu/ \
+                             -I/opt/homebrew/opt/curl/include/
 
 staticLibraries.mingw_x64 = \
 libcurl.a \
-libcrypto.a \
-libbrotlidec.a \
-libcrypto.a \
-libidn2.a \
-libnghttp2.a \
-libpsl.a \
 libssh2.a \
-libz.a \
-libssl.a \
+libidn2.a \
+libpsl.a \
+libbrotlidec.a \
 libbrotlicommon.a \
-libiconv.a \
-libzstd.a \
-libgettextlib.a \
+libnghttp2.a \
 libunistring.a \
-libgettextpo.a
+libzstd.a \
+libssl.a \
+libcrypto.a \
 
-libraryPaths.mingw_x64 = C:/msys64/mingw64/lib C:/Tools/msys64/mingw64/lib C:/Tools/msys2/mingw64/lib
-linkerOpts.mingw_x64 = -fstack-protector -lcrypt32 -lwldap32
+libraryPaths = desktop/interop/mingwX64/lib
+
+linkerOpts.mingw_x64 = -Wl,-Bstatic -lstdc++ -static -fstack-protector \
+-lbcrypt \
+-lcrypt32 \
+-liconv \
+-lwldap32 \
+-lws2_32 \
+-lz
