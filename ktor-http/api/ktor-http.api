@@ -706,6 +706,7 @@ public final class io/ktor/http/HttpStatusCode$Companion {
 	public final fun getSwitchProxy ()Lio/ktor/http/HttpStatusCode;
 	public final fun getSwitchingProtocols ()Lio/ktor/http/HttpStatusCode;
 	public final fun getTemporaryRedirect ()Lio/ktor/http/HttpStatusCode;
+	public final fun getTooEarly ()Lio/ktor/http/HttpStatusCode;
 	public final fun getTooManyRequests ()Lio/ktor/http/HttpStatusCode;
 	public final fun getUnauthorized ()Lio/ktor/http/HttpStatusCode;
 	public final fun getUnprocessableEntity ()Lio/ktor/http/HttpStatusCode;
