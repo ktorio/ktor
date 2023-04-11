@@ -238,4 +238,19 @@ class WebSocketTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testCountPong() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/count-pong") {
+                send("count pong")
+                val countOfPongFrame = incoming.receive() as Frame.Text
+                assertEquals("1", countOfPongFrame.readText())
+            }
+        }
+    }
 }
