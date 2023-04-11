@@ -39,7 +39,7 @@ internal suspend fun writeHeaders(
     request: HttpRequestData,
     output: ByteWriteChannel,
     overProxy: Boolean,
-    closeChannel: Boolean
+    closeChannel: Boolean = true
 ) {
     val builder = RequestResponseBuilder()
 

@@ -144,7 +144,7 @@ internal class Endpoint(
         requestTime: GMTDate,
         overProxy: Boolean,
     ) = withContext(callContext) {
-        writeHeaders(request, output, overProxy, closeChannel = false)
+        writeHeaders(request, output, overProxy)
 
         val response = withTimeoutOrNull(CONTINUE_RESPONSE_TIMEOUT_MILLIS) {
             val job = Job()
