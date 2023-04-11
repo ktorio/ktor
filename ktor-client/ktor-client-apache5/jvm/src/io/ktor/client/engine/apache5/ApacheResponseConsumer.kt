@@ -5,26 +5,17 @@
 package io.ktor.client.engine.apache5
 
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import org.apache.hc.client5.http.async.methods.*
 import org.apache.hc.core5.concurrent.*
-import org.apache.hc.core5.function.*
 import org.apache.hc.core5.http.*
-import org.apache.hc.core5.http.HttpResponse
 import org.apache.hc.core5.http.nio.*
-import org.apache.hc.core5.http.nio.entity.*
 import org.apache.hc.core5.http.protocol.*
-import org.apache.hc.core5.util.*
-import java.io.*
 import java.nio.*
-import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
 private object CloseChannel
@@ -117,6 +108,7 @@ internal class ApacheResponseConsumer(
                     is ByteBuffer -> {
                         val written = message.remaining()
                         channel.writeFully(message)
+                        channel.flush()
                         when (capacityChannel) {
                             null -> capacity.addAndGet(written)
                             else -> capacityChannel!!.update(written)
