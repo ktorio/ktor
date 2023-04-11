@@ -19,6 +19,7 @@ import org.apache.hc.core5.http.ssl.*
 import org.apache.hc.core5.io.*
 import org.apache.hc.core5.reactor.*
 import org.apache.hc.core5.ssl.*
+import org.apache.hc.core5.util.*
 import java.net.*
 import java.util.concurrent.*
 
@@ -70,6 +71,23 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                 disableAuthCaching()
                 disableConnectionState()
                 disableCookieManagement()
+
+                val socketTimeoutMillis: Long = timeout?.socketTimeoutMillis ?: config.socketTimeout.toLong()
+                val socketTimeout = if (socketTimeoutMillis == HttpTimeout.INFINITE_TIMEOUT_MS) {
+                    null
+                } else {
+                    Timeout.of(
+                        socketTimeoutMillis,
+                        TimeUnit.MILLISECONDS
+                    )
+                }
+                val connectTimeoutMillis: Long = timeout?.connectTimeoutMillis ?: config.connectTimeout
+                val connectTimeout = if (connectTimeoutMillis == HttpTimeout.INFINITE_TIMEOUT_MS) {
+                    0
+                } else {
+                    connectTimeoutMillis
+                }
+
                 setConnectionManager(
                     PoolingAsyncClientConnectionManagerBuilder.create()
                         .setMaxConnTotal(MAX_CONNECTIONS_COUNT)
@@ -82,14 +100,8 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                         )
                         .setDefaultConnectionConfig(
                             ConnectionConfig.custom()
-                                .setConnectTimeout(
-                                    timeout?.connectTimeoutMillis ?: config.connectTimeout,
-                                    TimeUnit.MILLISECONDS
-                                )
-                                .setSocketTimeout(
-                                    timeout?.socketTimeoutMillis?.toInt() ?: config.socketTimeout,
-                                    TimeUnit.MILLISECONDS
-                                )
+                                .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                                .setSocketTimeout(socketTimeout)
                                 .build()
                         )
                         .build()
