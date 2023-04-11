@@ -68,6 +68,7 @@ internal class JavaHttpResponseBodyHandler(
                             }
 
                             responseChannel.writeFully(buffer)
+                            responseChannel.flush()
                         }
                     }
                 } catch (_: ClosedReceiveChannelException) {
