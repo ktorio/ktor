@@ -51,6 +51,7 @@ internal class ApacheResponseConsumer(
             channel.writeAvailable {
                 result = decoder.read(it)
             }
+            channel.flush()
         } while (result > 0)
 
         if (result < 0 || decoder.isCompleted) {

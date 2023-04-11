@@ -6,7 +6,6 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.util.*
 
 /**
  * A JVM client engine that uses the Java HTTP Client introduced in Java 11.
@@ -27,7 +26,6 @@ import io.ktor.util.*
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public object Java : HttpClientEngineFactory<JavaHttpConfig> {
-    @OptIn(InternalAPI::class)
     override fun create(block: JavaHttpConfig.() -> Unit): HttpClientEngine =
         JavaHttpEngine(JavaHttpConfig().apply(block))
 }

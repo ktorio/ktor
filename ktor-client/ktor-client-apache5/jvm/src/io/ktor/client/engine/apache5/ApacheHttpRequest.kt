@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
+import org.apache.hc.client5.http.*
 import org.apache.hc.client5.http.impl.async.*
 import org.apache.hc.core5.concurrent.*
 import org.apache.hc.core5.http.message.*
@@ -60,6 +61,7 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
 }
 
 internal fun mapCause(exception: Exception, requestData: HttpRequestData): Exception = when {
+    exception is ConnectTimeoutException -> ConnectTimeoutException(requestData, exception)
     exception is ConnectException && exception.isTimeoutException() -> ConnectTimeoutException(requestData, exception)
     exception is SocketTimeoutException -> SocketTimeoutException(requestData, exception)
     else -> exception
