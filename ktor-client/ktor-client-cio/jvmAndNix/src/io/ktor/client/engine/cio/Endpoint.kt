@@ -174,7 +174,10 @@ internal class Endpoint(
                     writeBody(request, output, callContext)
                 }
 
-                else -> return@withContext response
+                else -> {
+                    output.close()
+                    return@withContext response
+                }
             }
         } else {
             writeBody(request, output, callContext)
