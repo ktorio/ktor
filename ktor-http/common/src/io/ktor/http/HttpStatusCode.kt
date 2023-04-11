@@ -85,6 +85,7 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
         public val UnprocessableEntity: HttpStatusCode = HttpStatusCode(422, "Unprocessable Entity")
         public val Locked: HttpStatusCode = HttpStatusCode(423, "Locked")
         public val FailedDependency: HttpStatusCode = HttpStatusCode(424, "Failed Dependency")
+        public val TooEarly: HttpStatusCode = HttpStatusCode(425, "Too Early")
         public val UpgradeRequired: HttpStatusCode = HttpStatusCode(426, "Upgrade Required")
         public val TooManyRequests: HttpStatusCode = HttpStatusCode(429, "Too Many Requests")
 
@@ -170,6 +171,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.UnprocessableEntity,
     HttpStatusCode.Locked,
     HttpStatusCode.FailedDependency,
+    HttpStatusCode.TooEarly,
     HttpStatusCode.UpgradeRequired,
     HttpStatusCode.TooManyRequests,
     HttpStatusCode.RequestHeaderFieldTooLarge,
