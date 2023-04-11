@@ -176,7 +176,7 @@ internal suspend fun readResponse(
 
         val body = when {
             request.method == HttpMethod.Head ||
-                status in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent, HttpStatusCode.Continue) ||
+                status in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent) ||
                 status.isInformational() -> {
                 ByteReadChannel.Empty
             }
