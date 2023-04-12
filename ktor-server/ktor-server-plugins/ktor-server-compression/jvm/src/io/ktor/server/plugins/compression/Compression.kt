@@ -10,12 +10,9 @@ import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
-import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.Compression")
 
@@ -40,6 +37,29 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
         handler: suspend Context.(ApplicationCall) -> Unit
     ) {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
+            handler(Context(this), call)
+        }
+    }
+}
+
+private object ContentDecoding : Hook<suspend ContentDecoding.Context.(ApplicationCall) -> Unit> {
+
+    class Context(private val pipelineContext: PipelineContext<Any, ApplicationCall>) {
+        fun transformBody(block: (ByteReadChannel) -> ByteReadChannel?) {
+            val transformedContent = block(pipelineContext.subject as ByteReadChannel)
+            if (transformedContent != null) {
+                pipelineContext.subject = transformedContent
+            }
+        }
+    }
+
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: suspend Context.(ApplicationCall) -> Unit
+    ) {
+        val beforeTransform = PipelinePhase("BeforeTransform")
+        pipeline.receivePipeline.insertPhaseBefore(ApplicationReceivePipeline.Transform, beforeTransform)
+        pipeline.receivePipeline.intercept(beforeTransform) {
             handler(Context(this), call)
         }
     }
@@ -71,140 +91,92 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
         pluginConfig.default()
     }
     val options = pluginConfig.buildOptions()
+
+    on(ContentEncoding) { call ->
+        encode(call, options)
+    }
+    on(ContentDecoding) { call ->
+        decode(call, options)
+    }
+}
+
+private fun ContentDecoding.Context.decode(call: ApplicationCall, options: CompressionOptions) {
+    val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
+    if (encodingRaw == null) {
+        LOGGER.trace("Skip decompression for ${call.request.uri} because no content encoding provided.")
+        return
+    }
+    val encoding = parseHeaderValue(encodingRaw)
+    val encoders = encoding.mapNotNull { options.encoders[it.value] }
+    if (encoders.isEmpty()) {
+        LOGGER.trace("Skip decompression for ${call.request.uri} because no suitable encoders found.")
+        return
+    }
+    if (encoding.size > encoders.size) {
+        val missingEncoders = encoding.map { it.value } - encoders.map { it.encoder.name }.toSet()
+        LOGGER.trace(
+            "Skip some of decompression for ${call.request.uri} " +
+                "because no suitable encoders found for $missingEncoders"
+        )
+    }
+    transformBody { channel ->
+        encoders.fold(channel) { content, encoder -> encoder.encoder.decode(content) }
+    }
+}
+
+private fun ContentEncoding.Context.encode(call: ApplicationCall, options: CompressionOptions) {
     val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
         { it.second.quality },
         { it.first.priority }
     ).reversed()
 
-    on(ContentEncoding) { call ->
-        val acceptEncodingRaw = call.request.acceptEncoding()
-        if (acceptEncodingRaw == null) {
-            LOGGER.trace("Skip compression because no accept encoding provided.")
-            return@on
-        }
+    val acceptEncodingRaw = call.request.acceptEncoding()
+    if (acceptEncodingRaw == null) {
+        LOGGER.trace("Skip compression for ${call.request.uri} because no accept encoding provided.")
+        return
+    }
 
-        if (call.isCompressionSuppressed()) {
-            LOGGER.trace("Skip compression because it is suppressed.")
-            return@on
-        }
+    if (call.isCompressionSuppressed) {
+        LOGGER.trace("Skip compression for ${call.request.uri} because it is suppressed.")
+        return
+    }
 
-        val encoders = parseHeaderValue(acceptEncodingRaw)
-            .filter { it.value == "*" || it.value in options.encoders }
-            .flatMap { header ->
-                when (header.value) {
-                    "*" -> options.encoders.values.map { it to header }
-                    else -> options.encoders[header.value]?.let { listOf(it to header) } ?: emptyList()
-                }
-            }
-            .sortedWith(comparator)
-            .map { it.first }
-
-        if (encoders.isEmpty()) {
-            LOGGER.trace("Skip compression because no encoders provided.")
-            return@on
-        }
-
-        transformBody { message ->
-            if (message is CompressedResponse) {
-                LOGGER.trace("Skip compression because it's already compressed.")
-                return@transformBody null
-            }
-            if (options.conditions.any { !it(call, message) }) {
-                LOGGER.trace("Skip compression because preconditions doesn't meet.")
-                return@transformBody null
-            }
-
-            val encodingHeader = message.headers[HttpHeaders.ContentEncoding]
-            if (encodingHeader != null) {
-                LOGGER.trace("Skip compression because content is already encoded.")
-                return@transformBody null
-            }
-
-            val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
-
-            if (encoderOptions == null) {
-                LOGGER.trace("Skip compression because no suitable encoder found.")
-                return@transformBody null
-            }
-
-            LOGGER.trace("Encoding body using ${encoderOptions.name}.")
-            return@transformBody when (message) {
-                is OutgoingContent.ReadChannelContent -> CompressedResponse(
-                    message,
-                    { message.readFrom() },
-                    encoderOptions.name,
-                    encoderOptions.encoder
-                )
-                is OutgoingContent.WriteChannelContent -> {
-                    CompressedWriteResponse(
-                        message,
-                        encoderOptions.name,
-                        encoderOptions.encoder
-                    )
-                }
-                is OutgoingContent.ByteArrayContent -> CompressedResponse(
-                    message,
-                    { ByteReadChannel(message.bytes()) },
-                    encoderOptions.name,
-                    encoderOptions.encoder
-                )
-                is OutgoingContent.NoContent -> null
-                is OutgoingContent.ProtocolUpgrade -> null
+    val encoders = parseHeaderValue(acceptEncodingRaw)
+        .filter { it.value == "*" || it.value in options.encoders }
+        .flatMap { header ->
+            when (header.value) {
+                "*" -> options.encoders.values.map { it to header }
+                else -> options.encoders[header.value]?.let { listOf(it to header) } ?: emptyList()
             }
         }
+        .sortedWith(comparator)
+        .map { it.first }
+
+    if (encoders.isEmpty()) {
+        LOGGER.trace("Skip compression for ${call.request.uri} because no encoders provided.")
+        return
+    }
+
+    transformBody { message ->
+        if (options.conditions.any { !it(call, message) }) {
+            LOGGER.trace("Skip compression for ${call.request.uri} because preconditions doesn't meet.")
+            return@transformBody null
+        }
+
+        val encodingHeader = message.headers[HttpHeaders.ContentEncoding]
+        if (encodingHeader != null) {
+            LOGGER.trace("Skip compression for ${call.request.uri} because content is already encoded.")
+            return@transformBody null
+        }
+
+        val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
+
+        if (encoderOptions == null) {
+            LOGGER.trace("Skip compression for ${call.request.uri} because no suitable encoder found.")
+            return@transformBody null
+        }
+
+        LOGGER.trace("Encoding body for ${call.request.uri} using ${encoderOptions.encoder.name}.")
+        return@transformBody message.compressed(encoderOptions.encoder)
     }
 }
-
-private class CompressedResponse(
-    val original: OutgoingContent,
-    val delegateChannel: () -> ByteReadChannel,
-    val encoding: String,
-    val encoder: CompressionEncoder
-) : OutgoingContent.ReadChannelContent() {
-    override fun readFrom() = encoder.compress(delegateChannel())
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        Headers.build {
-            appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
-            append(HttpHeaders.ContentEncoding, encoding)
-        }
-    }
-
-    override val contentType: ContentType? get() = original.contentType
-    override val status: HttpStatusCode? get() = original.status
-    override val contentLength: Long?
-        get() = original.contentLength?.let { encoder.predictCompressedLength(it) }?.takeIf { it >= 0 }
-
-    override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
-    override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
-}
-
-private class CompressedWriteResponse(
-    val original: WriteChannelContent,
-    val encoding: String,
-    val encoder: CompressionEncoder
-) : OutgoingContent.WriteChannelContent() {
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        Headers.build {
-            appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
-            append(HttpHeaders.ContentEncoding, encoding)
-        }
-    }
-
-    override val contentType: ContentType? get() = original.contentType
-    override val status: HttpStatusCode? get() = original.status
-    override val contentLength: Long?
-        get() = original.contentLength?.let { encoder.predictCompressedLength(it) }?.takeIf { it >= 0 }
-
-    override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
-    override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
-
-    override suspend fun writeTo(channel: ByteWriteChannel) {
-        coroutineScope {
-            encoder.compress(channel, coroutineContext).use {
-                original.writeTo(this)
-            }
-        }
-    }
-}
-
-private fun ApplicationCall.isCompressionSuppressed() = SuppressionAttribute in attributes

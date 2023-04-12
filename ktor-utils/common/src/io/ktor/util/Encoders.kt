@@ -5,15 +5,26 @@
 package io.ktor.util
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * Empty [Encoder] that doesn't do any changes.
  */
 public object Identity : Encoder {
-    override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel = source
+    override fun encode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = source
 
-    override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel = source
+    override fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel = source
+
+    override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = source
 }
 
 /**
@@ -23,10 +34,24 @@ public interface Encoder {
     /**
      * Launch coroutine to encode [source] bytes.
      */
-    public fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel
+    public fun encode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext = EmptyCoroutineContext
+    ): ByteReadChannel
+
+    /**
+     * Launch coroutine to encode [source] bytes.
+     */
+    public fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext = EmptyCoroutineContext
+    ): ByteWriteChannel
 
     /**
      * Launch coroutine to decode [source] bytes.
      */
-    public fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel
+    public fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext = EmptyCoroutineContext
+    ): ByteReadChannel
 }

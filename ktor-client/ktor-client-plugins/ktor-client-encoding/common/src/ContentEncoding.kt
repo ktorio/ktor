@@ -9,8 +9,10 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
@@ -48,7 +50,7 @@ public class ContentEncoding private constructor(
         request.headers[HttpHeaders.AcceptEncoding] = requestHeader
     }
 
-    private fun CoroutineScope.decode(response: HttpResponse, content: ByteReadChannel): ByteReadChannel {
+    private fun decode(response: HttpResponse, content: ByteReadChannel): ByteReadChannel {
         val encodings = response.headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
             ?: run {
                 LOGGER.trace(
@@ -64,7 +66,7 @@ public class ContentEncoding private constructor(
 
             LOGGER.trace("Recoding response with $encoder for ${response.call.request.url}")
             with(encoder) {
-                current = decode(current)
+                current = decode(current, response.coroutineContext)
             }
         }
 
@@ -140,6 +142,26 @@ public class ContentEncoding private constructor(
                 plugin.setRequestHeaders(context)
             }
 
+            val afterRenderPhase = PipelinePhase("AfterRender")
+            scope.requestPipeline.insertPhaseAfter(HttpRequestPipeline.Render, afterRenderPhase)
+            scope.requestPipeline.intercept(afterRenderPhase) {
+                val encoderNames = context.attributes.getOrNull(CompressionListAttribute) ?: run {
+                    LOGGER.trace("Skipping request compression for ${context.url} because no compressions set")
+                    return@intercept
+                }
+
+                LOGGER.trace("Compressing request body for ${context.url} using $encoderNames")
+                val encoders = encoderNames.map {
+                    plugin.encoders[it] ?: throw UnsupportedContentEncodingException(it)
+                }
+
+                if (encoders.isEmpty()) return@intercept
+                val content = encoders.fold(subject as OutgoingContent) { compressed, encoder ->
+                    compressed.compressed(encoder, context.executionContext) ?: compressed
+                }
+                proceedWith(content)
+            }
+
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) { (type, content) ->
                 val method = context.request.method
                 val contentLength = context.response.contentLength()
@@ -149,7 +171,7 @@ public class ContentEncoding private constructor(
                 if (content !is ByteReadChannel) return@intercept
 
                 val response = with(plugin) {
-                    HttpResponseContainer(type, context.decode(context.response, content))
+                    HttpResponseContainer(type, decode(context.response, content))
                 }
 
                 proceedWith(response)
@@ -176,3 +198,23 @@ public fun HttpClientConfig<*>.ContentEncoding(
 @Suppress("KDocMissingDocumentation")
 public class UnsupportedContentEncodingException(encoding: String) :
     IllegalStateException("Content-Encoding: $encoding unsupported.")
+
+internal val CompressionListAttribute: AttributeKey<List<String>> = AttributeKey("CompressionListAttribute")
+
+/**
+ * Compresses request body using [ContentEncoding] plugin.
+ *
+ * @param contentEncoderName names of compression encoders to use, such as "gzip", "deflate", etc
+ */
+public fun HttpRequestBuilder.compress(vararg contentEncoderName: String) {
+    attributes.put(CompressionListAttribute, contentEncoderName.toList())
+}
+
+/**
+ * Compress request body using [ContentEncoding] plugin.
+ *
+ * @param contentEncoderNames names of compression encoders to use, such as "gzip", "deflate", etc
+ */
+public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
+    attributes.put(CompressionListAttribute, contentEncoderNames)
+}
