@@ -117,7 +117,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
         }
         return
     }
-    attributes.put(SuppressionAttribute, true)
+    suppressCompression()
     @Suppress("DEPRECATION")
     val compressedFile = bestCompressionFit.file(requestedFile)
     if (compressedFile.isFile) {
@@ -151,7 +151,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
             respond(HttpStatusCode.Forbidden)
             return
         }
-        attributes.put(SuppressionAttribute, true)
+        suppressCompression()
         val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
         modifier(bestCompressionFit.url, this)

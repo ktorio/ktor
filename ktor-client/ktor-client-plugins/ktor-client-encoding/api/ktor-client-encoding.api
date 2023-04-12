@@ -1,7 +1,3 @@
-public abstract interface class io/ktor/client/plugins/compression/ContentEncoder : io/ktor/util/Encoder {
-	public abstract fun getName ()Ljava/lang/String;
-}
-
 public final class io/ktor/client/plugins/compression/ContentEncoding {
 	public static final field Companion Lio/ktor/client/plugins/compression/ContentEncoding$Companion;
 	public synthetic fun <init> (Ljava/util/Map;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -17,8 +13,8 @@ public final class io/ktor/client/plugins/compression/ContentEncoding$Companion 
 
 public final class io/ktor/client/plugins/compression/ContentEncoding$Config {
 	public fun <init> ()V
-	public final fun customEncoder (Lio/ktor/client/plugins/compression/ContentEncoder;Ljava/lang/Float;)V
-	public static synthetic fun customEncoder$default (Lio/ktor/client/plugins/compression/ContentEncoding$Config;Lio/ktor/client/plugins/compression/ContentEncoder;Ljava/lang/Float;ILjava/lang/Object;)V
+	public final fun customEncoder (Lio/ktor/util/ContentEncoder;Ljava/lang/Float;)V
+	public static synthetic fun customEncoder$default (Lio/ktor/client/plugins/compression/ContentEncoding$Config;Lio/ktor/util/ContentEncoder;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun deflate (Ljava/lang/Float;)V
 	public static synthetic fun deflate$default (Lio/ktor/client/plugins/compression/ContentEncoding$Config;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun gzip (Ljava/lang/Float;)V
@@ -30,6 +26,8 @@ public final class io/ktor/client/plugins/compression/ContentEncoding$Config {
 public final class io/ktor/client/plugins/compression/ContentEncodingKt {
 	public static final fun ContentEncoding (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun ContentEncoding$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;Ljava/util/List;)V
+	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;[Ljava/lang/String;)V
 }
 
 public final class io/ktor/client/plugins/compression/UnsupportedContentEncodingException : java/lang/IllegalStateException {

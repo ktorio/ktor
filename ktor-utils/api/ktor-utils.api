@@ -128,6 +128,15 @@ public final class io/ktor/util/CollectionsKt {
 	public static final fun caseInsensitiveMap ()Ljava/util/Map;
 }
 
+public abstract interface class io/ktor/util/ContentEncoder : io/ktor/util/Encoder {
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/util/ContentEncoder$DefaultImpls {
+	public static fun predictCompressedLength (Lio/ktor/util/ContentEncoder;J)Ljava/lang/Long;
+}
+
 public final class io/ktor/util/CoroutinesUtilsKt {
 	public static final fun SilentSupervisor (Lkotlinx/coroutines/Job;)Lkotlin/coroutines/CoroutineContext;
 	public static synthetic fun SilentSupervisor$default (Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlin/coroutines/CoroutineContext;
@@ -148,6 +157,15 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun sha1 ([B)[B
 }
 
+public final class io/ktor/util/DeflateEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/DeflateEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
 public final class io/ktor/util/DeflaterKt {
 	public static final fun deflated (Lio/ktor/utils/io/ByteReadChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun deflated (Lio/ktor/utils/io/ByteWriteChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
@@ -162,13 +180,29 @@ public abstract interface class io/ktor/util/Digest {
 }
 
 public abstract interface class io/ktor/util/Encoder {
-	public abstract fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
-	public abstract fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/util/Encoder$DefaultImpls {
+	public static synthetic fun decode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun encode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun encode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public final class io/ktor/util/EncodersJvmKt {
 	public static final fun getDeflate ()Lio/ktor/util/Encoder;
 	public static final fun getGZip ()Lio/ktor/util/Encoder;
+}
+
+public final class io/ktor/util/GZipEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/GZipEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
 }
 
 public final class io/ktor/util/GenerateOnlyNonceManager : io/ktor/util/NonceManager {
@@ -184,8 +218,18 @@ public final class io/ktor/util/Hash {
 
 public final class io/ktor/util/Identity : io/ktor/util/Encoder {
 	public static final field INSTANCE Lio/ktor/util/Identity;
-	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
-	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/util/IdentityEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/IdentityEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
 }
 
 public final class io/ktor/util/InputJvmKt {

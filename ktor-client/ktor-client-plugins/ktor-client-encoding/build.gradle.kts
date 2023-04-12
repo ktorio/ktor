@@ -5,3 +5,11 @@
 useJdkVersionForJvmTests(11)
 
 apply<test.server.TestServerPlugin>()
+
+kotlin.sourceSets {
+    jvmTest {
+        dependencies {
+            api(project(":ktor-server:ktor-server-test-host"))
+        }
+    }
+}

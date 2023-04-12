@@ -58,7 +58,7 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRoute
             return@onCall
         }
 
-        call.attributes.put(SuppressionAttribute, true)
+        call.suppressCompression()
     }
 
     on(BodyTransformedHook) { call, message ->
