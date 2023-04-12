@@ -33,9 +33,21 @@ public class DataUrl(
         }
     }
 
+    public override fun toString(): String {
+        return originalUrl
+    }
+
     internal companion object {
-        internal fun parse(str: String, startIndex: Int): DataUrl {
-            var i = startIndex
+        internal fun parse(str: String): DataUrl {
+            var i = 0
+
+            val protocol = StringBuilder(4)
+            while (i < str.length && str[i] != ':') {
+                protocol.append(str[i++])
+            }
+
+            i += 1 // Skip colon
+
             val mimeType = StringBuilder(16)
             val maybeBase64 = StringBuilder(7)
             var base64Start = -1
@@ -50,7 +62,8 @@ public class DataUrl(
                     }
 
                     if (i >= str.length) {
-                        throw IllegalArgumentException("Expect , at position $i")
+                        throwError(str, "Expect , at position $i")
+//                        throw IllegalArgumentException("Expect , at position $i")
                     }
                     isBase64 = str[i] != '='
                     if (isBase64) {
@@ -65,11 +78,11 @@ public class DataUrl(
             }
 
             if (isBase64 && maybeBase64.toString() != ";base64") {
-                throw IllegalArgumentException("Expect ';base64' string at position $base64Start")
+                throwError(str, "Expect ';base64' string at position $base64Start")
             }
 
             if (i >= str.length) {
-                throw IllegalArgumentException("Expect , or ; at position $i")
+                throwError(str, "Expect , or ; at position $i")
             }
 
             if (str[i] == ',') {
@@ -79,7 +92,11 @@ public class DataUrl(
             val contentType = if (mimeType.isEmpty()) {
                 ContentType.Text.Plain.withCharset(Charsets.US_ASCII)
             } else {
-                ContentType.parse(mimeType.toString())
+                try {
+                    ContentType.parse(mimeType.toString())
+                } catch (cause: BadContentTypeFormatException) {
+                    throw URLParserException(str, cause)
+                }
             }
 
             return DataUrl(
@@ -91,5 +108,10 @@ public class DataUrl(
             )
         }
     }
-
 }
+
+private fun throwError(urlString: String, message: String) {
+    throw URLParserException(urlString, IllegalArgumentException(message))
+}
+
+public fun DataUrl(urlString: String): DataUrl = DataUrl.parse(urlString)

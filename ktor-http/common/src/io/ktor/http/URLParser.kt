@@ -43,8 +43,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     if (protocol == URLProtocol.DATA) {
-        dataUrl = DataUrl.parse(urlString, startIndex)
-        return this
+        throw IllegalArgumentException("Cannot parse data protocol")
     }
 
     // Auth & Host

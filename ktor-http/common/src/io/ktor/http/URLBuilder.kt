@@ -31,8 +31,7 @@ public class URLBuilder(
     pathSegments: List<String> = emptyList(),
     parameters: Parameters = Parameters.Empty,
     fragment: String = "",
-    public var trailingQuery: Boolean = false,
-    public var dataUrl: DataUrl? = null
+    public var trailingQuery: Boolean = false
 ) {
     public var encodedUser: String? = user?.encodeURLParameter()
 
@@ -101,7 +100,6 @@ public class URLBuilder(
             user = user,
             password = password,
             trailingQuery = trailingQuery,
-            asDataUrl = dataUrl,
             urlString = buildString()
         )
     }
@@ -130,33 +128,6 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
 
         "mailto" -> {
             out.appendMailto(encodedUserAndPassword, host)
-            return out
-        }
-
-        "data" -> {
-            val dataUrl = dataUrl!!
-
-            out.append(':')
-            if (dataUrl.contentTypeDefined) {
-                out.append(dataUrl.contentType.contentType)
-                out.append('/')
-                out.append(dataUrl.contentType.contentSubtype)
-
-                dataUrl.contentType.parameters.forEach { param ->
-                    out.append(';')
-                    out.append(param.name)
-                    out.append('=')
-                    out.append(param.value)
-                }
-            }
-
-            if (dataUrl.inBase64) {
-                out.append(";base64")
-            }
-
-            out.append(',')
-            out.append(dataUrl.originalUrl.subSequence(dataUrl.dataIndex until dataUrl.originalUrl.length))
-
             return out
         }
     }
