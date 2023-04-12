@@ -113,9 +113,11 @@ class DataUrlTest {
             "data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E",
             "data:text/html;charset=UTF-8;param=value,data",
             "data:text/plain;charset=UTF-8;param=value;base64,ZGF0YQ==",
-            ("data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20" +
-                "xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2F" +
-                "svg%22%20width%3D%221%22%20height%3D%221%22%2F%3E").trimIndent().encodeURLPath(encodeSlash = false)
+            (
+                "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20" +
+                    "xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2F" +
+                    "svg%22%20width%3D%221%22%20height%3D%221%22%2F%3E"
+                ).trimIndent().encodeURLPath(encodeSlash = false)
         ).forEach {
             assertEquals(it, DataUrl(it).toString())
         }
