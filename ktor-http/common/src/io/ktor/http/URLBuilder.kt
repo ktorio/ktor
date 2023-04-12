@@ -31,7 +31,8 @@ public class URLBuilder(
     pathSegments: List<String> = emptyList(),
     parameters: Parameters = Parameters.Empty,
     fragment: String = "",
-    public var trailingQuery: Boolean = false
+    public var trailingQuery: Boolean = false,
+    public var dataUrl: DataUrl? = null
 ) {
     public var encodedUser: String? = user?.encodeURLParameter()
 
@@ -100,6 +101,7 @@ public class URLBuilder(
             user = user,
             password = password,
             trailingQuery = trailingQuery,
+            asDataUrl = dataUrl,
             urlString = buildString()
         )
     }

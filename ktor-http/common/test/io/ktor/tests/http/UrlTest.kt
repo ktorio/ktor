@@ -316,4 +316,102 @@ class UrlTest {
         assertTrue(Url("").isRelativePath)
         assertTrue(Url("hello/world").isRelativePath)
     }
+
+    @Test
+    fun testParsingDataUrl() {
+        Url("data:,").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(URLProtocol.DATA, it.protocol)
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.US_ASCII), dataUrl.contentType)
+            assertContentEquals(ByteArray(0), dataUrl.data)
+        }
+
+        Url("data:,Hello%2C%20World%21").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertContentEquals("Hello, World!".toByteArray(Charsets.US_ASCII), dataUrl.data)
+        }
+
+        Url("data:;base64,SGVsbG8sIFdvcmxkIQ==").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertContentEquals("Hello, World!".toByteArray(Charsets.US_ASCII), dataUrl.data)
+        }
+
+        Url("data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(ContentType.Text.Plain, dataUrl.contentType)
+            assertContentEquals("Hello, World!".toByteArray(Charsets.US_ASCII), dataUrl.data)
+        }
+
+        Url("data:text/plain;charset=UTF-8,%CF%94").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), dataUrl.contentType)
+            assertContentEquals("ϔ".toByteArray(Charsets.UTF_8), dataUrl.data)
+        }
+
+        Url("data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(ContentType.Text.Html, dataUrl.contentType)
+            assertContentEquals("<h1>Hello, World!</h1>".toByteArray(Charsets.UTF_8), dataUrl.data)
+        }
+
+        Url("data:text/html;charset=UTF-8;param=value,data").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(
+                ContentType.Text.Html.withCharset(Charsets.UTF_8).withParameter("param", "value"),
+                dataUrl.contentType
+            )
+            assertContentEquals("data".toByteArray(Charsets.UTF_8), dataUrl.data)
+        }
+
+        Url("data:text/plain;charset=UTF-8;param=value;base64,ZGF0YQ==").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(
+                ContentType.Text.Plain.withCharset(Charsets.UTF_8).withParameter("param", "value"),
+                dataUrl.contentType
+            )
+            assertContentEquals("data".toByteArray(Charsets.UTF_8), dataUrl.data)
+        }
+
+        val svg = """
+            <?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>
+        """.trimIndent()
+        Url("data:image/svg+xml,${svg.encodeURLPath(encodeSlash = false)}").let {
+            val dataUrl = it.asDataUrl
+            assertNotNull(dataUrl)
+            assertEquals(ContentType.Image.SVG, dataUrl.contentType)
+            assertContentEquals(svg.toByteArray(Charsets.UTF_8), dataUrl.data)
+        }
+
+        assertFailsWith<URLParserException> {
+            Url("data:")
+        }.let {
+            assertEquals("Expect , or ; at position 5", it.cause?.message)
+        }
+
+        assertFailsWith<URLParserException> {
+            Url("data:media-type,")
+        }.let {
+            assertEquals("Bad Content-Type format: media-type", it.cause?.message)
+        }
+
+        assertFailsWith<URLParserException> {
+            Url("data:;base42,")
+        }.let {
+            assertEquals("Expect ';base64' string at position 5", it.cause?.message)
+        }
+
+        assertFailsWith<URLParserException> {
+            Url("data:;base64")
+        }.let {
+            assertEquals("Expect , at position 12", it.cause?.message)
+        }
+    }
 }

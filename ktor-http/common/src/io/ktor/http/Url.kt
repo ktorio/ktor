@@ -28,7 +28,8 @@ public class Url internal constructor(
     public val user: String?,
     public val password: String?,
     public val trailingQuery: Boolean,
-    private val urlString: String
+    private val urlString: String,
+    public val asDataUrl: DataUrl? = null
 ) {
     init {
         require(
