@@ -240,7 +240,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCountPong() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testCountPong() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
         }
