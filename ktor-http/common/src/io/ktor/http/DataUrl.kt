@@ -5,17 +5,23 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.utils.io.core.*
+import kotlin.text.toByteArray
 
 public class DataUrl(
-    internal val originalData: String,
-
+    internal val originalUrl: String,
+    internal val dataIndex: Int,
     public val contentType: ContentType,
     public val contentTypeDefined: Boolean,
     public val inBase64: Boolean,
 ) {
     public val data: ByteArray by lazy {
         if (inBase64) {
-            originalData.decodeBase64Bytes()
+            buildPacket {
+                writeText(
+                    originalUrl.subSequence(dataIndex until originalUrl.length).dropLastWhile { it == '=' }
+                )
+            }.decodeBase64Bytes().readBytes()
         } else {
             val charset = if (contentType.charset() != null) {
                 contentType.charset()!!
@@ -23,7 +29,7 @@ public class DataUrl(
                 Charsets.UTF_8
             }
 
-            originalData.decodeURLPart(0).toByteArray(charset)
+            originalUrl.decodeURLPart(dataIndex).toByteArray(charset)
         }
     }
 
@@ -77,7 +83,8 @@ public class DataUrl(
             }
 
             return DataUrl(
-                originalData = str.substring(i),
+                originalUrl = str,
+                dataIndex = i,
                 contentType = contentType,
                 contentTypeDefined = mimeType.isNotEmpty(),
                 inBase64 = isBase64

@@ -155,7 +155,7 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             }
 
             out.append(',')
-            out.append(dataUrl.originalData)
+            out.append(dataUrl.originalUrl.subSequence(dataUrl.dataIndex until dataUrl.originalUrl.length))
 
             return out
         }
