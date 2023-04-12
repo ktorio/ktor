@@ -1,28 +1,24 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.*
+import org.jetbrains.kotlin.gradle.tasks.*
+
 apply<test.server.TestServerPlugin>()
 
-val paths = if (HOST_NAME == "windows") {
-    listOf(
-        "C:/msys64/mingw64/include/curl",
-        "C:/Tools/msys64/mingw64/include/curl",
-        "C:/Tools/msys2/mingw64/include/curl",
-    )
-} else {
-    listOf(
-        "/opt/homebrew/opt/curl/include/curl",
-        "/opt/local/include/curl",
-        "/usr/local/include/curl",
-        "/usr/include/curl",
-        "/usr/local/opt/curl/include/curl",
-        "/usr/include/x86_64-linux-gnu/curl",
-        "/usr/local/Cellar/curl/7.62.0/include/curl",
-        "/usr/local/Cellar/curl/7.63.0/include/curl",
-        "/usr/local/Cellar/curl/7.65.3/include/curl",
-        "/usr/local/Cellar/curl/7.66.0/include/curl",
-        "/usr/local/Cellar/curl/7.80.0/include/curl",
-        "/usr/local/Cellar/curl/7.80.0_1/include/curl",
-        "/usr/local/Cellar/curl/7.81.0/include/curl",
-    )
-}
+val paths = listOf(
+    "/opt/homebrew/opt/curl/include/",
+    "/opt/local/include/",
+    "/usr/local/include/",
+    "/usr/include/",
+    "/usr/local/opt/curl/include/",
+    "/usr/include/x86_64-linux-gnu/",
+    "/usr/local/Cellar/curl/7.62.0/include/",
+    "/usr/local/Cellar/curl/7.63.0/include/",
+    "/usr/local/Cellar/curl/7.65.3/include/",
+    "/usr/local/Cellar/curl/7.66.0/include/",
+    "/usr/local/Cellar/curl/7.80.0/include/",
+    "/usr/local/Cellar/curl/7.80.0_1/include/",
+    "/usr/local/Cellar/curl/7.81.0/include/",
+    "desktop/interop/mingwX64/include/",
+)
 
 plugins {
     id("kotlinx-serialization")
