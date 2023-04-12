@@ -9,11 +9,10 @@ import io.ktor.utils.io.core.*
 import kotlin.text.toByteArray
 
 public class DataUrl(
-    internal val originalUrl: String,
-    internal val dataIndex: Int,
     public val contentType: ContentType,
-    public val contentTypeDefined: Boolean,
-    public val inBase64: Boolean,
+    private val originalUrl: String,
+    private val dataIndex: Int,
+    private val inBase64: Boolean,
 ) {
     public val data: ByteArray by lazy {
         if (inBase64) {
@@ -38,7 +37,7 @@ public class DataUrl(
     }
 
     internal companion object {
-        internal fun parse(str: String): DataUrl {
+        fun parse(str: String): DataUrl {
             var i = 0
 
             val protocol = StringBuilder(4)
@@ -106,7 +105,6 @@ public class DataUrl(
                 originalUrl = str,
                 dataIndex = i,
                 contentType = contentType,
-                contentTypeDefined = mimeType.isNotEmpty(),
                 inBase64 = isBase64
             )
         }
