@@ -132,6 +132,33 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             out.appendMailto(encodedUserAndPassword, host)
             return out
         }
+
+        "data" -> {
+            val dataUrl = dataUrl!!
+
+            out.append(':')
+            if (dataUrl.contentTypeDefined) {
+                out.append(dataUrl.contentType.contentType)
+                out.append('/')
+                out.append(dataUrl.contentType.contentSubtype)
+
+                dataUrl.contentType.parameters.forEach { param ->
+                    out.append(';')
+                    out.append(param.name)
+                    out.append('=')
+                    out.append(param.value)
+                }
+            }
+
+            if (dataUrl.inBase64) {
+                out.append(";base64")
+            }
+
+            out.append(',')
+            out.append(dataUrl.originalData)
+
+            return out
+        }
     }
 
     out.append("://")

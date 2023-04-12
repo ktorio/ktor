@@ -90,14 +90,12 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
             ContentType.parse(mimeType.toString())
         }
 
-        val data = if (isBase64) {
-            urlString.substring(i).decodeBase64Bytes()
-        } else {
-            val charset = if (contentType.charset() != null) contentType.charset()!! else Charsets.US_ASCII
-            urlString.decodeURLPart(i).toByteArray(charset)
-        }
-
-        dataUrl = DataUrl(data, contentType)
+        dataUrl = DataUrl(
+            originalData = urlString.substring(i),
+            contentType = contentType,
+            contentTypeDefined = mimeType.isNotEmpty(),
+            inBase64 = isBase64
+        )
         return this
     }
 
