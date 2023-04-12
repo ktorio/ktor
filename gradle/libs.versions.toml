@@ -45,7 +45,7 @@ java-jwt-version = "4.3.0"
 
 jwks-rsa-version = "0.22.0"
 mustache-version = "0.9.10"
-freemarker-version = "2.3.31"
+freemarker-version = "2.3.32"
 pebble-version = "3.2.0"
 velocity-version = "2.3"
 velocity-tools-version = "3.1"
