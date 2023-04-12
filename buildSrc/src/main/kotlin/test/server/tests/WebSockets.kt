@@ -40,6 +40,18 @@ internal fun Application.webSockets() {
                 val param = call.parameters["param"] ?: error("No param provided")
                 send(Frame.Text(param))
             }
+            webSocketRaw("count-pong") {
+                send(Frame.Ping("ping".toByteArray()))
+
+                var countPong = 0
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Pong -> countPong++
+                        is Frame.Text -> send(Frame.Text("$countPong"))
+                        else -> error("Unsupported frame type: ${frame.frameType}.")
+                    }
+                }
+            }
         }
     }
 }
