@@ -43,12 +43,10 @@ public data class URLProtocol(val name: String, val defaultPort: Int) {
          */
         public val SOCKS: URLProtocol = URLProtocol("socks", 1080)
 
-        public val DATA: URLProtocol = URLProtocol("data", -1)
-
         /**
          * Protocols by names map
          */
-        public val byName: Map<String, URLProtocol> = listOf(HTTP, HTTPS, WS, WSS, SOCKS, DATA).associateBy { it.name }
+        public val byName: Map<String, URLProtocol> = listOf(HTTP, HTTPS, WS, WSS, SOCKS).associateBy { it.name }
 
         /**
          * Create an instance by [name] or use already existing instance
