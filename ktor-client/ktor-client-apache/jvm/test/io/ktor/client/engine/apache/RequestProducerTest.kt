@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.apache.http.*
 import org.apache.http.nio.*
+import org.apache.http.nio.ContentEncoder
 import java.nio.*
 import kotlin.coroutines.*
 import kotlin.test.*
