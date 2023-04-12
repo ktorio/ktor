@@ -146,21 +146,12 @@ internal class Endpoint(
     ) = withContext(callContext) {
         writeHeaders(request, output, overProxy)
 
-        val response = withTimeoutOrNull(CONTINUE_RESPONSE_TIMEOUT_MILLIS) {
-            val job = Job()
-            coroutineContext.job.invokeOnCompletion(onCancelling = true) {
-                if (it == null) job.complete()
-                else job.completeExceptionally(it)
-            }
-            callContext.job.invokeOnCompletion {
-                if (it == null) job.complete()
-                else job.completeExceptionally(it)
-            }
-
-            readResponse(requestTime, request, input, originOutput, callContext + job)
+        val responseReady = withTimeoutOrNull(CONTINUE_RESPONSE_TIMEOUT_MILLIS) {
+            input.awaitContent()
         }
 
-        if (response != null) {
+        if (responseReady != null) {
+            val response = readResponse(requestTime, request, input, originOutput, callContext)
             when (response.statusCode) {
                 HttpStatusCode.ExpectationFailed -> {
                     val newRequest = HttpRequestBuilder().apply {
