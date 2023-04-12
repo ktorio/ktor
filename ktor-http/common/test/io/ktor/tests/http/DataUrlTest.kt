@@ -66,6 +66,18 @@ class DataUrlTest {
         }
 
         assertFailsWith<URLParserException> {
+            DataUrl("invalid")
+        }.let {
+            assertEquals("Expect data protocol", it.cause?.message)
+        }
+
+        assertFailsWith<URLParserException> {
+            DataUrl("http://localhost")
+        }.let {
+            assertEquals("Expect data protocol", it.cause?.message)
+        }
+
+        assertFailsWith<URLParserException> {
             DataUrl("data:")
         }.let {
             assertEquals("Expect , or ; at position 5", it.cause?.message)

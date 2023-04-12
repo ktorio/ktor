@@ -46,6 +46,10 @@ public class DataUrl(
                 protocol.append(str[i++])
             }
 
+            if (protocol.toString() != "data") {
+                throwError(str, "Expect data protocol")
+            }
+
             i += 1 // Skip colon
 
             val mimeType = StringBuilder(16)
@@ -63,7 +67,6 @@ public class DataUrl(
 
                     if (i >= str.length) {
                         throwError(str, "Expect , at position $i")
-//                        throw IllegalArgumentException("Expect , at position $i")
                     }
                     isBase64 = str[i] != '='
                     if (isBase64) {
