@@ -17,9 +17,7 @@ public class DataUrl(
         if (inBase64) {
             originalData.decodeBase64Bytes()
         } else {
-            val charset = if (!contentTypeDefined) {
-                Charsets.US_ASCII
-            } else if (contentType.charset() != null) {
+            val charset = if (contentType.charset() != null) {
                 contentType.charset()!!
             } else {
                 Charsets.UTF_8
@@ -28,4 +26,63 @@ public class DataUrl(
             originalData.decodeURLPart(0).toByteArray(charset)
         }
     }
+
+    internal companion object {
+        internal fun parse(str: String, startIndex: Int): DataUrl {
+            var i = startIndex
+            val mimeType = StringBuilder(16)
+            val maybeBase64 = StringBuilder(7)
+            var base64Start = -1
+            var isBase64 = false
+
+            // Parse mime type and base64
+            while (i < str.length && str[i] != ',') {
+                if (str[i] == ';') {
+                    base64Start = i
+                    while (i < str.length && str[i] != '=' && str[i] != ',') {
+                        maybeBase64.append(str[i++])
+                    }
+
+                    if (i >= str.length) {
+                        throw IllegalArgumentException("Expect , at position $i")
+                    }
+                    isBase64 = str[i] != '='
+                    if (isBase64) {
+                        break
+                    } else {
+                        mimeType.append(maybeBase64)
+                        maybeBase64.clear()
+                    }
+                }
+
+                mimeType.append(str[i++])
+            }
+
+            if (isBase64 && maybeBase64.toString() != ";base64") {
+                throw IllegalArgumentException("Expect ';base64' string at position $base64Start")
+            }
+
+            if (i >= str.length) {
+                throw IllegalArgumentException("Expect , or ; at position $i")
+            }
+
+            if (str[i] == ',') {
+                i += 1 // Skip comma
+            }
+
+            val contentType = if (mimeType.isEmpty()) {
+                ContentType.Text.Plain.withCharset(Charsets.US_ASCII)
+            } else {
+                ContentType.parse(mimeType.toString())
+            }
+
+            return DataUrl(
+                originalData = str.substring(i),
+                contentType = contentType,
+                contentTypeDefined = mimeType.isNotEmpty(),
+                inBase64 = isBase64
+            )
+        }
+    }
+
 }

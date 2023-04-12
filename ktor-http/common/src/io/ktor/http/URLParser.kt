@@ -43,59 +43,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     if (protocol == URLProtocol.DATA) {
-        var i = startIndex
-        val mimeType = StringBuilder(16)
-        val maybeBase64 = StringBuilder(7)
-        var base64Start = -1
-        var isBase64 = false
-
-        // Parse mime type and base64
-        while (i < endIndex && urlString[i] != ',') {
-            if (urlString[i] == ';') {
-                base64Start = i
-                while (i < endIndex && urlString[i] != '=' && urlString[i] != ',') {
-                    maybeBase64.append(urlString[i++])
-                }
-
-                if (i >= endIndex) {
-                    throw IllegalArgumentException("Expect , at position $i")
-                }
-                isBase64 = urlString[i] != '='
-                if (isBase64) {
-                    break
-                } else {
-                    mimeType.append(maybeBase64)
-                    maybeBase64.clear()
-                }
-            }
-
-            mimeType.append(urlString[i++])
-        }
-
-        if (isBase64 && maybeBase64.toString() != ";base64") {
-            throw IllegalArgumentException("Expect ';base64' string at position $base64Start")
-        }
-
-        if (i >= endIndex) {
-            throw IllegalArgumentException("Expect , or ; at position $i")
-        }
-
-        if (urlString[i] == ',') {
-            i += 1 // Skip comma
-        }
-
-        val contentType = if (mimeType.isEmpty()) {
-            ContentType.Text.Plain.withCharset(Charsets.US_ASCII)
-        } else {
-            ContentType.parse(mimeType.toString())
-        }
-
-        dataUrl = DataUrl(
-            originalData = urlString.substring(i),
-            contentType = contentType,
-            contentTypeDefined = mimeType.isNotEmpty(),
-            inBase64 = isBase64
-        )
+        dataUrl = DataUrl.parse(urlString, startIndex)
         return this
     }
 
