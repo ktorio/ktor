@@ -192,6 +192,7 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
+    @Suppress("UNUSED_EXPRESSION")
     private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
@@ -210,7 +211,7 @@ internal class Endpoint(
                 }
 
                 val socket = when (connectTimeout) {
-                    HttpTimeout.INFINITE_TIMEOUT_MS -> coroutineScope { connect() }
+                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
                         if (connection == null) {
