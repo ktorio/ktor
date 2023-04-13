@@ -39,7 +39,7 @@
 ### Bugfixes
 * Websockets: connection should be failed immediately when no continuation frame goes after a fragmented text frame ([KTOR-5018](https://youtrack.jetbrains.com/issue/KTOR-5018))
 * Websockets: Connection should be failed immediately, since all data frames after the initial data frame must have opcode 0 ([KTOR-5014](https://youtrack.jetbrains.com/issue/KTOR-5014))
-* Websockets: Connection should failed immediately (1002/Protocol Error) when control frame has a payload with more than 125 octets ([KTOR-5006](https://youtrack.jetbrains.com/issue/KTOR-5006))
+* Websockets: Connection should fail immediately (1002/Protocol Error) when control frame has a payload with more than 125 octets ([KTOR-5006](https://youtrack.jetbrains.com/issue/KTOR-5006))
 * Java engine: Websockets client sends two PONG frames for each PING frame from a server ([KTOR-5653](https://youtrack.jetbrains.com/issue/KTOR-5653))
 * Websockets: Erroneous trace log about expired websocket pings ([KTOR-5672](https://youtrack.jetbrains.com/issue/KTOR-5672))
 * DarwinClientEngine: a request deadlocks on macOS since 2.2.2 ([KTOR-5502](https://youtrack.jetbrains.com/issue/KTOR-5502))
