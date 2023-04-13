@@ -167,9 +167,12 @@ public class XForwardedHeadersConfig {
         }
 
         forValues?.let { values ->
-            val remoteHost = extractValue(values) ?: return@let
-            if (remoteHost.isNotBlank()) {
-                connectionPoint.remoteHost = remoteHost
+            val remoteHostOrAddress = extractValue(values) ?: return@let
+            if (remoteHostOrAddress.isNotBlank()) {
+                connectionPoint.remoteHost = remoteHostOrAddress
+                if (remoteHostOrAddress.isNotHostAddress()) {
+                    connectionPoint.remoteAddress = remoteHostOrAddress
+                }
             }
         }
     }

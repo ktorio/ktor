@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -875,6 +876,42 @@ class OriginConnectionPointTest {
             handleRequest(HttpMethod.Get, "/") {
                 addHeader("X-Forwarded-Port", "91, 90,95")
             }
+        }
+    }
+
+    @Test
+    fun testXForwardedHeadersSetRemoteAddress() = testApplication {
+        application {
+            install(XForwardedHeaders)
+
+            routing {
+                get("/") {
+                    assertEquals("192.168.0.1", call.request.origin.remoteAddress)
+                    assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.XForwardedFor, "192.168.0.1")
+        }
+    }
+
+    @Test
+    fun testForwardedHeadersSetRemoteAddress() = testApplication {
+        application {
+            install(ForwardedHeaders)
+
+            routing {
+                get("/") {
+                    assertEquals("192.168.0.1", call.request.origin.remoteAddress)
+                    assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Forwarded, "for=192.168.0.1")
         }
     }
 }
