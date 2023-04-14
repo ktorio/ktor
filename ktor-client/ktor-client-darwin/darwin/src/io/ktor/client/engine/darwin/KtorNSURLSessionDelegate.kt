@@ -55,6 +55,9 @@ public class KtorNSURLSessionDelegate internal constructor(
         taskHandler.receiveData(dataTask, didReceiveData)
     }
 
+    override fun URLSession(session: NSURLSession, taskIsWaitingForConnectivity: NSURLSessionTask) {
+    }
+
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
         taskHandlers[task]?.let {
             it.complete(task, didCompleteWithError)
