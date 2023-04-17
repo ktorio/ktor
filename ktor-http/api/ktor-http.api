@@ -310,6 +310,17 @@ public final class io/ktor/http/CookieKt {
 	public static synthetic fun renderSetCookieHeader$default (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ZILjava/lang/Object;)Ljava/lang/String;
 }
 
+public final class io/ktor/http/DataUrl {
+	public fun <init> (Lio/ktor/http/ContentType;Ljava/lang/String;IZ)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getData ()[B
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/DataUrlKt {
+	public static final fun DataUrl (Ljava/lang/String;)Lio/ktor/http/DataUrl;
+}
+
 public final class io/ktor/http/DateUtilsKt {
 	public static final fun fromCookieToGmtDate (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
 	public static final fun fromHttpToGmtDate (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
