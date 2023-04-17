@@ -312,8 +312,9 @@ public final class io/ktor/http/CookieKt {
 
 public final class io/ktor/http/DataUrl {
 	public fun <init> (Lio/ktor/http/ContentType;Ljava/lang/String;IZ)V
+	public final fun getBytes ()[B
 	public final fun getContentType ()Lio/ktor/http/ContentType;
-	public final fun getData ()[B
+	public final fun getString ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
 

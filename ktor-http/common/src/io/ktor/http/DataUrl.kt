@@ -6,7 +6,6 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
-import kotlin.text.toByteArray
 
 public class DataUrl(
     public val contentType: ContentType,
@@ -14,22 +13,17 @@ public class DataUrl(
     private val dataIndex: Int,
     private val inBase64: Boolean,
 ) {
-    public val data: ByteArray by lazy {
-        if (inBase64) {
-            buildPacket {
-                writeText(
-                    originalUrl.subSequence(dataIndex until originalUrl.length).dropLastWhile { it == '=' }
-                )
-            }.decodeBase64Bytes().readBytes()
-        } else {
-            val charset = if (contentType.charset() != null) {
-                contentType.charset()!!
-            } else {
-                Charsets.UTF_8
-            }
+    public val bytes: ByteArray by lazy {
+        require(inBase64)
+        buildPacket {
+            writeText(
+                originalUrl.subSequence(dataIndex until originalUrl.length).dropLastWhile { it == '=' }
+            )
+        }.decodeBase64Bytes().readBytes()
+    }
 
-            originalUrl.decodeURLPart(dataIndex).toByteArray(charset)
-        }
+    public val string: String by lazy {
+        originalUrl.decodeURLPart(dataIndex)
     }
 
     public override fun toString(): String {
@@ -92,7 +86,7 @@ public class DataUrl(
             }
 
             val contentType = if (mimeType.isEmpty()) {
-                ContentType.Text.Plain.withCharset(Charsets.US_ASCII)
+                ContentType.Text.Plain.withCharset(io.ktor.utils.io.charsets.Charsets.ISO_8859_1)
             } else {
                 try {
                     ContentType.parse(mimeType.toString())

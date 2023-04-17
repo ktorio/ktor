@@ -12,33 +12,33 @@ class DataUrlTest {
     @Test
     fun parsingDataUrl() {
         DataUrl("data:,").let {
-            assertEquals(ContentType.Text.Plain.withCharset(Charsets.US_ASCII), it.contentType)
-            assertContentEquals(ByteArray(0), it.data)
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1), it.contentType)
+            assertEquals("", it.string)
         }
 
-        assertContentEquals(
-            "Hello, World!".toByteArray(Charsets.US_ASCII),
-            DataUrl("data:,Hello%2C%20World%21").data
+        assertEquals(
+            "Hello, World!",
+            DataUrl("data:,Hello%2C%20World%21").string
         )
 
         assertContentEquals(
             "Hello, World!".toByteArray(Charsets.US_ASCII),
-            DataUrl("data:;base64,SGVsbG8sIFdvcmxkIQ==").data
+            DataUrl("data:;base64,SGVsbG8sIFdvcmxkIQ==").bytes
         )
 
         DataUrl("data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==").let {
             assertEquals(ContentType.Text.Plain, it.contentType)
-            assertContentEquals("Hello, World!".toByteArray(Charsets.US_ASCII), it.data)
+            assertContentEquals("Hello, World!".toByteArray(Charsets.US_ASCII), it.bytes)
         }
 
         DataUrl("data:text/plain;charset=UTF-8,%CF%94").let {
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), it.contentType)
-            assertContentEquals("ϔ".toByteArray(Charsets.UTF_8), it.data)
+            assertEquals("ϔ", it.string)
         }
 
         DataUrl("data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E").let {
             assertEquals(ContentType.Text.Html, it.contentType)
-            assertContentEquals("<h1>Hello, World!</h1>".toByteArray(Charsets.UTF_8), it.data)
+            assertEquals("<h1>Hello, World!</h1>", it.string)
         }
 
         DataUrl("data:text/html;charset=UTF-8;param=value,data").let {
@@ -46,7 +46,7 @@ class DataUrlTest {
                 ContentType.Text.Html.withCharset(Charsets.UTF_8).withParameter("param", "value"),
                 it.contentType
             )
-            assertContentEquals("data".toByteArray(Charsets.UTF_8), it.data)
+            assertEquals("data", it.string)
         }
 
         DataUrl("data:text/plain;charset=UTF-8;param=value;base64,ZGF0YQ==").let {
@@ -54,7 +54,7 @@ class DataUrlTest {
                 ContentType.Text.Plain.withCharset(Charsets.UTF_8).withParameter("param", "value"),
                 it.contentType
             )
-            assertContentEquals("data".toByteArray(Charsets.UTF_8), it.data)
+            assertContentEquals("data".toByteArray(Charsets.UTF_8), it.bytes)
         }
 
         val svg = """
@@ -62,7 +62,7 @@ class DataUrlTest {
         """.trimIndent()
         DataUrl("data:image/svg+xml,${svg.encodeURLPath(encodeSlash = false)}").let {
             assertEquals(ContentType.Image.SVG, it.contentType)
-            assertContentEquals(svg.toByteArray(Charsets.UTF_8), it.data)
+            assertEquals(svg, it.string)
         }
 
         assertFailsWith<URLParserException> {
