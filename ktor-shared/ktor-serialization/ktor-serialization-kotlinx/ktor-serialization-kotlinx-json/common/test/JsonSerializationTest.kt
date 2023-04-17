@@ -136,6 +136,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
+    @Ignore // https://github.com/Kotlin/kotlinx.serialization/issues/2218
     fun testSequence() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 

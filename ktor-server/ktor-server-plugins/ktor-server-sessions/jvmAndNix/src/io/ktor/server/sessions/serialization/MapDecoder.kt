@@ -22,7 +22,7 @@ internal class MapDecoder(
     private val size: Int = parameterNames.size * 2
     private var position = -1
 
-    override fun elementName(desc: SerialDescriptor, index: Int): String {
+    override fun elementName(descriptor: SerialDescriptor, index: Int): String {
         val i = index / 2
         return parameterNames[i]
     }

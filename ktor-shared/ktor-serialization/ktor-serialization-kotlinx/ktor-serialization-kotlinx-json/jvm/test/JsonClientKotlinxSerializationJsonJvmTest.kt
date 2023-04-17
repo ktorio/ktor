@@ -25,6 +25,7 @@ class JsonClientKotlinxSerializationJsonJvmTest : AbstractClientContentNegotiati
     }
 
     @Test
+    @Ignore // https://github.com/Kotlin/kotlinx.serialization/issues/2218
     fun testSequence(): Unit = testWithEngine(CIO) {
         configureClient()
 
