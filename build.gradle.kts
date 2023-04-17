@@ -270,8 +270,8 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
             resources.srcDir("$platform/${resourcesPrefix}resources")
 
             languageSettings.apply {
-                languageVersion = kotlin_language_version
-                apiVersion = kotlin_api_version
+                languageVersion = "2.0" // kotlin_language_version
+                apiVersion = "2.0" // kotlin_api_version
             }
         }
 
