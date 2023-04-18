@@ -39,7 +39,6 @@ jansi-version = "2.4.0"
 typesafe-version = "1.4.2"
 
 mockk-version = "1.13.5"
-mokito-kotlin-version = "1.6.0"
 
 java-jwt-version = "4.4.0"
 
@@ -138,7 +137,6 @@ typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-vers
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt-version" }
 jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa-version" }
 
-mockito-kotlin = { module = "com.nhaarman:mockito-kotlin", version.ref = "mokito-kotlin-version" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-version" }

@@ -8,7 +8,7 @@ kotlin.sourceSets {
     }
     jvmTest {
         dependencies {
-            api(libs.mockito.kotlin)
+            api(libs.mockk)
         }
     }
 }
