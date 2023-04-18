@@ -120,7 +120,7 @@ internal class ReasonedError(
     }
 }
 
-internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTransportError {
+internal fun QUICTransportError.withReason(reasonPhrase: String): QUICTransportError {
     if (reasonPhrase.isEmpty()) return this
 
     val bytes = reasonPhrase.toByteArray()

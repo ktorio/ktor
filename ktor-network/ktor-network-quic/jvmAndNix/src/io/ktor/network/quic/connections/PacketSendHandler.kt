@@ -41,7 +41,8 @@ internal sealed class PacketSendHandler(
                     PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
             }
 
-            PacketType_v1.OneRTT -> packetHandler.destinationConnectionIDSize +
+            PacketType_v1.OneRTT ->
+                packetHandler.destinationConnectionIDSize +
                 PktConst.HEADER_FLAGS_LENGTH +
                 PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
 

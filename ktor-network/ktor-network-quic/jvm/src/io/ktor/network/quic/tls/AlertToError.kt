@@ -14,5 +14,5 @@ internal fun TlsProtocolException.toError(): QUICTransportError {
         else -> error("Unexpected alert from TLS component")
     }
 
-    return CryptoHandshakeError_v1(code.toUByte()).invoke("${alertDescription()} - $message")
+    return CryptoHandshakeError_v1(code.toUByte()).withReason("${alertDescription()} - $message")
 }

@@ -154,7 +154,6 @@ internal actual class TLSServerComponent(
                 debugLabel = "initial server"
             )
         )
-
     }
 
     // Helper methods
@@ -188,7 +187,6 @@ internal actual class TLSServerComponent(
                 debugLabel = "handshake server"
             )
         )
-
     }
 
     override fun handshakeFinished() {
@@ -230,7 +228,11 @@ internal actual class TLSServerComponent(
         return false
     }
 
-    override fun send(message: ServerHello?) = sendMessage(message, isHandshakeMessage = false, flush = true)
+    override fun send(message: ServerHello?) = sendMessage(
+        message = message,
+        isHandshakeMessage = false,
+        flush = true
+    )
 
     override fun send(message: EncryptedExtensions?) = sendMessage(
         message = message,
@@ -238,15 +240,27 @@ internal actual class TLSServerComponent(
         flush = true, // true - to make CERT, CV, FIN in one packet
     )
 
-    override fun send(message: CertificateMessage?) = sendMessage(message, isHandshakeMessage = true)
+    override fun send(message: CertificateMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = false,
+    )
 
-    override fun send(message: CertificateVerifyMessage?) = sendMessage(message, isHandshakeMessage = true)
+    override fun send(message: CertificateVerifyMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = false,
+    )
 
-    override fun send(message: FinishedMessage?) = sendMessage(message, isHandshakeMessage = true, flush = true)
+    override fun send(message: FinishedMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = true
+    )
 
     override fun send(message: NewSessionTicketMessage?) = TODO("Not yet implemented")
 
-    private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean = false) {
+    private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean) {
         message ?: return
 
         logger.info("Send TLS Message: ${message.type}")

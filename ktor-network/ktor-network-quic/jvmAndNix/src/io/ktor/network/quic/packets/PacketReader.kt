@@ -120,7 +120,7 @@ internal object PacketReader {
     ): ConnectionID {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
         if (connectionIDLength > maxCIDLength) {
-            raiseError(PROTOCOL_VIOLATION("Actual CID length exceeds protocol's maximum"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Actual CID length exceeds protocol's maximum"))
         }
         if (bytes.remaining < connectionIDLength.toInt()) {
             raiseError(PACKET_END)
@@ -136,7 +136,7 @@ internal object PacketReader {
     ): VersionNegotiationPacket {
         // supportedVersions is an array of 32-bit integers with no specified length
         if (bytes.remaining % 4 != 0L) {
-            raiseError(PROTOCOL_VIOLATION("Malformed supportedVersions array"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Malformed supportedVersions array"))
         }
 
         val supportedVersions = Array((bytes.remaining / 4).toInt()) { bytes.readInt() }
@@ -162,7 +162,7 @@ internal object PacketReader {
         // The next bit (0x40) of byte 0 is set to 1, unless the packet is a Version Negotiation packet.
         // Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
         if (flags and FIXED_BIT != FIXED_BIT) {
-            raiseError(PROTOCOL_VIOLATION("Fixed bit is 0"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Fixed bit is 0"))
         }
 
         return when (type) {
@@ -236,7 +236,7 @@ internal object PacketReader {
                 )
 
                 if (reservedBits != 0) {
-                    raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
+                    raiseError(PROTOCOL_VIOLATION.withReason("Reserved bits are not 00"))
                 }
 
                 when (type) {
@@ -272,7 +272,7 @@ internal object PacketReader {
             PacketType_v1.Retry -> {
                 val retryTokenLength = bytes.remaining - PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH
                 if (retryTokenLength < 0) {
-                    raiseError(PROTOCOL_VIOLATION("Negative token length"))
+                    raiseError(PROTOCOL_VIOLATION.withReason("Negative token length"))
                 }
                 val retryToken = bytes.readBytes(retryTokenLength.toInt())
                 val integrityTag = bytes.readBytes(PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
@@ -340,7 +340,7 @@ internal object PacketReader {
         )
 
         if (reservedBits != 0) {
-            raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Reserved bits are not 00"))
         }
 
         return OneRTTPacket_v1(
@@ -407,5 +407,5 @@ internal object PacketReader {
         }
     }
 
-    private val PACKET_END: QUICTransportError = PROTOCOL_VIOLATION("End of the packet reached")
+    private val PACKET_END: QUICTransportError = PROTOCOL_VIOLATION.withReason("End of the packet reached")
 }
