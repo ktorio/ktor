@@ -32,7 +32,7 @@ kotlin {
                 implementation(project(":ktor-client:ktor-client-cio"))
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
-                implementation("org.mockito:mockito-core:3.12.4")
+                implementation("org.mockito:mockito-core:5.3.0")
             }
         }
     }
