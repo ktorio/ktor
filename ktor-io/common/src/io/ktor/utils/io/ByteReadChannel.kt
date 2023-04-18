@@ -149,7 +149,7 @@ public expect interface ByteReadChannel {
      *
      * @see ByteWriteChannel.close
      */
-    public fun cancel(cause: Throwable?): Boolean
+    public fun cancel(cause: Throwable?): Boolean // TODO dumanskaya KT-57984
 
     /**
      * Discard up to [max] bytes

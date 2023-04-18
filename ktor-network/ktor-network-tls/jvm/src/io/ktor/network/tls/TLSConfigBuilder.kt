@@ -123,6 +123,7 @@ public class NoPrivateKeyException(
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {
 
+    // TODO dumanskaya KT-58090
     override fun createCopy(): NoPrivateKeyException? = NoPrivateKeyException(alias, store).also {
         it.initCause(this)
     }
