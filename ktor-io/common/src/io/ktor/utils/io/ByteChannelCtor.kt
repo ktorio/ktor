@@ -30,6 +30,9 @@ import kotlinx.coroutines.*
  */
 public interface ByteChannel : ByteReadChannel, ByteWriteChannel { // TODO dumanskaya KT-57833
     public fun attachJob(job: Job)
+    public override fun cancel(cause: Throwable?): Boolean
+    public override fun close(cause: Throwable?): Boolean
+
 }
 
 /**
