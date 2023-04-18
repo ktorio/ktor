@@ -30,6 +30,17 @@ internal suspend fun writeRequest(
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) = withContext(callContext) {
+    writeHeaders(request, output, overProxy, closeChannel)
+    writeBody(request, output, callContext)
+}
+
+@OptIn(InternalAPI::class)
+internal suspend fun writeHeaders(
+    request: HttpRequestData,
+    output: ByteWriteChannel,
+    overProxy: Boolean,
+    closeChannel: Boolean = true
+) {
     val builder = RequestResponseBuilder()
 
     val method = request.method
@@ -40,7 +51,8 @@ internal suspend fun writeRequest(
     val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
     val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
-    val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+    val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
+    val expected = headers[HttpHeaders.Expect]
 
     try {
         val normalizedUrl = if (url.pathSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
@@ -64,13 +76,17 @@ internal suspend fun writeRequest(
         }
 
         mergeHeaders(headers, body) { key, value ->
-            if (key == HttpHeaders.ContentLength) return@mergeHeaders
+            if (key == HttpHeaders.ContentLength || key == HttpHeaders.Expect) return@mergeHeaders
 
             builder.headerLine(key, value)
         }
 
         if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
+        }
+
+        if (expectContinue(expected, body)) {
+            builder.headerLine(HttpHeaders.Expect, expected!!)
         }
 
         builder.emptyLine()
@@ -84,11 +100,23 @@ internal suspend fun writeRequest(
     } finally {
         builder.release()
     }
+}
 
-    if (body is OutgoingContent.NoContent) {
+internal suspend fun writeBody(
+    request: HttpRequestData,
+    output: ByteWriteChannel,
+    callContext: CoroutineContext,
+    closeChannel: Boolean = true
+) {
+    if (request.body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
-        return@withContext
+        return
     }
+
+    val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
+    val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = request.body.headers[HttpHeaders.TransferEncoding]
+    val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
@@ -96,7 +124,7 @@ internal suspend fun writeRequest(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            when (body) {
+            when (val body = request.body) {
                 is OutgoingContent.NoContent -> return@launch
                 is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
                 is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
@@ -152,6 +180,7 @@ internal suspend fun readResponse(
                 status.isInformational() -> {
                 ByteReadChannel.Empty
             }
+
             else -> {
                 val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
                 val httpBodyParser = coroutineScope.writer(autoFlush = true) {
@@ -252,3 +281,12 @@ internal fun ByteWriteChannel.handleHalfClosed(
     coroutineContext: CoroutineContext,
     propagateClose: Boolean
 ): ByteWriteChannel = if (propagateClose) this else withoutClosePropagation(coroutineContext)
+
+internal fun isChunked(
+    contentLength: String?,
+    responseEncoding: String?,
+    contentEncoding: String?
+) = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+
+internal fun expectContinue(expectHeader: String?, body: OutgoingContent) =
+    expectHeader != null && body !is OutgoingContent.NoContent

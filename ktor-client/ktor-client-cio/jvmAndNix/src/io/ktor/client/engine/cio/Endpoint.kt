@@ -10,10 +10,12 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -119,11 +121,60 @@ internal class Endpoint(
             setupTimeout(callContext, request, timeout)
 
             val requestTime = GMTDate()
-            writeRequest(request, output, callContext, proxy != null)
-            return readResponse(requestTime, request, input, originOutput, callContext)
+            val overProxy = proxy != null
+
+            return if (expectContinue(request.headers[HttpHeaders.Expect], request.body)) {
+                processExpectContinue(request, input, output, originOutput, callContext, requestTime, overProxy)
+            } else {
+                writeRequest(request, output, callContext, overProxy)
+                readResponse(requestTime, request, input, originOutput, callContext)
+            }
         } catch (cause: Throwable) {
             throw cause.mapToKtor(request)
         }
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    private suspend fun processExpectContinue(
+        request: HttpRequestData,
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        originOutput: ByteWriteChannel,
+        callContext: CoroutineContext,
+        requestTime: GMTDate,
+        overProxy: Boolean,
+    ) = withContext(callContext) {
+        writeHeaders(request, output, overProxy)
+
+        val responseReady = withTimeoutOrNull(CONTINUE_RESPONSE_TIMEOUT_MILLIS) {
+            input.awaitContent()
+        }
+
+        if (responseReady != null) {
+            val response = readResponse(requestTime, request, input, originOutput, callContext)
+            when (response.statusCode) {
+                HttpStatusCode.ExpectationFailed -> {
+                    val newRequest = HttpRequestBuilder().apply {
+                        takeFrom(request)
+                        headers.remove(HttpHeaders.Expect)
+                    }.build()
+                    writeRequest(newRequest, output, callContext, overProxy)
+                }
+
+                HttpStatusCode.Continue -> {
+                    writeBody(request, output, callContext)
+                }
+
+                else -> {
+                    output.close()
+                    return@withContext response
+                }
+            }
+        } else {
+            writeBody(request, output, callContext)
+        }
+
+        return@withContext readResponse(requestTime, request, input, originOutput, callContext)
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
@@ -141,6 +192,7 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
+    @Suppress("UNUSED_EXPRESSION")
     private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
@@ -240,6 +292,10 @@ internal class Endpoint(
 
     override fun close() {
         timeout.cancel()
+    }
+
+    companion object {
+        const val CONTINUE_RESPONSE_TIMEOUT_MILLIS = 1000L
     }
 }
 
