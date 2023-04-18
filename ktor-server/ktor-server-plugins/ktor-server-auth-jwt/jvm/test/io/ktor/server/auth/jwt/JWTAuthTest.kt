@@ -7,7 +7,6 @@ package io.ktor.server.auth.jwt
 import com.auth0.jwk.*
 import com.auth0.jwt.*
 import com.auth0.jwt.algorithms.*
-import com.nhaarman.mockito_kotlin.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
@@ -16,6 +15,7 @@ import io.ktor.server.auth.Principal
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.mockk.*
 import java.security.*
 import java.security.interfaces.*
 import java.util.concurrent.*
@@ -593,22 +593,23 @@ class JWTAuthTest {
     private val kid = "NkJCQzIyQzRBMEU4NjhGNUU4MzU4RkY0M0ZDQzkwOUQ0Q0VGNUMwQg"
 
     private fun getJwkProviderNullAlgorithmMock(): JwkProvider {
-        val jwk = mock<Jwk> {
-            on { publicKey } doReturn keyPair.public
+        val jwk = mockk<Jwk> {
+            every { algorithm } returns null
+            every { publicKey } returns keyPair.public
         }
-        return mock {
-            on { get(kid) } doReturn jwk
+        return mockk {
+            every { this@mockk.get(kid) } returns jwk
         }
     }
 
     private fun getJwkProviderMock(): JwkProvider {
-        val jwk = mock<Jwk> {
-            on { algorithm } doReturn jwkAlgorithm.name
-            on { publicKey } doReturn keyPair.public
+        val jwk = mockk<Jwk> {
+            every { algorithm } returns jwkAlgorithm.name
+            every { publicKey } returns keyPair.public
         }
-        return mock {
-            on { get(kid) } doReturn jwk
-            on { get("wrong") } doThrow (SigningKeyNotFoundException("Key not found", null))
+        return mockk {
+            every { this@mockk.get(kid) } returns jwk
+            every { this@mockk.get("wrong") } throws SigningKeyNotFoundException("Key not found", null)
         }
     }
 
