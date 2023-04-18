@@ -124,9 +124,9 @@ public class NoPrivateKeyException(
     CopyableThrowable<NoPrivateKeyException> {
 
     // TODO dumanskaya KT-58090
-    override fun createCopy(): NoPrivateKeyException? = NoPrivateKeyException(alias, store).also {
-        it.initCause(this)
-    }
+    override fun createCopy(): NoPrivateKeyException? = NoPrivateKeyException(alias, store)//.also {
+//        it.initCause(this)
+//    }
 }
 
 private fun findTrustManager(): X509TrustManager {
