@@ -11,6 +11,7 @@
 * Upgrade Client Apache Engine Version to use Apache 5 ([KTOR-4547](https://youtrack.jetbrains.com/issue/KTOR-4547))
 * Support for CURLOPT_CAINFO and CURLOPT_CAPATH in ktor-client-curl ([KTOR-5614](https://youtrack.jetbrains.com/issue/KTOR-5614))
 * Allow passing multiple acceptable content types to accept route selector ([KTOR-419](https://youtrack.jetbrains.com/issue/KTOR-419))
+* Support `100 Continue` ([KTOR-829](https://youtrack.jetbrains.com/issue/KTOR-829))
 
 ### Improvements
 * The '425 Too Early' status code is missing in the HttpStatusCode enum ([KTOR-4673](https://youtrack.jetbrains.com/issue/KTOR-4673))
@@ -35,6 +36,7 @@
 * Update Jetty to version 11 ([KTOR-5267](https://youtrack.jetbrains.com/issue/KTOR-5267))
 * Update Parameters and Headers DSL to be consistent with stdlib ([KTOR-627](https://youtrack.jetbrains.com/issue/KTOR-627))
 * Consider quoting `Boolean` during construction of multipart requests ([KTOR-5405](https://youtrack.jetbrains.com/issue/KTOR-5405))
+* Simplify Static Content Plugin ([KTOR-5265](https://youtrack.jetbrains.com/issue/KTOR-5265))
 
 ### Bugfixes
 * Websockets: connection should be failed immediately when no continuation frame goes after a fragmented text frame ([KTOR-5018](https://youtrack.jetbrains.com/issue/KTOR-5018))
