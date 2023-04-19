@@ -215,8 +215,7 @@ public final class io/ktor/util/NIOKt {
 
 public final class io/ktor/util/NioPathKt {
 	public static final fun combineSafe (Ljava/io/File;Ljava/nio/file/Path;)Ljava/io/File;
-	public static final fun combineSafe (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/io/File;
-	public static final fun getExtension (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun combineSafe (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/nio/file/Path;
 	public static final fun normalizeAndRelativize (Ljava/nio/file/Path;)Ljava/nio/file/Path;
 }
 
@@ -446,8 +445,8 @@ public final class io/ktor/util/cio/ChannelWriteException : io/ktor/util/cio/Cha
 }
 
 public final class io/ktor/util/cio/FileChannelsAtNioPathKt {
-	public static final fun readChannel (Ljava/nio/file/Path;)Lio/ktor/utils/io/ByteReadChannel;
-	public static final fun readChannel (Ljava/nio/file/Path;JJ)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun readChannel (Ljava/nio/file/Path;JJLkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun readChannel$default (Ljava/nio/file/Path;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/cio/FileChannelsKt {
