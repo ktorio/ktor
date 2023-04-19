@@ -115,37 +115,39 @@ internal data class SessionData(
         if (value != null) {
             data.provider.tracker.validate(value as S)
         }
-        data.value = value as S
+        data.newValue = value as S
     }
 
     override fun get(name: String): Any? {
         val providerData =
             providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
-        return providerData.value
+        return providerData.newValue ?: providerData.oldValue
     }
 
     override fun clear(name: String) {
         val providerData =
             providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
-        providerData.value = null
+        providerData.oldValue = null
+        providerData.newValue = null
     }
 }
 
 internal suspend fun <S : Any> SessionProvider<S>.receiveSessionData(call: ApplicationCall): SessionProviderData<S> {
     val receivedValue = transport.receive(call)
     val unwrapped = tracker.load(call, receivedValue)
-    val incoming = receivedValue != null || unwrapped != null
-    return SessionProviderData(unwrapped, incoming, this)
+    val incoming = receivedValue != null
+    return SessionProviderData(unwrapped, null, incoming, this)
 }
 
 internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: ApplicationCall) {
-    val value = value
+    val oldValue = oldValue
+    val newValue = newValue
     when {
-        value != null -> {
-            val wrapped = provider.tracker.store(call, value)
+        newValue != null -> {
+            val wrapped = provider.tracker.store(call, newValue)
             provider.transport.send(call, wrapped)
         }
-        incoming -> {
+        incoming && oldValue == null -> {
             /* Deleted session should be cleared off */
             provider.transport.clear(call)
             provider.tracker.clear(call)
@@ -153,7 +155,12 @@ internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: Appl
     }
 }
 
-internal data class SessionProviderData<S : Any>(var value: S?, val incoming: Boolean, val provider: SessionProvider<S>)
+internal data class SessionProviderData<S : Any>(
+    var oldValue: S?,
+    var newValue: S?,
+    val incoming: Boolean,
+    val provider: SessionProvider<S>
+)
 
 internal val SessionDataKey = AttributeKey<SessionData>("SessionKey")
 
