@@ -1,5 +1,5 @@
 # 2.3.0
-> Published 13 April 2023
+> Published 19 April 2023
 
 ### Features
 * Support loading multiple configuration files ([KTOR-5658](https://youtrack.jetbrains.com/issue/KTOR-5658))
