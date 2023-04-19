@@ -8,6 +8,7 @@ import io.ktor.server.config.*
 import net.mamoe.yamlkt.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class YamlConfigTest {
 
     @Test
@@ -134,6 +135,42 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testSelfReference() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}value.my
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        config.checkEnvironmentVariables()
+
+        assertEquals("My value", config.property("config.database.value").getString())
+        assertEquals("My value", config.config("config").property("database.value").getString())
+        assertEquals("My value", config.config("config.database").property("value").getString())
+    }
+
+    @Test
+    fun testSelfReferenceMissing() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}value.missing
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        assertFailsWith<ApplicationConfigurationException> {
+            config.checkEnvironmentVariables()
+        }
+    }
+
+    @Test
     fun testMissingEnvironmentVariableWithDefault() {
         val content = """
             ktor:
@@ -143,6 +180,33 @@ class YamlConfigTest {
         val config = YamlConfig(yaml as YamlMap)
         config.checkEnvironmentVariables()
         assertEquals("DEFAULT_VALUE", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testOptionalMissingEnvironmentVariable() {
+        val content = """
+            ktor:
+                variable: "${'$'}?NON_EXISTING_VARIABLE"
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        config.checkEnvironmentVariables()
+        assertNull(config.propertyOrNull("ktor.variable"))
+    }
+
+    @Test
+    fun testOptionalExistingEnvironmentVariable() {
+        val content = """
+            ktor:
+                variable: "${'$'}?PATH"
+        """.trimIndent()
+        val yaml = Yaml.decodeYamlFromString(content)
+        val config = YamlConfig(yaml as YamlMap)
+        config.checkEnvironmentVariables()
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
     }
 
     @Test
