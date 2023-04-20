@@ -52,8 +52,7 @@ public class HttpSend private constructor(
      * Install send pipeline starter interceptor
      */
     @Deprecated(
-        "This interceptors do not allow to intercept first network call. " +
-            "Please use another overload and replace HttpClientCall parameter using `val call = execute(request)`",
+        "This interceptors do not allow to intercept first network call. Please use another overload and replace HttpClientCall parameter using `val call = execute(request)`",
         level = DeprecationLevel.ERROR
     )
     @Suppress("UNUSED_PARAMETER")

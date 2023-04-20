@@ -175,9 +175,7 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
  * Installs a [plugin] into this pipeline, if it is not yet installed.
  */
 @Deprecated(
-    "Installing ApplicationPlugin into routing may lead to unexpected behaviour. " +
-        "Consider moving installation to the application level " +
-        "or migrate this plugin to `RouteScopedPlugin` to support installing into route."
+    "Installing ApplicationPlugin into routing may lead to unexpected behaviour. Consider moving installation to the application level or migrate this plugin to `RouteScopedPlugin` to support installing into route."
 )
 public fun <P : Route, B : Any, F : Any> P.install(
     plugin: BaseApplicationPlugin<P, B, F>,
@@ -190,8 +188,7 @@ public fun <P : Route, B : Any, F : Any> P.install(
  * Uninstalls all plugins from the pipeline.
  */
 @Deprecated(
-    "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+    "This method is misleading and will be removed. If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
     pluginRegistry.allKeys.forEach {
@@ -205,8 +202,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+    "This method is misleading and will be removed. If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
     plugin: Plugin<A, B, F>
@@ -216,8 +212,7 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
  * Uninstalls a plugin specified by [key] from the pipeline.
  */
 @Deprecated(
-    "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+    "This method is misleading and will be removed. If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(pluginRegistryKey) ?: return

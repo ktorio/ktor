@@ -74,8 +74,7 @@ public class HttpCallValidator internal constructor(
          */
 
         @Deprecated(
-            "This property is ignored. Please use `expectSuccess` property in HttpClientConfig. " +
-                "This is going to become internal."
+            "This property is ignored. Please use `expectSuccess` property in HttpClientConfig. This is going to become internal."
         )
         public var expectSuccess: Boolean = true
 

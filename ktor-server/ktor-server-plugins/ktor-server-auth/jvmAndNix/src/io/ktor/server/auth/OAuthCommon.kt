@@ -271,8 +271,7 @@ public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCall
  * Handles an OAuth callback.
  */
 @Deprecated(
-    "Specifying an extra configuration function will be deprecated. " +
-        "Please provide it via OAuthServerSettings.",
+    "Specifying an extra configuration function will be deprecated. Please provide it via OAuthServerSettings.",
     level = DeprecationLevel.ERROR
 )
 public expect suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(

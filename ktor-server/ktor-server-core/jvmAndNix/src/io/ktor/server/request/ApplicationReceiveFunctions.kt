@@ -52,8 +52,7 @@ public open class ApplicationReceivePipeline(
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 @Deprecated(
-    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. Please consider replacing it with runCatching with receive or receiveNullable",
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
@@ -126,8 +125,7 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveN
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 @Deprecated(
-    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. Please consider replacing it with runCatching with receive or receiveNullable",
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
@@ -146,8 +144,7 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
 @Deprecated(
-    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+    "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. Please consider replacing it with runCatching with receive or receiveNullable",
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
