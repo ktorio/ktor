@@ -24,14 +24,12 @@ class TestApplicationCall(
      */
     @Suppress("DeprecatedCallableAddReplaceWith", "unused")
     @Deprecated(
-        "This property may have unpredictable behaviour. " +
-            "Please use asserts on response status, headers or content",
+        "This property may have unpredictable behaviour. Please use asserts on response status, headers or content",
         level = DeprecationLevel.ERROR
     )
     val requestHandled: Boolean
         get() = error(
-            "This property may have unpredictable behaviour. " +
-                "Please use asserts on response status, headers or content"
+            "This property may have unpredictable behaviour. Please use asserts on response status, headers or content"
         )
 
     override val request: TestApplicationRequest = TestApplicationRequest(this, closeRequest)

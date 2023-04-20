@@ -32,8 +32,7 @@ public annotation class InternalAPI
 @Suppress("DEPRECATION")
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,
-    message = "This API is experimental. " +
-        "It could be removed or changed in future releases, or its behaviour may be different."
+    message = "This API is experimental. It could be removed or changed in future releases, or its behaviour may be different."
 )
 @Target(
     AnnotationTarget.CLASS,
