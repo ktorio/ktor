@@ -19,6 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.io.*
 import java.nio.file.*
+import kotlin.io.path.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -234,9 +235,13 @@ class StaticContentTest {
         val tempFile = File(filesDir, "testServeEncodedFile.txt")
         val brFile = File(filesDir, "testServeEncodedFile.txt.br")
         val gzFile = File(filesDir, "testServeEncodedFile.txt.gz")
+        val gzOnlyFile = File(filesDir, "gzOnly.txt")
+        val gzOnlyFileGz = File(filesDir, "gzOnly.txt.gz")
         tempFile.writeText("temp")
         brFile.writeText("temp.br")
         gzFile.writeText("temp.gz")
+        gzOnlyFile.writeText("gzOnly.txt")
+        gzOnlyFileGz.writeText("gzOnly.txt.gz")
 
         routing {
             staticFiles("static", filesDir) {
@@ -264,6 +269,21 @@ class StaticContentTest {
         assertEquals("temp.gz", responseFileGz.bodyAsText())
         assertEquals("gzip", responseFileGz.headers[HttpHeaders.ContentEncoding])
         assertEquals(ContentType.Text.Plain, responseFileGz.contentType()!!.withoutParameters())
+
+        val responseFileGzOnly = client.get("static/gzOnly.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.OK, responseFileGzOnly.status)
+        assertEquals("gzOnly.txt.gz", responseFileGzOnly.bodyAsText())
+        assertEquals("gzip", responseFileGzOnly.headers[HttpHeaders.ContentEncoding])
+        assertEquals(ContentType.Text.Plain, responseFileGzOnly.contentType()!!.withoutParameters())
+
+        val responseFileGzOnlyBr = client.get("static/gzOnly.txt") {
+            header(HttpHeaders.AcceptEncoding, "br")
+        }
+        assertEquals(HttpStatusCode.OK, responseFileGzOnlyBr.status)
+        assertEquals("gzOnly.txt", responseFileGzOnlyBr.bodyAsText())
+        assertEquals(ContentType.Text.Plain, responseFileGzOnlyBr.contentType()!!.withoutParameters())
     }
 
     @Test
@@ -754,7 +774,7 @@ class StaticContentTest {
     fun testSendLocalFilePaths() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
             call.respond(
-                LocalFileContent(
+                LocalPathContent(
                     basedir.toPath(),
                     Paths.get("/plugins/StaticContentTest.kt".replaceSeparators())
                 )
@@ -789,13 +809,13 @@ class StaticContentTest {
                 )
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../build.gradle")))
+                call.respond(LocalPathContent(basedir.toPath(), Paths.get("../build.gradle")))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../build.gradle")))
+                call.respond(LocalPathContent(basedir.toPath(), Paths.get("../../build.gradle")))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../build.gradle")))
+                call.respond(LocalPathContent(basedir.toPath(), Paths.get("/../build.gradle")))
             }
         }
 
@@ -809,7 +829,7 @@ class StaticContentTest {
         application.intercept(ApplicationCallPipeline.Call) {
             assertFailsWithSuspended<Exception> {
                 call.respond(
-                    LocalFileContent(
+                    LocalPathContent(
                         basedir.toPath(),
                         Paths.get("/../../../../../../../../../../../../../etc/passwd")
                     )
@@ -817,7 +837,7 @@ class StaticContentTest {
             }
             assertFailsWithSuspended<Exception> {
                 call.respond(
-                    LocalFileContent(
+                    LocalPathContent(
                         basedir.toPath(),
                         Paths.get("../../../../../../../../../../../../../etc/passwd")
                     )
@@ -972,6 +992,47 @@ class StaticContentTest {
             assertEquals(ContentType.Text.Plain, result.contentType()!!.withoutParameters())
             assertEquals("br", result.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
+    }
+
+    @Test
+    fun testLocalPathContent() = testApplication {
+        routing {
+            get("path") {
+                call.respond(
+                    LocalPathContent(
+                        Paths.get("jvm/test-resources/public/file.txt"),
+                    )
+                )
+            }
+            get("path-relative") {
+                call.respond(
+                    LocalPathContent(
+                        Paths.get("jvm/test-resources"),
+                        Paths.get("public/file.txt")
+                    )
+                )
+            }
+            get("zip") {
+                val filePath = Paths.get("jvm/test-resources/public.zip")
+                @Suppress("BlockingMethodInNonBlockingContext")
+                val fileSystem = FileSystems.newFileSystem(filePath, StaticContentTest::class.java.classLoader)
+
+                val path = fileSystem.getPath("public/nested/file-nested.txt")
+                call.respond(LocalPathContent(path))
+            }
+        }
+
+        val responsePath = client.get("path")
+        assertEquals(ContentType.Text.Plain, responsePath.contentType()!!.withoutParameters())
+        assertEquals("file.txt", responsePath.bodyAsText().trim())
+
+        val responsePathRelative = client.get("path-relative")
+        assertEquals(ContentType.Text.Plain, responsePathRelative.contentType()!!.withoutParameters())
+        assertEquals("file.txt", responsePathRelative.bodyAsText().trim())
+
+        val responseZip = client.get("zip")
+        assertEquals(ContentType.Text.Plain, responseZip.contentType()!!.withoutParameters())
+        assertEquals("file-nested.txt", responseZip.bodyAsText().trim())
     }
 }
 
