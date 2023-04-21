@@ -40,6 +40,7 @@ public actual fun GMTDate(
 
 public fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }
+    val timeZoneOffset = get(Calendar.ZONE_OFFSET) + get(Calendar.DST_OFFSET)
 
     val seconds = get(Calendar.SECOND)
     val minutes = get(Calendar.MINUTE)
@@ -61,7 +62,7 @@ public fun Calendar.toDate(timestamp: Long?): GMTDate {
         seconds, minutes, hours,
         dayOfWeek, dayOfMonth, dayOfYear,
         month, year,
-        timeInMillis
+        timeInMillis + timeZoneOffset
     )
 }
 
