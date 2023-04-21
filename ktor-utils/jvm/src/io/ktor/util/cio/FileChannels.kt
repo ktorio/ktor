@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
+import java.nio.file.*
 import kotlin.coroutines.*
 
 /**
@@ -37,49 +38,58 @@ public fun File.readChannel(
         @Suppress("BlockingMethodInNonBlockingContext")
         RandomAccessFile(this@readChannel, "r").use { file ->
             val fileChannel: FileChannel = file.channel
-            if (start > 0) {
-                fileChannel.position(start)
-            }
-
-            if (endInclusive == -1L) {
-                @Suppress("DEPRECATION")
-                channel.writeSuspendSession {
-                    while (true) {
-                        val buffer = request(1)
-                        if (buffer == null) {
-                            channel.flush()
-                            tryAwait(1)
-                            continue
-                        }
-
-                        val rc = fileChannel.read(buffer)
-                        if (rc == -1) break
-                        written(rc)
-                    }
-                }
-
-                return@use
-            }
-
-            var position = start
-            channel.writeWhile { buffer ->
-                val fileRemaining = endInclusive - position + 1
-                val rc = if (fileRemaining < buffer.remaining()) {
-                    val l = buffer.limit()
-                    buffer.limit(buffer.position() + fileRemaining.toInt())
-                    val r = fileChannel.read(buffer)
-                    buffer.limit(l)
-                    r
-                } else {
-                    fileChannel.read(buffer)
-                }
-
-                if (rc > 0) position += rc
-
-                rc != -1 && position <= endInclusive
-            }
+            fileChannel.writeToScope(this, start, endInclusive)
         }
     }.channel
+}
+
+@Suppress("BlockingMethodInNonBlockingContext")
+internal suspend fun SeekableByteChannel.writeToScope(
+    writerScope: WriterScope,
+    start: Long,
+    endInclusive: Long
+) {
+    if (start > 0) {
+        position(start)
+    }
+
+    if (endInclusive == -1L) {
+        @Suppress("DEPRECATION")
+        writerScope.channel.writeSuspendSession {
+            while (true) {
+                val buffer = request(1)
+                if (buffer == null) {
+                    writerScope.channel.flush()
+                    tryAwait(1)
+                    continue
+                }
+
+                val rc = read(buffer)
+                if (rc == -1) break
+                written(rc)
+            }
+        }
+
+        return
+    }
+
+    var position = start
+    writerScope.channel.writeWhile { buffer ->
+        val fileRemaining = endInclusive - position + 1
+        val rc = if (fileRemaining < buffer.remaining()) {
+            val l = buffer.limit()
+            buffer.limit(buffer.position() + fileRemaining.toInt())
+            val r = read(buffer)
+            buffer.limit(l)
+            r
+        } else {
+            read(buffer)
+        }
+
+        if (rc > 0) position += rc
+
+        rc != -1 && position <= endInclusive
+    }
 }
 
 /**

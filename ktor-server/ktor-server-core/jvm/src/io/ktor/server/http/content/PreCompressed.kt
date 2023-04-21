@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
 import java.net.*
+import java.nio.file.*
 
 /**
  * Supported pre compressed file types and associated extensions
@@ -60,7 +61,7 @@ internal fun bestCompressionFit(
     compressedTypes: List<CompressedFileType>?
 ): CompressedFileType? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
-    // We respect the order in compressedTypes, not the one on Accept header
+    // We respect the order in compressedTypes, not the one in Accept header
     @Suppress("DEPRECATION")
     return compressedTypes
         ?.filter { it.encoding in acceptedEncodings }
@@ -82,7 +83,7 @@ internal fun bestCompressionFit(
     contentType: (URL) -> ContentType
 ): CompressedResource? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
-    // We respect the order in compressedTypes, not the one on Accept header
+    // We respect the order in compressedTypes, not the one in Accept header
     return compressedTypes
         ?.asSequence()
         ?.filter { it.encoding in acceptedEncodings }
@@ -120,12 +121,10 @@ internal suspend fun ApplicationCall.respondStaticFile(
     suppressCompression()
     @Suppress("DEPRECATION")
     val compressedFile = bestCompressionFit.file(requestedFile)
-    if (compressedFile.isFile) {
-        if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
-        modify(requestedFile, this)
-        val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile))
-        respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
-    }
+    if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
+    modify(requestedFile, this)
+    val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile))
+    respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
 }
 
 internal suspend fun ApplicationCall.respondStaticResource(
