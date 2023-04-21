@@ -6,7 +6,6 @@ package io.ktor.server.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import java.io.*
@@ -44,6 +43,8 @@ public class JarFileContent(
 
     override val contentLength: Long? get() = jarEntry?.size
 
-    override fun readFrom(): ByteReadChannel = jar.getInputStream(jarEntry)?.toByteReadChannel(pool = KtorDefaultPool)
-        ?: throw IOException("Resource $normalized not found")
+    override fun readFrom(): ByteReadChannel {
+        val jarEntry = jarEntry ?: throw IOException("Resource $normalized not found")
+        return jar.getInputStream(jarEntry).toByteReadChannel(pool = KtorDefaultPool)
+    }
 }

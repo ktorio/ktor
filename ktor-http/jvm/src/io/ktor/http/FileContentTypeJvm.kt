@@ -4,9 +4,9 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
 import java.io.*
 import java.nio.file.*
+import kotlin.io.path.*
 
 /**
  * @return default content type for [file] by its extension
@@ -15,7 +15,7 @@ public fun ContentType.Companion.defaultForFile(file: File): ContentType =
     ContentType.fromFileExtension(file.extension).selectDefault()
 
 /**
- * @return default content type for [file] by its extension
+ * @return default content type for [path] by its extension
  */
-public fun ContentType.Companion.defaultForFile(file: Path): ContentType =
-    ContentType.fromFileExtension(file.extension).selectDefault()
+public fun ContentType.Companion.defaultForPath(path: Path): ContentType =
+    ContentType.fromFileExtension(path.extension).selectDefault()
