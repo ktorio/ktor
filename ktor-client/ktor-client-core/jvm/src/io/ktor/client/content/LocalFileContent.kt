@@ -25,7 +25,7 @@ public class LocalFileContent(
 
     override fun readFrom(): ByteReadChannel = file.readChannel()
 
-    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.start, range.endInclusive)
+    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.first, range.last)
 }
 
 /**
