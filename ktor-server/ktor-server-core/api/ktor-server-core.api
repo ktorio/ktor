@@ -400,9 +400,21 @@ public final class io/ktor/server/http/content/LocalFileContent : io/ktor/http/c
 
 public final class io/ktor/server/http/content/LocalFileContentKt {
 	public static final fun LocalFileContent (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;)Lio/ktor/server/http/content/LocalFileContent;
-	public static final fun LocalFileContent (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;)Lio/ktor/server/http/content/LocalFileContent;
+	public static final fun LocalFileContent (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;)Lio/ktor/server/http/content/LocalPathContent;
 	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/server/http/content/LocalFileContent;
-	public static synthetic fun LocalFileContent$default (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/server/http/content/LocalFileContent;
+	public static synthetic fun LocalFileContent$default (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/server/http/content/LocalPathContent;
+	public static final fun LocalPathContent (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;)Lio/ktor/server/http/content/LocalPathContent;
+	public static synthetic fun LocalPathContent$default (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/server/http/content/LocalPathContent;
+}
+
+public final class io/ktor/server/http/content/LocalPathContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Ljava/nio/file/Path;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getPath ()Ljava/nio/file/Path;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun readFrom (Lkotlin/ranges/LongRange;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/server/http/content/SPAConfig {
