@@ -2,7 +2,7 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("FunctionName", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
+@file:Suppress("FunctionName")
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
 package io.ktor.network.quic.packets
@@ -26,6 +26,8 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 
 internal object PacketReader {
+    private val logger = logger()
+
     private const val HEADER_TYPE: UInt8 = 0x80u
     private const val FIXED_BIT: UInt8 = 0x40u
 
@@ -38,28 +40,18 @@ internal object PacketReader {
     private const val SHORT_HEADER_PACKET_NUMBER_LENGTH: UInt8 = 0x03u
 
     /**
-     * Reads a single QUIC packet.
-     *
-     * @param negotiatedVersion - used for the short headers.
-     * Version of the protocol that is used for this connection.
-     *
-     * @param dcidLength - used for the short headers
-     * Length of the destinationConnectionID parameter that is used for this connection
+     * Reads a single QUIC packet. Handles its decryption
      */
     suspend fun readSinglePacket(
         bytes: ByteReadPacket,
-        negotiatedVersion: UInt32,
-        dcidLength: UInt8,
-        matchConnection: (
+        matchConnection: suspend (
             destinationCID: ConnectionID,
             sourceCID: ConnectionID?,
-            packetType: PacketType_v1?,
+            packetType: PacketType_v1,
         ) -> QUICConnection_v1,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
-
-        val headerProtectionKey = "" // todo crypto
 
         if (flags and HEADER_TYPE == HEADER_TYPE) { // Long Header bit is set
             // Version independent properties of packets with the Long Header
@@ -99,25 +91,23 @@ internal object PacketReader {
                 raiseError = raiseError
             )
         } else { // Short Header bit is set
-            val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(negotiatedVersion) { raiseError(FRAME_ENCODING_ERROR) }
-
-            if (dcidLength > maxCIDLength) {
-                raiseError(PROTOCOL_VIOLATION("Actual CID length exceeds protocol's maximum"))
-            }
-
             // Version independent properties of packets with the Short Header
 
-            val destinationConnectionID: ConnectionID = bytes.readBytes(dcidLength.toInt()).asCID()
+            if (bytes.remaining < ConnectionID.endpointSCIDLength) {
+                raiseError(PACKET_END)
+            }
+
+            val destinationCID: ConnectionID = bytes.readBytes(ConnectionID.endpointSCIDLength).asCID()
 
             // End of version independent properties
 
-            val tlsComponent = matchConnection(destinationConnectionID, null, null)
+            val connection = matchConnection(destinationCID, null, PacketType_v1.OneRTT)
 
             return readShortHeader_v1(
                 bytes = bytes,
-                connection = tlsComponent,
+                connection = connection,
                 flags = flags,
-                destinationConnectionID = destinationConnectionID,
+                destinationConnectionID = destinationCID,
                 raiseError = raiseError
             )
         }
@@ -130,7 +120,10 @@ internal object PacketReader {
     ): ConnectionID {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
         if (connectionIDLength > maxCIDLength) {
-            raiseError(PROTOCOL_VIOLATION("Actual CID length exceeds protocol's maximum"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Actual CID length exceeds protocol's maximum"))
+        }
+        if (bytes.remaining < connectionIDLength.toInt()) {
+            raiseError(PACKET_END)
         }
         return bytes.readBytes(connectionIDLength.toInt()).asCID()
     }
@@ -143,7 +136,7 @@ internal object PacketReader {
     ): VersionNegotiationPacket {
         // supportedVersions is an array of 32-bit integers with no specified length
         if (bytes.remaining % 4 != 0L) {
-            raiseError(PROTOCOL_VIOLATION("Malformed supportedVersions array"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Malformed supportedVersions array"))
         }
 
         val supportedVersions = Array((bytes.remaining / 4).toInt()) { bytes.readInt() }
@@ -169,7 +162,7 @@ internal object PacketReader {
         // The next bit (0x40) of byte 0 is set to 1, unless the packet is a Version Negotiation packet.
         // Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
         if (flags and FIXED_BIT != FIXED_BIT) {
-            raiseError(PROTOCOL_VIOLATION("Fixed bit is 0"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Fixed bit is 0"))
         }
 
         return when (type) {
@@ -177,11 +170,10 @@ internal object PacketReader {
                 var token: ByteArray? = null
                 if (type == PacketType_v1.Initial) {
                     val tokenLength = bytes.readVarIntOrElse { raiseError(PACKET_END) }
-                    token = bytes.readBytes(tokenLength.toInt())
-
-                    if (connection.tlsComponent is TLSServerComponent) {
-                        connection.tlsComponent.acceptOriginalDcid(destinationConnectionID)
+                    if (bytes.remaining < tokenLength) {
+                        raiseError(PACKET_END)
                     }
+                    token = bytes.readBytes(tokenLength.toInt())
                 }
 
                 val length: Long = bytes.readVarIntOrElse { raiseError(PACKET_END) }
@@ -193,7 +185,7 @@ internal object PacketReader {
                     else -> unreachable()
                 }
 
-                println("Encryption level: $encryptionLevel")
+                logger.info("Packet type: $type")
 
                 val headerProtectionMask: Long = getHeaderProtectionMask(
                     bytes = bytes,
@@ -202,14 +194,9 @@ internal object PacketReader {
                     raiseError = raiseError
                 )
 
-                println("header protection mask: $headerProtectionMask")
-
                 val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_LONG_MASK)
 
-                println("encoded flags: $flags")
-                println("decoded flags: $decodedFlags")
-
-                val packetNumberLength = decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH
+                val packetNumberLength: UInt32 = (decodedFlags and LONG_HEADER_PACKET_NUMBER_LENGTH) + 1u
 
                 val rawPacketNumber: UInt32 = readAndDecodePacketNumber(
                     bytes = bytes,
@@ -218,9 +205,9 @@ internal object PacketReader {
                 )
 
                 val packetNumber = decodePacketNumber(
-                    largestPn = 0, // todo
+                    largestPn = connection.packetNumberSpacePool[encryptionLevel].largestPacketNumber,
                     truncatedPn = rawPacketNumber,
-                    pnLen = packetNumberLength.toUInt32(),
+                    pnLen = packetNumberLength,
                 )
 
                 val reservedBits: Int = (decodedFlags and LONG_HEADER_RESERVED_BITS).toInt() ushr 2
@@ -228,27 +215,28 @@ internal object PacketReader {
                 val associatedData = buildPacket {
                     writeUByte(decodedFlags)
                     writeUInt(version)
-                    writeConnectionId(destinationConnectionID)
-                    writeConnectionId(sourceConnectionID)
+                    writeConnectionID(destinationConnectionID)
+                    writeConnectionID(sourceConnectionID)
                     if (type == PacketType_v1.Initial) {
                         writeVarInt(token!!.size)
                         writeFully(token)
                     }
                     writeVarInt(length)
-                    writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+                    PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
                 }.readBytes()
 
                 val payload = readAndDecryptPacketPayload(
                     tlsComponent = connection.tlsComponent,
                     associatedData = associatedData,
                     bytes = bytes,
-                    length = (length - packetNumberLength.toLong() - 1).toInt(),
+                    length = (length - packetNumberLength.toLong()).toInt(),
                     packetNumber = packetNumber,
                     level = encryptionLevel,
+                    raiseError = raiseError,
                 )
 
                 if (reservedBits != 0) {
-                    raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
+                    raiseError(PROTOCOL_VIOLATION.withReason("Reserved bits are not 00"))
                 }
 
                 when (type) {
@@ -284,13 +272,15 @@ internal object PacketReader {
             PacketType_v1.Retry -> {
                 val retryTokenLength = bytes.remaining - PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH
                 if (retryTokenLength < 0) {
-                    raiseError(PROTOCOL_VIOLATION("Negative token length"))
+                    raiseError(PROTOCOL_VIOLATION.withReason("Negative token length"))
                 }
                 val retryToken = bytes.readBytes(retryTokenLength.toInt())
                 val integrityTag = bytes.readBytes(PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
 
                 RetryPacket_v1(version, destinationConnectionID, sourceConnectionID, retryToken, integrityTag)
             }
+
+            else -> unreachable()
         }
     }
 
@@ -306,11 +296,16 @@ internal object PacketReader {
         destinationConnectionID: ConnectionID,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
-        val headerProtectionMask: Long =
-            getHeaderProtectionMask(bytes, connection.tlsComponent, EncryptionLevel.App, raiseError)
+        val headerProtectionMask: Long = getHeaderProtectionMask(
+            bytes = bytes,
+            tlsComponent = connection.tlsComponent,
+            level = EncryptionLevel.AppData,
+            raiseError = raiseError
+        )
+
         val decodedFlags: UInt8 = flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK)
 
-        val packetNumberLength = decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH
+        val packetNumberLength: UInt32 = (decodedFlags and SHORT_HEADER_PACKET_NUMBER_LENGTH) + 1u
 
         val rawPacketNumber: UInt32 = readAndDecodePacketNumber(
             bytes = bytes,
@@ -319,9 +314,9 @@ internal object PacketReader {
         )
 
         val packetNumber = decodePacketNumber(
-            largestPn = -1, // todo
+            largestPn = connection.packetNumberSpacePool[EncryptionLevel.AppData].largestPacketNumber,
             truncatedPn = rawPacketNumber,
-            pnLen = packetNumberLength.toUInt32(),
+            pnLen = packetNumberLength,
         )
 
         val spinBit: Boolean = decodedFlags and PktConst.SHORT_HEADER_SPIN_BIT == PktConst.SHORT_HEADER_SPIN_BIT
@@ -330,8 +325,8 @@ internal object PacketReader {
 
         val associatedData = buildPacket {
             writeUByte(decodedFlags)
-            writeConnectionId(destinationConnectionID)
-            writeRawPacketNumber(packetNumberLength, rawPacketNumber)
+            writeConnectionID(destinationConnectionID)
+            PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
         }.readBytes()
 
         val payload = readAndDecryptPacketPayload(
@@ -340,11 +335,12 @@ internal object PacketReader {
             bytes = bytes,
             length = bytes.remaining.toInt(),
             packetNumber = packetNumber,
-            level = EncryptionLevel.App,
+            level = EncryptionLevel.AppData,
+            raiseError = raiseError,
         )
 
         if (reservedBits != 0) {
-            raiseError(PROTOCOL_VIOLATION("Reserved bits are not 00"))
+            raiseError(PROTOCOL_VIOLATION.withReason("Reserved bits are not 00"))
         }
 
         return OneRTTPacket_v1(
@@ -356,15 +352,6 @@ internal object PacketReader {
         )
     }
 
-    private fun BytePacketBuilder.writeRawPacketNumber(length: UByte, number: UInt32) {
-        when (length.toInt()) {
-            0 -> writeUInt8(number.toUByte())
-            1 -> writeUInt16(number.toUShort())
-            2 -> writeUInt24(number)
-            3 -> writeUInt32(number)
-        }
-    }
-
     private suspend fun readAndDecryptPacketPayload(
         tlsComponent: TLSComponent,
         associatedData: ByteArray,
@@ -372,7 +359,12 @@ internal object PacketReader {
         length: Int,
         packetNumber: Long,
         level: EncryptionLevel,
+        raiseError: suspend (QUICTransportError) -> Nothing,
     ): ByteReadPacket {
+        if (bytes.remaining < length) {
+            raiseError(PACKET_END)
+        }
+
         return ByteReadPacket(tlsComponent.decrypt(bytes.readBytes(length), associatedData, packetNumber, level))
     }
 
@@ -387,7 +379,7 @@ internal object PacketReader {
         level: EncryptionLevel,
         raiseError: suspend (QUICTransportError) -> Nothing,
     ): Long {
-        if (bytes.remaining < 132) { // 4 bytes - max packet number size, 128 bytes - sample
+        if (bytes.remaining < 20) { // 4 bytes - max packet number size, 16 bytes - sample
             raiseError(PACKET_END)
         }
 
@@ -396,28 +388,24 @@ internal object PacketReader {
             bytes.peekTo(it, destinationOffset = 0, offset = 4)
         }
 
-        println("sample: ${array.joinToString(" ") { it.toUByte().toString(16) }}")
-
         return tlsComponent.headerProtectionMask(array, level, isDecrypting = true)
     }
 
     private fun readAndDecodePacketNumber(
         bytes: ByteReadPacket,
-        packetNumberLength: UInt8,
+        packetNumberLength: UInt32,
         headerProtectionMask: Long,
     ): UInt32 {
         // read packet number and decrypt it with the header protection mask
         // see: https://www.rfc-editor.org/rfc/rfc9001#name-header-protection-applicati
-        return when (packetNumberLength.toInt()) {
-            0 -> (bytes.readUInt8() xor pnHPMask1(headerProtectionMask)).toUInt32()
-            1 -> (bytes.readUInt16() xor pnHPMask2(headerProtectionMask)).toUInt32()
-            2 -> bytes.readUInt24() xor pnHPMask3(headerProtectionMask)
-            3 -> bytes.readUInt32() xor pnHPMask4(headerProtectionMask)
+        return when (packetNumberLength) {
+            1u -> (bytes.readUInt8() xor pnHPMask1(headerProtectionMask)).toUInt32()
+            2u -> (bytes.readUInt16() xor pnHPMask2(headerProtectionMask)).toUInt32()
+            3u -> bytes.readUInt24() xor pnHPMask3(headerProtectionMask)
+            4u -> bytes.readUInt32() xor pnHPMask4(headerProtectionMask)
             else -> unreachable()
         }
     }
 
-    private val PACKET_END
-        get(): QUICTransportError =
-            PROTOCOL_VIOLATION("End of the packet reached")
+    private val PACKET_END: QUICTransportError = PROTOCOL_VIOLATION.withReason("End of the packet reached")
 }

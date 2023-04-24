@@ -6,9 +6,18 @@ package io.ktor.network.quic.tls
 
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
+import kotlinx.coroutines.channels.*
 
-internal data class ProtocolCommunicationProvider(
-    val sendCryptoFrame: (ByteArray) -> Unit,
-    val raiseError: suspend (CryptoHandshakeError_v1) -> Nothing,
-    val getTransportParameters: (peerParameters: TransportParameters) -> TransportParameters,
+internal interface ProtocolCommunicationProvider {
+    val messageChannel: SendChannel<TLSMessage>
+
+    suspend fun raiseError(error: QUICTransportError)
+
+    fun getTransportParameters(peerParameters: TransportParameters): TransportParameters
+}
+
+internal class TLSMessage(
+    val message: ByteArray,
+    val isHandshakeMessage: Boolean,
+    val flush: Boolean,
 )

@@ -5,9 +5,7 @@
 package io.ktor.network.quic.connections
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.util.*
-import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 
 internal inline fun transportParameters(config: TransportParameters.() -> Unit = {}): TransportParameters {
@@ -24,7 +22,7 @@ internal class TransportParameters {
      * sent by the client; see [Section 7.3](https://www.rfc-editor.org/rfc/rfc9000.html#cid-auth).
      * This transport parameter is only sent by a server.
      */
-    var original_destination_connection_id: ByteArray? = null
+    var original_destination_connection_id: ConnectionID? = null
 
     /**
      * The maximum idle timeout is a value in milliseconds that is encoded as an integer;
@@ -51,7 +49,7 @@ internal class TransportParameters {
      * The default for this parameter is the maximum permitted UDP payload of 65527.
      * Values below 1200 are invalid.
      */
-    var max_udp_payload_size: Long = 65527
+    var max_udp_payload_size: Int = 65527
 
     /**
      * The initial maximum data parameter is an integer value
@@ -97,7 +95,7 @@ internal class TransportParameters {
      * The initial maximum bidirectional streams parameter is an integer value
      * that contains the initial maximum number of bidirectional streams
      * the endpoint that receives this transport parameter is permitted to initiate.
-     * If this parameter is absent or zero
+     * If this parameter is absent or zero,
      * the peer cannot open bidirectional streams until a MAX_STREAMS frame is sent.
      * Setting this parameter is equivalent to sending a MAX_STREAMS
      * of the corresponding type with the same value.
@@ -108,7 +106,7 @@ internal class TransportParameters {
      * The initial maximum unidirectional streams parameter is an integer value
      * that contains the initial maximum number of unidirectional streams
      * the endpoint that receives this transport parameter is permitted to initiate.
-     * If this parameter is absent or zero
+     * If this parameter is absent or zero,
      * the peer cannot open unidirectional streams until a MAX_STREAMS frame is sent.
      * Setting this parameter is equivalent to sending a MAX_STREAMS
      * of the corresponding type with the same value.
@@ -118,7 +116,7 @@ internal class TransportParameters {
     /**
      * The acknowledgment delay exponent is an integer value
      * indicating an exponent used to decode the ACK Delay field in the ACK frame.
-     * If this value is absent a default value of 3 is assumed (indicating a multiplier of 8).
+     * If this value is absent, a default value of 3 is assumed (indicating a multiplier of 8).
      * The values above 20 are invalid.
      */
     var ack_delay_exponent: Int = 3
@@ -127,10 +125,10 @@ internal class TransportParameters {
      * The maximum acknowledgment delay is an integer value
      * indicating the maximum amount of time in milliseconds
      * by which the endpoint will delay sending acknowledgments.
-     * This value SHOULD include the receiver's expected delays in alarms firing.
-     * For example if a receiver sets a timer for 5ms and alarms commonly fire up to 1ms late
+     * This value SHOULD include the receiver's expected delays in alarm firing.
+     * For example, if a receiver sets a timer for 5ms and alarms, commonly fire up to 1ms late,
      * then it should send a max_ack_delay of 6ms.
-     * If this value is absent a default of 25 milliseconds is assumed.
+     * If this value is absent, a default of 25 milliseconds is assumed.
      * Values of 214 or greater are invalid.
      */
     var max_ack_delay: Long = 25
@@ -167,8 +165,8 @@ internal class TransportParameters {
      * and those received in NEW_CONNECTION_ID frames.
      * The value of the active_connection_id_limit parameter MUST be at least 2. An endpoint
      * that receives a value less than 2 MUST close the connection with an error of type TRANSPORT_PARAMETER_ERROR.
-     * If this transport parameter is absent a default of 2 is assumed.
-     * If an endpoint issues a zero-length connection ID
+     * If this transport parameter is absent, a default of 2 is assumed.
+     * If an endpoint issues a zero-length connection ID,
      * it will never send a NEW_CONNECTION_ID frame
      * and therefore ignores the active_connection_id_limit value received from its peer.
      */
@@ -179,17 +177,17 @@ internal class TransportParameters {
      * it sends for the connection;
      * see Section 7.3.
      */
-    var initial_source_connection_id: ByteArray? = null
+    var initial_source_connection_id: ConnectionID? = null
 
     /**
      * This is the value that the server included in the Source Connection ID field of a Retry packet; see Section 7.3.
      * This transport parameter is only sent by a server.
      */
-    var retry_source_connection_id: ByteArray? = null
+    var retry_source_connection_id: ConnectionID? = null
 
     fun toBytes(isServer: Boolean): ByteArray = buildPacket {
         if (isServer) {
-            encodeTransportParameter(ID.original_destination_connection_id, original_destination_connection_id)
+            encodeTransportParameter(ID.original_destination_connection_id, original_destination_connection_id?.value)
         }
 
         encodeTransportParameter(ID.max_idle_timeout, max_idle_timeout)
@@ -210,10 +208,10 @@ internal class TransportParameters {
         encodeTransportParameter(ID.disable_active_migration, disable_active_migration)
 //        encodeTransportParameter(ID.preferred_address, preferred_address) // unsupported
         encodeTransportParameter(ID.active_connection_id_limit, active_connection_id_limit)
-        encodeTransportParameter(ID.initial_source_connection_id, initial_source_connection_id)
+        encodeTransportParameter(ID.initial_source_connection_id, initial_source_connection_id?.value)
 
         if (isServer) {
-            encodeTransportParameter(ID.retry_source_connection_id, retry_source_connection_id)
+            encodeTransportParameter(ID.retry_source_connection_id, retry_source_connection_id?.value)
         }
     }.readBytes()
 
@@ -253,17 +251,22 @@ internal class TransportParameters {
 
             // todo check for client/server only params
             when (id) {
-                ID.original_destination_connection_id -> original_destination_connection_id = bytes.readBytes(size)
+                ID.original_destination_connection_id -> {
+                    original_destination_connection_id = bytes.readBytes(size).asCID()
+                }
+
                 ID.max_idle_timeout -> max_idle_timeout = bytes.readVarIntOrElse(raiseError)
                 ID.stateless_reset_token -> stateless_reset_token = bytes.readBytes(size)
-                ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError)
+                ID.max_udp_payload_size -> max_udp_payload_size = bytes.readVarIntOrElse(raiseError).toInt()
                 ID.initial_max_data -> initial_max_data = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_stream_data_bidi_local -> {
                     initial_max_stream_data_bidi_local = bytes.readVarIntOrElse(raiseError)
                 }
+
                 ID.initial_max_stream_data_bidi_remote -> {
                     initial_max_stream_data_bidi_remote = bytes.readVarIntOrElse(raiseError)
                 }
+
                 ID.initial_max_stream_data_uni -> initial_max_stream_data_uni = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_streams_bidi -> initial_max_streams_bidi = bytes.readVarIntOrElse(raiseError)
                 ID.initial_max_streams_uni -> initial_max_streams_uni = bytes.readVarIntOrElse(raiseError)
@@ -272,8 +275,8 @@ internal class TransportParameters {
                 ID.disable_active_migration -> disable_active_migration = true
 //                ID.preferred_address -> {}
                 ID.active_connection_id_limit -> active_connection_id_limit = bytes.readVarIntOrElse(raiseError).toInt()
-                ID.initial_source_connection_id -> initial_source_connection_id = bytes.readBytes(size)
-                ID.retry_source_connection_id -> retry_source_connection_id = bytes.readBytes(size)
+                ID.initial_source_connection_id -> initial_source_connection_id = bytes.readBytes(size).asCID()
+                ID.retry_source_connection_id -> retry_source_connection_id = bytes.readBytes(size).asCID()
                 else -> bytes.readBytes(size) // skip unknown parameter
             }
 
@@ -287,6 +290,7 @@ internal class TransportParameters {
 /**
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-preferred-address-format)
  */
+@Suppress("unused")
 internal class PreferredAddress(
     val ipv4address: Int,
     val ipv4Port: Short,
@@ -311,6 +315,7 @@ private enum class ID(val value: Int) {
     ack_delay_exponent(0x0A),
     max_ack_delay(0x0B),
     disable_active_migration(0x0C),
+    @Suppress("unused")
     preferred_address(0x0D),
     active_connection_id_limit(0x0E),
     initial_source_connection_id(0x0F),
@@ -326,6 +331,7 @@ private enum class ID(val value: Int) {
 private fun BytePacketBuilder.encodeTransportParameter(id: ID, parameter: Boolean) {
     if (parameter) {
         writeID(id)
+        writeVarInt(0) // size
     }
 }
 

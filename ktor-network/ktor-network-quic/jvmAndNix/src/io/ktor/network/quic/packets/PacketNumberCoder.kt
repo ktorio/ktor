@@ -15,7 +15,7 @@ internal fun decodePacketNumber(
     truncatedPn: UInt32,
     pnLen: UInt32,
 ): Long {
-    val pnNBits = (pnLen.toInt() + 1) * 8
+    val pnNBits = pnLen.toInt() * 8
     val expectedPn = largestPn + 1L
     val pnWin = 1L shl pnNBits
     val pnHWin = pnWin ushr 1

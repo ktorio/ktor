@@ -17,11 +17,12 @@ internal object FrameReader {
     suspend inline fun readFrame(
         processor: FrameProcessor,
         packet: QUICPacket,
-        payload: ByteReadPacket,
         transportParameters: TransportParameters,
         maxCIDLength: UInt8,
-        onError: (QUICTransportError_v1, FrameType_v1) -> Unit,
+        onError: (QUICTransportError, FrameType_v1) -> Unit,
     ) {
+        val payload = packet.payload ?: error("Expected packet with payload") // programming error
+
         if (payload.isEmpty) {
             onError(PROTOCOL_VIOLATION, FrameType_v1.PADDING)
             return
