@@ -8,7 +8,7 @@ package io.ktor.network.quic.tls
 import at.favre.lib.crypto.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.utils.io.core.*
+import io.ktor.network.quic.util.*
 import kotlinx.coroutines.*
 import net.luminis.tls.*
 import net.luminis.tls.extension.*
@@ -19,11 +19,13 @@ import kotlin.experimental.*
 internal actual class TLSServerComponent(
     private val communicationProvider: ProtocolCommunicationProvider,
 ) : TLSComponent, TlsStatusEventHandler, ServerMessageSender {
+    private val logger = logger()
+
     private lateinit var engine: TlsServerEngine
     private lateinit var originalDcid: ByteArray
 
     private val messageParser = TlsMessageParser { bytes, _ ->
-        QUICServerTLSExtension.fromBytes(ByteReadPacket(bytes), true)
+        QUICServerTLSExtension.fromBytes(bytes, true)
     }
 
     private val clientInitialKeys = CompletableDeferred<CryptoKeys>()
@@ -57,13 +59,13 @@ internal actual class TLSServerComponent(
             isDecrypting -> when (level) {
                 EncryptionLevel.Initial -> clientInitialKeys
                 EncryptionLevel.Handshake -> clientHandshakeKeys
-                EncryptionLevel.App -> client1RTTKeys
+                EncryptionLevel.AppData -> client1RTTKeys
             }
 
             else -> when (level) {
                 EncryptionLevel.Initial -> serverInitialKeys
                 EncryptionLevel.Handshake -> serverHandshakeKeys
-                EncryptionLevel.App -> server1RTTKeys
+                EncryptionLevel.AppData -> server1RTTKeys
             }
         }.await()
 
@@ -79,7 +81,7 @@ internal actual class TLSServerComponent(
         val keys = when (level) {
             EncryptionLevel.Initial -> clientInitialKeys
             EncryptionLevel.Handshake -> clientHandshakeKeys
-            EncryptionLevel.App -> client1RTTKeys
+            EncryptionLevel.AppData -> client1RTTKeys
         }.await()
 
         return decrypt(payload, associatedData, packetNumber, keys)
@@ -94,7 +96,7 @@ internal actual class TLSServerComponent(
         val keys = when (level) {
             EncryptionLevel.Initial -> serverInitialKeys
             EncryptionLevel.Handshake -> serverHandshakeKeys
-            EncryptionLevel.App -> server1RTTKeys
+            EncryptionLevel.AppData -> server1RTTKeys
         }.await()
 
         return encrypt(payload, associatedData, packetNumber, keys)
@@ -132,10 +134,26 @@ internal actual class TLSServerComponent(
     }
 
     private fun calculateInitialKeys() {
+        if (clientInitialKeys.isCompleted) return
+
         val keys = HKDF.fromHmacSha256().extract(TLSConstants.V1.SALT, originalDcid)
 
-        clientInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = false))
-        serverInitialKeys.complete(CryptoKeys.initial(keys, QUICVersion.V1, isServer = true))
+        clientInitialKeys.complete(
+            CryptoKeys.initial(
+                secret = keys,
+                version = QUICVersion.V1,
+                isServer = false,
+                debugLabel = "initial client"
+            )
+        )
+        serverInitialKeys.complete(
+            CryptoKeys.initial(
+                secret = keys,
+                version = QUICVersion.V1,
+                isServer = true,
+                debugLabel = "initial server"
+            )
+        )
     }
 
     // Helper methods
@@ -153,20 +171,46 @@ internal actual class TLSServerComponent(
     }
 
     override fun handshakeSecretsKnown() {
-        clientHandshakeKeys.complete(CryptoKeys(engine.clientHandshakeTrafficSecret, QUICVersion.V1))
-        serverHandshakeKeys.complete(CryptoKeys(engine.serverHandshakeTrafficSecret, QUICVersion.V1))
+        if (clientHandshakeKeys.isCompleted) return
+
+        clientHandshakeKeys.complete(
+            CryptoKeys(
+                secret = engine.clientHandshakeTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "handshake client"
+            )
+        )
+        serverHandshakeKeys.complete(
+            CryptoKeys(
+                secret = engine.serverHandshakeTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "handshake server"
+            )
+        )
     }
 
     override fun handshakeFinished() {
-        client1RTTKeys.complete(CryptoKeys(engine.clientApplicationTrafficSecret, QUICVersion.V1))
-        server1RTTKeys.complete(CryptoKeys(engine.serverApplicationTrafficSecret, QUICVersion.V1))
+        if (client1RTTKeys.isCompleted) return
+
+        client1RTTKeys.complete(
+            CryptoKeys(
+                secret = engine.clientApplicationTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "1-RTT client"
+            )
+        )
+        server1RTTKeys.complete(
+            CryptoKeys(
+                secret = engine.serverApplicationTrafficSecret,
+                version = QUICVersion.V1,
+                debugLabel = "1-RTT server"
+            )
+        )
     }
 
     override fun newSessionTicketReceived(newSessionTicket: NewSessionTicket?) {
         // nothing for server to do here
     }
-
-    private lateinit var onTransportParametersKnown: (local: TransportParameters, peer: TransportParameters) -> Unit
 
     override fun extensionsReceived(extensions: MutableList<Extension>?) {
         val peerTransportParameters: TransportParameters = extensions
@@ -177,34 +221,51 @@ internal actual class TLSServerComponent(
 
         val endpointTransportParameters = communicationProvider.getTransportParameters(peerTransportParameters)
 
-        onTransportParametersKnown(endpointTransportParameters, peerTransportParameters)
-
         engine.addServerExtensions(QUICServerTLSExtension(endpointTransportParameters, true))
-    }
-
-    override fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit) {
-        onTransportParametersKnown = run
     }
 
     override fun isEarlyDataAccepted(): Boolean {
         return false
     }
 
-    override fun send(message: ServerHello?) = sendMessage(message)
+    override fun send(message: ServerHello?) = sendMessage(
+        message = message,
+        isHandshakeMessage = false,
+        flush = true
+    )
 
-    override fun send(message: EncryptedExtensions?) = sendMessage(message)
+    override fun send(message: EncryptedExtensions?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = true, // true - to make CERT, CV, FIN in one packet
+    )
 
-    override fun send(message: CertificateMessage?) = sendMessage(message)
+    override fun send(message: CertificateMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = false,
+    )
 
-    override fun send(message: CertificateVerifyMessage?) = sendMessage(message)
+    override fun send(message: CertificateVerifyMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = false,
+    )
 
-    override fun send(message: FinishedMessage?) = sendMessage(message)
+    override fun send(message: FinishedMessage?) = sendMessage(
+        message = message,
+        isHandshakeMessage = true,
+        flush = true
+    )
 
-    override fun send(message: NewSessionTicketMessage?) = sendMessage(message)
+    override fun send(message: NewSessionTicketMessage?) = TODO("Not yet implemented")
 
-    private fun sendMessage(message: HandshakeMessage?) {
+    private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean) {
         message ?: return
 
-        communicationProvider.sendCryptoFrame(message.bytes)
+        logger.info("Send TLS Message: ${message.type}")
+
+        // todo result handler?
+        communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, isHandshakeMessage, flush))
     }
 }

@@ -12,15 +12,15 @@ class PacketNumberCoderTest {
     @Test
     fun testDecodePacketNumber() {
         // test from RFC
-        assertEquals(0xA82F9B32, decodePacketNumber(0xA82F30EA, 0x9B32u, 1u))
+        assertEquals(0xA82F9B32, decodePacketNumber(0xA82F30EA, 0x9B32u, 2u))
 
         // tests from other QUIC implementation (kwik)
         // https://github.com/ptrd/kwik/blob/5ef7583dca63a3292e0dba3176fbfab23d00176b/src/test/java/net/luminis/quic/packet/QuicPacketTest.java#L130 // ktlint-disable max-line-length
-        assertEquals(300, decodePacketNumber(384, 44u, 0u))
-        assertEquals(254, decodePacketNumber(268, 254u, 0u))
-        assertEquals(522, decodePacketNumber(510, 10u, 0u))
-        assertEquals(65455, decodePacketNumber(65454, 65455u, 3u))
-        assertEquals(4494967300L, decodePacketNumber(4494967299, 200000004u, 3u))
+        assertEquals(300, decodePacketNumber(384, 44u, 1u))
+        assertEquals(254, decodePacketNumber(268, 254u, 1u))
+        assertEquals(522, decodePacketNumber(510, 10u, 1u))
+        assertEquals(65455, decodePacketNumber(65454, 65455u, 4u))
+        assertEquals(4494967300L, decodePacketNumber(4494967299, 200000004u, 4u))
     }
 
     @Test

@@ -84,6 +84,10 @@ internal enum class TransportError_v1(val intCode: UInt8) : QUICTransportError_v
         packetBuilder.writeUInt8(intCode)
     }
 
+    override fun toDebugString(): String {
+        return "Transport Error $name, code: $intCode"
+    }
+
     companion object {
         private val array = TransportError_v1.values()
 
@@ -101,18 +105,22 @@ internal class CryptoHandshakeError_v1(val tlsAlertCode: UInt8) : QUICTransportE
         packetBuilder.writeUInt8(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
         packetBuilder.writeUInt8(tlsAlertCode)
     }
+
+    override fun toDebugString(): String {
+        return "Crypto Handshake Error: $tlsAlertCode"
+    }
 }
 
 internal class ReasonedError(
     val error: QUICTransportError,
     val reasonPhrase: ByteArray,
 ) : QUICTransportError {
-    override fun toString(): String {
-        return "Error: $error, reason: ${String(reasonPhrase)}"
+    override fun toDebugString(): String {
+        return "Error: ${error.toDebugString()}, reason: ${String(reasonPhrase)}"
     }
 }
 
-internal operator fun QUICTransportError.invoke(reasonPhrase: String): QUICTransportError {
+internal fun QUICTransportError.withReason(reasonPhrase: String): QUICTransportError {
     if (reasonPhrase.isEmpty()) return this
 
     val bytes = reasonPhrase.toByteArray()

@@ -4,6 +4,15 @@
 
 package io.ktor.network.quic.tls
 
+import io.ktor.network.quic.packets.*
+
 internal enum class EncryptionLevel {
-    Initial, Handshake, App
+    Initial, Handshake, AppData
+}
+
+internal val QUICPacket.encryptionLevel: EncryptionLevel? get() = when (this) {
+    is InitialPacket_v1 -> EncryptionLevel.Initial
+    is HandshakePacket_v1 -> EncryptionLevel.Handshake
+    is QUICPacket.ShortHeader -> EncryptionLevel.AppData
+    else -> null
 }
