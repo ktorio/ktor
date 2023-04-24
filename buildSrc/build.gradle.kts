@@ -21,6 +21,8 @@ repositories {
 sourceSets.main {
 }
 
+val ktor_version = "2.3.0"
+
 dependencies {
     implementation(kotlin("gradle-plugin", "1.8.10"))
     implementation(kotlin("serialization", "1.8.10"))
@@ -28,18 +30,18 @@ dependencies {
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
-    implementation("io.ktor:ktor-server-default-headers:2.0.2")
-    implementation("io.ktor:ktor-server-netty:2.0.2")
-    implementation("io.ktor:ktor-server-cio:2.0.2")
-    implementation("io.ktor:ktor-server-jetty:2.0.2")
-    implementation("io.ktor:ktor-server-websockets:2.0.2")
-    implementation("io.ktor:ktor-server-auth:2.0.2")
-    implementation("io.ktor:ktor-server-caching-headers:2.0.2")
-    implementation("io.ktor:ktor-server-conditional-headers:2.0.2")
-    implementation("io.ktor:ktor-server-compression:2.0.2")
-    implementation("io.ktor:ktor-server-content-negotiation:2.0.2")
-    implementation("io.ktor:ktor-serialization-kotlinx:2.0.2")
-    implementation("io.ktor:ktor-network-tls-certificates:2.0.2")
+    implementation("io.ktor:ktor-server-default-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_version")
+    implementation("io.ktor:ktor-server-cio:$ktor_version")
+    implementation("io.ktor:ktor-server-jetty:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
+    implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("io.ktor:ktor-server-caching-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-conditional-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-compression:$ktor_version")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx:$ktor_version")
+    implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
