@@ -41,8 +41,4 @@ internal actual class TLSServerComponent : TLSComponent {
     override suspend fun headerProtectionMask(sample: ByteArray, level: EncryptionLevel, isDecrypting: Boolean): Long {
         TODO("Not yet implemented")
     }
-
-    override fun onTransportParametersKnown(run: (local: TransportParameters, peer: TransportParameters) -> Unit) {
-        TODO("Not yet implemented")
-    }
 }

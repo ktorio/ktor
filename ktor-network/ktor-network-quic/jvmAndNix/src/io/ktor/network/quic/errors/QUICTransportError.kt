@@ -7,4 +7,6 @@ package io.ktor.network.quic.errors
 /**
  * Marker interface for all QUIC transport errors across all versions
  */
-internal interface QUICTransportError
+internal interface QUICTransportError {
+    fun toDebugString(): String
+}

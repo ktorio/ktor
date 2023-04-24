@@ -7,6 +7,7 @@
 
 package io.ktor.network.quic.bytes
 
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 internal typealias UInt8 = UByte
@@ -40,6 +41,7 @@ internal inline fun BytePacketBuilder.writeUInt24(value: UInt24) {
     writeUByte((value.toInt() ushr 16).toUByte())
     writeUShort(value.toUInt16())
 }
+
 internal inline fun BytePacketBuilder.writeUInt32(value: UInt32) = writeUInt(value)
 
 /**
@@ -60,4 +62,29 @@ internal inline fun ByteReadPacket.readUInt32(elseBlock: () -> UInt32): UInt32 {
         return elseBlock()
     }
     return readUInt32()
+}
+
+internal fun ByteArray.toDebugString() = joinToString(" ") { it.toString16Byte() }
+
+internal fun Byte.toString16Byte(): String {
+    return toUByte().toString(16).padStart(2, '0')
+}
+
+internal fun ByteReadPacket.toDebugString(showAll: Boolean = false): String {
+    return if (showAll) copy().readBytes().toDebugString() else "$remaining bytes"
+}
+
+internal val EMPTY_BYTE_ARRAY = ByteArray(0)
+
+/**
+ * Calculates size of the byte array in the frame with `length` property
+ */
+internal fun byteArrayFrameSize(size: Int): Int {
+    val varIntSize = when {
+        size < POW_2_06 -> 1
+        size < POW_2_14 -> 2
+        size < POW_2_30 -> 4
+        else -> 8
+    }
+    return varIntSize + size
 }

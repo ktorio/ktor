@@ -453,7 +453,7 @@ internal object FrameWriterImpl : FrameWriter {
         writeFrameType(FrameType_v1.NEW_CONNECTION_ID)
         writeVarInt(sequenceNumber)
         writeVarInt(retirePriorTo)
-        writeConnectionId(connectionID)
+        writeConnectionID(connectionID)
         writeFully(statelessResetToken)
     }
 
