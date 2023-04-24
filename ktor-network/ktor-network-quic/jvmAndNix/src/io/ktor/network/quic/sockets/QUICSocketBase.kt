@@ -10,22 +10,19 @@ import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.streams.*
-import io.ktor.network.quic.tls.*
 import io.ktor.network.sockets.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 internal abstract class QUICSocketBase(
-    private val datagramSocket: BoundDatagramSocket,
+    protected val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
-    private val connections = mutableListOf<Pair<ConnectionID, QUICConnection_v1>>()
+    protected abstract val logger: Logger
+    protected val connections = mutableListOf<QUICConnection_v1>()
 
     override fun dispose() {
         datagramSocket.dispose()
-    }
-
-    protected suspend fun sendDatagram(packet: ByteReadPacket, address: SocketAddress) {
-        datagramSocket.send(Datagram(packet, address))
     }
 
     init {
@@ -34,27 +31,22 @@ internal abstract class QUICSocketBase(
                 try {
                     receiveAndProcessDatagram()
                 } catch (e: Exception) {
-                    println(e)
-//                    e.printStackTrace()
+                    logger.error(e)
                 }
-                println("-".repeat(70))
             }
         }
     }
 
     private suspend fun receiveAndProcessDatagram() {
         val datagram = datagramSocket.receive()
-        println("Accepted datagram from ${datagram.address}")
-        println("packet size: ${datagram.packet.remaining}")
+        logger.info("Accepted datagram from ${datagram.address}")
+        logger.info("Datagram size: ${datagram.packet.remaining}")
 
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(
                 bytes = datagram.packet,
-                negotiatedVersion = 0u, // todo
-                dcidLength = 0u, // todo
                 matchConnection = { dcid, scid, _ ->
-                    val connection = connections.find { it.first.eq(dcid) }
-                    connection?.second ?: createConnection(scid!!).also { connections.add(dcid to it) }
+                    dcid.connection ?: createConnection(datagram.address, scid!!, dcid).also { connections.add(it) }
                 },
                 raiseError = {
                     handleTransportError(it)
@@ -62,13 +54,18 @@ internal abstract class QUICSocketBase(
                 }
             )
 
-            processIncomingPacket(datagram.address, packet)
+            // todo can here be null connection?
+            packet.destinationConnectionID.connection!!.processPacket(packet)
         }
     }
 
-    abstract fun createConnection(peerSourceConnectionID: ConnectionID): QUICConnection_v1
+    abstract suspend fun createConnection(
+        address: SocketAddress,
+        peerSourceConnectionID: ConnectionID,
+        originalDestinationConnectionID: ConnectionID,
+    ): QUICConnection_v1
 
-    abstract suspend fun processIncomingPacket(address: SocketAddress, packet: QUICPacket)
+    private fun handleTransportError(error: QUICTransportError) {}
 
-    protected suspend fun handleTransportError(error: QUICTransportError) {}
+    private val ConnectionID.connection: QUICConnection_v1? get() = connections.find { it.match(this) }
 }

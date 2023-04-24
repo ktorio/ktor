@@ -9,7 +9,6 @@ package io.ktor.network.quic.packets
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_LONG_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_SHORT_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.flagsHPMask
@@ -18,23 +17,25 @@ import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask2
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask3
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask4
 import io.ktor.network.quic.tls.*
+import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 internal object PacketWriter {
+    private val logger = logger()
+
     /**
-     * Writes Version Negotiation packet to [packetBuilder] according to specification.
+     * Writes a Version Negotiation packet to [packetBuilder] according to specification.
      * If it is QUIC version 1, sets second bit to 1.
      * (as fixed bit for protocol multiplexing [RFC-7983](https://www.rfc-editor.org/rfc/rfc7983.html))
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-version-negotiation-packet)
      */
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun writeVersionNegotiationPacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
-        vararg supportedVersions: UInt32,
+        supportedVersions: Array<UInt32>,
     ) = with(packetBuilder) {
         @Suppress("KotlinConstantConditions")
         val first: UInt8 = when (version) {
@@ -87,6 +88,15 @@ internal object PacketWriter {
 
         val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
 
+        // debug only
+        RetryPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            retryToken = retryToken,
+            retryIntegrityTag = integrityTag,
+        ).apply(::debugLog)
+
         // skip originalDestinationConnectionID and it's length
         packetBuilder.writeFully(pseudoPacket, offset = 1 + originalDestinationConnectionID.size)
         packetBuilder.writeFully(integrityTag)
@@ -103,16 +113,29 @@ internal object PacketWriter {
      */
     suspend inline fun writeInitialPacket(
         tlsComponent: TLSComponent,
+        largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
         token: ByteArray,
         packetNumber: Long,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        payload: ByteArray,
     ) {
+        // debug only
+        InitialPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            token = token,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.Initial,
+            largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_INITIAL,
             version = version,
@@ -134,15 +157,27 @@ internal object PacketWriter {
      */
     suspend inline fun writeHandshakePacket(
         tlsComponent: TLSComponent,
+        largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
         packetNumber: Long,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        payload: ByteArray,
     ) {
+        // debug only
+        HandshakePacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.Handshake,
+            largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE,
             version = version,
@@ -160,15 +195,27 @@ internal object PacketWriter {
      */
     suspend inline fun writeZeroRTTPacket(
         tlsComponent: TLSComponent,
+        largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
         packetNumber: Long,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        payload: ByteArray,
     ) {
+        // debug only
+        ZeroRTTPacket_v1(
+            version = version,
+            destinationConnectionID = destinationConnectionID,
+            sourceConnectionID = sourceConnectionID,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload)
+        ).apply(::debugLog)
+
         writeLongHeaderPacket_v1(
             tlsComponent = tlsComponent,
+            encryptionLevel = EncryptionLevel.AppData,
+            largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
             packetType = PktConst.LONG_HEADER_PACKET_TYPE_0_RTT,
             version = version,
@@ -188,32 +235,47 @@ internal object PacketWriter {
 
     private suspend inline fun writeLongHeaderPacket_v1(
         tlsComponent: TLSComponent,
+        encryptionLevel: EncryptionLevel,
+        largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         packetType: UInt8,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
         packetNumber: Long,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        payload: ByteArray,
         writeBeforeLength: BytePacketBuilder.() -> Unit = {},
     ) {
         checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
 
+        val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcknowledged)
+        val flags: UInt8 = LONG_HEADER_FIRST_BYTE_TEMPLATE or packetType or (packetNumberLength - 1u).toUInt8()
+
+        val unencryptedHeader = buildPacket {
+            writeUInt8(flags)
+            writeUInt32(version)
+            writeConnectionID(destinationConnectionID)
+            writeConnectionID(sourceConnectionID)
+            writeBeforeLength()
+            writeVarInt(payload.size + packetNumberLength.toInt() + PktConst.ENCRYPTION_HEADER_LENGTH)
+            writeRawPacketNumber(this, packetNumberLength.toUInt32(), packetNumber.toUInt())
+        }.readBytes()
+
         withEncryptedPayloadAndHPMask(
             tlsComponent = tlsComponent,
-            level = EncryptionLevel.App,
-            payload = payload,
+            packetNumberLength = packetNumberLength.toInt(),
+            packetNumber = packetNumber,
+            level = encryptionLevel,
+            unencryptedHeader = unencryptedHeader,
+            unencryptedPayload = payload,
         ) { encryptedPayload, headerProtectionMask ->
-            val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)
-            val first: UInt8 = LONG_HEADER_FIRST_BYTE_TEMPLATE or packetType or packetNumberLength
-
             with(packetBuilder) {
-                writeUInt8(first xor flagsHPMask(headerProtectionMask, HP_FLAGS_LONG_MASK))
+                writeUInt8(flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_LONG_MASK))
                 writeUInt32(version)
                 writeConnectionID(destinationConnectionID)
                 writeConnectionID(sourceConnectionID)
                 writeBeforeLength()
-                writeVarInt(encryptedPayload.size)
+                writeVarInt(encryptedPayload.size + packetNumberLength.toInt())
                 encryptAndWritePacketNumber(packetNumber, packetNumberLength, headerProtectionMask)
                 writeFully(encryptedPayload)
             }
@@ -234,30 +296,49 @@ internal object PacketWriter {
      */
     suspend fun writeOneRTTPacket(
         tlsComponent: TLSComponent,
+        largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         spinBit: Boolean,
         keyPhase: Boolean,
         destinationConnectionID: ConnectionID,
         packetNumber: Long,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        payload: ByteArray,
     ) {
+        // debug only
+        OneRTTPacket_v1(
+            destinationConnectionID = destinationConnectionID,
+            spinBit = spinBit,
+            keyPhase = keyPhase,
+            packetNumber = packetNumber,
+            payload = ByteReadPacket(payload),
+        ).apply(::debugLog)
+
+        val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcknowledged)
+
+        val spinBitValue: UInt8 = if (spinBit) PktConst.SHORT_HEADER_SPIN_BIT else 0x00u
+        val keyPhaseValue: UInt8 = if (keyPhase) PktConst.SHORT_HEADER_KEY_PHASE else 0x00u
+
+        val flags: UInt8 = SHORT_HEADER_FIRST_BYTE_TEMPLATE or
+            spinBitValue or
+            keyPhaseValue or
+            (packetNumberLength - 1u).toUInt8()
+
+        val unencryptedHeader = buildPacket {
+            writeUInt8(flags)
+            writeFully(destinationConnectionID.value)
+            writeRawPacketNumber(this, packetNumberLength.toUInt32(), packetNumber.toUInt())
+        }.readBytes()
+
         withEncryptedPayloadAndHPMask(
             tlsComponent = tlsComponent,
-            level = EncryptionLevel.App,
-            payload = payload
+            packetNumberLength = packetNumberLength.toInt(),
+            packetNumber = packetNumber,
+            level = EncryptionLevel.AppData,
+            unencryptedHeader = unencryptedHeader,
+            unencryptedPayload = payload,
         ) { encryptedPayload, headerProtectionMask ->
-            val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcked = -1 /* todo */)
-
-            val spinBitValue: UInt8 = if (spinBit) PktConst.SHORT_HEADER_SPIN_BIT else 0x00u
-            val keyPhaseValue: UInt8 = if (keyPhase) PktConst.SHORT_HEADER_KEY_PHASE else 0x00u
-
-            val first: UInt8 = SHORT_HEADER_FIRST_BYTE_TEMPLATE or
-                spinBitValue or
-                keyPhaseValue or
-                packetNumberLength
-
             with(packetBuilder) {
-                writeUInt8(first xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK))
+                writeUInt8(flags xor flagsHPMask(headerProtectionMask, HP_FLAGS_SHORT_MASK))
                 writeFully(destinationConnectionID.value) // no length as it should be known for the connection
                 encryptAndWritePacketNumber(packetNumber, packetNumberLength, headerProtectionMask)
                 writeFully(encryptedPayload)
@@ -286,33 +367,30 @@ internal object PacketWriter {
     private suspend inline fun withEncryptedPayloadAndHPMask(
         tlsComponent: TLSComponent,
         level: EncryptionLevel,
-        payload: FrameWriter.(BytePacketBuilder) -> Unit,
+        packetNumberLength: Int,
+        packetNumber: Long,
+        unencryptedHeader: ByteArray,
+        unencryptedPayload: ByteArray,
         body: (encryptedPayload: ByteArray, headerProtectionMask: Long) -> Unit,
     ) {
-        val unencryptedPayload: ByteArray = buildPacket {
-            payload(FrameWriterImpl, this)
-        }.readBytes()
-
-        val encryptedPayload: ByteArray = encryptPacketPayload(unencryptedPayload)
-
-        require(encryptedPayload.size >= PktConst.HP_SAMPLE_LENGTH) {
-            "Payload should at least ${PktConst.HP_SAMPLE_LENGTH} bytes to encrypt header"
+        // no need to add padding frames
+        // as encryption header will always add at least 16 bytes which is the size of the sample
+        if (unencryptedPayload.isEmpty()) {
+            error("Payload can not be empty") // programmer's error
         }
 
-        val sample: ByteArray = encryptedPayload.copyOfRange(0, PktConst.HP_SAMPLE_LENGTH)
+        val encryptedPayload: ByteArray = tlsComponent.encrypt(
+            payload = unencryptedPayload,
+            associatedData = unencryptedHeader,
+            packetNumber = packetNumber,
+            level = level
+        )
+
+        val offset = 4 - packetNumberLength
+        val sample: ByteArray = encryptedPayload.copyOfRange(offset, offset + PktConst.HP_SAMPLE_LENGTH)
         val headerProtectionMask: Long = tlsComponent.headerProtectionMask(sample, level, isDecrypting = false)
 
         return body(encryptedPayload, headerProtectionMask)
-    }
-
-    private fun encryptPacketPayload(payload: ByteArray): ByteArray {
-        TODO("crypto")
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun BytePacketBuilder.writeConnectionID(connectionID: ConnectionID) {
-        writeUInt8(connectionID.size.toUByte())
-        writeFully(connectionID.value)
     }
 
     private fun checkVersionConstraints(
@@ -335,5 +413,18 @@ internal object PacketWriter {
     ) {
         val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { error("unknown version: $version") }
         require(connectionID.size.toUByte() <= maxCIDLength) { message(maxCIDLength) }
+    }
+
+    fun writeRawPacketNumber(builder: BytePacketBuilder, length: UInt32, number: UInt32) = with(builder) {
+        when (length.toInt()) {
+            1 -> writeUInt8(number.toUByte())
+            2 -> writeUInt16(number.toUShort())
+            3 -> writeUInt24(number)
+            4 -> writeUInt32(number)
+        }
+    }
+
+    private fun debugLog(packet: QUICPacket) {
+        logger.info("writing packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
     }
 }
