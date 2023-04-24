@@ -68,9 +68,17 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversationNonBlockin
     withContext(configuration.dispatcher) {
         responseSent.join()
         processResponse(call)
+        val connectionEstablished = withTimeoutOrNull(1000) {
+            call.response.webSocketEstablished.join()
+        }
+        if (connectionEstablished == null) {
+            job.cancel()
+            throw IllegalStateException("WebSocket connection failed")
+        }
 
         val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-        val responseChannel = call.response.websocketChannel()!!
+        val responseChannel = call.response.websocketChannel()
+            ?: error("Expected websocket channel in the established connection")
         val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
         val scope = if (awaitCallback) this else GlobalScope
