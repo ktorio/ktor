@@ -120,6 +120,8 @@ public class TestApplicationResponse(
     // Websockets & upgrade
     private val webSocketCompleted: CompletableJob = Job()
 
+    internal val webSocketEstablished: CompletableJob = Job()
+
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgrade.upgrade(
             call.receiveChannel(),
@@ -129,6 +131,7 @@ public class TestApplicationResponse(
         ).invokeOnCompletion {
             webSocketCompleted.complete()
         }
+        webSocketEstablished.complete()
     }
 
     /**

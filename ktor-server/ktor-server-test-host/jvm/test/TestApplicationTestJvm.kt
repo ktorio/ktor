@@ -244,6 +244,17 @@ class TestApplicationTestJvm {
             get { call.respond("OK FROM MODULE") }
         }
     }
+
+    @Test
+    fun testWebSocketConnectionFailed() = testApplication {
+        val client = createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }
+        val error = assertFailsWith<IllegalStateException> {
+            client.webSocket("/ws") { }
+        }
+        assertEquals("WebSocket connection failed", error.message)
+    }
 }
 
 class TestClass(val value: Int) : Serializable
