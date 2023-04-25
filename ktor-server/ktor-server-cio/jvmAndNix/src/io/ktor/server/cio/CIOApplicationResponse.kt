@@ -88,11 +88,6 @@ internal class CIOApplicationResponse(
     }
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        upgraded?.complete(true) ?: throw IllegalStateException(
-            "Unable to perform upgrade as it is not requested by the client: " +
-                "request should have Upgrade and Connection headers filled properly"
-        )
-
         sendResponseMessage(contentReady = false)
 
         val upgradedJob = upgrade.upgrade(input, output, engineDispatcher, userDispatcher)
@@ -115,6 +110,15 @@ internal class CIOApplicationResponse(
     }
 
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
+        if (content is OutgoingContent.ProtocolUpgrade) {
+            upgraded?.complete(true) ?: throw IllegalStateException(
+                "Unable to perform upgrade as it is not requested by the client: " +
+                    "request should have Upgrade and Connection headers filled properly"
+            )
+        } else {
+            upgraded?.complete(false)
+        }
+
         super.respondOutgoingContent(content)
         chunkedChannel?.close()
         chunkedJob?.join()
