@@ -33,7 +33,7 @@ public actual class ApplicationEngineEnvironmentBuilder {
     /**
      * Application logger
      */
-    public actual var log: Logger = LoggerFactory.getLogger("Application")
+    public actual var log: Logger = LoggerFactory.getLogger("io.ktor.server.Application")
 
     /**
      * Application config

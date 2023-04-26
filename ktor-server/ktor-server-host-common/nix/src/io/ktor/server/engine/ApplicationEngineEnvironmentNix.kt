@@ -28,7 +28,7 @@ public actual class ApplicationEngineEnvironmentBuilder {
     /**
      * Application logger
      */
-    public actual var log: Logger = KtorSimpleLogger("Application")
+    public actual var log: Logger = KtorSimpleLogger("io.ktor.server.Application")
 
     /**
      * Application config

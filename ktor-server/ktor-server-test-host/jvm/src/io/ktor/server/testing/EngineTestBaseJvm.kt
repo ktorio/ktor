@@ -59,7 +59,7 @@ actual abstract class EngineTestBase<
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    val testLog: Logger = LoggerFactory.getLogger("io.ktor.test.EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -114,7 +114,7 @@ actual abstract class EngineTestBase<
         val _port = this.port
         val environment = applicationEngineEnvironment {
             this.parentCoroutineContext = parent
-            val delegate = LoggerFactory.getLogger("ktor.test")
+            val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
                     t?.let {
