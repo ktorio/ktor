@@ -18,3 +18,6 @@ internal fun ByteBuffer.xor(other: ByteBuffer) {
         bb.put(i, bb.get(i) xor mask[i % maskSize])
     }
 }
+
+internal actual val OUTGOING_CHANNEL_CAPACITY: Int
+    get() = System.getProperty("io.ktor.websocket.outgoingChannelCapacity")?.toInt() ?: 8

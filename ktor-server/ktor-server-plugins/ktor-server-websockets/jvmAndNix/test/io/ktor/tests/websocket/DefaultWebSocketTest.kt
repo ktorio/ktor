@@ -123,33 +123,49 @@ class DefaultWebSocketTest : BaseTest() {
     }
 
     private suspend fun ensureCompletion() {
-        parent.complete()
-        parent.join()
+        ensureCompletion(parent, client2server, server2client, server, client)
+    }
+}
 
-        assertTrue("client -> server channel should be closed") { client2server.isClosedForRead }
-        assertTrue("client -> server channel should be closed") { client2server.isClosedForWrite }
+@OptIn(ExperimentalCoroutinesApi::class)
+internal suspend fun ensureCompletion(
+    parent: CompletableJob,
+    client2server: ByteReadChannel,
+    server2client: ByteReadChannel,
+    server: WebSocketSession,
+    client: WebSocketSession
+) {
+    parent.complete()
+    parent.join()
 
-        assertTrue("server -> client channel should be closed") { server2client.isClosedForRead }
-        assertTrue("server -> client channel should be closed") { server2client.isClosedForWrite }
+    assertTrue("client -> server channel should be closed") { client2server.isClosedForRead }
+    assertTrue("client -> server channel should be closed") { client2server.isClosedForWrite }
 
-        try {
-            server.incoming.consumeEach {
-                assertTrue("It should be no control frames") { !it.frameType.controlFrame }
-            }
-        } catch (_: CancellationException) {
+    assertTrue("server -> client channel should be closed") { server2client.isClosedForRead }
+    assertTrue("server -> client channel should be closed") { server2client.isClosedForWrite }
+
+    try {
+        server.incoming.consumeEach {
+            assertTrue("It should be no control frames") { !it.frameType.controlFrame }
         }
+    } catch (_: CancellationException) {
+    }
 
-        try {
-            client.incoming.consumeEach {}
-        } catch (_: CancellationException) {
-        }
+    try {
+        client.incoming.consumeEach {}
+    } catch (_: CancellationException) {
+    }
 
-        assertTrue("client incoming should be closed") { client.incoming.isClosedForReceive }
-        assertTrue("server incoming should be closed") { server.incoming.isClosedForReceive }
+    assertTrue("client incoming should be closed") { client.incoming.isClosedForReceive }
+    assertTrue("server incoming should be closed") { server.incoming.isClosedForReceive }
 
-        assertTrue("client outgoing should be closed") { client.outgoing.isClosedForSend }
-        assertTrue("server outgoing should be closed") { server.outgoing.isClosedForSend }
+    assertTrue("client outgoing should be closed") { client.outgoing.isClosedForSend }
+    assertTrue("server outgoing should be closed") { server.outgoing.isClosedForSend }
 
-        assertTrue("server closeReason should be completed") { server.closeReason.isCompleted }
+    assertTrue("server closeReason should be completed") {
+        (server as? DefaultWebSocketSession)?.closeReason?.isCompleted ?: true
+    }
+    assertTrue("client closeReason should be completed") {
+        (client as? DefaultWebSocketSession)?.closeReason?.isCompleted ?: true
     }
 }

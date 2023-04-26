@@ -75,7 +75,7 @@ internal class DefaultWebSocketSessionImpl(
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
-    private val outgoingToBeProcessed = Channel<Frame>(8)
+    private val outgoingToBeProcessed = Channel<Frame>(OUTGOING_CHANNEL_CAPACITY)
     private val closed: AtomicBoolean = atomic(false)
     private val context = Job(raw.coroutineContext[Job])
 
@@ -331,3 +331,5 @@ internal class DefaultWebSocketSessionImpl(
         private val EmptyPong = Frame.Pong(ByteArray(0), NonDisposableHandle)
     }
 }
+
+internal expect val OUTGOING_CHANNEL_CAPACITY: Int
