@@ -598,9 +598,11 @@ public final class io/ktor/utils/io/charsets/CharsetJVMKt {
 	public static final fun encodeToByteArray (Ljava/nio/charset/CharsetEncoder;Ljava/lang/CharSequence;II)[B
 	public static synthetic fun encodeToByteArray$default (Ljava/nio/charset/CharsetEncoder;Ljava/lang/CharSequence;IIILjava/lang/Object;)[B
 	public static final fun encodeUTF8 (Ljava/nio/charset/CharsetEncoder;Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/utils/io/core/Output;)V
+	public static final fun forName (Lkotlin/text/Charsets;Ljava/lang/String;)Ljava/nio/charset/Charset;
 	public static final fun getCharset (Ljava/nio/charset/CharsetDecoder;)Ljava/nio/charset/Charset;
 	public static final fun getCharset (Ljava/nio/charset/CharsetEncoder;)Ljava/nio/charset/Charset;
 	public static final fun getName (Ljava/nio/charset/Charset;)Ljava/lang/String;
+	public static final fun isSupported (Lkotlin/text/Charsets;Ljava/lang/String;)Z
 }
 
 public final class io/ktor/utils/io/charsets/EncodingKt {
