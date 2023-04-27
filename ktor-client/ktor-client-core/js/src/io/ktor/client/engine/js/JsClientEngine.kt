@@ -22,7 +22,7 @@ import org.w3c.dom.events.*
 import kotlin.coroutines.*
 
 internal class JsClientEngine(
-    override val config: HttpClientEngineConfig
+    override val config: JsClientEngineConfig,
 ) : HttpClientEngineBase("ktor-js") {
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
@@ -42,7 +42,7 @@ internal class JsClientEngine(
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(clientConfig, callContext)
-        val rawResponse = commonFetch(data.url.toString(), rawRequest)
+        val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor()

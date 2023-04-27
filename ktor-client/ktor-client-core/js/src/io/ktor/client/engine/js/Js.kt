@@ -20,13 +20,18 @@ import io.ktor.client.engine.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object Js : HttpClientEngineFactory<HttpClientEngineConfig> {
-    override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine =
-        JsClientEngine(HttpClientEngineConfig().apply(block))
+public object Js : HttpClientEngineFactory<JsClientEngineConfig> {
+    override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine =
+        JsClientEngine(JsClientEngineConfig().apply(block))
+}
+
+
+public open class JsClientEngineConfig : HttpClientEngineConfig() {
+    public var nodeOptions: dynamic = js("Object").create(null)
 }
 
 /**
  * Creates a [Js] client engine.
  */
 @JsName("JsClient")
-public fun JsClient(): HttpClientEngineFactory<HttpClientEngineConfig> = Js
+public fun JsClient(): HttpClientEngineFactory<JsClientEngineConfig> = Js
