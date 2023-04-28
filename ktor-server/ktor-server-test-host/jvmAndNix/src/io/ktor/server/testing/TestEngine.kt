@@ -22,7 +22,7 @@ public fun createTestEnvironment(
 ): ApplicationEngineEnvironment =
     applicationEngineEnvironment {
         config = MapApplicationConfig("ktor.deployment.environment" to "test")
-        log = KtorSimpleLogger("ktor.test")
+        log = KtorSimpleLogger("io.ktor.test")
         developmentMode = true
         configure()
         watchPaths = emptyList()
