@@ -16,7 +16,7 @@ import io.ktor.util.pipeline.*
 @InternalAPI
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
-internal val LOGGER = KtorSimpleLogger("io.ktor.routing.Routing")
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
 
 /**
  * A root routing node of an [Application].

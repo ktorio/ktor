@@ -89,7 +89,7 @@ CoroutineScope.embeddedServer(
 ): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
-        this.log = KtorSimpleLogger("ktor.application")
+        this.log = KtorSimpleLogger("io.ktor.server.Application")
         this.watchPaths = watchPaths
         this.module(module)
         this.connectors.addAll(connectors)

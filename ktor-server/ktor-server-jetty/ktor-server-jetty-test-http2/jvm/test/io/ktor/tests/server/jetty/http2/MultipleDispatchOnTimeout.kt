@@ -31,7 +31,7 @@ class MultipleDispatchOnTimeout {
         val port = findFreePort()
         val environment = applicationEngineEnvironment {
             connector { this.port = port }
-            log = LoggerFactory.getLogger("ktor.test")
+            log = LoggerFactory.getLogger("io.ktor.test")
             module {
                 intercept(ApplicationCallPipeline.Call) {
                     callCount.incrementAndGet()
