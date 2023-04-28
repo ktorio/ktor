@@ -82,7 +82,7 @@ actual constructor(
         val _port = this.port
         val environment = applicationEngineEnvironment {
             this.parentCoroutineContext = parent
-            val delegate = KtorSimpleLogger("ktor.test")
+            val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(message: String, cause: Throwable) {
                     collectUnhandledException(cause)
