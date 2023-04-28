@@ -48,7 +48,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val message = "expected, ${Random().nextLong()}"
         val collected = LinkedBlockingQueue<Throwable>()
 
-        val log = object : Logger by LoggerFactory.getLogger("ktor.test") {
+        val log = object : Logger by LoggerFactory.getLogger("io.ktor.test") {
             override fun error(message: String, exception: Throwable?) {
                 if (exception != null) {
                     collected.add(exception)
@@ -648,7 +648,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     @Test
     public fun testErrorInApplicationCallPipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
-        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
                 exceptions.add(cause!!)
@@ -684,7 +684,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     @Test
     public fun testErrorInApplicationReceivePipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
-        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
                 exceptions.add(cause!!)
