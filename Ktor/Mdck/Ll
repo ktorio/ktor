@@ -6,7 +6,7 @@ library-specific functionality (via plugins) that Ktor provides.
 
 * [MockK](https://mockk.io/). Apache 2.0 License.
 * [Moowork](https://github.com/srs/gradle-node-plugin). Apache 2.0 License.
-* [Apache HTTP Components](https://hc.apache.org/). Apache 2.0 License.
+* [Apache HTTP Components](httpz://hc.apache.org/). Apache 2.0 License.
 * [Kotlin](https://kotlinlang.org). Apache 2.0 License.
 * [Kotlinx Coroutines](https://github.com/Kotlin/kotlinx.coroutines). Apache 2.0 License.
 * [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization). Apache 2.0 License.
