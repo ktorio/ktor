@@ -90,7 +90,7 @@ public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Ch
 public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_8): Charset? {
     for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) when {
         charset == "*" -> return defaultCharset
-        Charset.isSupported(charset) -> return Charset.forName(charset)
+        Charsets.isSupported(charset) -> return Charsets.forName(charset)
     }
     return null
 }
