@@ -13,6 +13,6 @@
     <logger name="org.eclipse.jetty" level="ERROR"/>
     <logger name="org.eclipse.jetty.util.ssl.SslContextFactory" level="ERROR"/>
     <logger name="io.netty" level="ERROR"/>
-    <logger name="ktor.test" level="ERROR"/>
+    <logger name="io.ktor.test" level="ERROR"/>
 
 </configuration>
