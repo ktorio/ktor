@@ -310,7 +310,7 @@ public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
  */
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {
-        Charset.forName(it)
+        Charsets.forName(it)
     } catch (exception: IllegalArgumentException) {
         null
     }

@@ -7,12 +7,17 @@ public expect abstract class Charset {
     public abstract fun newEncoder(): CharsetEncoder
 
     public abstract fun newDecoder(): CharsetDecoder
-
-    public companion object {
-        public fun forName(name: String): Charset
-        public fun isSupported(charset: String): Boolean
-    }
 }
+
+/**
+ * Check if a charset is supported by the current platform.
+ */
+public expect fun Charsets.isSupported(name: String): Boolean
+
+/**
+ * Find a charset by name.
+ */
+public expect fun Charsets.forName(name: String): Charset
 
 public expect val Charset.name: String
 
