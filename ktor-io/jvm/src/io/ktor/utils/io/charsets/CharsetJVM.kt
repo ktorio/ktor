@@ -8,8 +8,17 @@ import java.nio.charset.*
 
 private const val DECODE_CHAR_BUFFER_SIZE = 8192
 
-@Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 public actual typealias Charset = java.nio.charset.Charset
+
+/**
+ * Find a charset by name.
+ */
+public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
+
+/**
+ * Check if a charset is supported by the current platform.
+ */
+public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 
 public actual val Charset.name: String get() = name()
 
