@@ -61,7 +61,7 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 public fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset
-        Charset.isSupported(charset) -> return Charset.forName(charset)
+        Charsets.isSupported(charset) -> return Charsets.forName(charset)
     }
     return defaultCharset
 }
