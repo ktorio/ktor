@@ -50,7 +50,7 @@ public class Logging private constructor(
             }
 
         /**
-         * Specifies the log level.
+         * Specifies the logging level.
          */
         public var level: LogLevel = LogLevel.HEADERS
 
