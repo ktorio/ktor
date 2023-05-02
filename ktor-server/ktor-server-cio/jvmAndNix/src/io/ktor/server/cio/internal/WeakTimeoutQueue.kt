@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 
 public expect class WeakTimeoutQueue constructor(
     timeoutMillis: Long,
-    clock: () -> Long = { GMTDate().timestamp }
+    clock: () -> Long = { getTimeMillis() }
 ) {
     public val timeoutMillis: Long
 

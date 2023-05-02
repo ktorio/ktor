@@ -21,8 +21,8 @@ public class AcceptAllCookiesStorage : CookiesStorage {
     private val mutex = Mutex()
 
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
-        val date = GMTDate()
-        if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
+        val now = getTimeMillis()
+        if (now >= oldestCookie.value) cleanup(now)
 
         return@withLock container.filter { it.matches(requestUrl) }
     }
