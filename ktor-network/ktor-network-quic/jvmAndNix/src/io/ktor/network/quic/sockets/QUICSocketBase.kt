@@ -42,9 +42,12 @@ internal abstract class QUICSocketBase(
         logger.info("Accepted datagram from ${datagram.address}")
         logger.info("Datagram size: ${datagram.packet.remaining}")
 
+        var firstDcidInDatagram: ConnectionID? = null
+
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(
                 bytes = datagram.packet,
+                firstDcidInDatagram = firstDcidInDatagram,
                 matchConnection = { dcid, scid, _ ->
                     dcid.connection ?: createConnection(datagram.address, scid!!, dcid).also { connections.add(it) }
                 },
@@ -52,7 +55,9 @@ internal abstract class QUICSocketBase(
                     handleTransportError(it)
                     error(it.toString())
                 }
-            )
+            ) ?: return
+
+            firstDcidInDatagram = packet.destinationConnectionID
 
             // todo can here be null connection?
             packet.destinationConnectionID.connection!!.processPacket(packet)

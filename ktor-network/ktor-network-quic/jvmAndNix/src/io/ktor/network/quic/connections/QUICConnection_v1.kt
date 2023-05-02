@@ -159,7 +159,7 @@ internal class QUICConnection_v1(
     }
 
     private fun handleError(raisedError: QUICTransportError, frameType: FrameType_v1? = null) {
-        error("Error occurred: ${raisedError.toDebugString()}${frameType?.let { "in frame $it" } ?: ""}")
+        error("Error occurred: ${raisedError.toDebugString()}${frameType?.let { " in frame $it" } ?: ""}")
     }
 
     private fun onTransportParametersKnown() {
@@ -242,7 +242,8 @@ internal class QUICConnection_v1(
      */
     private inner class ProtocolCommunicationProviderImpl : ProtocolCommunicationProvider {
         private val logger = logger()
-        private var offset = 0L
+        private var handshakeOffset = 0L
+        private val buffer = BytePacketBuilder()
 
         override val messageChannel: Channel<TLSMessage> = Channel(Channel.UNLIMITED)
 
@@ -250,22 +251,39 @@ internal class QUICConnection_v1(
             CoroutineScope(Dispatchers.Default).launch {
                 while (isActive) {
                     val result = messageChannel.receive()
-                    sendCryptoFrame(result.message, result.isHandshakeMessage, result.flush)
+                    sendCryptoFrame(result.message, result.encryptionLevel, result.flush)
                 }
             }
         }
 
-        private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, inHandshakePacket: Boolean, flush: Boolean) {
-            logger.info("offset: $offset, payload.size: ${cryptoPayload.size}, flush: $flush, handshake: $inHandshakePacket") // ktlint-disable max-line-length
+        private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, encryptionLevel: EncryptionLevel, flush: Boolean) {
+            logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length
+
+            if (encryptionLevel == EncryptionLevel.Handshake) {
+                buffer.writeFully(cryptoPayload)
+            }
 
             when {
-                inHandshakePacket -> {
-                    sendInHandshakePacket(
-                        forceEndDatagram = flush,
-                    ) { builder, _ ->
+                encryptionLevel == EncryptionLevel.Handshake && flush -> {
+                    sendInHandshakePacket(forceEndDatagram = true) { builder, _ ->
                         writeCrypto(
                             packetBuilder = builder,
-                            offset = offset,
+                            offset = handshakeOffset,
+                            data = buffer.build().readBytes().also {
+                                buffer.reset()
+                                handshakeOffset += it.size
+                            },
+                        )
+                    }
+                }
+
+                encryptionLevel == EncryptionLevel.AppData -> {
+                    sendInOneRTT(forceEndDatagram = true) { builder, hookConsumer ->
+                        writeHandshakeDone(builder)
+
+                        writeCrypto(
+                            packetBuilder = builder,
+                            offset = 0,
                             data = cryptoPayload,
                         )
                     }
@@ -277,7 +295,7 @@ internal class QUICConnection_v1(
                     ) { builder, hookConsumer ->
                         writeCrypto(
                             packetBuilder = builder,
-                            offset = offset,
+                            offset = 0,
                             data = cryptoPayload,
                         )
 
@@ -285,8 +303,6 @@ internal class QUICConnection_v1(
                     }
                 }
             }
-
-            offset = if (flush) 0 else offset + cryptoPayload.size.toLong()
         }
 
         override suspend fun raiseError(error: QUICTransportError) {
@@ -299,8 +315,15 @@ internal class QUICConnection_v1(
             return transportParameters {
                 original_destination_connection_id = originalDestinationConnectionID
                 disable_active_migration = true
-                active_connection_id_limit = 1
                 initial_source_connection_id = initialLocalConnectionID
+
+                max_idle_timeout = 30000
+                initial_max_data = 10000000
+                initial_max_stream_data_bidi_local = 1000000
+                initial_max_stream_data_bidi_remote = 1000000
+                initial_max_stream_data_uni = 1000000
+                initial_max_streams_bidi = 100
+                initial_max_streams_uni = 100
             }.also {
                 localTransportParameters = it
 
@@ -366,9 +389,9 @@ internal class QUICConnection_v1(
 
         // 1-RTT packet
         override val spinBit: Boolean
-            get() = TODO("Not yet implemented")
+            get() = false
         override val keyPhase: Boolean
-            get() = TODO("Not yet implemented")
+            get() = false
 
         // Version Negotiation packet
         override val supportedVersions: Array<UInt32> = arrayOf(QUICVersion.V1)
@@ -458,10 +481,6 @@ internal class QUICConnection_v1(
 
                     sendInHandshakePacket(forceEndPacket = true) { builder, hookConsumer ->
                         withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Handshake)
-                    }
-
-                    sendInOneRTT { builder, _ ->
-                        writeHandshakeDone(builder)
                     }
                 }
 
@@ -601,6 +620,9 @@ internal class QUICConnection_v1(
                 ) {
                     return TransportError_v1.PROTOCOL_VIOLATION
                 }
+
+                // received twice the same - treat as duplication and ignore
+                return null
             }
 
             // An endpoint that receives a NEW_CONNECTION_ID frame
