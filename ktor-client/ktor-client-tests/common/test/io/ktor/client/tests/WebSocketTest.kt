@@ -253,4 +253,21 @@ class WebSocketTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testCancellingScope() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/echo")
+            session.send("test")
+            val result = session.incoming.receive() as Frame.Text
+            assertEquals("test", result.readText())
+
+            client.coroutineContext[Job]!!.cancel("test", IllegalStateException("test"))
+            assertNotNull(session.closeReason.await())
+        }
+    }
 }
