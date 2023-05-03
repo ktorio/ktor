@@ -16,7 +16,6 @@ class WinHttpWebSocketTests {
 
     @Test
     fun testEcho() {
-        TODO()
         val client = HttpClient(WinHttp) {
             install(WebSockets)
         }
