@@ -16,7 +16,7 @@ internal class ReceiveStreamState(
 
     private val unknownOffsets: HashSet<Long> = hashSetOf()
 
-    private var size  = -1L
+    private var size = -1L
 
     suspend fun receive(data: ByteArray, offset: Long, fin: Boolean) {
         if (state == ReceiveState.Closed) return
