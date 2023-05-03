@@ -11,9 +11,11 @@ import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.streams.*
 import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
 import io.ktor.network.sockets.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -50,6 +52,9 @@ internal class QUICConnection_v1(
     private val connectionIDLength: Int,
 
     private val outgoingDatagramChannel: SendChannel<Datagram>,
+
+    private val streamChannel: SendChannel<QUICStream>,
+
     initialSocketAddress: SocketAddress,
     tlsComponentProvider: (ProtocolCommunicationProvider) -> TLSServerComponent,
 ) {
@@ -78,6 +83,8 @@ internal class QUICConnection_v1(
     val packetNumberSpacePool = PacketNumberSpace.Pool()
 
     private val processor = PayloadProcessor()
+
+    private val streamManager = StreamManager()
 
     /**
      * [TransportParameters] that were announced to the peer.
@@ -256,7 +263,11 @@ internal class QUICConnection_v1(
             }
         }
 
-        private suspend fun sendCryptoFrame(cryptoPayload: ByteArray, encryptionLevel: EncryptionLevel, flush: Boolean) {
+        private suspend fun sendCryptoFrame(
+            cryptoPayload: ByteArray,
+            encryptionLevel: EncryptionLevel,
+            flush: Boolean,
+        ) {
             logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length
 
             if (encryptionLevel == EncryptionLevel.Handshake) {
@@ -278,7 +289,7 @@ internal class QUICConnection_v1(
                 }
 
                 encryptionLevel == EncryptionLevel.AppData -> {
-                    sendInOneRTT(forceEndDatagram = true) { builder, hookConsumer ->
+                    sendInOneRTT(forceEndDatagram = true) { builder, _ ->
                         writeHandshakeDone(builder)
 
                         writeCrypto(
@@ -511,6 +522,9 @@ internal class QUICConnection_v1(
             streamData: ByteArray,
         ): QUICTransportError_v1? {
             logAcceptedFrame(FrameType_v1.STREAM)
+
+            streamManager.acceptStreamFrame(streamId, offset, fin, streamData)
+
             return null
         }
 
@@ -747,6 +761,89 @@ internal class QUICConnection_v1(
 
         private val logger = logger()
     }
+
+    private inner class StreamManager {
+        private val receiveStates = hashMapOf<Long, ReceiveStreamState>()
+
+        private val streams = hashMapOf<Long, QUICStreamImpl>()
+
+        private val sendChannel: Channel<StreamFrame> = Channel(Channel.UNLIMITED)
+
+        init {
+            // todo close
+            CoroutineScope(Dispatchers.Default).launch {
+                while (isActive) {
+                    try {
+                        val frame = sendChannel.receive()
+                        sendInOneRTT(forceEndDatagram = frame.fin) { builder, hookConsumer ->
+                            writeStream(
+                                packetBuilder = builder,
+                                streamId = frame.streamId,
+                                offset = frame.offset,
+                                specifyLength = true,
+                                fin = frame.fin,
+                                data = frame.data
+                            )
+
+                            withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.AppData)
+                        }
+                    } catch (e: Exception) {
+                        logger.error(e)
+                    }
+                }
+            }
+        }
+
+        suspend fun acceptStreamFrame(
+            streamId: Long,
+            offset: Long,
+            fin: Boolean,
+            streamData: ByteArray,
+        ) {
+            if (!receiveStates.containsKey(streamId)) {
+                val state = ReceiveStreamState(
+                    onDataReceived = {
+                        onDataReceived(streamId, it)
+                    },
+                    onClose = {
+                        receiveStates.remove(streamId)
+                    }
+                )
+
+                receiveStates[streamId] = state
+            }
+
+            receiveStates[streamId]!!.receive(streamData, offset, fin)
+        }
+
+        private suspend fun onDataReceived(streamId: Long, dataChunk: ByteReadPacket) {
+            if (!streams.containsKey(streamId)) {
+                val stream = QUICStreamImpl(
+                    streamId = streamId,
+                    output = QUICOutputStream(
+                        send = { data, offset, fin ->
+                            sendChannel.trySend(StreamFrame(streamId, data, offset, fin))
+                        }
+                    ),
+                    input = QUICInputStream(),
+                )
+
+                streams[streamId] = stream
+
+                streamChannel.send(stream)
+            }
+
+            streams[streamId]!!.appendDataToInput(dataChunk)
+        }
+    }
+
+    @Suppress("ArrayInDataClass")
+    private data class StreamFrame(
+        val streamId: Long,
+        val data: ByteArray,
+        val offset: Long,
+        val fin: Boolean,
+    )
 
     private fun FrameWriter.withAckFrameIfAny(
         builder: BytePacketBuilder,

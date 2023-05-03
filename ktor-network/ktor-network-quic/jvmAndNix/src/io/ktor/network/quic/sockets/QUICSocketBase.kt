@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 
 internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
-) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
+) : QUICStreamReadChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
     protected abstract val logger: Logger
     protected val connections = mutableListOf<QUICConnection_v1>()
 
@@ -27,7 +27,7 @@ internal abstract class QUICSocketBase(
 
     init {
         CoroutineScope(Dispatchers.Default).launch {
-            while (true) {
+            while (isActive) {
                 try {
                     receiveAndProcessDatagram()
                 } catch (e: Exception) {

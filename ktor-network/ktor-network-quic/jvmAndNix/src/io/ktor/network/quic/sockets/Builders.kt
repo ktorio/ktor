@@ -4,7 +4,6 @@
 
 package io.ktor.network.quic.sockets
 
-import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.util.*
 
