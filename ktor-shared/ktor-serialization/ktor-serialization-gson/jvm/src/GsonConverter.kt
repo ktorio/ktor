@@ -71,8 +71,8 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
                 val reader = content.toInputStream().reader(charset)
                 gson.fromJson(reader, typeInfo.reifiedType)
             }
-        } catch (deserializeFailure: JsonSyntaxException) {
-            throw JsonConvertException("Illegal json parameter found", deserializeFailure)
+        } catch (cause: JsonSyntaxException) {
+            throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
         }
     }
 

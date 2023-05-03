@@ -41,4 +41,9 @@ class ProtoBufClientKotlinxSerializationTest : AbstractClientContentNegotiationT
     @Ignore
     override fun testSerializeNull() {
     }
+
+    @Test
+    @Ignore
+    override fun testSerializeFailureHasOriginalCauseMessage() {
+    }
 }

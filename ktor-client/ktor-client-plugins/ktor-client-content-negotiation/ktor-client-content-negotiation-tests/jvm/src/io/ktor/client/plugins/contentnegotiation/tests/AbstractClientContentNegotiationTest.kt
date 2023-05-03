@@ -161,6 +161,30 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
+    open fun testSerializeFailureHasOriginalCauseMessage(): Unit = testWithEngine(CIO) {
+        configureClient()
+
+        @Serializable
+        data class WrongWidget(
+            val wrongField: String,
+            val name: String,
+            val value: Int,
+            val tags: List<String> = emptyList()
+        )
+
+        test { client ->
+            val cause = kotlin.test.assertFailsWith<JsonConvertException> {
+                client.post {
+                    setBody(widget)
+                    url(path = "/widget", port = serverPort)
+                    contentType(defaultContentType)
+                }.body<WrongWidget>()
+            }
+            assertTrue(cause.message!!.contains("wrongField"))
+        }
+    }
+
+    @Test
     open fun testSerializeNull(): Unit = testWithEngine(CIO) {
         configureClient()
 
