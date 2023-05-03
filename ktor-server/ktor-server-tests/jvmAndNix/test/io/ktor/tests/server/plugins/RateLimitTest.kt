@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.date.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -601,5 +602,50 @@ class RateLimitTest {
             startApplication()
         }
         assertEquals("Rate limit provider with name RateLimitName(name=name) is already configured", error.message)
+    }
+
+    @Test
+    fun testRemovesUnusedRateLimitersOnRefill() = testApplication {
+        var createCount = 0
+        install(RateLimit) {
+            register {
+                rateLimiter { _, _ ->
+                    createCount++
+                    RateLimiter.default(limit = 3, refillPeriod = 1.seconds)
+                }
+            }
+        }
+        routing {
+            rateLimit {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        delay(300)
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        delay(300)
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        delay(300)
+        client.get("/").let {
+            assertEquals(HttpStatusCode.TooManyRequests, it.status)
+        }
+
+        assertEquals(1, createCount)
+        delay(200)
+        assertEquals(1, createCount)
+
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        assertEquals(2, createCount)
     }
 }

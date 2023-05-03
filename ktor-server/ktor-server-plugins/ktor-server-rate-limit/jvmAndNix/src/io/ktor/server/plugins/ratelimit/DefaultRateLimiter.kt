@@ -12,11 +12,10 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class DefaultRateLimiter(
     private val limit: Int,
     private val refillPeriod: Duration,
-    initialSize: Int = limit,
     private val clock: () -> Long = ::getTimeMillis,
 ) : RateLimiter {
 
-    private val tokens = atomic(initialSize)
+    private val tokens = atomic(limit)
     private var lastRefillTimeMillis = clock()
 
     override suspend fun tryConsume(tokens: Int): RateLimiter.State {

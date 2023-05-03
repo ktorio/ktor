@@ -9,7 +9,9 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.collections.*
+import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 
 private object BeforeCall : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
@@ -36,6 +38,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
         configs[name] ?: throw IllegalStateException("Rate limit provider with name $name is not configured")
     }
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
+    val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
 
     on(BeforeCall) { call ->
         providers.forEach { provider ->
@@ -46,17 +49,30 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val weight = provider.requestWeight(call, key)
             LOGGER.trace("Using key=$key and weight=$weight for ${call.request.uri}")
 
-            val rateLimiterForCall = registry.computeIfAbsent(provider.name to key) {
+            val providerKey = ProviderKey(provider.name, key)
+            val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
                 provider.rateLimiter(call, key)
             }
 
             val state = rateLimiterForCall.tryConsume(weight)
             provider.modifyResponse(call, state)
-            if (state is RateLimiter.State.Exhausted) {
-                LOGGER.trace("Declining ${call.request.uri} because of to many requests")
-                call.respond(HttpStatusCode.TooManyRequests)
-            } else {
-                LOGGER.trace("Allowing ${call.request.uri}")
+            when (state) {
+                is RateLimiter.State.Exhausted -> {
+                    LOGGER.trace("Declining ${call.request.uri} because of too many requests")
+                    call.respond(HttpStatusCode.TooManyRequests)
+                }
+
+                is RateLimiter.State.Available -> {
+                    clearOnRefillJobs[providerKey]?.cancel()
+                    clearOnRefillJobs[providerKey] = application.launch {
+                        delay(state.refillAtTimeMillis - getTimeMillis())
+                        // there is a race here, where we can remove limiter that was just consumed,
+                        // but the alternative is to use locks, which can harm performance
+                        registry.remove(providerKey)
+                        clearOnRefillJobs.remove(providerKey)
+                    }
+                    LOGGER.trace("Allowing ${call.request.uri}")
+                }
             }
         }
     }
