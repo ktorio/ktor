@@ -24,6 +24,12 @@ internal val RateLimiterInstancesRegistryKey =
 internal val RateLimiterConfigsRegistryKey =
     AttributeKey<Map<RateLimitName, RateLimitProvider>>("RateLimiterConfigsRegistryKey")
 
+@OptIn(InternalAPI::class)
+@PublicAPICandidate("3.0.0")
+// Make it public in 3.0.0 and change Pair to a separate class
+internal val RateLimitersForCallKey =
+    AttributeKey<List<Pair<RateLimitName, RateLimiter>>>("RateLimitersForCallKey")
+
 /**
  * A plugin that provides rate limiting for incoming requests.
  */
