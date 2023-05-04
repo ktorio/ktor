@@ -15,8 +15,9 @@ import platform.posix.*
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {
-        time(timeHolder.ptr)
-        timeHolder.value * 1000L
+        val millis = getTimeMillis()
+        timeHolder.value = (millis / 1000).convert()
+        millis
     } else {
         timeHolder.value = (timestamp / 1000).convert()
         timestamp
@@ -31,9 +32,15 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
         val year = tm_year + 1900
 
         GMTDate(
-            tm_sec, tm_min, tm_hour,
-            WeekDay.from(weekDay), tm_mday, tm_yday,
-            Month.from(tm_mon), year, current
+            seconds = tm_sec,
+            minutes = tm_min,
+            hours = tm_hour,
+            dayOfWeek = WeekDay.from(weekDay),
+            dayOfMonth = tm_mday,
+            dayOfYear = tm_yday,
+            month = Month.from(tm_mon),
+            year = year,
+            timestamp = current
         )
     }
 }
@@ -71,8 +78,3 @@ public actual fun GMTDate(
 
 @Suppress("FunctionName")
 internal expect fun system_time(tm: CValuesRef<tm>?): Long
-
-/**
- * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
- */
-public actual fun getTimeMillis(): Long = GMTDate().timestamp

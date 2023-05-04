@@ -111,12 +111,11 @@ internal fun shouldValidate(
         return ValidateStatus.ShouldValidate
     }
 
-    val validMillis = cacheExpires.timestamp - getTimeMillis()
-
     if (CacheControl.NO_CACHE in responseCacheControl) {
         LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
         return ValidateStatus.ShouldValidate
     }
+    val validMillis = cacheExpires.timestamp - getTimeMillis()
     if (validMillis > 0) {
         LOGGER.trace("Cached response is valid for ${request.url}, should not validate")
         return ValidateStatus.ShouldNotValidate

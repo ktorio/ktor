@@ -32,7 +32,7 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val lastActivity = atomic(GMTDate())
+    private val lastActivity = atomic(getTimeMillis())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
@@ -40,7 +40,7 @@ internal class Endpoint(
     private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
             while (true) {
-                val remaining = (lastActivity.value + maxEndpointIdleTime).timestamp - GMTDate().timestamp
+                val remaining = (lastActivity.value + maxEndpointIdleTime) - getTimeMillis()
                 if (remaining <= 0) {
                     break
                 }
@@ -58,7 +58,7 @@ internal class Endpoint(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        lastActivity.value = GMTDate()
+        lastActivity.value = getTimeMillis()
 
         if (!config.pipelining || request.requiresDedicatedConnection()) {
             return makeDedicatedRequest(request, callContext)
@@ -134,7 +134,6 @@ internal class Endpoint(
         }
     }
 
-    @OptIn(InternalCoroutinesApi::class)
     private suspend fun processExpectContinue(
         request: HttpRequestData,
         input: ByteReadChannel,

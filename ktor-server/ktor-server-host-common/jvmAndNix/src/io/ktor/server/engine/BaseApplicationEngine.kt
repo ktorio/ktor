@@ -13,6 +13,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
@@ -48,7 +49,7 @@ public abstract class BaseApplicationEngine(
 
         environment.monitor.subscribe(ApplicationStarting) {
             if (!info.isFirstLoading) {
-                info.initializedStartAt = currentTimeMillisBridge()
+                info.initializedStartAt = getTimeMillis()
             }
             it.receivePipeline.merge(pipeline.receivePipeline)
             it.sendPipeline.merge(pipeline.sendPipeline)
@@ -58,7 +59,7 @@ public abstract class BaseApplicationEngine(
             it.installDefaultTransformationChecker()
         }
         environment.monitor.subscribe(ApplicationStarted) {
-            val finishedAt = currentTimeMillisBridge()
+            val finishedAt = getTimeMillis()
             val elapsedTimeInSeconds = (finishedAt - info.initializedStartAt) / 1_000.0
             if (info.isFirstLoading) {
                 environment.log.info("Application started in $elapsedTimeInSeconds seconds.")
@@ -95,7 +96,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
 
 private class StartupInfo {
     var isFirstLoading = true
-    var initializedStartAt = currentTimeMillisBridge()
+    var initializedStartAt = getTimeMillis()
 }
 
 @OptIn(InternalAPI::class)
