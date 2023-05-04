@@ -131,7 +131,7 @@ class DarwinEngineTest {
             val result = client.get("$TEST_SERVER/cookies/dump")
                 .bodyAsText()
 
-            assertEquals("Cookies: hello-cookie=my%2Dawesome%2Dvalue", result)
+            assertEquals("Cookies: hello-cookie=my-awesome-value", result)
         } finally {
             client.close()
         }
