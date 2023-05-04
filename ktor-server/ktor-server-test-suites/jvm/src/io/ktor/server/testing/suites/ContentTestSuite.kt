@@ -696,6 +696,14 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
+    @NoHttp2
+    open fun testMultipartFileUploadLargeSkipTempFile() {
+        System.setProperty("io.ktor.http.content.multipart.skipTempFile", "true")
+        testMultipartFileUploadLarge()
+        System.clearProperty("io.ktor.http.content.multipart.skipTempFile")
+    }
+
+    @Test
     fun testReceiveInputStream() {
         createAndStartServer {
             post("/") {

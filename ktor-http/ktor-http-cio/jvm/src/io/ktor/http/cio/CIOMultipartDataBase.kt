@@ -8,12 +8,16 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.nio.*
 import kotlin.coroutines.*
+import kotlin.io.use
 
 /**
  * Represents a multipart data object that does parse and convert parts to ktor's [PartData]
@@ -95,7 +99,40 @@ public class CIOMultipartDataBase(
             return PartData.FileItem({ input }, { part.release() }, CIOHeaders(headers))
         }
 
-        @Suppress("BlockingMethodInNonBlockingContext")
+        if (System.getProperty("io.ktor.http.content.multipart.skipTempFile") == "true") {
+            return withoutTempFile(part, headers, buffer)
+        }
+        return withTempFile(part, headers, buffer)
+    }
+
+    private fun withoutTempFile(
+        part: MultipartEvent.MultipartPart,
+        headers: HttpHeadersMap,
+        buffer: ByteBuffer
+    ): PartData {
+        var closed = false
+        val lazyInput = lazy {
+            if (closed) throw IllegalStateException("Already disposed")
+            MultipartInput(buffer, part.body)
+        }
+
+        return PartData.FileItem(
+            { lazyInput.value },
+            {
+                closed = true
+                if (lazyInput.isInitialized()) lazyInput.value.close()
+                part.release()
+            },
+            CIOHeaders(headers)
+        )
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun withTempFile(
+        part: MultipartEvent.MultipartPart,
+        headers: HttpHeadersMap,
+        buffer: ByteBuffer
+    ): PartData {
         val tmp = File.createTempFile("file-upload", ".tmp")
 
         try {
@@ -135,5 +172,46 @@ public class CIOMultipartDataBase(
             },
             CIOHeaders(headers)
         )
+    }
+}
+
+private class MultipartInput(
+    private val head: ByteBuffer,
+    private val tail: ByteReadChannel
+) : Input() {
+
+    override fun fill(destination: Memory, offset: Int, length: Int): Int {
+        if (head.hasRemaining()) {
+            if (destination.buffer.hasArray() && !destination.buffer.isReadOnly) {
+                val rc = minOf(head.remaining(), length)
+                head.get(destination.buffer.array(), offset, rc)
+                return rc.coerceAtLeast(0)
+            }
+
+            val buffer = ByteArrayPool.borrow()
+            try {
+                val rc = minOf(head.remaining(), length)
+                head.get(buffer, 0, rc)
+                destination.storeByteArray(offset, buffer, 0, rc)
+                return rc
+            } finally {
+                ByteArrayPool.recycle(buffer)
+            }
+        }
+
+        return runBlocking {
+            val buffer = ByteArrayPool.borrow()
+            try {
+                val rc = tail.readAvailable(buffer, 0, minOf(length, buffer.size)).coerceAtLeast(0)
+                destination.storeByteArray(offset, buffer, 0, rc)
+                rc
+            } finally {
+                ByteArrayPool.recycle(buffer)
+            }
+        }
+    }
+
+    override fun closeSource() {
+        tail.cancel()
     }
 }
