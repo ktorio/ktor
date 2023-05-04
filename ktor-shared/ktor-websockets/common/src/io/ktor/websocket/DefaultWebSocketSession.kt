@@ -230,6 +230,7 @@ internal class DefaultWebSocketSessionImpl(
         } catch (ignore: ClosedSendChannelException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: CancellationException) {
+            sendCloseSequence(CloseReason(CloseReason.Codes.NORMAL, ""))
         } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
