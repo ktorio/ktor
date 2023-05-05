@@ -885,15 +885,22 @@ class OriginConnectionPointTest {
             install(XForwardedHeaders)
 
             routing {
-                get("/") {
+                get("/ipv4-address") {
                     assertEquals("192.168.0.1", call.request.origin.remoteAddress)
                     assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+                get("/ipv6-address") {
+                    assertEquals("2001:db8::1", call.request.origin.remoteAddress)
+                    assertEquals("2001:db8::1", call.request.origin.remoteHost)
                 }
             }
         }
 
-        client.get("/") {
+        client.get("/ipv4-address") {
             header(HttpHeaders.XForwardedFor, "192.168.0.1")
+        }
+        client.get("/ipv6-address") {
+            header(HttpHeaders.XForwardedFor, "2001:db8::1")
         }
     }
 
@@ -903,15 +910,22 @@ class OriginConnectionPointTest {
             install(ForwardedHeaders)
 
             routing {
-                get("/") {
+                get("/ipv4-address") {
                     assertEquals("192.168.0.1", call.request.origin.remoteAddress)
                     assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+                get("/ipv6-address") {
+                    assertEquals("2001:db8::1", call.request.origin.remoteAddress)
+                    assertEquals("2001:db8::1", call.request.origin.remoteHost)
                 }
             }
         }
 
-        client.get("/") {
+        client.get("/ipv4-address") {
             header(HttpHeaders.Forwarded, "for=192.168.0.1")
+        }
+        client.get("/ipv6-address") {
+            header(HttpHeaders.Forwarded, "for=2001:db8::1")
         }
     }
 }
