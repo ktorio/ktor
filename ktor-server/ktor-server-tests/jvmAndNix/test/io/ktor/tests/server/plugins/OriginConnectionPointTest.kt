@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -875,6 +876,56 @@ class OriginConnectionPointTest {
             handleRequest(HttpMethod.Get, "/") {
                 addHeader("X-Forwarded-Port", "91, 90,95")
             }
+        }
+    }
+
+    @Test
+    fun testXForwardedHeadersSetRemoteAddress() = testApplication {
+        application {
+            install(XForwardedHeaders)
+
+            routing {
+                get("/ipv4-address") {
+                    assertEquals("192.168.0.1", call.request.origin.remoteAddress)
+                    assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+                get("/ipv6-address") {
+                    assertEquals("2001:db8::1", call.request.origin.remoteAddress)
+                    assertEquals("2001:db8::1", call.request.origin.remoteHost)
+                }
+            }
+        }
+
+        client.get("/ipv4-address") {
+            header(HttpHeaders.XForwardedFor, "192.168.0.1")
+        }
+        client.get("/ipv6-address") {
+            header(HttpHeaders.XForwardedFor, "2001:db8::1")
+        }
+    }
+
+    @Test
+    fun testForwardedHeadersSetRemoteAddress() = testApplication {
+        application {
+            install(ForwardedHeaders)
+
+            routing {
+                get("/ipv4-address") {
+                    assertEquals("192.168.0.1", call.request.origin.remoteAddress)
+                    assertEquals("192.168.0.1", call.request.origin.remoteHost)
+                }
+                get("/ipv6-address") {
+                    assertEquals("2001:db8::1", call.request.origin.remoteAddress)
+                    assertEquals("2001:db8::1", call.request.origin.remoteHost)
+                }
+            }
+        }
+
+        client.get("/ipv4-address") {
+            header(HttpHeaders.Forwarded, "for=192.168.0.1")
+        }
+        client.get("/ipv6-address") {
+            header(HttpHeaders.Forwarded, "for=2001:db8::1")
         }
     }
 }
