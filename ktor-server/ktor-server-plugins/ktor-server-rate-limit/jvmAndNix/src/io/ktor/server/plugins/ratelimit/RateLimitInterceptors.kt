@@ -53,6 +53,10 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
                 provider.rateLimiter(call, key)
             }
+            call.attributes.put(
+                RateLimitersForCallKey,
+                call.attributes.getOrNull(RateLimitersForCallKey).orEmpty() + Pair(provider.name, rateLimiterForCall)
+            )
 
             val state = rateLimiterForCall.tryConsume(weight)
             provider.modifyResponse(call, state)

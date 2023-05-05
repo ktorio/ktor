@@ -5,12 +5,14 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -647,5 +649,31 @@ class RateLimitTest {
             assertEquals(HttpStatusCode.OK, it.status)
         }
         assertEquals(2, createCount)
+    }
+
+    @Test
+    fun testCanAccessRateLimitersForCall() = testApplication {
+        val key = AttributeKey<List<Pair<RateLimitName, RateLimiter>>>("RateLimitersForCallKey")
+        install(RateLimit) {
+            register(RateLimitName("limit1")) {
+                rateLimiter(limit = 10, refillPeriod = 10.seconds)
+            }
+            register(RateLimitName("limit2")) {
+                rateLimiter(limit = 5, refillPeriod = 6.seconds)
+            }
+        }
+        routing {
+            rateLimit(RateLimitName("limit1")) {
+                rateLimit(RateLimitName("limit2")) {
+                    get("/a") {
+                        val rateLimiters = call.attributes[key]
+                        call.respond(rateLimiters.joinToString { it.first.toString() })
+                    }
+                }
+            }
+        }
+
+        val response = client.get("/a")
+        assertEquals("RateLimitName(name=limit1), RateLimitName(name=limit2)", response.bodyAsText())
     }
 }
