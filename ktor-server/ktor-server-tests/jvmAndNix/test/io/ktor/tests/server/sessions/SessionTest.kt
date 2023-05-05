@@ -701,6 +701,34 @@ class SessionTest {
         assertEquals("OK", handleRequest(HttpMethod.Get, "/").response.content)
     }
 
+    @Test
+    fun testSetCookieNotAdded(): Unit = testApplication {
+        application {
+            install(Sessions) {
+                cookie<TestUserSession>(cookieName)
+            }
+            routing {
+                post("/0") {
+                    call.sessions.set(TestUserSession("id", emptyList()))
+                }
+                get("/user") {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+        }
+
+        val setCookieHeader = client.post("/0").headers[HttpHeaders.SetCookie]
+        assertNotNull(setCookieHeader)
+
+        val cookie = parseServerSetCookieHeader(setCookieHeader)
+        client.get("/1") {
+            header(HttpHeaders.Cookie, "$cookieName=${cookie.value}")
+            cookie(cookie.name, cookie.value)
+        }.apply {
+            assertNull(headers[HttpHeaders.SetCookie])
+        }
+    }
+
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
         when {
             index != sessionId.lastIndex -> letter
