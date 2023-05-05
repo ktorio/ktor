@@ -13,8 +13,13 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.ratelimit.RateLim
 internal val LIMITER_NAME_GLOBAL = RateLimitName("KTOR_GLOBAL_RATE_LIMITER")
 internal val LIMITER_NAME_EMPTY = RateLimitName("KTOR_NO_NAME_RATE_LIMITER")
 
+internal data class ProviderKey(
+    private val name: RateLimitName,
+    private val key: Any,
+)
+
 internal val RateLimiterInstancesRegistryKey =
-    AttributeKey<ConcurrentMap<Pair<RateLimitName, Any>, RateLimiter>>("RateLimiterInstancesRegistryKey")
+    AttributeKey<ConcurrentMap<ProviderKey, RateLimiter>>("RateLimiterInstancesRegistryKey")
 
 internal val RateLimiterConfigsRegistryKey =
     AttributeKey<Map<RateLimitName, RateLimitProvider>>("RateLimiterConfigsRegistryKey")

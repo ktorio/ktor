@@ -47,16 +47,18 @@ public interface RateLimiter {
         }
 
         /**
-         * An implementation of [RateLimiter] that starts with [initialSize] tokens,
-         * and will be refreshed to [limit] tokens every [refillPeriod]
+         * An implementation of [RateLimiter] that starts with [limit] tokens,
+         * and will be refilled every [refillPeriod].
+         *
+         * Note: [initialSize] parameter is ignored and will be removed in the future.
          */
         public fun default(
             limit: Int,
             refillPeriod: Duration,
-            initialSize: Int = limit,
+            @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
             clock: () -> Long = ::getTimeMillis
         ): RateLimiter {
-            return DefaultRateLimiter(limit, refillPeriod, initialSize, clock)
+            return DefaultRateLimiter(limit, refillPeriod, clock)
         }
     }
 }
