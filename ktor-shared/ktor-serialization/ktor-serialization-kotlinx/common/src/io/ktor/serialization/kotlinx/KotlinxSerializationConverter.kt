@@ -87,7 +87,7 @@ public class KotlinxSerializationConverter(
                 }
             }
         } catch (cause: Throwable) {
-            throw JsonConvertException("Illegal input", cause)
+            throw JsonConvertException("Illegal input: ${cause.message}", cause)
         }
     }
 

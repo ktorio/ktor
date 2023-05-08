@@ -103,13 +103,13 @@ public class JacksonConverter(
                 val reader = content.toInputStream().reader(charset)
                 objectMapper.readValue(reader, objectMapper.constructType(typeInfo.reifiedType))
             }
-        } catch (deserializeFailure: Exception) {
-            val convertException = JsonConvertException("Illegal json parameter found", deserializeFailure)
+        } catch (cause: Exception) {
+            val convertException = JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
 
-            when (deserializeFailure) {
+            when (cause) {
                 is JsonParseException -> throw convertException
                 is JsonMappingException -> throw convertException
-                else -> throw deserializeFailure
+                else -> throw cause
             }
         }
     }

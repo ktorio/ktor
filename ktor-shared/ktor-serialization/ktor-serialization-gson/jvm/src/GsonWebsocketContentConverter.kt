@@ -33,8 +33,8 @@ public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : We
                 val reader = content.readBytes().inputStream().reader(charset)
                 gson.fromJson(reader, typeInfo.reifiedType)
             }
-        } catch (deserializeFailure: JsonSyntaxException) {
-            throw JsonConvertException("Illegal json parameter found", deserializeFailure)
+        } catch (cause: JsonSyntaxException) {
+            throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
         }
     }
 

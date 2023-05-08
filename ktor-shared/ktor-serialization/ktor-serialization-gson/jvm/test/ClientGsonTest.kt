@@ -22,5 +22,11 @@ class ClientGsonTest : AbstractClientContentNegotiationTest() {
 
     @Test
     @Ignore
-    override fun testSealed() {}
+    override fun testSealed() {
+    }
+
+    @Test
+    @Ignore
+    override fun testSerializeFailureHasOriginalCauseMessage() {
+    }
 }

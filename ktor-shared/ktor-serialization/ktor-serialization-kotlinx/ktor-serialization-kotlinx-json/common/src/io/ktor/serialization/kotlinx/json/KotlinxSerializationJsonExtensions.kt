@@ -65,7 +65,7 @@ internal class KotlinxSerializationJsonExtensions(private val format: Json) : Ko
         try {
             return deserializeSequence(format, content, typeInfo)
         } catch (cause: Throwable) {
-            throw JsonConvertException("Illegal input", cause)
+            throw JsonConvertException("Illegal input: ${cause.message}", cause)
         }
     }
 
