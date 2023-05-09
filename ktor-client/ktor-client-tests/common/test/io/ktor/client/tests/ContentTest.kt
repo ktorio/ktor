@@ -96,6 +96,53 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
+    fun testSendByteReadChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
+        test { client ->
+            testArrays.forEach { content ->
+                val data = client.post("$TEST_SERVER/content/echo") {
+                    setBody(ByteReadChannel(content))
+                }.body<ByteArray>()
+                assertArrayEquals(
+                    "Test fail with size: ${content.size}, actual size: ${data.size}",
+                    content,
+                    data
+                )
+            }
+        }
+    }
+
+    @Test
+    fun testSendByteWriteChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
+        test { client ->
+            testArrays.forEach { content ->
+                val data = client.post("$TEST_SERVER/content/echo") {
+                    setBody(
+                        ChannelWriterContent(
+                            body = { writeFully(content) },
+                            contentType = ContentType.Application.OctetStream,
+                        )
+                    )
+                }.body<ByteArray>()
+                assertArrayEquals(
+                    "Test fail with size: ${content.size}, actual size: ${data.size}",
+                    content,
+                    data
+                )
+            }
+        }
+    }
+
+    @Test
     fun testString() = clientTests(listOf("Js", "Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
