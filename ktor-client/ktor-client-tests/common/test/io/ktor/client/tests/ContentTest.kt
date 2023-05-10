@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -43,7 +44,7 @@ val testArrays = testSize.map {
 class ContentTest : ClientLoader(5 * 60) {
 
     @Test
-    fun testGetFormData() = clientTests(listOf("Js")) {
+    fun testGetFormData() = clientTests {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -61,7 +62,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testByteArray() = clientTests(listOf("Js")) {
+    fun testByteArray() = clientTests {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
@@ -76,7 +77,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testByteReadChannel() = clientTests(listOf("Js")) {
+    fun testByteReadChannel() = clientTests {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -143,7 +144,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "Darwin", "CIO", "DarwinLegacy")) {
+    fun testString() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val requestWithBody = client.echo<String>(content)
@@ -157,7 +158,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testEmptyContent() = clientTests(listOf("js")) {
+    fun testEmptyContent() = clientTests {
         val size = 0
         val content = makeString(size)
         repeatCount = 200
@@ -173,7 +174,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "Darwin", "CIO", "DarwinLegacy")) {
+    fun testTextContent() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
@@ -188,7 +189,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testByteArrayContent() = clientTests(listOf("Js")) {
+    fun testByteArrayContent() = clientTests {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(ByteArrayContent(content))
@@ -199,7 +200,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testPostFormData() = clientTests(listOf("Js")) {
+    fun testPostFormData() = clientTests {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -213,7 +214,7 @@ class ContentTest : ClientLoader(5 * 60) {
 
     @Test
     @Ignore
-    fun testMultipartFormData() = clientTests(listOf("Js")) {
+    fun testMultipartFormData() = clientTests {
         val data = {
             formData {
                 append("name", "hello")
@@ -232,7 +233,7 @@ class ContentTest : ClientLoader(5 * 60) {
                 }
                 append("hello", 5)
                 append("world", true)
-                append("engines[]", listOf("Jvm", "Js", "Native"))
+                append("engines[]", listOf("Jvm", "Native"))
             }
         }
 
@@ -262,7 +263,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testFormDataWithContentLength() = clientTests(listOf("Js")) {
+    fun testFormDataWithContentLength() = clientTests {
         test { client ->
             client.submitForm {
                 url("$TEST_SERVER/content/file-upload")
@@ -317,7 +318,7 @@ class ContentTest : ClientLoader(5 * 60) {
 
     @Test
     @Ignore
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
+    fun testDownloadStreamChannelWithCancel() = clientTests {
         test { client ->
             val content = client.get("$TEST_SERVER/content/stream").body<ByteReadChannel>()
             content.cancel()
@@ -325,7 +326,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "CIO")) {
+    fun testDownloadStreamResponseWithClose() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
             }
@@ -333,7 +334,22 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
+    // NSUrlSession buffers first 512 bytes
+    fun testDownloadStream() = clientTests(listOf("Darwin", "DarwinLegacy")) {
+        test { client ->
+            client.prepareGet("$TEST_SERVER/content/stream?delay=100").execute {
+                val channel = it.bodyAsChannel()
+                var count = 0
+                while (count < 5) {
+                    channel.readInt()
+                    count++
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDownloadStreamResponseWithCancel() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
                 it.cancel()
@@ -342,7 +358,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "CIO")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get("$TEST_SERVER/content/stream").body<ByteArray>()

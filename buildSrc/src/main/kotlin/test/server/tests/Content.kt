@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import test.server.*
 
 internal fun Application.contentTestServer() {
@@ -88,11 +89,14 @@ internal fun Application.contentTestServer() {
                 call.respond(HttpStatusCode.OK)
             }
             get("/stream") {
+                val delay = call.parameters["delay"]?.toLong() ?: 0L
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             while (true) {
                                 channel.writeInt(42)
+                                channel.flush()
+                                delay(delay)
                             }
                         }
                     }
