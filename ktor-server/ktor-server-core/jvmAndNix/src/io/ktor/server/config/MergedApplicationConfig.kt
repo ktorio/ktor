@@ -51,8 +51,11 @@ internal class MergedApplicationConfig(
         else -> second.propertyOrNull(path)
     }
 
-    override fun config(path: String): ApplicationConfig =
-        MergedApplicationConfig(first.config(path), second.config(path))
+    override fun config(path: String): ApplicationConfig {
+        if (firstKeys.none { it.startsWith("$path.") }) return second.config(path)
+        if (second.keys().none { it.startsWith("$path.") }) return first.config(path)
+        return MergedApplicationConfig(first.config(path), second.config(path))
+    }
 
     override fun configList(path: String): List<ApplicationConfig> {
         val firstList = if (firstKeys.contains(path)) first.configList(path) else emptyList()

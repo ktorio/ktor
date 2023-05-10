@@ -147,6 +147,14 @@ class CommandLineTest {
         assertEquals("additional_value", config.property("ktor.config.property").getString())
         assertEquals("main_value", config.property("ktor.config.old_property").getString())
         assertEquals("additional_value", config.property("ktor.config.new_property").getString())
+
+        assertEquals("additional_value", config.property("additional.config.property").getString())
+        assertEquals("additional_value", config.config("additional").property("config.property").getString())
+        assertEquals("additional_value", config.config("additional.config").property("property").getString())
+
+        assertEquals("main_value", config.property("main.config.property").getString())
+        assertEquals("main_value", config.config("main").property("config.property").getString())
+        assertEquals("main_value", config.config("main.config").property("property").getString())
     }
 
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
