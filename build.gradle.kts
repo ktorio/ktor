@@ -214,6 +214,7 @@ fun Project.setupJvmToolchain() {
     }
 
     kotlin {
+        explicitApi()
         jvmToolchain {
             check(this is JavaToolchainSpec)
             languageVersion.set(JavaLanguageVersion.of(jdk))
