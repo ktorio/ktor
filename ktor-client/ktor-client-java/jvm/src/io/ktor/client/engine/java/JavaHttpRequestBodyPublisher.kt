@@ -96,6 +96,7 @@ internal class JavaHttpRequestBodyPublisher(
             // It's possible to have another request for data come in after we've closed the channel.
             if (inputChannel.isClosedForRead) {
                 tryToSignalOnErrorFromChannel()
+                signalOnComplete()
                 return
             }
 

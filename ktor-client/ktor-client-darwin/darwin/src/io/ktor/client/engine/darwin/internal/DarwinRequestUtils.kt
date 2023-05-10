@@ -8,16 +8,20 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.util.*
+import kotlinx.cinterop.*
 import platform.Foundation.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, UnsafeNumber::class)
 internal suspend fun HttpRequestData.toNSUrlRequest(): NSMutableURLRequest {
     val url = url.toNSUrl()
     val nativeRequest = NSMutableURLRequest.requestWithURL(url).apply {
         setupSocketTimeout(this@toNSUrlRequest)
-
-        body.toNSData()?.let {
-            setHTTPBody(it)
+        body.toDataOrStream()?.let {
+            if (it is NSInputStream) {
+                setHTTPBodyStream(it)
+            } else if (it is NSData) {
+                setHTTPBody(it)
+            }
         }
 
         mergeHeaders(headers, body) { key, value ->

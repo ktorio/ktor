@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin.certificates
 
 import io.ktor.client.engine.darwin.*
+import io.ktor.client.engine.darwin.internal.legacy.*
 import kotlinx.cinterop.*
 import platform.CoreCrypto.*
 import platform.CoreFoundation.*

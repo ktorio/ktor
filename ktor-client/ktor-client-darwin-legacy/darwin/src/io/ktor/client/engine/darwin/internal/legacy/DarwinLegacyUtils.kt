@@ -1,8 +1,8 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.engine.darwin
+package io.ktor.client.engine.darwin.internal.legacy
 
 import io.ktor.client.call.*
 import io.ktor.http.content.*
@@ -56,6 +56,3 @@ internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R)
         CFBridgingRelease(this)
     }
 }
-
-@Suppress("KDocMissingDocumentation")
-public class DarwinHttpRequestException(public val origin: NSError) : IOException("Exception in http request: $origin")
