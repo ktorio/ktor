@@ -187,7 +187,7 @@ private fun matchParameter(
         }
 
         if (index == headerValue.length) {
-            throw ParseException("Expected closing quote'\"' in parameter: $headerValue ")
+            throw ParseException("Expected closing quote'\"' in parameter")
         }
     } else {
         while (index < headerValue.length && headerValue[index] != ' ' && headerValue[index] != ',') {
@@ -237,7 +237,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
     public class Single(authScheme: String, public val blob: String) : HttpAuthHeader(authScheme) {
         init {
             if (!blob.matches(token68Pattern)) {
-                throw ParseException("Invalid blob value: it should be token68, but instead it is $blob")
+                throw ParseException("Invalid blob value: it should be token68")
             }
         }
 
@@ -274,7 +274,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         init {
             parameters.forEach {
                 if (!it.name.matches(token68Pattern)) {
-                    throw ParseException("parameter name should be a token but it is ${it.name}")
+                    throw ParseException("Parameter name should be a token")
                 }
             }
         }
@@ -438,7 +438,7 @@ private fun String.skipDelimiter(startIndex: Int, delimiter: Char): Int {
 
     if (index == length) return -1
     if (this[index] != delimiter)
-        throw ParseException("Expected delimiter $delimiter at position $index, but found ${this[index]}")
+        throw ParseException("Expected delimiter $delimiter at position $index")
 
     index++
     return skipSpaces(index)

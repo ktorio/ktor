@@ -4,7 +4,9 @@
 
 package io.ktor.tests.auth
 
+import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.server.auth.*
 import kotlin.test.*
 
 class AuthHeadersTest {
@@ -61,5 +63,40 @@ class AuthHeadersTest {
                     assertEquals(1, result.parameters.indexOfLast { it.name == "X" })
                 }
             }
+    }
+
+    @Test
+    fun testInvalidTokenIsNotInException() {
+        assertFails {
+            val headers = Headers.build { append(HttpHeaders.Authorization, "Bearer invalid@token") }
+            headers.parseAuthorizationHeader()
+        }.let { cause ->
+            assertFalse(cause.message!!.contains("token"))
+            assertFalse(cause.cause!!.message!!.contains("token"))
+        }
+
+        assertFails {
+            val headers = Headers.build { append(HttpHeaders.Authorization, "Bearer invalid token") }
+            headers.parseAuthorizationHeader()
+        }.let { cause ->
+            assertFalse(cause.message!!.contains("token"))
+            assertFalse(cause.cause!!.message!!.contains("token"))
+        }
+
+        assertFails {
+            val headers = Headers.build { append(HttpHeaders.Authorization, "Bearer invalid\"token") }
+            headers.parseAuthorizationHeader()
+        }.let { cause ->
+            assertFalse(cause.message!!.contains("token"))
+            assertFalse(cause.cause!!.message!!.contains("token"))
+        }
+
+        assertFails {
+            val headers = Headers.build { append(HttpHeaders.Authorization, "Bearer invâlid-token") }
+            headers.parseAuthorizationHeader()
+        }.let { cause ->
+            assertFalse(cause.message!!.contains("token"))
+            assertFalse(cause.cause!!.message!!.contains("token"))
+        }
     }
 }
