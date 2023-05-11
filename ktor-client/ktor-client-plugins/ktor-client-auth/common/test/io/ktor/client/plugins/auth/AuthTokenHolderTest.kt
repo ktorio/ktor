@@ -127,4 +127,27 @@ class AuthTokenHolderTest {
         assertNotNull(second.await())
         assertTrue(clearTokenCalled)
     }
+
+    @Test
+    fun testExceptionInLoadTokens() = testSuspend {
+        var firstCall = true
+        val holder = AuthTokenHolder {
+            if (firstCall) {
+                firstCall = false
+                throw IllegalStateException("First call")
+            }
+            "token"
+        }
+        assertFailsWith<IllegalStateException> { holder.loadToken() }
+        assertEquals("token", holder.loadToken())
+    }
+
+    @Test
+    fun testExceptionInSetTokens() = testSuspend {
+        val holder = AuthTokenHolder<String> {
+            fail("loadTokens argument function shouldn't be invoked")
+        }
+        assertFailsWith<IllegalStateException> { holder.setToken { throw IllegalStateException("First call") } }
+        assertEquals("token", holder.setToken { "token" })
+    }
 }
