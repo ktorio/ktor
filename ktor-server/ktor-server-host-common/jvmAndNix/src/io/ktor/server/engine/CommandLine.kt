@@ -111,9 +111,7 @@ internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
     val fileConfig = when (configPaths.size) {
         0 -> ConfigLoader.load()
         1 -> ConfigLoader.load(configPaths.single())
-        else -> configPaths.fold(MapApplicationConfig() as ApplicationConfig) { config, path ->
-            config.mergeWith(ConfigLoader.load(path))
-        }
+        else -> configPaths.map { ConfigLoader.load(it) }.reduce { first, second -> first.mergeWith(second) }
     }
 
     return fileConfig.mergeWith(environmentConfig).mergeWith(commandLineConfig)
