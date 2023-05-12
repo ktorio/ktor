@@ -72,7 +72,7 @@ internal class RequestBodyHandler(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     fun upgrade(): ByteReadChannel {
         val result = queue.trySend(Upgrade)
         if (result.isSuccess) return newChannel()
@@ -93,7 +93,7 @@ internal class RequestBodyHandler(
         return result
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     private fun tryOfferChannelOrToken(token: Any) {
         val result = queue.trySend(token)
         if (result.isSuccess) return

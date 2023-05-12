@@ -105,7 +105,6 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testInvokeOnClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -130,7 +129,6 @@ class UDPSocketTest {
         assertEquals(1, done.value)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -149,7 +147,6 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnCloseWithSocketClose() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)
@@ -168,7 +165,6 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnClosed() = testSockets { selector ->
         val socket: BoundDatagramSocket = aSocket(selector)

@@ -162,7 +162,7 @@ internal class DefaultWebSocketSessionImpl(
         var last: BytePacketBuilder? = null
         var closeFramePresented = false
         try {
-            @OptIn(ExperimentalCoroutinesApi::class)
+            @OptIn(DelicateCoroutinesApi::class)
             raw.incoming.consumeEach { frame ->
                 LOGGER.trace("WebSocketSession($this) receiving frame $frame")
                 when (frame) {

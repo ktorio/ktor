@@ -14,7 +14,6 @@ import kotlinx.coroutines.*
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get,
     host: String? = null,

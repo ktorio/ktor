@@ -15,7 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 class DefaultWebSocketTest : BaseTest() {
 
     private lateinit var parent: CompletableJob
@@ -127,7 +127,7 @@ class DefaultWebSocketTest : BaseTest() {
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 internal suspend fun ensureCompletion(
     parent: CompletableJob,
     client2server: ByteReadChannel,

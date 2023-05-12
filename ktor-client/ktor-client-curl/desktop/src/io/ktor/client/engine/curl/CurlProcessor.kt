@@ -46,7 +46,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         return result.await()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     private fun runEventLoop() {
         curlScope.launch {
             val api = curlApi!!

@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.reflect.*
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 class RawWebSocketTest : BaseTest() {
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel

@@ -87,7 +87,6 @@ internal class JavaHttpWebSocket(
 
     init {
         launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
             _outgoing.consumeEach { frame ->
                 when (frame.frameType) {
                     FrameType.TEXT -> {
