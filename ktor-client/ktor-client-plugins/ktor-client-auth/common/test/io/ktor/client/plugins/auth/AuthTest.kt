@@ -16,6 +16,7 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -337,6 +338,7 @@ class AuthTest : ClientLoader() {
                             request2StartMonitor.join()
                             respond()
                         }
+
                         "/url2" -> {
                             request1FinishMonitor.join()
                             respond()
@@ -481,12 +483,11 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private lateinit var clientWithAuth: HttpClient
 
     @Suppress("JoinDeclarationAndAssignment")
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testRefreshWithSameClient() = clientTests {
+        lateinit var clientWithAuth: HttpClient
         test { client ->
             clientWithAuth = client.config {
                 developmentMode = true
@@ -512,9 +513,9 @@ class AuthTest : ClientLoader() {
     }
 
     @Suppress("JoinDeclarationAndAssignment")
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testRefreshReplies401() = clientTests {
+        lateinit var clientWithAuth: HttpClient
         test { client ->
             clientWithAuth = client.config {
                 developmentMode = true
@@ -597,6 +598,40 @@ class AuthTest : ClientLoader() {
             }
             jobs.joinAll()
             assertEquals(1, refreshRequestsCount)
+        }
+    }
+
+    @Test
+    fun testRefreshAfterException() = clientTests {
+        var firstCall = true
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("first", "first") }
+
+                    refreshTokens {
+                        if (firstCall) {
+                            firstCall = false
+                            throw IOException("Refresh failed")
+                        }
+                        val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
+                        BearerTokens(token, token)
+                    }
+                }
+            }
+        }
+        test { client ->
+            firstCall = true
+            val first = client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            assertEquals("OK", first)
+
+            val error = kotlin.test.assertFailsWith<IOException> {
+                client.get("$TEST_SERVER/auth/bearer/second")
+            }
+            assertEquals("Refresh failed", error.message)
+
+            val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+            assertEquals("OK", second)
         }
     }
 
