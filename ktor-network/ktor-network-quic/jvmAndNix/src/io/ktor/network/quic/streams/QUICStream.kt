@@ -11,8 +11,10 @@ import io.ktor.utils.io.core.*
 public interface QUICStream {
     public val streamId: Long
 
+    // todo move to ByteWriteChannel?
     public val output: Output
 
+    // todo move to ByteReadChannel?
     public val input: Input
 
     public val isUnidirectional: Boolean

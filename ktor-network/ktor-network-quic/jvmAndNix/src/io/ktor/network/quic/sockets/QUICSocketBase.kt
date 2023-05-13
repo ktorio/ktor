@@ -30,8 +30,8 @@ internal abstract class QUICSocketBase(
             while (isActive) {
                 try {
                     receiveAndProcessDatagram()
-                } catch (e: Exception) {
-                    logger.error(e)
+                } catch (cause: Exception) {
+                    logger.error(cause)
                 }
             }
         }

@@ -58,7 +58,3 @@ public abstract interface class io/ktor/network/quic/streams/QUICStreamWriteChan
 	public abstract fun createStream (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/network/quic/streams/QUICStreamWriteChannel$DefaultImpls {
-	public static fun send (Lio/ktor/network/quic/streams/QUICStreamWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
