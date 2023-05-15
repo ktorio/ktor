@@ -36,9 +36,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
             init.join()
         }
 
-        curlScope.launch {
-            runEventLoop()
-        }
+        runEventLoop()
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
