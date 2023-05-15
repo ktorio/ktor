@@ -33,7 +33,6 @@ internal class CryptoKeys(secret: ByteArray, version: UInt32, private val debugL
     }
 
     private fun String.labeled(version: UInt32): String {
-        @Suppress("KotlinConstantConditions")
         val prefix = when (version) {
             QUICVersion.V1 -> "quic"
             else -> unreachable()

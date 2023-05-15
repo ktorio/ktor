@@ -18,6 +18,6 @@ internal interface ProtocolCommunicationProvider {
 
 internal class TLSMessage(
     val message: ByteArray,
-    val isHandshakeMessage: Boolean,
+    val encryptionLevel: EncryptionLevel,
     val flush: Boolean,
 )

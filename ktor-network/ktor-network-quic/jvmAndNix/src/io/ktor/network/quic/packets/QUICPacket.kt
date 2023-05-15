@@ -193,7 +193,7 @@ internal class OneRTTPacket_v1(
 ) : QUICPacket.ShortHeader {
     override fun toDebugString(withPayload: Boolean): String {
         return """
-            Initial Packet
+            1-RTT Packet
                 Packet Number: $packetNumber
                 Spin bit: $spinBit
                 Key Phase: $keyPhase

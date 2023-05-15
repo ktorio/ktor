@@ -222,6 +222,7 @@ internal actual class TLSServerComponent(
         val endpointTransportParameters = communicationProvider.getTransportParameters(peerTransportParameters)
 
         engine.addServerExtensions(QUICServerTLSExtension(endpointTransportParameters, true))
+        engine.addServerExtensions(ApplicationLayerProtocolNegotiationExtension("hq-interop"))
     }
 
     override fun isEarlyDataAccepted(): Boolean {
@@ -230,42 +231,46 @@ internal actual class TLSServerComponent(
 
     override fun send(message: ServerHello?) = sendMessage(
         message = message,
-        isHandshakeMessage = false,
+        encryptionLevel = EncryptionLevel.Initial,
         flush = true
     )
 
     override fun send(message: EncryptedExtensions?) = sendMessage(
         message = message,
-        isHandshakeMessage = true,
+        encryptionLevel = EncryptionLevel.Handshake,
         flush = true, // true - to make CERT, CV, FIN in one packet
     )
 
     override fun send(message: CertificateMessage?) = sendMessage(
         message = message,
-        isHandshakeMessage = true,
+        encryptionLevel = EncryptionLevel.Handshake,
         flush = false,
     )
 
     override fun send(message: CertificateVerifyMessage?) = sendMessage(
         message = message,
-        isHandshakeMessage = true,
+        encryptionLevel = EncryptionLevel.Handshake,
         flush = false,
     )
 
     override fun send(message: FinishedMessage?) = sendMessage(
         message = message,
-        isHandshakeMessage = true,
+        encryptionLevel = EncryptionLevel.Handshake,
         flush = true
     )
 
-    override fun send(message: NewSessionTicketMessage?) = TODO("Not yet implemented")
+    override fun send(message: NewSessionTicketMessage?) = sendMessage(
+        message = message,
+        encryptionLevel = EncryptionLevel.AppData,
+        flush = false,
+    )
 
-    private fun sendMessage(message: HandshakeMessage?, isHandshakeMessage: Boolean, flush: Boolean) {
+    private fun sendMessage(message: HandshakeMessage?, encryptionLevel: EncryptionLevel, flush: Boolean) {
         message ?: return
 
         logger.info("Send TLS Message: ${message.type}")
 
         // todo result handler?
-        communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, isHandshakeMessage, flush))
+        communicationProvider.messageChannel.trySend(TLSMessage(message.bytes, encryptionLevel, flush))
     }
 }

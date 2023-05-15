@@ -33,8 +33,6 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
 
     private val _incoming = Channel<QUICStream>(Channel.UNLIMITED)
 
-    override val outgoing: SendChannel<QUICStream>
-        get() = TODO("Not yet implemented")
     override val incoming: ReceiveChannel<QUICStream> = _incoming
 
     override suspend fun createConnection(
@@ -53,6 +51,7 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
                 connectionIDLength = sourceConnectionID.size,
                 tlsComponentProvider = { tlsServerComponentFactory.createTLSServerComponent(it) },
                 outgoingDatagramChannel = datagramSocket.outgoing,
+                streamChannel = _incoming,
                 initialSocketAddress = address,
             ).apply {
                 tlsComponent.acceptOriginalDcid(originalDestinationConnectionID)
