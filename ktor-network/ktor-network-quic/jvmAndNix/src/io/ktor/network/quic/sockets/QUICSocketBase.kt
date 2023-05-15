@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 
 internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
-) : QUICStreamReadWriteChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
+) : QUICStreamReadChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
     protected abstract val logger: Logger
     protected val connections = mutableListOf<QUICConnection_v1>()
 
@@ -27,11 +27,11 @@ internal abstract class QUICSocketBase(
 
     init {
         CoroutineScope(Dispatchers.Default).launch {
-            while (true) {
+            while (isActive) {
                 try {
                     receiveAndProcessDatagram()
-                } catch (e: Exception) {
-                    logger.error(e)
+                } catch (cause: Exception) {
+                    logger.error(cause)
                 }
             }
         }
@@ -42,9 +42,12 @@ internal abstract class QUICSocketBase(
         logger.info("Accepted datagram from ${datagram.address}")
         logger.info("Datagram size: ${datagram.packet.remaining}")
 
+        var firstDcidInDatagram: ConnectionID? = null
+
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(
                 bytes = datagram.packet,
+                firstDcidInDatagram = firstDcidInDatagram,
                 matchConnection = { dcid, scid, _ ->
                     dcid.connection ?: createConnection(datagram.address, scid!!, dcid).also { connections.add(it) }
                 },
@@ -52,7 +55,9 @@ internal abstract class QUICSocketBase(
                     handleTransportError(it)
                     error(it.toString())
                 }
-            )
+            ) ?: return
+
+            firstDcidInDatagram = packet.destinationConnectionID
 
             // todo can here be null connection?
             packet.destinationConnectionID.connection!!.processPacket(packet)

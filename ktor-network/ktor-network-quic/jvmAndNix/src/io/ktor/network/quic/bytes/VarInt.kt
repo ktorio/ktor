@@ -2,11 +2,8 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("NOTHING_TO_INLINE")
-
 package io.ktor.network.quic.bytes
 
-import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
@@ -75,3 +72,23 @@ internal fun BytePacketBuilder.writeVarInt(value: Long) {
         value < POW_2_62 -> writeLong(value or (3L shl 62))
     }
 }
+
+/**
+ * Writes variable-length non-negative integer value with the predefined minimum length
+ *
+ * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-variable-length-integer-enc)
+ */
+internal fun BytePacketBuilder.writeVarInt(value: Long, minLength: Int) {
+    require(value >= 0) { "Variable-length integer cannot be negative, actual: $value" }
+    require(value < POW_2_62) { "Max value of variable-length integer value is ${POW_2_62 - 1}, actual: $value" }
+    require(minLength in MIN_LENGTH_VALUES) { "Invalid minLength parameter: $minLength" }
+
+    when {
+        value < POW_2_06 && minLength <= 1 -> writeByte(value.toByte())
+        value < POW_2_14 && minLength <= 2 -> writeShort((value or (1L shl 14)).toShort())
+        value < POW_2_30 && minLength <= 4 -> writeInt((value or (1L shl 31)).toInt())
+        value < POW_2_62 -> writeLong(value or (3L shl 62))
+    }
+}
+
+private val MIN_LENGTH_VALUES = setOf(1, 2, 4, 8)
