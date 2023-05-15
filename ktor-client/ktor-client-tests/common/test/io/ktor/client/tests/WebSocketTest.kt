@@ -247,6 +247,7 @@ class WebSocketTest : ClientLoader() {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/count-pong") {
+                delay(100)
                 send("count pong")
                 val countOfPongFrame = incoming.receive() as Frame.Text
                 assertEquals("1", countOfPongFrame.readText())
