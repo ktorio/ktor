@@ -7,23 +7,14 @@ package io.ktor.network.quic.streams
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.channels.*
 
-public typealias QUICStream = ByteArray
-
 /**
  * A channel for sending QUIC streams
  */
 public interface QUICStreamWriteChannel {
     /**
-     * QUIC stream outgoing channel.
+     * Create new QUIC stream.
      */
-    public val outgoing: SendChannel<QUICStream>
-
-    /**
-     * Send QUIC stream.
-     */
-    public suspend fun send(stream: QUICStream) {
-        outgoing.send(stream)
-    }
+    public suspend fun createStream(): QUICStream
 }
 
 /**
@@ -49,4 +40,4 @@ public interface QUICStreamReadWriteChannel : QUICStreamWriteChannel, QUICStream
 /**
  * Represents a bound QUIC stream socket
  */
-public interface BoundQUICSocket : ASocket, ABoundSocket, AReadable, QUICStreamReadWriteChannel
+public interface BoundQUICSocket : ASocket, ABoundSocket, AReadable, QUICStreamReadChannel

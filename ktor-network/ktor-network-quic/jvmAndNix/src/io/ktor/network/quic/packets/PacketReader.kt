@@ -44,13 +44,14 @@ internal object PacketReader {
      */
     suspend fun readSinglePacket(
         bytes: ByteReadPacket,
+        firstDcidInDatagram: ConnectionID?,
         matchConnection: suspend (
             destinationCID: ConnectionID,
             sourceCID: ConnectionID?,
             packetType: PacketType_v1,
         ) -> QUICConnection_v1,
         raiseError: suspend (QUICTransportError) -> Nothing,
-    ): QUICPacket {
+    ): QUICPacket? {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
 
         if (flags and HEADER_TYPE == HEADER_TYPE) { // Long Header bit is set
@@ -62,6 +63,14 @@ internal object PacketReader {
             val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { raiseError(FRAME_ENCODING_ERROR) }
 
             val destinationConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
+
+            // Senders MUST NOT coalesce QUIC packets for different connections into a single UDP datagram.
+            // Receivers SHOULD ignore any subsequent packets with a different Destination Connection ID
+            // than the first packet in the datagram.
+            if (firstDcidInDatagram != null && destinationConnectionID != firstDcidInDatagram) {
+                return null
+            }
+
             val sourceConnectionID: ConnectionID = readConnectionID(bytes, maxCIDLength, raiseError)
 
             // End of version independent properties
@@ -97,17 +106,24 @@ internal object PacketReader {
                 raiseError(PACKET_END)
             }
 
-            val destinationCID: ConnectionID = bytes.readBytes(ConnectionID.endpointSCIDLength).asCID()
+            val destinationConnectionID: ConnectionID = bytes.readBytes(ConnectionID.endpointSCIDLength).asCID()
+
+            // Senders MUST NOT coalesce QUIC packets for different connections into a single UDP datagram.
+            // Receivers SHOULD ignore any subsequent packets with a different Destination Connection ID
+            // than the first packet in the datagram.
+            if (firstDcidInDatagram != null && destinationConnectionID != firstDcidInDatagram) {
+                return null
+            }
 
             // End of version independent properties
 
-            val connection = matchConnection(destinationCID, null, PacketType_v1.OneRTT)
+            val connection = matchConnection(destinationConnectionID, null, PacketType_v1.OneRTT)
 
             return readShortHeader_v1(
                 bytes = bytes,
                 connection = connection,
                 flags = flags,
-                destinationConnectionID = destinationCID,
+                destinationConnectionID = destinationConnectionID,
                 raiseError = raiseError
             )
         }
@@ -176,6 +192,13 @@ internal object PacketReader {
                     token = bytes.readBytes(tokenLength.toInt())
                 }
 
+                val nextByte = bytes.tryPeek()
+                if (nextByte == -1) {
+                    raiseError(PACKET_END)
+                }
+
+                // :NOTE: apparently, quiche uses the minimum of 2 bytes to store 'length' value
+                val lengthOfLength = 1 shl (nextByte ushr 6)
                 val length: Long = bytes.readVarIntOrElse { raiseError(PACKET_END) }
 
                 val encryptionLevel = when (type) {
@@ -221,7 +244,7 @@ internal object PacketReader {
                         writeVarInt(token!!.size)
                         writeFully(token)
                     }
-                    writeVarInt(length)
+                    writeVarInt(length, lengthOfLength)
                     PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
                 }.readBytes()
 
@@ -325,7 +348,7 @@ internal object PacketReader {
 
         val associatedData = buildPacket {
             writeUByte(decodedFlags)
-            writeConnectionID(destinationConnectionID)
+            writeFully(destinationConnectionID.value)
             PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
         }.readBytes()
 

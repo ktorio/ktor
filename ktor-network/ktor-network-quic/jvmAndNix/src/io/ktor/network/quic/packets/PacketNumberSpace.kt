@@ -20,7 +20,7 @@ internal class PacketNumberSpace {
     private val unacknowledgedLocalPacketNumbers = mutableSetOf<Long>()
     private val unacknowledgedPeerPacketNumbers = mutableSetOf<Long>()
 
-    private val sentAckPackets = mutableMapOf<Long, Set<Long>>()
+    private val sentAckPackets = mutableMapOf<Long, MutableSet<Long>>()
 
     val largestPacketNumber: Long get() = increment.getAndAdd(0)
     val largestAcknowledged: Long get() = _largestAcknowledged.getAndAdd(0)
@@ -77,7 +77,9 @@ internal class PacketNumberSpace {
         logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length
 
         return result.toLongArray() to { packetNumber ->
-            sentAckPackets[packetNumber] = sorted.toSet()
+            sentAckPackets[packetNumber]?.addAll(sorted) ?: run {
+                sentAckPackets[packetNumber] = sorted.toMutableSet()
+            }
         }
     }
 
