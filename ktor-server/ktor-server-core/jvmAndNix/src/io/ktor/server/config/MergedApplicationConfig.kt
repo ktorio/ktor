@@ -40,6 +40,7 @@ internal class MergedApplicationConfig(
 ) : ApplicationConfig {
 
     private val firstKeys by lazy { first.keys() }
+    private val secondKeys by lazy { second.keys() }
 
     override fun property(path: String): ApplicationConfigValue = when {
         firstKeys.contains(path) -> first.property(path)
@@ -53,17 +54,17 @@ internal class MergedApplicationConfig(
 
     override fun config(path: String): ApplicationConfig {
         if (firstKeys.none { it.startsWith("$path.") }) return second.config(path)
-        if (second.keys().none { it.startsWith("$path.") }) return first.config(path)
+        if (secondKeys.none { it.startsWith("$path.") }) return first.config(path)
         return MergedApplicationConfig(first.config(path), second.config(path))
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
         val firstList = if (firstKeys.contains(path)) first.configList(path) else emptyList()
-        val secondList = if (second.keys().contains(path)) second.configList(path) else emptyList()
+        val secondList = if (secondKeys.contains(path)) second.configList(path) else emptyList()
         return firstList + secondList
     }
 
-    override fun keys(): Set<String> = firstKeys + second.keys()
+    override fun keys(): Set<String> = firstKeys + secondKeys
 
     override fun toMap(): Map<String, Any?> = second.toMap() + first.toMap()
 }
