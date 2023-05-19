@@ -4,13 +4,14 @@
 
 package io.ktor.server.sessions
 
+import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
 /**
  * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
  * store the serialized session's data in the server [storage].
  */
-@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
     @Suppress("DEPRECATION_ERROR")
     val builder = CookieIdSessionBuilder(sessionType)
@@ -22,9 +23,18 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>,
  * store the serialized session's data in the server [storage].
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage: SessionStorage) {
-    val sessionType = S::class
+    cookie<S>(name, typeInfo<S>(), storage)
+}
 
-    val builder = CookieIdSessionBuilder(sessionType, typeOf<S>())
+/**
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
+ */
+public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo, storage: SessionStorage) {
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
+
+    val builder = CookieIdSessionBuilder(sessionType, typeInfo.kotlinType!!)
     cookie(name, builder, sessionType, storage)
 }
 
@@ -51,11 +61,28 @@ internal fun <S : Any> SessionsConfig.cookie(
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
     storage: SessionStorage,
+    noinline block: CookieIdSessionBuilder<S>.() -> Unit
+) {
+    cookie(name, typeInfo<S>(), storage, block)
+}
+
+/**
+ * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
+ */
+public fun <S : Any> SessionsConfig.cookie(
+    name: String,
+    typeInfo: TypeInfo,
+    storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit
 ) {
-    val sessionType = S::class
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
 
-    val builder = CookieIdSessionBuilder(sessionType, typeOf<S>()).apply(block)
+    val builder = CookieIdSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
     cookie(name, builder, sessionType, storage)
 }
 
@@ -66,7 +93,7 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
  * - add other cookie attributes;
  * - sign and encrypt session data.
  */
-@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.cookie(
     name: String,
     sessionType: KClass<S>,
@@ -83,7 +110,7 @@ public inline fun <S : Any> SessionsConfig.cookie(
  * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
  * store the serialized session's data in the server [storage].
  */
-@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
     @Suppress("DEPRECATION_ERROR")
     val builder = HeaderIdSessionBuilder(sessionType)
@@ -95,7 +122,15 @@ public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>,
  * store the serialized session's data in the server [storage].
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String, storage: SessionStorage) {
-    header<S>(name, storage, {})
+    header<S>(name, typeInfo<S>(), storage)
+}
+
+/**
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
+ */
+public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo, storage: SessionStorage) {
+    header<S>(name, typeInfo, storage) {}
 }
 
 /**
@@ -106,11 +141,26 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String, storage:
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
     storage: SessionStorage,
+    noinline block: HeaderIdSessionBuilder<S>.() -> Unit
+) {
+    header(name, typeInfo<S>(), storage, block)
+}
+
+/**
+ * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
+ * store the serialized session's data in the server [storage].
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ */
+public fun <S : Any> SessionsConfig.header(
+    name: String,
+    typeInfo: TypeInfo,
+    storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit
 ) {
-    val sessionType = S::class
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
 
-    val builder = HeaderIdSessionBuilder(sessionType, typeOf<S>()).apply(block)
+    val builder = HeaderIdSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
     header(name, sessionType, storage, builder)
 }
 
@@ -119,7 +169,7 @@ public inline fun <reified S : Any> SessionsConfig.header(
  * store the serialized session's data in the server [storage].
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
-@Deprecated("Use reified types instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 @Suppress("DEPRECATION_ERROR")
 public inline fun <S : Any> SessionsConfig.header(
     name: String,
@@ -146,6 +196,7 @@ internal fun <S : Any> SessionsConfig.header(
             storage,
             builder.sessionIdProvider
         )
+
         else -> SessionTrackerByValue(sessionType, builder.serializer)
     }
     val provider = SessionProvider(name, sessionType, transport, tracker)
@@ -156,7 +207,7 @@ internal fun <S : Any> SessionsConfig.header(
 /**
  * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
  */
-@Deprecated("Use reified type parameter instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>) {
     @Suppress("DEPRECATION_ERROR")
     val builder = CookieSessionBuilder(sessionType)
@@ -167,9 +218,17 @@ public fun <S : Any> SessionsConfig.cookie(name: String, sessionType: KClass<S>)
  * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
-    val sessionType = S::class
+    cookie<S>(name, typeInfo<S>())
+}
 
-    val builder = CookieSessionBuilder(sessionType, typeOf<S>())
+/**
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ */
+public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo) {
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
+
+    val builder = CookieSessionBuilder(sessionType, typeInfo.kotlinType!!)
     cookie(name, sessionType, builder)
 }
 
@@ -191,11 +250,36 @@ public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
+    noinline block: CookieSessionBuilder<S>.() -> Unit
+) {
+    cookie(name, typeInfo<S>(), block)
+}
+
+/**
+ * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ * The [block] parameter allows you to configure additional cookie settings, for example:
+ * - add other cookie attributes;
+ * - sign and encrypt session data.
+ *
+ * For example, the code snippet below shows how to specify a cookie's path and expiration time:
+ * ```kotlin
+ * install(Sessions) {
+ *     cookie<UserSession>("user_session") {
+ *         cookie.path = "/"
+ *         cookie.maxAgeInSeconds = 10
+ *     }
+ * }
+ * ```
+ */
+public fun <S : Any> SessionsConfig.cookie(
+    name: String,
+    typeInfo: TypeInfo,
     block: CookieSessionBuilder<S>.() -> Unit
 ) {
-    val sessionType = S::class
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
 
-    val builder = CookieSessionBuilder(sessionType, typeOf<S>()).apply(block)
+    val builder = CookieSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
     cookie(name, sessionType, builder)
 }
 
@@ -205,7 +289,7 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
  * - add other cookie attributes;
  * - sign and encrypt session data.
  */
-@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.cookie(
     name: String,
     sessionType: KClass<S>,
@@ -232,7 +316,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 /**
  * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  */
-@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>) {
     @Suppress("DEPRECATION_ERROR")
     val builder = HeaderSessionBuilder(sessionType)
@@ -251,7 +335,22 @@ public fun <S : Any> SessionsConfig.header(name: String, sessionType: KClass<S>)
  * On the client side, you need to append this header to each request to get session data.
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String) {
-    header<S>(name, {})
+    header<S>(name, typeInfo<S>())
+}
+
+/**
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
+ *
+ * In the example below, session data will be passed to the client using the `cart_session` custom header.
+ * ```kotlin
+ * install(Sessions) {
+ *     header<CartSession>("cart_session")
+ * }
+ * ```
+ * On the client side, you need to append this header to each request to get session data.
+ */
+public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo) {
+    header<S>(name, typeInfo) {}
 }
 
 /**
@@ -260,11 +359,24 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String) {
  */
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
+    noinline block: HeaderSessionBuilder<S>.() -> Unit
+) {
+    header(name, typeInfo<S>(), block)
+}
+
+/**
+ * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
+ * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ */
+public fun <S : Any> SessionsConfig.header(
+    name: String,
+    typeInfo: TypeInfo,
     block: HeaderSessionBuilder<S>.() -> Unit
 ) {
-    val sessionType = S::class
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = typeInfo.type as KClass<S>
 
-    val builder = HeaderSessionBuilder(sessionType, typeOf<S>()).apply(block)
+    val builder = HeaderSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
     header(name, sessionType, null, builder)
 }
 
@@ -272,7 +384,7 @@ public inline fun <reified S : Any> SessionsConfig.header(
  * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
  */
-@Deprecated("Use reified type instead.", level = DeprecationLevel.ERROR)
+@Deprecated("Use method with TypeInfo parameter instead.", level = DeprecationLevel.ERROR)
 public inline fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
