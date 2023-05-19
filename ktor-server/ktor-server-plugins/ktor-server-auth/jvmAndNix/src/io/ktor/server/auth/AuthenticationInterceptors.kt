@@ -171,10 +171,10 @@ private fun AuthenticationConfig.findProviders(
 private fun AuthenticationConfig.findProvider(configurationName: String?): AuthenticationProvider {
     return providers[configurationName] ?: throw IllegalArgumentException(
         if (configurationName == null) {
-            "Default authentication configuration was not found"
+            "Default authentication configuration was not found. "
         } else {
-            "Authentication configuration with the name $configurationName was not found"
-        }
+            "Authentication configuration with the name $configurationName was not found. "
+        } + "Make sure that you install Authentication plugin before you use it in Routing"
     )
 }
 
