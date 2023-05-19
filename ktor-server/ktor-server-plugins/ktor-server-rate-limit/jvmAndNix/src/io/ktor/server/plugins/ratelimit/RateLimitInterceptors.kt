@@ -35,7 +35,10 @@ internal val RateLimitApplicationInterceptors = createApplicationPlugin(
 private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder() {
     val configs = application.attributes.getOrNull(RateLimiterConfigsRegistryKey) ?: emptyMap()
     val providers = pluginConfig.providerNames.map { name ->
-        configs[name] ?: throw IllegalStateException("Rate limit provider with name $name is not configured")
+        configs[name] ?: throw IllegalStateException(
+            "Rate limit provider with name $name is not configured. " +
+                "Make sure that you install RateLimit plugin before you use it in Routing"
+        )
     }
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
     val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()

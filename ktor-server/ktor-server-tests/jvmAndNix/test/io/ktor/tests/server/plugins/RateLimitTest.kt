@@ -541,7 +541,11 @@ class RateLimitTest {
         val error = assertFailsWith<IllegalStateException> {
             startApplication()
         }
-        assertEquals("Rate limit provider with name RateLimitName(name=other_name) is not configured", error.message)
+        assertEquals(
+            "Rate limit provider with name RateLimitName(name=other_name) is not configured. " +
+                "Make sure that you install RateLimit plugin before you use it in Routing",
+            error.message
+        )
     }
 
     @Test
@@ -563,7 +567,8 @@ class RateLimitTest {
             startApplication()
         }
         assertEquals(
-            "Rate limit provider with name RateLimitName(name=KTOR_NO_NAME_RATE_LIMITER) is not configured",
+            "Rate limit provider with name RateLimitName(name=KTOR_NO_NAME_RATE_LIMITER) is not configured. " +
+                "Make sure that you install RateLimit plugin before you use it in Routing",
             error.message
         )
     }
@@ -586,7 +591,11 @@ class RateLimitTest {
         val error = assertFailsWith<IllegalStateException> {
             startApplication()
         }
-        assertEquals("Rate limit provider with name RateLimitName(name=name) is not configured", error.message)
+        assertEquals(
+            "Rate limit provider with name RateLimitName(name=name) is not configured. " +
+                "Make sure that you install RateLimit plugin before you use it in Routing",
+            error.message
+        )
     }
 
     @Test
