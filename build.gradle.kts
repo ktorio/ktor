@@ -296,6 +296,7 @@ allprojects {
     val jsIrTest by tasks.creating {
         dependsOn(jsTest)
     }
+//    tasks.withType(AbstractTestTask::class).configureEach { enabled = false }
 }
 
 val jsLegacyTest by tasks.creating {
