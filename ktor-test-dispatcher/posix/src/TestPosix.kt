@@ -1,7 +1,10 @@
+/*
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.test.dispatcher
 
 import kotlinx.coroutines.*
-import platform.posix.*
 import kotlin.coroutines.*
 
 /**
@@ -12,9 +15,7 @@ public actual fun testSuspend(
     timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
 ) {
-    executeInWorker(timeoutMillis) {
-        runBlocking {
-            block()
-        }
+    runBlocking(context) {
+        withTimeout(timeoutMillis, block)
     }
 }
