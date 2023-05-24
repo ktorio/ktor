@@ -51,5 +51,4 @@ internal class OkHttpServerSentEventsSession(
         _incoming.close()
         serverSentEventsSource.cancel()
     }
-
 }

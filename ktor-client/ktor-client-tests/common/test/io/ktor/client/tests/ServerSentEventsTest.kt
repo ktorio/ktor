@@ -11,7 +11,8 @@ import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-internal val ENGINES_WITHOUT_SSE = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy", "CIO", "Java", "Js")
+internal val ENGINES_WITHOUT_SSE =
+    listOf("Android", "Apache", "Apache5", "Curl", "Darwin", "DarwinLegacy", "CIO", "Java", "Js", "WinHttp", "Jetty")
 
 class ServerSentEventsTest : ClientLoader() {
 
