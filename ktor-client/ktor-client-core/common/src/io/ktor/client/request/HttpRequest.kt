@@ -7,6 +7,7 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -302,4 +303,10 @@ public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable f
 @Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun HttpRequestData.isSseRequest(): Boolean {
+    return body is ServerSentEventsContent
 }
