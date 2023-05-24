@@ -7,6 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -20,7 +21,6 @@ import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*
-import java.io.*
 import java.io.Closeable
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -37,7 +37,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
-        setOf(HttpTimeout, WebSocketCapability)
+        setOf(HttpTimeout, WebSocketCapability, ServerSentEventsCapability)
 
     private val requestsJob: CoroutineContext
 
@@ -62,7 +62,6 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                     client.connectionPool.evictAll()
                     client.dispatcher.executorService.shutdown()
                 }
-                @Suppress("BlockingMethodInNonBlockingContext")
                 (dispatcher as Closeable).close()
             }
         }
@@ -75,10 +74,10 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeout)]
             ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
 
-        return if (data.isUpgradeRequest()) {
-            executeWebSocketRequest(requestEngine, engineRequest, callContext)
-        } else {
-            executeHttpRequest(requestEngine, engineRequest, callContext, data)
+        return when {
+            data.isUpgradeRequest() -> executeWebSocketRequest(requestEngine, engineRequest, callContext)
+            data.isSseRequest() -> executeServerSendEventsRequest(requestEngine, engineRequest, callContext)
+            else -> executeHttpRequest(requestEngine, engineRequest, callContext, data)
         }
     }
 
@@ -99,6 +98,22 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
             engineRequest,
             callContext
         ).apply { start() }
+
+        val originResponse = session.originResponse.await()
+        return buildResponseData(originResponse, requestTime, session, callContext)
+    }
+
+    private suspend fun executeServerSendEventsRequest(
+        engine: OkHttpClient,
+        engineRequest: Request,
+        callContext: CoroutineContext
+    ): HttpResponseData {
+        val requestTime = GMTDate()
+        val session = OkHttpServerSentEventsSession(
+            engine,
+            engineRequest,
+            callContext
+        )
 
         val originResponse = session.originResponse.await()
         return buildResponseData(originResponse, requestTime, session, callContext)
