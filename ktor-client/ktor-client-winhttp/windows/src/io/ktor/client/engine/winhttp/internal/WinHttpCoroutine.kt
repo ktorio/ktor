@@ -25,18 +25,27 @@ internal suspend inline fun <T> Closeable.closeableCoroutine(
     }
 
     state.handlers[WinHttpCallbackStatus.RequestError.value] = { statusInfo, _ ->
-        val result = statusInfo!!.reinterpret<WINHTTP_ASYNC_RESULT>().pointed
-        continuation.resumeWithException(getWinHttpException(errorMessage, result.dwError))
+        if (continuation.isActive) {
+            val result = statusInfo!!.reinterpret<WINHTTP_ASYNC_RESULT>().pointed
+            continuation.resumeWithException(getWinHttpException(errorMessage, result.dwError))
+        } else {
+            close()
+        }
     }
 
     state.handlers[WinHttpCallbackStatus.SecureFailure.value] = { statusInfo, _ ->
-        val securityCode = statusInfo!!.reinterpret<UIntVar>().pointed.value
-        continuation.resumeWithException(getWinHttpException(errorMessage, securityCode))
+        if (continuation.isActive) {
+            val securityCode = statusInfo!!.reinterpret<UIntVar>().pointed.value
+            continuation.resumeWithException(getWinHttpException(errorMessage, securityCode))
+        } else {
+            close()
+        }
     }
 
     try {
         block(continuation)
     } catch (cause: Throwable) {
-        continuation.resumeWithException(cause)
+        if (continuation.isActive) continuation.resumeWithException(cause)
+        else close()
     }
 }

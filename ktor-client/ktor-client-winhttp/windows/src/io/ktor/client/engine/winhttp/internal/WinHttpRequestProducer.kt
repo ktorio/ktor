@@ -27,7 +27,7 @@ internal class WinHttpRequestProducer(
     private val data: HttpRequestData
 ) {
     private val closed = atomic(false)
-    private val chunked: Boolean = request.chunkedMode == WinHttpChunkedMode.Enabled && !data.isUpgradeRequest()
+    private val chunked: Boolean = request.isChunked(data)
 
     fun getHeaders(): Map<String, String> {
         val headers = data.headersToMap()
@@ -102,6 +102,7 @@ internal class WinHttpRequestProducer(
         return result
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private suspend fun OutgoingContent.toByteChannel(): ByteReadChannel? = when (this) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
         is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
