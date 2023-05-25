@@ -19,7 +19,7 @@ public abstract class ByteChannelSequentialBase(
     initial: ChunkBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
-) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
+) : ByteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
     private val _lastReadView: AtomicRef<ChunkBuffer> = atomic(ChunkBuffer.Empty)
 
     private val _totalBytesRead = atomic(0L)
