@@ -109,7 +109,8 @@ internal class WinHttpWebSocket(
                     buffer.get().size.convert(),
                     null,
                     null
-                ) != 0u
+                ) != 0u &&
+                continuation.isActive
             ) {
                 continuation.resume(null)
                 return@closeableCoroutine
@@ -123,18 +124,22 @@ internal class WinHttpWebSocket(
                 val data = readBuffer.copyOf(status.size)
                 _incoming.trySend(Frame.Binary(fin = true, data = data))
             }
+
             WinHttpWebSocketBuffer.BinaryFragment -> {
                 val data = readBuffer.copyOf(status.size)
                 _incoming.trySend(Frame.Binary(fin = false, data = data))
             }
+
             WinHttpWebSocketBuffer.TextMessage -> {
                 val data = readBuffer.copyOf(status.size)
                 _incoming.trySend(Frame.Text(fin = true, data = data))
             }
+
             WinHttpWebSocketBuffer.TextFragment -> {
                 val data = readBuffer.copyOf(status.size)
                 _incoming.trySend(Frame.Text(fin = false, data = data))
             }
+
             WinHttpWebSocketBuffer.Close -> {
                 val data = readBuffer.copyOf(status.size)
                 _incoming.trySend(Frame.Close(data))
@@ -156,6 +161,7 @@ internal class WinHttpWebSocket(
                     sendFrame(type, src)
                 }
             }
+
             FrameType.BINARY,
             FrameType.PING,
             FrameType.PONG -> {
@@ -168,6 +174,7 @@ internal class WinHttpWebSocket(
                     sendFrame(type, src)
                 }
             }
+
             FrameType.CLOSE -> {
                 val data = buildPacket { writeFully(frame.data) }
                 val code = data.readShort().toInt()
@@ -263,7 +270,7 @@ internal class WinHttpWebSocket(
         socketJob.complete()
     }
 
-    private fun close(cause: Throwable? = null) {
+    private fun close(@Suppress("UNUSED_PARAMETER") cause: Throwable? = null) {
         if (!closed.compareAndSet(expect = false, update = true)) return
 
         _incoming.close()

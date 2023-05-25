@@ -31,8 +31,7 @@ internal class WinHttpConnect(private val hConnect: COpaquePointer) : Closeable 
     fun openRequest(
         method: HttpMethod,
         url: Url,
-        httpVersion: String?,
-        chunkedMode: WinHttpChunkedMode
+        httpVersion: String?
     ): COpaquePointer? {
         var openFlags = WINHTTP_FLAG_ESCAPE_DISABLE or
             WINHTTP_FLAG_ESCAPE_DISABLE_QUERY or
@@ -40,10 +39,6 @@ internal class WinHttpConnect(private val hConnect: COpaquePointer) : Closeable 
 
         if (url.protocol.isSecure()) {
             openFlags = openFlags or WINHTTP_FLAG_SECURE
-        }
-
-        if (chunkedMode == WinHttpChunkedMode.Automatic) {
-            openFlags = openFlags or WINHTTP_FLAG_AUTOMATIC_CHUNKING
         }
 
         return WinHttpOpenRequest(

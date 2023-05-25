@@ -7,6 +7,7 @@ package io.ktor.client.engine.winhttp.internal
 import io.ktor.client.engine.winhttp.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
@@ -20,15 +21,13 @@ import kotlin.coroutines.*
 internal class WinHttpRequest(
     hSession: COpaquePointer,
     data: HttpRequestData,
-    private val config: WinHttpClientEngineConfig
+    config: WinHttpClientEngineConfig
 ) : Closeable {
     private val connect: WinHttpConnect
     private val hRequest: COpaquePointer
     private val closed = atomic(false)
     private val requestClosed = atomic(false)
     private val connectReference: StableRef<WinHttpConnect>
-
-    val chunkedMode: WinHttpChunkedMode
 
     init {
         val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0)
@@ -44,23 +43,8 @@ internal class WinHttpRequest(
             else -> null
         }
 
-        // Try to open request with proposed chunking encoding.
-        // If it fails fall back to programmatic encoding.
-        var detectedChunkedMode = getChunkedMode(data)
-        val request = connect.openRequest(data.method, data.url, httpVersion, detectedChunkedMode)
-        if (request == null) {
-            val errorCode = GetLastError().toInt()
-            if (errorCode != ERROR_INVALID_PARAMETER || detectedChunkedMode != WinHttpChunkedMode.Automatic) {
-                throw getWinHttpException("Unable to open request")
-            }
-
-            detectedChunkedMode = WinHttpChunkedMode.Enabled
-        }
-
-        hRequest = request ?: connect.openRequest(data.method, data.url, httpVersion, detectedChunkedMode)
+        hRequest = connect.openRequest(data.method, data.url, httpVersion)
             ?: throw getWinHttpException("Unable to open request")
-
-        chunkedMode = detectedChunkedMode
 
         configureFeatures()
 
@@ -152,8 +136,6 @@ internal class WinHttpRequest(
 
     /**
      * Construct a body after receiving response headers.
-     *
-     * @param produceBody is response body producer.
      */
     private fun getResponseData() = memScoped {
         val dwStatusCode = alloc<UIntVar>()
@@ -296,20 +278,12 @@ internal class WinHttpRequest(
         }
     }
 
-    /**
-     * Computes possible chunking mode for request body processing.
-     *
-     * In HTTP 1 request must have one of the `Content-Length` or `Transfer-Encoding` headers.
-     * In HTTP 2 supported chunked encoding out of the box.
-     */
-    private fun getChunkedMode(data: HttpRequestData): WinHttpChunkedMode {
+    internal fun isChunked(data: HttpRequestData): Boolean {
+        if (data.body is OutgoingContent.NoContent) return false
         val contentLength = data.body.contentLength ?: data.body.headers[HttpHeaders.ContentLength]?.toLong()
-        val transferEncoding = data.body.headers[HttpHeaders.TransferEncoding]
-        return when {
-            contentLength != null || transferEncoding != null -> WinHttpChunkedMode.Disabled
-            config.protocolVersion.major >= 2 -> WinHttpChunkedMode.Automatic
-            else -> WinHttpChunkedMode.Enabled
-        }
+        return contentLength == null ||
+            data.headers[HttpHeaders.TransferEncoding] == "chunked" ||
+            data.body.headers[HttpHeaders.TransferEncoding] == "chunked"
     }
 
     /**
