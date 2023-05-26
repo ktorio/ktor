@@ -20,7 +20,7 @@ internal fun Application.contentTestServer() {
     routing {
         route("/content") {
             get("/uri") {
-                call.respondText { call.request.local.uri}
+                call.respondText { call.request.local.uri }
             }
 
             get("/empty") {
