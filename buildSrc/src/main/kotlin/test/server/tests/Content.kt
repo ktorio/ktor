@@ -19,6 +19,10 @@ import test.server.*
 internal fun Application.contentTestServer() {
     routing {
         route("/content") {
+            get("/uri") {
+                call.respondText { call.request.local.uri}
+            }
+
             get("/empty") {
                 call.respond("")
             }
