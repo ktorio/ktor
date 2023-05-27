@@ -32,11 +32,11 @@ public class TestApplicationRequest constructor(
     version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
 
-    var uri = uri
-    var protocol: String = "http"
-    var port = port
-    var version = version
-    var method = method
+    public var uri: String = uri
+    public var protocol: String = "http"
+    public var port: Int? = port
+    public var version: String = version
+    public var method: HttpMethod = method
 
     override val local: RequestConnectionPoint = object : RequestConnectionPoint {
         override val uri: String
@@ -84,7 +84,7 @@ public class TestApplicationRequest constructor(
     /**
      * Request body channel.
      */
-    var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
+    public var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
     override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
 

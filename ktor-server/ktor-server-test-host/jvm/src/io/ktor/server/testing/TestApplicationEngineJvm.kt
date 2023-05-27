@@ -16,7 +16,7 @@ import kotlinx.coroutines.channels.*
  * that handles conversation with the server
  */
 @OptIn(DelicateCoroutinesApi::class)
-fun TestApplicationEngine.handleWebSocketConversation(
+public fun TestApplicationEngine.handleWebSocketConversation(
     uri: String,
     setup: TestApplicationRequest.() -> Unit = {},
     awaitCallback: Boolean = true,

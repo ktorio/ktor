@@ -26,12 +26,15 @@ import kotlin.test.*
 import kotlin.text.toByteArray
 import kotlin.time.Duration.Companion.seconds
 
-abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class HttpServerJvmTestSuite<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    open fun testPipelining() {
+    public open fun testPipelining() {
         createAndStartServer {
             get("/") {
                 val id = call.parameters["d"]!!.toInt()
@@ -71,7 +74,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    open fun testPipeliningWithFlushingHeaders() {
+    public open fun testPipeliningWithFlushingHeaders() {
         val lastHandler = CompletableDeferred<Unit>()
         val processedRequests = AtomicLong()
 
@@ -154,7 +157,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testRequestTwiceInOneBufferWithKeepAlive() {
+    public fun testRequestTwiceInOneBufferWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 val d = call.request.queryParameters["d"]!!.toLong()
@@ -209,7 +212,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testClosedConnection() {
+    public fun testClosedConnection() {
         val completed = Job()
 
         createAndStartServer {
@@ -263,7 +266,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testConnectionReset() {
+    public fun testConnectionReset() {
         val completed = Job()
 
         createAndStartServer {
@@ -320,7 +323,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    open fun testUpgrade() {
+    public open fun testUpgrade() {
         val completed = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -430,7 +433,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testHeaderAppearsSingleTime() {
+    public fun testHeaderAppearsSingleTime() {
         val lastModified = ZonedDateTime.now()
 
         createAndStartServer {
@@ -501,7 +504,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 """
         .trimIndent().replace("\r\n", "\n")
 
-    protected fun clearSocketResponses(responses: Sequence<String>) =
+    protected fun clearSocketResponses(responses: Sequence<String>): String =
         responses.filterNot { line ->
             line.startsWith("Date") || line.startsWith("Server") ||
                 line.startsWith("Content-") || line.toIntOrNull() != null ||

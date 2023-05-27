@@ -14,13 +14,13 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-abstract class JsonWebsocketsTest(private val converter: WebsocketContentConverter) {
+public abstract class JsonWebsocketsTest(private val converter: WebsocketContentConverter) {
 
     @Serializable
-    data class User(val name: String, val id: Int)
+    public data class User(public val name: String, public val id: Int)
 
     @Test
-    open fun testJsonNullWithWebsocketsClient(): Unit = testApplication {
+    public open fun testJsonNullWithWebsocketsClient(): Unit = testApplication {
         install(io.ktor.server.websocket.WebSockets)
         routing {
             webSocket("/") {
@@ -44,7 +44,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithNullWebsocketsServer(): Unit = testApplication {
+    public open fun testJsonWithNullWebsocketsServer(): Unit = testApplication {
         install(io.ktor.server.websocket.WebSockets) {
             contentConverter = this@JsonWebsocketsTest.converter
         }
@@ -68,7 +68,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithWebsocketsClient(): Unit = testApplication {
+    public open fun testJsonWithWebsocketsClient(): Unit = testApplication {
         install(io.ktor.server.websocket.WebSockets)
         routing {
             webSocket("/") {
@@ -92,7 +92,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithWebsocketsServer(): Unit = testApplication {
+    public open fun testJsonWithWebsocketsServer(): Unit = testApplication {
         install(io.ktor.server.websocket.WebSockets) {
             contentConverter = this@JsonWebsocketsTest.converter
         }

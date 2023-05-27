@@ -30,7 +30,7 @@ public class TestApplicationResponse(
     /**
      * Gets a response body text content. Could be blocking. Remains `null` until response appears.
      */
-    val content: String?
+    public val content: String?
         get() {
             val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
             return byteContent?.let { charset.newDecoder().decode(ByteReadPacket(it)) }
@@ -41,7 +41,7 @@ public class TestApplicationResponse(
      */
     private val _byteContent = atomic<ByteArray?>(null)
 
-    var byteContent: ByteArray?
+    public var byteContent: ByteArray?
         get() = when {
             _byteContent.value != null -> _byteContent.value
             responseChannel == null -> null

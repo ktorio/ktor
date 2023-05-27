@@ -20,13 +20,13 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
-    protected open val extraFieldResult = HttpStatusCode.OK
+public abstract class JsonContentNegotiationTest(public val converter: ContentConverter) {
+    protected open val extraFieldResult: HttpStatusCode = HttpStatusCode.OK
 
     @Serializable
-    data class Wrapper(val value: String)
+    public data class Wrapper(public val value: String)
 
-    fun startServer(testApplicationEngine: Application) {
+    public fun startServer(testApplicationEngine: Application) {
         testApplicationEngine.install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -40,7 +40,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testBadlyFormattedJson(): Unit = withTestApplication {
+    public open fun testBadlyFormattedJson(): Unit = withTestApplication {
         startServer(application)
 
         handleRequest(HttpMethod.Post, "/") {
@@ -52,7 +52,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonWithNullValue(): Unit = withTestApplication {
+    public open fun testJsonWithNullValue(): Unit = withTestApplication {
         startServer(application)
 
         handleRequest(HttpMethod.Post, "/") {
@@ -64,7 +64,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testClearValidJson(): Unit = withTestApplication {
+    public open fun testClearValidJson(): Unit = withTestApplication {
         startServer(application)
 
         handleRequest(HttpMethod.Post, "/") {
@@ -76,7 +76,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testValidJsonWithExtraFields(): Unit = withTestApplication {
+    public open fun testValidJsonWithExtraFields(): Unit = withTestApplication {
         startServer(application)
 
         handleRequest(HttpMethod.Post, "/") {
@@ -88,7 +88,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringServer(): Unit = testApplication {
+    public open fun testSendJsonStringServer(): Unit = testApplication {
         routing {
             get("/") {
                 call.respond("abc")
@@ -105,7 +105,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringServer(): Unit = testApplication {
+    public open fun testReceiveJsonStringServer(): Unit = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
@@ -126,7 +126,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringClient(): Unit = testApplication {
+    public open fun testReceiveJsonStringClient(): Unit = testApplication {
         routing {
             get("/") {
                 call.respond(TextContent("\"abc\"", ContentType.Application.Json))
@@ -144,7 +144,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringClient(): Unit = testApplication {
+    public open fun testSendJsonStringClient(): Unit = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -167,7 +167,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullServer(): Unit = testApplication {
+    public open fun testJsonNullServer(): Unit = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -188,7 +188,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullClient(): Unit = testApplication {
+    public open fun testJsonNullClient(): Unit = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -211,7 +211,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testNoCharsetIsAdded() = testApplication {
+    public fun testNoCharsetIsAdded(): Unit = testApplication {
         routing {
             post("/") {
                 assertNull(call.request.contentType().charset())
@@ -233,7 +233,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testRespondWithTypeInfoAny() = testApplication {
+    public fun testRespondWithTypeInfoAny(): Unit = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -257,7 +257,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testRespondSealedWithTypeInfoAny() = testApplication {
+    public fun testRespondSealedWithTypeInfoAny(): Unit = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -281,7 +281,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testRespondNestedSealedWithTypeInfoAny() = testApplication {
+    public open fun testRespondNestedSealedWithTypeInfoAny(): Unit = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -306,19 +306,19 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
 }
 
 @Serializable
-sealed class Data
+public sealed class Data
 
 @Serializable
-class DataType(val value: String) : Data()
+public class DataType(public val value: String) : Data()
 
 @Serializable
-class SealedWrapper(val value: Sealed)
+public class SealedWrapper(public val value: Sealed)
 
 @Serializable
-sealed class Sealed {
+public sealed class Sealed {
     @Serializable
-    data class A(val value: String) : Sealed()
+    public data class A(public val value: String) : Sealed()
 
     @Serializable
-    data class B(val value: String) : Sealed()
+    public data class B(public val value: String) : Sealed()
 }

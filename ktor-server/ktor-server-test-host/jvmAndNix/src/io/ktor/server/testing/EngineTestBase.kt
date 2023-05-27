@@ -13,7 +13,10 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public expect abstract class EngineTestBase<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >(
     applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest, CoroutineScope {
 
@@ -23,7 +26,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     @Retention
     protected annotation class Http2Only()
 
-    val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+    public val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 
     protected var enableHttp2: Boolean
     protected var enableSsl: Boolean

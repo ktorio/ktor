@@ -14,21 +14,21 @@ import java.net.*
 import java.util.concurrent.*
 
 @Suppress("KDocMissingDocumentation")
-abstract class TestWithKtor {
+public abstract class TestWithKtor {
     protected val serverPort: Int = ServerSocket(0).use { it.localPort }
     protected val testUrl: String = "http://localhost:$serverPort"
 
     @get:Rule
-    open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(5 * 60)
+    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(5 * 60)
 
-    abstract val server: ApplicationEngine
+    public abstract val server: ApplicationEngine
 
     init {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as? Logger)?.level = Level.ERROR
     }
 
     @Before
-    fun startServer() {
+    public fun startServer() {
         var attempt = 0
 
         do {
@@ -46,7 +46,7 @@ abstract class TestWithKtor {
     }
 
     @After
-    fun stopServer() {
+    public fun stopServer() {
         server.stop(0, 0, TimeUnit.SECONDS)
     }
 

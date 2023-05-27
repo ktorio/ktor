@@ -9,11 +9,11 @@ import io.ktor.client.engine.*
 /**
  * Helper interface to test client.
  */
-expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
+public expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
     /**
      * Perform test against all clients from dependencies.
      */
-    fun clientTests(
+    public fun clientTests(
         skipEngines: List<String> = emptyList(),
         onlyWithEngine: String? = null,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
@@ -22,5 +22,5 @@ expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
     /**
      * Print coroutines in debug mode.
      */
-    fun dumpCoroutines()
+    public fun dumpCoroutines()
 }

@@ -5,9 +5,9 @@
 package io.ktor.client.engine.winhttp.internal
 
 import kotlinx.cinterop.*
-import platform.winhttp.*
 import platform.windows.*
 import platform.windows.HINTERNET
+import platform.winhttp.*
 
 internal enum class WinHttpCallbackStatus(val value: UInt) {
     SecureFailure(WINHTTP_CALLBACK_STATUS_SECURE_FAILURE.convert<UInt>()),

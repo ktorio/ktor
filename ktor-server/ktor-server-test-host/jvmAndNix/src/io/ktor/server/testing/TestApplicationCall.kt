@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 /**
  * A test application call that is used in [withTestApplication] and [handleRequest].
  */
-class TestApplicationCall(
+public class TestApplicationCall(
     application: Application,
     readResponse: Boolean = false,
     closeRequest: Boolean = true,
@@ -28,7 +28,7 @@ class TestApplicationCall(
             "Please use asserts on response status, headers or content",
         level = DeprecationLevel.ERROR
     )
-    val requestHandled: Boolean
+    public val requestHandled: Boolean
         get() = error(
             "This property may have unpredictable behaviour. " +
                 "Please use asserts on response status, headers or content"
