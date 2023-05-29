@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.tests.utils.*
+import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -89,7 +90,9 @@ class ServerSentEventsTest : ClientLoader() {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<ServerSentEventsException> { client.serverSentEventsSession("http://testerror.com/sse") }
+            kotlin.test.assertFailsWith<ServerSentEventsException> {
+                client.serverSentEventsSession("http://testerror.com/sse")
+            }
         }
     }
 

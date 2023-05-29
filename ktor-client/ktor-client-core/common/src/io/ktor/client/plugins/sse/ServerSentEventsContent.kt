@@ -6,8 +6,9 @@ package io.ktor.client.plugins.sse
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlin.time.*
 
-internal class ServerSentEventsContent(private val reconnectionTimeMillis: Long) : OutgoingContent.NoContent() {
+internal class ServerSentEventsContent(private val reconnectionTime: Duration) : OutgoingContent.NoContent() {
 
     override val headers: Headers = HeadersBuilder().apply {
         append(HttpHeaders.Accept, ContentType.Text.EventStream)

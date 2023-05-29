@@ -6,6 +6,7 @@ kotlin.sourceSets {
             api(project(":ktor-http"))
             api(project(":ktor-shared:ktor-events"))
             api(project(":ktor-shared:ktor-websocket-serialization"))
+            api(project(":ktor-shared:ktor-sse"))
         }
     }
 

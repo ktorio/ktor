@@ -5,7 +5,6 @@
 package io.ktor.client.engine.winhttp.internal
 
 import io.ktor.client.engine.winhttp.*
-import io.ktor.client.engine.winhttp.internal.WinHttpConnect
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*

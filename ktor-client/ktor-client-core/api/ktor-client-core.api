@@ -863,43 +863,19 @@ public abstract interface class io/ktor/client/plugins/sse/ClientServerSentEvent
 	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
 }
 
-public final class io/ktor/client/plugins/sse/ServerSentEvent {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getData ()Ljava/lang/String;
-	public final fun getEvent ()Ljava/lang/String;
-	public final fun getId ()Ljava/lang/String;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/client/plugins/sse/ServerSentEvents {
-	public static final field Plugin Lio/ktor/client/plugins/sse/ServerSentEvents$Plugin;
-	public fun <init> (J)V
-	public final fun getReconnectionTimeMillis ()J
-}
-
-public final class io/ktor/client/plugins/sse/ServerSentEvents$Config {
-	public fun <init> ()V
-	public final fun getReconnectionTimeMillis ()J
-	public final fun setReconnectionTimeMillis (J)V
-}
-
-public final class io/ktor/client/plugins/sse/ServerSentEvents$Plugin : io/ktor/client/plugins/HttpClientPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/plugins/sse/ServerSentEvents;Lio/ktor/client/HttpClient;)V
-	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/sse/ServerSentEvents;
-	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-}
-
 public final class io/ktor/client/plugins/sse/ServerSentEventsCapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/plugins/sse/ServerSentEventsCapability;
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/plugins/sse/ServerSentEventsException : java/lang/IllegalStateException {
-	public fun <init> (Ljava/lang/String;)V
-	public fun <init> (Ljava/lang/Throwable;)V
+public final class io/ktor/client/plugins/sse/ServerSentEventsConfig {
+	public fun <init> ()V
+	public final fun getReconnectionTime-UwyO8pc ()J
+	public final fun setReconnectionTime-LRDsOJo (J)V
+}
+
+public final class io/ktor/client/plugins/sse/ServerSentEventsKt {
+	public static final fun getServerSentEvents ()Lio/ktor/client/plugins/api/ClientPlugin;
 }
 
 public final class io/ktor/client/plugins/websocket/BuildersKt {

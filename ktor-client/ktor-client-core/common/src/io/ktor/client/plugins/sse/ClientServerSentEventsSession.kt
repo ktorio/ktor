@@ -4,6 +4,7 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.sse.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 

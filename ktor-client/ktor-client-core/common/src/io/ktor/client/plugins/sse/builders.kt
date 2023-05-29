@@ -8,12 +8,13 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.sse.*
 import kotlinx.coroutines.*
 
 /**
  * Installs the [ServerSentEvents] plugin using the [config] as configuration.
  */
-public fun HttpClientConfig<*>.ServerSentEvents(config: ServerSentEvents.Config.() -> Unit) {
+public fun HttpClientConfig<*>.ServerSentEvents(config: ServerSentEventsConfig.() -> Unit) {
     install(ServerSentEvents) {
         config()
     }
