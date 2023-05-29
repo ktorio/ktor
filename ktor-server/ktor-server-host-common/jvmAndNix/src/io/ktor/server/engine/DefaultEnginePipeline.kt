@@ -54,7 +54,6 @@ public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun logError(call: ApplicationCall, error: Throwable) {
     call.application.mdcProvider.withMDCBlock(call) {
         call.application.environment.logFailure(call, error)
@@ -92,7 +91,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             "(request error: $cause)"
         }
 
-        val infoString = "$status: $logString. Exception ${cause::class}: ${cause.message}]"
+        val infoString = "$status: $logString. Exception ${cause::class}: ${cause.message}"
         when (cause) {
             is CancellationException,
             is ClosedChannelException,
