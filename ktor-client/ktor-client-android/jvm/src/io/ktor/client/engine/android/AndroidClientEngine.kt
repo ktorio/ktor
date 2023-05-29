@@ -44,7 +44,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
         val requestTime = GMTDate()
 
-        val url: String = URLBuilder().takeFrom(data.url).buildString()
+        val url: String = data.url.toString()
         val outgoingContent: OutgoingContent = data.body
         val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong()
             ?: outgoingContent.contentLength
