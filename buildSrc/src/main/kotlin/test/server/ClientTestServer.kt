@@ -44,6 +44,7 @@ internal fun Application.tests() {
     jsonTest()
     multithreadedTest()
     eventsTest()
+    bomTest()
 
     routing {
         get("/") {
