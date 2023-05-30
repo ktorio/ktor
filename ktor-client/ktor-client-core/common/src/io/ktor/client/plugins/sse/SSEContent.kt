@@ -8,12 +8,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlin.time.*
 
-internal class ServerSentEventsContent(private val reconnectionTime: Duration) : OutgoingContent.NoContent() {
+internal class SSEContent(private val reconnectionTime: Duration) : OutgoingContent.NoContent() {
 
     override val headers: Headers = HeadersBuilder().apply {
         append(HttpHeaders.Accept, ContentType.Text.EventStream)
         append(HttpHeaders.CacheControl, "no-store")
     }.build()
 
-    override fun toString(): String = "ServerSentEventsContent"
+    override fun toString(): String = "SSEContent"
 }

@@ -23,19 +23,19 @@ class ServerSentEventsTest : ClientLoader() {
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEventsSession()
         }.let {
-            assertContains(it.message!!, ServerSentEvents.key.name)
+            assertContains(it.message!!, SSE.key.name)
         }
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEvents {}
         }.let {
-            assertContains(it.message!!, ServerSentEvents.key.name)
+            assertContains(it.message!!, SSE.key.name)
         }
     }
 
     @Test
     fun testSseSession() = clientTests(ENGINES_WITHOUT_SSE) {
         config {
-            install(ServerSentEvents)
+            install(SSE)
         }
 
         test { client ->
@@ -52,7 +52,7 @@ class ServerSentEventsTest : ClientLoader() {
     @Test
     fun testParallelSseSessions() = clientTests(ENGINES_WITHOUT_SSE) {
         config {
-            install(ServerSentEvents)
+            install(SSE)
         }
 
         test { client ->
@@ -86,11 +86,11 @@ class ServerSentEventsTest : ClientLoader() {
     @Test
     fun testSseSessionWithError() = clientTests(ENGINES_WITHOUT_SSE) {
         config {
-            install(ServerSentEvents)
+            install(SSE)
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<ServerSentEventsException> {
+            kotlin.test.assertFailsWith<SSEException> {
                 client.serverSentEventsSession("http://testerror.com/sse")
             }
         }
@@ -99,11 +99,11 @@ class ServerSentEventsTest : ClientLoader() {
     @Test
     fun testExceptionSse() = clientTests(ENGINES_WITHOUT_SSE) {
         config {
-            install(ServerSentEvents)
+            install(SSE)
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<ServerSentEventsException> {
+            kotlin.test.assertFailsWith<SSEException> {
                 client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
             }.let {
                 assertContains(it.message!!, "error")

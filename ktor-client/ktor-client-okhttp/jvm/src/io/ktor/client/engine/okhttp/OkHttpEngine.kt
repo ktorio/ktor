@@ -37,7 +37,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
-        setOf(HttpTimeout, WebSocketCapability, ServerSentEventsCapability)
+        setOf(HttpTimeout, WebSocketCapability, SSECapability)
 
     private val requestsJob: CoroutineContext
 
@@ -109,7 +109,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         callContext: CoroutineContext
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val session = OkHttpServerSentEventsSession(
+        val session = OkHttpSSESession(
             engine,
             engineRequest,
             callContext

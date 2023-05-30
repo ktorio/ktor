@@ -12,11 +12,11 @@ import okhttp3.*
 import okhttp3.sse.*
 import kotlin.coroutines.*
 
-internal class OkHttpServerSentEventsSession(
+internal class OkHttpSSESession(
     engine: OkHttpClient,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
-) : ClientServerSentEventsSession, EventSourceListener() {
+) : ClientSSESession, EventSourceListener() {
     private val serverSentEventsSource = EventSources.createFactory(engine).newEventSource(engineRequest, this)
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
@@ -35,8 +35,8 @@ internal class OkHttpServerSentEventsSession(
     }
 
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-        val error = t?.let { ServerSentEventsException(it) }
-            ?: ServerSentEventsException("Unexpected error occurred")
+        val error = t?.let { SSEException(it) }
+            ?: SSEException("Unexpected error occurred")
         originResponse.completeExceptionally(error)
         _incoming.close()
         serverSentEventsSource.cancel()

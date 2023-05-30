@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.*
 /**
  * A client Server-sent events session.
  */
-public interface ClientServerSentEventsSession : CoroutineScope {
+public interface ClientSSESession : CoroutineScope {
     /**
      * An incoming server-sent events channel.
      */

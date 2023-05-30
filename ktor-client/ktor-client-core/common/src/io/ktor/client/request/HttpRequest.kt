@@ -58,7 +58,6 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
  *
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
-@Suppress("DEPRECATION")
 public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
@@ -308,5 +307,5 @@ public fun HttpRequestData.isUpgradeRequest(): Boolean {
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isSseRequest(): Boolean {
-    return body is ServerSentEventsContent
+    return body is SSEContent
 }

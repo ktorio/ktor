@@ -836,7 +836,7 @@ public final class io/ktor/client/plugins/observer/ResponseObserverKt {
 }
 
 public final class io/ktor/client/plugins/sse/BuildersKt {
-	public static final fun ServerSentEvents (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+	public static final fun SSE (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static final fun serverSentEvents (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun serverSentEvents (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun serverSentEvents (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -859,23 +859,23 @@ public final class io/ktor/client/plugins/sse/BuildersKt {
 	public static synthetic fun sseSession$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/client/plugins/sse/ClientServerSentEventsSession : kotlinx/coroutines/CoroutineScope {
+public abstract interface class io/ktor/client/plugins/sse/ClientSSESession : kotlinx/coroutines/CoroutineScope {
 	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
 }
 
-public final class io/ktor/client/plugins/sse/ServerSentEventsCapability : io/ktor/client/engine/HttpClientEngineCapability {
-	public static final field INSTANCE Lio/ktor/client/plugins/sse/ServerSentEventsCapability;
+public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/engine/HttpClientEngineCapability {
+	public static final field INSTANCE Lio/ktor/client/plugins/sse/SSECapability;
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/plugins/sse/ServerSentEventsConfig {
+public final class io/ktor/client/plugins/sse/SSEConfig {
 	public fun <init> ()V
 	public final fun getReconnectionTime-UwyO8pc ()J
 	public final fun setReconnectionTime-LRDsOJo (J)V
 }
 
-public final class io/ktor/client/plugins/sse/ServerSentEventsKt {
-	public static final fun getServerSentEvents ()Lio/ktor/client/plugins/api/ClientPlugin;
+public final class io/ktor/client/plugins/sse/SSEKt {
+	public static final fun getSSE ()Lio/ktor/client/plugins/api/ClientPlugin;
 }
 
 public final class io/ktor/client/plugins/websocket/BuildersKt {

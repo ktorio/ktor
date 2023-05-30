@@ -18,7 +18,7 @@ public class ServerSentEvent(public val event: String? = null, public val id: St
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ServerSentEventsException : IllegalStateException {
+public class SSEException : IllegalStateException {
     public constructor(cause: Throwable?) : super(cause)
     public constructor(message: String) : super(message)
 }

@@ -12,38 +12,38 @@ import io.ktor.sse.*
 import kotlinx.coroutines.*
 
 /**
- * Installs the [ServerSentEvents] plugin using the [config] as configuration.
+ * Installs the [SSE] plugin using the [config] as configuration.
  */
-public fun HttpClientConfig<*>.ServerSentEvents(config: ServerSentEventsConfig.() -> Unit) {
-    install(ServerSentEvents) {
+public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
+    install(SSE) {
         config()
     }
 }
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEventsSession(
     block: HttpRequestBuilder.() -> Unit
-): ClientServerSentEventsSession {
-    plugin(ServerSentEvents)
+): ClientSSESession {
+    plugin(SSE)
 
-    val sessionDeferred = CompletableDeferred<ClientServerSentEventsSession>()
+    val sessionDeferred = CompletableDeferred<ClientSSESession>()
     val statement = prepareRequest {
         block()
     }
     try {
-        statement.body<ClientServerSentEventsSession, Unit> { session ->
+        statement.body<ClientSSESession, Unit> { session ->
             sessionDeferred.complete(session)
         }
     } catch (cause: Throwable) {
-        sessionDeferred.completeExceptionally(ServerSentEventsException(cause))
+        sessionDeferred.completeExceptionally(SSEException(cause))
     }
     return sessionDeferred.await()
 }
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -51,41 +51,41 @@ public suspend fun HttpClient.serverSentEventsSession(
     port: Int? = null,
     path: String? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientServerSentEventsSession = serverSentEventsSession {
+): ClientSSESession = serverSentEventsSession {
     url(scheme, host, port, path)
     block()
 }
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientServerSentEventsSession = serverSentEventsSession {
+): ClientSSESession = serverSentEventsSession {
     url.takeFrom(urlString)
     block()
 }
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ) {
     val session = serverSentEventsSession(request)
     try {
         block(session)
     } catch (cause: Throwable) {
-        throw ServerSentEventsException(cause)
+        throw SSEException(cause)
     } finally {
         session.cancel()
     }
 }
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -93,7 +93,7 @@ public suspend fun HttpClient.serverSentEvents(
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ) {
     serverSentEvents(
         {
@@ -105,12 +105,12 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ) {
     serverSentEvents(
         {
@@ -122,14 +122,14 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.sseSession(
     block: HttpRequestBuilder.() -> Unit
-): ClientServerSentEventsSession = serverSentEventsSession(block)
+): ClientSSESession = serverSentEventsSession(block)
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -137,26 +137,26 @@ public suspend fun HttpClient.sseSession(
     port: Int? = null,
     path: String? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientServerSentEventsSession = serverSentEventsSession(scheme, host, port, path, block)
+): ClientSSESession = serverSentEventsSession(scheme, host, port, path, block)
 
 /**
- * Opens a [ClientServerSentEventsSession].
+ * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientServerSentEventsSession = serverSentEventsSession(urlString, block)
+): ClientSSESession = serverSentEventsSession(urlString, block)
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ): Unit = serverSentEvents(request, block)
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -164,14 +164,14 @@ public suspend fun HttpClient.sse(
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ): Unit = serverSentEvents(scheme, host, port, path, request, block)
 
 /**
- * Opens a [block] with [ClientServerSentEventsSession].
+ * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.sse(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientServerSentEventsSession.() -> Unit
+    block: suspend ClientSSESession.() -> Unit
 ): Unit = serverSentEvents(urlString, request, block)

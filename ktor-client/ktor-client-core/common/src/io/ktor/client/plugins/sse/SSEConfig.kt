@@ -8,9 +8,9 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * A config for the [ServerSentEvents] plugin.
+ * A config for the [SSE] plugin.
  */
-public class ServerSentEventsConfig {
+public class SSEConfig {
     /**
      * The reconnection time. If the connection to the server is lost,
      * the client will wait for the specified time before attempting to reconnect.
