@@ -49,11 +49,17 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
     return pipeline
 }
 
+/**
+ * Logs the [error] and responds with an appropriate error status code.
+ */
 public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     logError(call, error)
     tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
 }
 
+/**
+ * Logs the [error] with MDC setup.
+ */
 public suspend fun logError(call: ApplicationCall, error: Throwable) {
     call.application.mdcProvider.withMDCBlock(call) {
         call.application.environment.logFailure(call, error)
