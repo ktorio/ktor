@@ -10,7 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
 
-class BomRemoverTest: ClientLoader()  {
+class BomRemoverTest : ClientLoader() {
     @Test
     fun testRemoveBomCorrectly() = clientTests {
         config {
