@@ -30,10 +30,8 @@ fun isAvailableForPublication(publication: Publication): Boolean {
     val macPublications = setOf(
         "iosX64",
         "iosArm64",
-        "iosArm32",
         "iosSimulatorArm64",
 
-        "watchosX86",
         "watchosX64",
         "watchosArm32",
         "watchosArm64",
