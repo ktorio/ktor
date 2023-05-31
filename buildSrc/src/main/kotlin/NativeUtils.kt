@@ -37,7 +37,6 @@ fun Project.iosTargets(): List<String> = fastOr {
         listOf(
             iosX64(),
             iosArm64(),
-            iosArm32(),
             iosSimulatorArm64(),
         ).map { it.name }
     }
@@ -46,7 +45,6 @@ fun Project.iosTargets(): List<String> = fastOr {
 fun Project.watchosTargets(): List<String> = fastOr {
     with(kotlin) {
         listOf(
-            watchosX86(),
             watchosX64(),
             watchosArm32(),
             watchosArm64(),
