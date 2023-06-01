@@ -33,7 +33,7 @@ internal class OkHttpWebsocketSession(
 
     override var timeoutMillis: Long
         get() = engine.readTimeoutMillis.toLong()
-        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttpEngine.")
+        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttp engine.")
 
     override var masking: Boolean
         get() = true
