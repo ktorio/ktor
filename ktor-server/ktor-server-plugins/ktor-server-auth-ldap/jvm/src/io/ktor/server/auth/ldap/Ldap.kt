@@ -39,12 +39,12 @@ public fun <K : Credential, P : Any> ldapAuthenticate(
  *
  * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
-public fun ldapAuthenticate(
+public fun <P : Principal> ldapAuthenticate(
     credential: UserPasswordCredential,
     ldapServerURL: String,
     userDNFormat: String,
-    validate: InitialDirContext.(UserPasswordCredential) -> UserIdPrincipal?
-): UserIdPrincipal? {
+    validate: InitialDirContext.(UserPasswordCredential) -> P?
+): P? {
     val configurator: (MutableMap<String, Any?>) -> Unit = { env ->
         env[Context.SECURITY_AUTHENTICATION] = "simple"
         env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(ldapEscape(credential.name))
