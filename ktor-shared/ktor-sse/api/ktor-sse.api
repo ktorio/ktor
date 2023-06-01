@@ -1,0 +1,14 @@
+public final class io/ktor/sse/SSEException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/Throwable;)V
+}
+
+public final class io/ktor/sse/ServerSentEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getData ()Ljava/lang/String;
+	public final fun getEvent ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
