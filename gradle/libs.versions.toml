@@ -150,6 +150,7 @@ apacheds-server = { module = "org.apache.directory.server:apacheds-server-integ"
 apacheds-core = { module = "org.apache.directory.server:apacheds-core-integ", version.ref = "apacheds-version" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
+okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttp-version" }
 
 dropwizard-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "dropwizard-version" }
 dropwizard-jvm = { module = "io.dropwizard.metrics:metrics-jvm", version.ref = "dropwizard-version" }
