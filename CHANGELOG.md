@@ -1,3 +1,34 @@
+# 2.3.1
+> Published 31 May 2023
+
+### Bugfixes
+* AndroidClientEngine: the engine double-parses query parameters before sending a request ([KTOR-5814](https://youtrack.jetbrains.com/issue/KTOR-5814))
+* Flaky tests in WinHttp engine ([KTOR-5946](https://youtrack.jetbrains.com/issue/KTOR-5946))
+* Electron/Node.js detection doesn't work correctly ([KTOR-5906](https://youtrack.jetbrains.com/issue/KTOR-5906))
+* Curl sometimes fails with `API function called from within callback` ([KTOR-5918](https://youtrack.jetbrains.com/issue/KTOR-5918))
+* Bearer auth token refresh hangs after prior refresh threw an exception ([KTOR-5879](https://youtrack.jetbrains.com/issue/KTOR-5879))
+* HOCON: "No configuration setting found for key" error after merging ([KTOR-5895](https://youtrack.jetbrains.com/issue/KTOR-5895))
+* Ktor Client Unable to Stream Responses in Javascript ([KTOR-5867](https://youtrack.jetbrains.com/issue/KTOR-5867))
+* Darwin engine does not support streaming of request body ([KTOR-5899](https://youtrack.jetbrains.com/issue/KTOR-5899))
+* The Logging plugin doesn't log full kotlinx deserialization errors ([KTOR-5421](https://youtrack.jetbrains.com/issue/KTOR-5421))
+* XForwardedHeaders should set `remoteAddress` in addition to `remoteHost` ([KTOR-5786](https://youtrack.jetbrains.com/issue/KTOR-5786))
+* Sessions: Set-Cookie is added on every api request ([KTOR-912](https://youtrack.jetbrains.com/issue/KTOR-912))
+* RateLimitters for every request key live in memory forever ([KTOR-5872](https://youtrack.jetbrains.com/issue/KTOR-5872))
+* Significant delay between getting a part and starting reading from its provider for multipart/form-data requests ([KTOR-5248](https://youtrack.jetbrains.com/issue/KTOR-5248))
+* getTimeMillis has seconds precision on native ([KTOR-5878](https://youtrack.jetbrains.com/issue/KTOR-5878))
+* A coroutine closed due to cancellation is considered by the JsWebSocketSession to be closed on failure ([KTOR-2932](https://youtrack.jetbrains.com/issue/KTOR-2932))
+* WebSockets: requests to a non-existing route cause server to lock up after responding with 404 (potential DOS) ([KTOR-5829](https://youtrack.jetbrains.com/issue/KTOR-5829))
+* testApplication: NPE when test server doesn't reply with an HTTP upgrade ([KTOR-5815](https://youtrack.jetbrains.com/issue/KTOR-5815))
+* GMTDate timestamp doesn't reflect timezone when created using `Calendar.toDate` method ([KTOR-5813](https://youtrack.jetbrains.com/issue/KTOR-5813))
+
+### Improvements
+* Warn when the RateLimit plugin installed after the routing ([KTOR-5915](https://youtrack.jetbrains.com/issue/KTOR-5915))
+* Allow access to RateLimiters related to call ([KTOR-5876](https://youtrack.jetbrains.com/issue/KTOR-5876))
+* Multipart: Support not writing a temporary file for binary data ([KTOR-5864](https://youtrack.jetbrains.com/issue/KTOR-5864))
+* Make System Property to Set outgoingToBeProcessed Size for WebSockets ([KTOR-5855](https://youtrack.jetbrains.com/issue/KTOR-5855))
+* Support optional properties in YAML ([KTOR-5796](https://youtrack.jetbrains.com/issue/KTOR-5796))
+* YAML config does not support reading variables from itself ([KTOR-5797](https://youtrack.jetbrains.com/issue/KTOR-5797))
+
 # 2.3.0
 > Published 19 April 2023
 
