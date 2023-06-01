@@ -29,9 +29,9 @@ import kotlin.test.*
 
 /** Base class for [ContentNegotiation] tests. */
 @Suppress("KDocMissingDocumentation")
-abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
+public abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
-    protected val users = listOf(
+    protected val users: List<User> = listOf(
         User("x", 10),
         User("y", 45)
     )
@@ -120,7 +120,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testEmptyBody(): Unit = testWithEngine(MockEngine) {
+    public fun testEmptyBody(): Unit = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->
@@ -146,7 +146,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeSimple(): Unit = testWithEngine(CIO) {
+    public fun testSerializeSimple(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -161,7 +161,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testSerializeFailureHasOriginalCauseMessage(): Unit = testWithEngine(CIO) {
+    public open fun testSerializeFailureHasOriginalCauseMessage(): Unit = testWithEngine(CIO) {
         configureClient()
 
         @Serializable
@@ -185,7 +185,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testSerializeNull(): Unit = testWithEngine(CIO) {
+    public open fun testSerializeNull(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -201,7 +201,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testSerializeNested(): Unit = testWithEngine(CIO) {
+    public open fun testSerializeNested(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -214,7 +214,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypes(): Unit = testWithEngine(CIO) {
+    public fun testCustomContentTypes(): Unit = testWithEngine(CIO) {
         configureClient {
             configureContentNegotiation(customContentType)
         }
@@ -253,7 +253,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesMultiple(): Unit = testWithEngine(CIO) {
+    public fun testCustomContentTypesMultiple(): Unit = testWithEngine(CIO) {
         configureClient {
             configureContentNegotiation(customContentType)
         }
@@ -272,7 +272,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesWildcard(): Unit = testWithEngine(CIO) {
+    public fun testCustomContentTypesWildcard(): Unit = testWithEngine(CIO) {
         configureClient {
             configureContentNegotiation(customContentType)
         }
@@ -305,7 +305,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testGeneric(): Unit = testWithEngine(CIO) {
+    public open fun testGeneric(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -322,7 +322,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    open fun testSealed(): Unit = testWithEngine(CIO) {
+    public open fun testSealed(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -337,7 +337,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeWebsocket() = testWithEngine(CIO) {
+    public fun testSerializeWebsocket(): Unit = testWithEngine(CIO) {
         configureClient()
 
         test { client ->
@@ -359,31 +359,31 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
 
     @Serializable
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-    sealed class TestSealed {
+    public sealed class TestSealed {
         @Serializable
-        data class A(val valueA: String) : TestSealed()
+        public data class A(public val valueA: String) : TestSealed()
 
         @Serializable
-        data class B(val valueB: String) : TestSealed()
+        public data class B(public val valueB: String) : TestSealed()
     }
 
     @Serializable
-    data class Response<T>(
-        val ok: Boolean,
+    public data class Response<T>(
+        public val ok: Boolean,
         @Contextual
-        val result: T?
+        public val result: T?
     )
 
     @Serializable
-    data class Widget(
-        val name: String,
-        val value: Int,
-        val tags: List<String> = emptyList()
+    public data class Widget(
+        public val name: String,
+        public val value: Int,
+        public val tags: List<String> = emptyList()
     )
 
     @Serializable
-    data class User(
-        val name: String,
-        val age: Int
+    public data class User(
+        public val name: String,
+        public val age: Int
     )
 }

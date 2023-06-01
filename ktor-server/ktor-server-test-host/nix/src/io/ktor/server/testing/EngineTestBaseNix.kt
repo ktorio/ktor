@@ -26,12 +26,12 @@ import kotlin.time.Duration.Companion.seconds
 
 private val TEST_SELECTOR_MANAGER = SelectorManager()
 
-actual abstract class EngineTestBase<
+public actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    public actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
     actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Default

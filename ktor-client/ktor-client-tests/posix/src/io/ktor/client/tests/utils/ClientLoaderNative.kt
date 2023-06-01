@@ -20,12 +20,12 @@ private class TestFailure(val name: String, val cause: Throwable) {
 /**
  * Helper interface to test client.
  */
-actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
+public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
     /**
      * Perform test against all clients from dependencies.
      */
     @OptIn(InternalAPI::class)
-    actual fun clientTests(
+    public actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
@@ -60,7 +60,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
         error(failures.joinToString("\n"))
     }
 
-    actual fun dumpCoroutines() {
+    public actual fun dumpCoroutines() {
         error("Debug probes unsupported native.")
     }
 }

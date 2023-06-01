@@ -7,9 +7,9 @@ package io.ktor.client.tests.utils
 /**
  * Asserts that [block] completed with given type of root cause.
  */
-expect inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit)
+public expect inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit)
 
 /**
  * Asserts that a [block] fails with a specific exception of type [T] being thrown.
  */
-expect inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit)
+public expect inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit)

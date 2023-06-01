@@ -33,7 +33,7 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 @RunWith(StressSuiteRunner::class)
-abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
@@ -55,7 +55,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis).seconds
 
     @Test
-    fun singleConnectionSingleThreadNoPipelining() {
+    public fun singleConnectionSingleThreadNoPipelining() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -94,7 +94,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun singleConnectionSingleThreadWithPipelining() {
+    public fun singleConnectionSingleThreadWithPipelining() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -160,7 +160,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun singleConnectionHighPressure() {
+    public fun singleConnectionHighPressure() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -177,7 +177,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun multipleConnectionsHighPressure() {
+    public fun multipleConnectionsHighPressure() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -194,7 +194,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun highLoadStressTest() {
+    public fun highLoadStressTest() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -211,7 +211,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testHttpUpgrade() {
+    public fun testHttpUpgrade() {
         createAndStartServer {
             handle {
                 call.respond(
@@ -264,7 +264,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testRespondWrite() {
+    public fun testRespondWrite() {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter {
@@ -283,7 +283,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun test404() {
+    public fun test404() {
         createAndStartServer {
             get("/") {
                 call.respondText("OK")
@@ -298,7 +298,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testLongResponse() {
+    public fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
                 call.respond(

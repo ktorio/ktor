@@ -12,8 +12,8 @@ import org.junit.rules.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
-actual abstract class BaseTest actual constructor() {
-    actual open val timeout: Duration = 10.seconds
+public actual abstract class BaseTest actual constructor() {
+    public actual open val timeout: Duration = 10.seconds
 
     @get:Rule
     internal val errorCollector = ErrorCollector() // TODO: for some reason, it tracks only one error
@@ -25,11 +25,11 @@ actual abstract class BaseTest actual constructor() {
     @get:Rule
     internal val testName: TestName = TestName()
 
-    actual fun collectUnhandledException(error: Throwable) {
+    public actual fun collectUnhandledException(error: Throwable) {
         errorCollector.addError(error)
     }
 
-    actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
+    public actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
         runBlocking(CoroutineName("test-${testName.methodName}"), block)
     }
 }

@@ -34,9 +34,9 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private val bridge = TestHttpClientEngineBridge(this, app)
 
-    override val supportedCapabilities = bridge.supportedCapabilities
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = bridge.supportedCapabilities
 
-    override val dispatcher = Dispatchers.IOBridge
+    override val dispatcher: CoroutineDispatcher = Dispatchers.IOBridge
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
@@ -108,7 +108,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         clientJob.complete()
     }
 
-    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)

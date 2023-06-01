@@ -15,26 +15,26 @@ import kotlinx.coroutines.*
 /**
  * Web url for tests.
  */
-const val TEST_SERVER: String = "http://127.0.0.1:8080"
+public const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
  * Websocket server url for tests.
  */
-const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
+public const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 
 /**
  * Proxy server url for tests.
  */
-const val TCP_SERVER: String = "http://127.0.0.1:8082"
+public const val TCP_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].
  */
-fun testWithEngine(
+public fun testWithEngine(
     engine: HttpClientEngine,
     timeoutMillis: Long = 60 * 1000L,
     block: suspend TestClientBuilder<*>.() -> Unit
-) = testWithClient(HttpClient(engine), timeoutMillis, block)
+): Unit = testWithClient(HttpClient(engine), timeoutMillis, block)
 
 /**
  * Perform test with selected [client].
@@ -61,12 +61,12 @@ private fun testWithClient(
  * Perform test with selected client engine [factory].
  */
 @OptIn(DelicateCoroutinesApi::class)
-fun <T : HttpClientEngineConfig> testWithEngine(
+public fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
     timeoutMillis: Long = 60L * 1000L,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = testSuspend(timeoutMillis = timeoutMillis) {
+): Unit = testSuspend(timeoutMillis = timeoutMillis) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {
@@ -109,23 +109,23 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
     }
 }
 
-class TestClientBuilder<T : HttpClientEngineConfig>(
-    var config: HttpClientConfig<T>.() -> Unit = {},
-    var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
-    var after: suspend (client: HttpClient) -> Unit = {},
-    var repeatCount: Int = 1,
-    var dumpAfterDelay: Long = -1,
-    var concurrency: Int = 1
+public class TestClientBuilder<T : HttpClientEngineConfig>(
+    public var config: HttpClientConfig<T>.() -> Unit = {},
+    public var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
+    public var after: suspend (client: HttpClient) -> Unit = {},
+    public var repeatCount: Int = 1,
+    public var dumpAfterDelay: Long = -1,
+    public var concurrency: Int = 1
 )
 
-fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
+public fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
     config = block
 }
 
-fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
+public fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
     test = block
 }
 
-fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit) { // ktlint-disable no-unit-return
+public fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit) { // ktlint-disable no-unit-return
     after = block
 }

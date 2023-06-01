@@ -18,11 +18,11 @@ import org.junit.*
 import org.junit.Assert.*
 import java.net.*
 
-abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+public abstract class ConnectionTestSuite(public val engine: ApplicationEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testNetworkAddresses() = runBlocking {
+    public fun testNetworkAddresses(): Unit = runBlocking {
         val server = embeddedServer(
             engine,
             applicationEngineEnvironment {
@@ -47,7 +47,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testServerReadyEvent() = runBlocking {
+    public fun testServerReadyEvent(): Unit = runBlocking {
         val serverStarted = CompletableDeferred<Unit>()
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val env = applicationEngineEnvironment {

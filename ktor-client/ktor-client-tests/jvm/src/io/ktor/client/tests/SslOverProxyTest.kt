@@ -15,13 +15,13 @@ import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
 
-abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
+public abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>
 ) : TestWithKtor() {
 
-    override val server = embeddedServer(Netty, serverPort) {}
+    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {}
 
-    protected val trustAllCertificates = arrayOf<X509TrustManager>(
+    protected val trustAllCertificates: Array<X509TrustManager> = arrayOf<X509TrustManager>(
         object : X509TrustManager {
             override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
             override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
@@ -29,14 +29,14 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
         }
     )
 
-    protected val unsafeSslContext = SSLContext.getInstance("SSL").apply {
+    protected val unsafeSslContext: SSLContext = SSLContext.getInstance("SSL").apply {
         init(null, trustAllCertificates, SecureRandom())
     }
 
     protected abstract fun T.disableCertificatePinning()
 
     @Test
-    fun testHttpsOverProxy() = testWithEngine(factory) {
+    public fun testHttpsOverProxy(): Unit = testWithEngine(factory) {
         config {
             engine {
                 proxy = ProxyBuilder.http(TCP_SERVER)

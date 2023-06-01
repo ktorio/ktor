@@ -7,14 +7,14 @@ package io.ktor.client.tests.utils
 /**
  * Check that [block] completed with given type of root cause.
  */
-actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit) {
+public actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit) {
     assertFailsWith<T>(block)
 }
 
 /**
  * Asserts that a [block] fails with a specific exception of type [T] being thrown.
  */
-actual inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
+public actual inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
     try {
         block()
         error("Expected ${T::class} exception, but it wasn't thrown")

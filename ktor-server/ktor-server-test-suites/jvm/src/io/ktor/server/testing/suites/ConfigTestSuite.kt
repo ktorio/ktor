@@ -11,12 +11,12 @@ import org.junit.Assert.*
 import java.util.concurrent.*
 import kotlin.system.*
 
-var count = 0
+public var count: Int = 0
 
-abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+public abstract class ConfigTestSuite(public val engine: ApplicationEngineFactory<*, *>) {
 
     @Test
-    fun testStartOnceWhenException() {
+    public fun testStartOnceWhenException() {
         // Please note that it's critical to not capture any variables inside the scope
         // It will disable autoreload and change behaviour
         val server = embeddedServer(engine) {
@@ -33,7 +33,7 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
     }
 
     @Test
-    fun testStartsOnceWithCapture() {
+    public fun testStartsOnceWithCapture() {
         var counter = 0
         val server = embeddedServer(engine) {
             counter++
@@ -49,7 +49,7 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
     }
 
     @Test
-    fun testFastStop() = runBlocking {
+    public fun testFastStop(): Unit = runBlocking {
         val server = embeddedServer(engine) {
         }
 

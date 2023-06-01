@@ -15,15 +15,16 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
+import java.security.*
 import kotlin.test.*
 
 /**
  * This tests uses a CA, which creates server and client certificates.
  */
-abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
-    val engine: ApplicationEngineFactory<Engine, Configuration>
+public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
+    public val engine: ApplicationEngineFactory<Engine, Configuration>
 ) {
-    open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
+    public open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
         keyAlias = "mykey",
         keyStore = ca.generateCertificate(keyType = KeyType.Server),
         keyStorePassword = { "changeit".toCharArray() },
@@ -33,12 +34,12 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
         port = 0
     }
 
-    companion object {
-        val ca = generateCertificate(keyType = KeyType.CA)
+    public companion object {
+        public val ca: KeyStore = generateCertificate(keyType = KeyType.CA)
     }
 
     @Test
-    open fun `Server requesting Client Certificate from CIO Client`() {
+    public open fun `Server requesting Client Certificate from CIO Client`() {
         val clientKeys = ca.generateCertificate(keyType = KeyType.Client)
 
         val client = HttpClient(CIO) {

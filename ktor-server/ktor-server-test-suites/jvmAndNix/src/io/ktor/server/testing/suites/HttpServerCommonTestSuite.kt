@@ -30,12 +30,15 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class HttpServerCommonTestSuite<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    fun testRedirect() {
+    public fun testRedirect() {
         createAndStartServer {
             handle {
                 call.respondRedirect(Url("http://localhost:${call.request.port()}/page"), true)
@@ -48,7 +51,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRedirectFromInterceptor() {
+    public fun testRedirectFromInterceptor() {
         createAndStartServer {
             application.intercept(ApplicationCallPipeline.Plugins) {
                 call.respondRedirect("/2", true)
@@ -63,7 +66,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHeader() {
+    public fun testHeader() {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
@@ -80,7 +83,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testHeadRequest() {
+    public open fun testHeadRequest() {
         createAndStartServer {
             application.install(AutoHeadResponse)
             handle {
@@ -96,7 +99,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testCookie() {
+    public fun testCookie() {
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
@@ -111,7 +114,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testPathComponentsDecoding() {
+    public fun testPathComponentsDecoding() {
         createAndStartServer {
             get("/a%20b") {
                 call.respondText("space")
@@ -132,7 +135,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testFormUrlEncoded() {
+    public fun testFormUrlEncoded() {
         createAndStartServer {
             post("/") {
                 call.respondText("${call.parameters["urlp"]},${call.receiveParameters()["formp"]}")
@@ -152,7 +155,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestTwiceNoKeepAlive() {
+    public fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -179,7 +182,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestTwiceWithKeepAlive() {
+    public fun testRequestTwiceWithKeepAlive() {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -208,7 +211,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun test404() {
+    public fun test404() {
         createAndStartServer {
         }
 
@@ -222,7 +225,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusPages404() {
+    public fun testStatusPages404() {
         createAndStartServer {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, _ ->
@@ -240,7 +243,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRemoteHost() {
+    public fun testRemoteHost() {
         createAndStartServer {
             handle {
                 call.respondText {
@@ -261,7 +264,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestParameters() {
+    public fun testRequestParameters() {
         createAndStartServer {
             get("/*") {
                 call.respond(call.request.queryParameters.getAll(call.request.path().removePrefix("/")).toString())
@@ -280,7 +283,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusCodeDirect() {
+    public fun testStatusCodeDirect() {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Found)
@@ -295,7 +298,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusCodeViaResponseObject() {
+    public fun testStatusCodeViaResponseObject() {
         var completed = false
         createAndStartServer {
             get("/") {
@@ -311,7 +314,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testProxyHeaders() {
+    public fun testProxyHeaders() {
         createAndStartServer {
             application.install(XForwardedHeaders)
             get("/") {
@@ -361,7 +364,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestParts() {
+    public fun testRequestParts() {
         createAndStartServer {
             get("/path/1") {
                 call.respond(call.request.path())
@@ -421,7 +424,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @OptIn(UseHttp2Push::class)
     @Test
     @Http2Only
-    fun testServerPush() {
+    public fun testServerPush() {
         createAndStartServer {
             get("/child") {
                 call.respondText("child")
@@ -445,7 +448,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHeadersReturnCorrectly() {
+    public fun testHeadersReturnCorrectly() {
         createAndStartServer {
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
@@ -474,7 +477,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testParentContextPropagates() {
+    public fun testParentContextPropagates() {
         createAndStartServer(
             parent = TestData("parent")
         ) {
@@ -491,7 +494,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testNoRespond() {
+    public fun testNoRespond() {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Accepted)
@@ -506,7 +509,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun queryParameterContainingSemicolon() {
+    public fun queryParameterContainingSemicolon() {
         createAndStartServer {
             handle {
                 assertEquals("01;21", call.request.queryParameters["code"])
@@ -528,7 +531,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRawAndDecodedQueryParameter() {
+    public fun testRawAndDecodedQueryParameter() {
         createAndStartServer {
             handle {
                 assertEquals("value&1+2 3", call.request.queryParameters["key"])
@@ -548,7 +551,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testFlushingHeaders() {
+    public open fun testFlushingHeaders() {
         createAndStartServer {
             route("/timed") {
                 post {
@@ -592,7 +595,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHSTSWithCustomPlugin() {
+    public fun testHSTSWithCustomPlugin() {
         createAndStartServer {
             val plugin = createApplicationPlugin("plugin") {
                 on(CallSetup) { call ->

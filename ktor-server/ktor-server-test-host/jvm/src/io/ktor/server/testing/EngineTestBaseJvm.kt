@@ -34,15 +34,15 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("KDocMissingDocumentation")
-actual abstract class EngineTestBase<
+public actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration> actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    public actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    protected val testDispatcher = Dispatchers.IO.limitedParallelism(32)
+    public val testDispatcher: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(32)
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
@@ -59,7 +59,7 @@ actual abstract class EngineTestBase<
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    val testLog: Logger = LoggerFactory.getLogger("io.ktor.test.EngineTestBase")
+    public val testLog: Logger = LoggerFactory.getLogger("io.ktor.test.EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -79,7 +79,7 @@ actual abstract class EngineTestBase<
     }
 
     @Before
-    fun setUpBase() {
+    public fun setUpBase() {
         val method = this.javaClass.getMethod(testName.methodName)
             ?: throw AssertionError("Method ${testName.methodName} not found")
 
@@ -94,7 +94,7 @@ actual abstract class EngineTestBase<
     }
 
     @After
-    fun tearDownBase() {
+    public fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
@@ -314,15 +314,15 @@ actual abstract class EngineTestBase<
         }
     }
 
-    companion object {
-        val keyStoreFile: File = File("build/temp.jks")
-        lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
-        lateinit var trustManager: X509TrustManager
+    public companion object {
+        public val keyStoreFile: File = File("build/temp.jks")
+        public lateinit var keyStore: KeyStore
+        public lateinit var sslContext: SSLContext
+        public lateinit var trustManager: X509TrustManager
 
         @BeforeClass
         @JvmStatic
-        fun setupAll() {
+        public fun setupAll() {
             keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)

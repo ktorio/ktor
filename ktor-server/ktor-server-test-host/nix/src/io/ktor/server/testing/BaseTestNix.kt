@@ -12,20 +12,20 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("FunctionName")
-actual abstract class BaseTest actual constructor() {
-    actual open val timeout: Duration = 10.seconds
+public actual abstract class BaseTest actual constructor() {
+    public actual open val timeout: Duration = 10.seconds
 
     private val errors = mutableListOf<Throwable>()
     private val errorsLock = SynchronizedObject()
 
-    actual fun collectUnhandledException(error: Throwable) {
+    public actual fun collectUnhandledException(error: Throwable) {
         synchronized(errorsLock) {
             errors.add(error)
         }
     }
 
     @AfterTest
-    fun _verifyErrors() {
+    public fun _verifyErrors() {
         if (errors.isEmpty()) return
 
         val error = UnhandledErrorsException(
@@ -39,7 +39,7 @@ actual abstract class BaseTest actual constructor() {
         throw error // suppressed exceptions print wrong in idea
     }
 
-    actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
+    public actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
         testSuspend(timeoutMillis = timeout.inWholeMilliseconds, block = block)
     }
 }

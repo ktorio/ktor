@@ -18,18 +18,18 @@ import java.util.*
  * Helper interface to test client.
  */
 @RunWith(Parameterized::class)
-actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
+public actual abstract class ClientLoader actual constructor(public val timeoutSeconds: Int) {
 
     @Parameterized.Parameter
-    lateinit var engine: HttpClientEngineContainer
+    public lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
+    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
 
     /**
      * Perform test against all clients from dependencies.
      */
-    actual fun clientTests(
+    public actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
@@ -64,7 +64,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    actual fun dumpCoroutines() {
+    public actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
     }
 
@@ -75,7 +75,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
      */
     // @After
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun waitForAllCoroutines() {
+    public fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {
             "Debug probes isn't installed."
         }
@@ -94,10 +94,10 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         error(message)
     }
 
-    companion object {
+    public companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
-        fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
+        public fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
             ServiceLoader.load(it, it.classLoader).toList()
         }
     }

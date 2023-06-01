@@ -29,7 +29,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+public abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
@@ -74,7 +74,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun testClientSSE() = runBlocking {
+    public fun testClientSSE(): Unit = runBlocking {
         val client = HttpClient(factory) {
             install(HttpTimeout) {
                 requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
@@ -100,7 +100,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun testWithNoParentJob() {
+    public fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.prepareGet("http://localhost:$serverPort/hello")
@@ -124,7 +124,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun configCopiesOldPluginsAndInterceptors() {
+    public fun configCopiesOldPluginsAndInterceptors() {
         val customPluginKey = AttributeKey<Boolean>("customPlugin")
         val anotherCustomPluginKey = AttributeKey<Boolean>("anotherCustomPlugin")
 
@@ -175,7 +175,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun testErrorInWritingPropagates() = testSuspend {
+    public fun testErrorInWritingPropagates(): Unit = testSuspend {
         val client = HttpClient(factory)
         val channel = ByteChannel(true)
         channel.writeAvailable("text".toByteArray())

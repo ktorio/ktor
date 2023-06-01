@@ -17,7 +17,10 @@ import org.junit.*
 import org.junit.Assert.*
 
 @Suppress("DEPRECATION")
-abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class ServerPluginsTestSuite<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
@@ -58,7 +61,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    val plugin = createApplicationPlugin("F") {
+    public val plugin: ApplicationPlugin<Unit> = createApplicationPlugin("F") {
         onCall {
             sendEvent("onCall")
         }
@@ -70,7 +73,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
+    public val expectedEventsForCall: List<String> = listOf("onCall", "onCallReceive", "onCallRespond")
 
     override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
         super.plugins(application, routingConfigurer)
@@ -79,7 +82,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testCoroutineContextIsCreatedForSingleCallOnly() {
+    public fun testCoroutineContextIsCreatedForSingleCallOnly() {
         createAndStartServer {
             get("/request") {
                 val data = call.receive<String>()

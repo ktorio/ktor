@@ -27,7 +27,7 @@ internal const val CONFIG_KEY_THROW_ON_EXCEPTION = "ktor.test.throwOnException"
  * A test engine that provides a way to simulate application calls to the existing application module(s)
  * without actual HTTP connection.
  */
-class TestApplicationEngine(
+public class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
@@ -48,8 +48,8 @@ class TestApplicationEngine(
      * An engine configuration for a test application.
      * @property dispatcher to run handlers and interceptors on
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
-        var dispatcher: CoroutineContext = Dispatchers.IOBridge
+    public class Configuration : BaseApplicationEngine.Configuration() {
+        public var dispatcher: CoroutineContext = Dispatchers.IOBridge
     }
 
     /**
@@ -59,7 +59,7 @@ class TestApplicationEngine(
     private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit)?> =
         atomic(null)
 
-    var callInterceptor: PipelineInterceptor<Unit, ApplicationCall>
+    public var callInterceptor: PipelineInterceptor<Unit, ApplicationCall>
         get() = _callInterceptor.value!!
         set(value) {
             _callInterceptor.value = value
@@ -68,7 +68,7 @@ class TestApplicationEngine(
     /**
      * An instance of a client engine to be used in [client].
      */
-    val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
+    public val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
 
     /**
      * A client instance connected to this test server instance. Only works until engine stop invocation.
@@ -77,7 +77,7 @@ class TestApplicationEngine(
 
     private val applicationStarting = Job(testEngineJob)
 
-    val client: HttpClient
+    public val client: HttpClient
         get() = _client.value!!
 
     private var processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit = {
@@ -167,7 +167,7 @@ class TestApplicationEngine(
     /**
      * Installs a hook for test requests.
      */
-    fun hookRequests(
+    public fun hookRequests(
         processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
         processResponse: TestApplicationCall.() -> Unit,
         block: () -> Unit
@@ -195,7 +195,7 @@ class TestApplicationEngine(
      * Makes a test request.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun handleRequest(
+    public fun handleRequest(
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
@@ -242,7 +242,7 @@ class TestApplicationEngine(
     /**
      * Makes a test request that sets up a websocket session and waits for completion.
      */
-    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+    public fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createWebSocketCall(uri, setup)
 
         // we can't simply do runBlocking here because runBlocking is not completing
@@ -268,7 +268,7 @@ class TestApplicationEngine(
     /**
      * Creates an instance of a test call but doesn't start request processing.
      */
-    fun createCall(
+    public fun createCall(
         readResponse: Boolean = false,
         closeRequest: Boolean = true,
         context: CoroutineContext = Dispatchers.IOBridge,
@@ -283,7 +283,7 @@ class TestApplicationEngine(
  *
  * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
  */
-fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
+public fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
     val trackedCookies: MutableList<Cookie> = mutableListOf()
 
     hookRequests(
