@@ -285,4 +285,13 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
             assertContentEquals(DOUBLE_TEST_ARRAY, response)
         }
     }
+
+    @Test
+    fun testContentLengthNotNegative() = clientTests {
+        test { client ->
+            client.get("$TEST_SERVER/compression/gzip-large") {
+                onDownload { _, length -> assertTrue(length == null || length > 0) }
+            }
+        }
+    }
 }
