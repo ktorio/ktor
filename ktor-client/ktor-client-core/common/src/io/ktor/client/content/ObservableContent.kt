@@ -16,9 +16,9 @@ import kotlin.coroutines.*
 /**
  * Callback that can be registered to listen for upload/download progress
  * @param bytesSentTotal number of transmitted bytes
- * @param contentLength body size. Can be -1 if the size is unknown
+ * @param contentLength body size. Can be null if the size is unknown
  */
-public typealias ProgressListener = suspend (bytesSentTotal: Long, contentLength: Long) -> Unit
+public typealias ProgressListener = suspend (bytesSentTotal: Long, contentLength: Long?) -> Unit
 
 internal class ObservableContent(
     delegate: OutgoingContent,
