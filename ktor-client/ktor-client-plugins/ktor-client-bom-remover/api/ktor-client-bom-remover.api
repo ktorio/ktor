@@ -1,0 +1,4 @@
+public final class io/ktor/client/plugins/bomremover/BOMRemoverKt {
+	public static final fun getBOMRemover ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
