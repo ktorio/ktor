@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
 
 ## Start using Ktor
 
-Build your first Kotlin REST application using Ktor: [start.ktor.io](https://start.ktor.io)
+Build your first Kotlin HTTP or RESTful application using Ktor: [start.ktor.io](https://start.ktor.io)
 
 ## Principles
 
