@@ -16,7 +16,7 @@ import io.ktor.websocket.*
 import test.server.tests.*
 
 internal fun Application.tests() {
-    install(io.ktor.server.websocket.WebSockets) {
+    install(WebSockets) {
         maxFrameSize = 4 * 1024L
 
         extensions {
@@ -45,6 +45,7 @@ internal fun Application.tests() {
     multithreadedTest()
     eventsTest()
     bomTest()
+    serverSentEvents()
 
     routing {
         get("/") {
