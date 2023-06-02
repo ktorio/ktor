@@ -39,6 +39,10 @@ fun main(args: Array<String>) {
 * Runs embedded web server on `localhost:8080`
 * Installs routing and responds with `Hello, world!` when receiving a GET http request for the root path
 
+## Start using Ktor
+
+Build your first Kotlin HTTP or RESTful application using Ktor: [start.ktor.io](https://start.ktor.io)
+
 ## Principles
 
 #### Unopinionated
