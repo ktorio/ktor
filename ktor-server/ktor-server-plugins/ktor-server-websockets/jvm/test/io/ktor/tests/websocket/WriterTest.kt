@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {

@@ -29,7 +29,7 @@ internal class DatagramSendChannel(
     private val closedCause = atomic<Throwable?>(null)
     private val lock = Mutex()
 
-    @ExperimentalCoroutinesApi
+    @DelicateCoroutinesApi
     override val isClosedForSend: Boolean
         get() = socket.isClosed
 

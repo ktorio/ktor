@@ -23,7 +23,6 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 /**
  * Opens a [DefaultClientWebSocketSession].
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
 ): DefaultClientWebSocketSession {

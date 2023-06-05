@@ -29,7 +29,6 @@ import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)
