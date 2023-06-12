@@ -17,10 +17,10 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*
-import java.io.*
 import java.io.Closeable
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -62,7 +62,6 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                     client.connectionPool.evictAll()
                     client.dispatcher.executorService.shutdown()
                 }
-                @Suppress("BlockingMethodInNonBlockingContext")
                 (dispatcher as Closeable).close()
             }
         }
@@ -206,7 +205,7 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
 @OptIn(DelicateCoroutinesApi::class)
 internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().let {
-        it.toRequestBody(null, 0, it.size)
+        it.toRequestBody(contentType.toString().toMediaTypeOrNull(), 0, it.size)
     }
     is OutgoingContent.ReadChannelContent -> StreamRequestBody(contentLength) { readFrom() }
     is OutgoingContent.WriteChannelContent -> {
