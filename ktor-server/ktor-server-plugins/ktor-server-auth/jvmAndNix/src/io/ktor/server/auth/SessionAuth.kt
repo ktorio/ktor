@@ -123,7 +123,20 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 public inline fun <reified T : Principal> AuthenticationConfig.session(
     name: String? = null
 ) {
-    session<T>(name) {
+    session(name, T::class)
+}
+
+/**
+ * Installs the session [Authentication] provider.
+ * This provider provides the ability to authenticate a user that already has an associated session.
+ *
+ * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ */
+public fun <T : Principal> AuthenticationConfig.session(
+    name: String? = null,
+    kClass: KClass<T>
+) {
+    session(name, kClass) {
         validate { session -> session }
     }
 }
@@ -136,9 +149,23 @@ public inline fun <reified T : Principal> AuthenticationConfig.session(
  */
 public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null,
-    configure: SessionAuthenticationProvider.Config<T>.() -> Unit
+    noinline configure: SessionAuthenticationProvider.Config<T>.() -> Unit
 ) {
-    val provider = SessionAuthenticationProvider.Config(name, T::class).apply(configure).buildProvider()
+    session(name, T::class, configure)
+}
+
+/**
+ * Installs the session [Authentication] provider.
+ * This provider provides the ability to authenticate a user that already has an associated session.
+ *
+ * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ */
+public fun <T : Any> AuthenticationConfig.session(
+    name: String?,
+    kClass: KClass<T>,
+    configure: SessionAuthenticationProvider.Config<T>.() -> Unit,
+) {
+    val provider = SessionAuthenticationProvider.Config(name, kClass).apply(configure).buildProvider()
     register(provider)
 }
 

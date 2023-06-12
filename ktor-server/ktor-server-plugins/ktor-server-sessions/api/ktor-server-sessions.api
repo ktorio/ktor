@@ -86,8 +86,10 @@ public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 }
 
 public final class io/ktor/server/sessions/SessionDataKt {
+	public static final fun clear (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)V
 	public static final fun get (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
+	public static final fun set (Lio/ktor/server/sessions/CurrentSession;Ljava/lang/Object;Lkotlin/reflect/KClass;)V
 }
 
 public final class io/ktor/server/sessions/SessionIdProviderKt {
@@ -160,6 +162,7 @@ public final class io/ktor/server/sessions/SessionTrackerById : io/ktor/server/s
 public final class io/ktor/server/sessions/SessionTrackerByIdKt {
 	public static final fun getSessionId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 	public static final fun sessionId (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun sessionId (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/sessions/SessionTrackerByValue : io/ktor/server/sessions/SessionTracker {
@@ -246,11 +249,19 @@ public final class io/ktor/server/sessions/SessionTransportTransformerMessageAut
 
 public final class io/ktor/server/sessions/SessionsBuilderKt {
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/server/sessions/CookieIdSessionBuilder;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/CookieSessionBuilder;)V
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function1;)V
 	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;)V
 	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionStorage;Lio/ktor/server/sessions/HeaderSessionBuilder;)V
