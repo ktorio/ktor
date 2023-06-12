@@ -499,6 +499,9 @@ public final class io/ktor/server/auth/RouteAuthenticationConfig {
 
 public final class io/ktor/server/auth/SessionAuthKt {
 	public static final field SessionAuthChallengeKey Ljava/lang/String;
+	public static final fun session (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/reflect/KClass;)V
+	public static final fun session (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun session$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/reflect/KClass;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/auth/SessionAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
