@@ -100,6 +100,8 @@ class TestApplicationEngine(
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
+        logError(call, cause)
+
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
             ?.getString()?.toBoolean() ?: true

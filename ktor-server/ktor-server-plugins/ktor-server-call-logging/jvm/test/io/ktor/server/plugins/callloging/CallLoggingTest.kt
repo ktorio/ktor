@@ -34,6 +34,7 @@ class CallLoggingTest {
     private val logger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test") {
         override fun trace(message: String?) = add("TRACE: $message")
         override fun debug(message: String?) = add("DEBUG: $message")
+        override fun debug(message: String?, cause: Throwable) = add("DEBUG: $message")
         override fun info(message: String?) = add("INFO: $message")
 
         private fun add(message: String?) {
@@ -476,6 +477,32 @@ class CallLoggingTest {
         val response = client.get("/error")
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertContains(messages, "INFO: 500 Internal Server Error: GET - /error in 0ms")
+    }
+
+    @Test
+    fun logErrorMessage() = testApplication {
+        environment {
+            log = logger
+            config = MapApplicationConfig("ktor.test.throwOnException" to "false")
+        }
+        install(CallLogging) {
+            level = Level.DEBUG
+            disableDefaultColors()
+            clock { 0 }
+        }
+        routing {
+            get("/") {
+                throw BadRequestException("Message of exception")
+            }
+        }
+
+        client.get("/").apply {
+            assertEquals(HttpStatusCode.BadRequest, status)
+            assertContains(
+                messages,
+                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception"
+            )
+        }
     }
 
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)
