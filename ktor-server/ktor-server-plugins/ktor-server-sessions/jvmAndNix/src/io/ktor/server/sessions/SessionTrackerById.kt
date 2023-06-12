@@ -16,7 +16,18 @@ import kotlin.reflect.*
  * @return session id or `null` if no session ID sent by the client
  */
 public inline fun <reified SessionType : Any> ApplicationCall.sessionId(): String? {
-    val name = sessions.findName(SessionType::class)
+    return sessionId(SessionType::class)
+}
+
+/**
+ * Returns the corresponding session ID for the type [SessionType] or `null` if no session provided.
+ * It will crash if no session provider for type [SessionType] installed or no [Sessions] plugin installed.
+ *
+ * @param SessionType to search ID for
+ * @return session id or `null` if no session ID sent by the client
+ */
+public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionType>): String? {
+    val name = sessions.findName(klass)
     return sessionId(name)
 }
 
