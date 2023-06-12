@@ -14,7 +14,6 @@ import kotlinx.serialization.*
  *
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
-@OptIn(ExperimentalSerializationApi::class)
 public inline fun <reified T> href(
     resourcesFormat: ResourcesFormat,
     resource: T,
@@ -29,7 +28,6 @@ public inline fun <reified T> href(
  *
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
-@OptIn(ExperimentalSerializationApi::class)
 public inline fun <reified T> href(
     resourcesFormat: ResourcesFormat,
     resource: T,
@@ -39,8 +37,7 @@ public inline fun <reified T> href(
     return urlBuilder.build().fullPath
 }
 
-@PublishedApi
-internal fun <T> href(
+public fun <T> href(
     resourcesFormat: ResourcesFormat,
     serializer: KSerializer<T>,
     resource: T,
