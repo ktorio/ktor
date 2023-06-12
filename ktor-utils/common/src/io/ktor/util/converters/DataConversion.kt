@@ -61,7 +61,6 @@ public class DataConversion(configuration: Configuration) : ConversionService {
         /**
          * Register and [configure] convertor for reified type [T]
          */
-        @OptIn(ExperimentalStdlibApi::class)
         public inline fun <reified T : Any> convert(
             noinline configure: DelegatingConversionService.Configuration<T>.() -> Unit
         ): Unit = convert(typeOf<T>(), configure)

@@ -48,7 +48,13 @@ public interface CurrentSession {
  * Sets a session instance with the type [T].
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
-public inline fun <reified T : Any> CurrentSession.set(value: T?): Unit = set(findName(T::class), value)
+public inline fun <reified T : Any> CurrentSession.set(value: T?): Unit = set(value, T::class)
+
+/**
+ * Sets a session instance with the type [T].
+ * @throws IllegalStateException if no session provider is registered for the type [T]
+ */
+public fun <T : Any> CurrentSession.set(value: T?, klass: KClass<T>): Unit = set(findName(klass), value)
 
 /**
  * Gets a session instance with the type [T].
@@ -67,7 +73,13 @@ public fun <T : Any> CurrentSession.get(klass: KClass<T>): T? = get(findName(kla
  * Clears a session instance with the type [T].
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
-public inline fun <reified T : Any> CurrentSession.clear(): Unit = clear(findName(T::class))
+public inline fun <reified T : Any> CurrentSession.clear(): Unit = clear(T::class)
+
+/**
+ * Clears a session instance with the type [T].
+ * @throws IllegalStateException if no session provider is registered for the type [T]
+ */
+public fun <T : Any> CurrentSession.clear(klass: KClass<T>): Unit = clear(findName(klass))
 
 /**
  * Gets or generates a new session instance using [generator] with the type [T] (or [name] if specified)
@@ -147,6 +159,7 @@ internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: Appl
             val wrapped = provider.tracker.store(call, newValue)
             provider.transport.send(call, wrapped)
         }
+
         incoming && oldValue == null -> {
             /* Deleted session should be cleared off */
             provider.transport.clear(call)
