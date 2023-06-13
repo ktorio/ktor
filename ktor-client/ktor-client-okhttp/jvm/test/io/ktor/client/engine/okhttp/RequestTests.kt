@@ -7,6 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -120,6 +121,27 @@ class RequestTests : TestWithKtor() {
                         }
                     })
                 }.body<String>()
+            }
+        }
+    }
+
+    @Test
+    fun testFormContentType() = testWithEngine(OkHttp) {
+        config {
+            engine {
+                addInterceptor { chain ->
+                    val request = chain.request()
+                    val contentType = request.body?.contentType()
+                    assertEquals(ContentType.Application.FormUrlEncoded.contentType, contentType?.type)
+                    assertEquals(ContentType.Application.FormUrlEncoded.contentSubtype, contentType?.subtype)
+                    chain.proceed(request)
+                }
+            }
+        }
+
+        test { client ->
+            client.post("$testUrl/echo") {
+                setBody(FormDataContent(formData = Parameters.build {}))
             }
         }
     }
