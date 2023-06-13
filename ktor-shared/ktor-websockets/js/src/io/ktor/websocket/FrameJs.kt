@@ -15,7 +15,7 @@ import kotlinx.coroutines.*
  * @property data - a frame content or fragment content
  * @property disposableHandle could be invoked when the frame is processed
  */
-public actual sealed class Frame constructor(
+public actual sealed class Frame actual constructor(
     public actual val fin: Boolean,
     public actual val frameType: FrameType,
     public actual val data: ByteArray,
