@@ -21,6 +21,7 @@ import org.apache.http.client.methods.*
 import org.apache.http.client.utils.*
 import org.apache.http.entity.*
 import org.apache.http.nio.*
+import org.apache.http.nio.ContentEncoder
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.*

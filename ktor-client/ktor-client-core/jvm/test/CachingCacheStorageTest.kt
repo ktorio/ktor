@@ -98,7 +98,9 @@ private class InMemoryCacheStorage : CacheStorage {
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
         findCalledCount++
         val cache = store.computeIfAbsent(url) { mutableSetOf() }
-        return cache.find { it.varyKeys == varyKeys }
+        return cache.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> {

@@ -42,7 +42,9 @@ internal class UnlimitedStorage : CacheStorage {
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
         val data = store.computeIfAbsent(url) { ConcurrentSet() }
-        return data.find { it.varyKeys == varyKeys }
+        return data.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = store[url] ?: emptySet()
