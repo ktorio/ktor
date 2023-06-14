@@ -1,4 +1,4 @@
-@file:OptIn(UnsafeNumber::class)
+@file:OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 
 package io.ktor.utils.io.charsets
 
