@@ -19,7 +19,7 @@ public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
     public actual abstract fun newDecoder(): CharsetDecoder
 
-    override fun equals(other: Any?): Boolean {
+    override actual fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class.js != other::class.js) return false
 
@@ -30,11 +30,11 @@ public actual abstract class Charset(internal val _name: String) {
         return true
     }
 
-    override fun hashCode(): Int {
+    override actual fun hashCode(): Int {
         return _name.hashCode()
     }
 
-    override fun toString(): String {
+    override actual fun toString(): String {
         return _name
     }
 
