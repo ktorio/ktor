@@ -15,7 +15,7 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
     val encoding: String =
         parameters.firstOrNull { it.first == "_charset_" }?.second ?: defaultEncoding.name
 
-    val charset = Charset.forName(encoding)
+    val charset = charsetForName(encoding)
     return Parameters.build {
         parameters.forEach { (key, value) ->
             append(
