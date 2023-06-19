@@ -6,7 +6,7 @@ package io.ktor.util
 
 import kotlin.reflect.*
 
-public expect class StackTraceElement
+internal expect class StackTraceElement
 
 @Suppress("FunctionName")
 internal expect fun createStackTraceElement(
