@@ -6,18 +6,17 @@ package io.ktor.server.response
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 
-public interface BaseResponse {
+public interface ResponseProperties {
     /**
      * Provides access to headers for the current response.
      */
     public val headers: ResponseHeaders
 
     /**
-     * An [BaseCall] instance this [BaseResponse] is attached to.
+     * An [CallProperties] instance this [ResponseProperties] is attached to.
      */
-    public val call: BaseCall
+    public val call: CallProperties
 
     /**
      * Indicates that this response is already committed and no further changes are allowed.
@@ -58,7 +57,7 @@ public interface BaseResponse {
  * @see [ApplicationCall.response]
  * @see [io.ktor.server.request.ApplicationRequest]
  */
-public interface ApplicationResponse : BaseResponse {
+public interface ApplicationResponse : ResponseProperties {
     /**
      * An [ApplicationCall] instance this [ApplicationResponse] is attached to.
      */

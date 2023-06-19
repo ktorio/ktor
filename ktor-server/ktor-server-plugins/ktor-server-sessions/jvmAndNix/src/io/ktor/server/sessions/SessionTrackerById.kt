@@ -15,7 +15,7 @@ import kotlin.reflect.*
  * @param SessionType to search ID for
  * @return session id or `null` if no session ID sent by the client
  */
-public inline fun <reified SessionType : Any> BaseCall.sessionId(): String? {
+public inline fun <reified SessionType : Any> CallProperties.sessionId(): String? {
     return sessionId(SessionType::class)
 }
 
@@ -26,7 +26,7 @@ public inline fun <reified SessionType : Any> BaseCall.sessionId(): String? {
  * @param SessionType to search ID for
  * @return session id or `null` if no session ID sent by the client
  */
-public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionType>): String? {
+public fun <SessionType : Any> CallProperties.sessionId(klass: KClass<SessionType>): String? {
     val name = sessions.findName(klass)
     return sessionId(name)
 }
@@ -39,7 +39,7 @@ public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionTy
  *
  * @return session id or `null` if no session ID sent by the client
  */
-public val BaseCall.sessionId: String?
+public val CallProperties.sessionId: String?
     get() {
         val providers = application.attributes[SessionProvidersKey].filter { it.tracker is SessionTrackerById }
         return when (providers.size) {
@@ -50,7 +50,7 @@ public val BaseCall.sessionId: String?
     }
 
 @PublishedApi
-internal fun BaseCall.sessionId(name: String): String? {
+internal fun CallProperties.sessionId(name: String): String? {
     val provider = application.attributes[SessionProvidersKey]
         .firstOrNull { it.name == name }
         ?: error("No session provider $name found.")

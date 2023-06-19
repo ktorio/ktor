@@ -9,7 +9,7 @@ import io.ktor.util.date.*
 
 /**
  * Server's response cookies.
- * @see [BaseResponse.cookies]
+ * @see [ResponseProperties.cookies]
  */
 public class ResponseCookies(
     private val response: ApplicationResponse,

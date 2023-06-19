@@ -18,7 +18,7 @@ import kotlinx.html.stream.*
  * Responds to a client with an HTML response using the specified [block] to build an HTML page.
  * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
  */
-public suspend fun BaseCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
+public suspend fun CallProperties.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
     val text = buildString {
         append("<!DOCTYPE html>\n")
         appendHTML().html(block = block)

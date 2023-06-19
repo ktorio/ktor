@@ -13,7 +13,7 @@ private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("Res
  * A type of response object that is passed in the [respond] function.
  * Can be useful for custom serializations.
  */
-public var BaseResponse.responseType: TypeInfo?
+public var ResponseProperties.responseType: TypeInfo?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
 
     @InternalAPI set(value) {

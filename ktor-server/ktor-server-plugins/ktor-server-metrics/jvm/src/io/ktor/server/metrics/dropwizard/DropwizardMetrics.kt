@@ -108,7 +108,7 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
         }
     }
 
-private val ApplicationRequest.routeName: String
+private val RequestProperties.routeName: String
     get() {
         val metricUri = uri.ifEmpty { "/" }.let { if (it.endsWith('/')) it else "$it/" }
         return "$metricUri(method:${httpMethod.value})"

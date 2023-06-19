@@ -17,7 +17,7 @@ public val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCo
  * Suppress response body compression plugin for this [ApplicationCall].
  */
 @Suppress("DEPRECATION")
-public fun ApplicationCall.suppressCompression() {
+public fun CallProperties.suppressCompression() {
     attributes.put(SuppressionAttribute, true)
 }
 
@@ -25,4 +25,4 @@ public fun ApplicationCall.suppressCompression() {
  * Checks if response body compression is suppressed for this [ApplicationCall].
  */
 @Suppress("DEPRECATION")
-public val ApplicationCall.isCompressionSuppressed: Boolean get() = SuppressionAttribute in attributes
+public val CallProperties.isCompressionSuppressed: Boolean get() = SuppressionAttribute in attributes

@@ -75,7 +75,7 @@ internal class CompressedResource(
 )
 
 internal fun bestCompressionFit(
-    call: BaseCall,
+    call: CallProperties,
     resource: String,
     packageName: String?,
     acceptEncoding: List<HeaderValue>,
@@ -101,12 +101,12 @@ internal fun bestCompressionFit(
         ?.firstOrNull()
 }
 
-internal suspend fun BaseCall.respondStaticFile(
+internal suspend fun CallProperties.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
-    modify: suspend (File, BaseCall) -> Unit = { _, _ -> }
+    modify: suspend (File, CallProperties) -> Unit = { _, _ -> }
 ) {
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
     val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
@@ -127,13 +127,13 @@ internal suspend fun BaseCall.respondStaticFile(
     respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
 }
 
-internal suspend fun BaseCall.respondStaticResource(
+internal suspend fun CallProperties.respondStaticResource(
     requestedResource: String,
     packageName: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
-    modifier: suspend (URL, BaseCall) -> Unit = { _, _ -> },
+    modifier: suspend (URL, CallProperties) -> Unit = { _, _ -> },
     exclude: (URL) -> Boolean = { false }
 ) {
     val bestCompressionFit = bestCompressionFit(

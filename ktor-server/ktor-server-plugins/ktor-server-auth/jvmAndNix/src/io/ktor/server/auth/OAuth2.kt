@@ -16,7 +16,6 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.logging.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
@@ -25,7 +24,7 @@ import kotlinx.serialization.json.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
-internal suspend fun BaseCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
+internal suspend fun CallProperties.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
     val params = when (request.contentType()) {
         ContentType.Application.FormUrlEncoded -> receiveParameters()
         else -> parameters
@@ -39,7 +38,7 @@ internal suspend fun BaseCall.oauth2HandleCallback(): OAuthCallback.TokenSingle?
     }
 }
 
-internal suspend fun BaseCall.redirectAuthenticateOAuth2(
+internal suspend fun CallProperties.redirectAuthenticateOAuth2(
     settings: OAuthServerSettings.OAuth2ServerSettings,
     callbackRedirectUrl: String,
     state: String,
@@ -90,7 +89,7 @@ internal suspend fun oauth2RequestAccessToken(
     )
 }
 
-private suspend fun BaseCall.redirectAuthenticateOAuth2(
+private suspend fun CallProperties.redirectAuthenticateOAuth2(
     authenticateUrl: String,
     callbackRedirectUrl: String,
     clientId: String,

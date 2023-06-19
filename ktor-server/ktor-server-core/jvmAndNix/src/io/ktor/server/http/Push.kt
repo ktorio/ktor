@@ -15,7 +15,7 @@ import io.ktor.util.*
  * Exact behaviour is up to engine implementation.
  */
 @UseHttp2Push
-public fun BaseCall.push(pathAndQuery: String) {
+public fun CallProperties.push(pathAndQuery: String) {
     val (path, query) = pathAndQuery.chomp("?") { pathAndQuery to "" }
     push(path, parseQueryString(query, decode = false))
 }
@@ -26,7 +26,7 @@ public fun BaseCall.push(pathAndQuery: String) {
  * Exact behaviour is up to engine implementation.
  */
 @UseHttp2Push
-public fun BaseCall.push(encodedPath: String, encodedParameters: Parameters) {
+public fun CallProperties.push(encodedPath: String, encodedParameters: Parameters) {
     push {
         url.encodedPath = encodedPath
         url.encodedParameters.clear()
@@ -41,6 +41,6 @@ public fun BaseCall.push(encodedPath: String, encodedParameters: Parameters) {
  */
 @OptIn(InternalAPI::class)
 @UseHttp2Push
-public fun BaseCall.push(block: ResponsePushBuilder.() -> Unit) {
+public fun CallProperties.push(block: ResponsePushBuilder.() -> Unit) {
     response.push(DefaultResponsePushBuilder(this).apply(block))
 }

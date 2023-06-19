@@ -5,7 +5,6 @@
 package io.ktor.server.servlet
 
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.util.*
 import javax.servlet.*
@@ -14,7 +13,7 @@ import javax.servlet.*
  * Provides javax.servlet request attributes or fail it the underlying engine is not
  * servlet-backed.
  */
-public val BaseRequest.servletRequestAttributes: Map<String, Any>
+public val RequestProperties.servletRequestAttributes: Map<String, Any>
     get() = call.attributes[servletRequestAttributesKey]
 
 /**
@@ -22,7 +21,7 @@ public val BaseRequest.servletRequestAttributes: Map<String, Any>
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
 
-public fun BaseCall.putServletAttributes(request: ServletRequest) {
+public fun CallProperties.putServletAttributes(request: ServletRequest) {
     val servletAttributes = request.attributeNames?.asSequence()?.associateWith { attributeName ->
         request.getAttribute(attributeName)
     }?.filterValues { it != null } ?: emptyMap()

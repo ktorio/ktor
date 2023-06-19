@@ -150,7 +150,7 @@ public class RoutingRequest internal constructor(
     public val pathVariables: Parameters,
     internal val request: ApplicationRequest,
     public override val call: RoutingCall
-) : BaseRequest {
+) : RequestProperties {
 
     public override val queryParameters: Parameters = request.queryParameters
     public override val rawQueryParameters: Parameters = request.rawQueryParameters
@@ -162,7 +162,7 @@ public class RoutingRequest internal constructor(
 public class RoutingResponse internal constructor(
     public override val call: RoutingCall,
     internal val applicationResponse: ApplicationResponse
-) : BaseResponse {
+) : ResponseProperties {
 
     override val isCommitted: Boolean
         get() = applicationResponse.isCommitted
@@ -186,7 +186,7 @@ public class RoutingResponse internal constructor(
 
 public class RoutingCall internal constructor(
     internal val applicationCall: RoutingApplicationCall
-) : BaseCall {
+) : CallProperties {
 
     public override lateinit var request: RoutingRequest
         internal set
@@ -202,9 +202,8 @@ public class RoutingCall internal constructor(
 
     override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = applicationCall.receiveNullable(typeInfo)
 
-    @InternalAPI
-    override suspend fun respondBase(message: Any) {
-        applicationCall.respondBase(message)
+    override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
+        applicationCall.respond(message, typeInfo)
     }
 }
 
@@ -258,7 +257,7 @@ private fun RoutingApplicationCall.routingCall(): RoutingCall {
         applicationCall = this
     )
     call.request = RoutingRequest(
-        pathVariables = pathParameters,
+        pathVariables = call.pathParameters,
         request = request,
         call = call
     )

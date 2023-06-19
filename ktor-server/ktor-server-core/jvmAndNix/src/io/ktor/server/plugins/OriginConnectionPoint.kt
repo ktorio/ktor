@@ -14,10 +14,10 @@ import kotlin.reflect.*
 
 /**
  * Represents request and connection parameters possibly overridden via https headers.
- * By default, it fallbacks to [ApplicationRequest.local]
+ * By default, it fallbacks to [RequestProperties.local]
  */
 @Suppress("DEPRECATION")
-public val BaseRequest.origin: RequestConnectionPoint
+public val RequestProperties.origin: RequestConnectionPoint
     get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
 /**
@@ -29,7 +29,7 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
 
 /**
  * Represents a [RequestConnectionPoint]. Its every component is mutable so application plugins could modify them.
- * By default, all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.serverHost]
+ * By default, all the properties are equal to [RequestProperties.local] with [RequestConnectionPoint.serverHost]
  * and [RequestConnectionPoint.serverPort] overridden by [HttpHeaders.Host] header value.
  * Users can assign new values parsed from [HttpHeaders.Forwarded], [HttpHeaders.XForwardedHost], etc.
  * See [XForwardedHeaders] and [ForwardedHeaders].
@@ -75,7 +75,7 @@ internal class OriginConnectionPoint(
     private val local: RequestConnectionPoint,
     private val hostHeaderValue: String?
 ) : RequestConnectionPoint {
-    constructor(call: BaseCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
+    constructor(call: CallProperties) : this(call.request.local, call.request.header(HttpHeaders.Host))
 
     override val scheme: String
         get() = local.scheme
@@ -125,7 +125,7 @@ internal class OriginConnectionPoint(
  * Returns [MutableOriginConnectionPoint] associated with this call
  */
 @Suppress("DEPRECATION")
-public val BaseCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
+public val CallProperties.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(OriginConnectionPoint(this))
     }

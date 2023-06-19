@@ -21,7 +21,7 @@ import java.net.*
  * @return [LocalFileContent] or [JarFileContent] or `null`
  */
 @OptIn(InternalAPI::class)
-public fun BaseCall.resolveResource(
+public fun CallProperties.resolveResource(
     path: String,
     resourcePackage: String? = null,
     classLoader: ClassLoader = application.environment.classLoader,

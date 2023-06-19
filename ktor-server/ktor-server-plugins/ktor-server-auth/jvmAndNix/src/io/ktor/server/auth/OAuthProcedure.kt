@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
-import io.ktor.utils.io.errors.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
@@ -25,8 +24,8 @@ public val OAuthKey: Any = "OAuth"
 public class OAuthAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
 
     internal val client: HttpClient = config.client
-    internal val providerLookup: BaseCall.() -> OAuthServerSettings? = config.providerLookup
-    internal val urlProvider: BaseCall.(OAuthServerSettings) -> String = config.urlProvider
+    internal val providerLookup: CallProperties.() -> OAuthServerSettings? = config.providerLookup
+    internal val urlProvider: CallProperties.(OAuthServerSettings) -> String = config.urlProvider
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         if (PlatformUtils.IS_JVM) oauth1a(name, context)
@@ -45,12 +44,12 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
         /**
          * A lookup function to find OAuth server settings for the particular call.
          */
-        public lateinit var providerLookup: BaseCall.() -> OAuthServerSettings?
+        public lateinit var providerLookup: CallProperties.() -> OAuthServerSettings?
 
         /**
          * Specifies a redirect route that is opened when authorization is completed.
          */
-        public lateinit var urlProvider: BaseCall.(OAuthServerSettings) -> String
+        public lateinit var urlProvider: CallProperties.(OAuthServerSettings) -> String
 
         internal fun build() = OAuthAuthenticationProvider(this)
     }

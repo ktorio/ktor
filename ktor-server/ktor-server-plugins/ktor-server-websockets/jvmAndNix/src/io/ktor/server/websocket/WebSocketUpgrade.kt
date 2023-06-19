@@ -9,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.http.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -31,7 +30,7 @@ import kotlin.coroutines.*
  * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
  */
 public class WebSocketUpgrade(
-    public val call: BaseCall,
+    public val call: CallProperties,
     @Suppress("MemberVisibilityCanBePrivate") public val protocol: String? = null,
     private val installExtensions: Boolean = false,
     public val handle: suspend WebSocketSession.() -> Unit
@@ -53,7 +52,7 @@ public class WebSocketUpgrade(
      */
     @Suppress("unused")
     public constructor(
-        call: BaseCall,
+        call: CallProperties,
         protocol: String? = null,
         handle: suspend WebSocketSession.() -> Unit
     ) : this(call, protocol, installExtensions = false, handle)

@@ -12,7 +12,7 @@ import io.ktor.server.request.*
 /**
  * Creates an url using current call's schema, path and parameters as initial
  */
-public fun URLBuilder.Companion.createFromCall(call: BaseCall): URLBuilder {
+public fun URLBuilder.Companion.createFromCall(call: CallProperties): URLBuilder {
     val origin = call.request.origin
 
     val builder = URLBuilder()
@@ -34,5 +34,5 @@ public fun url(block: URLBuilder.() -> Unit): String = URLBuilder().apply(block)
  * Creates an url using current call's schema, path and parameters as initial
  * and then invokes [block] function on the url builder so amend parameters
  */
-public inline fun BaseCall.url(block: URLBuilder.() -> Unit = {}): String =
+public inline fun CallProperties.url(block: URLBuilder.() -> Unit = {}): String =
     URLBuilder.createFromCall(this).apply(block).buildString()

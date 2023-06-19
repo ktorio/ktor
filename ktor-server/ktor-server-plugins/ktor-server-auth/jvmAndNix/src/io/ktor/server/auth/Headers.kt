@@ -13,7 +13,7 @@ import io.ktor.server.request.*
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].
  */
-public fun BaseRequest.parseAuthorizationHeader(): HttpAuthHeader? = headers.parseAuthorizationHeader()
+public fun RequestProperties.parseAuthorizationHeader(): HttpAuthHeader? = headers.parseAuthorizationHeader()
 
 internal fun Headers.parseAuthorizationHeader(): HttpAuthHeader? = get(HttpHeaders.Authorization)?.let {
     try {

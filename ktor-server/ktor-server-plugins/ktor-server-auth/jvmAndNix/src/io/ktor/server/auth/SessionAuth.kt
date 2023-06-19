@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
-import io.ktor.util.pipeline.*
 import kotlin.reflect.*
 
 /**
@@ -89,7 +88,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
          * Sets a validation function that checks a given [T] session instance and returns [Principal],
          * or null if the session does not correspond to an authenticated principal.
          */
-        public fun validate(block: suspend BaseCall.(T) -> Principal?) {
+        public fun validate(block: suspend CallProperties.(T) -> Principal?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
             validator = block
         }
@@ -108,7 +107,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     }
 
     public companion object {
-        private val UninitializedValidator: suspend BaseCall.(Any) -> Principal? = {
+        private val UninitializedValidator: suspend CallProperties.(Any) -> Principal? = {
             error("It should be a validator supplied to a session auth provider")
         }
     }

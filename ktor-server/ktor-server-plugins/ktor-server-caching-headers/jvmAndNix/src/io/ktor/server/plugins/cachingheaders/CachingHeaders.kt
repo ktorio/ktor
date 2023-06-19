@@ -84,7 +84,7 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
 /**
  * Gets or sets the [CacheControl] for this call.
  */
-public var BaseCall.caching: CachingOptions?
+public var CallProperties.caching: CachingOptions?
     get() = attributes.getOrNull(CachingProperty)
     set(value) = when (value) {
         null -> attributes.remove(CachingProperty)

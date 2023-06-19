@@ -7,7 +7,6 @@ package io.ktor.server.auth
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import java.security.*
@@ -183,7 +182,7 @@ public data class DigestCredential(
 /**
  * Retrieves [DigestCredential] for this call.
  */
-public fun BaseCall.digestAuthenticationCredentials(): DigestCredential? {
+public fun CallProperties.digestAuthenticationCredentials(): DigestCredential? {
     return request.parseAuthorizationHeader()?.let { authHeader ->
         if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
             return authHeader.toDigestCredential()

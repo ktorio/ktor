@@ -9,10 +9,8 @@ package io.ktor.server.locations
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import kotlin.reflect.*
 
 /**
@@ -44,7 +42,7 @@ public val RoutingContext.locations: Locations
  * Gets the [Application.locations] plugin
  */
 @KtorExperimentalLocationsAPI
-public val BaseCall.locations: Locations
+public val CallProperties.locations: Locations
     get() = application.locations
 
 /**
@@ -265,23 +263,23 @@ private val LocationInstancePlugin = createRouteScopedPlugin("LocationInstancePl
  */
 @KtorExperimentalLocationsAPI
 @Deprecated("Use location function instead.", ReplaceWith("this.location<T>()"), level = DeprecationLevel.ERROR)
-public inline fun <reified T : Any> BaseCall.locationOrNull(): T = location()
+public inline fun <reified T : Any> CallProperties.locationOrNull(): T = location()
 
 /**
  * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),
  * or not yet available (invoked too early before the locations plugin takes place).
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> BaseCall.location(): T = locationOrThrow(T::class)
+public inline fun <reified T : Any> CallProperties.location(): T = locationOrThrow(T::class)
 
 @PublishedApi
-internal fun <T : Any> BaseCall.locationOrNull(type: KClass<T>): T =
+internal fun <T : Any> CallProperties.locationOrNull(type: KClass<T>): T =
     attributes.getOrNull(LocationInstanceKey)?.let { instance ->
         type.cast(instance)
     } ?: error("Location instance is not available for this call.)")
 
 @PublishedApi
-internal fun <T : Any> BaseCall.locationOrThrow(type: KClass<T>): T =
+internal fun <T : Any> CallProperties.locationOrThrow(type: KClass<T>): T =
     attributes.getOrNull(LocationInstanceKey)?.let { instance ->
         type.cast(instance)
     } ?: error("Location instance is not available for this call.)")

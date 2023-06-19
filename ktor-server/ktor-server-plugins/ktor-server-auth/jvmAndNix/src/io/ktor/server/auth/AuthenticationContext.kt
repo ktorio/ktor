@@ -6,16 +6,15 @@ package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.util.*
-import kotlin.properties.*
 import kotlin.reflect.*
 
 /**
  * An authentication context for a call.
  * @param call instance of [ApplicationCall] this context is for.
  */
-public class AuthenticationContext(call: BaseCall) {
+public class AuthenticationContext(call: CallProperties) {
 
-    public var call: BaseCall = call
+    public var call: CallProperties = call
         private set
 
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
@@ -108,7 +107,7 @@ public class AuthenticationContext(call: BaseCall) {
     public companion object {
         private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: BaseCall): AuthenticationContext {
+        internal fun from(call: CallProperties): AuthenticationContext {
             val existingContext = call.attributes.getOrNull(AttributeKey)
             if (existingContext != null) {
                 existingContext.call = call

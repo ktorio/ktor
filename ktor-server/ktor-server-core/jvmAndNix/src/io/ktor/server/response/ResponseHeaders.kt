@@ -8,7 +8,7 @@ import io.ktor.http.*
 
 /**
  * Server's response headers.
- * @see [BaseResponse.headers]
+ * @see [ResponseProperties.headers]
  */
 public abstract class ResponseHeaders {
 

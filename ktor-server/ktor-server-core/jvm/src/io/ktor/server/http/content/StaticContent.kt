@@ -50,7 +50,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     }
     internal var contentType: (Resource) -> ContentType = defaultContentType
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
-    internal var modifier: suspend (Resource, BaseCall) -> Unit = { _, _ -> }
+    internal var modifier: suspend (Resource, CallProperties) -> Unit = { _, _ -> }
     internal var exclude: (Resource) -> Boolean = { false }
     internal var extensions: List<String> = emptyList()
     internal var defaultPath: String? = null
@@ -111,7 +111,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
      */
-    public fun modify(block: suspend (Resource, BaseCall) -> Unit) {
+    public fun modify(block: suspend (Resource, CallProperties) -> Unit) {
         modifier = block
     }
 
@@ -417,12 +417,12 @@ public fun RoutingBuilder.defaultResource(resource: String, resourcePackage: Str
 /**
  *  Checks if the application call is requesting static content
  */
-public fun BaseCall.isStaticContent(): Boolean = parameters.contains(pathParameterName)
+public fun CallProperties.isStaticContent(): Boolean = parameters.contains(pathParameterName)
 
 private fun RoutingBuilder.staticContentRoute(
     remotePath: String,
     autoHead: Boolean,
-    handler: suspend (BaseCall).() -> Unit
+    handler: suspend (CallProperties).() -> Unit
 ) = route(remotePath) {
     route("{$pathParameterName...}") {
         get {
@@ -439,13 +439,13 @@ private fun RoutingBuilder.staticContentRoute(
     }
 }
 
-private suspend fun BaseCall.respondStaticFile(
+private suspend fun CallProperties.respondStaticFile(
     index: String?,
     dir: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType,
     cacheControl: (File) -> List<CacheControl>,
-    modify: suspend (File, BaseCall) -> Unit,
+    modify: suspend (File, CallProperties) -> Unit,
     exclude: (File) -> Boolean,
     extensions: List<String>,
     defaultPath: String?
@@ -481,13 +481,13 @@ private suspend fun BaseCall.respondStaticFile(
     }
 }
 
-private suspend fun BaseCall.respondStaticResource(
+private suspend fun CallProperties.respondStaticResource(
     index: String?,
     basePackage: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType,
     cacheControl: (URL) -> List<CacheControl>,
-    modifier: suspend (URL, BaseCall) -> Unit,
+    modifier: suspend (URL, CallProperties) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: List<String>,
     defaultPath: String?

@@ -15,7 +15,6 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
@@ -58,14 +57,14 @@ public open class ApplicationReceivePipeline(
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
 @Suppress("DEPRECATION")
-public suspend inline fun <reified T : Any> BaseCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
+public suspend inline fun <reified T : Any> CallProperties.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
  * Receives content for this request.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T : Any> BaseCall.receive(): T = receiveNullable(typeInfo<T>())
+public suspend inline fun <reified T : Any> CallProperties.receive(): T = receiveNullable(typeInfo<T>())
     ?: throw CannotTransformContentToTypeException(typeInfo<T>().kotlinType!!)
 
 /**
@@ -73,7 +72,7 @@ public suspend inline fun <reified T : Any> BaseCall.receive(): T = receiveNulla
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T> BaseCall.receiveNullable(): T? = receiveNullable(typeInfo<T>())
+public suspend inline fun <reified T> CallProperties.receiveNullable(): T? = receiveNullable(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -81,7 +80,7 @@ public suspend inline fun <reified T> BaseCall.receiveNullable(): T? = receiveNu
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend fun <T : Any> BaseCall.receive(type: KClass<T>): T {
+public suspend fun <T : Any> CallProperties.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
     return receiveNullable(TypeInfo(type, kotlinType.platformType, kotlinType))!!
 }
@@ -93,7 +92,7 @@ public suspend fun <T : Any> BaseCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  * @throws NullPointerException when content is `null`.
  */
-public suspend fun <T> BaseCall.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
+public suspend fun <T> CallProperties.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
 
 /**
  * Receives content for this request.
@@ -106,7 +105,7 @@ public suspend fun <T> BaseCall.receive(typeInfo: TypeInfo): T = receiveNullable
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
-public suspend fun <T : Any> BaseCall.receiveOrNull(typeInfo: TypeInfo): T? {
+public suspend fun <T : Any> CallProperties.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
         receiveNullable(typeInfo)
     } catch (cause: ContentTransformationException) {
@@ -126,7 +125,7 @@ public suspend fun <T : Any> BaseCall.receiveOrNull(typeInfo: TypeInfo): T? {
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
-public suspend fun <T : Any> BaseCall.receiveOrNull(type: KClass<T>): T? = try {
+public suspend fun <T : Any> CallProperties.receiveOrNull(type: KClass<T>): T? = try {
     receive(type)
 } catch (cause: ContentTransformationException) {
     application.log.debug("Conversion failed, null returned", cause)
@@ -138,7 +137,7 @@ public suspend fun <T : Any> BaseCall.receiveOrNull(type: KClass<T>): T? = try {
  * @return text received from this call.
  * @throws BadRequestException when Content-Type header is invalid.
  */
-public suspend inline fun BaseCall.receiveText(): String {
+public suspend inline fun CallProperties.receiveText(): String {
     val charset = try {
         request.contentCharset() ?: Charsets.UTF_8
     } catch (cause: BadContentTypeFormatException) {
@@ -152,21 +151,21 @@ public suspend inline fun BaseCall.receiveText(): String {
  * @return instance of [ByteReadChannel] to read incoming bytes for this call.
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
  */
-public suspend inline fun BaseCall.receiveChannel(): ByteReadChannel = receive()
+public suspend inline fun CallProperties.receiveChannel(): ByteReadChannel = receive()
 
 /**
  * Receives multipart data for this call.
  * @return instance of [MultiPartData].
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
-public suspend inline fun BaseCall.receiveMultipart(): MultiPartData = receive()
+public suspend inline fun CallProperties.receiveMultipart(): MultiPartData = receive()
 
 /**
  * Receives form parameters for this call.
  * @return instance of [Parameters].
  * @throws ContentTransformationException when content cannot be transformed to the [Parameters].
  */
-public suspend inline fun BaseCall.receiveParameters(): Parameters = receive()
+public suspend inline fun CallProperties.receiveParameters(): Parameters = receive()
 
 /**
  * Thrown when content cannot be transformed to the desired type.
@@ -185,7 +184,7 @@ internal val DoubleReceivePreventionTokenKey =
 
 /**
  * Thrown when a request body has already been received.
- * Usually it is caused by double [BaseCall.receive] invocation.
+ * Usually it is caused by double [CallProperties.receive] invocation.
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
     "Request body has already been consumed (received)."

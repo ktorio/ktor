@@ -14,21 +14,21 @@ import io.ktor.util.reflect.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
-public interface BaseCall {
+public interface CallProperties {
     /**
      * [Attributes] attached to this call.
      */
     public val attributes: Attributes
 
     /**
-     * An [BaseRequest] that is a client request.
+     * An [RequestProperties] that is a client request.
      */
-    public val request: BaseRequest
+    public val request: RequestProperties
 
     /**
      * An [ApplicationResponse] that is a server response.
      */
-    public val response: BaseResponse
+    public val response: ResponseProperties
 
     /**
      * An application being called.
@@ -48,12 +48,12 @@ public interface BaseCall {
      */
     public suspend fun <T> receiveNullable(typeInfo: TypeInfo): T?
 
+
     /**
      * Sends a [message] as a response.
-     * @see [io.ktor.server.response.BaseResponse]
+     * @see [io.ktor.server.response.ApplicationResponse]
      */
-    @InternalAPI
-    public suspend fun respondBase(message: Any)
+    public suspend fun respond(message: Any?, typeInfo: TypeInfo?)
 }
 
 /**
@@ -61,7 +61,7 @@ public interface BaseCall {
  * @see [io.ktor.server.request.ApplicationRequest]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface ApplicationCall : BaseCall {
+public interface ApplicationCall : CallProperties {
 
     /**
      * An [ApplicationRequest] that is a client request.
@@ -92,21 +92,22 @@ public interface ApplicationCall : BaseCall {
         return transformed as T
     }
 
-    @InternalAPI
-    override suspend fun respondBase(message: Any) {
-        response.pipeline.execute(this, message)
+    @OptIn(InternalAPI::class)
+    override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
+        response.responseType = typeInfo
+        response.pipeline.execute(this, message ?: NullBody)
     }
 }
 
 /**
  * Indicates if a response is sent.
  */
-public val BaseCall.isHandled: Boolean get() = response.isCommitted
+public val CallProperties.isHandled: Boolean get() = response.isCommitted
 
 /**
  * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
  */
-public var BaseCall.receiveType: TypeInfo
+public var CallProperties.receiveType: TypeInfo
     get() = attributes[RECEIVE_TYPE_KEY]
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)
