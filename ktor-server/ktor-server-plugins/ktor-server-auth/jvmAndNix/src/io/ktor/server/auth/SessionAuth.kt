@@ -37,8 +37,9 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
             context.principal(name, principal)
         } else {
             val cause =
-                if (session == null) AuthenticationFailedCause.NoCredentials
-                else AuthenticationFailedCause.InvalidCredentials
+                if (session == null) {
+                    AuthenticationFailedCause.NoCredentials
+                } else AuthenticationFailedCause.InvalidCredentials
 
             @Suppress("NAME_SHADOWING")
             context.challenge(SessionAuthChallengeKey, cause) { challenge, call ->

@@ -103,7 +103,9 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
     return try {
         if (readChars > 0u) {
             bufferPtr.value?.toKStringFromUtf16(readChars.convert())
-        } else null
+        } else {
+            null
+        }
     } finally {
         @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_ERROR")
         LocalFree(bufferPtr.reinterpret())

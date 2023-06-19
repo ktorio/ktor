@@ -55,7 +55,7 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             /**
              * Format: protocol/major.minor
              */
-            val (protocol, major, minor) = value.split("/", ".").also {
+                val (protocol, major, minor) = value.split("/", ".").also {
                 check(it.size == 3) {
                     "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
                 }

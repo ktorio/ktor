@@ -78,10 +78,10 @@ class DeflaterReadChannelTest : CoroutineScope {
         val bb = ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1))
 
         for (
-            step in generateSequence(1) { it * 2 }
-                .dropWhile { it < 64 }
-                .takeWhile { it <= 8192 }
-                .flatMap { sequenceOf(it, it - 1, it + 1) }
+        step in generateSequence(1) { it * 2 }
+            .dropWhile { it < 64 }
+            .takeWhile { it <= 8192 }
+            .flatMap { sequenceOf(it, it - 1, it + 1) }
         ) {
             bb.clear()
             testReadChannel(text, asyncOf(bb))

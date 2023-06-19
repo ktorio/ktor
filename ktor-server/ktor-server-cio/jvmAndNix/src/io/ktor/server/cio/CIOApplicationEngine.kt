@@ -35,6 +35,7 @@ public class CIOApplicationEngine(
          * A connection is IDLE if there are no active requests running.
          */
         public var connectionIdleTimeoutSeconds: Int = 45
+
         /**
          * Allow the server to bind to an address that is already in use
          */

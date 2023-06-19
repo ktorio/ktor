@@ -99,7 +99,9 @@ private class JsonArraySymbols(charset: Charset) {
 internal fun TypeInfo.argumentTypeInfo(): TypeInfo {
     val elementType = kotlinType!!.arguments[0].type!!
     return TypeInfo(
-        elementType.classifier as KClass<*>, elementType.platformType, elementType
+        elementType.classifier as KClass<*>,
+        elementType.platformType,
+        elementType
     )
 }
 

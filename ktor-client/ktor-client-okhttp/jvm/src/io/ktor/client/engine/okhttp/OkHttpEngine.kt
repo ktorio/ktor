@@ -194,7 +194,9 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
 
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
             body.convertToOkHttpBody(callContext)
-        } else null
+        } else {
+            null
+        }
 
         method(method.value, bodyBytes)
     }

@@ -238,12 +238,16 @@ public abstract class Output public constructor(
         val maxCopySize = PACKET_MAX_COPY_SIZE
         val appendSize = if (nextSize < maxCopySize && nextSize <= (tail.endGap + tail.writeRemaining)) {
             nextSize
-        } else -1
+        } else {
+            -1
+        }
 
         val prependSize =
             if (lastSize < maxCopySize && lastSize <= foreignStolen.startGap && foreignStolen.isExclusivelyOwned()) {
                 lastSize
-            } else -1
+            } else {
+                -1
+            }
 
         if (appendSize == -1 && prependSize == -1) {
             // simply enqueue if there is no reason to merge

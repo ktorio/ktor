@@ -90,7 +90,9 @@ public class CIOMultipartDataBase(
 
         val completeRead = if (buffer.remaining() > 0) {
             part.body.readAvailable(buffer) == -1
-        } else false
+        } else {
+            false
+        }
 
         buffer.flip()
 

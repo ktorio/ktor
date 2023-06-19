@@ -45,7 +45,10 @@ internal suspend inline fun <T> Closeable.closeableCoroutine(
     try {
         block(continuation)
     } catch (cause: Throwable) {
-        if (continuation.isActive) continuation.resumeWithException(cause)
-        else close()
+        if (continuation.isActive) {
+            continuation.resumeWithException(cause)
+        } else {
+            close()
+        }
     }
 }

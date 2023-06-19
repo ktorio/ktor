@@ -20,25 +20,25 @@ class RequestParserTest {
         Host: www.example.com
 
 
-        """.trimIndent(),
+            """.trimIndent(),
             """
         GET / HTPT/1.1
         Host: www.example.com
 
 
-        """.trimIndent(),
+            """.trimIndent(),
             """
         GET / _
         Host: www.example.com
 
 
-        """.trimIndent(),
+            """.trimIndent(),
             """
         GET / HTTP/1.01
         Host: www.example.com
 
 
-        """.trimIndent()
+            """.trimIndent()
         )
 
         for (case in cases) {

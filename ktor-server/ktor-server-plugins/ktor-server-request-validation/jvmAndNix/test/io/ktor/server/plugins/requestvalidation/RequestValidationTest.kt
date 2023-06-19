@@ -23,12 +23,14 @@ class RequestValidationTest {
     fun testSimpleValidationByClass() = testApplication {
         install(RequestValidation) {
             validate<CharSequence> {
-                if (!it.startsWith("+")) ValidationResult.Invalid(listOf("$it should start with \"+\""))
-                else ValidationResult.Valid
+                if (!it.startsWith("+")) {
+                    ValidationResult.Invalid(listOf("$it should start with \"+\""))
+                } else ValidationResult.Valid
             }
             validate<String> {
-                if (!it.endsWith("!")) ValidationResult.Invalid(listOf("$it should end with \"!\""))
-                else ValidationResult.Valid
+                if (!it.endsWith("!")) {
+                    ValidationResult.Invalid(listOf("$it should end with \"!\""))
+                } else ValidationResult.Valid
             }
         }
         install(StatusPages) {
@@ -94,8 +96,9 @@ class RequestValidationTest {
                 validation {
                     check(it is ByteArray)
                     val intValue = String(it).toInt()
-                    if (intValue < 0) ValidationResult.Invalid("Value is negative")
-                    else ValidationResult.Valid
+                    if (intValue < 0) {
+                        ValidationResult.Invalid("Value is negative")
+                    } else ValidationResult.Valid
                 }
             }
         }

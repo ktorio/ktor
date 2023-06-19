@@ -144,9 +144,9 @@ class ClientPluginsTest {
     fun testCustomHook() = testSuspend {
         var hookCalled = false
         val plugin = createClientPlugin("F") {
-           on(CustomHook) {
-               hookCalled = true
-           }
+            on(CustomHook) {
+                hookCalled = true
+            }
         }
 
         val client = HttpClient(MockEngine) {
@@ -166,11 +166,11 @@ class ClientPluginsTest {
     @Test
     fun testSendHook() = testSuspend {
         val plugin = createClientPlugin("F") {
-           on(Send) {
-               val call = proceed(it)
-               assertEquals("temp response", call.response.bodyAsText())
-               proceed(it)
-           }
+            on(Send) {
+                val call = proceed(it)
+                assertEquals("temp response", call.response.bodyAsText())
+                proceed(it)
+            }
         }
 
         val client = HttpClient(MockEngine) {

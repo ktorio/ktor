@@ -10,8 +10,10 @@ package io.ktor.client.engine.winhttp.internal
 internal enum class WinHttpChunkedMode {
     // Do not encode body
     Disabled,
+
     // Encode body
     Enabled,
+
     // Use native encoder
     Automatic
 }

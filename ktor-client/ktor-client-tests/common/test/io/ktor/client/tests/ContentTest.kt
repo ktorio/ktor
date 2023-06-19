@@ -333,8 +333,8 @@ class ContentTest : ClientLoader(5 * 60) {
         }
     }
 
-    @Test
     // NSUrlSession buffers first 512 bytes
+    @Test
     fun testDownloadStream() = clientTests(listOf("Darwin", "DarwinLegacy")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream?delay=100").execute {

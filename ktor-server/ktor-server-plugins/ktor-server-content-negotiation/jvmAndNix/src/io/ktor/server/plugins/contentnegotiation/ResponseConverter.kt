@@ -27,7 +27,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
 
         LOGGER.trace(
             "Skipping response body transformation from $sourceClass to OutgoingContent for the $requestInfo request" +
-            " because the $sourceClass type is ignored. See [ContentNegotiationConfig::ignoreType]."
+                " because the $sourceClass type is ignored. See [ContentNegotiationConfig::ignoreType]."
         )
         return@onCallRespond
     }

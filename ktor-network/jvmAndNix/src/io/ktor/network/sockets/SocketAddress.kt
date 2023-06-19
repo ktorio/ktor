@@ -57,6 +57,7 @@ public expect class UnixSocketAddress(
      * The path of the socket address.
      */
     public operator fun component1(): String
+
     /**
      * Create a copy of [UnixSocketAddress].
      */

@@ -7,7 +7,9 @@ import kotlin.math.*
 internal fun ByteBuffer.decodeASCII(out: CharArray, offset: Int = 0, length: Int = out.size): Int {
     return if (hasArray()) {
         decodeASCII3_array(out, offset, length)
-    } else decodeASCII3_buffer(out, offset, length)
+    } else {
+        decodeASCII3_buffer(out, offset, length)
+    }
 }
 
 internal fun ByteBuffer.decodeASCIILine(out: CharArray, offset: Int = 0, length: Int = out.size): Long {

@@ -29,7 +29,9 @@ internal fun CoroutineScope.attachForWritingImpl(
             val remaining = stop - start
             val bytesWritten = if (remaining > 0) {
                 send(descriptor, bufferStart, remaining.convert(), 0).toInt()
-            } else 0
+            } else {
+                0
+            }
 
             when (bytesWritten) {
                 0 -> sockedClosed = true

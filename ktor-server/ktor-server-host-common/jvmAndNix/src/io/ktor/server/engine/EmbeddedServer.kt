@@ -12,8 +12,10 @@ import kotlin.coroutines.*
 /**
  * Factory interface for creating [ApplicationEngine] instances
  */
-public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration> {
+public interface ApplicationEngineFactory<
+    out TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    > {
     /**
      * Creates an engine from the given [environment] and [configure] script
      */
@@ -45,15 +47,15 @@ embeddedServer(
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-CoroutineScope.embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    port: Int = 80,
-    host: String = "0.0.0.0",
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit
-): TEngine {
+    CoroutineScope.embeddedServer(
+        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+        port: Int = 80,
+        host: String = "0.0.0.0",
+        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        configure: TConfiguration.() -> Unit = {},
+        module: Application.() -> Unit
+    ): TEngine {
     val connectors: Array<EngineConnectorConfig> = arrayOf(
         EngineConnectorBuilder().apply {
             this.port = port
@@ -79,14 +81,14 @@ CoroutineScope.embeddedServer(
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-CoroutineScope.embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
-    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit
-): TEngine {
+    CoroutineScope.embeddedServer(
+        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+        vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
+        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        configure: TConfiguration.() -> Unit = {},
+        module: Application.() -> Unit
+    ): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.log = KtorSimpleLogger("ktor.application")

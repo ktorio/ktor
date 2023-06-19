@@ -3,8 +3,11 @@ package io.ktor.utils.io.core
 import java.nio.ByteBuffer
 
 internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
-    return if (hasArray()) discardUntilDelimiterImplArrays(this, delimiter)
-    else discardUntilDelimiterImplMemory(this, delimiter)
+    return if (hasArray()) {
+        discardUntilDelimiterImplArrays(this, delimiter)
+    } else {
+        discardUntilDelimiterImplMemory(this, delimiter)
+    }
 }
 
 private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): Int {
@@ -25,8 +28,11 @@ private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): In
 }
 
 internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
-    return if (hasArray()) discardUntilDelimitersImplArrays(this, delimiter1, delimiter2)
-    else discardUntilDelimitersImplMemory(this, delimiter1, delimiter2)
+    return if (hasArray()) {
+        discardUntilDelimitersImplArrays(this, delimiter1, delimiter2)
+    } else {
+        discardUntilDelimitersImplMemory(this, delimiter1, delimiter2)
+    }
 }
 
 private fun discardUntilDelimitersImplArrays(buffer: Buffer, delimiter1: Byte, delimiter2: Byte): Int {
@@ -53,8 +59,11 @@ internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: ByteArra
     assert(length >= 0)
     assert(offset + length <= dst.size)
 
-    return if (hasArray()) readUntilDelimiterArrays(this, delimiter, dst, offset, length)
-    else readUntilDelimiterDirect(delimiter, dst, offset, length)
+    return if (hasArray()) {
+        readUntilDelimiterArrays(this, delimiter, dst, offset, length)
+    } else {
+        readUntilDelimiterDirect(delimiter, dst, offset, length)
+    }
 }
 
 private fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: ByteArray, offset: Int, length: Int): Int {
@@ -87,8 +96,11 @@ internal actual fun Buffer.readUntilDelimitersImpl(
     assert(offset + length <= dst.size)
     assert(delimiter1 != delimiter2)
 
-    return if (hasArray()) readUntilDelimitersArrays(delimiter1, delimiter2, dst, offset, length)
-    else readUntilDelimitersDirect(delimiter1, delimiter2, dst, offset, length)
+    return if (hasArray()) {
+        readUntilDelimitersArrays(delimiter1, delimiter2, dst, offset, length)
+    } else {
+        readUntilDelimitersDirect(delimiter1, delimiter2, dst, offset, length)
+    }
 }
 
 private fun Buffer.readUntilDelimitersDirect(
@@ -122,8 +134,11 @@ private fun Buffer.readUntilDelimitersArrays(
 }
 
 internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
-    return if (hasArray()) readUntilDelimiterArrays(delimiter, dst)
-    else readUntilDelimiterDirect(delimiter, dst)
+    return if (hasArray()) {
+        readUntilDelimiterArrays(delimiter, dst)
+    } else {
+        readUntilDelimiterDirect(delimiter, dst)
+    }
 }
 
 internal fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: Output): Int {
@@ -137,8 +152,11 @@ internal fun Buffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): Int 
 internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     assert(delimiter1 != delimiter2)
 
-    return if (hasArray()) readUntilDelimitersArrays(delimiter1, delimiter2, dst)
-    else readUntilDelimitersDirect(delimiter1, delimiter2, dst)
+    return if (hasArray()) {
+        readUntilDelimitersArrays(delimiter1, delimiter2, dst)
+    } else {
+        readUntilDelimitersDirect(delimiter1, delimiter2, dst)
+    }
 }
 
 internal fun Buffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {

@@ -128,6 +128,7 @@ class CacheExpiresTest {
             get() = error("Shouldn't be used")
         override val responseTime: GMTDate
             get() = error("Shouldn't be used")
+
         @OptIn(InternalAPI::class)
         override val content: ByteReadChannel
             get() = error("Shouldn't be used")

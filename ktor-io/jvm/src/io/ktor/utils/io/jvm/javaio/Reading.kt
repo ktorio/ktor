@@ -23,8 +23,9 @@ public suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = L
         val bufferSize = buffer.size.toLong()
         while (copied < limit) {
             val rc = read(buffer, 0, minOf(limit - copied, bufferSize).toInt())
-            if (rc == -1) break
-            else if (rc > 0) {
+            if (rc == -1) {
+                break
+            } else if (rc > 0) {
                 channel.writeFully(buffer, 0, rc)
                 copied += rc
             }

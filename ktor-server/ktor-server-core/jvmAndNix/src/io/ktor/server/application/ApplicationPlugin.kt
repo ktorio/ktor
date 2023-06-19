@@ -21,7 +21,8 @@ import kotlinx.coroutines.*
 public interface Plugin<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
-    TPlugin : Any> {
+    TPlugin : Any
+    > {
     /**
      * A unique key that identifies a plugin.
      */
@@ -42,7 +43,8 @@ public interface Plugin<
 public interface BaseApplicationPlugin<
     in TPipeline : Pipeline<*, ApplicationCall>,
     out TConfiguration : Any,
-    TPlugin : Any> : Plugin<TPipeline, TConfiguration, TPlugin>
+    TPlugin : Any
+    > : Plugin<TPipeline, TConfiguration, TPlugin>
 
 /**
  * Defines a [Plugin](https://ktor.io/docs/plugins.html) that is installed into Application.

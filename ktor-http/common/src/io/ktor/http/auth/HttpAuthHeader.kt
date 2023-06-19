@@ -52,8 +52,11 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 
     val parameters = mutableMapOf<String, String>()
     val endIndex = matchParameters(headerValue, index, parameters)
-    return if (endIndex == -1) HttpAuthHeader.Parameterized(authScheme, parameters) else
+    return if (endIndex == -1) {
+        HttpAuthHeader.Parameterized(authScheme, parameters)
+    } else {
         throw ParseException("Function parseAuthorizationHeader can parse only one header")
+    }
 }
 
 /**
@@ -437,8 +440,9 @@ private fun String.skipDelimiter(startIndex: Int, delimiter: Char): Int {
     var index = skipSpaces(startIndex)
 
     if (index == length) return -1
-    if (this[index] != delimiter)
+    if (this[index] != delimiter) {
         throw ParseException("Expected delimiter $delimiter at position $index")
+    }
 
     index++
     return skipSpaces(index)

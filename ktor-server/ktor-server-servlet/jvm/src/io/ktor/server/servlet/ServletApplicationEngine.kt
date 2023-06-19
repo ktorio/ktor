@@ -83,7 +83,9 @@ public open class ServletApplicationEngine : KtorServlet() {
     override val upgrade: ServletUpgrade by lazy {
         if ("jetty" in servletContext.serverInfo?.toLowerCasePreservingASCIIRules() ?: "") {
             jettyUpgrade ?: DefaultServletUpgrade
-        } else DefaultServletUpgrade
+        } else {
+            DefaultServletUpgrade
+        }
     }
 
     override val coroutineContext: CoroutineContext

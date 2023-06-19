@@ -434,8 +434,9 @@ public abstract class Input(
 
         takeWhile { buffer ->
             val rc = buffer.decodeASCII {
-                if (copied == max) false
-                else {
+                if (copied == max) {
+                    false
+                } else {
                     out.append(it)
                     copied++
                     true
@@ -474,8 +475,9 @@ public abstract class Input(
 
         takeWhileSize { buffer ->
             val size = buffer.decodeUTF8 {
-                if (copied == max) false
-                else {
+                if (copied == max) {
+                    false
+                } else {
                     out.append(it)
                     copied++
                     true

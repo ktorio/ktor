@@ -11,7 +11,9 @@ val nativeClassifier: String? = if (enableAlpnProp) {
         osName.contains("mac") -> "osx-x86_64"
         else -> throw InvalidUserDataException("Unsupported os family $osName")
     }
-} else null
+} else {
+    null
+}
 
 kotlin.sourceSets {
     jvmMain {

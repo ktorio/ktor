@@ -71,7 +71,7 @@ public class JacksonConverter(
                 /*
                 Jackson internally does special casing on UTF-8, presumably for performance reasons.
                 Thus, we pass an InputStream instead of a Writer to let Jackson do its thing.
-                */
+                 */
                 if (charset == Charsets.UTF_8) {
                     // specific behavior for kotlinx.coroutines.flow.Flow
                     if (typeInfo.type == Flow::class) {

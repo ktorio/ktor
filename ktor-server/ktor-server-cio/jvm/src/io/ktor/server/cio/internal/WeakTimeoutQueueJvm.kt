@@ -88,7 +88,9 @@ public actual class WeakTimeoutQueue actual constructor(
                 if (wrapped.tryComplete()) {
                     handle.dispose()
                     throw t
-                } else COROUTINE_SUSPENDED
+                } else {
+                    COROUTINE_SUSPENDED
+                }
             }
 
             if (result !== COROUTINE_SUSPENDED && wrapped.tryComplete()) {
