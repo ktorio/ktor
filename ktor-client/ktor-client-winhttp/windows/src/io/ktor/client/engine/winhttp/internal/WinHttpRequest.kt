@@ -237,7 +237,9 @@ internal class WinHttpRequest(
         val notifications = WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS.convert<UInt>()
         val callback = if (enable) {
             staticCFunction(::winHttpCallback)
-        } else null
+        } else {
+            null
+        }
 
         val oldStatusCallback = WinHttpSetStatusCallback(hRequest, callback, notifications, 0)
         if (oldStatusCallback?.rawValue?.toLong() == WINHTTP_INVALID_STATUS_CALLBACK) {

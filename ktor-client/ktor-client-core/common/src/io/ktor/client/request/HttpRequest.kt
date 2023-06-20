@@ -85,6 +85,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      */
     public var bodyType: TypeInfo?
         get() = attributes.getOrNull(BodyTypeAttributeKey)
+
         @InternalAPI set(value) {
             if (value != null) {
                 attributes.put(BodyTypeAttributeKey, value)

@@ -28,8 +28,9 @@ public suspend fun <T> Future<T>.suspendAwait(): T {
 
 @Suppress("IMPLICIT_NOTHING_AS_TYPE_PARAMETER")
 private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
-    if (t is IOException) c.resumeWithException(ChannelWriteException("Write operation future failed", t))
-    else c.resumeWithException(t)
+    if (t is IOException) {
+        c.resumeWithException(ChannelWriteException("Write operation future failed", t))
+    } else c.resumeWithException(t)
 }
 
 /**

@@ -170,7 +170,9 @@ internal class BackwardCompatibleImpl(
         val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
         val combinedPath = if (pathElements.isNotEmpty()) {
             pathElements.joinToString("/", "/", if (trailingSlash) "/" else "")
-        } else "/"
+        } else {
+            "/"
+        }
 
         return ResolvedUriInfo(combinedPath, query + queryValues)
     }

@@ -35,8 +35,9 @@ public suspend fun HttpClient.webSocketRawSession(
                 val sessionCompleted = CompletableDeferred<Unit>()
                 result.complete(session)
                 session.outgoing.invokeOnClose {
-                    if (it != null) sessionCompleted.completeExceptionally(it)
-                    else sessionCompleted.complete(Unit)
+                    if (it != null) {
+                        sessionCompleted.completeExceptionally(it)
+                    } else sessionCompleted.complete(Unit)
                 }
                 sessionCompleted.await()
             }

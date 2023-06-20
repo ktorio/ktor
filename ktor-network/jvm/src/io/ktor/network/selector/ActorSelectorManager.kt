@@ -142,8 +142,11 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
             if (selectionQueue.addLast(selectable)) {
                 continuation.resume(Unit)
                 selectWakeup()
-            } else if (selectable.channel.isOpen) throw ClosedSelectorException()
-            else throw ClosedChannelException()
+            } else if (selectable.channel.isOpen) {
+                throw ClosedSelectorException()
+            } else {
+                throw ClosedChannelException()
+            }
         } catch (cause: Throwable) {
             cancelAllSuspensions(selectable, cause)
         }

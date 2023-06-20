@@ -28,7 +28,9 @@ public class ContentDisposition(
     public fun withParameter(key: String, value: String, encodeValue: Boolean = true): ContentDisposition {
         val encodedValue = if (encodeValue) {
             encodeContentDispositionAttribute(key, value)
-        } else value
+        } else {
+            value
+        }
 
         return ContentDisposition(disposition, parameters + HeaderValueParam(key, encodedValue))
     }

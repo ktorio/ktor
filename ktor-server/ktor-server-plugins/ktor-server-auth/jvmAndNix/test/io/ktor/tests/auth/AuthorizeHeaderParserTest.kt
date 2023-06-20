@@ -146,6 +146,9 @@ class AuthorizeHeaderParserTest {
     private fun Random.nextString(length: Int, possible: String) = nextString(length, possible.toList())
 
     private fun <T> Random.nextFrom(possibleElements: List<T>): T =
-        if (possibleElements.isEmpty()) throw NoSuchElementException()
-        else possibleElements[nextInt(possibleElements.size)]
+        if (possibleElements.isEmpty()) {
+            throw NoSuchElementException()
+        } else {
+            possibleElements[nextInt(possibleElements.size)]
+        }
 }

@@ -52,7 +52,9 @@ internal fun Cookie.matches(requestUrl: Url): Boolean {
     if (path != "/" &&
         requestPath != path &&
         !requestPath.startsWith(path)
-    ) return false
+    ) {
+        return false
+    }
 
     return !(secure && !requestUrl.protocol.isSecure())
 }

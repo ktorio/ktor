@@ -109,8 +109,11 @@ private fun lookupSecureRandom(): SecureRandom {
 }
 
 private fun getInstanceOrNull(name: String? = null) = try {
-    if (name != null) SecureRandom.getInstance(name)
-    else SecureRandom()
+    if (name != null) {
+        SecureRandom.getInstance(name)
+    } else {
+        SecureRandom()
+    }
 } catch (notFound: NoSuchAlgorithmException) {
     null
 }

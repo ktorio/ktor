@@ -76,6 +76,7 @@ class ReceiveBlockingPrimitiveTest {
                         get() = TODO("Not yet implemented")
                     override val version: String
                         get() = TODO("Not yet implemented")
+
                     @Deprecated("Use localPort or serverPort instead")
                     override val port: Int
                         get() = TODO("Not yet implemented")
@@ -83,6 +84,7 @@ class ReceiveBlockingPrimitiveTest {
                         get() = TODO("Not yet implemented")
                     override val serverPort: Int
                         get() = TODO("Not yet implemented")
+
                     @Deprecated("Use localHost or serverHost instead")
                     override val host: String
                         get() = TODO("Not yet implemented")

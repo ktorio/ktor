@@ -20,8 +20,10 @@ class MenuTemplate : Template<FlowContent> {
             ul {
                 each(item) {
                     li {
-                        if (it.first) b {
-                            insert(it)
+                        if (it.first) {
+                            b {
+                                insert(it)
+                            }
                         } else {
                             insert(it)
                         }

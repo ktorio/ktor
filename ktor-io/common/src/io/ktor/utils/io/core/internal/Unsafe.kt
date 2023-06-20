@@ -58,5 +58,4 @@ internal fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): Chun
 }
 
 @JvmField
-
 internal val EmptyByteArray = ByteArray(0)

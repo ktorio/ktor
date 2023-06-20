@@ -28,8 +28,9 @@ internal class CurlMultiApiHandler : Closeable {
 
     private val cancelledHandles = mutableSetOf<Pair<EasyHandle, Throwable>>()
 
+    @Suppress("DEPRECATION")
     private val multiHandle: MultiHandle = curl_multi_init()
-        ?: @Suppress("DEPRECATION") throw CurlRuntimeException("Could not initialize curl multi handle")
+        ?: throw CurlRuntimeException("Could not initialize curl multi handle")
 
     private val easyHandlesToUnpauseLock = SynchronizedObject()
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
@@ -47,7 +48,9 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
-            ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
+            ?: throw
+            @Suppress("DEPRECATION")
+            CurlIllegalStateException("Could not initialize an easy handle")
 
         val bodyStartedReceiving = CompletableDeferred<Unit>()
         val responseData = CurlResponseBuilder(request)
@@ -207,9 +210,9 @@ internal class CurlMultiApiHandler : Closeable {
                 val messagePtr = curl_multi_info_read(multiHandle, messagesLeft.ptr)
                 val message = messagePtr?.pointed ?: continue
 
+                @Suppress("DEPRECATION")
                 val easyHandle = message.easy_handle
-                    ?: @Suppress("DEPRECATION")
-                    throw CurlIllegalStateException("Got a null easy handle from the message")
+                    ?: throw CurlIllegalStateException("Got a null easy handle from the message")
 
                 try {
                     val result = processCompletedEasyHandle(message.msg, easyHandle, message.data.result)

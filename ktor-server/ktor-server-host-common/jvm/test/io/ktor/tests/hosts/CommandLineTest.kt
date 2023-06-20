@@ -91,8 +91,11 @@ class CommandLineTest {
     @Test
     fun testListPropertiesHocon() {
         val args = arrayOf(
-            "-P:array.first.0=first", "-P:array.first.1=second", "-P:array.first.2=third",
-            "-P:array.second.0=1", "-P:array.second.1=2",
+            "-P:array.first.0=first",
+            "-P:array.first.1=second",
+            "-P:array.first.2=third",
+            "-P:array.second.0=1",
+            "-P:array.second.1=2",
             "-P:array.third.0=zero"
         )
         val config = commandLineEnvironment(args).config

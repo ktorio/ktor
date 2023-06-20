@@ -33,7 +33,9 @@ public expect fun YamlConfig(path: String?): YamlConfig?
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
  */
-public class YamlConfig @Deprecated("This will become internal") constructor(
+public class YamlConfig
+@Deprecated("This will become internal")
+constructor(
     private val yaml: YamlMap
 ) : ApplicationConfig {
 
@@ -169,10 +171,13 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
 
     val isOptional = keyWithDefault.first() == '?'
     val key = if (isOptional) keyWithDefault.drop(1) else keyWithDefault
-    return getEnvironmentValue(key) ?: if (isOptional) null
-    else throw ApplicationConfigurationException(
-        "Required environment variable \"$key\" not found and no default value is present"
-    )
+    return getEnvironmentValue(key) ?: if (isOptional) {
+        null
+    } else {
+        throw ApplicationConfigurationException(
+            "Required environment variable \"$key\" not found and no default value is present"
+        )
+    }
 }
 
 internal expect fun getEnvironmentValue(key: String): String?

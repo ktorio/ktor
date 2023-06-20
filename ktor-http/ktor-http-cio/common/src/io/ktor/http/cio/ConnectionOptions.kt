@@ -99,13 +99,16 @@ public class ConnectionOptions(
 
             if (connectionOptions == null) connectionOptions = KeepAlive
 
-            return if (hopHeadersList == null) connectionOptions
-            else ConnectionOptions(
-                connectionOptions.close,
-                connectionOptions.keepAlive,
-                connectionOptions.upgrade,
-                hopHeadersList
-            )
+            return if (hopHeadersList == null) {
+                connectionOptions
+            } else {
+                ConnectionOptions(
+                    connectionOptions.close,
+                    connectionOptions.keepAlive,
+                    connectionOptions.upgrade,
+                    hopHeadersList
+                )
+            }
         }
     }
 

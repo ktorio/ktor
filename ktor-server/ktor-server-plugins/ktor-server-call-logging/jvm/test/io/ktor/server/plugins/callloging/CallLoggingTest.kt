@@ -500,7 +500,7 @@ class CallLoggingTest {
             assertEquals(HttpStatusCode.BadRequest, status)
             assertContains(
                 messages,
-                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception"
+                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception" // ktlint-disable max-line-length
             )
         }
     }

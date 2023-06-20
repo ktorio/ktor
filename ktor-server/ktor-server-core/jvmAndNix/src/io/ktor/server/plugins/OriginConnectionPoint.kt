@@ -24,7 +24,6 @@ public val ApplicationRequest.origin: RequestConnectionPoint
  * A key to install a mutable [RequestConnectionPoint]
  */
 @Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
-
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 

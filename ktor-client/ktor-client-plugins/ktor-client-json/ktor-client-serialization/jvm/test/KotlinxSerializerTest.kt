@@ -50,7 +50,9 @@ data class TestEntry(val a: String, val b: Int)
 inline fun <reified T> indexListUnwrapper() =
     object : JsonTransformingSerializer<List<T>>(ListSerializer<T>(serializer<T>())) {
         override fun transformDeserialize(element: JsonElement): JsonElement {
-            return if (element is JsonArray) element else element.jsonObject.values.firstOrNull { it is JsonArray }
+            return if (element is JsonArray) {
+                element
+            } else element.jsonObject.values.firstOrNull { it is JsonArray }
                 ?: error("Collection not found in json")
         }
     }

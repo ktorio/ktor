@@ -448,7 +448,7 @@ internal class TLSClientHandshake(
                 """Handshake: ServerFinished verification failed:
                 |Expected: ${expectedChecksum.joinToString()}
                 |Actual: ${receivedChecksum.joinToString()}
-            """.trimMargin()
+                """.trimMargin()
             )
         }
     }

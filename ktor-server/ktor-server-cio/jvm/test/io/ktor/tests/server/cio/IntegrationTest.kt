@@ -35,8 +35,9 @@ class IntegrationTest {
         }
 
         s.invokeOnCompletion { t ->
-            if (t != null) server.completeExceptionally(t)
-            else server.complete(@OptIn(ExperimentalCoroutinesApi::class) s.getCompleted())
+            if (t != null) {
+                server.completeExceptionally(t)
+            } else server.complete(@OptIn(ExperimentalCoroutinesApi::class) s.getCompleted())
         }
 
         j.invokeOnCompletion {

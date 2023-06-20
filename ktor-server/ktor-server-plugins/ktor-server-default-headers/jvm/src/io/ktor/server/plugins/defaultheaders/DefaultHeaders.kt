@@ -66,7 +66,9 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
 ) {
     val ktorPackageVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
         pluginConfig::class.java.`package`.implementationVersion ?: "debug"
-    } else "debug"
+    } else {
+        "debug"
+    }
 
     val headers = pluginConfig.headers.build()
     val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000

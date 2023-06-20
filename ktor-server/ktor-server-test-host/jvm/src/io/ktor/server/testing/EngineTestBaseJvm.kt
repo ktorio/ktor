@@ -36,7 +36,8 @@ import kotlin.time.Duration.Companion.seconds
 @Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration> actual constructor(
+    TConfiguration : ApplicationEngine.Configuration
+    > actual constructor(
     actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()

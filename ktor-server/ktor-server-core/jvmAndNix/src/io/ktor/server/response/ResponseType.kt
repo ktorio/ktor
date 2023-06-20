@@ -16,6 +16,7 @@ private val ResponseTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("Res
  */
 public var ApplicationResponse.responseType: TypeInfo?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
+
     @InternalAPI set(value) {
         if (value != null) {
             call.attributes.put(ResponseTypeAttributeKey, value)

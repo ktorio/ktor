@@ -89,8 +89,9 @@ internal class DarwinWebsocketSession(
                 FrameType.TEXT -> {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         task.sendMessage(NSURLSessionWebSocketMessage(String(frame.data))) { error ->
-                            if (error == null) continuation.resume(Unit)
-                            else continuation.resumeWithException(DarwinHttpRequestException(error))
+                            if (error == null) {
+                                continuation.resume(Unit)
+                            } else continuation.resumeWithException(DarwinHttpRequestException(error))
                         }
                     }
                 }
@@ -98,8 +99,9 @@ internal class DarwinWebsocketSession(
                 FrameType.BINARY -> {
                     suspendCancellableCoroutine<Unit> { continuation ->
                         task.sendMessage(NSURLSessionWebSocketMessage(frame.data.toNSData())) { error ->
-                            if (error == null) continuation.resume(Unit)
-                            else continuation.resumeWithException(DarwinHttpRequestException(error))
+                            if (error == null) {
+                                continuation.resume(Unit)
+                            } else continuation.resumeWithException(DarwinHttpRequestException(error))
                         }
                     }
                 }

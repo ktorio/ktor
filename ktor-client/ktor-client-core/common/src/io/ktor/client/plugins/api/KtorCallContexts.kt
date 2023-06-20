@@ -62,11 +62,13 @@ internal object ResponseHook :
 }
 
 internal object TransformRequestBodyHook :
-    ClientHook<suspend TransformRequestBodyContext.(
-        request: HttpRequestBuilder,
-        content: Any,
-        bodyType: TypeInfo?
-    ) -> OutgoingContent?> {
+    ClientHook<
+        suspend TransformRequestBodyContext.(
+            request: HttpRequestBuilder,
+            content: Any,
+            bodyType: TypeInfo?
+        ) -> OutgoingContent?
+        > {
 
     override fun install(
         client: HttpClient,
@@ -84,11 +86,13 @@ internal object TransformRequestBodyHook :
 }
 
 internal object TransformResponseBodyHook :
-    ClientHook<suspend TransformResponseBodyContext.(
-        response: HttpResponse,
-        content: ByteReadChannel,
-        requestedType: TypeInfo
-    ) -> Any?> {
+    ClientHook<
+        suspend TransformResponseBodyContext.(
+            response: HttpResponse,
+            content: ByteReadChannel,
+            requestedType: TypeInfo
+        ) -> Any?
+        > {
 
     override fun install(
         client: HttpClient,

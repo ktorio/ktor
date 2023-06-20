@@ -29,14 +29,20 @@ public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, dst
             val size = if (rc < 0) {
                 endFound = true
                 -rc
-            } else rc
+            } else {
+                rc
+            }
             copied += size
         } while (dst.hasRemaining() && !endFound)
     }
 
-    return if (copied == 0 && isClosedForRead) -1
-    else if (!dst.hasRemaining() || endFound) copied
-    else readUntilDelimiterSuspend(delimiter, dst, copied)
+    return if (copied == 0 && isClosedForRead) {
+        -1
+    } else if (!dst.hasRemaining() || endFound) {
+        copied
+    } else {
+        readUntilDelimiterSuspend(delimiter, dst, copied)
+    }
 }
 
 @Suppress("DEPRECATION")
@@ -94,7 +100,9 @@ private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
             val size = if (rc <= 0) {
                 endFound = true
                 -rc
-            } else rc
+            } else {
+                rc
+            }
             copied += size
         } while (dst.hasRemaining() && !endFound)
 

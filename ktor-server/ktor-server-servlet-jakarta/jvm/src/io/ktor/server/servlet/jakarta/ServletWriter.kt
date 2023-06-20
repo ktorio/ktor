@@ -121,6 +121,8 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     private fun wrapException(cause: Throwable): Throwable {
         return if (cause is IOException || cause is TimeoutException) {
             ChannelWriteException("Failed to write to servlet async stream", exception = cause)
-        } else cause
+        } else {
+            cause
+        }
     }
 }

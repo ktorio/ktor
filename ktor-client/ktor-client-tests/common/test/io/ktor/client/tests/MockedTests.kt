@@ -57,9 +57,11 @@ class MockedTests {
                 val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
                 addHandler { request ->
-                    if (request.url.host == "localhost") when (request.url.encodedPath) {
-                        "/long.json" -> return@addHandler respond(longJSONString, headers = responseHeaders)
-                        "/longer.json" -> return@addHandler respond(longerJSONString, headers = responseHeaders)
+                    if (request.url.host == "localhost") {
+                        when (request.url.encodedPath) {
+                            "/long.json" -> return@addHandler respond(longJSONString, headers = responseHeaders)
+                            "/longer.json" -> return@addHandler respond(longerJSONString, headers = responseHeaders)
+                        }
                     }
                     error("${request.url} should not be requested")
                 }

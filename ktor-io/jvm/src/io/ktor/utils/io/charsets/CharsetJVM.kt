@@ -78,7 +78,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                     if (cb.hasRemaining()) {
                         cb.put(ch)
                         true
-                    } else false
+                    } else {
+                        false
+                    }
                 }
 
                 input.headPosition = chunk.readPosition
@@ -91,8 +93,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                         view.writeDirect(writeSize) { to ->
                             val cr = encode(cb, to, false)
                             if (cr.isUnmappable || cr.isMalformed) cr.throwExceptionWrapped()
-                            if (cr.isOverflow && to.hasRemaining()) writeSize++
-                            else writeSize = 1
+                            if (cr.isOverflow && to.hasRemaining()) {
+                                writeSize++
+                            } else writeSize = 1
                         }
                         if (cb.hasRemaining()) writeSize else 0
                     }
@@ -112,8 +115,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                 chunk.writeDirect(completeSize) { to ->
                     val cr = encode(cb, to, true)
                     if (cr.isMalformed || cr.isUnmappable) cr.throwExceptionWrapped()
-                    if (cr.isOverflow) completeSize++
-                    else completeSize = 0
+                    if (cr.isOverflow) {
+                        completeSize++
+                    } else completeSize = 0
                 }
 
                 completeSize

@@ -20,7 +20,6 @@ public data class HeaderValueParam(val name: String, val value: String, val esca
             other.value.equals(value, ignoreCase = true)
     }
     override fun hashCode(): Int {
-
         var result = name.lowercase().hashCode()
         result += 31 * result + value.lowercase().hashCode()
         return result

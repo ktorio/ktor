@@ -230,8 +230,9 @@ public abstract class ByteChannelSequentialBase(
         if (srcRemaining == 0) return 0
         val size = minOf(srcRemaining, availableForWrite)
 
-        return if (size == 0) writeAvailableSuspend(src)
-        else {
+        return if (size == 0) {
+            writeAvailableSuspend(src)
+        } else {
             writable.writeFully(src, size)
             afterWrite(size)
             size
@@ -242,8 +243,9 @@ public abstract class ByteChannelSequentialBase(
         if (length == 0) return 0
         val size = minOf(length, availableForWrite)
 
-        return if (size == 0) writeAvailableSuspend(src, offset, length)
-        else {
+        return if (size == 0) {
+            writeAvailableSuspend(src, offset, length)
+        } else {
             writable.writeFully(src, offset, size)
             afterWrite(size)
             size
@@ -439,8 +441,9 @@ public abstract class ByteChannelSequentialBase(
         afterRead(partSize)
         checkClosed(remaining, builder)
 
-        return if (remaining > 0) readPacketSuspend(builder, remaining)
-        else builder.build()
+        return if (remaining > 0) {
+            readPacketSuspend(builder, remaining)
+        } else builder.build()
     }
 
     private suspend fun readPacketSuspend(builder: BytePacketBuilder, size: Int): ByteReadPacket {
@@ -556,8 +559,11 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readBoolean(): Boolean {
-        return if (readable.canRead()) (readable.readByte() == 1.toByte()).also { afterRead(1) }
-        else readBooleanSlow()
+        return if (readable.canRead()) {
+            (readable.readByte() == 1.toByte()).also { afterRead(1) }
+        } else {
+            readBooleanSlow()
+        }
     }
 
     private suspend fun readBooleanSlow(): Boolean {
@@ -712,8 +718,11 @@ public abstract class ByteChannelSequentialBase(
         }
 
         return decodeUTF8LineLoopSuspend(out, limit, { size ->
-            if (await(size)) readable
-            else null
+            if (await(size)) {
+                readable
+            } else {
+                null
+            }
         }) { afterRead(it) }
     }
 

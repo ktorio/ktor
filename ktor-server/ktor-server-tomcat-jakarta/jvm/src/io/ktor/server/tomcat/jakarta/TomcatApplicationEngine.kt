@@ -94,31 +94,31 @@ public class TomcatApplicationEngine(
 
                             addSslHostConfig(
                                 SSLHostConfig().apply {
-                                if (ktorConnector.trustStorePath != null) {
-                                    setProperty("clientAuth", "true")
-                                    truststoreFile = ktorConnector.trustStorePath!!.absolutePath
-                                } else {
-                                    setProperty("clientAuth", "false")
-                                }
-
-                                sslProtocol = "TLS"
-                                setProperty("SSLEnabled", "true")
-                                addCertificate(
-                                    SSLHostConfigCertificate(
-                                        this,
-                                        SSLHostConfigCertificate.Type.UNDEFINED
-                                    ).apply {
-                                        certificateKeyAlias = ktorConnector.keyAlias
-                                        certificateKeystorePassword = String(ktorConnector.keyStorePassword())
-                                        certificateKeyPassword = String(ktorConnector.privateKeyPassword())
-                                        certificateKeystoreFile = ktorConnector.keyStorePath!!.absolutePath
+                                    if (ktorConnector.trustStorePath != null) {
+                                        setProperty("clientAuth", "true")
+                                        truststoreFile = ktorConnector.trustStorePath!!.absolutePath
+                                    } else {
+                                        setProperty("clientAuth", "false")
                                     }
-                                )
 
-                                ktorConnector.enabledProtocols?.let {
-                                    enabledProtocols = it.toTypedArray()
+                                    sslProtocol = "TLS"
+                                    setProperty("SSLEnabled", "true")
+                                    addCertificate(
+                                        SSLHostConfigCertificate(
+                                            this,
+                                            SSLHostConfigCertificate.Type.UNDEFINED
+                                        ).apply {
+                                            certificateKeyAlias = ktorConnector.keyAlias
+                                            certificateKeystorePassword = String(ktorConnector.keyStorePassword())
+                                            certificateKeyPassword = String(ktorConnector.privateKeyPassword())
+                                            certificateKeystoreFile = ktorConnector.keyStorePath!!.absolutePath
+                                        }
+                                    )
+
+                                    ktorConnector.enabledProtocols?.let {
+                                        enabledProtocols = it.toTypedArray()
+                                    }
                                 }
-                            }
                             )
 
                             setProperty("SSLEnabled", "true")

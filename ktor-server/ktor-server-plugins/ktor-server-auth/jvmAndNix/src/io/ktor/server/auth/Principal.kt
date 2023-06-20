@@ -27,8 +27,9 @@ internal class CombinedPrincipal : Principal {
     fun <T : Principal> get(provider: String?, klass: KClass<T>): T? {
         return principals
             .firstOrNull { (name, principal) ->
-                if (provider != null) name == provider && klass.isInstance(principal)
-                else klass.isInstance(principal)
+                if (provider != null) {
+                    name == provider && klass.isInstance(principal)
+                } else klass.isInstance(principal)
             }?.second as? T
     }
 

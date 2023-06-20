@@ -325,37 +325,40 @@ public class SessionSerializerReflection<T : Any> internal constructor(
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
     private fun deserializeValue(owner: KClass<*>, value: String): Any? =
-        if (!value.startsWith("#")) throw IllegalArgumentException("Bad serialized value")
-        else when (value.getOrNull(1)) {
-            null, 'n' -> null
-            'i' -> value.drop(2).toInt()
-            'l' -> value.drop(2).toLong()
-            'f' -> value.drop(2).toDouble()
-            'b' -> when (value.getOrNull(2)) {
-                'o' -> when (value.getOrNull(3)) {
-                    't' -> true
-                    'f' -> false
-                    else -> throw IllegalArgumentException("Unsupported bo-value ${value.take(4)}")
+        if (!value.startsWith("#")) {
+            throw IllegalArgumentException("Bad serialized value")
+        } else {
+            when (value.getOrNull(1)) {
+                null, 'n' -> null
+                'i' -> value.drop(2).toInt()
+                'l' -> value.drop(2).toLong()
+                'f' -> value.drop(2).toDouble()
+                'b' -> when (value.getOrNull(2)) {
+                    'o' -> when (value.getOrNull(3)) {
+                        't' -> true
+                        'f' -> false
+                        else -> throw IllegalArgumentException("Unsupported bo-value ${value.take(4)}")
+                    }
+                    'd' -> BigDecimal(value.drop(3))
+                    'i' -> BigInteger(value.drop(3))
+                    else -> throw IllegalArgumentException("Unsupported b-type ${value.take(3)}")
                 }
-                'd' -> BigDecimal(value.drop(3))
-                'i' -> BigInteger(value.drop(3))
-                else -> throw IllegalArgumentException("Unsupported b-type ${value.take(3)}")
+                'o' -> when (value.getOrNull(2)) {
+                    'm' -> Optional.empty<Any?>()
+                    'p' -> Optional.ofNullable(deserializeValue(owner, value.drop(3)))
+                    else -> throw IllegalArgumentException("Unsupported o-value ${value.take(3)}")
+                }
+                's' -> value.drop(2)
+                'c' -> when (value.getOrNull(2)) {
+                    'l' -> deserializeCollection(value.drop(3))
+                    's' -> deserializeCollection(value.drop(3)).toSet()
+                    'h' -> value.drop(3).first()
+                    else -> throw IllegalArgumentException("Unsupported c-type ${value.take(3)}")
+                }
+                'm' -> deserializeMap(value.drop(2))
+                '#' -> deserializeObject(owner, value.drop(2))
+                else -> throw IllegalArgumentException("Unsupported type ${value.take(2)}")
             }
-            'o' -> when (value.getOrNull(2)) {
-                'm' -> Optional.empty<Any?>()
-                'p' -> Optional.ofNullable(deserializeValue(owner, value.drop(3)))
-                else -> throw IllegalArgumentException("Unsupported o-value ${value.take(3)}")
-            }
-            's' -> value.drop(2)
-            'c' -> when (value.getOrNull(2)) {
-                'l' -> deserializeCollection(value.drop(3))
-                's' -> deserializeCollection(value.drop(3)).toSet()
-                'h' -> value.drop(3).first()
-                else -> throw IllegalArgumentException("Unsupported c-type ${value.take(3)}")
-            }
-            'm' -> deserializeMap(value.drop(2))
-            '#' -> deserializeObject(owner, value.drop(2))
-            else -> throw IllegalArgumentException("Unsupported type ${value.take(2)}")
         }
 
     private fun serializeValue(value: Any?): String =

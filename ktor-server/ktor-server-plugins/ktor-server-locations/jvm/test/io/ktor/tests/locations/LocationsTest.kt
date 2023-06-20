@@ -144,6 +144,7 @@ class LocationsTest {
     class pathContainer(val id: Int) {
         @Location("/items")
         class items(val container: pathContainer)
+
         @Location("/items")
         class badItems
     }
@@ -170,6 +171,7 @@ class LocationsTest {
     class queryContainer(val id: Int) {
         @Location("/items")
         class items(val container: queryContainer)
+
         @Location("/items")
         class badItems
     }
@@ -307,6 +309,7 @@ class LocationsTest {
 
     @Location("/")
     class multiquery(val value: List<Int>)
+
     @Location("/")
     class multiquery2(val name: List<String>)
 
@@ -365,6 +368,7 @@ class LocationsTest {
 
     @Location("/space in")
     class SpaceInPath
+
     @Location("/plus+in")
     class PlusInPath
 
@@ -429,6 +433,7 @@ class LocationsTest {
     object users {
         @Location("/me")
         object me
+
         @Location("/{id}")
         class user(val id: Int)
     }

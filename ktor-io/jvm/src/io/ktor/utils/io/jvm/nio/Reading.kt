@@ -25,13 +25,15 @@ public suspend fun ReadableByteChannel.copyTo(ch: ByteWriteChannel, limit: Long 
             val l = bb.limit()
             bb.limit(bb.position() + rem.toInt())
             val rc = read(bb)
-            if (rc == -1) eof = true
-            else copied += rc
+            if (rc == -1) {
+                eof = true
+            } else copied += rc
             bb.limit(l)
         } else {
             val rc = read(bb)
-            if (rc == -1) eof = true
-            else copied += rc
+            if (rc == -1) {
+                eof = true
+            } else copied += rc
         }
     }
 

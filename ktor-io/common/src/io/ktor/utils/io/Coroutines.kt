@@ -51,8 +51,9 @@ public fun reader(
     parent: Job? = null,
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
-    val newContext = if (parent != null) GlobalScope.newCoroutineContext(coroutineContext + parent)
-    else GlobalScope.newCoroutineContext(coroutineContext)
+    val newContext = if (parent != null) {
+        GlobalScope.newCoroutineContext(coroutineContext + parent)
+    } else GlobalScope.newCoroutineContext(coroutineContext)
 
     return CoroutineScope(newContext).reader(EmptyCoroutineContext, channel, block)
 }
@@ -91,8 +92,9 @@ public fun writer(
     parent: Job? = null,
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
-    val newContext = if (parent != null) GlobalScope.newCoroutineContext(coroutineContext + parent)
-    else GlobalScope.newCoroutineContext(coroutineContext)
+    val newContext = if (parent != null) {
+        GlobalScope.newCoroutineContext(coroutineContext + parent)
+    } else GlobalScope.newCoroutineContext(coroutineContext)
 
     return CoroutineScope(newContext).writer(EmptyCoroutineContext, channel, block)
 }

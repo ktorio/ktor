@@ -9,80 +9,110 @@ public actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
-    else loadShortSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    } else {
+        loadShortSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadShortAt(offset: Long): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
-    else loadShortSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    } else {
+        loadShortSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadIntAt(offset: Int): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
-    else loadIntSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    } else {
+        loadIntSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadIntAt(offset: Long): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
-    else loadIntSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    } else {
+        loadIntSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadLongAt(offset: Int): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
-    else loadLongSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    } else {
+        loadLongSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadLongAt(offset: Long): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
-    else loadLongSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    } else {
+        loadLongSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
-    else loadFloatSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    } else {
+        loadFloatSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
-    else loadFloatSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    } else {
+        loadFloatSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
-    else loadDoubleSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    } else {
+        loadDoubleSlowAt(pointer)
+    }
 }
 
 public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
-    else loadDoubleSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    } else {
+        loadDoubleSlowAt(pointer)
+    }
 }
 
 /**

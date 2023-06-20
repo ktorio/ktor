@@ -459,8 +459,11 @@ public data class PathSegmentTailcardRouteSelector(
             else -> parametersOf(
                 name,
                 segments.drop(segmentIndex).mapIndexed { index, segment ->
-                    if (index == 0) segment.drop(prefix.length)
-                    else segment
+                    if (index == 0) {
+                        segment.drop(prefix.length)
+                    } else {
+                        segment
+                    }
                 }
             )
         }

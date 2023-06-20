@@ -183,7 +183,9 @@ public class WebSockets internal constructor(
 
                         val negotiated = if (extensionsSupported) {
                             plugin.completeNegotiation(context)
-                        } else emptyList()
+                        } else {
+                            emptyList()
+                        }
 
                         clientSession.apply {
                             start(negotiated)

@@ -329,8 +329,11 @@ class AuthTest : ClientLoader() {
             engine {
                 addHandler { request ->
                     fun respond(): HttpResponseData {
-                        return if (request.headers[HttpHeaders.Authorization] != "Bearer initial") respond("OK")
-                        else respond("Error", HttpStatusCode.Unauthorized, headersOf("WWW-Authenticate", "Bearer"))
+                        return if (request.headers[HttpHeaders.Authorization] != "Bearer initial") {
+                            respond("OK")
+                        } else {
+                            respond("Error", HttpStatusCode.Unauthorized, headersOf("WWW-Authenticate", "Bearer"))
+                        }
                     }
 
                     when (request.url.encodedPath) {
@@ -482,7 +485,6 @@ class AuthTest : ClientLoader() {
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
-
 
     @Suppress("JoinDeclarationAndAssignment")
     @Test

@@ -20,7 +20,7 @@ public enum class RangeUnits(public val unitToken: String) {
     /**
      * Range unit `none`
      */
-    None("none");
+    None("none")
 }
 
 /**

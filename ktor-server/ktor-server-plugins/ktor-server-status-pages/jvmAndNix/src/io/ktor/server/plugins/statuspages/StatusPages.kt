@@ -113,8 +113,10 @@ public class StatusPagesConfig {
     /**
      * Provides access to status handlers based on a status code.
      */
-    public val statuses: MutableMap<HttpStatusCode,
-        suspend (call: ApplicationCall, content: OutgoingContent, code: HttpStatusCode) -> Unit> =
+    public val statuses: MutableMap<
+        HttpStatusCode,
+        suspend (call: ApplicationCall, content: OutgoingContent, code: HttpStatusCode) -> Unit
+        > =
         mutableMapOf()
 
     internal var unhandled: suspend (ApplicationCall) -> Unit = {}
