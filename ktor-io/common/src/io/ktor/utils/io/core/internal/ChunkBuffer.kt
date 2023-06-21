@@ -1,7 +1,6 @@
 package io.ktor.utils.io.core.internal
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
@@ -158,7 +157,7 @@ public open class ChunkBuffer(
             }
         }
 
-        public val Empty: ChunkBuffer = ChunkBuffer(Memory.Empty, null, EmptyPool)
+        public val Empty: ChunkBuffer = ChunkBuffer(MEMORY_EMPTY, null, EmptyPool)
 
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {

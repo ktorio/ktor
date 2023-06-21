@@ -1,6 +1,7 @@
 package io.ktor.utils.io.core
 
-import java.nio.ByteBuffer
+import io.ktor.utils.io.bits.*
+import java.nio.*
 
 internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     return if (hasArray()) discardUntilDelimiterImplArrays(this, delimiter)

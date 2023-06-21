@@ -954,6 +954,48 @@ class StaticContentTest {
             assertEquals("br", result.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
     }
+
+    @Test
+    fun testLocalPathContent() = testApplication {
+        routing {
+            get("path") {
+                call.respond(
+                    LocalPathContent(
+                        Paths.get("jvm/test-resources/public/file.txt"),
+                    )
+                )
+            }
+            get("path-relative") {
+                call.respond(
+                    LocalPathContent(
+                        Paths.get("jvm/test-resources"),
+                        Paths.get("public/file.txt")
+                    )
+                )
+            }
+            get("zip") {
+                val filePath = Paths.get("jvm/test-resources/public.zip")
+
+                @Suppress("BlockingMethodInNonBlockingContext")
+                val fileSystem = FileSystems.newFileSystem(filePath, StaticContentTest::class.java.classLoader)
+
+                val path = fileSystem.getPath("public/nested/file-nested.txt")
+                call.respond(LocalPathContent(path))
+            }
+        }
+
+        val responsePath = client.get("path")
+        assertEquals(ContentType.Text.Plain, responsePath.contentType()!!.withoutParameters())
+        assertEquals("file.txt", responsePath.bodyAsText().trim())
+
+        val responsePathRelative = client.get("path-relative")
+        assertEquals(ContentType.Text.Plain, responsePathRelative.contentType()!!.withoutParameters())
+        assertEquals("file.txt", responsePathRelative.bodyAsText().trim())
+
+        val responseZip = client.get("zip")
+        assertEquals(ContentType.Text.Plain, responseZip.contentType()!!.withoutParameters())
+        assertEquals("file-nested.txt", responseZip.bodyAsText().trim())
+    }
 }
 
 private fun String.replaceSeparators() = replace("/", File.separator)
