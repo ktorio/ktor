@@ -4,7 +4,6 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
-import kotlin.require
 
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
@@ -22,7 +21,7 @@ public actual fun String(bytes: ByteArray, offset: Int, length: Int, charset: Ch
     val buffer = i8.buffer.slice(bufferOffset, bufferOffset + length)
 
     @Suppress("DEPRECATION")
-    val view = ChunkBuffer(Memory.of(buffer), null, ChunkBuffer.NoPool)
+    val view = ChunkBuffer(Memory(buffer), null, ChunkBuffer.NoPool)
     view.resetForRead()
     val packet = ByteReadPacket(view, ChunkBuffer.NoPoolManuallyManaged)
 
