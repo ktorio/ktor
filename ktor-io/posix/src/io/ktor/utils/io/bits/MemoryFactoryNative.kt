@@ -33,19 +33,19 @@ public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block
  * the specified [pointer] and having the specified [size] in bytes.
  */
 @OptIn(UnsafeNumber::class)
-public inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memory {
+public inline fun Memory(pointer: CPointer<*>, size: size_t): Memory {
     require(size.convert<ULong>() <= Long.MAX_VALUE.convert<ULong>()) {
         "At most ${Long.MAX_VALUE} (kotlin.Long.MAX_VALUE) bytes range is supported."
     }
 
-    return of(pointer, size.convert())
+    return Memory(pointer, size.convert())
 }
 
 /**
  * Create an instance of [Memory] view for memory region starting at
  * the specified [pointer] and having the specified [size] in bytes.
  */
-public inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
+public inline fun Memory(pointer: CPointer<*>, size: Int): Memory {
     return Memory(pointer.reinterpret(), size.toLong())
 }
 
@@ -53,7 +53,7 @@ public inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
  * Create an instance of [Memory] view for memory region starting at
  * the specified [pointer] and having the specified [size] in bytes.
  */
-public inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
+public inline fun Memory(pointer: CPointer<*>, size: Long): Memory {
     return Memory(pointer.reinterpret(), size)
 }
 

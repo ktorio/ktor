@@ -19,6 +19,7 @@ public expect abstract class Memory
 /**
  * Size of memory range in bytes.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public expect val Memory.size: Long
 
 /**
@@ -76,6 +77,7 @@ public expect fun Memory.copyTo(destination: Memory, offset: Long, length: Long,
 /**
  * Read byte at the specified [index].
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline operator fun Memory.get(index: Int): Byte = loadAt(index)
 
 /**

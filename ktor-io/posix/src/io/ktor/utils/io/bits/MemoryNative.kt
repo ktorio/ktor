@@ -40,6 +40,7 @@ public fun Memory(pointer: CPointer<ByteVar>, size: Long): Memory = MemoryImpl(p
 /**
  * Size of memory range in bytes.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public actual inline val Memory.size: Long get() = size
 
 /**
