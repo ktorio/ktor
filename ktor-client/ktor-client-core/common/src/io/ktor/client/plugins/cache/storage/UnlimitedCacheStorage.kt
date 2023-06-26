@@ -22,7 +22,9 @@ internal class UnlimitedCacheStorage : HttpCacheStorage() {
 
     override fun find(url: Url, varyKeys: Map<String, String>): HttpCacheEntry? {
         val data = store.computeIfAbsent(url) { ConcurrentSet() }
-        return data.find { it.varyKeys == varyKeys }
+        return data.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
     }
 
     override fun findByUrl(url: Url): Set<HttpCacheEntry> = store[url] ?: emptySet()
