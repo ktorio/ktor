@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.date.*
@@ -53,6 +54,19 @@ internal fun Application.cacheTestServer() {
                 if (maxAge != null) call.response.cacheControl(CacheControl.MaxAge(maxAge))
                 call.response.etag("0")
                 call.respondText(current.toString())
+            }
+
+            get("/etag-304") {
+                if (call.request.header("If-None-Match") == "My-ETAG") {
+                    call.response.header("Etag", "My-ETAG")
+                    call.response.header("Vary", "Origin")
+                    call.respond(HttpStatusCode.NotModified)
+                    return@get
+                }
+
+                call.response.header("Etag", "My-ETAG")
+                call.response.header("Vary", "Origin, Accept-Encoding")
+                call.respondText(contentType = ContentType.Application.Json) { "{}" }
             }
 
             get("/last-modified") {

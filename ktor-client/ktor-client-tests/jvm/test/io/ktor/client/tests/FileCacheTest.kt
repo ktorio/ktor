@@ -76,6 +76,29 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
+    fun testReuseCacheStorage() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                publicStorage(this@FileCacheTest.publicStorage)
+                privateStorage(this@FileCacheTest.privateStorage)
+            }
+        }
+
+        test { client ->
+            val client1 = client.config { }
+            val client2 = client.config { }
+            val url = Url("$TEST_SERVER/cache/etag-304")
+
+            val first = client1.get(url)
+            val second = client2.get(url)
+
+            assertEquals(HttpStatusCode.OK, first.status)
+            assertEquals(HttpStatusCode.OK, second.status)
+            assertEquals(first.body<String>(), second.body<String>())
+        }
+    }
+
+    @Test
     fun testLongPath() = clientTests {
         config {
             install(HttpCache) {

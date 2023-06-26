@@ -43,7 +43,9 @@ internal class CachingCacheStorage(
             store[url] = delegate.findAll(url)
         }
         val data = store.getValue(url)
-        return data.find { it.varyKeys == varyKeys }
+        return data.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> {
@@ -76,7 +78,10 @@ private class FileCacheStorage(
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
-        return readCache(key(url)).find { it.varyKeys == varyKeys }
+        val data = readCache(key(url))
+        return data.find {
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        }
     }
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("MD5").digest(url.toString().encodeToByteArray()))
