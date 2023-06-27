@@ -120,10 +120,11 @@ class MapApplicationConfigTest {
         config.put("users.0.password", "asd")
         config.put("users.1.name", "other")
         config.put("users.1.password", "qwe")
+        config.put("nested.config.value", "a1")
 
         val map = config.toMap()
 
-        assertEquals(6, map.size)
+        assertEquals(7, map.size)
         assertEquals("SHA-256", map["hashAlgorithm"])
         assertEquals("ktor", map["salt"])
         assertEquals(
@@ -133,5 +134,8 @@ class MapApplicationConfigTest {
         assertEquals(listOf("a", "b"), map["values"])
         assertEquals(listOf("a", "b", "c"), map["listValues"])
         assertEquals(mapOf("value1" to "1", "value2" to "2"), map["data"])
+
+        @Suppress("UNCHECKED_CAST")
+        assertEquals("a1", (map["nested"] as Map<String, Map<String, String>>)["config"]!!["value"])
     }
 }
