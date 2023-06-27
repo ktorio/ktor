@@ -107,7 +107,7 @@ public open class MapApplicationConfig : ApplicationConfig {
                     map.containsKey(combine(path, "0")) -> key to property(path).getList()
                     else -> key to configList(path).map { it.toMap() }
                 }
-                else -> key to config(path).toMap()
+                else -> key to config(key).toMap()
             }
         }
     }
