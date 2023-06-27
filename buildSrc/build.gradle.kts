@@ -24,8 +24,8 @@ sourceSets.main {
 val ktor_version = "2.3.0"
 
 dependencies {
-    implementation(kotlin("gradle-plugin", "1.8.10"))
-    implementation(kotlin("serialization", "1.8.10"))
+    implementation(kotlin("gradle-plugin", "1.8.22"))
+    implementation(kotlin("serialization", "1.8.22"))
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")

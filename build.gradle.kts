@@ -226,22 +226,3 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
         findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
     }
 }
-
-allprojects {
-    val jsTest = tasks.findByName("jsTest") ?: return@allprojects
-    val cleanJsTest = tasks.findByName("cleanJsTest") ?: return@allprojects
-
-    val cleanJsIrTest by tasks.creating {
-        dependsOn(cleanJsTest)
-    }
-
-    val jsIrTest by tasks.creating {
-        dependsOn(jsTest)
-    }
-}
-
-val jsLegacyTest by tasks.creating {
-}
-
-val cleanJsLegacyTest by tasks.creating {
-}

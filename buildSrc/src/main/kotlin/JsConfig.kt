@@ -43,23 +43,7 @@ private fun Project.configureJsTasks() {
                 }
             }
 
-            val main by compilations.getting
-            main.kotlinOptions.apply {
-                metaInfo = true
-                sourceMap = true
-                moduleKind = "umd"
-                this.main = "noCall"
-                sourceMapEmbedSources = "always"
-            }
-
-            val test by compilations.getting
-            test.kotlinOptions.apply {
-                metaInfo = true
-                sourceMap = true
-                moduleKind = "umd"
-                this.main = "call"
-                sourceMapEmbedSources = "always"
-            }
+            binaries.library()
         }
     }
 }
