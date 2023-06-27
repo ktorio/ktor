@@ -1,5 +1,5 @@
 [versions]
-kotlin-version = "1.8.10"
+kotlin-version = "1.8.22"
 kotlinx-html-version = "0.8.1"
 coroutines-version = "1.7.1"
 atomicfu-version = "0.18.5"
