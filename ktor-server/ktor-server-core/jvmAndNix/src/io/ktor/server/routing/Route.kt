@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -282,4 +283,14 @@ private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
         endpoints.add(this)
     }
     children.forEach { it.getAllRoutes(endpoints) }
+}
+
+@Deprecated("TODO")
+public fun RoutingBuilder.intercept(phase: PipelinePhase, block: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit) {
+    val hook = object : Hook<suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit> {
+        override fun install(pipeline: ApplicationCallPipeline, handler: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit) {
+            pipeline.intercept(phase, handler)
+        }
+    }
+    install(createRouteScopedPlugin(hook.toString()) { on(hook, block) })
 }
