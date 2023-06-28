@@ -186,7 +186,7 @@ public class RoutingResponse internal constructor(
 }
 
 public class RoutingCall internal constructor(
-    internal val applicationCall: RoutingApplicationCall
+    public val applicationCall: RoutingApplicationCall
 ) : CallProperties {
 
     public override lateinit var request: RoutingRequest

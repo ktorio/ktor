@@ -148,7 +148,7 @@ RootRoutingBuilder {
 /**
  * Gets an [Application] for this [Route] by scanning the hierarchy to the root.
  */
-public val Route.application: Application
+public val RoutingBuilder.application: Application
     get() = when (this) {
         is Routing -> application
         else -> parent?.application ?: throw UnsupportedOperationException(

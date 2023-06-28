@@ -24,13 +24,13 @@ public interface DelegateApplicationCall {
  * @property call original call from [ApplicationEngine]
  * @property route is the selected route
  */
-internal class RoutingApplicationCall(
-    internal val engineCall: ApplicationCall,
-    internal val route: Route,
+public class RoutingApplicationCall(
+    public val engineCall: ApplicationCall,
+    public val route: Route,
     override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
-    internal val pathParameters: Parameters
+    public val pathParameters: Parameters
 ) : ApplicationCall, CoroutineScope, DelegateApplicationCall {
 
     override val delegate: ApplicationCall = engineCall
@@ -57,7 +57,7 @@ internal class RoutingApplicationCall(
 /**
  * An application request handled by [Routing].
  */
-internal class RoutingApplicationRequest(
+public class RoutingApplicationRequest(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationReceivePipeline,
     public val engineRequest: ApplicationRequest
@@ -66,7 +66,7 @@ internal class RoutingApplicationRequest(
 /**
  * An application response handled by [Routing].
  */
-internal class RoutingApplicationResponse(
+public class RoutingApplicationResponse(
     override val call: RoutingApplicationCall,
     override val pipeline: ApplicationSendPipeline,
     public val engineResponse: ApplicationResponse
