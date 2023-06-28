@@ -1,3 +1,16 @@
+# 2.3.2
+> Published 28 June 2023
+
+### Bugfixes
+* Linking release build leads to compilation error with coroutines of version 1.7.0-Beta ([KTOR-5728](https://youtrack.jetbrains.com/issue/KTOR-5728))
+* MapApplicationConfig removes deeply nested properties when converting to a map ([KTOR-6013](https://youtrack.jetbrains.com/issue/KTOR-6013))
+* Cache returns null when vary header has more fields in the cached response ([KTOR-6001](https://youtrack.jetbrains.com/issue/KTOR-6001))
+* ContentType of a response body isn't set inside OkHttp's interceptor when a form request is sent ([KTOR-5971](https://youtrack.jetbrains.com/issue/KTOR-5971))
+
+### Improvements
+* Update Kotlin to 1.8.22 ([KTOR-6053](https://youtrack.jetbrains.com/issue/KTOR-6053))
+* The error message is not helpful when authenticating with a bearer header with a colon ([KTOR-5409](https://youtrack.jetbrains.com/issue/KTOR-5409))
+
 # 2.3.1
 > Published 31 May 2023
 
