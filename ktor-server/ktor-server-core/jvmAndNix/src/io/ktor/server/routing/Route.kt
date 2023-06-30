@@ -151,7 +151,7 @@ public class RoutingRequest internal constructor(
     public val pathVariables: Parameters,
     internal val request: ApplicationRequest,
     public override val call: RoutingCall
-) : RequestProperties {
+) : Request {
 
     public override val queryParameters: Parameters = request.queryParameters
     public override val rawQueryParameters: Parameters = request.rawQueryParameters
@@ -163,7 +163,7 @@ public class RoutingRequest internal constructor(
 public class RoutingResponse internal constructor(
     public override val call: RoutingCall,
     internal val applicationResponse: ApplicationResponse
-) : ResponseProperties {
+) : Response {
 
     override val isCommitted: Boolean
         get() = applicationResponse.isCommitted
@@ -187,7 +187,7 @@ public class RoutingResponse internal constructor(
 
 public class RoutingCall internal constructor(
     public val applicationCall: RoutingApplicationCall
-) : CallProperties {
+) : Call {
 
     public override lateinit var request: RoutingRequest
         internal set
@@ -286,11 +286,27 @@ private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
 }
 
 @Deprecated("TODO")
-public fun RoutingBuilder.intercept(phase: PipelinePhase, block: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit) {
+public fun RoutingBuilder.intercept(
+    phase: PipelinePhase,
+    block: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit
+) {
     val hook = object : Hook<suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit> {
-        override fun install(pipeline: ApplicationCallPipeline, handler: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit) {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            handler: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit
+        ) {
             pipeline.intercept(phase, handler)
         }
     }
     install(createRouteScopedPlugin(hook.toString()) { on(hook, block) })
+}
+
+@Deprecated("TODO")
+public fun RoutingBuilder.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
+    (this as Route).insertPhaseAfter(reference, phase)
+}
+
+@Deprecated("TODO")
+public fun RoutingBuilder.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
+    (this as Route).insertPhaseBefore(reference, phase)
 }

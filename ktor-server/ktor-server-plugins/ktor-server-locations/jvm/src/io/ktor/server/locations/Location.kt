@@ -42,7 +42,7 @@ public val RoutingContext.locations: Locations
  * Gets the [Application.locations] plugin
  */
 @KtorExperimentalLocationsAPI
-public val CallProperties.locations: Locations
+public val Call.locations: Locations
     get() = application.locations
 
 /**
@@ -263,23 +263,23 @@ private val LocationInstancePlugin = createRouteScopedPlugin("LocationInstancePl
  */
 @KtorExperimentalLocationsAPI
 @Deprecated("Use location function instead.", ReplaceWith("this.location<T>()"), level = DeprecationLevel.ERROR)
-public inline fun <reified T : Any> CallProperties.locationOrNull(): T = location()
+public inline fun <reified T : Any> Call.locationOrNull(): T = location()
 
 /**
  * Retrieves the current call's location or fails if it is not available (request is not handled by a location class),
  * or not yet available (invoked too early before the locations plugin takes place).
  */
 @KtorExperimentalLocationsAPI
-public inline fun <reified T : Any> CallProperties.location(): T = locationOrThrow(T::class)
+public inline fun <reified T : Any> Call.location(): T = locationOrThrow(T::class)
 
 @PublishedApi
-internal fun <T : Any> CallProperties.locationOrNull(type: KClass<T>): T =
+internal fun <T : Any> Call.locationOrNull(type: KClass<T>): T =
     attributes.getOrNull(LocationInstanceKey)?.let { instance ->
         type.cast(instance)
     } ?: error("Location instance is not available for this call.)")
 
 @PublishedApi
-internal fun <T : Any> CallProperties.locationOrThrow(type: KClass<T>): T =
+internal fun <T : Any> Call.locationOrThrow(type: KClass<T>): T =
     attributes.getOrNull(LocationInstanceKey)?.let { instance ->
         type.cast(instance)
     } ?: error("Location instance is not available for this call.)")

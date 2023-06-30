@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 
-internal fun CallProperties.accessControlAllowOrigin(
+internal fun Call.accessControlAllowOrigin(
     origin: String,
     allowsAnyHost: Boolean,
     allowCredentials: Boolean
@@ -18,19 +18,19 @@ internal fun CallProperties.accessControlAllowOrigin(
     response.header(HttpHeaders.AccessControlAllowOrigin, headerOrigin)
 }
 
-internal fun CallProperties.corsVary() {
+internal fun Call.corsVary() {
     val vary = response.headers[HttpHeaders.Vary]
     val varyValue = if (vary == null) HttpHeaders.Origin else vary + ", " + HttpHeaders.Origin
     response.header(HttpHeaders.Vary, varyValue)
 }
 
-internal fun CallProperties.accessControlAllowCredentials(allowCredentials: Boolean) {
+internal fun Call.accessControlAllowCredentials(allowCredentials: Boolean) {
     if (allowCredentials) {
         response.header(HttpHeaders.AccessControlAllowCredentials, "true")
     }
 }
 
-internal fun CallProperties.accessControlMaxAge(maxAgeHeaderValue: String?) {
+internal fun Call.accessControlMaxAge(maxAgeHeaderValue: String?) {
     if (maxAgeHeaderValue != null) {
         response.header(HttpHeaders.AccessControlMaxAge, maxAgeHeaderValue)
     }
@@ -66,14 +66,14 @@ internal fun corsCheckRequestHeaders(
 internal fun headerMatchesAPredicate(header: String, headerPredicates: List<(String) -> Boolean>): Boolean =
     headerPredicates.any { it(header) }
 
-internal fun CallProperties.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean = request.httpMethod in methods
+internal fun Call.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean = request.httpMethod in methods
 
-internal fun CallProperties.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
+internal fun Call.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
     val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
     return requestMethod != null && requestMethod in methods
 }
 
-internal suspend fun CallProperties.respondCorsFailed() {
+internal suspend fun Call.respondCorsFailed() {
     respond(HttpStatusCode.Forbidden)
 }
 

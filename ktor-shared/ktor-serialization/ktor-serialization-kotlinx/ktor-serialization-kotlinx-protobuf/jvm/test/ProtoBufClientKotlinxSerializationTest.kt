@@ -23,7 +23,7 @@ class ProtoBufClientKotlinxSerializationTest : AbstractClientContentNegotiationT
         register(contentType, converter)
     }
 
-    override suspend fun <T : Any> CallProperties.respond(
+    override suspend fun <T : Any> Call.respond(
         responseJson: String,
         contentType: ContentType,
         serializer: KSerializer<T>
@@ -33,7 +33,7 @@ class ProtoBufClientKotlinxSerializationTest : AbstractClientContentNegotiationT
         respondBytes(bytes, contentType)
     }
 
-    override suspend fun CallProperties.respondWithRequestBody(contentType: ContentType) {
+    override suspend fun Call.respondWithRequestBody(contentType: ContentType) {
         respondBytes(receive(), contentType)
     }
 

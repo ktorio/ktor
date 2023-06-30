@@ -12,7 +12,7 @@ import java.util.*
 /**
  * Respond with a [template] applying a data [model].
  */
-public suspend fun CallProperties.respondTemplate(
+public suspend fun Call.respondTemplate(
     template: String,
     model: Map<String, Any> = emptyMap(),
     etag: String? = null,

@@ -20,7 +20,7 @@ public interface WebSocketServerSession : WebSocketSession {
     /**
      * Associated received [call] that originating this session
      */
-    public val call: CallProperties
+    public val call: Call
 }
 
 /**
@@ -97,18 +97,18 @@ public suspend fun <T> WebSocketServerSession.receiveDeserialized(typeInfo: Type
 public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized(): T =
     receiveDeserialized(typeInfo<T>())
 
-internal fun WebSocketSession.toServerSession(call: CallProperties): WebSocketServerSession =
+internal fun WebSocketSession.toServerSession(call: Call): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)
 
-internal fun DefaultWebSocketSession.toServerSession(call: CallProperties): DefaultWebSocketServerSession =
+internal fun DefaultWebSocketSession.toServerSession(call: Call): DefaultWebSocketServerSession =
     DelegatedDefaultWebSocketServerSession(call, this)
 
 private class DelegatedWebSocketServerSession(
-    override val call: CallProperties,
+    override val call: Call,
     val delegate: WebSocketSession
 ) : WebSocketServerSession, WebSocketSession by delegate
 
 private class DelegatedDefaultWebSocketServerSession(
-    override val call: CallProperties,
+    override val call: Call,
     val delegate: DefaultWebSocketSession
 ) : DefaultWebSocketServerSession, DefaultWebSocketSession by delegate

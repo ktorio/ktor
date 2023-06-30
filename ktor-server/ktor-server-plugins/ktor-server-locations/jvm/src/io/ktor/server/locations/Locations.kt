@@ -43,7 +43,7 @@ public open class Locations constructor(
      * Resolves parameters in a [call] to an instance of specified [locationClass].
      */
     @Suppress("UNCHECKED_CAST")
-    public fun <T : Any> resolve(locationClass: KClass<*>, call: CallProperties): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, call: Call): T {
         return resolve(locationClass, call.parameters)
     }
 
@@ -68,7 +68,7 @@ public open class Locations constructor(
      * Resolves parameters in a [call] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    public inline fun <reified T : Any> resolve(call: CallProperties): T {
+    public inline fun <reified T : Any> resolve(call: Call): T {
         return resolve(T::class, call)
     }
 

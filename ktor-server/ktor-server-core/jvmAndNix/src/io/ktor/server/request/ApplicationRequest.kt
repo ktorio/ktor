@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 
-public interface RequestProperties {
+public interface Request {
 
     /**
      * Provides access to headers for the current request.
@@ -21,7 +21,7 @@ public interface RequestProperties {
     /**
      * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
-    public val call: CallProperties
+    public val call: Call
 
     /**
      * Provides access to connection details such as a host name, port, scheme, etc.
@@ -52,7 +52,7 @@ public interface RequestProperties {
  * @see [ApplicationCall.request]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface ApplicationRequest : RequestProperties {
+public interface ApplicationRequest : Request {
     /**
      * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
@@ -84,7 +84,7 @@ public interface ApplicationRequest : RequestProperties {
 /**
  * Internal helper function to encode raw parameters. Should not be used directly.
  */
-public fun RequestProperties.encodeParameters(parameters: Parameters): Parameters {
+public fun Request.encodeParameters(parameters: Parameters): Parameters {
     return ParametersBuilder().apply {
         rawQueryParameters.names().forEach { key ->
             val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()

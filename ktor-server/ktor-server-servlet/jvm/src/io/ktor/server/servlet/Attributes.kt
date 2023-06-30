@@ -13,7 +13,7 @@ import javax.servlet.*
  * Provides javax.servlet request attributes or fail it the underlying engine is not
  * servlet-backed.
  */
-public val RequestProperties.servletRequestAttributes: Map<String, Any>
+public val Request.servletRequestAttributes: Map<String, Any>
     get() = call.attributes[servletRequestAttributesKey]
 
 /**
@@ -21,7 +21,7 @@ public val RequestProperties.servletRequestAttributes: Map<String, Any>
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
 
-public fun CallProperties.putServletAttributes(request: ServletRequest) {
+public fun Call.putServletAttributes(request: ServletRequest) {
     val servletAttributes = request.attributeNames?.asSequence()?.associateWith { attributeName ->
         request.getAttribute(attributeName)
     }?.filterValues { it != null } ?: emptyMap()

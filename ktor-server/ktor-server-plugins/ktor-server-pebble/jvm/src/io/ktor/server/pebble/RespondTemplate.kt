@@ -14,7 +14,7 @@ import java.util.*
  *
  * @see PebbleContent
  */
-public suspend fun CallProperties.respondTemplate(
+public suspend fun Call.respondTemplate(
     template: String,
     model: Map<String, Any>,
     locale: Locale? = null,

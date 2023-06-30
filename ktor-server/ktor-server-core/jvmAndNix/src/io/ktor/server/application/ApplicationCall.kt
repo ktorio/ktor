@@ -14,21 +14,21 @@ import io.ktor.util.reflect.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
-public interface CallProperties {
+public interface Call {
     /**
      * [Attributes] attached to this call.
      */
     public val attributes: Attributes
 
     /**
-     * An [RequestProperties] that is a client request.
+     * An [Request] that is a client request.
      */
-    public val request: RequestProperties
+    public val request: Request
 
     /**
      * An [ApplicationResponse] that is a server response.
      */
-    public val response: ResponseProperties
+    public val response: Response
 
     /**
      * An application being called.
@@ -61,7 +61,7 @@ public interface CallProperties {
  * @see [io.ktor.server.request.ApplicationRequest]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface ApplicationCall : CallProperties {
+public interface ApplicationCall : Call {
 
     /**
      * An [ApplicationRequest] that is a client request.
@@ -102,12 +102,12 @@ public interface ApplicationCall : CallProperties {
 /**
  * Indicates if a response is sent.
  */
-public val CallProperties.isHandled: Boolean get() = response.isCommitted
+public val Call.isHandled: Boolean get() = response.isCommitted
 
 /**
  * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
  */
-public var CallProperties.receiveType: TypeInfo
+public var Call.receiveType: TypeInfo
     get() = attributes[RECEIVE_TYPE_KEY]
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)

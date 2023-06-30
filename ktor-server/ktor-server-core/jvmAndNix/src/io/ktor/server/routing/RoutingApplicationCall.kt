@@ -21,7 +21,7 @@ public interface DelegateApplicationCall {
 
 /**
  * An application call handled by [Routing].
- * @property call original call from [ApplicationEngine]
+ * @property call original call from [io.ktor.server.engine.ApplicationEngine]
  * @property route is the selected route
  */
 public class RoutingApplicationCall(

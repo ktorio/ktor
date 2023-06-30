@@ -85,11 +85,11 @@ internal fun getVerifier(
 }
 
 internal suspend fun verifyAndValidate(
-    call: CallProperties,
+    call: Call,
     jwtVerifier: JWTVerifier?,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
-    validate: suspend CallProperties.(JWTCredential) -> Principal?
+    validate: suspend Call.(JWTCredential) -> Principal?
 ): Principal? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
@@ -108,7 +108,7 @@ internal fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
     else -> null
 }
 
-internal fun RequestProperties.parseAuthorizationHeaderOrNull() = try {
+internal fun Request.parseAuthorizationHeaderOrNull() = try {
     parseAuthorizationHeader()
 } catch (cause: IllegalArgumentException) {
     JWTLogger.trace("Illegal HTTP auth header", cause)

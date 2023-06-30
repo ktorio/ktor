@@ -55,7 +55,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
             )
         }
 
-        internal var getAuthHeader: (CallProperties) -> HttpAuthHeader? = { call ->
+        internal var getAuthHeader: (Call) -> HttpAuthHeader? = { call ->
             call.request.parseAuthorizationHeader()
         }
 
@@ -71,7 +71,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
          * Exchanges the token for a Principal.
          * @return a principal or `null`
          */
-        public fun authenticate(authenticate: suspend CallProperties.(BearerTokenCredential) -> Principal?) {
+        public fun authenticate(authenticate: suspend Call.(BearerTokenCredential) -> Principal?) {
             this.authenticate = authenticate
         }
 
@@ -79,7 +79,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
          * Retrieves an HTTP authentication header.
          * By default, it parses the `Authorization` header content.
          */
-        public fun authHeader(getAuthHeader: (CallProperties) -> HttpAuthHeader?) {
+        public fun authHeader(getAuthHeader: (Call) -> HttpAuthHeader?) {
             this.getAuthHeader = getAuthHeader
         }
 

@@ -180,7 +180,7 @@ private fun checkOrigin(
     else -> OriginCheckResult.OK
 }
 
-private suspend fun CallProperties.respondPreflight(
+private suspend fun Call.respondPreflight(
     origin: String,
     methodsListHeaderValue: String,
     headersList: List<String>,

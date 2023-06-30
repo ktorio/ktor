@@ -30,7 +30,7 @@ import kotlin.coroutines.*
  * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
  */
 public class WebSocketUpgrade(
-    public val call: CallProperties,
+    public val call: Call,
     @Suppress("MemberVisibilityCanBePrivate") public val protocol: String? = null,
     private val installExtensions: Boolean = false,
     public val handle: suspend WebSocketSession.() -> Unit
@@ -52,7 +52,7 @@ public class WebSocketUpgrade(
      */
     @Suppress("unused")
     public constructor(
-        call: CallProperties,
+        call: Call,
         protocol: String? = null,
         handle: suspend WebSocketSession.() -> Unit
     ) : this(call, protocol, installExtensions = false, handle)

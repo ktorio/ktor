@@ -13,7 +13,7 @@ import kotlin.test.*
 
 @Suppress("DEPRECATION")
 class UrlEncodedTest {
-    fun RequestProperties.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
+    fun Request.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
         return runBlocking {
             call.receive<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
         }

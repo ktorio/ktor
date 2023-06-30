@@ -83,7 +83,7 @@ public class BasicAuthenticationProvider internal constructor(
          * Sets a validation function that checks a specified [UserPasswordCredential] instance and
          * returns [Principal] in a case of successful authentication or null if authentication fails.
          */
-        public fun validate(body: suspend CallProperties.(UserPasswordCredential) -> Principal?) {
+        public fun validate(body: suspend Call.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
         }
     }
@@ -103,9 +103,9 @@ public fun AuthenticationConfig.basic(
 }
 
 /**
- * Retrieves [basic] authentication credentials for this [RequestProperties].
+ * Retrieves [basic] authentication credentials for this [Request].
  */
-public fun RequestProperties.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
+public fun Request.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
             // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be

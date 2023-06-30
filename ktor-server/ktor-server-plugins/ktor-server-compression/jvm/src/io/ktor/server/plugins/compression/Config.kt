@@ -20,7 +20,7 @@ public data class CompressionOptions(
     /**
      * Conditions for all encoders.
      */
-    val conditions: List<CallProperties.(OutgoingContent) -> Boolean> = emptyList()
+    val conditions: List<Call.(OutgoingContent) -> Boolean> = emptyList()
 )
 
 /**
@@ -34,7 +34,7 @@ public data class CompressionEncoderConfig(
     /**
      * Conditions for an encoder.
      */
-    val conditions: List<CallProperties.(OutgoingContent) -> Boolean>,
+    val conditions: List<Call.(OutgoingContent) -> Boolean>,
     /**
      * A priority of an encoder.
      */
@@ -51,7 +51,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
      */
     public val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
 
-    override val conditions: MutableList<CallProperties.(OutgoingContent) -> Boolean> = arrayListOf()
+    override val conditions: MutableList<Call.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
      * Appends an [encoder] with the [block] configuration.
@@ -98,7 +98,7 @@ public interface ConditionsHolderBuilder {
     /**
      * Preconditions applied to every response object to check if it should be compressed.
      */
-    public val conditions: MutableList<CallProperties.(OutgoingContent) -> Boolean>
+    public val conditions: MutableList<Call.(OutgoingContent) -> Boolean>
 }
 
 /**
@@ -113,7 +113,7 @@ public class CompressionEncoderBuilder internal constructor(
     /**
      * A list of conditions for this encoder
      */
-    override val conditions: ArrayList<CallProperties.(OutgoingContent) -> Boolean> = arrayListOf()
+    override val conditions: ArrayList<Call.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
      * A priority for this encoder.
@@ -156,7 +156,7 @@ public fun CompressionConfig.identity(block: CompressionEncoderBuilder.() -> Uni
  *
  * Note that adding a single condition removes the default configuration.
  */
-public fun ConditionsHolderBuilder.condition(predicate: CallProperties.(OutgoingContent) -> Boolean) {
+public fun ConditionsHolderBuilder.condition(predicate: Call.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
 }
 

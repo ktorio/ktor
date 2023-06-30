@@ -9,10 +9,10 @@ import io.ktor.util.collections.*
 
 /**
  * Server request's cookies.
- * @see [RequestProperties.cookies]
+ * @see [Request.cookies]
  * @property request application request to fetch cookies from
  */
-public open class RequestCookies(protected val request: RequestProperties) {
+public open class RequestCookies(protected val request: Request) {
     private val map = ConcurrentMap<Pair<CookieEncoding, String>, String>()
 
     /**

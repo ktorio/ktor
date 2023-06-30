@@ -12,7 +12,7 @@ import kotlin.reflect.*
  * Gets a current session or fails if the [Sessions] plugin is not installed.
  * @throws MissingApplicationPluginException
  */
-public val CallProperties.sessions: CurrentSession
+public val Call.sessions: CurrentSession
     get() = attributes.getOrNull(SessionDataKey) ?: reportMissingSession()
 
 /**
@@ -177,7 +177,7 @@ internal data class SessionProviderData<S : Any>(
 
 internal val SessionDataKey = AttributeKey<SessionData>("SessionKey")
 
-private fun CallProperties.reportMissingSession(): Nothing {
+private fun Call.reportMissingSession(): Nothing {
     application.plugin(Sessions) // ensure the plugin is installed
     throw SessionNotYetConfiguredException()
 }
