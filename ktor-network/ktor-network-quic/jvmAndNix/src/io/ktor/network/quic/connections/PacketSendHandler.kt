@@ -64,7 +64,7 @@ internal sealed class PacketSendHandler(
     suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock { buffer ->
         val temp = buildPacket {
             write(FrameWriterImpl, this) { hook ->
-                packetNumberHooks.add(hook)
+                packetNumberHooks.add(hook) // todo hooks are added, but packet number is wrong if frame does not fit
             }
         }.readBytes()
 
@@ -92,7 +92,7 @@ internal sealed class PacketSendHandler(
     private suspend fun finish(payload: ByteArray) {
         if (payload.isNotEmpty() || !hasPayload) {
             onPacketPayloadReady { packetNumber ->
-                packetNumberHooks.forEach { hook -> hook(packetNumber) }
+                packetNumberHooks.forEach { hook -> hook(packetNumber) } // todo this looks wrong
 
                 payload
             }

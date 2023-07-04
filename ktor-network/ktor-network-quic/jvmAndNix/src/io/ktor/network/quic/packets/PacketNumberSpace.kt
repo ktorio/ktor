@@ -29,7 +29,7 @@ internal class PacketNumberSpace {
         return increment.getAndIncrement().apply { unacknowledgedLocalPacketNumbers.add(this) }
     }
 
-    fun receivedPacket(packetNumber: Long) {
+    fun receivePacket(packetNumber: Long) {
         unacknowledgedPeerPacketNumbers.add(packetNumber)
     }
 
@@ -40,7 +40,7 @@ internal class PacketNumberSpace {
         if (ackRanges.isEmpty()) return // todo error?
 
         for (i in ackRanges.indices step 2) {
-            for (packetNumber in ackRanges[i] downTo ackRanges[i + 1]) {
+            for (packetNumber in ackRanges[i] downTo ackRanges[i + 1]) { // full loop
                 unacknowledgedLocalPacketNumbers.remove(packetNumber)
                 sentAckPackets.remove(packetNumber)?.let { numbers ->
                     unacknowledgedPeerPacketNumbers.removeAll(numbers)
@@ -77,6 +77,7 @@ internal class PacketNumberSpace {
         logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length argument-list-wrapping
 
         return result.toLongArray() to { packetNumber ->
+            // is the first case possible?
             sentAckPackets[packetNumber]?.addAll(sorted) ?: run {
                 sentAckPackets[packetNumber] = sorted.toMutableSet()
             }

@@ -152,7 +152,7 @@ internal class QUICConnection(
         logger.info("Decrypted packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
 
         packet.encryptionLevel?.let { level ->
-            packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
+            packetNumberSpacePool[level].receivePacket(packet.packetNumber)
         }
 
         val payload = packet.payload ?: return // todo

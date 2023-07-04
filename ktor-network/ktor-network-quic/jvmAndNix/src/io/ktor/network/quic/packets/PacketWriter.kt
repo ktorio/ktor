@@ -26,7 +26,7 @@ internal object PacketWriter {
     /**
      * Writes a Version Negotiation packet to [packetBuilder] according to specification.
      * If it is QUIC version 1, sets second bit to 1.
-     * (as fixed bit for protocol multiplexing [RFC-7983](https://www.rfc-editor.org/rfc/rfc7983.html))
+     * (As a fixed bit for protocol multiplexing [RFC-7983](https://www.rfc-editor.org/rfc/rfc7983.html))
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-version-negotiation-packet)
      */
@@ -37,7 +37,6 @@ internal object PacketWriter {
         sourceConnectionID: QUICConnectionID,
         supportedVersions: Array<UInt32>,
     ) = with(packetBuilder) {
-        @Suppress("KotlinConstantConditions")
         val first: UInt8 = when (version) {
             QUICVersion.V1 -> 0xC0u // header type bit + fixed bit
             else -> 0x80u // only header type bit
