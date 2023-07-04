@@ -43,12 +43,6 @@ internal fun Input.completeReadHead(current: ChunkBuffer) {
 
 @PublishedApi
 internal fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
-    if (current === this) {
-        return if (canRead()) this else null
-        // TODO dumanskaya K2: Type argument for a type parameter K can't be inferred because it has incompatible upper bounds: ChunkBuffer?, Input?
-
-    }
-
     return ensureNextHead(current)
 }
 
