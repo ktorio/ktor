@@ -389,12 +389,8 @@ class CacheTest : ClientLoader() {
             fakeResponse.content = ""
             fakeResponse.status = HttpStatusCode.NotModified
             fakeResponse.headers = headersOf(HttpHeaders.Vary, vary.joinToString(","))
-            try {
-                client.get(url)
-                fail("Must be caused an Exception")
-            } catch (e: Exception) {
-                assertTrue(e is InvalidCacheStateException)
-            }
+            val notModifiedBody = client.get(url).body<String>()
+            assertEquals(notModifiedBody, okBody)
         }
     }
 
