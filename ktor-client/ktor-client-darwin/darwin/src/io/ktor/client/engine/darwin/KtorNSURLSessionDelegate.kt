@@ -41,14 +41,15 @@ public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
  *   * URLSession:webSocketTask:didCloseWithCode:reason:
  */
 @OptIn(UnsafeNumber::class)
-public class KtorNSURLSessionDelegate internal constructor(
-    private val challengeHandler: ChallengeHandler?
+public class KtorNSURLSessionDelegate(
+    internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol, NSURLSessionWebSocketDelegateProtocol {
 
-    private val taskHandlers =
-        ConcurrentMap<NSURLSessionTask, DarwinTaskHandler>(HTTP_REQUESTS_INITIAL_CAPACITY)
-    private val webSocketSessions =
-        ConcurrentMap<NSURLSessionWebSocketTask, DarwinWebsocketSession>(WS_REQUESTS_INITIAL_CAPACITY)
+    private val taskHandlers: ConcurrentMap<NSURLSessionTask, DarwinTaskHandler> =
+        ConcurrentMap(HTTP_REQUESTS_INITIAL_CAPACITY)
+
+    private val webSocketSessions: ConcurrentMap<NSURLSessionWebSocketTask, DarwinWebsocketSession> =
+        ConcurrentMap(WS_REQUESTS_INITIAL_CAPACITY)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
         val taskHandler = taskHandlers[dataTask] ?: return

@@ -5,7 +5,6 @@
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
-import io.ktor.client.engine.darwin.handleNSError
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -14,7 +13,6 @@ import io.ktor.utils.io.CancellationException
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import platform.CoreAudioTypes.*
 import platform.Foundation.*
 import kotlin.coroutines.*
 
