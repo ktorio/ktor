@@ -9,11 +9,11 @@ import io.ktor.network.quic.tls.*
 import io.ktor.utils.io.core.*
 
 internal sealed interface ReadyPacketHandler {
-    val destinationConnectionID: ConnectionID
+    val destinationConnectionID: QUICConnectionID
 
     val destinationConnectionIDSize: Int
 
-    val sourceConnectionID: ConnectionID
+    val sourceConnectionID: QUICConnectionID
 
     val sourceConnectionIDSize: Int
 
@@ -34,7 +34,7 @@ internal sealed interface ReadyPacketHandler {
     }
 
     interface Retry : ReadyPacketHandler {
-        val originalDestinationConnectionID: ConnectionID
+        val originalDestinationConnectionID: QUICConnectionID
         val retryToken: ByteArray
     }
 

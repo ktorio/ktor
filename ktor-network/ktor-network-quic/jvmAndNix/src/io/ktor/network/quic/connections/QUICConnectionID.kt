@@ -5,21 +5,20 @@
 package io.ktor.network.quic.connections
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.consts.*
 import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 import kotlin.random.*
 
 @JvmInline
-internal value class ConnectionID(val value: ByteArray) {
+internal value class QUICConnectionID(val value: ByteArray) {
     val size get() = value.size
 
     companion object {
-        val EMPTY = ConnectionID(byteArrayOf())
+        val EMPTY = QUICConnectionID(byteArrayOf())
 
-        fun new(): ConnectionID {
+        fun new(): QUICConnectionID {
             // todo fix random
-            return ConnectionID(Random.nextBytes(endpointSCIDLength))
+            return QUICConnectionID(Random.nextBytes(endpointSCIDLength))
         }
 
         /**
@@ -30,17 +29,17 @@ internal value class ConnectionID(val value: ByteArray) {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.asCID() = ConnectionID(this)
+internal inline fun ByteArray.asCID() = QUICConnectionID(this)
 
-internal infix fun ConnectionID.neq(other: ConnectionID): Boolean {
+internal infix fun QUICConnectionID.neq(other: QUICConnectionID): Boolean {
     return !eq(other)
 }
 
-internal infix fun ConnectionID.eq(other: ConnectionID): Boolean {
+internal infix fun QUICConnectionID.eq(other: QUICConnectionID): Boolean {
     return value.contentEquals(other.value)
 }
 
-internal fun BytePacketBuilder.writeConnectionID(id: ConnectionID) {
+internal fun BytePacketBuilder.writeConnectionID(id: QUICConnectionID) {
     writeVarInt(id.size)
     writeFully(id.value)
 }

@@ -2,12 +2,9 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("UNUSED_PARAMETER")
-
 package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
-import io.ktor.network.quic.tls.*
 
 @Suppress("NOTHING_TO_INLINE")
 internal object HeaderProtectionUtils {

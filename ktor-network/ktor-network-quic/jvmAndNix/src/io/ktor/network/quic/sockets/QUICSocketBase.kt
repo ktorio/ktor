@@ -19,7 +19,7 @@ internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
     protected abstract val logger: Logger
-    protected val connections = mutableListOf<QuicConnection>()
+    protected val connections = mutableListOf<QUICConnection>()
 
     override fun dispose() {
         datagramSocket.dispose()
@@ -42,7 +42,7 @@ internal abstract class QUICSocketBase(
         logger.info("Accepted datagram from ${datagram.address}")
         logger.info("Datagram size: ${datagram.packet.remaining}")
 
-        var firstDcidInDatagram: ConnectionID? = null
+        var firstDcidInDatagram: QUICConnectionID? = null
 
         while (datagram.packet.isNotEmpty) {
             val packet = PacketReader.readSinglePacket(
@@ -66,11 +66,11 @@ internal abstract class QUICSocketBase(
 
     abstract suspend fun createConnection(
         address: SocketAddress,
-        peerSourceConnectionID: ConnectionID,
-        originalDestinationConnectionID: ConnectionID,
-    ): QuicConnection
+        peerSourceConnectionID: QUICConnectionID,
+        originalDestinationConnectionID: QUICConnectionID,
+    ): QUICConnection
 
-    private fun handleTransportError(error: QuicTransportError) {}
+    private fun handleTransportError(error: QUICTransportError) {}
 
-    private val ConnectionID.connection: QuicConnection? get() = connections.find { it.match(this) }
+    private val QUICConnectionID.connection: QUICConnection? get() = connections.find { it.match(this) }
 }

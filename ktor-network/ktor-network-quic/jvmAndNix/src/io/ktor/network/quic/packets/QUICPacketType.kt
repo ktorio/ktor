@@ -4,7 +4,6 @@
 
 package io.ktor.network.quic.packets
 
-@Suppress("ClassName")
-internal enum class PacketType {
+internal enum class QUICPacketType {
     Initial, ZeroRTT, Handshake, OneRTT, Retry, VersionNegotiation
 }

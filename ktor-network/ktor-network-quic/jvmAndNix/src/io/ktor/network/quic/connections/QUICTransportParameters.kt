@@ -8,21 +8,21 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
-internal inline fun transportParameters(config: TransportParameters.() -> Unit = {}): TransportParameters {
-    return TransportParameters().apply(config)
+internal inline fun quicTransportParameters(config: QUICTransportParameters.() -> Unit = {}): QUICTransportParameters {
+    return QUICTransportParameters().apply(config)
 }
 
 /**
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-transport-parameter-definit)
  */
 @Suppress("PropertyName")
-internal class TransportParameters {
+internal class QUICTransportParameters {
     /**
      * This parameter is the value of the Destination Connection ID field from the first Initial packet
      * sent by the client; see [Section 7.3](https://www.rfc-editor.org/rfc/rfc9000.html#cid-auth).
      * This transport parameter is only sent by a server.
      */
-    var original_destination_connection_id: ConnectionID? = null
+    var original_destination_connection_id: QUICConnectionID? = null
 
     /**
      * The maximum idle timeout is a value in milliseconds that is encoded as an integer;
@@ -177,13 +177,13 @@ internal class TransportParameters {
      * it sends for the connection;
      * see Section 7.3.
      */
-    var initial_source_connection_id: ConnectionID? = null
+    var initial_source_connection_id: QUICConnectionID? = null
 
     /**
      * This is the value that the server included in the Source Connection ID field of a Retry packet; see Section 7.3.
      * This transport parameter is only sent by a server.
      */
-    var retry_source_connection_id: ConnectionID? = null
+    var retry_source_connection_id: QUICConnectionID? = null
 
     fun toBytes(isServer: Boolean): ByteArray = buildPacket {
         if (isServer) {
@@ -216,9 +216,9 @@ internal class TransportParameters {
     }.readBytes()
 
     companion object {
-        fun fromBytes(bytes: ByteReadPacket, length: Int, isServer: Boolean): TransportParameters {
+        fun fromBytes(bytes: ByteReadPacket, length: Int, isServer: Boolean): QUICTransportParameters {
             val start = bytes.remaining
-            return transportParameters {
+            return quicTransportParameters {
                 while (start - bytes.remaining < length) {
                     readTransportParameter(
                         bytes = bytes,
@@ -235,7 +235,7 @@ internal class TransportParameters {
 
         @OptIn(ExperimentalUnsignedTypes::class)
         @Suppress("UNUSED_PARAMETER")
-        private fun TransportParameters.readTransportParameter(
+        private fun QUICTransportParameters.readTransportParameter(
             bytes: ByteReadPacket,
             isServer: Boolean,
             raiseError: () -> Nothing,
@@ -296,12 +296,14 @@ internal class PreferredAddress(
     val ipv4Port: Short,
     val ipv6address: Int,
     val ipv6Port: Short,
-    val connectionID: ConnectionID,
+    val connectionID: QUICConnectionID,
     val statelessResetToken: ByteArray,
 )
 
+private typealias ID = QUICTransportParameterID
+
 @Suppress("EnumEntryName")
-private enum class ID(val value: Int) {
+internal enum class QUICTransportParameterID(val value: Int) {
     original_destination_connection_id(0x00),
     max_idle_timeout(0x01),
     stateless_reset_token(0x02),

@@ -37,13 +37,13 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
 
     override suspend fun createConnection(
         address: SocketAddress,
-        peerSourceConnectionID: ConnectionID,
-        originalDestinationConnectionID: ConnectionID,
-    ): QuicConnection {
-        val sourceConnectionID = ConnectionID.new()
+        peerSourceConnectionID: QUICConnectionID,
+        originalDestinationConnectionID: QUICConnectionID,
+    ): QUICConnection {
+        val sourceConnectionID = QUICConnectionID.new()
 
         return coroutineScope {
-            QuicConnection(
+            QUICConnection(
                 isServer = true,
                 initialLocalConnectionID = sourceConnectionID,
                 originalDestinationConnectionID = originalDestinationConnectionID,

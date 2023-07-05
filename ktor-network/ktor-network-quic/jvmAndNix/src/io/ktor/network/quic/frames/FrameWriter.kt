@@ -132,7 +132,7 @@ internal interface FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionID: ConnectionID,
+        connectionID: QUICConnectionID,
         statelessResetToken: ByteArray,
     )
 
@@ -153,8 +153,8 @@ internal interface FrameWriter {
 
     fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
-        errorCode: QuicTransportError,
-        frameTypeV1: FrameType?,
+        errorCode: QUICTransportError,
+        frameTypeV1: QUICFrameType?,
         reasonPhrase: ByteArray,
     )
 
@@ -173,13 +173,13 @@ internal object FrameWriterImpl : FrameWriter {
     override fun writePadding(
         packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.PADDING)
+        writeFrameType(QUICFrameType.PADDING)
     }
 
     override fun writePing(
         packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.PING)
+        writeFrameType(QUICFrameType.PING)
     }
 
     override fun writeACK(
@@ -188,7 +188,7 @@ internal object FrameWriterImpl : FrameWriter {
         ack_delay_exponent: Int,
         ackRanges: LongArray,
     ) = packetBuilder.writeACK(
-        typeV1 = FrameType.ACK,
+        typeV1 = QUICFrameType.ACK,
         ackDelay = ackDelay,
         ack_delay_exponent = ack_delay_exponent,
         ackRanges = ackRanges,
@@ -206,7 +206,7 @@ internal object FrameWriterImpl : FrameWriter {
         ect1: Long,
         ectCE: Long,
     ) = packetBuilder.writeACK(
-        typeV1 = FrameType.ACK_ECN,
+        typeV1 = QUICFrameType.ACK_ECN,
         ackDelay = ackDelay,
         ack_delay_exponent = ack_delay_exponent,
         ackRanges = ackRanges,
@@ -216,7 +216,7 @@ internal object FrameWriterImpl : FrameWriter {
     )
 
     private fun BytePacketBuilder.writeACK(
-        typeV1: FrameType,
+        typeV1: QUICFrameType,
         ackDelay: Long,
         ack_delay_exponent: Int,
         ackRanges: LongArray,
@@ -267,7 +267,7 @@ internal object FrameWriterImpl : FrameWriter {
         applicationProtocolErrorCode: AppError,
         finaSize: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.RESET_STREAM)
+        writeFrameType(QUICFrameType.RESET_STREAM)
         writeVarInt(streamId)
         applicationProtocolErrorCode.writeToFrame(this)
         writeVarInt(finaSize)
@@ -278,7 +278,7 @@ internal object FrameWriterImpl : FrameWriter {
         streamId: Long,
         applicationProtocolErrorCode: AppError,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.STOP_SENDING)
+        writeFrameType(QUICFrameType.STOP_SENDING)
         writeVarInt(streamId)
         applicationProtocolErrorCode.writeToFrame(this)
     }
@@ -292,7 +292,7 @@ internal object FrameWriterImpl : FrameWriter {
             "The sum of the 'offset' and 'data length' cannot exceed (2^62 - 1)"
         }
 
-        writeFrameType(FrameType.CRYPTO)
+        writeFrameType(QUICFrameType.CRYPTO)
         writeVarInt(offset)
         writeVarInt(data.size)
         writeFully(data)
@@ -306,7 +306,7 @@ internal object FrameWriterImpl : FrameWriter {
             "The 'token' MUST NOT be empty."
         }
 
-        writeFrameType(FrameType.NEW_TOKEN)
+        writeFrameType(QUICFrameType.NEW_TOKEN)
         writeVarInt(token.size)
         writeFully(token)
     }
@@ -327,14 +327,14 @@ internal object FrameWriterImpl : FrameWriter {
 
         @Suppress("KotlinConstantConditions")
         val type = when {
-            offset == null && length == null && !fin -> FrameType.STREAM
-            offset == null && length == null && fin -> FrameType.STREAM_FIN
-            offset == null && length != null && !fin -> FrameType.STREAM_LEN
-            offset == null && length != null && fin -> FrameType.STREAM_LEN_FIN
-            offset != null && length == null && !fin -> FrameType.STREAM_OFF
-            offset != null && length == null && fin -> FrameType.STREAM_OFF_FIN
-            offset != null && length != null && !fin -> FrameType.STREAM_OFF_LEN
-            offset != null && length != null && fin -> FrameType.STREAM_OFF_LEN_FIN
+            offset == null && length == null && !fin -> QUICFrameType.STREAM
+            offset == null && length == null && fin -> QUICFrameType.STREAM_FIN
+            offset == null && length != null && !fin -> QUICFrameType.STREAM_LEN
+            offset == null && length != null && fin -> QUICFrameType.STREAM_LEN_FIN
+            offset != null && length == null && !fin -> QUICFrameType.STREAM_OFF
+            offset != null && length == null && fin -> QUICFrameType.STREAM_OFF_FIN
+            offset != null && length != null && !fin -> QUICFrameType.STREAM_OFF_LEN
+            offset != null && length != null && fin -> QUICFrameType.STREAM_OFF_LEN_FIN
             else -> unreachable()
         }
 
@@ -349,7 +349,7 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.MAX_DATA)
+        writeFrameType(QUICFrameType.MAX_DATA)
         writeVarInt(maximumData)
     }
 
@@ -358,7 +358,7 @@ internal object FrameWriterImpl : FrameWriter {
         streamId: Long,
         maximumStreamData: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.MAX_STREAM_DATA)
+        writeFrameType(QUICFrameType.MAX_STREAM_DATA)
         writeVarInt(streamId)
         writeVarInt(maximumStreamData)
     }
@@ -371,7 +371,7 @@ internal object FrameWriterImpl : FrameWriter {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(FrameType.MAX_STREAMS_BIDIRECTIONAL)
+        writeFrameType(QUICFrameType.MAX_STREAMS_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
@@ -383,7 +383,7 @@ internal object FrameWriterImpl : FrameWriter {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(FrameType.MAX_STREAMS_UNIDIRECTIONAL)
+        writeFrameType(QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
@@ -391,7 +391,7 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.DATA_BLOCKED)
+        writeFrameType(QUICFrameType.DATA_BLOCKED)
         writeVarInt(maximumData)
     }
 
@@ -400,7 +400,7 @@ internal object FrameWriterImpl : FrameWriter {
         streamId: Long,
         maximumStreamData: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.STREAM_DATA_BLOCKED)
+        writeFrameType(QUICFrameType.STREAM_DATA_BLOCKED)
         writeVarInt(streamId)
         writeVarInt(maximumStreamData)
     }
@@ -413,7 +413,7 @@ internal object FrameWriterImpl : FrameWriter {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(FrameType.STREAMS_BLOCKED_BIDIRECTIONAL)
+        writeFrameType(QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
@@ -425,7 +425,7 @@ internal object FrameWriterImpl : FrameWriter {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(FrameType.STREAMS_BLOCKED_UNIDIRECTIONAL)
+        writeFrameType(QUICFrameType.STREAMS_BLOCKED_UNIDIRECTIONAL)
         writeVarInt(maximumStreams)
     }
 
@@ -433,7 +433,7 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
         retirePriorTo: Long,
-        connectionID: ConnectionID,
+        connectionID: QUICConnectionID,
         statelessResetToken: ByteArray,
     ) = with(packetBuilder) {
         require(retirePriorTo <= sequenceNumber) {
@@ -449,7 +449,7 @@ internal object FrameWriterImpl : FrameWriter {
                 "MUST be 16 bytes"
         }
 
-        writeFrameType(FrameType.NEW_CONNECTION_ID)
+        writeFrameType(QUICFrameType.NEW_CONNECTION_ID)
         writeVarInt(sequenceNumber)
         writeVarInt(retirePriorTo)
         writeConnectionID(connectionID)
@@ -460,7 +460,7 @@ internal object FrameWriterImpl : FrameWriter {
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.RETIRE_CONNECTION_ID)
+        writeFrameType(QUICFrameType.RETIRE_CONNECTION_ID)
         writeVarInt(sequenceNumber)
     }
 
@@ -471,7 +471,7 @@ internal object FrameWriterImpl : FrameWriter {
         require(data.size == 8) {
             "The size of the value in the 'Data' field in PATH_CHALLENGE frame MUST be 8 bytes"
         }
-        writeFrameType(FrameType.PATH_CHALLENGE)
+        writeFrameType(QUICFrameType.PATH_CHALLENGE)
         writeFully(data)
     }
 
@@ -482,19 +482,19 @@ internal object FrameWriterImpl : FrameWriter {
         require(data.size == 8) {
             "The size of the value in the 'Data' field in PATH_RESPONSE frame MUST be 8 bytes"
         }
-        writeFrameType(FrameType.PATH_RESPONSE)
+        writeFrameType(QUICFrameType.PATH_RESPONSE)
         writeFully(data)
     }
 
     override fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
-        errorCode: QuicTransportError,
-        frameTypeV1: FrameType?,
+        errorCode: QUICTransportError,
+        frameTypeV1: QUICFrameType?,
         reasonPhrase: ByteArray,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.CONNECTION_CLOSE_TRANSPORT_ERR)
+        writeFrameType(QUICFrameType.CONNECTION_CLOSE_TRANSPORT_ERR)
         errorCode.writeToFrame(this)
-        writeFrameType((frameTypeV1 ?: FrameType.PADDING))
+        writeFrameType((frameTypeV1 ?: QUICFrameType.PADDING))
         writeVarInt(reasonPhrase.size)
         writeFully(reasonPhrase)
     }
@@ -504,7 +504,7 @@ internal object FrameWriterImpl : FrameWriter {
         errorCode: AppError,
         reasonPhrase: ByteArray,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.CONNECTION_CLOSE_APP_ERR)
+        writeFrameType(QUICFrameType.CONNECTION_CLOSE_APP_ERR)
         errorCode.writeToFrame(this)
         writeVarInt(reasonPhrase.size)
         writeFully(reasonPhrase)
@@ -513,12 +513,12 @@ internal object FrameWriterImpl : FrameWriter {
     override fun writeHandshakeDone(
         packetBuilder: BytePacketBuilder,
     ) = with(packetBuilder) {
-        writeFrameType(FrameType.HANDSHAKE_DONE)
+        writeFrameType(QUICFrameType.HANDSHAKE_DONE)
     }
 
     // HELPER FUNCTIONS AND VALUES
 
-    private fun BytePacketBuilder.writeFrameType(typeV1: FrameType) {
+    private fun BytePacketBuilder.writeFrameType(typeV1: QUICFrameType) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
         writeUInt8(typeV1.typeValue)
     }

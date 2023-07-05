@@ -12,7 +12,7 @@ internal expect class TLSServerComponent : TLSComponent {
     /**
      * Accepts original destination connection id and uses it to calculate initial keys
      */
-    suspend fun acceptOriginalDcid(originalDcid: ConnectionID)
+    suspend fun acceptOriginalDcid(originalDcid: QUICConnectionID)
 
     /**
      * Accepts TLS ClientHello. Starts to install Handshake keys

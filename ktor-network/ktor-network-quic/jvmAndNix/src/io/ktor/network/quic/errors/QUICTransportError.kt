@@ -32,27 +32,27 @@ internal value class AppError(val intCode: Long) {
 /**
  * Transport layer error codes.
  *
- * Codes are divided into general errors [TransportError] and [CryptoHandshakeError]
+ * Codes are divided into general errors [QUICProtocolTransportError] and [QUICCryptoHandshakeTransportError]
  * to write them into frame efficiently (as first are always 1 byte length, and the last are 2 bytes)
  *
  * Used in CONNECTION_CLOSED frames with the type of 0x1c
  *
  * This is QUIC version 1 errors, future versions of protocol may contain other errors and corresponding codes
  */
-internal sealed interface QuicTransportError {
+internal sealed interface QUICTransportError {
     fun writeToFrame(packetBuilder: BytePacketBuilder)
 
     fun toDebugString(): String
 
     companion object {
-        fun readFromFrame(payload: ByteReadPacket): QuicTransportError? {
+        fun readFromFrame(payload: ByteReadPacket): QUICTransportError? {
             val byte = payload.readUInt8 { return null }.toInt()
             val length = byte ushr 6
             return when {
-                length == 0 -> TransportError.fromErrorCode(byte)
+                length == 0 -> QUICProtocolTransportError.fromErrorCode(byte)
 
                 length == 1 && byte == CRYPTO_HANDSHAKE_ERROR_PREFIX -> {
-                    CryptoHandshakeError(payload.readUInt8 { return null })
+                    QUICCryptoHandshakeTransportError(payload.readUInt8 { return null })
                 }
 
                 else -> null
@@ -61,7 +61,7 @@ internal sealed interface QuicTransportError {
     }
 }
 
-internal enum class TransportError(val intCode: UInt8) : QuicTransportError {
+internal enum class QUICProtocolTransportError(val intCode: UInt8) : QUICTransportError {
     NO_ERROR(0x00u),
     INTERNAL_ERROR(0x01u),
     CONNECTION_REFUSED(0x02u),
@@ -91,9 +91,9 @@ internal enum class TransportError(val intCode: UInt8) : QuicTransportError {
     }
 
     companion object {
-        private val array = TransportError.values()
+        private val array = QUICProtocolTransportError.values()
 
-        fun fromErrorCode(code: Int): TransportError? {
+        fun fromErrorCode(code: Int): QUICProtocolTransportError? {
             return when {
                 code > 0x10 -> null
                 else -> array[code]
@@ -102,7 +102,7 @@ internal enum class TransportError(val intCode: UInt8) : QuicTransportError {
     }
 }
 
-internal class CryptoHandshakeError(val tlsAlertCode: UInt8) : QuicTransportError {
+internal class QUICCryptoHandshakeTransportError(val tlsAlertCode: UInt8) : QUICTransportError {
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         packetBuilder.writeUInt8(CRYPTO_HANDSHAKE_ERROR_PREFIX.toUByte())
         packetBuilder.writeUInt8(tlsAlertCode)
@@ -113,10 +113,10 @@ internal class CryptoHandshakeError(val tlsAlertCode: UInt8) : QuicTransportErro
     }
 }
 
-internal class ReasonedError(
-    val error: QuicTransportError,
+internal class QUICReasonedTransportError(
+    val error: QUICTransportError,
     val reasonPhrase: ByteArray,
-) : QuicTransportError {
+) : QUICTransportError {
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         error.writeToFrame(packetBuilder)
     }
@@ -126,12 +126,10 @@ internal class ReasonedError(
     }
 }
 
-internal fun QuicTransportError.withReason(reasonPhrase: String): QuicTransportError {
-    if (reasonPhrase.isEmpty()) return this
-
+internal fun QUICTransportError.withReason(reasonPhrase: String): QUICReasonedTransportError {
     val bytes = reasonPhrase.toByteArray()
     return when (this) {
-        is ReasonedError -> ReasonedError(error, bytes)
-        else -> ReasonedError(this, bytes)
+        is QUICReasonedTransportError -> QUICReasonedTransportError(error, bytes)
+        else -> QUICReasonedTransportError(this, bytes)
     }
 }
