@@ -4,6 +4,7 @@
 package io.ktor.client.tests.plugins
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.logging.*
@@ -337,6 +338,63 @@ class CacheTest : ClientLoader() {
             val seventh = client.get(url).body<String>()
 
             assertEquals(sixth, seventh)
+        }
+    }
+
+    @Test
+    fun testSingleVaryAndMultipleVaryWithSameValues() = testWithEngine(MockEngine) {
+        class FakeResponse {
+            var content: String = ""
+            var status: HttpStatusCode = HttpStatusCode.OK
+            var headers: Headers = headersOf()
+        }
+
+        val fakeResponse = FakeResponse()
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+
+            engine {
+                addHandler {
+                    respond(
+                        content = fakeResponse.content,
+                        status = fakeResponse.status,
+                        headers = buildHeaders {
+                            fakeResponse.headers.forEach(::appendAll)
+                            append(HttpHeaders.ETag, "W/\"ETAG\"")
+                        },
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-multiple")
+            val vary = listOf(HttpHeaders.Origin, HttpHeaders.Accept)
+
+            // multiple Vary keys
+            fakeResponse.content = "Cache"
+            fakeResponse.status = HttpStatusCode.OK
+            fakeResponse.headers = buildHeaders {
+                vary.forEach { append(HttpHeaders.Vary, it) }
+            }
+            val okBody = client.get(url).body<String>()
+            assertEquals(okBody, "Cache")
+
+            // single Vary key with comma separated multiple values
+            fakeResponse.content = ""
+            fakeResponse.status = HttpStatusCode.NotModified
+            fakeResponse.headers = headersOf(HttpHeaders.Vary, vary.joinToString(","))
+            try {
+                client.get(url)
+                fail("Must be caused an Exception")
+            } catch (e: Exception) {
+                assertTrue(e is InvalidCacheStateException)
+            }
         }
     }
 
