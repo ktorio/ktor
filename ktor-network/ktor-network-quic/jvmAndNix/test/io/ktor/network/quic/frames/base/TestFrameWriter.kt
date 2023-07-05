@@ -10,15 +10,15 @@ import io.ktor.network.quic.frames.*
 import io.ktor.utils.io.core.*
 
 internal class TestFrameWriter : FrameWriter {
-    private val _expectedFrames = mutableListOf<FrameType_v1>()
-    val expectedFrames: List<FrameType_v1> = _expectedFrames
+    private val _expectedFrames = mutableListOf<FrameType>()
+    val expectedFrames: List<FrameType> = _expectedFrames
     var writtenFramesCnt: Int = 0
         private set
 
     @OptIn(ExperimentalUnsignedTypes::class)
     fun writeCustomFrame(
         packetBuilder: BytePacketBuilder,
-        typeV1: FrameType_v1,
+        typeV1: FrameType,
         shouldFailOnRead: Boolean,
         body: BytePacketBuilder.() -> Unit,
     ) = withLog(typeV1, shouldFailOnRead) {
@@ -28,13 +28,13 @@ internal class TestFrameWriter : FrameWriter {
 
     override fun writePadding(
         packetBuilder: BytePacketBuilder,
-    ) = withLog(FrameType_v1.PADDING) {
+    ) = withLog(FrameType.PADDING) {
         writePadding(packetBuilder)
     }
 
     override fun writePing(
         packetBuilder: BytePacketBuilder,
-    ) = withLog(FrameType_v1.PING) {
+    ) = withLog(FrameType.PING) {
         writePing(packetBuilder)
     }
 
@@ -43,7 +43,7 @@ internal class TestFrameWriter : FrameWriter {
         ackDelay: Long,
         ack_delay_exponent: Int,
         ackRanges: LongArray,
-    ) = withLog(FrameType_v1.ACK) {
+    ) = withLog(FrameType.ACK) {
         writeACK(packetBuilder, ackDelay, ack_delay_exponent, ackRanges)
     }
 
@@ -55,7 +55,7 @@ internal class TestFrameWriter : FrameWriter {
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ) = withLog(FrameType_v1.ACK_ECN) {
+    ) = withLog(FrameType.ACK_ECN) {
         writeACKWithECN(packetBuilder, ackDelay, ack_delay_exponent, ackRanges, ect0, ect1, ectCE)
     }
 
@@ -64,7 +64,7 @@ internal class TestFrameWriter : FrameWriter {
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finaSize: Long,
-    ) = withLog(FrameType_v1.RESET_STREAM) {
+    ) = withLog(FrameType.RESET_STREAM) {
         writeResetStream(packetBuilder, streamId, applicationProtocolErrorCode, finaSize)
     }
 
@@ -72,7 +72,7 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-    ) = withLog(FrameType_v1.STOP_SENDING) {
+    ) = withLog(FrameType.STOP_SENDING) {
         writeStopSending(packetBuilder, streamId, applicationProtocolErrorCode)
     }
 
@@ -80,14 +80,14 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         offset: Long,
         data: ByteArray,
-    ) = withLog(FrameType_v1.CRYPTO) {
+    ) = withLog(FrameType.CRYPTO) {
         writeCrypto(packetBuilder, offset, data)
     }
 
     override fun writeNewToken(
         packetBuilder: BytePacketBuilder,
         token: ByteArray,
-    ) = withLog(FrameType_v1.NEW_TOKEN) {
+    ) = withLog(FrameType.NEW_TOKEN) {
         writeNewToken(packetBuilder, token)
     }
 
@@ -98,14 +98,14 @@ internal class TestFrameWriter : FrameWriter {
         specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
-    ) = withLog(FrameType_v1.STREAM) {
+    ) = withLog(FrameType.STREAM) {
         writeStream(packetBuilder, streamId, offset, specifyLength, fin, data)
     }
 
     override fun writeMaxData(
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
-    ) = withLog(FrameType_v1.MAX_DATA) {
+    ) = withLog(FrameType.MAX_DATA) {
         writeMaxData(packetBuilder, maximumData)
     }
 
@@ -113,28 +113,28 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         maximumStreamData: Long,
-    ) = withLog(FrameType_v1.MAX_STREAM_DATA) {
+    ) = withLog(FrameType.MAX_STREAM_DATA) {
         writeMaxStreamData(packetBuilder, streamId, maximumStreamData)
     }
 
     override fun writeMaxStreamsBidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
-    ) = withLog(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL) {
+    ) = withLog(FrameType.MAX_STREAMS_BIDIRECTIONAL) {
         writeMaxStreamsBidirectional(packetBuilder, maximumStreams)
     }
 
     override fun writeMaxStreamsUnidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
-    ) = withLog(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL) {
+    ) = withLog(FrameType.MAX_STREAMS_UNIDIRECTIONAL) {
         writeMaxStreamsUnidirectional(packetBuilder, maximumStreams)
     }
 
     override fun writeDataBlocked(
         packetBuilder: BytePacketBuilder,
         maximumData: Long,
-    ) = withLog(FrameType_v1.DATA_BLOCKED) {
+    ) = withLog(FrameType.DATA_BLOCKED) {
         writeDataBlocked(packetBuilder, maximumData)
     }
 
@@ -142,21 +142,21 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         streamId: Long,
         maximumStreamData: Long,
-    ) = withLog(FrameType_v1.STREAM_DATA_BLOCKED) {
+    ) = withLog(FrameType.STREAM_DATA_BLOCKED) {
         writeStreamDataBlocked(packetBuilder, streamId, maximumStreamData)
     }
 
     override fun writeStreamsBlockedBidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
-    ) = withLog(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL) {
+    ) = withLog(FrameType.STREAMS_BLOCKED_BIDIRECTIONAL) {
         writeStreamsBlockedBidirectional(packetBuilder, maximumStreams)
     }
 
     override fun writeStreamsBlockedUnidirectional(
         packetBuilder: BytePacketBuilder,
         maximumStreams: Long,
-    ) = withLog(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL) {
+    ) = withLog(FrameType.STREAMS_BLOCKED_UNIDIRECTIONAL) {
         writeStreamsBlockedUnidirectional(packetBuilder, maximumStreams)
     }
 
@@ -166,37 +166,37 @@ internal class TestFrameWriter : FrameWriter {
         retirePriorTo: Long,
         connectionID: ConnectionID,
         statelessResetToken: ByteArray,
-    ) = withLog(FrameType_v1.NEW_CONNECTION_ID) {
+    ) = withLog(FrameType.NEW_CONNECTION_ID) {
         writeNewConnectionId(packetBuilder, sequenceNumber, retirePriorTo, connectionID, statelessResetToken)
     }
 
     override fun writeRetireConnectionId(
         packetBuilder: BytePacketBuilder,
         sequenceNumber: Long,
-    ) = withLog(FrameType_v1.RETIRE_CONNECTION_ID) {
+    ) = withLog(FrameType.RETIRE_CONNECTION_ID) {
         writeRetireConnectionId(packetBuilder, sequenceNumber)
     }
 
     override fun writePathChallenge(
         packetBuilder: BytePacketBuilder,
         data: ByteArray,
-    ) = withLog(FrameType_v1.PATH_CHALLENGE) {
+    ) = withLog(FrameType.PATH_CHALLENGE) {
         writePathChallenge(packetBuilder, data)
     }
 
     override fun writePathResponse(
         packetBuilder: BytePacketBuilder,
         data: ByteArray,
-    ) = withLog(FrameType_v1.PATH_RESPONSE) {
+    ) = withLog(FrameType.PATH_RESPONSE) {
         writePathResponse(packetBuilder, data)
     }
 
     override fun writeConnectionCloseWithTransportError(
         packetBuilder: BytePacketBuilder,
-        errorCode: QUICTransportError_v1,
-        frameTypeV1: FrameType_v1?,
+        errorCode: QuicTransportError,
+        frameTypeV1: FrameType?,
         reasonPhrase: ByteArray,
-    ) = withLog(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR) {
+    ) = withLog(FrameType.CONNECTION_CLOSE_TRANSPORT_ERR) {
         writeConnectionCloseWithTransportError(packetBuilder, errorCode, frameTypeV1, reasonPhrase)
     }
 
@@ -204,17 +204,17 @@ internal class TestFrameWriter : FrameWriter {
         packetBuilder: BytePacketBuilder,
         errorCode: AppError,
         reasonPhrase: ByteArray,
-    ) = withLog(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
+    ) = withLog(FrameType.CONNECTION_CLOSE_APP_ERR) {
         writeConnectionCloseWithAppError(packetBuilder, errorCode, reasonPhrase)
     }
 
     override fun writeHandshakeDone(
         packetBuilder: BytePacketBuilder,
-    ) = withLog(FrameType_v1.HANDSHAKE_DONE) {
+    ) = withLog(FrameType.HANDSHAKE_DONE) {
         writeHandshakeDone(packetBuilder)
     }
 
-    private fun withLog(typeV1: FrameType_v1, shouldFailOnRead: Boolean = false, body: FrameWriter.() -> Unit) {
+    private fun withLog(typeV1: FrameType, shouldFailOnRead: Boolean = false, body: FrameWriter.() -> Unit) {
         FrameWriterImpl.body()
         if (!shouldFailOnRead) {
             _expectedFrames.add(typeV1)

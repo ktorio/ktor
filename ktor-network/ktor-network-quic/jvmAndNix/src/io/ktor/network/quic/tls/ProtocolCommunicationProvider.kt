@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.*
 internal interface ProtocolCommunicationProvider {
     val messageChannel: SendChannel<TLSMessage>
 
-    suspend fun raiseError(error: QUICTransportError)
+    suspend fun raiseError(error: QuicTransportError)
 
     fun getTransportParameters(peerParameters: TransportParameters): TransportParameters
 }

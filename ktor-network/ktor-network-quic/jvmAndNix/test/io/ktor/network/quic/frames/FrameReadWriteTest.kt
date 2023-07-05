@@ -6,7 +6,6 @@ package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
-import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.base.*
 import io.ktor.network.quic.packets.*
@@ -49,7 +48,7 @@ class FrameReadWriteTest {
                 writeACK(packetBuilder, POW_2_60, params.ack_delay_exponent, ranges2)
 
                 // first malformed ACK Frame
-                writeCustomFrame(packetBuilder, FrameType_v1.ACK, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.ACK, shouldFailOnRead = true) {
                     writeVarInt(10) // Largest Acknowledged
                     writeVarInt(1) // ACK Delay
                     writeVarInt(2) // ACK Range Count
@@ -60,7 +59,7 @@ class FrameReadWriteTest {
                 }
 
                 // second malformed ACK Frame
-                writeCustomFrame(packetBuilder, FrameType_v1.ACK, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.ACK, shouldFailOnRead = true) {
                     writeVarInt(5) // Largest Acknowledged
                     writeVarInt(1) // ACK Delay
                     writeVarInt(2) // ACK Range Count
@@ -105,7 +104,7 @@ class FrameReadWriteTest {
                     assertContentEquals(ranges4, ackRanges, "ACK Ranges 4")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.ACK) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.ACK) {
                 errCnt++
             }
         )
@@ -152,12 +151,12 @@ class FrameReadWriteTest {
             writeFrames = { packetBuilder ->
                 writeCrypto(packetBuilder, 1, bytes1)
 
-                writeCustomFrame(packetBuilder, FrameType_v1.CRYPTO, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.CRYPTO, shouldFailOnRead = true) {
                     writeVarInt(POW_2_62 - 1) // Offset
                     writeVarInt(5) // Length -- should fail here
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.CRYPTO, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.CRYPTO, shouldFailOnRead = true) {
                     writeVarInt(0) // Offset
                     writeVarInt(6) // Length
                     writeFully(bytes2) // Crypto Data -- should fail here
@@ -173,7 +172,7 @@ class FrameReadWriteTest {
                     assertContentEquals(bytes1, cryptoData, "Crypto Data")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.CRYPTO) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.CRYPTO) {
                 errCount++
             }
         )
@@ -195,11 +194,11 @@ class FrameReadWriteTest {
                     writeNewToken(packetBuilder, byteArrayOf())
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_TOKEN, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_TOKEN, shouldFailOnRead = true) {
                     writeVarInt(0) // token length -- should fail here
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_TOKEN, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_TOKEN, shouldFailOnRead = true) {
                     writeVarInt(3) // Token Length
                     writeFully(byteArrayOf(0x00)) // Token -- should fail here
                 }
@@ -209,7 +208,7 @@ class FrameReadWriteTest {
                     assertContentEquals(token1, token, "Token")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.NEW_TOKEN) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.NEW_TOKEN) {
                 errCnt++
             }
         )
@@ -259,13 +258,13 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 2,
             writeFrames = { packetBuilder ->
-                writeCustomFrame(packetBuilder, FrameType_v1.STREAM_LEN, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.STREAM_LEN, shouldFailOnRead = true) {
                     writeVarInt(1) // Stream Id
                     writeVarInt(3) // Length
                     writeFully(bytes1) // Stream data -- should fail here
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.STREAM_LEN) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.STREAM_LEN) {
                 errCnt++
             }
         )
@@ -314,11 +313,11 @@ class FrameReadWriteTest {
                     writeMaxStreamsUnidirectional(packetBuilder, POW_2_60 + 1)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.MAX_STREAMS_BIDIRECTIONAL, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.MAX_STREAMS_BIDIRECTIONAL, shouldFailOnRead = true) {
                     writeVarInt(POW_2_60 + 1)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.MAX_STREAMS_UNIDIRECTIONAL, shouldFailOnRead = true) {
                     writeVarInt(POW_2_60 + 1)
                 }
             },
@@ -331,9 +330,9 @@ class FrameReadWriteTest {
                 }
             },
             onReaderError = expectError(
-                TransportError_v1.FRAME_ENCODING_ERROR,
-                FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL,
-                FrameType_v1.MAX_STREAMS_BIDIRECTIONAL,
+                TransportError.FRAME_ENCODING_ERROR,
+                FrameType.MAX_STREAMS_UNIDIRECTIONAL,
+                FrameType.MAX_STREAMS_BIDIRECTIONAL,
             ) {
                 errCnt++
             }
@@ -383,11 +382,11 @@ class FrameReadWriteTest {
                     writeStreamsBlockedUnidirectional(packetBuilder, POW_2_60 + 1)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.STREAMS_BLOCKED_BIDIRECTIONAL, shouldFailOnRead = true) {
                     writeVarInt(POW_2_60 + 1)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.STREAMS_BLOCKED_UNIDIRECTIONAL, shouldFailOnRead = true) {
                     writeVarInt(POW_2_60 + 1)
                 }
             },
@@ -400,9 +399,9 @@ class FrameReadWriteTest {
                 }
             },
             onReaderError = expectError(
-                TransportError_v1.FRAME_ENCODING_ERROR,
-                FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL,
-                FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL,
+                TransportError.FRAME_ENCODING_ERROR,
+                FrameType.STREAMS_BLOCKED_BIDIRECTIONAL,
+                FrameType.STREAMS_BLOCKED_UNIDIRECTIONAL,
             ) {
                 errCnt++
             }
@@ -436,24 +435,24 @@ class FrameReadWriteTest {
                     writeNewConnectionId(packetBuilder, 2, 1, bytes1, ByteArray(10))
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_CONNECTION_ID, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
                     writeVarInt(1) // Sequence Number
                     writeVarInt(2) // Retire Prior To -- should fail here
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_CONNECTION_ID, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
                     writeVarInt(2) // Sequence Number
                     writeVarInt(1) // Retire Prior To
                     writeByte(0) // Length -- should fail here
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_CONNECTION_ID, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
                     writeVarInt(2) // Sequence Number
                     writeVarInt(1) // Retire Prior To
                     writeByte(21) // Length -- should fail here
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_CONNECTION_ID, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
                     writeVarInt(2) // Sequence Number
                     writeVarInt(1) // Retire Prior To
                     writeByte(2) // Length
@@ -468,7 +467,7 @@ class FrameReadWriteTest {
                     assertContentEquals(bytes2, resetToken, "Stateless Reset Token")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.NEW_CONNECTION_ID) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.NEW_CONNECTION_ID) {
                 errCnt++
             }
         )
@@ -483,7 +482,7 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 3,
             writeFrames = { packetBuilder ->
-                writeCustomFrame(packetBuilder, FrameType_v1.NEW_CONNECTION_ID, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
                     writeVarInt(2) // Sequence Number
                     writeVarInt(1) // Retire Prior To
                     writeByte(1) // Length
@@ -491,7 +490,7 @@ class FrameReadWriteTest {
                     writeFully(byteArrayOf(0x00, 0x00, 0x00)) // Stateless Reset Token -- should fail here
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.NEW_CONNECTION_ID) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.NEW_CONNECTION_ID) {
                 errCnt++
             }
         )
@@ -527,7 +526,7 @@ class FrameReadWriteTest {
                     writePathChallenge(packetBuilder, data2)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.PATH_CHALLENGE, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.PATH_CHALLENGE, shouldFailOnRead = true) {
                     writeFully(data2)
                 }
             },
@@ -536,7 +535,7 @@ class FrameReadWriteTest {
                     assertContentEquals(data1, data, "Data")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.PATH_CHALLENGE) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.PATH_CHALLENGE) {
                 errCnt++
             }
         )
@@ -560,7 +559,7 @@ class FrameReadWriteTest {
                     writePathResponse(packetBuilder, data2)
                 }
 
-                writeCustomFrame(packetBuilder, FrameType_v1.PATH_RESPONSE, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.PATH_RESPONSE, shouldFailOnRead = true) {
                     writeFully(data2)
                 }
             },
@@ -569,7 +568,7 @@ class FrameReadWriteTest {
                     assertContentEquals(data1, data, "Data")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.PATH_RESPONSE) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.PATH_RESPONSE) {
                 errCnt++
             }
         )
@@ -589,26 +588,26 @@ class FrameReadWriteTest {
 
                 writeConnectionCloseWithTransportError(
                     packetBuilder = packetBuilder,
-                    errorCode = TransportError_v1.AEAD_LIMIT_REACHED,
-                    frameTypeV1 = FrameType_v1.PATH_RESPONSE,
+                    errorCode = TransportError.AEAD_LIMIT_REACHED,
+                    frameTypeV1 = FrameType.PATH_RESPONSE,
                     reasonPhrase = bytes1
                 )
 
                 writeConnectionCloseWithTransportError(
                     packetBuilder = packetBuilder,
-                    errorCode = TransportError_v1.AEAD_LIMIT_REACHED,
-                    frameTypeV1 = FrameType_v1.PATH_RESPONSE,
+                    errorCode = TransportError.AEAD_LIMIT_REACHED,
+                    frameTypeV1 = FrameType.PATH_RESPONSE,
                     reasonPhrase = byteArrayOf()
                 )
 
                 writeConnectionCloseWithTransportError(
                     packetBuilder = packetBuilder,
-                    errorCode = CryptoHandshakeError_v1(0x01u),
+                    errorCode = CryptoHandshakeError(0x01u),
                     frameTypeV1 = null,
                     reasonPhrase = bytes1
                 )
 
-                writeCustomFrame(packetBuilder, FrameType_v1.CONNECTION_CLOSE_APP_ERR, shouldFailOnRead = true) {
+                writeCustomFrame(packetBuilder, FrameType.CONNECTION_CLOSE_APP_ERR, shouldFailOnRead = true) {
                     AppError(42).writeToFrame(packetBuilder) // Error code
                     writeVarInt(2) // Reason Phrase Length
                     writeFully(byteArrayOf(0x00)) // Reason Phrase -- should fail here
@@ -620,23 +619,23 @@ class FrameReadWriteTest {
                     assertContentEquals(bytes1, reasonPhrase, "Reason phrase 1")
                 }
                 validateConnectionCloseWithTransportError { errorCode, frameType, reasonPhrase ->
-                    assertEquals(TransportError_v1.AEAD_LIMIT_REACHED, errorCode, "Error code 2")
-                    assertEquals(FrameType_v1.PATH_RESPONSE, frameType, "Frame Type 2")
+                    assertEquals(TransportError.AEAD_LIMIT_REACHED, errorCode, "Error code 2")
+                    assertEquals(FrameType.PATH_RESPONSE, frameType, "Frame Type 2")
                     assertContentEquals(bytes1, reasonPhrase, "Reason phrase 2")
                 }
                 validateConnectionCloseWithTransportError { errorCode, frameType, reasonPhrase ->
-                    assertEquals(TransportError_v1.AEAD_LIMIT_REACHED, errorCode, "Error code 3")
-                    assertEquals(FrameType_v1.PATH_RESPONSE, frameType, "Frame Type 3")
+                    assertEquals(TransportError.AEAD_LIMIT_REACHED, errorCode, "Error code 3")
+                    assertEquals(FrameType.PATH_RESPONSE, frameType, "Frame Type 3")
                     assertContentEquals(byteArrayOf(), reasonPhrase, "Reason phrase 3")
                 }
                 validateConnectionCloseWithTransportError { errorCode, frameType, reasonPhrase ->
-                    assertTrue(errorCode is CryptoHandshakeError_v1, "Error is crypto 4")
+                    assertTrue(errorCode is CryptoHandshakeError, "Error is crypto 4")
                     assertEquals(0x01u, errorCode.tlsAlertCode, "Error code 4")
-                    assertEquals(FrameType_v1.PADDING, frameType, "Frame Type 4")
+                    assertEquals(FrameType.PADDING, frameType, "Frame Type 4")
                     assertContentEquals(bytes1, reasonPhrase, "Reason phrase 4")
                 }
             },
-            onReaderError = expectError(TransportError_v1.FRAME_ENCODING_ERROR, FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
+            onReaderError = expectError(TransportError.FRAME_ENCODING_ERROR, FrameType.CONNECTION_CLOSE_APP_ERR) {
                 errCnt++
             }
         )
@@ -656,7 +655,7 @@ class FrameReadWriteTest {
         expectedBytesToLeft: Long = 0,
         writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
-        onReaderError: (QUICTransportError, FrameType_v1) -> Unit = { _, _ -> },
+        onReaderError: (QuicTransportError, FrameType) -> Unit = { _, _ -> },
     ) = runBlocking {
         val builder = BytePacketBuilder()
         val writer = TestFrameWriter()
@@ -667,7 +666,7 @@ class FrameReadWriteTest {
         val frameValidator = ReadFramesValidator().apply(validator)
         val processor = TestFrameProcessor(frameValidator, writer.expectedFrames)
 
-        val packet = OneRTTPacket_v1(
+        val packet = OneRTTPacket(
             destinationConnectionID = ConnectionID.EMPTY,
             spinBit = false,
             keyPhase = false,
@@ -686,10 +685,10 @@ class FrameReadWriteTest {
 
     @Suppress("SameParameterValue")
     private fun expectError(
-        expectedError: QUICTransportError,
-        vararg expectedFrames: FrameType_v1,
+        expectedError: QuicTransportError,
+        vararg expectedFrames: FrameType,
         onErr: () -> Unit,
-    ): (QUICTransportError, FrameType_v1) -> Unit {
+    ): (QuicTransportError, FrameType) -> Unit {
         return { actualError, actualFrame ->
             if (actualError == expectedError && actualFrame in expectedFrames) {
                 onErr()

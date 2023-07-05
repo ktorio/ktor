@@ -19,7 +19,7 @@ internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
     protected abstract val logger: Logger
-    protected val connections = mutableListOf<QUICConnection_v1>()
+    protected val connections = mutableListOf<QuicConnection>()
 
     override fun dispose() {
         datagramSocket.dispose()
@@ -68,9 +68,9 @@ internal abstract class QUICSocketBase(
         address: SocketAddress,
         peerSourceConnectionID: ConnectionID,
         originalDestinationConnectionID: ConnectionID,
-    ): QUICConnection_v1
+    ): QuicConnection
 
-    private fun handleTransportError(error: QUICTransportError) {}
+    private fun handleTransportError(error: QuicTransportError) {}
 
-    private val ConnectionID.connection: QUICConnection_v1? get() = connections.find { it.match(this) }
+    private val ConnectionID.connection: QuicConnection? get() = connections.find { it.match(this) }
 }

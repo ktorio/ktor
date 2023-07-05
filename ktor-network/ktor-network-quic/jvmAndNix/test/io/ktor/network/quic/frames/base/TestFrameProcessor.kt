@@ -12,19 +12,19 @@ import kotlin.test.*
 
 internal class TestFrameProcessor(
     private val validator: ReadFramesValidator,
-    expectedFrames: List<FrameType_v1>,
+    expectedFrames: List<FrameType>,
 ) : FrameProcessor {
     private val expectedFrames = mutableListOf(*expectedFrames.toTypedArray())
 
-    override suspend fun acceptPadding(packet: QUICPacket) = testAccept(FrameType_v1.PADDING)
+    override suspend fun acceptPadding(packet: QUICPacket) = testAccept(FrameType.PADDING)
 
-    override suspend fun acceptPing(packet: QUICPacket) = testAccept(FrameType_v1.PING)
+    override suspend fun acceptPing(packet: QUICPacket) = testAccept(FrameType.PING)
 
     override suspend fun acceptACK(
         packet: QUICPacket,
         ackDelay: Long,
         ackRanges: LongArray,
-    ) = testAccept(FrameType_v1.ACK) {
+    ) = testAccept(FrameType.ACK) {
         listACKValidators[it](ackDelay, ackRanges)
     }
 
@@ -35,7 +35,7 @@ internal class TestFrameProcessor(
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ) = testAccept(FrameType_v1.ACK_ECN) {
+    ) = testAccept(FrameType.ACK_ECN) {
         listACKWithECNValidators[it](ackDelay, ackRanges, ect0, ect1, ectCE)
     }
 
@@ -44,7 +44,7 @@ internal class TestFrameProcessor(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finalSize: Long,
-    ) = testAccept(FrameType_v1.RESET_STREAM) {
+    ) = testAccept(FrameType.RESET_STREAM) {
         listResetStreamValidators[it](streamId, applicationProtocolErrorCode, finalSize)
     }
 
@@ -52,7 +52,7 @@ internal class TestFrameProcessor(
         packet: QUICPacket,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-    ) = testAccept(FrameType_v1.STOP_SENDING) {
+    ) = testAccept(FrameType.STOP_SENDING) {
         listStopSendingValidators[it](streamId, applicationProtocolErrorCode)
     }
 
@@ -60,14 +60,14 @@ internal class TestFrameProcessor(
         packet: QUICPacket,
         offset: Long,
         cryptoData: ByteArray,
-    ) = testAccept(FrameType_v1.CRYPTO) {
+    ) = testAccept(FrameType.CRYPTO) {
         listCryptoValidators[it](offset, cryptoData)
     }
 
     override suspend fun acceptNewToken(
         packet: QUICPacket,
         token: ByteArray,
-    ) = testAccept(FrameType_v1.NEW_TOKEN) {
+    ) = testAccept(FrameType.NEW_TOKEN) {
         listNewTokenValidators[it](token)
     }
 
@@ -77,14 +77,14 @@ internal class TestFrameProcessor(
         offset: Long,
         fin: Boolean,
         streamData: ByteArray,
-    ) = testAccept(FrameType_v1.STREAM) {
+    ) = testAccept(FrameType.STREAM) {
         listStreamValidators[it](streamId, offset, fin, streamData)
     }
 
     override suspend fun acceptMaxData(
         packet: QUICPacket,
         maximumData: Long,
-    ) = testAccept(FrameType_v1.MAX_DATA) {
+    ) = testAccept(FrameType.MAX_DATA) {
         listMaxDataValidators[it](maximumData)
     }
 
@@ -92,28 +92,28 @@ internal class TestFrameProcessor(
         packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
-    ) = testAccept(FrameType_v1.MAX_STREAM_DATA) {
+    ) = testAccept(FrameType.MAX_STREAM_DATA) {
         listMaxStreamDataValidators[it](streamId, maximumStreamData)
     }
 
     override suspend fun acceptMaxStreamsBidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ) = testAccept(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL) {
+    ) = testAccept(FrameType.MAX_STREAMS_BIDIRECTIONAL) {
         listMaxStreamsBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptMaxStreamsUnidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ) = testAccept(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL) {
+    ) = testAccept(FrameType.MAX_STREAMS_UNIDIRECTIONAL) {
         listMaxStreamsUnidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptDataBlocked(
         packet: QUICPacket,
         maximumData: Long,
-    ) = testAccept(FrameType_v1.DATA_BLOCKED) {
+    ) = testAccept(FrameType.DATA_BLOCKED) {
         listDataBlockedValidators[it](maximumData)
     }
 
@@ -121,21 +121,21 @@ internal class TestFrameProcessor(
         packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
-    ) = testAccept(FrameType_v1.STREAM_DATA_BLOCKED) {
+    ) = testAccept(FrameType.STREAM_DATA_BLOCKED) {
         listStreamDataBlockedValidators[it](streamId, maximumStreamData)
     }
 
     override suspend fun acceptStreamsBlockedBidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ) = testAccept(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL) {
+    ) = testAccept(FrameType.STREAMS_BLOCKED_BIDIRECTIONAL) {
         listStreamsBlockedBidirectionalValidators[it](maximumStreams)
     }
 
     override suspend fun acceptStreamsBlockedUnidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ) = testAccept(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL) {
+    ) = testAccept(FrameType.STREAMS_BLOCKED_UNIDIRECTIONAL) {
         listStreamsBlockedUnidirectionalValidators[it](maximumStreams)
     }
 
@@ -145,37 +145,37 @@ internal class TestFrameProcessor(
         retirePriorTo: Long,
         connectionID: ConnectionID,
         statelessResetToken: ByteArray?,
-    ) = testAccept(FrameType_v1.NEW_CONNECTION_ID) {
+    ) = testAccept(FrameType.NEW_CONNECTION_ID) {
         listNewConnectionIdValidators[it](sequenceNumber, retirePriorTo, connectionID, statelessResetToken)
     }
 
     override suspend fun acceptRetireConnectionId(
         packet: QUICPacket,
         sequenceNumber: Long,
-    ) = testAccept(FrameType_v1.RETIRE_CONNECTION_ID) {
+    ) = testAccept(FrameType.RETIRE_CONNECTION_ID) {
         listRetireConnectionIdValidators[it](sequenceNumber)
     }
 
     override suspend fun acceptPathChallenge(
         packet: QUICPacket,
         data: ByteArray,
-    ) = testAccept(FrameType_v1.PATH_CHALLENGE) {
+    ) = testAccept(FrameType.PATH_CHALLENGE) {
         listPathChallengeValidators[it](data)
     }
 
     override suspend fun acceptPathResponse(
         packet: QUICPacket,
         data: ByteArray,
-    ) = testAccept(FrameType_v1.PATH_RESPONSE) {
+    ) = testAccept(FrameType.PATH_RESPONSE) {
         listPathResponseValidators[it](data)
     }
 
     override suspend fun acceptConnectionCloseWithTransportError(
         packet: QUICPacket,
-        errorCode: QUICTransportError_v1,
-        frameType: FrameType_v1,
+        errorCode: QuicTransportError,
+        frameType: FrameType,
         reasonPhrase: ByteArray,
-    ) = testAccept(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR) {
+    ) = testAccept(FrameType.CONNECTION_CLOSE_TRANSPORT_ERR) {
         listConnectionCloseWithTransportErrorValidators[it](errorCode, frameType, reasonPhrase)
     }
 
@@ -183,15 +183,15 @@ internal class TestFrameProcessor(
         packet: QUICPacket,
         errorCode: AppError,
         reasonPhrase: ByteArray,
-    ) = testAccept(FrameType_v1.CONNECTION_CLOSE_APP_ERR) {
+    ) = testAccept(FrameType.CONNECTION_CLOSE_APP_ERR) {
         listConnectionCloseWithAppErrorValidators[it](errorCode, reasonPhrase)
     }
 
-    override suspend fun acceptHandshakeDone(packet: QUICPacket) = testAccept(FrameType_v1.HANDSHAKE_DONE)
+    override suspend fun acceptHandshakeDone(packet: QUICPacket) = testAccept(FrameType.HANDSHAKE_DONE)
 
-    private val mapAccess = mutableMapOf<FrameType_v1, Int>()
+    private val mapAccess = mutableMapOf<FrameType, Int>()
 
-    private fun testAccept(typeV1: FrameType_v1, body: ReadFramesValidator.(Int) -> Unit = {}): QUICTransportError_v1? {
+    private fun testAccept(typeV1: FrameType, body: ReadFramesValidator.(Int) -> Unit = {}): QuicTransportError? {
         assertIsExpectedFrame(typeV1)
         val index = mapAccess.getOrPut(typeV1) { 0 }
         mapAccess[typeV1] = index + 1
@@ -199,7 +199,7 @@ internal class TestFrameProcessor(
         return null
     }
 
-    private fun assertIsExpectedFrame(typeV1: FrameType_v1) {
+    private fun assertIsExpectedFrame(typeV1: FrameType) {
         assertTrue(expectedFrames.isNotEmpty(), "No frames are expected, got: $typeV1")
         assertEquals(expectedFrames.removeFirst(), typeV1)
     }
@@ -308,8 +308,8 @@ internal class ReadFramesValidator {
     ) -> Unit>()
 
     val listConnectionCloseWithTransportErrorValidators = mutableListOf<(
-        errorCode: QUICTransportError_v1,
-        frameType: FrameType_v1,
+        errorCode: QuicTransportError,
+        frameType: FrameType,
         reasonPhrase: ByteArray,
     ) -> Unit>()
 
@@ -397,7 +397,7 @@ internal class ReadFramesValidator {
     }
 
     fun validateConnectionCloseWithTransportError(
-        body: (errorCode: QUICTransportError_v1, frameType: FrameType_v1, reasonPhrase: ByteArray) -> Unit,
+        body: (errorCode: QuicTransportError, frameType: FrameType, reasonPhrase: ByteArray) -> Unit,
     ) {
         listConnectionCloseWithTransportErrorValidators.add(body)
     }

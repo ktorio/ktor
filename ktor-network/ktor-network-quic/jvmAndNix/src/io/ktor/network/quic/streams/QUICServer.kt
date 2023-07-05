@@ -39,11 +39,11 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
         address: SocketAddress,
         peerSourceConnectionID: ConnectionID,
         originalDestinationConnectionID: ConnectionID,
-    ): QUICConnection_v1 {
+    ): QuicConnection {
         val sourceConnectionID = ConnectionID.new()
 
         return coroutineScope {
-            QUICConnection_v1(
+            QuicConnection(
                 isServer = true,
                 initialLocalConnectionID = sourceConnectionID,
                 originalDestinationConnectionID = originalDestinationConnectionID,

@@ -89,7 +89,7 @@ internal object PacketWriter {
         val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
 
         // debug only
-        RetryPacket_v1(
+        RetryPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -123,7 +123,7 @@ internal object PacketWriter {
         payload: ByteArray,
     ) {
         // debug only
-        InitialPacket_v1(
+        InitialPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -132,7 +132,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.Initial,
             largestAcknowledged = largestAcknowledged,
@@ -166,7 +166,7 @@ internal object PacketWriter {
         payload: ByteArray,
     ) {
         // debug only
-        HandshakePacket_v1(
+        HandshakePacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -174,7 +174,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.Handshake,
             largestAcknowledged = largestAcknowledged,
@@ -204,7 +204,7 @@ internal object PacketWriter {
         payload: ByteArray,
     ) {
         // debug only
-        ZeroRTTPacket_v1(
+        ZeroRTTPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -212,7 +212,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.AppData,
             largestAcknowledged = largestAcknowledged,
@@ -233,7 +233,7 @@ internal object PacketWriter {
      */
     private const val LONG_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0xC0u
 
-    private suspend inline fun writeLongHeaderPacket_v1(
+    private suspend inline fun writeLongHeaderPacket(
         tlsComponent: TLSComponent,
         encryptionLevel: EncryptionLevel,
         largestAcknowledged: Long,
@@ -305,7 +305,7 @@ internal object PacketWriter {
         payload: ByteArray,
     ) {
         // debug only
-        OneRTTPacket_v1(
+        OneRTTPacket(
             destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
             keyPhase = keyPhase,
@@ -386,7 +386,7 @@ internal object PacketWriter {
             level = level
         )
 
-        val offset = 4 - packetNumberLength
+        val offset: Int = 4 - packetNumberLength
         val sample: ByteArray = encryptedPayload.copyOfRange(offset, offset + PktConst.HP_SAMPLE_LENGTH)
         val headerProtectionMask: Long = tlsComponent.headerProtectionMask(sample, level, isDecrypting = false)
 

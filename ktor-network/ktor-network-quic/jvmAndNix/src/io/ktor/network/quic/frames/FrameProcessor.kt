@@ -9,9 +9,9 @@ import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.packets.*
 
 internal interface FrameProcessor {
-    suspend fun acceptPadding(packet: QUICPacket): QUICTransportError_v1?
+    suspend fun acceptPadding(packet: QUICPacket): QuicTransportError?
 
-    suspend fun acceptPing(packet: QUICPacket): QUICTransportError_v1?
+    suspend fun acceptPing(packet: QUICPacket): QuicTransportError?
 
     /**
      * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
@@ -23,7 +23,7 @@ internal interface FrameProcessor {
         packet: QUICPacket,
         ackDelay: Long,
         ackRanges: LongArray,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     /**
      * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
@@ -38,31 +38,31 @@ internal interface FrameProcessor {
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptResetStream(
         packet: QUICPacket,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finalSize: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptStopSending(
         packet: QUICPacket,
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptCrypto(
         packet: QUICPacket,
         offset: Long,
         cryptoData: ByteArray, // todo remove allocation?
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptNewToken(
         packet: QUICPacket,
         token: ByteArray, // todo remove allocation?
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptStream(
         packet: QUICPacket,
@@ -70,49 +70,49 @@ internal interface FrameProcessor {
         offset: Long,
         fin: Boolean,
         streamData: ByteArray, // todo remove allocation?
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptMaxData(
         packet: QUICPacket,
         maximumData: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptMaxStreamData(
         packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptMaxStreamsBidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptMaxStreamsUnidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptDataBlocked(
         packet: QUICPacket,
         maximumData: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptStreamDataBlocked(
         packet: QUICPacket,
         streamId: Long,
         maximumStreamData: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptStreamsBlockedBidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptStreamsBlockedUnidirectional(
         packet: QUICPacket,
         maximumStreams: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptNewConnectionId(
         packet: QUICPacket,
@@ -120,35 +120,35 @@ internal interface FrameProcessor {
         retirePriorTo: Long,
         connectionID: ConnectionID,
         statelessResetToken: ByteArray?,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptRetireConnectionId(
         packet: QUICPacket,
         sequenceNumber: Long,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptPathChallenge(
         packet: QUICPacket,
         data: ByteArray,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptPathResponse(
         packet: QUICPacket,
         data: ByteArray,
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptConnectionCloseWithTransportError(
         packet: QUICPacket,
-        errorCode: QUICTransportError_v1,
-        frameType: FrameType_v1,
+        errorCode: QuicTransportError,
+        frameType: FrameType,
         reasonPhrase: ByteArray, // todo remove allocation?
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
     suspend fun acceptConnectionCloseWithAppError(
         packet: QUICPacket,
         errorCode: AppError,
         reasonPhrase: ByteArray, // todo remove allocation?
-    ): QUICTransportError_v1?
+    ): QuicTransportError?
 
-    suspend fun acceptHandshakeDone(packet: QUICPacket): QUICTransportError_v1?
+    suspend fun acceptHandshakeDone(packet: QUICPacket): QuicTransportError?
 }

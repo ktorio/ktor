@@ -11,7 +11,7 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
-import io.ktor.network.quic.errors.TransportError_v1.*
+import io.ktor.network.quic.errors.TransportError.*
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_LONG_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.HP_FLAGS_SHORT_MASK
 import io.ktor.network.quic.packets.HeaderProtectionUtils.flagsHPMask
@@ -48,9 +48,9 @@ internal object PacketReader {
         matchConnection: suspend (
             destinationCID: ConnectionID,
             sourceCID: ConnectionID?,
-            packetType: PacketType_v1,
-        ) -> QUICConnection_v1,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+            packetType: PacketType,
+        ) -> QuicConnection,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): QUICPacket? {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
 
@@ -80,16 +80,16 @@ internal object PacketReader {
             }
 
             val type = when (flags and LONG_HEADER_PACKET_TYPE) {
-                PktConst.LONG_HEADER_PACKET_TYPE_INITIAL -> PacketType_v1.Initial
-                PktConst.LONG_HEADER_PACKET_TYPE_0_RTT -> PacketType_v1.ZeroRTT
-                PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE -> PacketType_v1.Handshake
-                PktConst.LONG_HEADER_PACKET_TYPE_RETRY -> PacketType_v1.Retry
+                PktConst.LONG_HEADER_PACKET_TYPE_INITIAL -> PacketType.Initial
+                PktConst.LONG_HEADER_PACKET_TYPE_0_RTT -> PacketType.ZeroRTT
+                PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE -> PacketType.Handshake
+                PktConst.LONG_HEADER_PACKET_TYPE_RETRY -> PacketType.Retry
                 else -> unreachable()
             }
 
             val connection = matchConnection(destinationConnectionID, sourceConnectionID, type)
 
-            return readLongHeader_v1(
+            return readLongHeader(
                 bytes = bytes,
                 type = type,
                 connection = connection,
@@ -117,9 +117,9 @@ internal object PacketReader {
 
             // End of version independent properties
 
-            val connection = matchConnection(destinationConnectionID, null, PacketType_v1.OneRTT)
+            val connection = matchConnection(destinationConnectionID, null, PacketType.OneRTT)
 
-            return readShortHeader_v1(
+            return readShortHeader(
                 bytes = bytes,
                 connection = connection,
                 flags = flags,
@@ -132,7 +132,7 @@ internal object PacketReader {
     private suspend fun readConnectionID(
         bytes: ByteReadPacket,
         maxCIDLength: UInt8,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): ConnectionID {
         val connectionIDLength: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
         if (connectionIDLength > maxCIDLength) {
@@ -148,7 +148,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): VersionNegotiationPacket {
         // supportedVersions is an array of 32-bit integers with no specified length
         if (bytes.remaining % 4 != 0L) {
@@ -165,15 +165,15 @@ internal object PacketReader {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-long-header-packets)
      */
-    private suspend fun readLongHeader_v1(
+    private suspend fun readLongHeader(
         bytes: ByteReadPacket,
-        type: PacketType_v1,
-        connection: QUICConnection_v1,
+        type: PacketType,
+        connection: QuicConnection,
         flags: UInt8,
         version: UInt32,
         destinationConnectionID: ConnectionID,
         sourceConnectionID: ConnectionID,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): QUICPacket.LongHeader {
         // The next bit (0x40) of byte 0 is set to 1, unless the packet is a Version Negotiation packet.
         // Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
@@ -182,9 +182,9 @@ internal object PacketReader {
         }
 
         return when (type) {
-            PacketType_v1.Initial, PacketType_v1.ZeroRTT, PacketType_v1.Handshake -> {
+            PacketType.Initial, PacketType.ZeroRTT, PacketType.Handshake -> {
                 var token: ByteArray? = null
-                if (type == PacketType_v1.Initial) {
+                if (type == PacketType.Initial) {
                     val tokenLength = bytes.readVarIntOrElse { raiseError(PACKET_END) }
                     if (bytes.remaining < tokenLength) {
                         raiseError(PACKET_END)
@@ -202,9 +202,9 @@ internal object PacketReader {
                 val length: Long = bytes.readVarIntOrElse { raiseError(PACKET_END) }
 
                 val encryptionLevel = when (type) {
-                    PacketType_v1.Initial -> EncryptionLevel.Initial
-                    PacketType_v1.Handshake -> EncryptionLevel.Handshake
-                    PacketType_v1.ZeroRTT -> error("unsupported")
+                    PacketType.Initial -> EncryptionLevel.Initial
+                    PacketType.Handshake -> EncryptionLevel.Handshake
+                    PacketType.ZeroRTT -> error("unsupported")
                     else -> unreachable()
                 }
 
@@ -240,7 +240,7 @@ internal object PacketReader {
                     writeUInt(version)
                     writeConnectionID(destinationConnectionID)
                     writeConnectionID(sourceConnectionID)
-                    if (type == PacketType_v1.Initial) {
+                    if (type == PacketType.Initial) {
                         writeVarInt(token!!.size)
                         writeFully(token)
                     }
@@ -263,7 +263,7 @@ internal object PacketReader {
                 }
 
                 when (type) {
-                    PacketType_v1.Initial -> InitialPacket_v1(
+                    PacketType.Initial -> InitialPacket(
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
@@ -272,7 +272,7 @@ internal object PacketReader {
                         payload = payload,
                     )
 
-                    PacketType_v1.ZeroRTT -> ZeroRTTPacket_v1(
+                    PacketType.ZeroRTT -> ZeroRTTPacket(
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
@@ -280,7 +280,7 @@ internal object PacketReader {
                         payload = payload,
                     )
 
-                    PacketType_v1.Handshake -> HandshakePacket_v1(
+                    PacketType.Handshake -> HandshakePacket(
                         version = version,
                         destinationConnectionID = destinationConnectionID,
                         sourceConnectionID = sourceConnectionID,
@@ -292,7 +292,7 @@ internal object PacketReader {
                 }
             }
 
-            PacketType_v1.Retry -> {
+            PacketType.Retry -> {
                 val retryTokenLength = bytes.remaining - PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH
                 if (retryTokenLength < 0) {
                     raiseError(PROTOCOL_VIOLATION.withReason("Negative token length"))
@@ -300,7 +300,7 @@ internal object PacketReader {
                 val retryToken = bytes.readBytes(retryTokenLength.toInt())
                 val integrityTag = bytes.readBytes(PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
 
-                RetryPacket_v1(version, destinationConnectionID, sourceConnectionID, retryToken, integrityTag)
+                RetryPacket(version, destinationConnectionID, sourceConnectionID, retryToken, integrityTag)
             }
 
             else -> unreachable()
@@ -312,12 +312,12 @@ internal object PacketReader {
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-short-header-packets)
      */
-    private suspend fun readShortHeader_v1(
+    private suspend fun readShortHeader(
         bytes: ByteReadPacket,
-        connection: QUICConnection_v1,
+        connection: QuicConnection,
         flags: UInt8,
         destinationConnectionID: ConnectionID,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): QUICPacket.ShortHeader {
         val headerProtectionMask: Long = getHeaderProtectionMask(
             bytes = bytes,
@@ -366,7 +366,7 @@ internal object PacketReader {
             raiseError(PROTOCOL_VIOLATION.withReason("Reserved bits are not 00"))
         }
 
-        return OneRTTPacket_v1(
+        return OneRTTPacket(
             destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
             keyPhase = keyPhase,
@@ -382,7 +382,7 @@ internal object PacketReader {
         length: Int,
         packetNumber: Long,
         level: EncryptionLevel,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): ByteReadPacket {
         if (bytes.remaining < length) {
             raiseError(PACKET_END)
@@ -400,7 +400,7 @@ internal object PacketReader {
         bytes: ByteReadPacket,
         tlsComponent: TLSComponent,
         level: EncryptionLevel,
-        raiseError: suspend (QUICTransportError) -> Nothing,
+        raiseError: suspend (QuicTransportError) -> Nothing,
     ): Long {
         if (bytes.remaining < 20) { // 4 bytes - max packet number size, 16 bytes - sample
             raiseError(PACKET_END)
@@ -430,5 +430,5 @@ internal object PacketReader {
         }
     }
 
-    private val PACKET_END: QUICTransportError = PROTOCOL_VIOLATION.withReason("End of the packet reached")
+    private val PACKET_END: QuicTransportError = PROTOCOL_VIOLATION.withReason("End of the packet reached")
 }

@@ -21,7 +21,7 @@ internal typealias FrameWriteFunction = suspend FrameWriter.(
 internal sealed class PacketSendHandler(
     private val hasPayload: Boolean = true,
     private val packetHandler: ReadyPacketHandler,
-    type: PacketType_v1,
+    type: PacketType,
     private val onPacketPayloadReady: suspend (payload: (Long) -> ByteArray) -> Unit,
 ) {
     protected abstract val logger: Logger
@@ -31,7 +31,7 @@ internal sealed class PacketSendHandler(
 
     private val maximumHeaderSize: Int by lazy {
         when (type) {
-            PacketType_v1.Initial -> {
+            PacketType.Initial -> {
                 byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
                     byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
                     byteArrayFrameSize((packetHandler as ReadyPacketHandler.Initial).token.size) +
@@ -41,16 +41,16 @@ internal sealed class PacketSendHandler(
                     PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
             }
 
-            PacketType_v1.OneRTT ->
+            PacketType.OneRTT ->
                 packetHandler.destinationConnectionIDSize +
                 PktConst.HEADER_FLAGS_LENGTH +
                 PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
 
-            PacketType_v1.Retry -> TODO("Not yet implemented")
-            PacketType_v1.VersionNegotiation -> TODO("Not yet implemented")
+            PacketType.Retry -> TODO("Not yet implemented")
+            PacketType.VersionNegotiation -> TODO("Not yet implemented")
 
             // Handshake, 0-RTT
-            PacketType_v1.Handshake, PacketType_v1.ZeroRTT -> {
+            PacketType.Handshake, PacketType.ZeroRTT -> {
                 byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
                     byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
                     PktConst.HEADER_FLAGS_LENGTH +
@@ -111,7 +111,7 @@ internal sealed class PacketSendHandler(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.Initial,
     ) : PacketSendHandler(
-        type = PacketType_v1.Initial,
+        type = PacketType.Initial,
         packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Initial)
@@ -138,7 +138,7 @@ internal sealed class PacketSendHandler(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler,
     ) : PacketSendHandler(
-        type = PacketType_v1.Handshake,
+        type = PacketType.Handshake,
         packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Handshake)
@@ -164,7 +164,7 @@ internal sealed class PacketSendHandler(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.OneRTT,
     ) : PacketSendHandler(
-        type = PacketType_v1.OneRTT,
+        type = PacketType.OneRTT,
         packetHandler = packetHandler,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.AppData)
@@ -190,7 +190,7 @@ internal sealed class PacketSendHandler(
     class VersionNegotiation(
         packetHandler: ReadyPacketHandler.VersionNegotiation,
     ) : PacketSendHandler(
-        type = PacketType_v1.VersionNegotiation,
+        type = PacketType.VersionNegotiation,
         hasPayload = false,
         packetHandler = packetHandler,
         onPacketPayloadReady = { _ ->
@@ -212,7 +212,7 @@ internal sealed class PacketSendHandler(
     class Retry(
         packetHandler: ReadyPacketHandler.Retry,
     ) : PacketSendHandler(
-        type = PacketType_v1.Retry,
+        type = PacketType.Retry,
         hasPayload = false,
         packetHandler = packetHandler,
         onPacketPayloadReady = { _ ->

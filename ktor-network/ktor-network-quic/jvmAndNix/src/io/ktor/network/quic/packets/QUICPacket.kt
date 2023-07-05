@@ -9,7 +9,6 @@ package io.ktor.network.quic.packets
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -97,7 +96,7 @@ internal class VersionNegotiationPacket(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-initial-packet)
  */
-internal class InitialPacket_v1(
+internal class InitialPacket(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
@@ -125,7 +124,7 @@ internal class InitialPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-0-rtt)
  */
-internal class ZeroRTTPacket_v1(
+internal class ZeroRTTPacket(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
@@ -140,7 +139,7 @@ internal class ZeroRTTPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-handshake-packet)
  */
-internal class HandshakePacket_v1(
+internal class HandshakePacket(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
@@ -155,7 +154,7 @@ internal class HandshakePacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
  */
-internal class RetryPacket_v1(
+internal class RetryPacket(
     override val version: UInt32,
     override val destinationConnectionID: ConnectionID,
     override val sourceConnectionID: ConnectionID,
@@ -184,7 +183,7 @@ internal class RetryPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-1-rtt-packet)
  */
-internal class OneRTTPacket_v1(
+internal class OneRTTPacket(
     override val destinationConnectionID: ConnectionID,
     val spinBit: Boolean,
     val keyPhase: Boolean,
