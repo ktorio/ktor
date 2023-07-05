@@ -4,7 +4,6 @@
 
 package io.ktor.client.engine.darwin
 
-import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.engine.darwin.internal.legacy.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
@@ -35,11 +34,12 @@ public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
  *   * URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:
  */
 @OptIn(UnsafeNumber::class)
-public class KtorLegacyNSURLSessionDelegate internal constructor(
-    private val challengeHandler: ChallengeHandler?
+public class KtorLegacyNSURLSessionDelegate(
+    internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
 
-    private val taskHandlers = ConcurrentMap<NSURLSessionTask, DarwinLegacyTaskHandler>(initialCapacity = 32)
+    internal val taskHandlers: ConcurrentMap<NSURLSessionTask, DarwinLegacyTaskHandler> =
+        ConcurrentMap(initialCapacity = 32)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
         val taskHandler = taskHandlers[dataTask] ?: return
