@@ -43,8 +43,8 @@ internal sealed class PacketSendHandler(
 
             QUICPacketType.OneRTT ->
                 packetHandler.destinationConnectionIDSize +
-                PktConst.HEADER_FLAGS_LENGTH +
-                PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
+                    PktConst.HEADER_FLAGS_LENGTH +
+                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
 
             QUICPacketType.Retry -> TODO("Not yet implemented")
             QUICPacketType.VersionNegotiation -> TODO("Not yet implemented")
@@ -99,11 +99,15 @@ internal sealed class PacketSendHandler(
         }
     }
 
-    private suspend fun getPacketPayload(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
+    private suspend fun getPacketPayload(): ByteArray = if (!hasPayload) {
+        EMPTY_BYTE_ARRAY
+    } else {
         buffer.flush().readBytes()
     }
 
-    private fun getPacketPayloadNonBlocking(): ByteArray = if (!hasPayload) EMPTY_BYTE_ARRAY else {
+    private fun getPacketPayloadNonBlocking(): ByteArray = if (!hasPayload) {
+        EMPTY_BYTE_ARRAY
+    } else {
         buffer.flushNonBlocking().readBytes()
     }
 

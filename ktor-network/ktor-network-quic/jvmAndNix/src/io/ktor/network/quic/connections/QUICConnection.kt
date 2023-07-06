@@ -268,7 +268,7 @@ internal class QUICConnection(
             encryptionLevel: EncryptionLevel,
             flush: Boolean,
         ) {
-            logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length
+            logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length argument-list-wrapping
 
             if (encryptionLevel == EncryptionLevel.Handshake) {
                 buffer.writeFully(cryptoPayload)

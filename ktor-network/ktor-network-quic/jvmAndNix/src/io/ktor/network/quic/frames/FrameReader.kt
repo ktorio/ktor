@@ -72,7 +72,7 @@ internal object FrameReader {
             QUICFrameType.MAX_DATA -> readAndProcessMaxData(processor, packet, payload)
             QUICFrameType.MAX_STREAM_DATA -> readAndProcessMaxStreamData(processor, packet, payload)
             QUICFrameType.MAX_STREAMS_BIDIRECTIONAL -> readAndProcessMaxStreamsBidirectional(processor, packet, payload)
-            QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL -> readAndProcessMaxStreamUnidirectional(processor, packet, payload) // ktlint-disable max-line-length
+            QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL -> readAndProcessMaxStreamUnidirectional(processor, packet, payload) // ktlint-disable max-line-length argument-list-wrapping
             QUICFrameType.DATA_BLOCKED -> readAndProcessDataBlocked(processor, packet, payload)
             QUICFrameType.STREAM_DATA_BLOCKED -> readAndProcessStreamDataBlocked(processor, packet, payload)
             QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL -> readAndProcessStreamsBlockedBidirectional(

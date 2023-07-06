@@ -74,7 +74,7 @@ internal class PacketNumberSpace {
         }
         result.add(last)
 
-        logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length
+        logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length argument-list-wrapping
 
         return result.toLongArray() to { packetNumber ->
             sentAckPackets[packetNumber]?.addAll(sorted) ?: run {
