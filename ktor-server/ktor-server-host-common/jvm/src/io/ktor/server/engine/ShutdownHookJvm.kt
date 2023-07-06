@@ -7,6 +7,8 @@ package io.ktor.server.engine
 import io.ktor.server.application.*
 import java.util.concurrent.atomic.*
 
+private val SHUTDOWN_HOOK_DISABLED = System.getProperty("io.ktor.server.engine.ShutdownHook", "true") == "false"
+
 /**
  * Adds automatic JVM shutdown hooks management. Should be used **before** starting the engine.
  * Once JVM termination noticed, [stop] block will be executed.
@@ -15,6 +17,8 @@ import java.util.concurrent.atomic.*
  * So [stop] block will be called once or never.
  */
 public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
+    if (SHUTDOWN_HOOK_DISABLED) return
+
     val hook = ShutdownHook(stop)
     environment.monitor.subscribe(ApplicationStarting) {
         environment.monitor.subscribe(ApplicationStopping) {
