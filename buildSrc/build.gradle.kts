@@ -21,7 +21,7 @@ repositories {
 sourceSets.main {
 }
 
-val ktor_version = "2.3.0"
+val ktor_version = "2.3.2"
 
 dependencies {
     implementation(kotlin("gradle-plugin", "1.8.22"))
