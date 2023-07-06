@@ -7,7 +7,6 @@ import io.ktor.network.interop.*
 import io.ktor.network.util.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -15,14 +14,6 @@ import kotlinx.coroutines.CancellationException
 import platform.posix.*
 import kotlin.coroutines.*
 import kotlin.math.*
-import kotlin.native.concurrent.*
-
-internal expect fun pselectBridge(
-    descriptor: Int,
-    readSet: CPointer<fd_set>,
-    writeSet: CPointer<fd_set>,
-    errorSet: CPointer<fd_set>
-): Int
 
 internal expect fun inetNtopBridge(type: Int, address: CPointer<*>, addressOf: CPointer<*>, size: Int)
 
@@ -70,52 +61,58 @@ internal class SelectorHelper {
         wakeupSignal.signal()
     }
 
-    private fun selectionLoop(): Unit = memScoped {
-        val readSet = alloc<fd_set>()
-        val writeSet = alloc<fd_set>()
-        val errorSet = alloc<fd_set>()
+    private fun selectionLoop() {
+        val readSet = select_create_fd_set()
+        val writeSet = select_create_fd_set()
+        val errorSet = select_create_fd_set()
 
-        val completed = mutableSetOf<EventInfo>()
-        val watchSet = mutableSetOf<EventInfo>()
-        val closeSet = mutableSetOf<Int>()
+        try {
+            val completed = mutableSetOf<EventInfo>()
+            val watchSet = mutableSetOf<EventInfo>()
+            val closeSet = mutableSetOf<Int>()
 
-        while (!interestQueue.isClosed) {
-            watchSet.add(wakeupSignalEvent)
-            var maxDescriptor = fillHandlers(watchSet, readSet, writeSet, errorSet)
-            if (maxDescriptor == 0) continue
+            while (!interestQueue.isClosed) {
+                watchSet.add(wakeupSignalEvent)
+                var maxDescriptor = fillHandlers(watchSet, readSet, writeSet, errorSet)
+                if (maxDescriptor == 0) continue
 
-            maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
+                maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
 
-            try {
-                pselectBridge(maxDescriptor + 1, readSet.ptr, writeSet.ptr, errorSet.ptr).check()
-            } catch (_: PosixException.BadFileDescriptorException) {
-                // Thrown if the descriptor was closed.
+                try {
+                    selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet).check()
+                } catch (_: PosixException.BadFileDescriptorException) {
+                    // Thrown if the descriptor was closed.
+                }
+
+                processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
             }
 
-            processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
-        }
+            val exception = CancellationException("Selector closed")
+            while (!interestQueue.isEmpty) {
+                interestQueue.removeFirstOrNull()?.fail(exception)
+            }
 
-        val exception = CancellationException("Selector closed")
-        while (!interestQueue.isEmpty) {
-            interestQueue.removeFirstOrNull()?.fail(exception)
-        }
-
-        for (item in watchSet) {
-            item.fail(exception)
+            for (item in watchSet) {
+                item.fail(exception)
+            }
+        } finally {
+            selector_release_fd_set(readSet)
+            selector_release_fd_set(writeSet)
+            selector_release_fd_set(errorSet)
         }
     }
 
     private fun fillHandlers(
         watchSet: MutableSet<EventInfo>,
-        readSet: fd_set,
-        writeSet: fd_set,
-        errorSet: fd_set
+        readSet: CValue<selection_set>,
+        writeSet: CValue<selection_set>,
+        errorSet: CValue<selection_set>
     ): Int {
         var maxDescriptor = 0
 
-        select_fd_clear(readSet.ptr)
-        select_fd_clear(writeSet.ptr)
-        select_fd_clear(errorSet.ptr)
+        select_fd_clear(readSet)
+        select_fd_clear(writeSet)
+        select_fd_clear(errorSet)
 
         while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
@@ -132,26 +129,26 @@ internal class SelectorHelper {
 
     private fun addInterest(
         event: EventInfo,
-        readSet: fd_set,
-        writeSet: fd_set,
-        errorSet: fd_set
+        readSet: CValue<selection_set>,
+        writeSet: CValue<selection_set>,
+        errorSet: CValue<selection_set>
     ) {
         val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
-        select_fd_add(event.descriptor, set.ptr)
-        select_fd_add(event.descriptor, errorSet.ptr)
+        select_fd_add(event.descriptor, set)
+        select_fd_add(event.descriptor, errorSet)
 
-        check(select_fd_isset(event.descriptor, set.ptr) != 0)
-        check(select_fd_isset(event.descriptor, errorSet.ptr) != 0)
+        check(select_fd_isset(event.descriptor, set) != 0)
+        check(select_fd_isset(event.descriptor, errorSet) != 0)
     }
 
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
         closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
-        readSet: fd_set,
-        writeSet: fd_set,
-        errorSet: fd_set
+        readSet: CValue<selection_set>,
+        writeSet: CValue<selection_set>,
+        errorSet: CValue<selection_set>
     ) {
         while (true) {
             val event = closeQueue.removeFirstOrNull() ?: break
@@ -166,13 +163,13 @@ internal class SelectorHelper {
 
             val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
-            if (select_fd_isset(event.descriptor, errorSet.ptr) != 0) {
+            if (select_fd_isset(event.descriptor, errorSet) != 0) {
                 completed.add(event)
                 event.fail(IOException("Fail to select descriptor ${event.descriptor} for ${event.interest}"))
                 continue
             }
 
-            if (select_fd_isset(event.descriptor, set.ptr) == 0) continue
+            if (select_fd_isset(event.descriptor, set) == 0) continue
 
             if (event.descriptor == wakeupSignal.selectionDescriptor) {
                 wakeupSignal.check()
@@ -194,9 +191,9 @@ internal class SelectorHelper {
 
     private fun descriptorSetByInterestKind(
         event: EventInfo,
-        readSet: fd_set,
-        writeSet: fd_set
-    ): fd_set = when (event.interest) {
+        readSet: CValue<selection_set>,
+        writeSet: CValue<selection_set>
+    ): CValue<selection_set> = when (event.interest) {
         SelectInterest.READ -> readSet
         SelectInterest.WRITE -> writeSet
         SelectInterest.ACCEPT -> readSet
