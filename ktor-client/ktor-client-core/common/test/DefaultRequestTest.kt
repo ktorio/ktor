@@ -1,3 +1,4 @@
+
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
@@ -221,6 +222,32 @@ class DefaultRequestTest {
 
         assertEquals("default", client.get { }.bodyAsText())
         assertEquals("custom", client.get { url.fragment = "custom" }.bodyAsText())
+    }
+
+    @Test
+    fun testCookieSentOnce() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    val cookies: String? = it.headers.getAll("Cookie")?.joinToString("; ")
+                    assertEquals("second-cookie=bar; first-cookie=foo", cookies)
+                    respondOk()
+                }
+            }
+
+            install(DefaultRequest) {
+                cookie("first-cookie", "foo")
+            }
+        }
+
+        val request = client.preparePost("/some-route") {
+            headers {
+                contentType(ContentType.Application.Json)
+            }
+            cookie("second-cookie", "bar")
+        }
+
+        request.execute()
     }
 }
 

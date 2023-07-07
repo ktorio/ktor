@@ -80,7 +80,10 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                         context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
                     }
                 }
-                context.headers.appendMissing(defaultRequest.headers.build())
+
+                context.headers.clear()
+                context.headers.appendAll(defaultRequest.headers.build())
+
                 LOGGER.trace("Applied DefaultRequest to $originalUrlString. New url: ${context.url}")
             }
         }
