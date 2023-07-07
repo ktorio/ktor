@@ -10,7 +10,6 @@ import io.ktor.server.netty.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.multipart.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1ApplicationRequest(
@@ -30,7 +29,4 @@ internal class NettyHttp1ApplicationRequest(
     override val local = NettyConnectionPoint(httpRequest, context)
 
     override val engineHeaders: Headers = NettyApplicationRequestHeaders(httpRequest)
-    override fun newDecoder(): HttpPostMultipartRequestDecoder {
-        return HttpPostMultipartRequestDecoder(httpRequest)
-    }
 }

@@ -11,7 +11,6 @@ import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.multipart.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -41,8 +40,6 @@ public abstract class NettyApplicationRequest(
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
     override val engineReceiveChannel: ByteReadChannel = requestBodyChannel
-
-    protected abstract fun newDecoder(): HttpPostMultipartRequestDecoder
 
     public fun close() {}
 }
