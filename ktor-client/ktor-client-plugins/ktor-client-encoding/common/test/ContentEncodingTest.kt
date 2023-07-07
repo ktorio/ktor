@@ -23,10 +23,9 @@ class ContentEncodingTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_URL/identity")
-            val contentEncoding = response.headers[HttpHeaders.ContentEncoding]
             // JS browser engines don't have Content-Encoding header for identity encoding
-            if (contentEncoding != null) {
-                assertEquals("identity", contentEncoding)
+            if (response.appliedDecoders.isNotEmpty()) {
+                assertEquals(listOf("identity"), response.appliedDecoders)
             }
             assertEquals("Compressed response!", response.body<String>())
         }
@@ -42,7 +41,8 @@ class ContentEncodingTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_URL/deflate")
-            assertEquals("deflate", response.headers[HttpHeaders.ContentEncoding])
+            assertNull(response.headers[HttpHeaders.ContentEncoding])
+            assertEquals(listOf("deflate"), response.appliedDecoders)
             assertEquals("Compressed response!", response.body<String>())
         }
     }
@@ -57,7 +57,8 @@ class ContentEncodingTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_URL/gzip")
-            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+            assertNull(response.headers[HttpHeaders.ContentEncoding])
+            assertEquals(listOf("gzip"), response.appliedDecoders)
             assertEquals("Compressed response!", response.body<String>())
         }
     }
@@ -88,6 +89,7 @@ class ContentEncodingTest : ClientLoader() {
         test { client ->
             val response = client.get("$TEST_URL/gzip-precompressed")
             assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(listOf("gzip"), response.appliedDecoders)
             val body = response.body<ByteArray>()
             assertContentEquals(ByteArray(500) { it.toByte() }, body)
         }

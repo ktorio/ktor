@@ -994,6 +994,7 @@ class StaticContentTest {
             }
             get("zip") {
                 val filePath = Paths.get("jvm/test-resources/public.zip")
+
                 @Suppress("BlockingMethodInNonBlockingContext")
                 val fileSystem = FileSystems.newFileSystem(filePath, StaticContentTest::class.java.classLoader)
 
