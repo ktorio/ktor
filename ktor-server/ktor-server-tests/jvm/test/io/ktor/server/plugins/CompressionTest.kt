@@ -683,34 +683,62 @@ class CompressionTest {
     fun testDecoding() = testApplication {
         install(Compression)
         routing {
-            post("/") {
+            post("/identity") {
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("identity"), call.request.appliedDecoders)
+                call.respond(call.receiveText())
+            }
+            post("/gzip") {
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("gzip"), call.request.appliedDecoders)
+                call.respond(call.receiveText())
+            }
+            post("/deflate") {
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("deflate"), call.request.appliedDecoders)
+                call.respond(call.receiveText())
+            }
+            post("/multiple") {
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("identity", "deflate", "gzip"), call.request.appliedDecoders)
+                call.respond(call.receiveText())
+            }
+            post("/unknown") {
+                assertEquals("unknown", call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(emptyList(), call.request.appliedDecoders)
                 call.respond(call.receiveText())
             }
         }
 
-        val responseIdentity = client.post("/") {
+        val responseIdentity = client.post("/identity") {
             setBody(Identity.encode(ByteReadChannel(textToCompressAsBytes)))
             header(HttpHeaders.ContentEncoding, "identity")
         }
         assertEquals(textToCompress, responseIdentity.bodyAsText())
 
-        val responseGzip = client.post("/") {
+        val responseGzip = client.post("/gzip") {
             setBody(GZip.encode(ByteReadChannel(textToCompressAsBytes)))
             header(HttpHeaders.ContentEncoding, "gzip")
         }
         assertEquals(textToCompress, responseGzip.bodyAsText())
 
-        val responseDeflate = client.post("/") {
+        val responseDeflate = client.post("/deflate") {
             setBody(Deflate.encode(ByteReadChannel(textToCompressAsBytes)))
             header(HttpHeaders.ContentEncoding, "deflate")
         }
         assertEquals(textToCompress, responseDeflate.bodyAsText())
 
-        val responseMultiple = client.post("/") {
+        val responseMultiple = client.post("/multiple") {
             setBody(Identity.encode(Deflate.encode(GZip.encode(ByteReadChannel(textToCompressAsBytes)))))
             header(HttpHeaders.ContentEncoding, "identity,deflate,gzip")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
+
+        val responseUnknown = client.post("/unknown") {
+            setBody("unknown")
+            header(HttpHeaders.ContentEncoding, "unknown")
+        }
+        assertEquals("unknown", responseUnknown.bodyAsText())
     }
 
     private fun TestApplicationEngine.handleAndAssert(
