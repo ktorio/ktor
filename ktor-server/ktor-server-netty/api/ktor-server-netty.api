@@ -110,11 +110,11 @@ public abstract class io/ktor/server/netty/NettyApplicationRequest : io/ktor/ser
 	public final fun getContext ()Lio/netty/channel/ChannelHandlerContext;
 	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	protected fun getEngineReceiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	protected final fun getUri ()Ljava/lang/String;
 	protected abstract fun newDecoder ()Lio/netty/handler/codec/http/multipart/HttpPostMultipartRequestDecoder;
-	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/server/netty/NettyApplicationRequestHeaders : io/ktor/http/Headers {

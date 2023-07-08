@@ -24,7 +24,7 @@ public abstract class ServletApplicationRequest(
         parseQueryString(uri, decode = false)
     }
 
-    override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)
+    override val engineHeaders: Headers = ServletApplicationRequestHeaders(servletRequest)
 
     @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)

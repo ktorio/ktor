@@ -36,7 +36,7 @@ internal class NettyHttp2ApplicationRequest(
     keepAlive = true
 ) {
 
-    override val headers: Headers by lazy {
+    override val engineHeaders: Headers by lazy {
         Headers.build {
             nettyHeaders.forEach { (name, value) ->
                 if (name.isNotEmpty() && name[0] != ':') {

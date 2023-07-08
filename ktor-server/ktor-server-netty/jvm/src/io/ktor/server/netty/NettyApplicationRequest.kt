@@ -40,7 +40,7 @@ public abstract class NettyApplicationRequest(
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
-    override fun receiveChannel(): ByteReadChannel = requestBodyChannel
+    override val engineReceiveChannel: ByteReadChannel = requestBodyChannel
 
     protected abstract fun newDecoder(): HttpPostMultipartRequestDecoder
 

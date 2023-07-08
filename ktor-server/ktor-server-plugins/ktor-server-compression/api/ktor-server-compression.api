@@ -31,6 +31,7 @@ public final class io/ktor/server/plugins/compression/CompressionEncoderConfig {
 }
 
 public final class io/ktor/server/plugins/compression/CompressionKt {
+	public static final fun getAppliedDecoders (Lio/ktor/server/request/ApplicationRequest;)Ljava/util/List;
 	public static final fun getCompression ()Lio/ktor/server/application/RouteScopedPlugin;
 }
 
