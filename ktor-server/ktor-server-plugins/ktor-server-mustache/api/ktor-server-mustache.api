@@ -18,7 +18,7 @@ public final class io/ktor/server/mustache/MustacheKt {
 }
 
 public final class io/ktor/server/mustache/RespondTemplateKt {
-	public static final fun respondTemplate (Lio/ktor/server/application/BaseCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/BaseCall;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/server/application/Call;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/Call;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

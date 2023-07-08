@@ -14,7 +14,7 @@ public final class io/ktor/server/plugins/callloging/CallLoggingConfig {
 
 public final class io/ktor/server/plugins/callloging/CallLoggingKt {
 	public static final fun getCallLogging ()Lio/ktor/server/application/ApplicationPlugin;
-	public static final fun processingTimeMillis (Lio/ktor/server/application/BaseCall;Lkotlin/jvm/functions/Function0;)J
-	public static synthetic fun processingTimeMillis$default (Lio/ktor/server/application/BaseCall;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)J
+	public static final fun processingTimeMillis (Lio/ktor/server/application/Call;Lkotlin/jvm/functions/Function0;)J
+	public static synthetic fun processingTimeMillis$default (Lio/ktor/server/application/Call;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)J
 }
 

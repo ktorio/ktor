@@ -170,5 +170,5 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
 /**
  * List of [ContentEncoder] names that were used to decode request body.
  */
-public val ApplicationRequest.appliedDecoders: List<String>
+public val Request.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()

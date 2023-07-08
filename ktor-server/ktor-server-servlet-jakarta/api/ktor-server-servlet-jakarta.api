@@ -4,11 +4,11 @@ public class io/ktor/server/servlet/jakarta/AsyncServletApplicationCall : io/kto
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
-	public synthetic fun getRequest ()Lio/ktor/server/request/BaseRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/Request;
 	public fun getRequest ()Lio/ktor/server/servlet/jakarta/AsyncServletApplicationRequest;
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
-	public synthetic fun getResponse ()Lio/ktor/server/response/BaseResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/Response;
 	public fun getResponse ()Lio/ktor/server/servlet/jakarta/ServletApplicationResponse;
 }
 
@@ -32,8 +32,8 @@ public final class io/ktor/server/servlet/jakarta/AsyncServletApplicationRespons
 }
 
 public final class io/ktor/server/servlet/jakarta/AttributesKt {
-	public static final fun getServletRequestAttributes (Lio/ktor/server/request/BaseRequest;)Ljava/util/Map;
-	public static final fun putServletAttributes (Lio/ktor/server/application/BaseCall;Ljakarta/servlet/ServletRequest;)V
+	public static final fun getServletRequestAttributes (Lio/ktor/server/request/Request;)Ljava/util/Map;
+	public static final fun putServletAttributes (Lio/ktor/server/application/Call;Ljakarta/servlet/ServletRequest;)V
 }
 
 public final class io/ktor/server/servlet/jakarta/DefaultServletUpgrade : io/ktor/server/servlet/jakarta/ServletUpgrade {
@@ -42,7 +42,7 @@ public final class io/ktor/server/servlet/jakarta/DefaultServletUpgrade : io/kto
 }
 
 public final class io/ktor/server/servlet/jakarta/JAASBridgeKt {
-	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/ApplicationRequest;)Ljava/security/Principal;
+	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/Request;)Ljava/security/Principal;
 }
 
 public abstract class io/ktor/server/servlet/jakarta/KtorServlet : jakarta/servlet/http/HttpServlet, kotlinx/coroutines/CoroutineScope {
