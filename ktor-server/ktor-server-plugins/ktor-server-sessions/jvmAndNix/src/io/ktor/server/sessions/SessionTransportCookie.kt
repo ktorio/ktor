@@ -32,8 +32,8 @@ public class SessionTransportCookie(
     override fun send(call: ApplicationCall, value: String) {
         val now = GMTDate()
         val maxAge = configuration.maxAgeInSeconds
-        val expires = when {
-            maxAge == 0L -> null
+        val expires = when (maxAge) {
+            null, 0L -> null
             else -> now + maxAge * 1000L
         }
 
@@ -41,7 +41,7 @@ public class SessionTransportCookie(
             name,
             transformers.transformWrite(value),
             configuration.encoding,
-            maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+            maxAge?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt(),
             expires,
             configuration.domain,
             configuration.path,
@@ -82,9 +82,9 @@ public class CookieConfiguration {
     /**
      * Specifies the number of seconds until the cookie expires.
      */
-    public var maxAgeInSeconds: Long = DEFAULT_SESSION_MAX_AGE
+    public var maxAgeInSeconds: Long? = DEFAULT_SESSION_MAX_AGE
         set(newMaxAge) {
-            require(newMaxAge >= 0) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+            require(newMaxAge == null || newMaxAge >= 0) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
             field = newMaxAge
         }
 
