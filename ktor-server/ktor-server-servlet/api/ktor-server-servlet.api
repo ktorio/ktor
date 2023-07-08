@@ -13,7 +13,6 @@ public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server
 public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/ktor/server/servlet/ServletApplicationRequest, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
@@ -81,7 +80,7 @@ public final class io/ktor/server/servlet/ServletApplicationEngine$Companion {
 public abstract class io/ktor/server/servlet/ServletApplicationRequest : io/ktor/server/engine/BaseApplicationRequest {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletRequest;)V
 	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
-	public fun getHeaders ()Lio/ktor/http/Headers;
+	protected fun getEngineHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;

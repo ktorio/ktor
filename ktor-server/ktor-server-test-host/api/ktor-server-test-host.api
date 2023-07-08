@@ -196,7 +196,6 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public final fun getBodyChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public final fun getMethod ()Lio/ktor/http/HttpMethod;
 	public final fun getPort ()Ljava/lang/Integer;
@@ -205,7 +204,6 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public final fun getUri ()Ljava/lang/String;
 	public final fun getVersion ()Ljava/lang/String;
-	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun setBodyChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 	public final fun setMethod (Lio/ktor/http/HttpMethod;)V
 	public final fun setPort (Ljava/lang/Integer;)V

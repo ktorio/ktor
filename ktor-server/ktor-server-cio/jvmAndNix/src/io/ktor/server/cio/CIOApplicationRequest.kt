@@ -21,9 +21,9 @@ internal class CIOApplicationRequest(
 ) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy { RequestCookies(this) }
 
-    override fun receiveChannel() = input
+    override val engineReceiveChannel: ByteReadChannel = input
 
-    override val headers: Headers = CIOHeaders(request.headers)
+    override var engineHeaders: Headers = CIOHeaders(request.headers)
 
     override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
 

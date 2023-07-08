@@ -29,7 +29,7 @@ internal class NettyHttp1ApplicationRequest(
 ) {
     override val local = NettyConnectionPoint(httpRequest, context)
 
-    override val headers: Headers = NettyApplicationRequestHeaders(httpRequest)
+    override val engineHeaders: Headers = NettyApplicationRequestHeaders(httpRequest)
     override fun newDecoder(): HttpPostMultipartRequestDecoder {
         return HttpPostMultipartRequestDecoder(httpRequest)
     }

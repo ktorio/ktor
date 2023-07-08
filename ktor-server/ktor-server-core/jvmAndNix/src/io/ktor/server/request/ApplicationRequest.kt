@@ -6,6 +6,7 @@ package io.ktor.server.request
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 
 /**
@@ -58,6 +59,18 @@ public interface ApplicationRequest {
      * Receives a raw body payload as a channel.
      */
     public fun receiveChannel(): ByteReadChannel
+
+    /**
+     * Overrides request headers. Will remove header [name] if passed [values] is `null` or set [values] otherwise.
+     */
+    @InternalAPI
+    public fun setHeader(name: String, values: List<String>?)
+
+    /**
+     * Overrides request body. It's a caller responsibility to close the original channel if it's not needed.
+     */
+    @InternalAPI
+    public fun setReceiveChannel(channel: ByteReadChannel)
 }
 
 /**

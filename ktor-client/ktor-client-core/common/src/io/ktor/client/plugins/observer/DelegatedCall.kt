@@ -35,16 +35,23 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
     return DelegatedCall(client, content, this)
 }
 
-@OptIn(InternalAPI::class)
+/**
+ * Wrap existing [HttpClientCall] with new response [content] and [headers].
+ */
+public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
+    return DelegatedCall(client, content, this, headers)
+}
+
 internal class DelegatedCall(
     client: HttpClient,
     content: ByteReadChannel,
-    originCall: HttpClientCall
+    originCall: HttpClientCall,
+    responseHeaders: Headers = originCall.response.headers
 ) : HttpClientCall(client) {
 
     init {
         request = DelegatedRequest(this, originCall.request)
-        response = DelegatedResponse(this, content, originCall.response)
+        response = DelegatedResponse(this, content, originCall.response, responseHeaders)
     }
 }
 
@@ -53,11 +60,12 @@ internal class DelegatedRequest(
     origin: HttpRequest
 ) : HttpRequest by origin
 
-@InternalAPI
-internal class DelegatedResponse constructor(
+@OptIn(InternalAPI::class)
+internal class DelegatedResponse(
     override val call: HttpClientCall,
     override val content: ByteReadChannel,
-    private val origin: HttpResponse
+    private val origin: HttpResponse,
+    override val headers: Headers = origin.headers
 ) : HttpResponse() {
     override val coroutineContext: CoroutineContext = origin.coroutineContext
 
@@ -68,6 +76,4 @@ internal class DelegatedResponse constructor(
     override val requestTime: GMTDate get() = origin.requestTime
 
     override val responseTime: GMTDate get() = origin.responseTime
-
-    override val headers: Headers get() = origin.headers
 }

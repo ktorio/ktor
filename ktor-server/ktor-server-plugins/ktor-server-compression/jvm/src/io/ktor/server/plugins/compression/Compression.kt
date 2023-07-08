@@ -10,6 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -37,29 +38,6 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
         handler: suspend Context.(ApplicationCall) -> Unit
     ) {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
-            handler(Context(this), call)
-        }
-    }
-}
-
-private object ContentDecoding : Hook<suspend ContentDecoding.Context.(ApplicationCall) -> Unit> {
-
-    class Context(private val pipelineContext: PipelineContext<Any, ApplicationCall>) {
-        fun transformBody(block: (ByteReadChannel) -> ByteReadChannel?) {
-            val transformedContent = block(pipelineContext.subject as ByteReadChannel)
-            if (transformedContent != null) {
-                pipelineContext.subject = transformedContent
-            }
-        }
-    }
-
-    override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend Context.(ApplicationCall) -> Unit
-    ) {
-        val beforeTransform = PipelinePhase("BeforeTransform")
-        pipeline.receivePipeline.insertPhaseBefore(ApplicationReceivePipeline.Transform, beforeTransform)
-        pipeline.receivePipeline.intercept(beforeTransform) {
             handler(Context(this), call)
         }
     }
@@ -95,12 +73,13 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
     on(ContentEncoding) { call ->
         encode(call, options)
     }
-    on(ContentDecoding) { call ->
+    onCall { call ->
         decode(call, options)
     }
 }
 
-private fun ContentDecoding.Context.decode(call: ApplicationCall, options: CompressionOptions) {
+@OptIn(InternalAPI::class)
+private fun decode(call: ApplicationCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (encodingRaw == null) {
         LOGGER.trace("Skip decompression for ${call.request.uri} because no content encoding provided.")
@@ -112,16 +91,21 @@ private fun ContentDecoding.Context.decode(call: ApplicationCall, options: Compr
         LOGGER.trace("Skip decompression for ${call.request.uri} because no suitable encoders found.")
         return
     }
+    val encoderNames = encoders.map { it.encoder.name }
     if (encoding.size > encoders.size) {
-        val missingEncoders = encoding.map { it.value } - encoders.map { it.encoder.name }.toSet()
+        val missingEncoders = encoding.map { it.value } - encoderNames.toSet()
+        call.request.setHeader(HttpHeaders.ContentEncoding, missingEncoders)
         LOGGER.trace(
             "Skip some of decompression for ${call.request.uri} " +
                 "because no suitable encoders found for $missingEncoders"
         )
+    } else {
+        call.request.setHeader(HttpHeaders.ContentEncoding, null)
     }
-    transformBody { channel ->
-        encoders.fold(channel) { content, encoder -> encoder.encoder.decode(content) }
-    }
+    val originalChannel = call.request.receiveChannel()
+    val decoded = encoders.fold(originalChannel) { content, encoder -> encoder.encoder.decode(content) }
+    call.request.setReceiveChannel(decoded)
+    call.attributes.put(DecompressionListAttribute, encoderNames)
 }
 
 private fun ContentEncoding.Context.encode(call: ApplicationCall, options: CompressionOptions) {
@@ -180,3 +164,11 @@ private fun ContentEncoding.Context.encode(call: ApplicationCall, options: Compr
         return@transformBody message.compressed(encoderOptions.encoder)
     }
 }
+
+internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeKey("DecompressionListAttribute")
+
+/**
+ * List of [ContentEncoder] names that were used to decode request body.
+ */
+public val ApplicationRequest.appliedDecoders: List<String>
+    get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
