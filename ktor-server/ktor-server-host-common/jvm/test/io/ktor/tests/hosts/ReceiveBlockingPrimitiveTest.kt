@@ -68,7 +68,7 @@ class ReceiveBlockingPrimitiveTest {
                 get() = TODO("Not yet implemented")
             override val rawQueryParameters: Parameters
                 get() = TODO("Not yet implemented")
-            override val headers: Headers
+            override val engineHeaders: Headers
                 get() = TODO("Not yet implemented")
             override val local: RequestConnectionPoint
                 get() = object : RequestConnectionPoint {
@@ -108,7 +108,7 @@ class ReceiveBlockingPrimitiveTest {
             override val cookies: RequestCookies
                 get() = TODO("Not yet implemented")
 
-            override fun receiveChannel(): ByteReadChannel = ByteReadChannel.Empty
+            override val engineReceiveChannel: ByteReadChannel = ByteReadChannel.Empty
         }
 
         override val response: BaseApplicationResponse

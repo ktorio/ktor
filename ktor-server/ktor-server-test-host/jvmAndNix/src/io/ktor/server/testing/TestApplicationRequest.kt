@@ -104,7 +104,7 @@ public class TestApplicationRequest constructor(
         map.getOrPut(name) { mutableListOf() }.add(value)
     }
 
-    override val headers: Headers by lazy {
+    override val engineHeaders: Headers by lazy {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
         Headers.build {
@@ -114,7 +114,7 @@ public class TestApplicationRequest constructor(
         }
     }
 
-    override fun receiveChannel(): ByteReadChannel = bodyChannel
+    override val engineReceiveChannel: ByteReadChannel get() = bodyChannel
 }
 
 /**

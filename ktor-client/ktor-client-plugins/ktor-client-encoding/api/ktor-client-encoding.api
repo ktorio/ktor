@@ -28,6 +28,7 @@ public final class io/ktor/client/plugins/compression/ContentEncodingKt {
 	public static synthetic fun ContentEncoding$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;Ljava/util/List;)V
 	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;[Ljava/lang/String;)V
+	public static final fun getAppliedDecoders (Lio/ktor/client/statement/HttpResponse;)Ljava/util/List;
 }
 
 public final class io/ktor/client/plugins/compression/UnsupportedContentEncodingException : java/lang/IllegalStateException {

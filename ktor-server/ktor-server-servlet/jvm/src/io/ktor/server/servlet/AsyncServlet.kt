@@ -69,7 +69,7 @@ public class AsyncServletApplicationRequest(
         } else ByteReadChannel.Empty
     }
 
-    override fun receiveChannel(): ByteReadChannel = inputStreamChannel
+    override val engineReceiveChannel: ByteReadChannel get() = inputStreamChannel
 
     internal fun upgraded() {
         upgraded = true
