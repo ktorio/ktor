@@ -61,7 +61,9 @@ public fun HttpMessageBuilder.etag(): String? = headers[HttpHeaders.ETag]
 /**
  * Parse `Vary` header value.
  */
-public fun HttpMessageBuilder.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+public fun HttpMessageBuilder.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?.flatMap { varyKeys ->
+    varyKeys.split(",").map { it.trim() }
+}
 
 /**
  * Parse `Content-Length` header value.
@@ -86,7 +88,9 @@ public fun HttpMessage.etag(): String? = headers[HttpHeaders.ETag]
 /**
  * Parse `Vary` header value.
  */
-public fun HttpMessage.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+public fun HttpMessage.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?.flatMap { varyKeys ->
+    varyKeys.split(",").map { it.trim() }
+}
 
 /**
  * Parse `Content-Length` header value.
