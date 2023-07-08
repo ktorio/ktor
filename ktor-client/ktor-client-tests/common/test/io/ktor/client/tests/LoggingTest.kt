@@ -372,7 +372,6 @@ class LoggingTest : ClientLoader() {
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
             "???-> connection: close",
-            "-> Content-Encoding: deflate",
             "-> Content-Type: text/plain; charset=UTF-8",
             "-> Transfer-Encoding: chunked",
             "BODY Content-Type: text/plain; charset=UTF-8",

@@ -24,6 +24,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -588,6 +589,84 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 assertContentEquals(channel.readRemaining().readBytes(), content)
             }
             client.close()
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    open fun testCanModifyRequestHeaders() {
+        createAndStartServer {
+            install(
+                createRouteScopedPlugin("plugin") {
+                    onCall { call ->
+                        call.request.setHeader("deleted", null)
+                        call.request.setHeader("changed", listOf("new-value1", "new-value-2"))
+                    }
+                }
+            )
+            route("/") {
+                post {
+                    assertEquals(listOf("new-value1", "new-value-2"), call.request.headers.getAll("changed"))
+                    assertNull(call.request.headers.getAll("deleted"))
+                    assertEquals(listOf("old"), call.request.headers.getAll("original"))
+                    call.respond(call.receiveText())
+                }
+            }
+        }
+
+        runBlocking {
+            HttpClient().use { client ->
+                val requestBody = ByteChannel(true)
+                requestBody.writeStringUtf8("test")
+
+                val response = client.post("http://127.0.0.1:$port/") {
+                    headers.append("original", "old")
+                    headers.append("deleted", "old")
+                    headers.append("changed", "old")
+                    setBody("test")
+                }
+
+                assertEquals("test", response.bodyAsText())
+            }
+        }
+    }
+
+    @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+    @Test
+    open fun testCanModifyRequestBody() {
+        createAndStartServer {
+            install(
+                createRouteScopedPlugin("plugin") {
+                    onCall { call ->
+                        val oldChannel = call.request.receiveChannel()
+                        val newChannel = GlobalScope.writer {
+                            channel.writeStringUtf8("start")
+                            oldChannel.copyTo(channel)
+                            channel.writeStringUtf8("finish")
+                        }.channel
+                        call.request.setReceiveChannel(newChannel)
+                    }
+                }
+            )
+            route("/") {
+                post {
+                    call.respond(call.receiveText())
+                }
+            }
+        }
+
+        runBlocking {
+            HttpClient().use { client ->
+                val requestBody = ByteChannel(true)
+                requestBody.writeStringUtf8("test")
+                requestBody.close()
+
+                val response = client.post("http://127.0.0.1:$port/") {
+                    setBody(requestBody)
+                }
+
+                assertEquals("starttestfinish", response.bodyAsText())
+            }
         }
     }
 

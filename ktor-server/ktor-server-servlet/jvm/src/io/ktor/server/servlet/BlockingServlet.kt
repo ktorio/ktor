@@ -41,7 +41,7 @@ private class BlockingServletApplicationRequest(
         servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool)
     }
 
-    override fun receiveChannel() = inputStreamChannel
+    override val engineReceiveChannel: ByteReadChannel get() = inputStreamChannel
 }
 
 internal class BlockingServletApplicationResponse(

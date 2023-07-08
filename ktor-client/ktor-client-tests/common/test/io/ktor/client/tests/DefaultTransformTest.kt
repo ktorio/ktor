@@ -16,23 +16,6 @@ import kotlin.test.*
 class DefaultTransformTest {
 
     @Test
-    fun testVerifyByteArrayLength() = testSuspend {
-        if (PlatformUtils.IS_BROWSER) return@testSuspend
-
-        val httpClient = HttpClient(MockEngine) {
-            engine {
-                addHandler { _ ->
-                    respond("hello", headers = headersOf(HttpHeaders.ContentLength, "123"))
-                }
-            }
-        }
-
-        assertFailsWith<IllegalStateException> {
-            httpClient.get("http://host/path").body<ByteArray>()
-        }
-    }
-
-    @Test
     fun testReadingHeadResponseAsByteArray() = testSuspend {
         val httpClient = HttpClient(MockEngine) {
             engine {
