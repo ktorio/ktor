@@ -622,6 +622,8 @@ public abstract interface class io/ktor/server/request/ApplicationRequest {
 	public abstract fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public abstract fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public abstract fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun setHeader (Ljava/lang/String;Ljava/util/List;)V
+	public abstract fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 }
 
 public final class io/ktor/server/request/ApplicationRequestKt {
@@ -1242,6 +1244,8 @@ public final class io/ktor/server/routing/RoutingApplicationRequest : io/ktor/se
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
 	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun setHeader (Ljava/lang/String;Ljava/util/List;)V
+	public fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 }
 
 public final class io/ktor/server/routing/RoutingApplicationResponse : io/ktor/server/response/ApplicationResponse {
