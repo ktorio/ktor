@@ -463,12 +463,11 @@ class CacheTest : ClientLoader() {
             assertEquals(firstBody, "First")
 
             // When isShared = true, s-maxage is in used as expiration.
-            // But this case uses max-age unexpectedly, therefore this response is reflected.
+            // s-maxage doesn't expires yet, therefore this response should not be reflected.
             fakeResponse.content = "Second"
             fakeResponse.status = HttpStatusCode.OK
             val secondBody = client.get(url).body<String>()
-            // They should be the same value because s-maxage doesn't expires yet.
-            assertNotEquals(secondBody, firstBody)
+            assertEquals(secondBody, firstBody)
         }
     }
 
