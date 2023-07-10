@@ -11,9 +11,6 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpMethod
-import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -64,14 +61,4 @@ internal class NettyHttp2ApplicationRequest(
     )
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
-
-    override fun newDecoder(): HttpPostMultipartRequestDecoder {
-        val hh = DefaultHttpHeaders(false)
-        for ((name, value) in nettyHeaders) {
-            hh.add(name, value)
-        }
-
-        val request = DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, uri, hh)
-        return HttpPostMultipartRequestDecoder(request)
-    }
 }
