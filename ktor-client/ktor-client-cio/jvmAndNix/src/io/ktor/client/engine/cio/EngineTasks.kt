@@ -7,6 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -17,9 +18,10 @@ internal data class RequestTask(
     val context: CoroutineContext
 )
 
+@OptIn(InternalAPI::class)
 internal fun HttpRequestData.requiresDedicatedConnection(): Boolean = listOf(headers, body.headers).any {
     it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
-} || method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts()
+} || method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts() || isSseRequest()
 
 internal data class ConnectionResponseTask(
     val requestTime: GMTDate,

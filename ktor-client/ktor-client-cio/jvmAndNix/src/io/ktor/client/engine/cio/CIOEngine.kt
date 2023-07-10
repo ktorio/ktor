@@ -6,6 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -26,7 +27,8 @@ internal class CIOEngine(
     override val dispatcher: CoroutineDispatcher =
         Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
 
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability)
+    override val supportedCapabilities =
+        setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
