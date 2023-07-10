@@ -6,7 +6,7 @@ package io.ktor.client.plugins.sse
 
 import io.ktor.sse.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.*
 
 /**
  * A client Server-sent events session.
@@ -15,5 +15,5 @@ public interface ClientSSESession : CoroutineScope {
     /**
      * An incoming server-sent events channel.
      */
-    public val incoming: ReceiveChannel<ServerSentEvent>
+    public val incoming: Flow<ServerSentEvent>
 }

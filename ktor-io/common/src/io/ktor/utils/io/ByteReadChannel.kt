@@ -134,7 +134,7 @@ public expect interface ByteReadChannel {
      * Supports both CR-LF and LF line endings.
      * Throws an exception if the specified [limit] has been exceeded.
      *
-     * @return a line string with no line endings or `null` of channel has been closed
+     * @return a line string with no line endings or `null` if channel has been closed
      * and no characters were read.
      */
     public suspend fun readUTF8Line(limit: Int): String?

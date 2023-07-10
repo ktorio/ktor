@@ -7,6 +7,7 @@ package io.ktor.client.plugins.sse
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.statement.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
@@ -31,17 +32,21 @@ public object SSECapability : HttpClientEngineCapability<Unit> {
  * }
  * ```
  */
+@OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     name = "SSE",
     createConfiguration = ::SSEConfig
 ) {
+    val closeConditions = pluginConfig.closeConditions
     val reconnectionTime = pluginConfig.reconnectionTime
+    val showCommentEvents = pluginConfig.showCommentEvents
+    val showRetryEvents = pluginConfig.showRetryEvents
 
     transformRequestBody { request, _, _ ->
         LOGGER.trace("Sending SSE request ${request.url}")
         request.setCapability(SSECapability, Unit)
 
-        SSEContent(reconnectionTime)
+        SSEContent(closeConditions, reconnectionTime, showCommentEvents, showRetryEvents)
     }
 
     transformResponseBody { response, content, requestedType ->

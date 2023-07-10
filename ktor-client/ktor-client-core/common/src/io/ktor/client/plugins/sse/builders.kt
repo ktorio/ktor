@@ -32,12 +32,15 @@ public suspend fun HttpClient.serverSentEventsSession(
     val statement = prepareRequest {
         block()
     }
-    try {
-        statement.body<ClientSSESession, Unit> { session ->
-            sessionDeferred.complete(session)
+    @Suppress("SuspendFunctionOnCoroutineScope")
+    launch {
+        try {
+            statement.body<ClientSSESession, Unit> { session ->
+                sessionDeferred.complete(session)
+            }
+        } catch (cause: Throwable) {
+            sessionDeferred.completeExceptionally(SSEException(cause))
         }
-    } catch (cause: Throwable) {
-        sessionDeferred.completeExceptionally(SSEException(cause))
     }
     return sessionDeferred.await()
 }

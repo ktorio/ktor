@@ -6,9 +6,16 @@ package io.ktor.client.plugins.sse
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import kotlin.time.*
 
-internal class SSEContent(private val reconnectionTime: Duration) : OutgoingContent.NoContent() {
+@InternalAPI
+public class SSEContent(
+    public val closeConditions: List<(String) -> Boolean>,
+    public val reconnectionTime: Duration,
+    public val showCommentEvents: Boolean,
+    public val showRetryEvents: Boolean
+) : OutgoingContent.NoContent() {
 
     override val headers: Headers = HeadersBuilder().apply {
         append(HttpHeaders.Accept, ContentType.Text.EventStream)
