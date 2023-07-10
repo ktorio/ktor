@@ -25,6 +25,29 @@ internal fun Application.serverSentEvents() {
                 }
                 call.respondSseEvents(events)
             }
+            get("/echo") {
+                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                    writeStringUtf8(call.parameters["input"] ?: "")
+                }
+            }
+            get("/comments") {
+                val times = call.parameters["times"]?.toInt() ?: 1
+                var isComment = true
+                val events = flow {
+                    repeat(times) {
+                        emit(it)
+                        emit(it)
+                    }
+                }.map {
+                    isComment = !isComment
+                    if (isComment) {
+                        SseEvent(data = "$it")
+                    } else {
+                        SseEvent(comments = "$it")
+                    }
+                }
+                call.respondSseEvents(events)
+            }
         }
     }
 }
@@ -42,11 +65,28 @@ private suspend fun ByteWriteChannel.writeSseEvents(events: Flow<SseEvent>): Uni
     if (event.event != null) {
         writeStringUtf8("event: ${event.event}\n")
     }
-    for (dataLine in event.data.lines()) {
-        writeStringUtf8("data: $dataLine\n")
+    if (event.data != null) {
+        for (dataLine in event.data.lines()) {
+            writeStringUtf8("data: $dataLine\n")
+        }
+    }
+    if (event.retry != null) {
+        writeStringUtf8("retry: ${event.retry}\n")
+    }
+
+    if (event.comments != null) {
+        for (dataLine in event.comments.lines()) {
+            writeStringUtf8(": $dataLine\n")
+        }
     }
     writeStringUtf8("\n")
     flush()
 }
 
-private data class SseEvent(val data: String, val event: String? = null, val id: String? = null)
+private data class SseEvent(
+    val data: String? = null,
+    val event: String? = null,
+    val id: String? = null,
+    val retry: Long? = null,
+    val comments: String? = null
+)

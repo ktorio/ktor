@@ -863,7 +863,13 @@ public final class io/ktor/client/plugins/sse/BuildersKt {
 }
 
 public abstract interface class io/ktor/client/plugins/sse/ClientSSESession : kotlinx/coroutines/CoroutineScope {
-	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class io/ktor/client/plugins/sse/DefaultClientSSESession : io/ktor/client/plugins/sse/ClientSSESession {
+	public fun <init> (Lio/ktor/client/plugins/sse/SSEContent;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/engine/HttpClientEngineCapability {
@@ -873,8 +879,21 @@ public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/eng
 
 public final class io/ktor/client/plugins/sse/SSEConfig {
 	public fun <init> ()V
+	public final fun closeOn (Lkotlin/jvm/functions/Function1;)V
 	public final fun getReconnectionTime-UwyO8pc ()J
 	public final fun setReconnectionTime-LRDsOJo (J)V
+	public final fun showCommentEvents ()V
+	public final fun showRetryEvents ()V
+}
+
+public final class io/ktor/client/plugins/sse/SSEContent : io/ktor/http/content/OutgoingContent$NoContent {
+	public synthetic fun <init> (Ljava/util/List;JZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCloseConditions ()Ljava/util/List;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public final fun getReconnectionTime-UwyO8pc ()J
+	public final fun getShowCommentEvents ()Z
+	public final fun getShowRetryEvents ()Z
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/plugins/sse/SSEKt {
