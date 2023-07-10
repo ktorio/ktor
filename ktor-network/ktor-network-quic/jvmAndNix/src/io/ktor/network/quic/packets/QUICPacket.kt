@@ -9,14 +9,13 @@ package io.ktor.network.quic.packets
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.consts.*
-import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 /**
  * Interface for all QUIC packets across all versions
  */
 internal sealed interface QUICPacket {
-    val destinationConnectionID: ConnectionID
+    val destinationConnectionID: QUICConnectionID
 
     /**
      * Packet Number field if applicable, otherwise -1
@@ -37,8 +36,8 @@ internal sealed interface QUICPacket {
      */
     sealed interface LongHeader : QUICPacket {
         val version: UInt32
-        override val destinationConnectionID: ConnectionID
-        val sourceConnectionID: ConnectionID
+        override val destinationConnectionID: QUICConnectionID
+        val sourceConnectionID: QUICConnectionID
 
         override fun toDebugString(withPayload: Boolean): String {
             val payload = payload ?: ByteReadPacket.Empty
@@ -62,7 +61,7 @@ internal sealed interface QUICPacket {
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc8999.html#name-short-header)
      */
     sealed interface ShortHeader : QUICPacket {
-        override val destinationConnectionID: ConnectionID
+        override val destinationConnectionID: QUICConnectionID
     }
 }
 
@@ -71,9 +70,9 @@ internal sealed interface QUICPacket {
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc8999.html#name-version-negotiation)
  */
-internal class VersionNegotiationPacket(
-    override val destinationConnectionID: ConnectionID,
-    override val sourceConnectionID: ConnectionID,
+internal class QUICVersionNegotiationPacket(
+    override val destinationConnectionID: QUICConnectionID,
+    override val sourceConnectionID: QUICConnectionID,
     val supportedVersions: Array<Int>,
 ) : QUICPacket.LongHeader {
     override val version: UInt32 = QUICVersion.VersionNegotiation
@@ -97,10 +96,10 @@ internal class VersionNegotiationPacket(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-initial-packet)
  */
-internal class InitialPacket_v1(
+internal class QUICInitialPacket(
     override val version: UInt32,
-    override val destinationConnectionID: ConnectionID,
-    override val sourceConnectionID: ConnectionID,
+    override val destinationConnectionID: QUICConnectionID,
+    override val sourceConnectionID: QUICConnectionID,
     val token: ByteArray,
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
@@ -125,10 +124,10 @@ internal class InitialPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-0-rtt)
  */
-internal class ZeroRTTPacket_v1(
+internal class QUICZeroRTTPacket(
     override val version: UInt32,
-    override val destinationConnectionID: ConnectionID,
-    override val sourceConnectionID: ConnectionID,
+    override val destinationConnectionID: QUICConnectionID,
+    override val sourceConnectionID: QUICConnectionID,
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader {
@@ -140,10 +139,10 @@ internal class ZeroRTTPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-handshake-packet)
  */
-internal class HandshakePacket_v1(
+internal class QUICHandshakePacket(
     override val version: UInt32,
-    override val destinationConnectionID: ConnectionID,
-    override val sourceConnectionID: ConnectionID,
+    override val destinationConnectionID: QUICConnectionID,
+    override val sourceConnectionID: QUICConnectionID,
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader {
@@ -155,10 +154,10 @@ internal class HandshakePacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-retry-packet)
  */
-internal class RetryPacket_v1(
+internal class QUICRetryPacket(
     override val version: UInt32,
-    override val destinationConnectionID: ConnectionID,
-    override val sourceConnectionID: ConnectionID,
+    override val destinationConnectionID: QUICConnectionID,
+    override val sourceConnectionID: QUICConnectionID,
     val retryToken: ByteArray,
     val retryIntegrityTag: ByteArray,
 ) : QUICPacket.LongHeader {
@@ -184,8 +183,8 @@ internal class RetryPacket_v1(
  *
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-1-rtt-packet)
  */
-internal class OneRTTPacket_v1(
-    override val destinationConnectionID: ConnectionID,
+internal class QUICOneRTTPacket(
+    override val destinationConnectionID: QUICConnectionID,
     val spinBit: Boolean,
     val keyPhase: Boolean,
     override val packetNumber: Long,

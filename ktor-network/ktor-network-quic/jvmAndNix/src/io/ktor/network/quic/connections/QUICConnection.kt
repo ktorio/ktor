@@ -28,23 +28,23 @@ import kotlinx.coroutines.channels.*
  * This class is used for already established connections, the handshake process is managed by todo
  */
 @Suppress("CanBeParameter")
-internal class QUICConnection_v1(
+internal class QUICConnection(
     private val isServer: Boolean,
 
     /**
      * Initial CID used by this endpoint during the handshake.
      */
-    private val initialLocalConnectionID: ConnectionID,
+    private val initialLocalConnectionID: QUICConnectionID,
 
     /**
      * CID that was used by the peer as first Destination Connection ID.
      */
-    private val originalDestinationConnectionID: ConnectionID,
+    private val originalDestinationConnectionID: QUICConnectionID,
 
     /**
      * Initial CID used by the peer during the handshake.
      */
-    private val initialPeerConnectionID: ConnectionID,
+    private val initialPeerConnectionID: QUICConnectionID,
 
     /**
      * Negotiated length of the CIDs used during this connection
@@ -87,18 +87,18 @@ internal class QUICConnection_v1(
     private val streamManager = StreamManager()
 
     /**
-     * [TransportParameters] that were announced to the peer.
+     * [QUICTransportParameters] that were announced to the peer.
      *
      * Peer should comply with them and can request some changes during the connection if needed.
      */
-    private var localTransportParameters: TransportParameters = transportParameters()
+    private var localTransportParameters: QUICTransportParameters = quicTransportParameters()
 
     /**
-     * [TransportParameters] that were announced by the peer.
+     * [QUICTransportParameters] that were announced by the peer.
      *
      * This endpoint should comply with them and can request some changes during the connection if needed.
      */
-    private var peerTransportParameters: TransportParameters = transportParameters()
+    private var peerTransportParameters: QUICTransportParameters = quicTransportParameters()
 
     /**
      * Token to send in the header of an Initial packet for a future connection.
@@ -142,7 +142,7 @@ internal class QUICConnection_v1(
     /**
      * @return true if this connection has active [destinationConnectionID] in its pool
      */
-    fun match(destinationConnectionID: ConnectionID): Boolean {
+    fun match(destinationConnectionID: QUICConnectionID): Boolean {
         // todo invalidate original dcid?
         return destinationConnectionID.eq(originalDestinationConnectionID) ||
             localConnectionIDs[destinationConnectionID] != null
@@ -165,7 +165,7 @@ internal class QUICConnection_v1(
         }
     }
 
-    private fun handleError(raisedError: QUICTransportError, frameType: FrameType_v1? = null) {
+    private fun handleError(raisedError: QUICTransportError, frameType: QUICFrameType? = null) {
         error("Error occurred: ${raisedError.toDebugString()}${frameType?.let { " in frame $it" } ?: ""}")
     }
 
@@ -268,7 +268,7 @@ internal class QUICConnection_v1(
             encryptionLevel: EncryptionLevel,
             flush: Boolean,
         ) {
-            logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length
+            logger.info("offset: $handshakeOffset, payload.size: ${cryptoPayload.size}, flush: $flush, encryption level: $encryptionLevel") // ktlint-disable max-line-length argument-list-wrapping
 
             if (encryptionLevel == EncryptionLevel.Handshake) {
                 buffer.writeFully(cryptoPayload)
@@ -320,10 +320,10 @@ internal class QUICConnection_v1(
             handleError(error)
         }
 
-        override fun getTransportParameters(peerParameters: TransportParameters): TransportParameters {
+        override fun getTransportParameters(peerParameters: QUICTransportParameters): QUICTransportParameters {
             peerTransportParameters = peerParameters
 
-            return transportParameters {
+            return quicTransportParameters {
                 original_destination_connection_id = originalDestinationConnectionID
                 disable_active_migration = true
                 initial_source_connection_id = initialLocalConnectionID
@@ -351,10 +351,10 @@ internal class QUICConnection_v1(
         ReadyPacketHandler.Retry,
         ReadyPacketHandler.OneRTT {
 
-        override val destinationConnectionID: ConnectionID
+        override val destinationConnectionID: QUICConnectionID
             get() = peerConnectionIDs.nextConnectionID()
 
-        override val sourceConnectionID: ConnectionID
+        override val sourceConnectionID: QUICConnectionID
             get() = localConnectionIDs.nextConnectionID()
 
         // These sizes are static during connection
@@ -393,7 +393,7 @@ internal class QUICConnection_v1(
         override val token: ByteArray = EMPTY_BYTE_ARRAY
 
         // Retry packet
-        override val originalDestinationConnectionID: ConnectionID
+        override val originalDestinationConnectionID: QUICConnectionID
             get() = TODO("Not yet implemented")
         override val retryToken: ByteArray
             get() = TODO("Not yet implemented")
@@ -409,16 +409,16 @@ internal class QUICConnection_v1(
     }
 
     private inner class PayloadProcessor : FrameProcessor {
-        override suspend fun acceptPadding(packet: QUICPacket): QUICTransportError_v1? {
-//            logAcceptedFrame(FrameType_v1.PADDING)
+        override suspend fun acceptPadding(packet: QUICPacket): QUICTransportError? {
+//            logAcceptedFrame(FrameType.PADDING)
             return null
         }
 
-        override suspend fun acceptPing(packet: QUICPacket): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.PING)
+        override suspend fun acceptPing(packet: QUICPacket): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.PING)
             // The receiver of a PING frame simply needs to acknowledge the packet containing this frame.
 
-            val encryptionLevel = packet.encryptionLevel ?: return TransportError_v1.PROTOCOL_VIOLATION
+            val encryptionLevel = packet.encryptionLevel ?: return QUICProtocolTransportError.PROTOCOL_VIOLATION
 
             // todo remove force after adding packet auto sending loop
             send(encryptionLevel, forceEndDatagram = true) { builder, hookConsumer ->
@@ -432,8 +432,8 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             ackDelay: Long,
             ackRanges: LongArray,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.ACK)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.ACK)
 
             packet.encryptionLevel?.let { level ->
                 packetNumberSpacePool[level].processAcknowledgements(ackRanges)
@@ -449,8 +449,8 @@ internal class QUICConnection_v1(
             ect0: Long,
             ect1: Long,
             ectCE: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.ACK_ECN)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.ACK_ECN)
 
             packet.encryptionLevel?.let { level ->
                 packetNumberSpacePool[level].processAcknowledgements(ackRanges)
@@ -464,8 +464,8 @@ internal class QUICConnection_v1(
             streamId: Long,
             applicationProtocolErrorCode: AppError,
             finalSize: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.RESET_STREAM)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.RESET_STREAM)
             return null
         }
 
@@ -473,8 +473,8 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             streamId: Long,
             applicationProtocolErrorCode: AppError,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.STOP_SENDING)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.STOP_SENDING)
             return null
         }
 
@@ -482,8 +482,8 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             offset: Long,
             cryptoData: ByteArray,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.CRYPTO)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.CRYPTO)
 
             when (packet.encryptionLevel) {
                 EncryptionLevel.Initial -> tlsComponent.acceptInitialHandshake(cryptoData)
@@ -496,17 +496,17 @@ internal class QUICConnection_v1(
                 }
 
                 EncryptionLevel.AppData -> TODO("Not implemented yet")
-                else -> return TransportError_v1.PROTOCOL_VIOLATION
+                else -> return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             return null
         }
 
-        override suspend fun acceptNewToken(packet: QUICPacket, token: ByteArray): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.NEW_TOKEN)
+        override suspend fun acceptNewToken(packet: QUICPacket, token: ByteArray): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.NEW_TOKEN)
             // A server MUST treat receipt of a NEW_TOKEN frame as a connection error of type PROTOCOL_VIOLATION
             if (isServer) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             initialFrameToken = token
@@ -520,16 +520,16 @@ internal class QUICConnection_v1(
             offset: Long,
             fin: Boolean,
             streamData: ByteArray,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.STREAM)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.STREAM)
 
             streamManager.acceptStreamFrame(streamId, offset, fin, streamData)
 
             return null
         }
 
-        override suspend fun acceptMaxData(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.MAX_DATA)
+        override suspend fun acceptMaxData(packet: QUICPacket, maximumData: Long): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.MAX_DATA)
             peerMaxData = maximumData.coerceAtLeast(peerMaxData)
 
             return null
@@ -539,8 +539,8 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             streamId: Long,
             maximumStreamData: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.MAX_STREAM_DATA)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.MAX_STREAM_DATA)
             maxStreamData[streamId] = maximumStreamData.coerceAtLeast(maxStreamData[streamId] ?: 0)
 
             // todo check receive-only and not created streams
@@ -551,8 +551,8 @@ internal class QUICConnection_v1(
         override suspend fun acceptMaxStreamsBidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.MAX_STREAMS_BIDIRECTIONAL)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.MAX_STREAMS_BIDIRECTIONAL)
             peerMaxStreamsBidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsBidirectional)
 
             return null
@@ -561,15 +561,15 @@ internal class QUICConnection_v1(
         override suspend fun acceptMaxStreamsUnidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL)
             peerMaxStreamsUnidirectional = maximumStreams.coerceAtLeast(peerMaxStreamsUnidirectional)
 
             return null
         }
 
-        override suspend fun acceptDataBlocked(packet: QUICPacket, maximumData: Long): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.DATA_BLOCKED)
+        override suspend fun acceptDataBlocked(packet: QUICPacket, maximumData: Long): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.DATA_BLOCKED)
             return null
         }
 
@@ -577,24 +577,24 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             streamId: Long,
             maximumStreamData: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.STREAM_DATA_BLOCKED)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.STREAM_DATA_BLOCKED)
             return null
         }
 
         override suspend fun acceptStreamsBlockedBidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL)
             return null
         }
 
         override suspend fun acceptStreamsBlockedUnidirectional(
             packet: QUICPacket,
             maximumStreams: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.STREAMS_BLOCKED_UNIDIRECTIONAL)
             return null
         }
 
@@ -602,14 +602,14 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             sequenceNumber: Long,
             retirePriorTo: Long,
-            connectionID: ConnectionID,
+            connectionID: QUICConnectionID,
             statelessResetToken: ByteArray?,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.NEW_CONNECTION_ID)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.NEW_CONNECTION_ID)
             // An endpoint that is sending packets with a zero-length Destination Connection ID
             // MUST treat receipt of a NEW_CONNECTION_ID frame as a connection error of type PROTOCOL_VIOLATION.
             if (connectionIDLength == 0) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             // If an endpoint receives a NEW_CONNECTION_ID frame
@@ -619,20 +619,20 @@ internal class QUICConnection_v1(
             // the endpoint MAY treat that receipt as a connection error of type PROTOCOL_VIOLATION.
             peerConnectionIDs[sequenceNumber]?.let {
                 if (it.connectionID neq connectionID) {
-                    return TransportError_v1.PROTOCOL_VIOLATION
+                    return QUICProtocolTransportError.PROTOCOL_VIOLATION
                 }
             }
 
             peerConnectionIDs[connectionID]?.let {
                 if (it.sequenceNumber != sequenceNumber) {
-                    return TransportError_v1.PROTOCOL_VIOLATION
+                    return QUICProtocolTransportError.PROTOCOL_VIOLATION
                 }
 
                 if (it.resetToken != null &&
                     statelessResetToken != null &&
                     !it.resetToken.contentEquals(statelessResetToken)
                 ) {
-                    return TransportError_v1.PROTOCOL_VIOLATION
+                    return QUICProtocolTransportError.PROTOCOL_VIOLATION
                 }
 
                 // received twice the same - treat as duplication and ignore
@@ -675,7 +675,7 @@ internal class QUICConnection_v1(
             // advertised in its active_connection_id_limit transport parameter,
             // an endpoint MUST close the connection with an error of type CONNECTION_ID_LIMIT_ERROR.
             if (!peerConnectionIDs.add(record)) {
-                return TransportError_v1.CONNECTION_ID_LIMIT_ERROR
+                return QUICProtocolTransportError.CONNECTION_ID_LIMIT_ERROR
             }
 
             return null
@@ -684,26 +684,26 @@ internal class QUICConnection_v1(
         override suspend fun acceptRetireConnectionId(
             packet: QUICPacket,
             sequenceNumber: Long,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.RETIRE_CONNECTION_ID)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.RETIRE_CONNECTION_ID)
             // Receipt of a RETIRE_CONNECTION_ID frame containing a sequence number greater than any previously sent
             // to the peer MUST be treated as a connection error of type PROTOCOL_VIOLATION.
             if (localConnectionIDs.threshold < sequenceNumber) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             // The sequence number specified in a RETIRE_CONNECTION_ID frame
             // MUST NOT refer to the Destination Connection ID field of the packet in which the frame is contained.
             // The peer MAY treat this as a connection error of type PROTOCOL_VIOLATION.
             if (localConnectionIDs[sequenceNumber]?.connectionID?.eq(packet.destinationConnectionID) == true) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             // An endpoint cannot send this frame if it was provided with a zero-length connection ID by its peer.
             // An endpoint that provides a zero-length connection ID
             // MUST treat receipt of a RETIRE_CONNECTION_ID frame as a connection error of type PROTOCOL_VIOLATION.
             if (connectionIDLength == 0) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             localConnectionIDs.remove(sequenceNumber)
@@ -711,8 +711,8 @@ internal class QUICConnection_v1(
             return null
         }
 
-        override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.PATH_CHALLENGE)
+        override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.PATH_CHALLENGE)
             sendInOneRTT { builder, _ ->
                 writePathResponse(builder, data)
             }
@@ -720,8 +720,8 @@ internal class QUICConnection_v1(
             return null
         }
 
-        override suspend fun acceptPathResponse(packet: QUICPacket, data: ByteArray): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.PATH_RESPONSE)
+        override suspend fun acceptPathResponse(packet: QUICPacket, data: ByteArray): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.PATH_RESPONSE)
             // todo check data is eq to PATH_CHALLENGE
 
             return null
@@ -729,11 +729,11 @@ internal class QUICConnection_v1(
 
         override suspend fun acceptConnectionCloseWithTransportError(
             packet: QUICPacket,
-            errorCode: QUICTransportError_v1,
-            frameType: FrameType_v1,
+            errorCode: QUICTransportError,
+            frameType: QUICFrameType,
             reasonPhrase: ByteArray,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.CONNECTION_CLOSE_TRANSPORT_ERR)
             return null
         }
 
@@ -741,21 +741,21 @@ internal class QUICConnection_v1(
             packet: QUICPacket,
             errorCode: AppError,
             reasonPhrase: ByteArray,
-        ): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.CONNECTION_CLOSE_APP_ERR)
+        ): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.CONNECTION_CLOSE_APP_ERR)
             return null
         }
 
-        override suspend fun acceptHandshakeDone(packet: QUICPacket): QUICTransportError_v1? {
-            logAcceptedFrame(FrameType_v1.HANDSHAKE_DONE)
+        override suspend fun acceptHandshakeDone(packet: QUICPacket): QUICTransportError? {
+            logAcceptedFrame(QUICFrameType.HANDSHAKE_DONE)
             if (isServer) {
-                return TransportError_v1.PROTOCOL_VIOLATION
+                return QUICProtocolTransportError.PROTOCOL_VIOLATION
             }
 
             return null
         }
 
-        private fun logAcceptedFrame(frameType: FrameType_v1) {
+        private fun logAcceptedFrame(frameType: QUICFrameType) {
             logger.info("Accepted frame: $frameType")
         }
 

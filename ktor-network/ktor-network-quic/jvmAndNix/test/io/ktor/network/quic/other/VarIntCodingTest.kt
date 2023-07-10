@@ -110,7 +110,9 @@ class VarIntCodingTest {
                 if (first) {
                     first = false
                     it or prefix
-                } else it
+                } else {
+                    it
+                }
             }.toUByte()
             writeUByte(byte)
         }

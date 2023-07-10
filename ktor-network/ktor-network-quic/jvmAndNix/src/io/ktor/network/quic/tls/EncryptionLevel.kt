@@ -11,8 +11,8 @@ internal enum class EncryptionLevel {
 }
 
 internal val QUICPacket.encryptionLevel: EncryptionLevel? get() = when (this) {
-    is InitialPacket_v1 -> EncryptionLevel.Initial
-    is HandshakePacket_v1 -> EncryptionLevel.Handshake
+    is QUICInitialPacket -> EncryptionLevel.Initial
+    is QUICHandshakePacket -> EncryptionLevel.Handshake
     is QUICPacket.ShortHeader -> EncryptionLevel.AppData
     else -> null
 }

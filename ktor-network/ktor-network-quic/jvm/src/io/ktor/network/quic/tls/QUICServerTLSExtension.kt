@@ -10,7 +10,7 @@ import net.luminis.tls.extension.*
 import java.nio.*
 
 internal class QUICServerTLSExtension(
-    val transportParameters: TransportParameters,
+    val transportParameters: QUICTransportParameters,
     private val isServer: Boolean,
 ) : Extension() {
     override fun getBytes(): ByteArray = buildPacket {
@@ -33,7 +33,7 @@ internal class QUICServerTLSExtension(
             }
 
             val length = bytes.readShort().toInt()
-            return QUICServerTLSExtension(TransportParameters.fromBytes(bytes, length, isServer), isServer).also {
+            return QUICServerTLSExtension(QUICTransportParameters.fromBytes(bytes, length, isServer), isServer).also {
                 buffer.position(buffer.position() + (start - bytes.remaining.toInt()))
             }
         }

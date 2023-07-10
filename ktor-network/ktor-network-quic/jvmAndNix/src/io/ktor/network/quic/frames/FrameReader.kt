@@ -6,9 +6,8 @@ package io.ktor.network.quic.frames
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
-import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
-import io.ktor.network.quic.errors.TransportError_v1.*
+import io.ktor.network.quic.errors.QUICProtocolTransportError.*
 import io.ktor.network.quic.packets.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
@@ -17,29 +16,29 @@ internal object FrameReader {
     suspend inline fun readFrame(
         processor: FrameProcessor,
         packet: QUICPacket,
-        transportParameters: TransportParameters,
+        transportParameters: QUICTransportParameters,
         maxCIDLength: UInt8,
-        onError: (QUICTransportError, FrameType_v1) -> Unit,
+        onError: (QUICTransportError, QUICFrameType) -> Unit,
     ) {
         val payload = packet.payload ?: error("Expected packet with payload") // programming error
 
         if (payload.isEmpty) {
-            onError(PROTOCOL_VIOLATION, FrameType_v1.PADDING)
+            onError(PROTOCOL_VIOLATION, QUICFrameType.PADDING)
             return
         }
 
         val type = payload.readFrameType()
 
         if (type == null) {
-            onError(FRAME_ENCODING_ERROR, FrameType_v1.PADDING)
+            onError(FRAME_ENCODING_ERROR, QUICFrameType.PADDING)
             return
         }
 
         val err = when (type) {
-            FrameType_v1.PADDING -> processor.acceptPadding(packet)
-            FrameType_v1.PING -> processor.acceptPing(packet)
+            QUICFrameType.PADDING -> processor.acceptPadding(packet)
+            QUICFrameType.PING -> processor.acceptPing(packet)
 
-            FrameType_v1.ACK -> readAndProcessACK(
+            QUICFrameType.ACK -> readAndProcessACK(
                 processor = processor,
                 packet = packet,
                 payload = payload,
@@ -47,7 +46,7 @@ internal object FrameReader {
                 withECN = false
             )
 
-            FrameType_v1.ACK_ECN -> readAndProcessACK(
+            QUICFrameType.ACK_ECN -> readAndProcessACK(
                 processor = processor,
                 packet = packet,
                 payload = payload,
@@ -55,56 +54,56 @@ internal object FrameReader {
                 withECN = true
             )
 
-            FrameType_v1.RESET_STREAM -> readAndProcessResetStream(processor, packet, payload)
-            FrameType_v1.STOP_SENDING -> readAndProcessStopSending(processor, packet, payload)
-            FrameType_v1.CRYPTO -> readAndProcessCrypto(processor, packet, payload)
-            FrameType_v1.NEW_TOKEN -> readAndProcessNewToken(processor, packet, payload)
+            QUICFrameType.RESET_STREAM -> readAndProcessResetStream(processor, packet, payload)
+            QUICFrameType.STOP_SENDING -> readAndProcessStopSending(processor, packet, payload)
+            QUICFrameType.CRYPTO -> readAndProcessCrypto(processor, packet, payload)
+            QUICFrameType.NEW_TOKEN -> readAndProcessNewToken(processor, packet, payload)
 
-            FrameType_v1.STREAM,
-            FrameType_v1.STREAM_FIN,
-            FrameType_v1.STREAM_LEN,
-            FrameType_v1.STREAM_LEN_FIN,
-            FrameType_v1.STREAM_OFF,
-            FrameType_v1.STREAM_OFF_FIN,
-            FrameType_v1.STREAM_OFF_LEN,
-            FrameType_v1.STREAM_OFF_LEN_FIN,
+            QUICFrameType.STREAM,
+            QUICFrameType.STREAM_FIN,
+            QUICFrameType.STREAM_LEN,
+            QUICFrameType.STREAM_LEN_FIN,
+            QUICFrameType.STREAM_OFF,
+            QUICFrameType.STREAM_OFF_FIN,
+            QUICFrameType.STREAM_OFF_LEN,
+            QUICFrameType.STREAM_OFF_LEN_FIN,
             -> readAndProcessStream(processor, packet, payload, type)
 
-            FrameType_v1.MAX_DATA -> readAndProcessMaxData(processor, packet, payload)
-            FrameType_v1.MAX_STREAM_DATA -> readAndProcessMaxStreamData(processor, packet, payload)
-            FrameType_v1.MAX_STREAMS_BIDIRECTIONAL -> readAndProcessMaxStreamsBidirectional(processor, packet, payload)
-            FrameType_v1.MAX_STREAMS_UNIDIRECTIONAL -> readAndProcessMaxStreamUnidirectional(processor, packet, payload)
-            FrameType_v1.DATA_BLOCKED -> readAndProcessDataBlocked(processor, packet, payload)
-            FrameType_v1.STREAM_DATA_BLOCKED -> readAndProcessStreamDataBlocked(processor, packet, payload)
-            FrameType_v1.STREAMS_BLOCKED_BIDIRECTIONAL -> readAndProcessStreamsBlockedBidirectional(
+            QUICFrameType.MAX_DATA -> readAndProcessMaxData(processor, packet, payload)
+            QUICFrameType.MAX_STREAM_DATA -> readAndProcessMaxStreamData(processor, packet, payload)
+            QUICFrameType.MAX_STREAMS_BIDIRECTIONAL -> readAndProcessMaxStreamsBidirectional(processor, packet, payload)
+            QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL -> readAndProcessMaxStreamUnidirectional(processor, packet, payload) // ktlint-disable max-line-length argument-list-wrapping
+            QUICFrameType.DATA_BLOCKED -> readAndProcessDataBlocked(processor, packet, payload)
+            QUICFrameType.STREAM_DATA_BLOCKED -> readAndProcessStreamDataBlocked(processor, packet, payload)
+            QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL -> readAndProcessStreamsBlockedBidirectional(
                 processor,
                 packet,
                 payload
             )
 
-            FrameType_v1.STREAMS_BLOCKED_UNIDIRECTIONAL -> readAndProcessStreamsBlockedUnidirectional(
+            QUICFrameType.STREAMS_BLOCKED_UNIDIRECTIONAL -> readAndProcessStreamsBlockedUnidirectional(
                 processor,
                 packet,
                 payload
             )
 
-            FrameType_v1.NEW_CONNECTION_ID -> readAndProcessNewConnectionId(processor, packet, maxCIDLength, payload)
-            FrameType_v1.RETIRE_CONNECTION_ID -> readAndProcessRetireConnectionId(processor, packet, payload)
-            FrameType_v1.PATH_CHALLENGE -> readAndProcessPathChallenge(processor, packet, payload)
-            FrameType_v1.PATH_RESPONSE -> readAndProcessPathResponse(processor, packet, payload)
-            FrameType_v1.CONNECTION_CLOSE_TRANSPORT_ERR -> readAndProcessConnectionCloseWithTransportError(
+            QUICFrameType.NEW_CONNECTION_ID -> readAndProcessNewConnectionID(processor, packet, maxCIDLength, payload)
+            QUICFrameType.RETIRE_CONNECTION_ID -> readAndProcessRetireConnectionId(processor, packet, payload)
+            QUICFrameType.PATH_CHALLENGE -> readAndProcessPathChallenge(processor, packet, payload)
+            QUICFrameType.PATH_RESPONSE -> readAndProcessPathResponse(processor, packet, payload)
+            QUICFrameType.CONNECTION_CLOSE_TRANSPORT_ERR -> readAndProcessConnectionCloseWithTransportError(
                 processor,
                 packet,
                 payload
             )
 
-            FrameType_v1.CONNECTION_CLOSE_APP_ERR -> readAndProcessConnectionCloseWithAppError(
+            QUICFrameType.CONNECTION_CLOSE_APP_ERR -> readAndProcessConnectionCloseWithAppError(
                 processor,
                 packet,
                 payload
             )
 
-            FrameType_v1.HANDSHAKE_DONE -> processor.acceptHandshakeDone(packet)
+            QUICFrameType.HANDSHAKE_DONE -> processor.acceptHandshakeDone(packet)
         }
 
         err?.let { onError(it, type) }
@@ -117,7 +116,7 @@ internal object FrameReader {
         payload: ByteReadPacket,
         ack_delay_exponent: Int,
         withECN: Boolean,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val largestAcknowledged = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val ackDelay = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR } shl ack_delay_exponent
 
@@ -179,7 +178,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val streamId = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val applicationProtocolErrorCode = payload.readAppErrorOrElse { return FRAME_ENCODING_ERROR }
         val finalSize = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
@@ -191,7 +190,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val streamId = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val applicationProtocolErrorCode = payload.readAppErrorOrElse { return FRAME_ENCODING_ERROR }
 
@@ -202,7 +201,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val offset = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val length = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
@@ -220,7 +219,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val tokenLength = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         if (tokenLength == 0L || payload.remaining < tokenLength) {
@@ -237,8 +236,8 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-        type: FrameType_v1,
-    ): QUICTransportError_v1? {
+        type: QUICFrameType,
+    ): QUICTransportError? {
         val streamId = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         val bits = type.typeValue.toInt()
@@ -273,7 +272,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumData = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         return processor.acceptMaxData(packet, maximumData)
@@ -283,7 +282,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val streamId = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val maximumStreamData = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
@@ -294,7 +293,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumStreams = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         if (maximumStreams > POW_2_60) {
@@ -308,7 +307,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumStreams = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         if (maximumStreams > POW_2_60) {
@@ -322,7 +321,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumData = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         return processor.acceptDataBlocked(packet, maximumData)
@@ -332,7 +331,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val streamId = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val maximumStreamData = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
@@ -343,7 +342,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumStreams = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         if (maximumStreams > POW_2_60) {
@@ -357,7 +356,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val maximumStreams = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         if (maximumStreams > POW_2_60) {
@@ -367,12 +366,12 @@ internal object FrameReader {
         return processor.acceptStreamsBlockedUnidirectional(packet, maximumStreams)
     }
 
-    private suspend fun readAndProcessNewConnectionId(
+    private suspend fun readAndProcessNewConnectionID(
         processor: FrameProcessor,
         packet: QUICPacket,
         maxCIDLength: UInt8,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val sequenceNumber: Long = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val retirePriorTo: Long = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
@@ -386,7 +385,7 @@ internal object FrameReader {
             return FRAME_ENCODING_ERROR
         }
 
-        val connectionID: ConnectionID = payload.readBytes(length).asCID() // todo remove allocation?
+        val connectionID: QUICConnectionID = payload.readBytes(length).asCID() // todo remove allocation?
 
         if (payload.remaining < 16) {
             return FRAME_ENCODING_ERROR
@@ -401,7 +400,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val sequenceNumber = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
         return processor.acceptRetireConnectionId(packet, sequenceNumber)
@@ -411,7 +410,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         if (payload.remaining < 8) {
             return FRAME_ENCODING_ERROR
         }
@@ -425,7 +424,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         if (payload.remaining < 8) {
             return FRAME_ENCODING_ERROR
         }
@@ -439,7 +438,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val errorCode = payload.readTransportError() ?: return FRAME_ENCODING_ERROR
         val frameType = payload.readFrameType() ?: return FRAME_ENCODING_ERROR
         val reasonPhraseLength = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
@@ -458,7 +457,7 @@ internal object FrameReader {
         processor: FrameProcessor,
         packet: QUICPacket,
         payload: ByteReadPacket,
-    ): QUICTransportError_v1? {
+    ): QUICTransportError? {
         val errorCode = payload.readAppErrorOrElse { return FRAME_ENCODING_ERROR }
         val reasonPhraseLength = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
@@ -478,12 +477,12 @@ internal object FrameReader {
         return AppError(readVarIntOrElse(elseBlock))
     }
 
-    private fun ByteReadPacket.readTransportError(): QUICTransportError_v1? {
-        return QUICTransportError_v1.readFromFrame(this)
+    private fun ByteReadPacket.readTransportError(): QUICTransportError? {
+        return QUICTransportError.readFromFrame(this)
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun ByteReadPacket.readFrameType(): FrameType_v1? {
-        return FrameType_v1.fromByte(readUInt8 { return null })
+    private inline fun ByteReadPacket.readFrameType(): QUICFrameType? {
+        return QUICFrameType.fromByte(readUInt8 { return null })
     }
 }

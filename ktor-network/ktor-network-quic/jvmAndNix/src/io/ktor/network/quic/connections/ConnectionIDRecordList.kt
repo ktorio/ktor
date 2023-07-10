@@ -38,7 +38,7 @@ internal class ConnectionIDRecordList(private var capacity: Int) {
         return pool.find { it.sequenceNumber == sequenceNumber }
     }
 
-    operator fun get(connectionID: ConnectionID): ConnectionIDRecord? {
+    operator fun get(connectionID: QUICConnectionID): ConnectionIDRecord? {
         return pool.find { it.connectionID eq connectionID }
     }
 
@@ -77,7 +77,7 @@ internal class ConnectionIDRecordList(private var capacity: Int) {
     /**
      * Used to get available CID for using in package header
      */
-    fun nextConnectionID(): ConnectionID {
+    fun nextConnectionID(): QUICConnectionID {
         return pool[(nextCounter % pool.size).toInt()].connectionID.also { nextCounter++ }
     }
 }
