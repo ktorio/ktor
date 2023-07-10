@@ -2,7 +2,7 @@ package=io.ktor.network.interop
 ---
 #include <sys/select.h>
 #include <arpa/inet.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 typedef struct selection_set {
     fd_set *value;
