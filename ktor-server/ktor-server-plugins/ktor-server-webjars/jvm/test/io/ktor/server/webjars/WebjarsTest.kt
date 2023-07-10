@@ -8,12 +8,16 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("DEPRECATION")
 class WebjarsTest {
@@ -128,19 +132,42 @@ class WebjarsTest {
     }
 
     @Test
-    fun withConditionalHeaders() {
+    fun withConditionalAndCachingHeaders() {
         withTestApplication {
             application.install(Webjars)
             application.install(ConditionalHeaders)
+            application.install(CachingHeaders)
             handleRequest(HttpMethod.Get, "/webjars/jquery/3.6.4/jquery.js").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
                 assertNotNull(call.response.headers["Last-Modified"])
+                assertEquals("\"3.6.4\"", call.response.headers["Etag"])
+                assertEquals("max-age=${90.days.inWholeSeconds}", call.response.headers["Cache-Control"])
             }
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @Test
+    fun withConditionalAndCachingHeadersCustom() {
+        withTestApplication {
+            val date = GMTDate()
+            application.install(Webjars) {
+                maxAge { 5.seconds }
+                lastModified { date }
+                etag { "test" }
+            }
+            application.install(ConditionalHeaders)
+            application.install(CachingHeaders)
+            handleRequest(HttpMethod.Get, "/webjars/jquery/3.6.4/jquery.js").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("application/javascript", call.response.headers["Content-Type"])
+                assertEquals(date.toHttpDate(), call.response.headers["Last-Modified"])
+                assertEquals("\"test\"", call.response.headers["Etag"])
+                assertEquals("max-age=5", call.response.headers["Cache-Control"])
+            }
+        }
+    }
+
     @Test
     fun callHandledBeforeWebjars() {
         val alwaysRespondHello = object : Hook<Unit> {
