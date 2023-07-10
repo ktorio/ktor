@@ -13,7 +13,7 @@ internal interface ProtocolCommunicationProvider {
 
     suspend fun raiseError(error: QUICTransportError)
 
-    fun getTransportParameters(peerParameters: TransportParameters): TransportParameters
+    fun getTransportParameters(peerParameters: QUICTransportParameters): QUICTransportParameters
 }
 
 internal class TLSMessage(

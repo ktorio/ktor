@@ -5,7 +5,7 @@
 package io.ktor.network.quic.connections
 
 internal class ConnectionIDRecord(
-    val connectionID: ConnectionID,
+    val connectionID: QUICConnectionID,
     val sequenceNumber: Long,
     val resetToken: ByteArray? = null,
 )

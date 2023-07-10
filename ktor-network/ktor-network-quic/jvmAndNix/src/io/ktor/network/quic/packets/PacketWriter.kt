@@ -33,8 +33,8 @@ internal object PacketWriter {
     fun writeVersionNegotiationPacket(
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         supportedVersions: Array<UInt32>,
     ) = with(packetBuilder) {
         @Suppress("KotlinConstantConditions")
@@ -69,10 +69,10 @@ internal object PacketWriter {
      */
     fun writeRetryPacket(
         packetBuilder: BytePacketBuilder,
-        originalDestinationConnectionID: ConnectionID,
+        originalDestinationConnectionID: QUICConnectionID,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         retryToken: ByteArray,
     ) {
         checkVersionConstraints(version, destinationConnectionID, sourceConnectionID)
@@ -89,7 +89,7 @@ internal object PacketWriter {
         val integrityTag: ByteArray = computeRetryIntegrityTag(pseudoPacket)
 
         // debug only
-        RetryPacket_v1(
+        QUICRetryPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -116,14 +116,14 @@ internal object PacketWriter {
         largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         token: ByteArray,
         packetNumber: Long,
         payload: ByteArray,
     ) {
         // debug only
-        InitialPacket_v1(
+        QUICInitialPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -132,7 +132,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.Initial,
             largestAcknowledged = largestAcknowledged,
@@ -160,13 +160,13 @@ internal object PacketWriter {
         largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         packetNumber: Long,
         payload: ByteArray,
     ) {
         // debug only
-        HandshakePacket_v1(
+        QUICHandshakePacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -174,7 +174,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.Handshake,
             largestAcknowledged = largestAcknowledged,
@@ -198,13 +198,13 @@ internal object PacketWriter {
         largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         packetNumber: Long,
         payload: ByteArray,
     ) {
         // debug only
-        ZeroRTTPacket_v1(
+        QUICZeroRTTPacket(
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -212,7 +212,7 @@ internal object PacketWriter {
             payload = ByteReadPacket(payload)
         ).apply(::debugLog)
 
-        writeLongHeaderPacket_v1(
+        writeLongHeaderPacket(
             tlsComponent = tlsComponent,
             encryptionLevel = EncryptionLevel.AppData,
             largestAcknowledged = largestAcknowledged,
@@ -233,15 +233,15 @@ internal object PacketWriter {
      */
     private const val LONG_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0xC0u
 
-    private suspend inline fun writeLongHeaderPacket_v1(
+    private suspend inline fun writeLongHeaderPacket(
         tlsComponent: TLSComponent,
         encryptionLevel: EncryptionLevel,
         largestAcknowledged: Long,
         packetBuilder: BytePacketBuilder,
         packetType: UInt8,
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
         packetNumber: Long,
         payload: ByteArray,
         writeBeforeLength: BytePacketBuilder.() -> Unit = {},
@@ -300,12 +300,12 @@ internal object PacketWriter {
         packetBuilder: BytePacketBuilder,
         spinBit: Boolean,
         keyPhase: Boolean,
-        destinationConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
         packetNumber: Long,
         payload: ByteArray,
     ) {
         // debug only
-        OneRTTPacket_v1(
+        QUICOneRTTPacket(
             destinationConnectionID = destinationConnectionID,
             spinBit = spinBit,
             keyPhase = keyPhase,
@@ -386,7 +386,7 @@ internal object PacketWriter {
             level = level
         )
 
-        val offset = 4 - packetNumberLength
+        val offset: Int = 4 - packetNumberLength
         val sample: ByteArray = encryptedPayload.copyOfRange(offset, offset + PktConst.HP_SAMPLE_LENGTH)
         val headerProtectionMask: Long = tlsComponent.headerProtectionMask(sample, level, isDecrypting = false)
 
@@ -395,8 +395,8 @@ internal object PacketWriter {
 
     private fun checkVersionConstraints(
         version: UInt32,
-        destinationConnectionID: ConnectionID,
-        sourceConnectionID: ConnectionID,
+        destinationConnectionID: QUICConnectionID,
+        sourceConnectionID: QUICConnectionID,
     ) {
         checkCIDLength(version, destinationConnectionID) {
             "DCID length must be less then $it in QUIC version $version"
@@ -408,7 +408,7 @@ internal object PacketWriter {
 
     private inline fun checkCIDLength(
         version: UInt32,
-        connectionID: ConnectionID,
+        connectionID: QUICConnectionID,
         message: (UInt8) -> String,
     ) {
         val maxCIDLength: UInt8 = MaxCIDLength.fromVersion(version) { error("unknown version: $version") }

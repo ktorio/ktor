@@ -41,7 +41,7 @@ internal actual class TLSServerComponent(
         this.engine = engine
     }
 
-    actual suspend fun acceptOriginalDcid(originalDcid: ConnectionID) {
+    actual suspend fun acceptOriginalDcid(originalDcid: QUICConnectionID) {
         this.originalDcid = originalDcid.value
         calculateInitialKeys()
     }
@@ -213,11 +213,11 @@ internal actual class TLSServerComponent(
     }
 
     override fun extensionsReceived(extensions: MutableList<Extension>?) {
-        val peerTransportParameters: TransportParameters = extensions
+        val peerTransportParameters: QUICTransportParameters = extensions
             ?.filterIsInstance<QUICServerTLSExtension>()
             ?.single()
             ?.transportParameters
-            ?: transportParameters() // todo error or default?
+            ?: quicTransportParameters() // todo error or default?
 
         val endpointTransportParameters = communicationProvider.getTransportParameters(peerTransportParameters)
 

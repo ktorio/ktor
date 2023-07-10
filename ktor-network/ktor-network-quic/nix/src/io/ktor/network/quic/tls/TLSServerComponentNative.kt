@@ -8,7 +8,7 @@ package io.ktor.network.quic.tls
 import io.ktor.network.quic.connections.*
 
 internal actual class TLSServerComponent : TLSComponent {
-    actual suspend fun acceptOriginalDcid(originalDcid: ConnectionID) {
+    actual suspend fun acceptOriginalDcid(originalDcid: QUICConnectionID) {
         TODO("Not yet implemented")
     }
 
