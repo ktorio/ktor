@@ -4,7 +4,10 @@
 
 package io.ktor.client.engine.java
 
+import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.*
@@ -17,7 +20,7 @@ import kotlin.test.*
 class ResponseConsumerTest {
     @Test
     fun testConsumeContent() {
-        val responseBodyHandler = JavaHttpResponseBodyHandler(EmptyCoroutineContext)
+        val responseBodyHandler = JavaHttpResponseBodyHandler(EmptyCoroutineContext, notNeededRequestData)
         val bodySubscriber = responseBodyHandler.apply(
             object : HttpResponse.ResponseInfo {
                 override fun statusCode() = 200
@@ -51,4 +54,14 @@ class ResponseConsumerTest {
             assertEquals("ktor", (responseBody.body as ByteReadChannel).readUTF8Line())
         }
     }
+
+    @OptIn(InternalAPI::class)
+    private val notNeededRequestData = HttpRequestData(
+        Url(""),
+        HttpMethod.Get,
+        Headers.Empty,
+        TextContent("", ContentType.Text.Any),
+        Job(),
+        Attributes()
+    )
 }

@@ -6,6 +6,7 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
@@ -41,7 +42,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     }
 
     public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
-        setOf(HttpTimeout, WebSocketCapability)
+        setOf(HttpTimeout, WebSocketCapability, SSECapability)
 
     private var httpClient: HttpClient? = null
 

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
 internal val ENGINES_WITHOUT_SSE =
-    listOf("Android", "Curl", "Darwin", "DarwinLegacy", "Java", "Js", "WinHttp")
+    listOf("Android", "Curl", "Darwin", "DarwinLegacy", "Js", "WinHttp")
 
 class ServerSentEventsTest : ClientLoader() {
 
