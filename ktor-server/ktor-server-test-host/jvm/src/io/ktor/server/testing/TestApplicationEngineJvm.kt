@@ -56,7 +56,6 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversationNonBlockin
             pipeline.execute(call)
         } catch (t: Throwable) {
             responseSent.completeExceptionally(t)
-            throw t
         }
     }
 
