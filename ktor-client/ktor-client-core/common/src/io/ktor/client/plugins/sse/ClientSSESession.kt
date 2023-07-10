@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.*
  */
 public interface ClientSSESession : CoroutineScope {
     /**
-     * An incoming server-sent events channel.
+     * An incoming server-sent events flow.
      */
     public val incoming: Flow<ServerSentEvent>
 }
