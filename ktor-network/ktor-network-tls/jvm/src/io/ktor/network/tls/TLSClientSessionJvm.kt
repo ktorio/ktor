@@ -47,7 +47,6 @@ private class TLSSocket(
             appDataOutputLoop(this.channel)
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
             input.consumeEach { record ->
@@ -61,7 +60,7 @@ private class TLSSocket(
                     else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
                 }
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         } finally {
             pipe.close()
         }
@@ -79,6 +78,8 @@ private class TLSSocket(
                 buffer.flip()
                 output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
             }
+        } catch (_: ClosedSendChannelException) {
+            // The socket was already closed, we should ignore that error.
         } finally {
             output.close()
         }

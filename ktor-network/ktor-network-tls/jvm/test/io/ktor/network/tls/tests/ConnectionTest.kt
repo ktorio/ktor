@@ -58,6 +58,27 @@ class ConnectionTest {
     }
 
     @Test
+    fun tlsWithCloseTest(): Unit = runBlocking {
+        val socketJob = Job()
+        val selectorManager = ActorSelectorManager(Dispatchers.IO)
+        val socket = aSocket(selectorManager)
+            .tcp()
+            .connect("www.google.com", port = 443)
+            .tls(Dispatchers.Default + socketJob)
+
+        val channel = socket.openWriteChannel(autoFlush = true)
+        socket.close()
+        channel.writeAvailable(ByteArray(42))
+
+        // We wait for child worker jobs to complete.
+        assertTrue(socketJob.children.count() > 0)
+        socketJob.children.forEach { it.join() }
+        socketJob.children.forEach { assertTrue(it.isCancelled) }
+        // This shouldn't cancel the parent job.
+        assertFalse(socketJob.isCancelled)
+    }
+
+    @Test
     @Ignore
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
