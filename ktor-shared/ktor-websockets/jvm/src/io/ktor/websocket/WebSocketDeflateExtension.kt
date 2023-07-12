@@ -46,6 +46,11 @@ public class WebSocketDeflateExtension internal constructor(
     internal var outgoingNoContextTakeover: Boolean = false
     internal var incomingNoContextTakeover: Boolean = false
 
+    /**
+     * Deflater state for incoming frames. Specified if frames should be decompressed until fin packet.
+     */
+    private var decompressIncoming: Boolean = false
+
     override fun clientNegotiation(negotiatedProtocols: List<WebSocketExtensionHeader>): Boolean {
         val protocol = negotiatedProtocols.find { it.name == PERMESSAGE_DEFLATE } ?: return false
 
@@ -135,12 +140,16 @@ public class WebSocketDeflateExtension internal constructor(
     }
 
     override fun processIncomingFrame(frame: Frame): Frame {
-        if (!frame.rsv1 || (frame !is Frame.Text && frame !is Frame.Binary)) return frame
+        if (!frame.isCompressed() && !decompressIncoming) return frame
+        decompressIncoming = true
 
         val inflated = inflater.inflateFully(frame.data)
-
         if (incomingNoContextTakeover) {
             inflater.reset()
+        }
+
+        if (frame.fin) {
+            decompressIncoming = false
         }
 
         return Frame.byType(frame.fin, frame.frameType, inflated, !rsv1, frame.rsv2, frame.rsv3)
@@ -226,3 +235,5 @@ public class WebSocketDeflateExtension internal constructor(
             WebSocketDeflateExtension(Config().apply(config))
     }
 }
+
+private fun Frame.isCompressed(): Boolean = rsv1 && (this is Frame.Text || this is Frame.Binary)

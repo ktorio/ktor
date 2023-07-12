@@ -72,4 +72,22 @@ class WebSocketDeflateTest {
 
         config.manualConfig(mutableListOf())
     }
+
+    @Test
+    fun testDecompressAllFrames() {
+        val chunk1 = "Hello, ".toByteArray()
+        val chunk2 = "World!".toByteArray()
+
+        val frame1 = extension.processOutgoingFrame(Frame.Binary(false, chunk1))
+        val frame2Temp = extension.processOutgoingFrame(Frame.Binary(true, chunk2))
+        val frame2 = Frame.Binary(true, frame2Temp.data, rsv1 = false)
+
+        val decoded1 = extension.processIncomingFrame(frame1) as Frame.Binary
+        val decoded2 = extension.processIncomingFrame(frame2) as Frame.Binary
+
+        val message = decoded1.data + decoded2.data
+        val actual = String(message)
+        val expected = "Hello, World!"
+        assertEquals(expected, actual)
+    }
 }
