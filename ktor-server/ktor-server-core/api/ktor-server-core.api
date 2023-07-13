@@ -782,9 +782,9 @@ public final class io/ktor/server/response/ResponseCookies {
 	public fun <init> (Lio/ktor/server/response/ApplicationResponse;Z)V
 	public final fun append (Lio/ktor/http/Cookie;)V
 	public final fun append (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
-	public final fun append (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;JLio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
+	public final fun append (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Long;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
 	public static synthetic fun append$default (Lio/ktor/server/response/ResponseCookies;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
-	public static synthetic fun append$default (Lio/ktor/server/response/ResponseCookies;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;JLio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
+	public static synthetic fun append$default (Lio/ktor/server/response/ResponseCookies;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Long;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
 	public final fun appendExpired (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun appendExpired$default (Lio/ktor/server/response/ResponseCookies;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun get (Ljava/lang/String;)Lio/ktor/http/Cookie;

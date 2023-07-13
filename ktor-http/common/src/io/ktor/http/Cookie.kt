@@ -28,7 +28,7 @@ public data class Cookie(
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
     @get:JvmName("getMaxAgeInt")
-    val maxAge: Int = 0,
+    val maxAge: Int? = null,
     val expires: GMTDate? = null,
     val domain: String? = null,
     val path: String? = null,
@@ -77,7 +77,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toIntClamping() ?: 0,
+        maxAge = loweredMap["max-age"]?.toIntClamping(),
         expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -139,7 +139,7 @@ public fun renderSetCookieHeader(
     name: String,
     value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-    maxAge: Int = 0,
+    maxAge: Int? = null,
     expires: GMTDate? = null,
     domain: String? = null,
     path: String? = null,
@@ -150,7 +150,7 @@ public fun renderSetCookieHeader(
 ): String = (
     listOf(
         cookiePart(name.assertCookieName(), value, encoding),
-        cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
+        cookiePartUnencoded("Max-Age", maxAge),
         cookiePartUnencoded("Expires", expires?.toHttpDate()),
         cookiePart("Domain", domain, CookieEncoding.RAW),
         cookiePart("Path", path, CookieEncoding.RAW),
