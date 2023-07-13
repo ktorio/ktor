@@ -33,12 +33,12 @@ class TestApplicationEngine(
 ) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
 
     internal enum class State {
-        Stopped, Starting, Started
+        Created, Starting, Started, Stopped
     }
 
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
-    internal val state = atomic(State.Stopped)
+    internal val state = atomic(State.Created)
     internal val configuration = Configuration().apply(configure)
 
     override val coroutineContext: CoroutineContext =
@@ -139,7 +139,7 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (state.compareAndSet(State.Stopped, State.Starting)) {
+        if (state.compareAndSet(State.Created, State.Starting)) {
             check(testEngineJob.isActive) { "Test engine is already completed" }
             environment.start()
             cancellationDeferred = stopServerOnCancellation()

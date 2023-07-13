@@ -16,6 +16,7 @@ import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -57,6 +58,33 @@ class TestApplicationTestJvm {
                 assertEquals("Hello" + ".".repeat(it), frame.readText())
                 outgoing.send(Frame.Text(frame.readText() + "."))
             }
+        }
+    }
+
+    @Test
+    fun testWebSocketWithError() = testApplication {
+        application {
+            intercept(ApplicationCallPipeline.Setup) {
+                throw RuntimeException()
+            }
+
+            install(WebSockets)
+
+            routing {
+                route("/") {
+                    webSocket {
+                        incoming.consumeEach {}
+                    }
+                }
+            }
+        }
+
+        val client = createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets) {}
+        }
+
+        assertFails {
+            client.webSocketSession {}
         }
     }
 
