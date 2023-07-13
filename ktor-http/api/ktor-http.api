@@ -260,27 +260,27 @@ public final class io/ktor/http/ContentTypesKt {
 }
 
 public final class io/ktor/http/Cookie {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Ljava/util/Map;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Lio/ktor/http/CookieEncoding;
-	public final fun component4 ()I
+	public final fun component4 ()Ljava/lang/Integer;
 	public final fun component5 ()Lio/ktor/util/date/GMTDate;
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Z
 	public final fun component9 ()Z
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)Lio/ktor/http/Cookie;
-	public static synthetic fun copy$default (Lio/ktor/http/Cookie;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)Lio/ktor/http/Cookie;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)Lio/ktor/http/Cookie;
+	public static synthetic fun copy$default (Lio/ktor/http/Cookie;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)Lio/ktor/http/Cookie;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDomain ()Ljava/lang/String;
 	public final fun getEncoding ()Lio/ktor/http/CookieEncoding;
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
-	public final fun getMaxAgeInt ()I
+	public final fun getMaxAgeInt ()Ljava/lang/Integer;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getSecure ()Z
@@ -306,8 +306,8 @@ public final class io/ktor/http/CookieKt {
 	public static final fun parseServerSetCookieHeader (Ljava/lang/String;)Lio/ktor/http/Cookie;
 	public static final fun renderCookieHeader (Lio/ktor/http/Cookie;)Ljava/lang/String;
 	public static final fun renderSetCookieHeader (Lio/ktor/http/Cookie;)Ljava/lang/String;
-	public static final fun renderSetCookieHeader (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;Z)Ljava/lang/String;
-	public static synthetic fun renderSetCookieHeader$default (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ZILjava/lang/Object;)Ljava/lang/String;
+	public static final fun renderSetCookieHeader (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;Z)Ljava/lang/String;
+	public static synthetic fun renderSetCookieHeader$default (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ZILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class io/ktor/http/DateUtilsKt {

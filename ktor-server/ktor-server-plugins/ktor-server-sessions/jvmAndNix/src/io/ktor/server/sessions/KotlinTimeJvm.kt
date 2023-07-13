@@ -14,8 +14,8 @@ import kotlin.time.Duration.Companion.seconds
  * cookies at browser or window close unless the session is restored.
  */
 public var CookieConfiguration.maxAge: Duration?
-    get() = maxAgeInSeconds.seconds
+    get() = maxAgeInSeconds?.seconds
     set(newMaxAge) {
         require(newMaxAge == null || !newMaxAge.isNegative()) { "Only non-negative durations can be specified" }
-        maxAgeInSeconds = newMaxAge?.toDouble(DurationUnit.SECONDS)?.roundToLong() ?: 0L
+        maxAgeInSeconds = newMaxAge?.toDouble(DurationUnit.SECONDS)?.roundToLong()
     }
