@@ -95,6 +95,11 @@ public interface CacheStorage {
 /**
  * Store [response] in cache storage.
  */
+@Deprecated(
+    message = "Please use method with `response.varyKeys()` and `isShared` arguments",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("store(response, response.varyKeys(), isShared)")
+)
 public suspend fun CacheStorage.store(response: HttpResponse): CachedResponseData {
     return store(response, response.varyKeys())
 }

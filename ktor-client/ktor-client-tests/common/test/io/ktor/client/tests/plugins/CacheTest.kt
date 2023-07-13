@@ -423,6 +423,55 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun testSMaxAgeWhenIsSharedTrue() = testWithEngine(MockEngine) {
+        class FakeResponse {
+            var content: String = ""
+            var status: HttpStatusCode = HttpStatusCode.OK
+        }
+
+        val fakeResponse = FakeResponse()
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+
+                isShared = true
+            }
+
+            engine {
+                addHandler {
+                    respond(
+                        content = fakeResponse.content,
+                        status = fakeResponse.status,
+                        headers = buildHeaders {
+                            append(HttpHeaders.ETag, "W/\"ETAG\"")
+                            append(HttpHeaders.CacheControl, "max-age=0,s-maxage=1")
+                        },
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-s-maxage")
+
+            fakeResponse.content = "First"
+            fakeResponse.status = HttpStatusCode.OK
+            val firstBody = client.get(url).body<String>()
+            assertEquals(firstBody, "First")
+
+            // When isShared = true, s-maxage is in used as expiration.
+            // s-maxage doesn't expires yet, therefore this response should not be reflected.
+            fakeResponse.content = "Second"
+            fakeResponse.status = HttpStatusCode.OK
+            val secondBody = client.get(url).body<String>()
+            assertEquals(secondBody, firstBody)
+        }
+    }
+
+    @Test
     fun testOnlyIfCached() = clientTests {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()

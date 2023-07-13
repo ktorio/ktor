@@ -280,7 +280,7 @@ public class HttpCache private constructor(
             return null
         }
 
-        return storage.store(response)
+        return storage.store(response, response.varyKeys(), isSharedClient)
     }
 
     private suspend fun findAndRefresh(request: HttpRequest, response: HttpResponse): HttpResponse? {
