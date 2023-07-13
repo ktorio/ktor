@@ -33,4 +33,20 @@ class RenderSetCookieTest {
             renderSetCookieHeader(cookie)
         }
     }
+
+    @Test
+    fun renderCookieSetsMaxAge() {
+        assertEquals(
+            "name=value; Max-Age=0; \$x-enc=URI_ENCODING",
+            renderSetCookieHeader("name", "value", maxAge = 0)
+        )
+        assertEquals(
+            "name=value; Max-Age=10; \$x-enc=URI_ENCODING",
+            renderSetCookieHeader("name", "value", maxAge = 10)
+        )
+        assertEquals(
+            "name=value; \$x-enc=URI_ENCODING",
+            renderSetCookieHeader("name", "value", maxAge = null)
+        )
+    }
 }
