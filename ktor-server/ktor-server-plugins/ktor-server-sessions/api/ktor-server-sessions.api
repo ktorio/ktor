@@ -20,13 +20,13 @@ public final class io/ktor/server/sessions/CookieConfiguration {
 	public final fun getEncoding ()Lio/ktor/http/CookieEncoding;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
-	public final fun getMaxAgeInSeconds ()J
+	public final fun getMaxAgeInSeconds ()Ljava/lang/Long;
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getSecure ()Z
 	public final fun setDomain (Ljava/lang/String;)V
 	public final fun setEncoding (Lio/ktor/http/CookieEncoding;)V
 	public final fun setHttpOnly (Z)V
-	public final fun setMaxAgeInSeconds (J)V
+	public final fun setMaxAgeInSeconds (Ljava/lang/Long;)V
 	public final fun setPath (Ljava/lang/String;)V
 	public final fun setSecure (Z)V
 }
