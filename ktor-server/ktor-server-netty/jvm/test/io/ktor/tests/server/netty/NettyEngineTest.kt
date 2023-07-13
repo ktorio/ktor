@@ -7,8 +7,13 @@ package io.ktor.tests.server.netty
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.cio.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -63,6 +68,35 @@ class NettyHttp2ServerJvmTest :
 
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
+    }
+}
+
+class NettyDisabledHttp2Test :
+    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableHttp2 = false
+    }
+
+    @Test
+    fun testRequestWithDisabledHttp2() {
+        createAndStartServer {
+            application.routing {
+                get("/") {
+                    call.respondText("Hello, world")
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_1_1, version)
+        }
     }
 }
 
