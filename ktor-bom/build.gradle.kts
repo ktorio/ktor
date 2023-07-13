@@ -13,8 +13,8 @@ val name = project.name
 
 dependencies {
     constraints {
-        rootProject.subprojects.forEach {
-            if (!it.plugins.hasPlugin("maven-publish") || it.name == name) return@forEach
+        rootProject.subprojects.forEach subprojects@{
+            if (!it.plugins.hasPlugin("maven-publish") || it.name == name) return@subprojects
             it.the<PublishingExtension>().publications.forEach { publication ->
                 if (publication !is MavenPublication) return@forEach
 
