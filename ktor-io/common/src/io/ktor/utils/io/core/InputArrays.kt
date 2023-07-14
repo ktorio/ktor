@@ -1,6 +1,6 @@
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.bits.Memory
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public fun Input.readFully(dst: ByteArray, offset: Int = 0, length: Int = dst.size - offset) {

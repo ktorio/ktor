@@ -20,7 +20,7 @@ public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block
 
     return usePinned { pinned ->
         val memory = when {
-            isEmpty() && offset == 0 && length == 0 -> MEMORY_EMPTY
+            isEmpty() && offset == 0 && length == 0 -> Memory.Empty
             else -> Memory(pinned.addressOf(offset), length.toLong())
         }
 

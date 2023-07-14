@@ -1,6 +1,7 @@
 package io.ktor.utils.io.streams
 
-import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.sliceSafe
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*

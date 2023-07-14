@@ -8,7 +8,7 @@ import java.nio.*
 import kotlin.contracts.*
 
 public fun ChunkBuffer(buffer: ByteBuffer, pool: ObjectPool<ChunkBuffer>? = null): ChunkBuffer =
-    ChunkBuffer(Memory(buffer), null, pool)
+    ChunkBuffer(Memory.of(buffer), null, pool)
 
 /**
  * Apply [block] function on a [ByteBuffer] of readable bytes.

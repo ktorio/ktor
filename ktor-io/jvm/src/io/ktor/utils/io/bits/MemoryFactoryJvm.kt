@@ -23,8 +23,17 @@ public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block
 /**
  * Create [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
  */
-public inline fun Memory(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
+public inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
     return Memory(ByteBuffer.wrap(array, offset, length).slice().order(ByteOrder.BIG_ENDIAN))
+}
+
+/**
+ * Create [Memory] view for the specified [buffer] range
+ * starting at [ByteBuffer.position] and ending at [ByteBuffer.limit].
+ * Changing the original buffer's position/limit will not affect previously created Memory instances.
+ */
+public inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
+    return Memory(buffer.slice().order(ByteOrder.BIG_ENDIAN))
 }
 
 @PublishedApi

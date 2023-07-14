@@ -9,7 +9,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
     private var locked = 0
 
     private var current = channel.resolveChannelInstance()
-    private var byteBuffer = ChunkBuffer.Empty.memory
+    private var byteBuffer = ChunkBuffer.Empty.memory.buffer
     private var view = ChunkBuffer.Empty
     private var ringBufferCapacity = current.currentState().capacity
 
@@ -36,6 +36,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
         if (locked < min) return null
         current.prepareWriteBuffer(byteBuffer, locked)
         if (byteBuffer.remaining() < min) return null
+        @Suppress("DEPRECATION")
         view.resetFromContentToWrite(byteBuffer)
 
         return view
@@ -86,6 +87,7 @@ internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSessi
             current = current.resolveChannelInstance()
             byteBuffer = current.setupStateForWrite() ?: continue
             view = ChunkBuffer(current.currentState().backingBuffer)
+            @Suppress("DEPRECATION")
             view.resetFromContentToWrite(byteBuffer)
             ringBufferCapacity = current.currentState().capacity
         } while (false)

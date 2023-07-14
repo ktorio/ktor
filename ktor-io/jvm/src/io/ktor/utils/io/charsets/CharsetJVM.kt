@@ -1,6 +1,5 @@
 package io.ktor.utils.io.charsets
 
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
@@ -151,7 +150,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
     var charactersCopied = 0
     input.readDirect { bb ->
         val tmpBuffer = ChunkBuffer.Pool.borrow()
-        val cb = tmpBuffer.memory.asCharBuffer()
+        val cb = tmpBuffer.memory.buffer.asCharBuffer()
 
         try {
             while (bb.hasRemaining() && charactersCopied < max) {
