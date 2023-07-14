@@ -26,9 +26,6 @@ public object EngineMain {
     internal fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
-        deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
-            requestQueueLimit = it
-        }
         deploymentConfig.propertyOrNull("runningLimit")?.getString()?.toInt()?.let {
             runningLimit = it
         }
