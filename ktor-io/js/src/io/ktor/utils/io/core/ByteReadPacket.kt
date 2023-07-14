@@ -21,7 +21,7 @@ public actual fun ByteReadPacket(
 
     val pool = object : SingleInstancePool<ChunkBuffer>() {
         override fun produceInstance(): ChunkBuffer =
-            ChunkBuffer(Memory(sub), null, this)
+            ChunkBuffer(Memory.of(sub), null, this)
 
         override fun disposeInstance(instance: ChunkBuffer) {
             block(array)

@@ -15,30 +15,37 @@ public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
-    return Memory(this, offset, length).let(block)
+    return Memory.of(this, offset, length).let(block)
 }
 
 /**
  * Create [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
  */
-public fun Memory(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
+public fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
     @Suppress("UnsafeCastFromDynamic")
     val typedArray: Int8Array = array.asDynamic()
-    return Memory(typedArray, offset, length)
+    return Memory.of(typedArray, offset, length)
 }
 
 /**
  * Create [Memory] view for the specified [buffer] range starting at [offset] and the specified bytes [length].
  */
-public fun Memory(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Memory {
+public fun Memory.Companion.of(buffer: ArrayBuffer, offset: Int = 0, length: Int = buffer.byteLength - offset): Memory {
     return Memory(DataView(buffer, offset, length))
+}
+
+/**
+ * Create [Memory] view for the specified [view].
+ */
+public fun Memory.Companion.of(view: DataView): Memory {
+    return Memory(view)
 }
 
 /**
  * Create [Memory] view for the specified [view] range starting at [offset] and the specified bytes [length].
  */
-public fun Memory(view: ArrayBufferView, offset: Int = 0, length: Int = view.byteLength): Memory {
-    return Memory(view.buffer, view.byteOffset + offset, length)
+public fun Memory.Companion.of(view: ArrayBufferView, offset: Int = 0, length: Int = view.byteLength): Memory {
+    return Memory.of(view.buffer, view.byteOffset + offset, length)
 }
 
 @PublishedApi
