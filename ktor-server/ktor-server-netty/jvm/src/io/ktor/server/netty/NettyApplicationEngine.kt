@@ -36,10 +36,6 @@ public class NettyApplicationEngine(
      * Configuration for the [NettyApplicationEngine]
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
-        /**
-         * Size of the queue to store [ApplicationCall] instances that cannot be immediately processed
-         */
-        public var requestQueueLimit: Int = 16
 
         /**
          * Number of concurrently running requests from the same http pipeline
@@ -89,6 +85,11 @@ public class NettyApplicationEngine(
          * The maximum length of the content or each chunk
          */
         public var maxChunkSize: Int = HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE
+
+        /**
+         * If set to `true`, enables HTTP/2 protocol for Netty engine
+         */
+        public var enableHttp2: Boolean = true
 
         /**
          * User-provided function to configure Netty's [HttpServerCodec]
@@ -186,12 +187,12 @@ public class NettyApplicationEngine(
                     workerDispatcher,
                     userContext,
                     connector,
-                    configuration.requestQueueLimit,
                     configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds,
                     configuration.requestReadTimeoutSeconds,
                     configuration.httpServerCodec,
-                    configuration.channelPipelineConfig
+                    configuration.channelPipelineConfig,
+                    configuration.enableHttp2
                 )
             )
             if (configuration.tcpKeepAlive) {
