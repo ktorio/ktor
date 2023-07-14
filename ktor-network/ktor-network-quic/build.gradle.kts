@@ -24,6 +24,7 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(libs.kotlin.test.junit)
+                implementation(project(":ktor-network:ktor-network-test"))
             }
         }
     }

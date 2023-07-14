@@ -1,18 +1,19 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.testing
+package io.ktor.network.test
 
 import org.slf4j.*
 import java.net.*
 import java.util.*
-import kotlin.collections.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 import kotlin.concurrent.*
 
-internal object FreePorts {
-    private val CAPACITY = 20
-    private val CAPACITY_LOW = 10
+public object FreePorts {
+    private const val CAPACITY = 20
+    private const val CAPACITY_LOW = 10
 
     private val found = Collections.synchronizedSet(HashSet<Int>())
     private val free = Collections.synchronizedList(LinkedList<Int>())
@@ -78,11 +79,11 @@ internal object FreePorts {
     }
 
     private fun checkFreePort(port: Int): Boolean {
-        try {
+        return try {
             ServerSocket(port).close()
-            return true
+            true
         } catch (unableToBind: Throwable) {
-            return false
+            false
         }
     }
 
