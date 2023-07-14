@@ -7,7 +7,6 @@ package io.ktor.server.netty
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
-import io.ktor.util.logging.*
 import io.netty.channel.*
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.*
@@ -24,7 +23,7 @@ import javax.net.ssl.*
 import kotlin.coroutines.*
 
 /**
- * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
+ * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
  */
 public class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
@@ -33,12 +32,12 @@ public class NettyChannelInitializer(
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val connector: EngineConnectorConfig,
-    private val requestQueueLimit: Int,
     private val runningLimit: Int,
     private val responseWriteTimeout: Int,
     private val requestReadTimeout: Int,
     private val httpServerCodec: () -> HttpServerCodec,
-    private val channelPipelineConfig: ChannelPipeline.() -> Unit
+    private val channelPipelineConfig: ChannelPipeline.() -> Unit,
+    private val enableHttp2: Boolean
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -57,22 +56,23 @@ public class NettyChannelInitializer(
             val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
             password.fill('\u0000')
 
-            sslContext = SslContextBuilder.forServer(pk, *certs).apply {
-                if (alpnProvider != null) {
-                    sslProvider(alpnProvider)
-                    ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                    applicationProtocolConfig(
-                        ApplicationProtocolConfig(
-                            ApplicationProtocolConfig.Protocol.ALPN,
-                            ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                            ApplicationProtocolNames.HTTP_2,
-                            ApplicationProtocolNames.HTTP_1_1
+            sslContext = SslContextBuilder.forServer(pk, *certs)
+                .apply {
+                    if (enableHttp2 && alpnProvider != null) {
+                        sslProvider(alpnProvider)
+                        ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                        applicationProtocolConfig(
+                            ApplicationProtocolConfig(
+                                ApplicationProtocolConfig.Protocol.ALPN,
+                                ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                ApplicationProtocolNames.HTTP_2,
+                                ApplicationProtocolNames.HTTP_1_1
+                            )
                         )
-                    )
+                    }
+                    connector.trustManagerFactory()?.let { this.trustManager(it) }
                 }
-                connector.trustManagerFactory()?.let { this.trustManager(it) }
-            }
                 .build()
         }
     }
@@ -92,7 +92,7 @@ public class NettyChannelInitializer(
                 }
                 addLast("ssl", SslHandler(sslEngine))
 
-                if (alpnProvider != null) {
+                if (enableHttp2 && alpnProvider != null) {
                     addLast(NegotiatedPipelineInitializer())
                 } else {
                     configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
@@ -120,6 +120,7 @@ public class NettyChannelInitializer(
                 }
                 channelPipelineConfig(pipeline)
             }
+
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val handler = NettyHttp1Handler(
                     enginePipeline,
@@ -144,6 +145,7 @@ public class NettyChannelInitializer(
 
                 pipeline.context("codec").fireChannelActive()
             }
+
             else -> {
                 environment.log.error("Unsupported protocol $protocol")
                 pipeline.close()
