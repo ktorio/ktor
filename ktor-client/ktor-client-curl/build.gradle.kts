@@ -32,7 +32,7 @@ kotlin {
         includeDirs.headerFilterOnly(paths)
     }
 
-    createCInterop("libcurl", listOf("macosArm64")) {
+    createCInterop("libcurl", listOf("macosArm64", "linuxArm64")) {
         defFile = File(projectDir, "desktop/interop/libcurl_arm64.def")
         includeDirs.headerFilterOnly(paths)
     }
