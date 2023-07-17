@@ -19,9 +19,9 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
-        withServerSocket(0) { socket0 ->
-            withServerSocket(1) { socket1 ->
-                withServerSocket(2) { socket2 ->
+        withServerSocket { socket0 ->
+            withServerSocket { socket1 ->
+                withServerSocket { socket2 ->
                     connectionFactory.connect(socket0.localAddress as InetSocketAddress)
                     connectionFactory.connect(socket1.localAddress as InetSocketAddress)
 
@@ -40,9 +40,9 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
-        withServerSocket(0) { socket0 ->
+        withServerSocket { socket0 ->
 
-            withServerSocket(1) { socket1 ->
+            withServerSocket { socket1 ->
                 connectionFactory.connect(socket0.localAddress as InetSocketAddress)
                 assertTimeout {
                     connectionFactory.connect(socket0.localAddress as InetSocketAddress)
@@ -63,8 +63,8 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
-        withServerSocket(0) { socket0 ->
-            withServerSocket(1) { socket1 ->
+        withServerSocket { socket0 ->
+            withServerSocket { socket1 ->
                 connectionFactory.connect(socket0.localAddress as InetSocketAddress)
 
                 // Release the `limit` semaphore when it fails to acquire the address semaphore.
@@ -85,9 +85,9 @@ class ConnectionFactoryTest {
         }
     }
 
-    private suspend fun withServerSocket(port: Int, block: suspend (ServerSocket) -> Unit) {
+    private suspend fun withServerSocket(block: suspend (ServerSocket) -> Unit) {
         selectorManager.use {
-            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, port).use { socket ->
+            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
                 block(socket)
             }
         }
