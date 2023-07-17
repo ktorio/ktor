@@ -22,7 +22,6 @@ public class DefaultClientSSESession(
 ) : ClientSSESession {
     private var lastEventId: String? = null
     private var reconnectionTimeMillis = content.reconnectionTime.inWholeMilliseconds
-    private val closeConditions = content.closeConditions
     private val showCommentEvents = content.showCommentEvents
     private val showRetryEvents = content.showRetryEvents
 
@@ -65,10 +64,6 @@ public class DefaultClientSSESession(
 
         var line: String = readUTF8Line() ?: return null
         while (true) {
-            if (isCloseLine(line)) {
-                return null
-            }
-
             if (line.isNotBlank()) {
                 break
             }
@@ -122,12 +117,7 @@ public class DefaultClientSSESession(
                 }
             }
             line = readUTF8Line() ?: return null
-            if (isCloseLine(line)) return null
         }
-    }
-
-    private fun isCloseLine(line: String): Boolean {
-        return closeConditions.any { it.invoke(line) }
     }
 
     private fun StringBuilder.appendComment(comment: String) {

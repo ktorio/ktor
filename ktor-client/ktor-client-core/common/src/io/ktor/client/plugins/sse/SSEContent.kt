@@ -11,10 +11,9 @@ import kotlin.time.*
 
 @InternalAPI
 public class SSEContent(
-    public val closeConditions: List<(String) -> Boolean>,
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,
-    public val showRetryEvents: Boolean
+    public val showRetryEvents: Boolean,
 ) : OutgoingContent.NoContent() {
 
     override val headers: Headers = HeadersBuilder().apply {

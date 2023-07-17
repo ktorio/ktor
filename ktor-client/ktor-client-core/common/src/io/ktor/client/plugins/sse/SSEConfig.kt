@@ -11,7 +11,6 @@ import kotlin.time.Duration.Companion.milliseconds
  * A config for the [SSE] plugin.
  */
 public class SSEConfig {
-    internal val closeConditions: MutableList<(String) -> Boolean> = mutableListOf()
     internal var showCommentEvents = false
     internal var showRetryEvents = false
 
@@ -22,13 +21,6 @@ public class SSEConfig {
      * Note: this parameter is not supported for some engines.
      */
     public var reconnectionTime: Duration = 3000.milliseconds
-
-    /**
-     * Allows you to configure a condition for the message on which SSESession will be closed.
-     */
-    public fun closeOn(condition: (String) -> Boolean) {
-        closeConditions.add(condition)
-    }
 
     /**
      * Add events consisting only of comments in the incoming flow.

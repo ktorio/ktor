@@ -6,7 +6,6 @@ package io.ktor.client.tests.plugins
 
 import io.ktor.client.*
 import io.ktor.client.plugins.sse.*
-import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
@@ -123,10 +122,12 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             client.serverSentEvents("$TEST_SERVER/sse/comments?times=50") {
-                assertEquals(50, incoming.count())
+                var size = 0
                 incoming.collectIndexed { i, it ->
-                    assertEquals(ServerSentEvent(data = "$i"), it)
+                    assertEquals("${i * 2 + 1}", it.data)
+                    size++
                 }
+                assertEquals(50, size)
             }
         }
     }
@@ -141,42 +142,49 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             client.serverSentEvents("$TEST_SERVER/sse/comments?times=50") {
-                assertEquals(100, incoming.count())
+                var size = 0
                 incoming.collectIndexed { i, it ->
                     if (i % 2 == 0) {
-                        assertEquals(ServerSentEvent(data = "$i"), it)
+                        assertEquals("$i", it.comments)
                     } else {
-                        assertEquals(ServerSentEvent(comments = "$i"), it)
+                        assertEquals("$i", it.data)
                     }
+                    size++
                 }
+                assertEquals(100, size)
             }
         }
     }
 
     @Test
-    fun testEndConditions() = clientTests(ENGINES_WITHOUT_SSE + "OkHttp") {
+    fun testDifferentConfigs() = clientTests(ENGINES_WITHOUT_SSE + "OkHttp") {
         config {
             install(SSE) {
-                closeOn { it.contains("end") }
+                showCommentEvents()
             }
         }
 
-        val input = """
-            data: 1
-            
-            data: 2 & end
-            
-            data: 3
-        """.trimIndent() + "\n\n"
-
         test { client ->
-            client.sse({
-                url("$TEST_SERVER/sse/echo")
-                parameter("input", input)
-            }) {
-                incoming.single().apply {
-                    assertEquals(ServerSentEvent(data = "1").toString(), this.toString())
+            client.serverSentEvents("$TEST_SERVER/sse/comments?times=50", showCommentEvents = false) {
+                var size = 0
+                incoming.collectIndexed { i, it ->
+                    assertEquals("${2 * i + 1}", it.data)
+                    size++
                 }
+                assertEquals(50, size)
+            }
+
+            client.serverSentEvents("$TEST_SERVER/sse/comments?times=50") {
+                var size = 0
+                incoming.collectIndexed { i, it ->
+                    if (i % 2 == 0) {
+                        assertEquals("$i", it.comments)
+                    } else {
+                        assertEquals("$i", it.data)
+                    }
+                    size++
+                }
+                assertEquals(100, size)
             }
         }
     }

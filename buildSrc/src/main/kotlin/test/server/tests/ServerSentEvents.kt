@@ -32,18 +32,17 @@ internal fun Application.serverSentEvents() {
             }
             get("/comments") {
                 val times = call.parameters["times"]?.toInt() ?: 1
-                var isComment = true
+                var isComment = false
                 val events = flow {
-                    repeat(times) {
-                        emit(it)
+                    repeat(times * 2) {
                         emit(it)
                     }
                 }.map {
                     isComment = !isComment
                     if (isComment) {
-                        SseEvent(data = "$it")
-                    } else {
                         SseEvent(comments = "$it")
+                    } else {
+                        SseEvent(data = "$it")
                     }
                 }
                 call.respondSseEvents(events)
