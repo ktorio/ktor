@@ -2,7 +2,7 @@ public abstract interface annotation class io/ktor/resources/Resource : java/lan
 	public abstract fun path ()Ljava/lang/String;
 }
 
-public final class io/ktor/resources/Resource$Impl : io/ktor/resources/Resource {
+public synthetic class io/ktor/resources/Resource$Impl : io/ktor/resources/Resource {
 	public fun <init> (Ljava/lang/String;)V
 	public final synthetic fun path ()Ljava/lang/String;
 }

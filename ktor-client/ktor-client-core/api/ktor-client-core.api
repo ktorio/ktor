@@ -212,6 +212,7 @@ public final class io/ktor/client/engine/ProxyType : java/lang/Enum {
 	public static final field HTTP Lio/ktor/client/engine/ProxyType;
 	public static final field SOCKS Lio/ktor/client/engine/ProxyType;
 	public static final field UNKNOWN Lio/ktor/client/engine/ProxyType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/engine/ProxyType;
 	public static fun values ()[Lio/ktor/client/engine/ProxyType;
 }
