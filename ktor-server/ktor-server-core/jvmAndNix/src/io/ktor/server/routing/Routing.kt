@@ -33,7 +33,7 @@ public class Routing(
     application.environment.developmentMode,
     application.environment
 ),
-RootRoutingBuilder {
+    RootRoutingBuilder {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     init {

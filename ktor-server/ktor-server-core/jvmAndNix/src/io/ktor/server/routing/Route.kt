@@ -285,28 +285,20 @@ private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
     children.forEach { it.getAllRoutes(endpoints) }
 }
 
-@Deprecated("TODO")
+@Deprecated("Please use route scoped plugins instead")
 public fun RoutingBuilder.intercept(
     phase: PipelinePhase,
     block: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit
 ) {
-    val hook = object : Hook<suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit> {
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            handler: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit
-        ) {
-            pipeline.intercept(phase, handler)
-        }
-    }
-    install(createRouteScopedPlugin(hook.toString()) { on(hook, block) })
+    (this as Route).intercept(phase, block)
 }
 
-@Deprecated("TODO")
+@Deprecated("Please use route scoped plugins instead")
 public fun RoutingBuilder.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
     (this as Route).insertPhaseAfter(reference, phase)
 }
 
-@Deprecated("TODO")
+@Deprecated("Please use route scoped plugins instead")
 public fun RoutingBuilder.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
     (this as Route).insertPhaseBefore(reference, phase)
 }

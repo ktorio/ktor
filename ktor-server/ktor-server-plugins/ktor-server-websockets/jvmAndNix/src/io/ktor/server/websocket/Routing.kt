@@ -54,7 +54,7 @@ public fun RoutingBuilder.webSocketRaw(
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
 ) {
-   plugin(WebSockets) // early require
+    plugin(WebSockets) // early require
 
     route(path, HttpMethod.Get) {
         webSocketRaw(protocol, negotiateExtensions, handler)

@@ -48,7 +48,6 @@ public interface Call {
      */
     public suspend fun <T> receiveNullable(typeInfo: TypeInfo): T?
 
-
     /**
      * Sends a [message] as a response.
      * @see [io.ktor.server.response.ApplicationResponse]

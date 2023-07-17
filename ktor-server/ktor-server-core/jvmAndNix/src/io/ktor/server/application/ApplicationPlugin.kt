@@ -141,6 +141,7 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
         is Routing -> Routing(application)
         else -> Route(parent, selector, developmentMode, environment)
     }
+
     val installed = plugin.install(fakePipeline, configure)
     pluginRegistry.put(plugin.key, installed)
 
