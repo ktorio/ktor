@@ -312,6 +312,26 @@ class StaticContentTest {
     }
 
     @Test
+    fun testStaticFilesWithIndexAndDefault() = testApplication {
+        var respondCount = 0
+        install(
+            createApplicationPlugin("test") {
+                onCallRespond { _ -> respondCount++ }
+            }
+        )
+        routing {
+            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+                default("/plugins/PartialContentTest.kt")
+            }
+        }
+
+        val response = client.get("static")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue(response.bodyAsText().contains("class StaticContentTest {"))
+        assertEquals(1, respondCount)
+    }
+
+    @Test
     fun testStaticResources() = testApplication {
         routing {
             staticResources("static", "public") {
