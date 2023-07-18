@@ -224,8 +224,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testURIContentLocalFile() {
-        val buildDir = "ktor-server/ktor-server/build/classes/kotlin/jvm/test"
-        val file = listOf(File("build/classes/kotlin/jvm/test"), File(buildDir)).first { it.exists() }.walkBottomUp()
+        val file = File("build/classes/").walkBottomUp()
             .filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
@@ -444,11 +443,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File(classesDir), File(coreClassesDir))
-            .filter { it.exists() }
+        val targetClasses = File(classesDir)
 
-        val file = targetClasses
-            .flatMap { it.walkBottomUp().asIterable() }
+        val file = targetClasses.walkBottomUp()
             .first { it.extension == "class" && !it.name.contains('$') }
 
         val location = file.parentFile!!
@@ -744,7 +741,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     companion object {
-        const val classesDir: String = "build/classes/kotlin/jvm"
-        const val coreClassesDir: String = "ktor-server/ktor-server/$classesDir"
+        const val classesDir: String = "build/classes/"
     }
 }
