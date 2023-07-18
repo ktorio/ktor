@@ -10,7 +10,17 @@ import kotlin.test.*
 
 class ConnectionFactoryTest {
 
-    private val selectorManager = SelectorManager()
+    private lateinit var selectorManager: SelectorManager
+
+    @BeforeTest
+    fun setup() {
+        selectorManager = SelectorManager()
+    }
+
+    @AfterTest
+    fun teardown() {
+        selectorManager.close()
+    }
 
     @Test
     fun testLimitSemaphore() = runBlocking {
@@ -86,10 +96,8 @@ class ConnectionFactoryTest {
     }
 
     private suspend fun withServerSocket(block: suspend (ServerSocket) -> Unit) {
-        selectorManager.use {
-            aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
-                block(socket)
-            }
+        aSocket(selectorManager).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
+            block(socket)
         }
     }
 
