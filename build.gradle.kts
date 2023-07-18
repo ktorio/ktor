@@ -65,11 +65,6 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
     }
-    configurations.all {
-        resolutionStrategy {
-            force("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.2")
-        }
-    }
 }
 
 val releaseVersion: String? by extra
@@ -111,7 +106,7 @@ apply(from = "gradle/compatibility.gradle")
 
 plugins {
     id("org.jetbrains.dokka") version "1.7.20" apply false
-    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.12.1"
     id("com.osacky.doctor") version "0.8.1"
 }
 
