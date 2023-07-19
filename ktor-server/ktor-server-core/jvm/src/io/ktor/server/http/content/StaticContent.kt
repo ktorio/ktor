@@ -475,6 +475,7 @@ private suspend fun ApplicationCall.respondStaticFile(
         }
     }
 
+    if (isHandled) return
     if (defaultPath != null) {
         respondStaticFile(File(dir, defaultPath), compressedTypes, contentType, cacheControl, modify)
     }
