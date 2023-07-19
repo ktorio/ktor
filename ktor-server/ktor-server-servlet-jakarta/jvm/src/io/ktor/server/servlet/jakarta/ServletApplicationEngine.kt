@@ -4,12 +4,11 @@
 
 package io.ktor.server.servlet.jakarta
 
-import com.typesafe.config.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import jakarta.servlet.*
 import jakarta.servlet.annotation.*
 import org.slf4j.*
 import kotlin.coroutines.*
@@ -31,30 +30,22 @@ public open class ServletApplicationEngine : KtorServlet() {
             servletContext.initParameterNames?.toList().orEmpty() +
                 servletConfig.initParameterNames?.toList().orEmpty()
             ).filter { it.startsWith("io.ktor") }.distinct()
-        val parameters = parameterNames.associateBy(
-            { it.removePrefix("io.ktor.") },
-            { servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it) }
-        )
+        val parameters = parameterNames.map {
+            it.removePrefix("io.ktor.") to
+                (servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it))
+        }
 
-        val hocon = ConfigFactory.parseMap(parameters)
+        val parametersConfig = MapApplicationConfig(parameters)
         val configPath = "ktor.config"
         val applicationIdPath = "ktor.application.id"
 
-        val combinedConfig = if (hocon.hasPath(configPath)) {
-            val configStream = servletContext.classLoader.getResourceAsStream(hocon.getString(configPath))
-                ?: throw ServletException(
-                    "No config ${hocon.getString(configPath)} found for the servlet named $servletName"
-                )
-            val loadedKtorConfig = configStream.bufferedReader().use { ConfigFactory.parseReader(it) }
-            hocon.withFallback(loadedKtorConfig).resolve()
-        } else {
-            hocon.withFallback(ConfigFactory.load())
-        }
+        val combinedConfig = parametersConfig
+            .withFallback(ConfigLoader.load(parametersConfig.tryGetString(configPath)))
 
         val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
 
         applicationEngineEnvironment {
-            config = HoconApplicationConfig(combinedConfig)
+            config = combinedConfig
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
             rootPath = servletContext.contextPath ?: "/"

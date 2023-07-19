@@ -1,0 +1,4 @@
+ktor:
+    deployment:
+        port: 1234
+property: a-custom
