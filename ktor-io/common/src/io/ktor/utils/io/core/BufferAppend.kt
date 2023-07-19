@@ -1,5 +1,7 @@
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.bits.*
+
 /**
  * Append at most [maxSize] bytes from the specified [other] buffer into this using the end gap reservation if required.
  * @return number of bytes copied
