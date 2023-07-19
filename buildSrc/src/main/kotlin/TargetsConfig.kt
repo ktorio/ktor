@@ -6,7 +6,6 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -20,7 +19,8 @@ val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin"
 val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" }
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
-val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
+val Project.hasNative: Boolean get() =
+    hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
     configureCommon()

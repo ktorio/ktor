@@ -381,7 +381,7 @@ open class BytePacketStringTest {
     @Test
     fun testEncodeToByteArrayCommonImplCharSequenceLong() {
         val expected = longMultibyteStringBytes().hexdump()
-        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl1(longMultibyteString()).hexdump()
+        val actual = Charsets.UTF_8.newEncoder().encodeToByteArray(longMultibyteString()).hexdump()
 
         assertEquals(expected, actual)
     }

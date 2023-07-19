@@ -131,32 +131,11 @@ internal expect fun CharsetDecoder.decodeBuffer(
     max: Int = Int.MAX_VALUE
 ): Int
 
-internal fun CharsetEncoder.encodeToByteArrayImpl1(
+internal expect fun CharsetEncoder.encodeToByteArrayImpl1(
     input: CharSequence,
     fromIndex: Int = 0,
     toIndex: Int = input.length
-): ByteArray {
-    var start = fromIndex
-    if (start >= toIndex) return EmptyByteArray
-    val single = ChunkBuffer.Pool.borrow()
-
-    try {
-        val rc = encodeImpl(input, start, toIndex, single)
-        start += rc
-        if (start == toIndex) {
-            val result = ByteArray(single.readRemaining)
-            single.readFully(result)
-            return result
-        }
-
-        return buildPacket {
-            appendSingleChunk(single.duplicate())
-            encodeToImpl(this, input, start, toIndex)
-        }.readBytes()
-    } finally {
-        single.release(ChunkBuffer.Pool)
-    }
-}
+): ByteArray
 
 internal fun Input.sizeEstimate(): Long = when (this) {
     is ByteReadPacket -> remaining

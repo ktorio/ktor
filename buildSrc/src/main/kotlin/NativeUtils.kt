@@ -21,7 +21,7 @@ fun Project.nixTargets(): List<String> = fastOr {
 
 fun Project.linuxTargets(): List<String> = fastOr {
     with(kotlin) {
-        listOf (
+        listOf(
             linuxX64(),
             linuxArm64(),
         )

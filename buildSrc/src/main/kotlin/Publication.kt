@@ -9,7 +9,7 @@ import org.gradle.api.publish.maven.tasks.*
 import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
-import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.*
 
 fun isAvailableForPublication(publication: Publication): Boolean {
     val name = publication.name
