@@ -1,6 +1,7 @@
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.js.*
 import org.khronos.webgl.*
 
@@ -129,6 +130,33 @@ internal actual fun CharsetDecoder.decodeBuffer(
     }
 
     return copied
+}
+
+internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
+    input: CharSequence,
+    fromIndex: Int,
+    toIndex: Int
+): ByteArray {
+    var start = fromIndex
+    if (start >= toIndex) return EmptyByteArray
+    val single = ChunkBuffer.Pool.borrow()
+
+    try {
+        val rc = encodeImpl(input, start, toIndex, single)
+        start += rc
+        if (start == toIndex) {
+            val result = ByteArray(single.readRemaining)
+            single.readFully(result)
+            return result
+        }
+
+        return buildPacket {
+            appendSingleChunk(single.duplicate())
+            encodeToImpl(this, input, start, toIndex)
+        }.readBytes()
+    } finally {
+        single.release(ChunkBuffer.Pool)
+    }
 }
 
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
