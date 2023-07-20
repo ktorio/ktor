@@ -2,15 +2,35 @@ package=io.ktor.network.interop
 ---
 #include <sys/select.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 
-static inline void select_fd_add(int descriptor, fd_set* set) {
-    FD_SET(descriptor, set);
+typedef struct selection_set {
+    fd_set *value;
+} selection_set;
+
+selection_set select_create_fd_set() {
+    fd_set *value = malloc(sizeof(fd_set));
+    selection_set result;
+    result.value = value;
+    return result;
 }
 
-static inline void select_fd_clear(fd_set *set) {
-    FD_ZERO(set);
+static inline void select_fd_add(int descriptor, selection_set set) {
+    FD_SET(descriptor, set.value);
 }
 
-static inline int select_fd_isset(int descriptor, fd_set* set) {
-    return FD_ISSET(descriptor, set);
+static inline void select_fd_clear(selection_set set) {
+    FD_ZERO(set.value);
+}
+
+static inline int select_fd_isset(int descriptor, selection_set set) {
+    return FD_ISSET(descriptor, set.value);
+}
+
+void selector_release_fd_set(selection_set set) {
+    free(set.value);
+}
+
+int selector_pselect(int descriptor, selection_set read_set, selection_set write_set, selection_set error_set) {
+    return pselect(descriptor, read_set.value, write_set.value, error_set.value, NULL, NULL);
 }
