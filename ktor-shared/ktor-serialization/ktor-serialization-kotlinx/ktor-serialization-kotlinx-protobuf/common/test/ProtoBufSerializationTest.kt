@@ -9,6 +9,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.protobuf.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 import kotlin.test.*
@@ -18,6 +19,9 @@ internal data class User(val id: Int, val login: String)
 
 @Serializable
 internal data class Photo(val id: Long, val path: String)
+
+@Serializable
+data class WithList(val aList: List<String> = emptyList())
 
 @ExperimentalSerializationApi
 class ProtoBufSerializationTest {
@@ -30,6 +34,17 @@ class ProtoBufSerializationTest {
         val actual = serializer.testSerialize(user)
 
         assertContentEquals(byteArrayOf(8, 1, 18, 5, 117, 115, 101, 114, 49), actual)
+    }
+
+    @Test
+    fun testEmptyList() = testSuspend {
+        val serializer = KotlinxSerializationConverter(DefaultProtoBuf)
+
+        val item = WithList()
+        val serialized = serializer.testSerialize(item)
+        val deserialized = serializer.deserialize(Charsets.UTF_8, typeInfo<WithList>(), ByteReadChannel(serialized))
+
+        assertEquals(item, deserialized)
     }
 
     @Test

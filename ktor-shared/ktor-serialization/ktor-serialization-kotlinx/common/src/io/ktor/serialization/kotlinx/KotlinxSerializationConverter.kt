@@ -72,7 +72,7 @@ public class KotlinxSerializationConverter(
         val fromExtension = extensions.asFlow()
             .map { it.deserialize(charset, typeInfo, content) }
             .firstOrNull { it != null || content.isClosedForRead }
-        if (fromExtension != null || content.isClosedForRead) return fromExtension
+        if (extensions.isNotEmpty() && (fromExtension != null || content.isClosedForRead)) return fromExtension
 
         val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
         val contentPacket = content.readRemaining()
