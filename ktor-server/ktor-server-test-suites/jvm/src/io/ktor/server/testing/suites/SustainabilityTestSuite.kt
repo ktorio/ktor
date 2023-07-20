@@ -246,7 +246,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         var job: Job? = null
 
         createAndStartServer {
-            job = (this as Route).application.launch {
+            job = application.launch {
                 delay(10000000L)
             }
         }

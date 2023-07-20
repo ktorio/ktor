@@ -9,6 +9,12 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 
+/**
+ * A client's request.
+ * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
+ * @see [io.ktor.server.application.Call]
+ * @see [io.ktor.server.response.Response]
+ */
 public interface Request {
 
     /**
@@ -47,9 +53,9 @@ public interface Request {
 }
 
 /**
- * A client's request.
+ * A client's request that is used in [ApplicationPlugin].
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [ApplicationCall.request]
+ * @see [ApplicationCall]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public interface ApplicationRequest : Request {

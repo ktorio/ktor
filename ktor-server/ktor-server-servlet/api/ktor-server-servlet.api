@@ -42,7 +42,7 @@ public final class io/ktor/server/servlet/DefaultServletUpgrade : io/ktor/server
 }
 
 public final class io/ktor/server/servlet/JAASBridgeKt {
-	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/ApplicationRequest;)Ljava/security/Principal;
+	public static final fun getJavaSecurityPrincipal (Lio/ktor/server/request/Request;)Ljava/security/Principal;
 }
 
 public abstract class io/ktor/server/servlet/KtorServlet : javax/servlet/http/HttpServlet, kotlinx/coroutines/CoroutineScope {

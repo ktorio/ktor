@@ -14,6 +14,11 @@ import io.ktor.util.reflect.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
+/**
+ * A single act of communication between a client and server.
+ * @see [io.ktor.server.request.Request]
+ * @see [io.ktor.server.response.Response]
+ */
 public interface Call {
     /**
      * [Attributes] attached to this call.

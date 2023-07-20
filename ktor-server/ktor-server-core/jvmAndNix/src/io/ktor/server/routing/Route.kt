@@ -147,6 +147,12 @@ public open class Route(
     }
 }
 
+/**
+ * A client's request that can be handled in [Routing].
+ * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
+ * @see [RoutingCall]
+ * @see [RoutingResponse]
+ */
 public class RoutingRequest internal constructor(
     public val pathVariables: Parameters,
     internal val request: ApplicationRequest,
@@ -160,6 +166,12 @@ public class RoutingRequest internal constructor(
     public override val cookies: RequestCookies = request.cookies
 }
 
+/**
+ * A server's response that can be used to respond in [Routing].
+ * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
+ * @see [RoutingCall]
+ * @see [RoutingRequest]
+ */
 public class RoutingResponse internal constructor(
     public override val call: RoutingCall,
     internal val applicationResponse: ApplicationResponse
@@ -185,7 +197,15 @@ public class RoutingResponse internal constructor(
     override fun push(builder: ResponsePushBuilder): Unit = applicationResponse.push(builder)
 }
 
+/**
+ * A single act of communication between a client and server that is handled in [Routing].
+ * @see [io.ktor.server.request.Request]
+ * @see [io.ktor.server.response.Response]
+ */
 public class RoutingCall internal constructor(
+    /**
+     * The original [ApplicationCall] that is being handled.
+     */
     public val applicationCall: RoutingApplicationCall
 ) : Call {
 
@@ -208,6 +228,9 @@ public class RoutingCall internal constructor(
     }
 }
 
+/**
+ * The context of a [RoutingHandler] that is used to handle a [RoutingCall].
+ */
 public class RoutingContext(
     public val call: RoutingCall,
     override val coroutineContext: CoroutineContext
@@ -216,13 +239,27 @@ public class RoutingContext(
         get() = call.application
 }
 
+/**
+ * A function that handles a [RoutingCall].
+ */
 public typealias RoutingHandler = suspend RoutingContext.() -> Unit
 
+/**
+ * A builder for a routing tree.
+ */
 public interface RoutingBuilder {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
     public val parent: RoutingBuilder?
+
+    /**
+     * Installs a handler into this route which is called when the route is selected for a call.
+     */
     public fun handle(body: RoutingHandler)
+
+    /**
+     * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
+     */
     public fun createChild(selector: RouteSelector): RoutingBuilder
 
     /**
@@ -236,6 +273,7 @@ public interface RoutingBuilder {
 
     /**
      * Installs a [plugin] into this route, if it is not yet installed.
+     * @return an instance of a plugin
      */
     public fun <B : Any, F : Any> install(
         plugin: Plugin<ApplicationCallPipeline, B, F>,
@@ -243,6 +281,9 @@ public interface RoutingBuilder {
     ): F
 }
 
+/**
+ * A builder for a routing tree root.
+ */
 public interface RootRoutingBuilder : RoutingBuilder {
 
     /**

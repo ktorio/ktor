@@ -7,6 +7,12 @@ package io.ktor.server.response
 import io.ktor.http.*
 import io.ktor.server.application.*
 
+/**
+ * A server's response.
+ * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
+ * @see [Call]
+ * @see [io.ktor.server.request.Request]
+ */
 public interface Response {
     /**
      * Provides access to headers for the current response.
@@ -52,9 +58,9 @@ public interface Response {
 }
 
 /**
- * A server's response.
+ * A server's response that is used in [ApplicationPlugin].
  * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
- * @see [ApplicationCall.response]
+ * @see [ApplicationCall]
  * @see [io.ktor.server.request.ApplicationRequest]
  */
 public interface ApplicationResponse : Response {

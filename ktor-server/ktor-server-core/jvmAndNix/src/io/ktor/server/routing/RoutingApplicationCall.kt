@@ -13,13 +13,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Marker interface for instances of [ApplicationCall] that wrap original call from the engine.
- */
-public interface DelegateApplicationCall {
-    public val delegate: ApplicationCall
-}
-
-/**
  * An application call handled by [Routing].
  * @property call original call from [io.ktor.server.engine.ApplicationEngine]
  * @property route is the selected route
@@ -31,9 +24,7 @@ public class RoutingApplicationCall(
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
     public val pathParameters: Parameters
-) : ApplicationCall, CoroutineScope, DelegateApplicationCall {
-
-    override val delegate: ApplicationCall = engineCall
+) : ApplicationCall, CoroutineScope {
 
     override val application: Application get() = engineCall.application
     override val attributes: Attributes get() = engineCall.attributes

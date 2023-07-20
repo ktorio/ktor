@@ -51,7 +51,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testRedirectFromInterceptor() {
         createAndStartServer {
-            (this as Route).application.intercept(ApplicationCallPipeline.Plugins) {
+            application.intercept(ApplicationCallPipeline.Plugins) {
                 call.respondRedirect("/2", true)
             }
         }
@@ -83,7 +83,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     open fun testHeadRequest() {
         createAndStartServer {
-            (this as Route).application.install(AutoHeadResponse)
+            application.install(AutoHeadResponse)
             handle {
                 call.respondText("Hello")
             }
@@ -225,7 +225,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testStatusPages404() {
         createAndStartServer {
-            (this as Route).application.install(StatusPages) {
+            application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, _ ->
                     call.respondText(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
                         "Error string"
@@ -314,7 +314,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            (this as Route).application.install(XForwardedHeaders)
+            application.install(XForwardedHeaders)
             get("/") {
                 call.respond(call.url { })
             }

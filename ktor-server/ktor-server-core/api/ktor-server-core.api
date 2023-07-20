@@ -871,10 +871,6 @@ public final class io/ktor/server/routing/ConstantParameterRouteSelector : io/kt
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class io/ktor/server/routing/DelegateApplicationCall {
-	public abstract fun getDelegate ()Lio/ktor/server/application/ApplicationCall;
-}
-
 public final class io/ktor/server/routing/HostRouteSelector : io/ktor/server/routing/RouteSelector {
 	public static final field Companion Lio/ktor/server/routing/HostRouteSelector$Companion;
 	public static final field HostNameParameter Ljava/lang/String;
@@ -1249,12 +1245,11 @@ public final class io/ktor/server/routing/Routing$Plugin : io/ktor/server/applic
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/routing/RoutingApplicationCall : io/ktor/server/application/ApplicationCall, io/ktor/server/routing/DelegateApplicationCall, kotlinx/coroutines/CoroutineScope {
+public final class io/ktor/server/routing/RoutingApplicationCall : io/ktor/server/application/ApplicationCall, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lio/ktor/server/routing/Route;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getDelegate ()Lio/ktor/server/application/ApplicationCall;
 	public final fun getEngineCall ()Lio/ktor/server/application/ApplicationCall;
 	public fun getParameters ()Lio/ktor/http/Parameters;
 	public final fun getPathParameters ()Lio/ktor/http/Parameters;
