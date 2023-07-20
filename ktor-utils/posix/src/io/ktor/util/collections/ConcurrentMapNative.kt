@@ -5,7 +5,7 @@
 
 package io.ktor.util.collections
 
-import kotlinx.atomicfu.locks.*
+import io.ktor.utils.io.locks.*
 
 /**
  * Ktor concurrent map implementation. Please do not use it.

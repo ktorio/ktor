@@ -14,7 +14,6 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.logging.*
 import kotlinx.atomicfu.*
-import kotlinx.atomicfu.locks.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.auth.Auth")
 

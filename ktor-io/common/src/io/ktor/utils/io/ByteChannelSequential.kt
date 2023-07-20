@@ -4,9 +4,9 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
+import io.ktor.utils.io.locks.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
-import kotlinx.atomicfu.locks.*
 import kotlin.math.*
 
 private const val EXPECTED_CAPACITY: Long = 4088L
