@@ -13,7 +13,7 @@ import kotlin.coroutines.*
  * Notice: This method breaks the [exception] identity.
  */
 internal fun recoverStackTraceBridge(exception: Throwable, continuation: Continuation<*>): Throwable = try {
-    @Suppress("INVISIBLE_REFERENCE")
+    @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
     recoverStackTrace(exception, continuation).withCause(exception.cause)
 } catch (_: Throwable) {
     exception
