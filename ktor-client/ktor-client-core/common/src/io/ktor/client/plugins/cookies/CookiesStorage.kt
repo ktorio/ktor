@@ -30,7 +30,10 @@ public suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
     addCookie(Url(urlString), cookie)
 }
 
-internal fun Cookie.matches(requestUrl: Url): Boolean {
+/**
+ * Checks if [Cookie] matches [requestUrl].
+ */
+public fun Cookie.matches(requestUrl: Url): Boolean {
     val domain = domain?.toLowerCasePreservingASCIIRules()?.trimStart('.')
         ?: error("Domain field should have the default value")
 
@@ -59,7 +62,10 @@ internal fun Cookie.matches(requestUrl: Url): Boolean {
     return !(secure && !requestUrl.protocol.isSecure())
 }
 
-internal fun Cookie.fillDefaults(requestUrl: Url): Cookie {
+/**
+ * Fills [Cookie] with default values from [requestUrl].
+ */
+public fun Cookie.fillDefaults(requestUrl: Url): Cookie {
     var result = this
 
     if (result.path?.startsWith("/") != true) {
