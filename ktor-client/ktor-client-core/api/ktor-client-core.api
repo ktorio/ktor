@@ -777,6 +777,8 @@ public abstract interface class io/ktor/client/plugins/cookies/CookiesStorage : 
 
 public final class io/ktor/client/plugins/cookies/CookiesStorageKt {
 	public static final fun addCookie (Lio/ktor/client/plugins/cookies/CookiesStorage;Ljava/lang/String;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun fillDefaults (Lio/ktor/http/Cookie;Lio/ktor/http/Url;)Lio/ktor/http/Cookie;
+	public static final fun matches (Lio/ktor/http/Cookie;Lio/ktor/http/Url;)Z
 }
 
 public final class io/ktor/client/plugins/cookies/HttpCookies : java/io/Closeable {
