@@ -15,7 +15,7 @@ internal actual fun identityHashCode(instance: Any) = System.identityHashCode(in
 actual class VerifyingObjectPool<T : Any> actual constructor(
     delegate: ObjectPool<T>
 ) : VerifyingPoolBase<T>(delegate), TestRule {
-//    override val allocated = ConcurrentHashMap<IdentityWrapper<T>, Boolean>().keySet(true)!! // KT-60227
+    override val allocated = ConcurrentHashMap<IdentityWrapper<T>, Boolean>().keySet(true)!!
 
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
