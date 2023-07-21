@@ -159,7 +159,8 @@ internal class DefaultWebSocketSessionImpl(
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
-        var last: BytePacketBuilder? = null
+        var firstFrame: Frame? = null
+        var frameBody: BytePacketBuilder? = null
         var closeFramePresented = false
         try {
             @OptIn(DelicateCoroutinesApi::class)
@@ -177,31 +178,37 @@ internal class DefaultWebSocketSessionImpl(
                     is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
-                        checkMaxFrameSize(last, frame)
+                        checkMaxFrameSize(frameBody, frame)
 
                         if (!frame.fin) {
-                            if (last == null) {
-                                last = BytePacketBuilder()
+                            if (firstFrame == null) {
+                                firstFrame = frame
+                            }
+                            if (frameBody == null) {
+                                frameBody = BytePacketBuilder()
                             }
 
-                            last!!.writeFully(frame.data)
+                            frameBody!!.writeFully(frame.data)
                             return@consumeEach
                         }
 
-                        val frameToSend = last?.let { builder ->
-                            builder.writeFully(frame.data)
-                            Frame.byType(
-                                fin = true,
-                                frame.frameType,
-                                builder.build().readBytes(),
-                                frame.rsv1,
-                                frame.rsv2,
-                                frame.rsv3
-                            )
-                        } ?: frame
+                        if (firstFrame == null) {
+                            filtered.send(processIncomingExtensions(frame))
+                            return@consumeEach
+                        }
 
-                        last = null
-                        filtered.send(processIncomingExtensions(frameToSend))
+                        frameBody!!.writeFully(frame.data)
+                        val defragmented = Frame.byType(
+                            fin = true,
+                            firstFrame!!.frameType,
+                            frameBody!!.build().readBytes(),
+                            firstFrame!!.rsv1,
+                            firstFrame!!.rsv2,
+                            firstFrame!!.rsv3
+                        )
+
+                        firstFrame = null
+                        filtered.send(processIncomingExtensions(defragmented))
                     }
                 }
             }
@@ -211,7 +218,7 @@ internal class DefaultWebSocketSessionImpl(
             filtered.close(cause)
         } finally {
             ponger.close()
-            last?.release()
+            frameBody?.release()
             filtered.close()
 
             if (!closeFramePresented) {

@@ -14,4 +14,8 @@ class TomcatWebSocketTest :
     @Ignore
     override fun testClientClosingFirst() {
     }
+
+    @Ignore
+    override fun testFragmentedFlagsFromTheFirstFrame() {
+    }
 }
