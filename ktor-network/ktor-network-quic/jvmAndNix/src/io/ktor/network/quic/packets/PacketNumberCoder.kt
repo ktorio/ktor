@@ -6,6 +6,7 @@ package io.ktor.network.quic.packets
 
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.util.*
+import io.ktor.utils.io.core.*
 
 /**
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-sample-packet-number-decodi)
@@ -70,5 +71,14 @@ internal fun getPacketNumberLength(
         numUnacked <= POW_2_15 -> 2u
         numUnacked <= POW_2_23 -> 3u
         else -> 4u
+    }
+}
+
+internal fun writeRawPacketNumber(builder: BytePacketBuilder, length: UInt32, number: UInt32) = with(builder) {
+    when (length.toInt()) {
+        1 -> writeUInt8(number.toUByte())
+        2 -> writeUInt16(number.toUShort())
+        3 -> writeUInt24(number)
+        4 -> writeUInt32(number)
     }
 }

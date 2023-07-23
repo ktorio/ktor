@@ -15,6 +15,8 @@ import io.ktor.utils.io.core.*
  * Interface for all QUIC packets across all versions
  */
 internal sealed interface QUICPacket {
+    val type: QUICPacketType
+
     val destinationConnectionID: QUICConnectionID
 
     /**
@@ -43,7 +45,7 @@ internal sealed interface QUICPacket {
             val payload = payload ?: ByteReadPacket.Empty
 
             return """
-                $debugName Packet
+                ${type.name} Packet
                     Packet Number: $packetNumber
                     Version: $version
                     DCID: ${destinationConnectionID.value.toDebugString()}
@@ -51,8 +53,6 @@ internal sealed interface QUICPacket {
                     Payload: ${payload.toDebugString(withPayload)}
             """.trimIndent()
         }
-
-        val debugName: String
     }
 
     /**
@@ -75,15 +75,15 @@ internal class QUICVersionNegotiationPacket(
     override val sourceConnectionID: QUICConnectionID,
     val supportedVersions: Array<Int>,
 ) : QUICPacket.LongHeader {
+    override val type: QUICPacketType = QUICPacketType.VersionNegotiation
+
     override val version: UInt32 = QUICVersion.VersionNegotiation
     override val packetNumber: Long = -1
     override val payload: ByteReadPacket? = null
 
-    override val debugName: String = "Version Negotiation"
-
     override fun toDebugString(withPayload: Boolean): String {
         return """
-            $debugName Packet
+            ${type.name} Packet
                 DCID: ${destinationConnectionID.value.toDebugString()}
                 SCID: ${sourceConnectionID.value.toDebugString()}
                 Supported versions: ${supportedVersions.joinToString()}
@@ -104,11 +104,11 @@ internal class QUICInitialPacket(
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader {
-    override val debugName: String = "Initial"
+    override val type: QUICPacketType = QUICPacketType.Initial
 
     override fun toDebugString(withPayload: Boolean): String {
         return """
-            $debugName Packet
+            ${type.name} Packet
                 Packet Number: $packetNumber
                 Version: $version
                 DCID: ${destinationConnectionID.value.toDebugString()}
@@ -131,7 +131,7 @@ internal class QUICZeroRTTPacket(
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader {
-    override val debugName: String = "0-RTT"
+    override val type: QUICPacketType = QUICPacketType.ZeroRTT
 }
 
 /**
@@ -146,7 +146,7 @@ internal class QUICHandshakePacket(
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.LongHeader {
-    override val debugName: String = "Handshake"
+    override val type: QUICPacketType = QUICPacketType.Handshake
 }
 
 /**
@@ -161,14 +161,14 @@ internal class QUICRetryPacket(
     val retryToken: ByteArray,
     val retryIntegrityTag: ByteArray,
 ) : QUICPacket.LongHeader {
+    override val type: QUICPacketType = QUICPacketType.Retry
+
     override val packetNumber: Long = -1
     override val payload: ByteReadPacket? = null
 
-    override val debugName: String = "Retry"
-
     override fun toDebugString(withPayload: Boolean): String {
         return """
-            $debugName Packet
+            ${type.name} Packet
                 Version: $version
                 DCID: ${destinationConnectionID.value.toDebugString()}
                 SCID: ${sourceConnectionID.value.toDebugString()}
@@ -190,9 +190,11 @@ internal class QUICOneRTTPacket(
     override val packetNumber: Long,
     override val payload: ByteReadPacket = ByteReadPacket.Empty,
 ) : QUICPacket.ShortHeader {
+    override val type: QUICPacketType = QUICPacketType.OneRTT
+
     override fun toDebugString(withPayload: Boolean): String {
         return """
-            1-RTT Packet
+            ${type.name} Packet
                 Packet Number: $packetNumber
                 Spin bit: $spinBit
                 Key Phase: $keyPhase

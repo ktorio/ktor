@@ -19,6 +19,7 @@ internal typealias FrameWriteFunction = suspend FrameWriter.(
 ) -> Unit
 
 internal sealed class PacketSendHandler(
+    private val role: ConnectionRole,
     private val hasPayload: Boolean = true,
     private val packetHandler: ReadyPacketHandler,
     type: QUICPacketType,
@@ -114,9 +115,11 @@ internal sealed class PacketSendHandler(
     class Initial(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.Initial,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Initial,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Initial)
 
@@ -141,9 +144,11 @@ internal sealed class PacketSendHandler(
     class Handshake(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Handshake,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Handshake)
 
@@ -167,9 +172,11 @@ internal sealed class PacketSendHandler(
     class OneRTT(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.OneRTT,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.OneRTT,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.AppData)
 
@@ -193,10 +200,12 @@ internal sealed class PacketSendHandler(
     @Suppress("unused")
     class VersionNegotiation(
         packetHandler: ReadyPacketHandler.VersionNegotiation,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.VersionNegotiation,
         hasPayload = false,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeVersionNegotiationPacket(
@@ -215,10 +224,12 @@ internal sealed class PacketSendHandler(
     @Suppress("unused")
     class Retry(
         packetHandler: ReadyPacketHandler.Retry,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Retry,
         hasPayload = false,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeRetryPacket(

@@ -6,6 +6,9 @@ plugins {
     id("org.jetbrains.kotlinx.kover") version "0.7.1"
 }
 
+java.sourceCompatibility = JavaVersion.VERSION_11
+java.targetCompatibility = JavaVersion.VERSION_11
+
 kotlin {
     sourceSets {
         jvmAndNixMain {
@@ -24,7 +27,10 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(libs.kotlin.test.junit)
+                implementation(libs.logback.classic)
                 implementation(project(":ktor-network:ktor-network-test"))
+
+                implementation(files("lib/kwik.jar"))
             }
         }
     }
@@ -35,4 +41,5 @@ kotlin {
      */
     // todo requires gradle 7.6
 //    jvmToolchain(19)
+    jvmToolchain(11)
 }
