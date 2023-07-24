@@ -4,10 +4,10 @@
 
 package io.ktor.server.plugins.callid
 
+import io.ktor.callid.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -163,7 +163,18 @@ public class CallIdConfig {
     }
 }
 
-internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCallId")
+internal val CallIdKey: AttributeKey<String> = AttributeKey("ExtractedCallId")
+
+internal object CallIdSetup : Hook<suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit> {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit
+    ) {
+        pipeline.intercept(ApplicationCallPipeline.Setup) {
+            handler(call)
+        }
+    }
+}
 
 /**
  * A plugin that allows you to trace client requests end-to-end by using unique request IDs or call IDs.
@@ -174,7 +185,9 @@ internal val CallIdKey: AttributeKey<String> = AttributeKey<String>("ExtractedCa
  *    - Otherwise, if a request comes without a call ID, you can generate it on the Ktor server.
  * 2. Next, Ktor verifies a retrieved/generated call ID using a predefined dictionary.
  * You can also provide your own condition to verify a call ID.
- * 3. Finally, you can send a call ID to the client in a specific header, for example, `X-Request-Id`.
+ * 3. The plugin will add a call ID to the coroutine context for this call.
+ * You can access it by using `coroutineContext[KtorCallIdContextElement].callId`
+ * 4. Finally, you can send a call ID to the client in a specific header, for example, `X-Request-Id`.
  *
  * You can learn more from [CallId](https://ktor.io/docs/call-id.html).
  */
@@ -186,7 +199,7 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
     val repliers = pluginConfig.responseInterceptors.toTypedArray()
     val verifier = pluginConfig.verifier
 
-    on(CallSetup) { call ->
+    on(CallIdSetup) { call ->
         for (provider in providers) {
             val callId = provider(call) ?: continue
             if (!verifier(callId)) continue // could throw a RejectedCallIdException
@@ -196,6 +209,10 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
 
             repliers.forEach { replier ->
                 replier(call, callId)
+            }
+
+            withCallId(callId) {
+                proceed()
             }
             break
         }
@@ -228,13 +245,6 @@ private fun verifyCallIdAgainstDictionary(callId: String, dictionarySet: Set<Cha
 }
 
 /**
- * The default call ID's generator dictionary.
- *
- * @see [CallId]
- */
-public const val CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxyz0123456789+/=-"
-
-/**
  * Generates a fixed [length] call ID using the specified [dictionary].
  * Note that this function generates pseudo-random identifiers via regular [java.util.Random]
  * and should not be considered as cryptographically secure.
@@ -260,6 +270,7 @@ public fun CallIdConfig.generate(length: Int = 64, dictionary: String = CALL_ID_
 }
 
 private fun String.duplicates() = toCharArray().groupBy { it }.filterValues { it.size > 1 }.keys.sorted()
+
 private fun Random.nextString(length: Int, dictionary: CharArray): String {
     val chars = CharArray(length)
     val dictionarySize = dictionary.size

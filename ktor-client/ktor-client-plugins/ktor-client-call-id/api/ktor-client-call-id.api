@@ -1,0 +1,14 @@
+public final class io/ktor/client/plugins/callid/CallIdConfig {
+	public fun <init> ()V
+	public final fun addToHeader (Ljava/lang/String;)V
+	public static synthetic fun addToHeader$default (Lio/ktor/client/plugins/callid/CallIdConfig;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun generate (Lkotlin/jvm/functions/Function2;)V
+	public final fun getUseCoroutineContext ()Z
+	public final fun intercept (Lkotlin/jvm/functions/Function2;)V
+	public final fun setUseCoroutineContext (Z)V
+}
+
+public final class io/ktor/client/plugins/callid/CallIdKt {
+	public static final fun getCallId ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
