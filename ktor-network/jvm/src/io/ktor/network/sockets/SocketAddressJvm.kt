@@ -11,8 +11,9 @@ public actual sealed class SocketAddress {
 }
 
 public actual class InetSocketAddress internal constructor(
-    override val address: java.net.InetSocketAddress
+    actual override val address: java.net.InetSocketAddress
 ) : SocketAddress() {
+
 
     // May trigger a name service reverse lookup when called.
     public actual val hostname: String get() = address.hostName
@@ -53,7 +54,7 @@ public actual class InetSocketAddress internal constructor(
 }
 
 public actual class UnixSocketAddress internal constructor(
-    override val address: java.net.SocketAddress // actually: java.net.UnixDomainSocketAddress
+    actual override val address: java.net.SocketAddress // actually: java.net.UnixDomainSocketAddress
 ) : SocketAddress() {
 
     init {

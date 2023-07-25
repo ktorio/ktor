@@ -43,6 +43,8 @@ public expect class InetSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+
+    override val address: java.net.InetSocketAddress
 }
 
 public expect class UnixSocketAddress(
@@ -64,4 +66,5 @@ public expect class UnixSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+    override val address: java.net.SocketAddress
 }
