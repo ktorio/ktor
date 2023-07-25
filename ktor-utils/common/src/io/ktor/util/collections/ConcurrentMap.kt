@@ -13,6 +13,19 @@ public expect class ConcurrentMap<Key, Value>(
     initialCapacity: Int = INITIAL_CAPACITY
 ) : MutableMap<Key, Value> {
 
+    override fun remove(key: Key): Value?
+    override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
+    override val keys: MutableSet<Key>
+    override val size: Int
+    override val values: MutableCollection<Value>
+    override fun clear()
+    override fun get(key: Key): Value?
+    override fun isEmpty(): Boolean
+    override fun put(key: Key, value: Value): Value?
+    override fun putAll(from: Map<out Key, Value>)
+    override fun containsKey(key: Key): Boolean
+    override fun containsValue(value: Value): Boolean
+
     /**
      * Computes [block] and inserts result in map. The [block] will be evaluated at most once.
      */

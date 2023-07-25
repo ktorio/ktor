@@ -50,8 +50,8 @@ public fun Memory.Companion.of(view: ArrayBufferView, offset: Int = 0, length: I
 
 @PublishedApi
 internal actual object DefaultAllocator : Allocator {
-    override fun alloc(size: Int): Memory = Memory(DataView(ArrayBuffer(size)))
-    override fun alloc(size: Long): Memory = Memory(DataView(ArrayBuffer(size.toIntOrFail("size"))))
-    override fun free(instance: Memory) {
+    actual override fun alloc(size: Int): Memory = Memory(DataView(ArrayBuffer(size)))
+    actual override fun alloc(size: Long): Memory = Memory(DataView(ArrayBuffer(size.toIntOrFail("size"))))
+    actual override fun free(instance: Memory) {
     }
 }
