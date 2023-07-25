@@ -10,5 +10,6 @@ import io.ktor.utils.io.pool.*
 internal actual inline fun identityHashCode(instance: Any): Int = instance.hashCode()
 
 actual class VerifyingObjectPool<T : Any> actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate) {
-    override val allocated = HashSet<IdentityWrapper<T>>()
+    actual override val allocated: MutableSet<IdentityWrapper<T>>
+        get() = TODO("Not yet implemented")
 }

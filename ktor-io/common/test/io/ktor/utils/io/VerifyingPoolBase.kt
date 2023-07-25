@@ -5,7 +5,9 @@ import kotlin.test.*
 
 internal expect fun identityHashCode(instance: Any): Int
 
-expect class VerifyingObjectPool<T : Any>(delegate: ObjectPool<T>) : VerifyingPoolBase<T>
+expect class VerifyingObjectPool<T : Any>(delegate: ObjectPool<T>) : VerifyingPoolBase<T>{
+    override val allocated: MutableSet<IdentityWrapper<T>>
+}
 
 abstract class VerifyingPoolBase<T : Any> constructor(private val delegate: ObjectPool<T>) : ObjectPool<T> by delegate {
     protected abstract val allocated: MutableSet<IdentityWrapper<T>>
