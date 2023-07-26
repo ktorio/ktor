@@ -2,22 +2,20 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.contracts.*
-import kotlin.native.concurrent.*
 
 @OptIn(UnsafeNumber::class)
 @PublishedApi
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin, null)
+    return ChunkBuffer(Memory(ptr, lengthInBytes), origin, null)
 }
 
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin, null)
+    return ChunkBuffer(Memory(ptr, lengthInBytes), origin, null)
 }
 
 public fun Buffer.readFully(pointer: CPointer<ByteVar>, offset: Int, length: Int) {

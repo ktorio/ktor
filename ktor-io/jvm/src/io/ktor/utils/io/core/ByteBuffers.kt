@@ -110,4 +110,4 @@ public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     }
 }
 
-internal fun Buffer.hasArray(): Boolean = memory.buffer.let { it.hasArray() && !it.isReadOnly }
+internal fun Buffer.hasArray(): Boolean = memory.let { it.hasArray() && !it.isReadOnly }
