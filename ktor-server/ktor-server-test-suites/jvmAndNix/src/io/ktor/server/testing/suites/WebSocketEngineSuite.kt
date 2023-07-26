@@ -14,6 +14,7 @@ import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
@@ -579,6 +580,49 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Test
+    open fun testFragmentedFlagsFromTheFirstFrame() = runTest {
+        val first = CompletableDeferred<Frame.Text>()
+        val second = CompletableDeferred<Frame.Text>()
+        createAndStartServer {
+            webSocket("/") {
+                val frame = incoming.receive()
+                assertIs<Frame.Text>(frame)
+                first.complete(frame)
+
+                val frame2 = incoming.receive()
+                assertIs<Frame.Text>(frame2)
+                second.complete(frame2)
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.apply {
+                repeat(2) {
+                    writeFrameTest(Frame.Text(false, "Hello".toByteArray(), true, false, false), false)
+                    writeFrameTest(Frame.Text(true, ", World".toByteArray(), false, false, false), false, opcode = 0)
+                }
+                writeFrameTest(Frame.Close(), false)
+                flush()
+            }
+        }
+
+        fun checkFrame(frame: Frame) {
+            assertIs<Frame.Text>(frame)
+            assertTrue(frame.fin)
+            assertTrue(frame.rsv1)
+            assertFalse(frame.rsv2)
+            assertFalse(frame.rsv3)
+
+            assertEquals("Hello, World", frame.readText())
+        }
+
+        checkFrame(first.await())
+        checkFrame(second.await())
+    }
+
     private suspend fun Connection.negotiateHttpWebSocket() {
         // send upgrade request
         output.apply {
@@ -621,6 +665,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 if (replyCloseFrame) socket.close()
                 break@loop
             }
+
             else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
         }
     }
@@ -681,6 +726,56 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     throw cause
                 }
             }
+        }
+    }
+}
+
+internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Boolean, opcode: Int? = null) {
+    val length = frame.data.size
+
+    val flagsAndOpcode = frame.fin.flagAt(7) or
+        frame.rsv1.flagAt(6) or
+        frame.rsv2.flagAt(5) or
+        frame.rsv3.flagAt(4) or
+        (opcode ?: frame.frameType.opcode)
+
+    writeByte(flagsAndOpcode.toByte())
+
+    val formattedLength = when {
+        length < 126 -> length
+        length <= 0xffff -> 126
+        else -> 127
+    }
+
+    val maskAndLength = masking.flagAt(7) or formattedLength
+
+    writeByte(maskAndLength.toByte())
+
+    when (formattedLength) {
+        126 -> writeShort(length.toShort())
+        127 -> writeLong(length.toLong())
+    }
+
+    val data = ByteReadPacket(frame.data)
+
+    val maskedData = when (masking) {
+        true -> {
+            val maskKey = Random.nextInt()
+            writeInt(maskKey)
+            data.mask(maskKey)
+        }
+        false -> data
+    }
+    writePacket(maskedData)
+}
+
+internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
+
+private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
+    maskMemory.storeIntAt(0, maskKey)
+    buildPacket {
+        repeat(remaining.toInt()) { i ->
+            writeByte((readByte().toInt() xor (maskMemory[i % 4].toInt())).toByte())
         }
     }
 }
