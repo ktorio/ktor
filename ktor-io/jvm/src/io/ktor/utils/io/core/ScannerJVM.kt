@@ -1,5 +1,6 @@
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.bits.*
 import java.nio.*
 
 @Suppress("DEPRECATION")

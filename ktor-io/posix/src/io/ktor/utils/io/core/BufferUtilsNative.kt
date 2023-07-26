@@ -12,12 +12,12 @@ internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DEPRECATION")
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Int, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin, null)
+    return ChunkBuffer(Memory(ptr, lengthInBytes), origin, null)
 }
 
 @Suppress("DEPRECATION")
 public fun ChunkBuffer(ptr: CPointer<*>, lengthInBytes: Long, origin: ChunkBuffer?): ChunkBuffer {
-    return ChunkBuffer(Memory.of(ptr, lengthInBytes), origin, null)
+    return ChunkBuffer(Memory(ptr, lengthInBytes), origin, null)
 }
 
 @Suppress("DEPRECATION")

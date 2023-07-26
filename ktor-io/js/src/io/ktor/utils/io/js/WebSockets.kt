@@ -17,7 +17,7 @@ public inline fun WebSocket.sendPacket(block: BytePacketBuilder.() -> Unit) {
 public inline fun MessageEvent.packet(): ByteReadPacket {
     @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "UnsafeCastFromDynamic")
     return ByteReadPacket(
-        ChunkBuffer(Memory.of(data.asDynamic() as DataView), null, ChunkBuffer.NoPool),
+        ChunkBuffer(Memory(data.asDynamic() as DataView), null, ChunkBuffer.NoPool),
         ChunkBuffer.NoPool
     )
 }
