@@ -160,7 +160,7 @@ public open class ChunkBuffer(
             }
         }
 
-        public val Empty: ChunkBuffer = ChunkBuffer(Memory.Empty, null, EmptyPool)
+        public val Empty: ChunkBuffer = ChunkBuffer(MEMORY_EMPTY, null, EmptyPool)
 
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {

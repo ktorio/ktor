@@ -2381,7 +2381,7 @@ internal open class ByteBufferChannel(
                     val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
                     view.limit(newLimit.toInt())
                     bytesCopied = view.remaining()
-                    view.copyTo(destination, destinationOffset.toInt())
+                    view.moveTo(destination, destinationOffset.toInt())
                     view.limit(oldLimit)
                 }
             }

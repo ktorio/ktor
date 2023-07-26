@@ -13,9 +13,9 @@ internal class InputStreamAsInput(
 ) : Input(pool = pool) {
 
     override fun fill(destination: Memory, offset: Int, length: Int): Int {
-        if (destination.buffer.hasArray() && !destination.buffer.isReadOnly) {
+        if (destination.hasArray() && !destination.isReadOnly) {
             return stream
-                .read(destination.buffer.array(), destination.buffer.arrayOffset() + offset, length)
+                .read(destination.array(), destination.arrayOffset() + offset, length)
                 .coerceAtLeast(0)
         }
 

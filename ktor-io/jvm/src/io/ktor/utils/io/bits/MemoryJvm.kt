@@ -5,102 +5,117 @@ package io.ktor.utils.io.bits
 import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
-@Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
-@JvmInline
-public actual value class Memory constructor(public val buffer: ByteBuffer) {
+/**
+ * Memory instance with 0 size.
+ */
+public actual val MEMORY_EMPTY: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
 
-    /**
-     * Size of memory range in bytes.
-     */
-    public actual inline val size: Long get() = buffer.limit().toLong()
+/**
+ * Represents a linear range of bytes.
+ * All operations are guarded by range-checks by default however at some platforms they could be disabled
+ * in release builds.
+ *
+ * Instance of this class has no additional state except the bytes themselves.
+ */
+public actual typealias Memory = ByteBuffer
 
-    /**
-     * Size of memory range in bytes represented as signed 32bit integer
-     * @throws IllegalStateException when size doesn't fit into a signed 32bit integer
-     */
-    public actual inline val size32: Int get() = buffer.limit()
+/**
+ * Create memory form [buffer].
+ */
+public fun Memory(buffer: ByteBuffer): ByteBuffer = buffer.slice().order(ByteOrder.BIG_ENDIAN)
 
-    /**
-     * Returns byte at [index] position.
-     */
-    public actual inline fun loadAt(index: Int): Byte = buffer.get(index)
+/**
+ * Reference to the internal buffer
+ */
+public val Memory.buffer: ByteBuffer get() = this
 
-    /**
-     * Returns byte at [index] position.
-     */
-    public actual inline fun loadAt(index: Long): Byte = buffer.get(index.toIntOrFail("index"))
+/**
+ * Size of memory range in bytes.
+ */
+public actual inline val Memory.size: Long get() = limit().toLong()
 
-    /**
-     * Write [value] at the specified [index].
-     */
-    public actual inline fun storeAt(index: Int, value: Byte) {
-        buffer.put(index, value)
-    }
+/**
+ * Size of memory range in bytes represented as signed 32bit integer
+ * @throws IllegalStateException when size doesn't fit into a signed 32bit integer
+ */
+public actual inline val Memory.size32: Int get() = limit()
 
-    /**
-     * Write [value] at the specified [index]
-     */
-    public actual inline fun storeAt(index: Long, value: Byte) {
-        buffer.put(index.toIntOrFail("index"), value)
-    }
+/**
+ * Returns byte at [index] position.
+ */
+public actual inline fun Memory.loadAt(index: Int): Byte = get(index)
 
-    public actual fun slice(offset: Int, length: Int): Memory =
-        Memory(buffer.sliceSafe(offset, length))
+/**
+ * Returns byte at [index] position.
+ */
+public actual inline fun Memory.loadAt(index: Long): Byte = get(index.toIntOrFail("index"))
 
-    public actual fun slice(offset: Long, length: Long): Memory {
-        return slice(offset.toIntOrFail("offset"), length.toIntOrFail("length"))
-    }
+/**
+ * Write [value] at the specified [index].
+ */
+public actual inline fun Memory.storeAt(index: Int, value: Byte) {
+    put(index, value)
+}
 
-    /**
-     * Copies bytes from this memory range from the specified [offset] and [length]
-     * to the [destination] at [destinationOffset].
-     * Copying bytes from a memory to itself is allowed.
-     */
-    public actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
-        if (buffer.hasArray() && destination.buffer.hasArray() &&
-            !buffer.isReadOnly && !destination.buffer.isReadOnly
-        ) {
-            System.arraycopy(
-                buffer.array(),
-                buffer.arrayOffset() + offset,
-                destination.buffer.array(),
-                destination.buffer.arrayOffset() + destinationOffset,
-                length
-            )
-            return
-        }
+/**
+ * Write [value] at the specified [index]
+ */
+public actual inline fun Memory.storeAt(index: Long, value: Byte) {
+    put(index.toIntOrFail("index"), value)
+}
 
-        // NOTE: it is ok here to make copy since it will be escaped by JVM
-        // while temporary moving position/offset makes memory concurrent unsafe that is unacceptable
+public actual fun Memory.slice(offset: Int, length: Int): Memory =
+    Memory(sliceSafe(offset, length))
 
-        val srcCopy = buffer.duplicate().apply {
-            position(offset)
-            limit(offset + length)
-        }
-        val dstCopy = destination.buffer.duplicate().apply {
-            position(destinationOffset)
-        }
+public actual fun Memory.slice(offset: Long, length: Long): Memory {
+    return slice(offset.toIntOrFail("offset"), length.toIntOrFail("length"))
+}
 
-        dstCopy.put(srcCopy)
-    }
-
-    /**
-     * Copies bytes from this memory range from the specified [offset] and [length]
-     * to the [destination] at [destinationOffset].
-     * Copying bytes from a memory to itself is allowed.
-     */
-    public actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
-        copyTo(
-            destination,
-            offset.toIntOrFail("offset"),
-            length.toIntOrFail("length"),
-            destinationOffset.toIntOrFail("destinationOffset")
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ * Copying bytes from a memory to itself is allowed.
+ */
+public actual fun Memory.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    if (hasArray() && destination.hasArray() &&
+        !isReadOnly && !destination.isReadOnly
+    ) {
+        System.arraycopy(
+            array(),
+            arrayOffset() + offset,
+            destination.array(),
+            destination.arrayOffset() + destinationOffset,
+            length
         )
+        return
     }
 
-    public actual companion object {
-        public actual val Empty: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
+    // NOTE: it is ok here to make copy since it will be escaped by JVM
+    // while temporary moving position/offset makes memory concurrent unsafe that is unacceptable
+
+    val srcCopy = duplicate().apply {
+        position(offset)
+        limit(offset + length)
     }
+    val dstCopy = destination.duplicate().apply {
+        position(destinationOffset)
+    }
+
+    dstCopy.put(srcCopy)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ * Copying bytes from a memory to itself is allowed.
+ */
+public actual fun Memory.copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
+    copyTo(
+        destination,
+        offset.toIntOrFail("offset"),
+        length.toIntOrFail("length"),
+        destinationOffset.toIntOrFail("destinationOffset")
+    )
 }
 
 /**
@@ -186,7 +201,7 @@ public fun Memory.copyTo(destination: ByteBuffer, offset: Long) {
 /**
  * Copy byte from this buffer moving it's position to the [destination] at [offset].
  */
-public fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
+public fun ByteBuffer.moveTo(destination: Memory, offset: Int) {
     if (hasArray() && !isReadOnly) {
         destination.storeByteArray(offset, array(), arrayOffset() + position(), remaining())
         position(limit())
@@ -224,6 +239,6 @@ public actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
  */
 public actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
-        buffer.put(index, value)
+        put(index, value)
     }
 }

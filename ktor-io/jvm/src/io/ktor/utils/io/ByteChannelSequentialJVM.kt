@@ -183,7 +183,7 @@ public class ByteChannelSequentialJVM(
             val head = channel.readable.head
             if (head.readRemaining < skip + atLeast) return null
 
-            val buffer = head.memory.buffer.slice()
+            val buffer = head.memory.slice()
             buffer.position(head.readPosition + skip)
             buffer.limit(head.writePosition)
             return buffer

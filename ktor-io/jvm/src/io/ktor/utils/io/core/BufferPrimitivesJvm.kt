@@ -21,6 +21,6 @@ public fun Buffer.readFully(destination: ByteBuffer) {
 public fun Buffer.writeFully(source: ByteBuffer) {
     val size = source.remaining()
     writeExact(size, "buffer content") { memory, offset ->
-        source.copyTo(memory, offset)
+        source.moveTo(memory, offset)
     }
 }

@@ -14,7 +14,6 @@ public typealias ConsumeEachBufferVisitor = (buffer: ByteBuffer, last: Boolean) 
  * The provided buffer should be never captured outside of the visitor block otherwise resource leaks, crashes and
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public suspend inline fun ByteReadChannel.consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
     var continueFlag: Boolean
     var lastChunkReported = false
@@ -24,7 +23,7 @@ public suspend inline fun ByteReadChannel.consumeEachBufferRange(visitor: Consum
         read { source, start, endExclusive ->
             val nioBuffer = when {
                 endExclusive > start -> source.slice(start, endExclusive - start).buffer
-                else -> Memory.Empty.buffer
+                else -> MEMORY_EMPTY.buffer
             }
 
             lastChunkReported = nioBuffer.remaining() == availableForRead && isClosedForWrite
