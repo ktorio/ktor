@@ -36,7 +36,7 @@ public abstract class Output public constructor(
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
 
-    internal var tailMemory: Memory = Memory.Empty
+    internal var tailMemory: Memory = MEMORY_EMPTY
 
     internal var tailPosition: Int = 0
 
@@ -82,7 +82,7 @@ public abstract class Output public constructor(
         tailEndExclusive = 0
         tailInitialPosition = 0
         chainedSize = 0
-        tailMemory = Memory.Empty
+        tailMemory = MEMORY_EMPTY
 
         return head
     }
