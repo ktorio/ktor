@@ -28,7 +28,7 @@ public actual fun ByteReadPacket(
             val base = content.addressOf(offset)
             pinned = content
 
-            return ChunkBuffer(Memory.of(base, length), null, this)
+            return ChunkBuffer(Memory(base, length), null, this)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {
