@@ -13,7 +13,7 @@ import io.ktor.server.response.*
  *
  * @see VelocityContent
  */
-public suspend fun Call.respondTemplate(
+public suspend fun ApplicationCall.respondTemplate(
     template: String,
     model: Map<String, Any> = emptyMap(),
     etag: String? = null,

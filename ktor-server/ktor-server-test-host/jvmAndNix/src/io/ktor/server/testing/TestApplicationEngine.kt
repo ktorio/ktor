@@ -56,10 +56,10 @@ class TestApplicationEngine(
      * An interceptor for engine calls.
      * Can be modified to emulate behaviour of a specific engine (e.g. error handling).
      */
-    private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit)?> =
+    private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit)?> =
         atomic(null)
 
-    var callInterceptor: PipelineInterceptor<Unit, ApplicationCall>
+    var callInterceptor: PipelineInterceptor<Unit, PipelineCall>
         get() = _callInterceptor.value!!
         set(value) {
             _callInterceptor.value = value
@@ -99,7 +99,7 @@ class TestApplicationEngine(
         }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
+    private suspend fun PipelineContext<Unit, PipelineCall>.handleTestFailure(cause: Throwable) {
         logError(call, cause)
 
         val throwOnException = environment.config
@@ -111,7 +111,7 @@ class TestApplicationEngine(
         )
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+    private suspend fun PipelineContext<Unit, PipelineCall>.tryRespondError(statusCode: HttpStatusCode) {
         try {
             if (call.response.status() == null) {
                 call.respond(statusCode)

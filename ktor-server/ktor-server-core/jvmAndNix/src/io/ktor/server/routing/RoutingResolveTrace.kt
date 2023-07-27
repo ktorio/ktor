@@ -43,10 +43,10 @@ public open class RoutingResolveTraceEntry(
 
 /**
  * Represents the trace of routing resolution process for diagnostics.
- * @param call instance of [ApplicationCall] for which this trace was created.
+ * @param call instance of [PipelineCall] for which this trace was created.
  * @param segments list of [String]s for each path segment supplied for the routing resolution.
  */
-public class RoutingResolveTrace(public val call: ApplicationCall, public val segments: List<String>) {
+public class RoutingResolveTrace(public val call: PipelineCall, public val segments: List<String>) {
     private val stack = Stack<RoutingResolveTraceEntry>()
     private var routing: RoutingResolveTraceEntry? = null
     private lateinit var finalResult: RoutingResolveResult

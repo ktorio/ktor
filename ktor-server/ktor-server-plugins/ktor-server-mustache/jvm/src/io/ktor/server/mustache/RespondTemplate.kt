@@ -13,7 +13,7 @@ import io.ktor.server.response.*
  *
  * @see MustacheContent
  */
-public suspend fun Call.respondTemplate(
+public suspend fun ApplicationCall.respondTemplate(
     template: String,
     model: Any? = null,
     etag: String? = null,

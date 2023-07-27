@@ -9,12 +9,12 @@ import io.ktor.server.application.*
 /**
  * A predicate function that accepts an application call and returns `true` or `false`.
  */
-public typealias ApplicationCallPredicate = (Call) -> Boolean
+public typealias ApplicationCallPredicate = (ApplicationCall) -> Boolean
 
 /**
  * An authentication function that accepts and verifies credentials and returns a principal when verification is successful.
  */
-public typealias AuthenticationFunction<C> = suspend Call.(credentials: C) -> Principal?
+public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Principal?
 
 /**
  * An authentication provider with the specified name.
@@ -46,7 +46,7 @@ public abstract class AuthenticationProvider(config: Config) {
     public open class Config protected constructor(public val name: String?) {
 
         /**
-         * Authentication filters specifying if authentication is required for a particular [Call].
+         * Authentication filters specifying if authentication is required for a particular [ApplicationCall].
          *
          * If there is no filters, authentication is required. If any filter returns `true`, authentication is not required.
          */
@@ -57,7 +57,7 @@ public abstract class AuthenticationProvider(config: Config) {
          * For every application call the specified [predicate] is applied and if it returns `true` then the
          * authentication provider is skipped (no auth required for this call with this provider).
          */
-        public fun skipWhen(predicate: (Call) -> Boolean) {
+        public fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
             val list = filterPredicates ?: mutableListOf()
             list.add(predicate)
             filterPredicates = list

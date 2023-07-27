@@ -20,7 +20,7 @@ import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-internal fun Call.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
+internal fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
     val token = parameters[HttpAuthHeader.Parameters.OAuthToken]
     val verifier = parameters[HttpAuthHeader.Parameters.OAuthVerifier]
 
@@ -88,14 +88,14 @@ private suspend fun simpleOAuth1aStep1(
     }
 }
 
-internal suspend fun Call.redirectAuthenticateOAuth1a(
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(
     settings: OAuthServerSettings.OAuth1aServerSettings,
     requestToken: OAuthCallback.TokenPair
 ) {
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 }
 
-internal suspend fun Call.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
     val url = authenticateUrl.appendUrlParameters(
         "${HttpAuthHeader.Parameters.OAuthToken}=${requestToken.encodeURLParameter()}"
     )

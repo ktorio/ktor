@@ -13,7 +13,7 @@ import jakarta.servlet.*
  * Provides jakarta.servlet request attributes or fail it the underlying engine is not
  * servlet-backed.
  */
-public val Request.servletRequestAttributes: Map<String, Any>
+public val ApplicationRequest.servletRequestAttributes: Map<String, Any>
     get() = call.attributes[servletRequestAttributesKey]
 
 /**
@@ -21,7 +21,7 @@ public val Request.servletRequestAttributes: Map<String, Any>
  */
 internal val servletRequestAttributesKey: AttributeKey<Map<String, Any>> = AttributeKey("ServletRequestAttributes")
 
-public fun Call.putServletAttributes(request: ServletRequest) {
+public fun ApplicationCall.putServletAttributes(request: ServletRequest) {
     val servletAttributes = request.attributeNames?.asSequence()?.associateWith { attributeName ->
         request.getAttribute(attributeName)
     }?.filterValues { it != null } ?: emptyMap()

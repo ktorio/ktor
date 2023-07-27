@@ -26,12 +26,12 @@ internal class NettyApplicationCallHandler(
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
-            is ApplicationCall -> handleRequest(ctx, msg)
+            is PipelineCall -> handleRequest(ctx, msg)
             else -> ctx.fireChannelRead(msg)
         }
     }
 
-    private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
+    private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 
         launch(callContext, start = CoroutineStart.UNDISPATCHED) {

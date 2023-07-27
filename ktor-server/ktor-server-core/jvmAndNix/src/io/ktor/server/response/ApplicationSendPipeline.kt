@@ -12,7 +12,7 @@ import io.ktor.util.pipeline.*
  */
 public open class ApplicationSendPipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+) : Pipeline<Any, PipelineCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     /**
      * Send pipeline phases.
      */

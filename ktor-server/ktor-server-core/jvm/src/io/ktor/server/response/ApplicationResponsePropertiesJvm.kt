@@ -12,18 +12,18 @@ import java.time.temporal.*
 /**
  * Append HTTP response header with temporal [date] (date, time and so on)
  */
-public fun Response.header(name: String, date: Temporal): Unit =
+public fun ApplicationResponse.header(name: String, date: Temporal): Unit =
     headers.append(name, date.toHttpDateString())
 
 /**
  * Append response `Last-Modified` HTTP header value from [dateTime]
  */
-public fun Response.lastModified(dateTime: ZonedDateTime): Unit = header(HttpHeaders.LastModified, dateTime)
+public fun ApplicationResponse.lastModified(dateTime: ZonedDateTime): Unit = header(HttpHeaders.LastModified, dateTime)
 
 /**
  * Append response `Expires` HTTP header [value]
  */
-public fun Response.expires(value: LocalDateTime): Unit = header(HttpHeaders.Expires, value)
+public fun ApplicationResponse.expires(value: LocalDateTime): Unit = header(HttpHeaders.Expires, value)
 
 /**
  * Set 'Last-Modified` header value from [dateTime]

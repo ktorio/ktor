@@ -169,7 +169,7 @@ public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createA
         )
     }
 
-    fun Request.forwardedHeaders() =
+    fun ApplicationRequest.forwardedHeaders() =
         headers.getAll(HttpHeaders.Forwarded)
             ?.flatMap { it.split(',') }
             ?.flatMap { parseHeaderValue(";$it") }?.map {

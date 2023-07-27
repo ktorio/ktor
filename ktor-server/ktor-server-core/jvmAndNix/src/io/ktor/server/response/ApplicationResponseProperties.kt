@@ -11,27 +11,27 @@ import io.ktor.http.*
 /**
  * Appends a header with the specified [name] and [value] to a response.
  */
-public fun Response.header(name: String, value: String): Unit = headers.append(name, value)
+public fun ApplicationResponse.header(name: String, value: String): Unit = headers.append(name, value)
 
 /**
  * Appends a header with the specified [name] and [value] to a response.
  */
-public fun Response.header(name: String, value: Int): Unit = headers.append(name, value.toString())
+public fun ApplicationResponse.header(name: String, value: Int): Unit = headers.append(name, value.toString())
 
 /**
  * Appends a header with the specified [name] and [value] to a response.
  */
-public fun Response.header(name: String, value: Long): Unit = headers.append(name, value.toString())
+public fun ApplicationResponse.header(name: String, value: Long): Unit = headers.append(name, value.toString())
 
 /**
  * Appends the `E-Tag` header with the specified [value] to a response.
  */
-public fun Response.etag(value: String): Unit = header(HttpHeaders.ETag, value)
+public fun ApplicationResponse.etag(value: String): Unit = header(HttpHeaders.ETag, value)
 
 /**
  * Appends the `Cache-Control` header with the specified [value] to a response.
  */
-public fun Response.cacheControl(value: CacheControl): Unit =
+public fun ApplicationResponse.cacheControl(value: CacheControl): Unit =
     header(HttpHeaders.CacheControl, value.toString())
 
 /**
@@ -53,7 +53,7 @@ public fun HeadersBuilder.contentRange(
 /**
  * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
  */
-public fun Response.contentRange(
+public fun ApplicationResponse.contentRange(
     range: LongRange?,
     fullLength: Long? = null,
     unit: RangeUnits
@@ -64,7 +64,7 @@ public fun Response.contentRange(
 /**
  * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
  */
-public fun Response.contentRange(
+public fun ApplicationResponse.contentRange(
     range: LongRange?,
     fullLength: Long? = null,
     unit: String = RangeUnits.Bytes.unitToken

@@ -209,7 +209,7 @@ public fun RoutingBuilder.webSocket(
 // these two functions could be potentially useful for users however it is not clear how to provide them better
 // so for now they are still private
 
-private suspend fun Call.respondWebSocketRaw(
+private suspend fun ApplicationCall.respondWebSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketSession.() -> Unit
@@ -247,7 +247,7 @@ private suspend fun CoroutineScope.joinSession() {
 }
 
 private suspend fun DefaultWebSocketSession.handleServerSession(
-    call: Call,
+    call: ApplicationCall,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
     try {

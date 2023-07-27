@@ -85,7 +85,7 @@ public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
  */
 public object ResponseBodyReadyForSend :
     Hook<suspend ResponseBodyReadyForSend.Context.(ApplicationCall, OutgoingContent) -> Unit> {
-    public class Context(private val context: PipelineContext<Any, ApplicationCall>) {
+    public class Context(private val context: PipelineContext<Any, PipelineCall>) {
         public fun transformBodyTo(body: OutgoingContent) {
             context.subject = body
         }

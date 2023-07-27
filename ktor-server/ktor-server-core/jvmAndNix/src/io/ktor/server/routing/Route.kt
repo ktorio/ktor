@@ -121,7 +121,7 @@ public open class Route(
         val handlers = handlers
         for (index in 0..handlers.lastIndex) {
             pipeline.intercept(Call) {
-                val call = call as RoutingApplicationCall
+                val call = call as RoutingPipelineCall
                 val routingCall = call.routingCall()
                 val routingContext = RoutingContext(routingCall, coroutineContext)
                 if (call.isHandled) return@intercept
@@ -155,9 +155,9 @@ public open class Route(
  */
 public class RoutingRequest internal constructor(
     public val pathVariables: Parameters,
-    internal val request: ApplicationRequest,
+    internal val request: PipelineRequest,
     public override val call: RoutingCall
-) : Request {
+) : ApplicationRequest {
 
     public override val queryParameters: Parameters = request.queryParameters
     public override val rawQueryParameters: Parameters = request.rawQueryParameters
@@ -174,8 +174,8 @@ public class RoutingRequest internal constructor(
  */
 public class RoutingResponse internal constructor(
     public override val call: RoutingCall,
-    internal val applicationResponse: ApplicationResponse
-) : Response {
+    internal val applicationResponse: PipelineResponse
+) : ApplicationResponse {
 
     override val isCommitted: Boolean
         get() = applicationResponse.isCommitted
@@ -199,15 +199,15 @@ public class RoutingResponse internal constructor(
 
 /**
  * A single act of communication between a client and server that is handled in [Routing].
- * @see [io.ktor.server.request.Request]
- * @see [io.ktor.server.response.Response]
+ * @see [io.ktor.server.request.ApplicationRequest]
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
 public class RoutingCall internal constructor(
     /**
      * The original [ApplicationCall] that is being handled.
      */
-    public val applicationCall: RoutingApplicationCall
-) : Call {
+    public val applicationCall: RoutingPipelineCall
+) : ApplicationCall {
 
     public override lateinit var request: RoutingRequest
         internal set
@@ -294,7 +294,7 @@ public interface RootRoutingBuilder : RoutingBuilder {
     public fun trace(block: (RoutingResolveTrace) -> Unit)
 }
 
-private fun RoutingApplicationCall.routingCall(): RoutingCall {
+private fun RoutingPipelineCall.routingCall(): RoutingCall {
     val call = RoutingCall(
         applicationCall = this
     )
@@ -329,7 +329,7 @@ private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
 @Deprecated("Please use route scoped plugins instead")
 public fun RoutingBuilder.intercept(
     phase: PipelinePhase,
-    block: suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit
+    block: suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit
 ) {
     (this as Route).intercept(phase, block)
 }

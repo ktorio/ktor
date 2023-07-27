@@ -58,7 +58,7 @@ public class Routing(
     }
 
     @OptIn(InternalAPI::class)
-    public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
+    public suspend fun interceptor(context: PipelineContext<Unit, PipelineCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
         when (val resolveResult = resolveContext.resolve()) {
             is RoutingResolveResult.Success ->
@@ -70,7 +70,7 @@ public class Routing(
     }
 
     private suspend fun executeResult(
-        context: PipelineContext<Unit, ApplicationCall>,
+        context: PipelineContext<Unit, PipelineCall>,
         route: Route,
         parameters: Parameters
     ) {
@@ -85,7 +85,7 @@ public class Routing(
             routingCallPipeline.sendPipeline
         ) { ApplicationSendPipeline(developmentMode) }
 
-        val routingApplicationCall = RoutingApplicationCall(
+        val routingApplicationCall = RoutingPipelineCall(
             context.call,
             route,
             context.coroutineContext,

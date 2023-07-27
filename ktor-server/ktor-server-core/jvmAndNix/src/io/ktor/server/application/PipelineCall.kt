@@ -16,24 +16,24 @@ private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType
 
 /**
  * A single act of communication between a client and server.
- * @see [io.ktor.server.request.Request]
- * @see [io.ktor.server.response.Response]
+ * @see [io.ktor.server.request.ApplicationRequest]
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface Call {
+public interface ApplicationCall {
     /**
      * [Attributes] attached to this call.
      */
     public val attributes: Attributes
 
     /**
-     * An [Request] that is a client request.
+     * An [ApplicationRequest] that is a client request.
      */
-    public val request: Request
+    public val request: ApplicationRequest
 
     /**
-     * An [ApplicationResponse] that is a server response.
+     * An [PipelineResponse] that is a server response.
      */
-    public val response: Response
+    public val response: ApplicationResponse
 
     /**
      * An application being called.
@@ -55,27 +55,27 @@ public interface Call {
 
     /**
      * Sends a [message] as a response.
-     * @see [io.ktor.server.response.ApplicationResponse]
+     * @see [io.ktor.server.response.PipelineResponse]
      */
     public suspend fun respond(message: Any?, typeInfo: TypeInfo?)
 }
 
 /**
  * A single act of communication between a client and server.
- * @see [io.ktor.server.request.ApplicationRequest]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.request.PipelineRequest]
+ * @see [io.ktor.server.response.PipelineResponse]
  */
-public interface ApplicationCall : Call {
+public interface PipelineCall : ApplicationCall {
 
     /**
-     * An [ApplicationRequest] that is a client request.
+     * An [PipelineRequest] that is a client request.
      */
-    public override val request: ApplicationRequest
+    public override val request: PipelineRequest
 
     /**
-     * An [ApplicationResponse] that is a server response.
+     * An [PipelineResponse] that is a server response.
      */
-    public override val response: ApplicationResponse
+    public override val response: PipelineResponse
 
     public override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? {
         val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
@@ -106,12 +106,12 @@ public interface ApplicationCall : Call {
 /**
  * Indicates if a response is sent.
  */
-public val Call.isHandled: Boolean get() = response.isCommitted
+public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
 
 /**
  * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
  */
-public var Call.receiveType: TypeInfo
+public var ApplicationCall.receiveType: TypeInfo
     get() = attributes[RECEIVE_TYPE_KEY]
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)

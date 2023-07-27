@@ -55,7 +55,7 @@ public open class AsyncServletApplicationCall(
 
 @Suppress("KDocMissingDocumentation")
 public class AsyncServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {

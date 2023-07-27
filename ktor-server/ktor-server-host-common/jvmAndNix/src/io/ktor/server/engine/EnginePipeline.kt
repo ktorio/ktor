@@ -15,7 +15,7 @@ import io.ktor.util.pipeline.*
  */
 public class EnginePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<Unit, ApplicationCall>(Before, Call) {
+) : Pipeline<Unit, PipelineCall>(Before, Call) {
     /**
      * Pipeline for receiving content
      */

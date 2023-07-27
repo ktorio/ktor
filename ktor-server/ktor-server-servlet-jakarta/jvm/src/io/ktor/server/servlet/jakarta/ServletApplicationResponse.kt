@@ -13,7 +13,7 @@ import io.ktor.utils.io.*
 import jakarta.servlet.http.*
 
 public abstract class ServletApplicationResponse(
-    call: ApplicationCall,
+    call: PipelineCall,
     protected val servletResponse: HttpServletResponse,
     private val managedByEngineHeaders: Set<String>
 ) : BaseApplicationResponse(call) {

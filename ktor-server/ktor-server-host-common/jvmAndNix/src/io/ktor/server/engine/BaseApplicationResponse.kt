@@ -19,8 +19,8 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 public abstract class BaseApplicationResponse(
-    final override val call: ApplicationCall
-) : ApplicationResponse {
+    final override val call: PipelineCall
+) : PipelineResponse {
     private var _status: HttpStatusCode? = null
 
     override val isCommitted: Boolean

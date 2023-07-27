@@ -19,7 +19,7 @@ import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
 
-internal actual suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
     query: Any
 ): Any? {
     val channel = query as? ByteReadChannel ?: return null
@@ -32,7 +32,7 @@ internal actual suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatfor
 }
 
 @OptIn(InternalAPI::class)
-internal actual fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
+internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
     val contentType = call.request.header(HttpHeaders.ContentType)
         ?: throw IllegalStateException("Content-Type header is required for multipart processing")
 

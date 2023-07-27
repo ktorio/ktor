@@ -30,7 +30,7 @@ public class DefaultResponsePushBuilder(
         headers = HeadersBuilder().apply { appendAll(headers) }
     )
 
-    public constructor(call: Call) : this(
+    public constructor(call: ApplicationCall) : this(
         url = URLBuilder.createFromCall(call),
         headers = HeadersBuilder().apply {
             appendAll(call.request.headers)

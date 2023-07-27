@@ -56,7 +56,7 @@ private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
     null
 }
 
-internal suspend fun Call.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
+internal suspend fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
 
 internal fun String.appendUrlParameters(parameters: String) =
     when {

@@ -13,4 +13,4 @@ import java.io.*
  * @throws ContentTransformationException when content cannot be transformed to the [InputStream].
  */
 @Suppress("NOTHING_TO_INLINE")
-public suspend inline fun Call.receiveStream(): InputStream = receive()
+public suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()

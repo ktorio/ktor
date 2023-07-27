@@ -12,10 +12,10 @@ import io.ktor.utils.io.*
 /**
  * A client's request.
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [io.ktor.server.application.Call]
- * @see [io.ktor.server.response.Response]
+ * @see [io.ktor.server.application.ApplicationCall]
+ * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface Request {
+public interface ApplicationRequest {
 
     /**
      * Provides access to headers for the current request.
@@ -27,7 +27,7 @@ public interface Request {
     /**
      * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
-    public val call: Call
+    public val call: ApplicationCall
 
     /**
      * Provides access to connection details such as a host name, port, scheme, etc.
@@ -55,14 +55,14 @@ public interface Request {
 /**
  * A client's request that is used in [ApplicationPlugin].
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [ApplicationCall]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [PipelineCall]
+ * @see [io.ktor.server.response.PipelineResponse]
  */
-public interface ApplicationRequest : Request {
+public interface PipelineRequest : ApplicationRequest {
     /**
-     * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
+     * An [PipelineCall] instance this [PipelineRequest] is attached to.
      */
-    public override val call: ApplicationCall
+    public override val call: PipelineCall
 
     /**
      * A pipeline for receiving content.
@@ -90,7 +90,7 @@ public interface ApplicationRequest : Request {
 /**
  * Internal helper function to encode raw parameters. Should not be used directly.
  */
-public fun Request.encodeParameters(parameters: Parameters): Parameters {
+public fun ApplicationRequest.encodeParameters(parameters: Parameters): Parameters {
     return ParametersBuilder().apply {
         rawQueryParameters.names().forEach { key ->
             val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()

@@ -11,8 +11,8 @@ public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiationC
 
 public final class io/ktor/server/plugins/contentnegotiation/ContentNegotiationKt {
 	public static final fun getContentNegotiation ()Lio/ktor/server/application/RouteScopedPlugin;
-	public static final fun suitableCharset (Lio/ktor/server/application/Call;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
-	public static synthetic fun suitableCharset$default (Lio/ktor/server/application/Call;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
+	public static final fun suitableCharset (Lio/ktor/server/application/ApplicationCall;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
+	public static synthetic fun suitableCharset$default (Lio/ktor/server/application/ApplicationCall;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
 }
 
 public final class io/ktor/server/plugins/contentnegotiation/ContentTypeWithQuality {

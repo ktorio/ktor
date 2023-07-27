@@ -9,13 +9,13 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 
 /**
- * Pipeline configuration for executing [ApplicationCall] instances.
+ * Pipeline configuration for executing [PipelineCall] instances.
  */
 @Suppress("PublicApiImplicitType")
 public open class ApplicationCallPipeline public constructor(
     final override val developmentMode: Boolean = false,
     public val environment: ApplicationEnvironment
-) : Pipeline<Unit, ApplicationCall>(
+) : Pipeline<Unit, PipelineCall>(
     Setup,
     Monitoring,
     Plugins,
@@ -72,9 +72,9 @@ public open class ApplicationCallPipeline public constructor(
 /**
  * Current call for the context
  */
-public inline val PipelineContext<*, ApplicationCall>.call: ApplicationCall get() = context
+public inline val PipelineContext<*, PipelineCall>.call: PipelineCall get() = context
 
 /**
  * Current application for the context
  */
-public val PipelineContext<*, ApplicationCall>.application: Application get() = call.application
+public val PipelineContext<*, PipelineCall>.application: Application get() = call.application

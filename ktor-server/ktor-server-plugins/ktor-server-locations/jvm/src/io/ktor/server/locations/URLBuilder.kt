@@ -12,7 +12,7 @@ import io.ktor.server.util.*
  * Constructs a String with the url of a instance [location] whose class must be annotated with [Location].
  */
 @KtorExperimentalLocationsAPI
-public fun Call.url(location: Any, block: URLBuilder.() -> Unit = {}): String = url {
+public fun ApplicationCall.url(location: Any, block: URLBuilder.() -> Unit = {}): String = url {
     encodedParameters.clear()
     application.locations.href(location, this)
     block()

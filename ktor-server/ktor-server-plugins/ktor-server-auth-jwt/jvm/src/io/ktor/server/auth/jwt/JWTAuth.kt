@@ -143,7 +143,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
     private val realm: String = config.realm
     private val schemes: JWTAuthSchemes = config.schemes
-    private val authHeader: (Call) -> HttpAuthHeader? = config.authHeader
+    private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
     private val authenticationFunction = config.authenticationFunction
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
@@ -188,7 +188,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
         internal var schemes = JWTAuthSchemes("Bearer")
 
-        internal var authHeader: (Call) -> HttpAuthHeader? =
+        internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
             { call -> call.request.parseAuthorizationHeaderOrNull() }
 
         internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
@@ -213,7 +213,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * Retrieves an HTTP authentication header.
          * By default, it parses the `Authorization` header content.
          */
-        public fun authHeader(block: (Call) -> HttpAuthHeader?) {
+        public fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
             authHeader = block
         }
 
@@ -296,7 +296,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * Allows you to perform additional validations on the JWT payload.
          * @return a principal (usually an instance of [JWTPrincipal]) or `null`
          */
-        public fun validate(validate: suspend Call.(JWTCredential) -> Principal?) {
+        public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
             authenticationFunction = validate
         }
 

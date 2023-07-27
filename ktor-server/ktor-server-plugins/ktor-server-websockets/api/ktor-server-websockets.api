@@ -43,7 +43,7 @@ public final class io/ktor/server/websocket/RoutingKt {
 }
 
 public abstract interface class io/ktor/server/websocket/WebSocketServerSession : io/ktor/websocket/WebSocketSession {
-	public abstract fun getCall ()Lio/ktor/server/application/Call;
+	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
 }
 
 public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls {
@@ -59,11 +59,11 @@ public final class io/ktor/server/websocket/WebSocketServerSessionKt {
 
 public final class io/ktor/server/websocket/WebSocketUpgrade : io/ktor/http/content/OutgoingContent$ProtocolUpgrade {
 	public static final field Companion Lio/ktor/server/websocket/WebSocketUpgrade$Companion;
-	public fun <init> (Lio/ktor/server/application/Call;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
-	public synthetic fun <init> (Lio/ktor/server/application/Call;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lio/ktor/server/application/Call;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
-	public synthetic fun <init> (Lio/ktor/server/application/Call;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getCall ()Lio/ktor/server/application/Call;
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public final fun getHandle ()Lkotlin/jvm/functions/Function2;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getProtocol ()Ljava/lang/String;

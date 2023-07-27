@@ -19,9 +19,9 @@ public final class io/ktor/server/jte/JteKt {
 }
 
 public final class io/ktor/server/jte/RespondTemplateKt {
-	public static final fun respondTemplate (Lio/ktor/server/application/Call;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun respondTemplate (Lio/ktor/server/application/Call;Ljava/lang/String;[Lkotlin/Pair;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/Call;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/Call;Ljava/lang/String;[Lkotlin/Pair;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun respondTemplate (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;[Lkotlin/Pair;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun respondTemplate$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;[Lkotlin/Pair;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

@@ -104,18 +104,18 @@ public class Authentication(internal var config: AuthenticationConfig) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call.
  */
-public val Call.authentication: AuthenticationContext
+public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call.
  */
-public inline fun <reified P : Principal> Call.principal(): P? = principal(null)
+public inline fun <reified P : Principal> ApplicationCall.principal(): P? = principal(null)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call from provider with name [provider]
  */
-public inline fun <reified P : Principal> Call.principal(provider: String?): P? =
+public inline fun <reified P : Principal> ApplicationCall.principal(provider: String?): P? =
     authentication.principal(provider)
 
 /**

@@ -13,7 +13,7 @@ import io.ktor.util.network.*
 import io.ktor.utils.io.*
 
 internal class CIOApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     remoteAddress: NetworkAddress?,
     localAddress: NetworkAddress?,
     private val input: ByteReadChannel,

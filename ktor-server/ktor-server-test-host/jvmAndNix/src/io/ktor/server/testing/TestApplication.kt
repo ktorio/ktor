@@ -192,7 +192,7 @@ public open class TestApplicationBuilder {
      */
     @Suppress("UNCHECKED_CAST")
     @KtorDsl
-    public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> install(
+    public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
         configure: B.() -> Unit = {}
     ) {

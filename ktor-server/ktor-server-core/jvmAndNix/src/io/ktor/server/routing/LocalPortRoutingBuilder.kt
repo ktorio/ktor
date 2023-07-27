@@ -10,7 +10,7 @@ import io.ktor.server.application.*
 /**
  * Creates a route to match a port on which a call was received.
  *
- * The selector checks the [io.ktor.server.request.Request.local] request port,
+ * The selector checks the [io.ktor.server.request.ApplicationRequest.local] request port,
  * _ignoring_ HTTP headers such as `Host` or `X-Forwarded-Host`.
  * This is useful for securing routes under separate ports.
  *
@@ -45,7 +45,7 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     public companion object {
         /**
-         * A parameter name for [Call.parameters] for a request host.
+         * A parameter name for [ApplicationCall.parameters] for a request host.
          */
         public const val LocalPortParameter: String = "\$LocalPort"
     }

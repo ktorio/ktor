@@ -90,7 +90,7 @@ class OAuth1aFlowTest {
         testClient = createOAuthServer(
             object : TestingOAuthServer {
                 override fun requestToken(
-                    ctx: Call,
+                    ctx: ApplicationCall,
                     callback: String?,
                     consumerKey: String,
                     nonce: String,
@@ -116,7 +116,7 @@ class OAuth1aFlowTest {
                     )
                 }
 
-                override suspend fun authorize(call: Call, oauthToken: String) {
+                override suspend fun authorize(call: ApplicationCall, oauthToken: String) {
                     if (oauthToken != "token1") {
                         call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
                     }
@@ -127,7 +127,7 @@ class OAuth1aFlowTest {
                 }
 
                 override fun accessToken(
-                    ctx: Call,
+                    ctx: ApplicationCall,
                     consumerKey: String,
                     nonce: String,
                     signature: String,
@@ -322,7 +322,7 @@ class OAuth1aFlowTest {
 
 private interface TestingOAuthServer {
     fun requestToken(
-        ctx: Call,
+        ctx: ApplicationCall,
         callback: String?,
         consumerKey: String,
         nonce: String,
@@ -331,10 +331,10 @@ private interface TestingOAuthServer {
         timestamp: Long
     ): TestOAuthTokenResponse
 
-    suspend fun authorize(call: Call, oauthToken: String)
+    suspend fun authorize(call: ApplicationCall, oauthToken: String)
 
     fun accessToken(
-        ctx: Call,
+        ctx: ApplicationCall,
         consumerKey: String,
         nonce: String,
         signature: String,
@@ -468,7 +468,7 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     }
 }
 
-private suspend fun Call.fail(text: String?) {
+private suspend fun ApplicationCall.fail(text: String?) {
     val message = text ?: "Auth failed"
     response.status(HttpStatusCode.InternalServerError)
     respondText(message)

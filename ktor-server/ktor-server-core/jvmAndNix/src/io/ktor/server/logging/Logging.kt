@@ -12,7 +12,7 @@ import io.ktor.util.*
 /**
  * Generates a string representing this [ApplicationRequest] suitable for logging
  */
-public fun Request.toLogString(): String = "${httpMethod.value} - ${path()}"
+public fun ApplicationRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
 
 /**
  * Base interface for plugins that can setup MDC. See [CallLogging] plugin.
