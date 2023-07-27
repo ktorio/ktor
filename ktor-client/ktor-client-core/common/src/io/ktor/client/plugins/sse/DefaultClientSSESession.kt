@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
 
@@ -26,14 +25,17 @@ public class DefaultClientSSESession(
     private val showRetryEvents = content.showRetryEvents
 
     private val _incoming = channelFlow {
-        launch {
-            while (true) {
-                val event = input.parseEvent() ?: return@launch
-                if ((event.isCommentsEvent() && !showCommentEvents) || (event.isRetryEvent() && !showRetryEvents)) {
-                    continue
-                }
-                send(event)
+        while (true) {
+            val event = input.parseEvent() ?: break
+
+            if (event.isCommentsEvent() && !showCommentEvents) {
+                continue
             }
+            if (event.isRetryEvent() && !showRetryEvents) {
+                continue
+            }
+
+            send(event)
         }
     }
 
@@ -63,10 +65,7 @@ public class DefaultClientSSESession(
         var wasComments = false
 
         var line: String = readUTF8Line() ?: return null
-        while (true) {
-            if (line.isNotBlank()) {
-                break
-            }
+        while (line.isBlank()) {
             line = readUTF8Line() ?: return null
         }
 

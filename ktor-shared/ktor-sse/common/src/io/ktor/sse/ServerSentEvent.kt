@@ -21,13 +21,13 @@ public class ServerSentEvent(
     public val comments: String? = null
 ) {
     override fun toString(): String {
-        return StringBuilder().apply {
+        return buildString {
             appendField("data", data)
             appendField("event", event)
             appendField("id", id)
             appendField("retry", retry)
             appendField("comments", comments)
-        }.toString()
+        }
     }
 }
 
