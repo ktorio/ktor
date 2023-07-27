@@ -1,0 +1,19 @@
+public final class io/ktor/callid/CallIdKt {
+	public static final field CALL_ID_DEFAULT_DICTIONARY Ljava/lang/String;
+	public static final fun withCallId (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/callid/KtorCallIdContextElement : kotlin/coroutines/CoroutineContext$Element {
+	public static final field Companion Lio/ktor/callid/KtorCallIdContextElement$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public final fun getCallId ()Ljava/lang/String;
+	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
+	public fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/callid/KtorCallIdContextElement$Companion : kotlin/coroutines/CoroutineContext$Key {
+}
+

@@ -12,7 +12,6 @@ import kotlinx.coroutines.internal.*
 
 @OptIn(InternalAPI::class)
 public class Events {
-    @OptIn(InternalCoroutinesApi::class)
     private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
@@ -29,7 +28,6 @@ public class Events {
      * Unsubscribe [handler] from an event specified by [definition]
      */
     public fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
-        @OptIn(InternalCoroutinesApi::class)
         handlers[definition]?.forEach<HandlerRegistration> {
             if (it.handler == handler) it.remove()
         }
