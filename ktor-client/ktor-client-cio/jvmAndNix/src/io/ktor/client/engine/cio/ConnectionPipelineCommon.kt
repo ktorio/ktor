@@ -19,4 +19,5 @@ internal expect class ConnectionPipeline(
     parentContext: CoroutineContext
 ) : CoroutineScope {
     val pipelineContext: Job
+    override val coroutineContext: CoroutineContext
 }
