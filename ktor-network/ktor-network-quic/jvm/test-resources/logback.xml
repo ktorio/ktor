@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+  -->
+
+<configuration>
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+    <import class="ch.qos.logback.core.ConsoleAppender"/>
+
+    <appender name="STDOUT" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

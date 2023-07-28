@@ -13,7 +13,7 @@ import io.ktor.util.*
 @OptIn(InternalAPI::class)
 internal actual fun QUICSocketBuilder.Companion.bindQUIC(
     selector: SelectorManager,
-    localAddress: SocketAddress?,
+    localAddress: SocketAddress,
     options: SocketOptions.QUICSocketOptions,
 ): BoundQUICSocket {
     val datagramSocket = bindUDPConfigurable(selector, localAddress, options) {

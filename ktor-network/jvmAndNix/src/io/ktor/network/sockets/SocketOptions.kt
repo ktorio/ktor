@@ -170,8 +170,14 @@ public sealed class SocketOptions(
     public class QUICSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>,
     ) : UDPSocketOptions(customOptions) {
+        /**
+         * Path to the file containing a certificate, that the server will use
+         */
         public var certificatePath: String? = null
 
+        /**
+         * Path to the file containing a private key, that the server will use
+         */
         public var privateKeyPath: String? = null
 
         override fun copyCommon(from: SocketOptions) {

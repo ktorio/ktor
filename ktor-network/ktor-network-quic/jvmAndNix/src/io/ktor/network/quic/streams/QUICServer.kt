@@ -19,6 +19,7 @@ internal class QUICServer(datagramSocket: BoundDatagramSocket, options: SocketOp
     AReadable by datagramSocket {
 
     override val logger: Logger = logger()
+    override val role: ConnectionRole = ConnectionRole.SERVER
 
     private val tlsServerComponentFactory: TLSServerComponentFactory
 

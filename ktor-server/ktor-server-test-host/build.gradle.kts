@@ -15,6 +15,7 @@ kotlin.sourceSets {
 
     jvmMain {
         dependencies {
+            api(project(":ktor-network:ktor-network-test"))
             api(project(":ktor-network:ktor-network-tls"))
 
             api(project(":ktor-client:ktor-client-apache"))

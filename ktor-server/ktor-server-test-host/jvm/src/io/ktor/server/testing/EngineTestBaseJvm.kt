@@ -11,6 +11,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.network.test.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*

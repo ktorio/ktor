@@ -245,7 +245,7 @@ internal object PacketReader {
                         writeFully(token)
                     }
                     writeVarInt(length, lengthOfLength)
-                    PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
+                    writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
                 }.readBytes()
 
                 val payload = readAndDecryptPacketPayload(
@@ -349,7 +349,7 @@ internal object PacketReader {
         val associatedData = buildPacket {
             writeUByte(decodedFlags)
             writeFully(destinationConnectionID.value)
-            PacketWriter.writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
+            writeRawPacketNumber(this, packetNumberLength, rawPacketNumber)
         }.readBytes()
 
         val payload = readAndDecryptPacketPayload(

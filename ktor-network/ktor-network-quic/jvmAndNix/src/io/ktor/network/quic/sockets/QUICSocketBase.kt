@@ -19,6 +19,7 @@ internal abstract class QUICSocketBase(
     protected val datagramSocket: BoundDatagramSocket,
 ) : QUICStreamReadChannel, ASocket by datagramSocket, ABoundSocket by datagramSocket {
     protected abstract val logger: Logger
+    protected abstract val role: ConnectionRole
     protected val connections = mutableListOf<QUICConnection>()
 
     override fun dispose() {
@@ -30,6 +31,8 @@ internal abstract class QUICSocketBase(
             while (isActive) {
                 try {
                     receiveAndProcessDatagram()
+                } catch (e: CancellationException) {
+                    // ignore
                 } catch (cause: Exception) {
                     logger.error(cause)
                 }
@@ -55,7 +58,7 @@ internal abstract class QUICSocketBase(
                     handleTransportError(it)
                     error(it.toString())
                 }
-            ) ?: return
+            ) ?: break
 
             firstDcidInDatagram = packet.destinationConnectionID
 

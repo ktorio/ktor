@@ -15,7 +15,7 @@ public class QUICSocketBuilder(
 ) : Configurable<QUICSocketBuilder, SocketOptions.QUICSocketOptions> {
     @OptIn(InternalAPI::class)
     public fun bind(
-        localAddress: SocketAddress? = null,
+        localAddress: SocketAddress,
         configure: SocketOptions.QUICSocketOptions.() -> Unit = {},
     ): BoundQUICSocket = bindQUIC(selector, localAddress, options.quic().apply(configure))
 
@@ -24,6 +24,6 @@ public class QUICSocketBuilder(
 
 internal expect fun QUICSocketBuilder.Companion.bindQUIC(
     selector: SelectorManager,
-    localAddress: SocketAddress?,
+    localAddress: SocketAddress,
     options: SocketOptions.QUICSocketOptions,
 ): BoundQUICSocket
