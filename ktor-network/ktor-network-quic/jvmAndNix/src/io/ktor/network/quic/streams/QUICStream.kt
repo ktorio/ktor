@@ -96,8 +96,12 @@ internal class QUICInputStream : Input() {
     override fun fill(destination: Memory, offset: Int, length: Int): Int {
         return buffer.preview {
             it.discard(bufferOffset)
-            it.readAvailable(destination, offset, length).also { count ->
-                bufferOffset += count
+            val read = it.readAvailable(destination, offset, length)
+            if (read == -1) {
+                0
+            } else {
+                bufferOffset += read
+                read
             }
         }
     }

@@ -1,0 +1,6 @@
+public final class io/ktor/network/test/FreePorts {
+	public static final field INSTANCE Lio/ktor/network/test/FreePorts;
+	public final fun recycle (I)V
+	public final fun select ()I
+}
+

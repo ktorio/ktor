@@ -152,7 +152,7 @@ internal class QUICConnection(
         logger.info("Decrypted packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
 
         packet.encryptionLevel?.let { level ->
-            packetNumberSpacePool[level].receivedPacket(packet.packetNumber)
+            packetNumberSpacePool[level].receivePacket(packet.packetNumber)
         }
 
         val payload = packet.payload ?: return // todo
@@ -193,9 +193,21 @@ internal class QUICConnection(
 
     private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
 
-    private val initialPacketHandler = PacketSendHandler.Initial(tlsComponent, readyPacketHandler)
-    private val handshakePacketHandler = PacketSendHandler.Handshake(tlsComponent, readyPacketHandler)
-    private val oneRTTPacketHandler = PacketSendHandler.OneRTT(tlsComponent, readyPacketHandler)
+    private val initialPacketHandler = PacketSendHandler.Initial(
+        tlsComponent = tlsComponent,
+        packetHandler = readyPacketHandler,
+        role = ConnectionRole.SERVER,
+    )
+    private val handshakePacketHandler = PacketSendHandler.Handshake(
+        tlsComponent = tlsComponent,
+        packetHandler = readyPacketHandler,
+        role = ConnectionRole.SERVER,
+    )
+    private val oneRTTPacketHandler = PacketSendHandler.OneRTT(
+        tlsComponent = tlsComponent,
+        packetHandler = readyPacketHandler,
+        role = ConnectionRole.SERVER,
+    )
 
     private suspend fun sendInInitialPacket(
         forceEndPacket: Boolean = false,
@@ -309,6 +321,7 @@ internal class QUICConnection(
                             offset = 0,
                             data = cryptoPayload,
                         )
+                        logger.trace("Crypto payload: ${cryptoPayload.toDebugString()}")
 
                         withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Initial)
                     }
@@ -830,10 +843,12 @@ internal class QUICConnection(
 
                 streams[streamId] = stream
 
-                streamChannel.send(stream)
-            }
+                stream.appendDataToInput(dataChunk)
 
-            streams[streamId]!!.appendDataToInput(dataChunk)
+                streamChannel.send(stream)
+            } else {
+                streams[streamId]!!.appendDataToInput(dataChunk)
+            }
         }
     }
 

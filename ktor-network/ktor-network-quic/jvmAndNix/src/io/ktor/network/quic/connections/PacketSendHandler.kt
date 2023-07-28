@@ -19,6 +19,7 @@ internal typealias FrameWriteFunction = suspend FrameWriter.(
 ) -> Unit
 
 internal sealed class PacketSendHandler(
+    private val role: ConnectionRole,
     private val hasPayload: Boolean = true,
     private val packetHandler: ReadyPacketHandler,
     type: QUICPacketType,
@@ -64,7 +65,7 @@ internal sealed class PacketSendHandler(
     suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock { buffer ->
         val temp = buildPacket {
             write(FrameWriterImpl, this) { hook ->
-                packetNumberHooks.add(hook)
+                packetNumberHooks.add(hook) // todo hooks are added, but packet number is wrong if frame does not fit
             }
         }.readBytes()
 
@@ -92,7 +93,7 @@ internal sealed class PacketSendHandler(
     private suspend fun finish(payload: ByteArray) {
         if (payload.isNotEmpty() || !hasPayload) {
             onPacketPayloadReady { packetNumber ->
-                packetNumberHooks.forEach { hook -> hook(packetNumber) }
+                packetNumberHooks.forEach { hook -> hook(packetNumber) } // todo this looks wrong
 
                 payload
             }
@@ -114,9 +115,11 @@ internal sealed class PacketSendHandler(
     class Initial(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.Initial,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Initial,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Initial)
 
@@ -141,9 +144,11 @@ internal sealed class PacketSendHandler(
     class Handshake(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Handshake,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Handshake)
 
@@ -167,9 +172,11 @@ internal sealed class PacketSendHandler(
     class OneRTT(
         tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.OneRTT,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.OneRTT,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { payload ->
             val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.AppData)
 
@@ -193,10 +200,12 @@ internal sealed class PacketSendHandler(
     @Suppress("unused")
     class VersionNegotiation(
         packetHandler: ReadyPacketHandler.VersionNegotiation,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.VersionNegotiation,
         hasPayload = false,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeVersionNegotiationPacket(
@@ -215,10 +224,12 @@ internal sealed class PacketSendHandler(
     @Suppress("unused")
     class Retry(
         packetHandler: ReadyPacketHandler.Retry,
+        role: ConnectionRole,
     ) : PacketSendHandler(
         type = QUICPacketType.Retry,
         hasPayload = false,
         packetHandler = packetHandler,
+        role = role,
         onPacketPayloadReady = { _ ->
             packetHandler.withDatagramBuilder { datagramBuilder ->
                 PacketWriter.writeRetryPacket(

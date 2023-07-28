@@ -21,12 +21,33 @@ import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
 internal object PacketWriter {
-    private val logger = logger()
+    /**
+     * header form = 0b1 (long header)
+     * fixed bit = 0b1
+     * packet type = 0b11 (retry type)
+     * unused = 0b0000
+     */
+    private const val RETRY_PACKET_FIRST_BYTE: UInt8 = 0xF0u
+
+    /**
+     * header form = 0b1 (long header)
+     * fixed bit = 0b1
+     * reserved bits = 0b00
+     */
+    private const val LONG_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0xC0u
+
+    /**
+     * header form = 0b0 (short header)
+     * fixed bit = 0b1
+     * reserved bits = 0b00
+     */
+    private const val SHORT_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0x40u
+
 
     /**
      * Writes a Version Negotiation packet to [packetBuilder] according to specification.
      * If it is QUIC version 1, sets second bit to 1.
-     * (as fixed bit for protocol multiplexing [RFC-7983](https://www.rfc-editor.org/rfc/rfc7983.html))
+     * (As a fixed bit for protocol multiplexing [RFC-7983](https://www.rfc-editor.org/rfc/rfc7983.html))
      *
      * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-version-negotiation-packet)
      */
@@ -37,7 +58,6 @@ internal object PacketWriter {
         sourceConnectionID: QUICConnectionID,
         supportedVersions: Array<UInt32>,
     ) = with(packetBuilder) {
-        @Suppress("KotlinConstantConditions")
         val first: UInt8 = when (version) {
             QUICVersion.V1 -> 0xC0u // header type bit + fixed bit
             else -> 0x80u // only header type bit
@@ -51,14 +71,6 @@ internal object PacketWriter {
             writeUInt32(it)
         }
     }
-
-    /**
-     * header form = 0b1 (long header)
-     * fixed bit = 0b1
-     * packet type = 0b11 (retry type)
-     * unused = 0b0000
-     */
-    private const val RETRY_PACKET_FIRST_BYTE: UInt8 = 0xF0u
 
     /**
      * Writes Retry Packet to [packetBuilder] according to specification.
@@ -226,13 +238,6 @@ internal object PacketWriter {
         )
     }
 
-    /**
-     * header form = 0b1 (long header)
-     * fixed bit = 0b1
-     * reserved bits = 0b00
-     */
-    private const val LONG_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0xC0u
-
     private suspend inline fun writeLongHeaderPacket(
         tlsComponent: TLSComponent,
         encryptionLevel: EncryptionLevel,
@@ -281,13 +286,6 @@ internal object PacketWriter {
             }
         }
     }
-
-    /**
-     * header form = 0b0 (short header)
-     * fixed bit = 0b1
-     * reserved bits = 0b00
-     */
-    private const val SHORT_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0x40u
 
     /**
      * Writes 1-RTT Packet to [packetBuilder] according to specification.
@@ -415,16 +413,10 @@ internal object PacketWriter {
         require(connectionID.size.toUByte() <= maxCIDLength) { message(maxCIDLength) }
     }
 
-    fun writeRawPacketNumber(builder: BytePacketBuilder, length: UInt32, number: UInt32) = with(builder) {
-        when (length.toInt()) {
-            1 -> writeUInt8(number.toUByte())
-            2 -> writeUInt16(number.toUShort())
-            3 -> writeUInt24(number)
-            4 -> writeUInt32(number)
-        }
-    }
+    private val logger = logger()
 
     private fun debugLog(packet: QUICPacket) {
-        logger.info("writing packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
+        logger.debug("writing packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
+        logger.trace("payload: ${packet.payload?.toDebugString(showAll = true)}")
     }
 }
