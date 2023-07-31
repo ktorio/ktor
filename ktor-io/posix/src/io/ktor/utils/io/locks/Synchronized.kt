@@ -21,16 +21,18 @@ public actual open class SynchronizedObject {
             when (state.status) {
                 Status.UNLOCKED -> {
                     val thinLock = LockState(Status.THIN, 1, 0, currentThreadId)
-                    if (lock.compareAndSet(state, thinLock))
+                    if (lock.compareAndSet(state, thinLock)) {
                         return
+                    }
                 }
 
                 Status.THIN -> {
                     if (currentThreadId == state.ownerThreadId) {
                         // reentrant lock
                         val thinNested = LockState(Status.THIN, state.nestedLocks + 1, state.waiters, currentThreadId)
-                        if (lock.compareAndSet(state, thinNested))
+                        if (lock.compareAndSet(state, thinNested)) {
                             return
+                        }
                     } else {
                         // another thread is trying to take this lock -> allocate native mutex
                         val mutex = mutexPool.allocate()
@@ -43,7 +45,7 @@ public actual open class SynchronizedObject {
                             mutex
                         )
                         if (lock.compareAndSet(state, fatLock)) {
-                            //block the current thread waiting for the owner thread to release the permit
+                            // block the current thread waiting for the owner thread to release the permit
                             mutex.lock()
                             tryLockAfterResume(currentThreadId)
                             return
@@ -91,8 +93,9 @@ public actual open class SynchronizedObject {
             val state = lock.value
             if (state.status == Status.UNLOCKED) {
                 val thinLock = LockState(Status.THIN, 1, 0, currentThreadId)
-                if (lock.compareAndSet(state, thinLock))
+                if (lock.compareAndSet(state, thinLock)) {
                     return true
+                }
             } else {
                 if (currentThreadId == state.ownerThreadId) {
                     val nestedLock = LockState(
@@ -102,8 +105,9 @@ public actual open class SynchronizedObject {
                         currentThreadId,
                         state.mutex
                     )
-                    if (lock.compareAndSet(state, nestedLock))
+                    if (lock.compareAndSet(state, nestedLock)) {
                         return true
+                    }
                 } else {
                     return false
                 }
@@ -115,19 +119,23 @@ public actual open class SynchronizedObject {
         val currentThreadId = pthread_self()!!
         while (true) {
             val state = lock.value
-            require(currentThreadId == state.ownerThreadId) { "Thin lock may be only released by the owner thread, expected: ${state.ownerThreadId}, real: $currentThreadId" }
+            require(currentThreadId == state.ownerThreadId) {
+                "Thin lock may be only released by the owner thread, expected: ${state.ownerThreadId}, real: $currentThreadId"
+            }
             when (state.status) {
                 Status.THIN -> {
                     // nested unlock
                     if (state.nestedLocks == 1) {
                         val unlocked = LockState(Status.UNLOCKED, 0, 0)
-                        if (lock.compareAndSet(state, unlocked))
+                        if (lock.compareAndSet(state, unlocked)) {
                             return
+                        }
                     } else {
                         val releasedNestedLock =
                             LockState(Status.THIN, state.nestedLocks - 1, state.waiters, state.ownerThreadId)
-                        if (lock.compareAndSet(state, releasedNestedLock))
+                        if (lock.compareAndSet(state, releasedNestedLock)) {
                             return
+                        }
                     }
                 }
 
@@ -149,8 +157,9 @@ public actual open class SynchronizedObject {
                                 state.ownerThreadId,
                                 state.mutex
                             )
-                        if (lock.compareAndSet(state, releasedLock))
+                        if (lock.compareAndSet(state, releasedLock)) {
                             return
+                        }
                     }
                 }
 
@@ -162,10 +171,12 @@ public actual open class SynchronizedObject {
     private fun tryLockAfterResume(threadId: pthread_t) {
         while (true) {
             val state = lock.value
-            val newState = if (state.waiters == 0) // deflate
+            val newState = if (state.waiters == 0) {
+                // deflate
                 LockState(Status.THIN, 1, 0, threadId)
-            else
+            } else {
                 LockState(Status.FAT, 1, state.waiters, threadId, state.mutex)
+            }
             if (lock.compareAndSet(state, newState)) {
                 if (state.waiters == 0) {
                     state.mutex!!.unlock()
@@ -240,19 +251,22 @@ public class MutexPool(capacity: Int) {
         while (true) {
             val oldTop = interpretCPointer<ktor_mutex_node_t>(top.value)
             mutexNode.pointed.next = oldTop
-            if (top.compareAndSet(oldTop.rawValue, mutexNode.rawValue))
+            if (top.compareAndSet(oldTop.rawValue, mutexNode.rawValue)) {
                 return
+            }
         }
     }
 
     private fun pop(): CPointer<ktor_mutex_node_t>? {
         while (true) {
             val oldTop = interpretCPointer<ktor_mutex_node_t>(top.value)
-            if (oldTop.rawValue === NativePtr.NULL)
+            if (oldTop.rawValue === NativePtr.NULL) {
                 return null
+            }
             val newHead = oldTop!!.pointed.next
-            if (top.compareAndSet(oldTop.rawValue, newHead.rawValue))
+            if (top.compareAndSet(oldTop.rawValue, newHead.rawValue)) {
                 return oldTop
+            }
         }
     }
 }

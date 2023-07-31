@@ -1438,6 +1438,12 @@ public final class io/ktor/utils/io/jvm/nio/WritingKt {
 	public static synthetic fun copyTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/channels/WritableByteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/utils/io/locks/SynchronizedKt {
+	public static final fun reentrantLock ()Ljava/util/concurrent/locks/ReentrantLock;
+	public static final fun synchronized (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static final fun withLock (Ljava/util/concurrent/locks/ReentrantLock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+}
+
 public final class io/ktor/utils/io/nio/ChannelsKt {
 	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/Buffer;)I
 	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;II)I

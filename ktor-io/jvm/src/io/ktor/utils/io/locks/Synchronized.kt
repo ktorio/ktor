@@ -6,7 +6,7 @@ package io.ktor.utils.io.locks
 
 public actual typealias SynchronizedObject = Any
 
-public actual inline fun reentrantLock(): ReentrantLock = ReentrantLock()
+public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
 
 public actual typealias ReentrantLock = java.util.concurrent.locks.ReentrantLock
 
