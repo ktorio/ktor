@@ -6,6 +6,7 @@ package io.ktor.client.engine.apache5
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
@@ -36,7 +37,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
         )
     }
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    override val supportedCapabilities = setOf(HttpTimeout, SSECapability)
 
     @Volatile
     private var engine: CloseableHttpAsyncClient? = null

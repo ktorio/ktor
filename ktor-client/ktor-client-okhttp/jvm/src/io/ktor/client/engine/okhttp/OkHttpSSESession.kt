@@ -8,6 +8,7 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.sse.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.*
 import okhttp3.*
 import okhttp3.sse.*
 import kotlin.coroutines.*
@@ -21,17 +22,17 @@ internal class OkHttpSSESession(
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
-    private val _incoming = Channel<ServerSentEvent>(Channel.UNLIMITED)
+    private val _incoming = Channel<ServerSentEvent>(8)
 
-    override val incoming: ReceiveChannel<ServerSentEvent>
-        get() = _incoming
+    override val incoming: Flow<ServerSentEvent>
+        get() = _incoming.receiveAsFlow()
 
     override fun onOpen(eventSource: EventSource, response: Response) {
         originResponse.complete(response)
     }
 
     override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-        _incoming.trySend(ServerSentEvent(type, id, data))
+        _incoming.trySendBlocking(ServerSentEvent(data, type, id))
     }
 
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {

@@ -6,6 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -22,7 +23,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
 internal suspend fun writeRequest(
     request: HttpRequestData,
     output: ByteWriteChannel,
@@ -151,6 +151,7 @@ internal suspend fun writeBody(
 }
 
 @Suppress("DEPRECATION")
+@OptIn(InternalAPI::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
     request: HttpRequestData,
@@ -192,7 +193,13 @@ internal suspend fun readResponse(
             }
         }
 
-        return@withContext HttpResponseData(status, requestTime, headers, version, body, callContext)
+        val responseBody: Any = if (request.isSseRequest()) {
+            DefaultClientSSESession(request.body as SSEContent, body, callContext, status, headers)
+        } else {
+            body
+        }
+
+        return@withContext HttpResponseData(status, requestTime, headers, version, responseBody, callContext)
     }
 }
 
