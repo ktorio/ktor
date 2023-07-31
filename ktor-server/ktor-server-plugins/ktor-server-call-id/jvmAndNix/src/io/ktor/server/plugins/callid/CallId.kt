@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.logging.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlin.random.*
 
@@ -164,10 +165,10 @@ public class CallIdConfig {
 
 internal val CallIdKey: AttributeKey<String> = AttributeKey("ExtractedCallId")
 
-internal object CallIdSetup : Hook<suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit> {
+internal object CallIdSetup : Hook<suspend PipelineContext<Unit, PipelineCall>.(ApplicationCall) -> Unit> {
     override fun install(
         pipeline: ApplicationCallPipeline,
-        handler: suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit
+        handler: suspend PipelineContext<Unit, PipelineCall>.(ApplicationCall) -> Unit
     ) {
         pipeline.intercept(ApplicationCallPipeline.Setup) {
             handler(call)

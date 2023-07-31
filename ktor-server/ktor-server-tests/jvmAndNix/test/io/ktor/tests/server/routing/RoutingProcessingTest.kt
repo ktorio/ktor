@@ -249,7 +249,9 @@ class RoutingProcessingTest {
         }
     }
 
-    private class PluginsWithProceedHook(val phase: PipelinePhase) : Hook<suspend PluginsWithProceedHook.Context.() -> Unit> {
+    private class PluginsWithProceedHook(val phase: PipelinePhase) :
+        Hook<suspend PluginsWithProceedHook.Context.() -> Unit> {
+
         class Context(private val pipelineContext: PipelineContext<*, *>) {
             suspend fun proceed() {
                 pipelineContext.proceed()
