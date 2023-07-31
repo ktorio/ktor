@@ -6,7 +6,9 @@ package io.ktor.client.plugins.sse
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
@@ -31,17 +33,28 @@ public object SSECapability : HttpClientEngineCapability<Unit> {
  * }
  * ```
  */
+@OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     name = "SSE",
     createConfiguration = ::SSEConfig
 ) {
     val reconnectionTime = pluginConfig.reconnectionTime
+    val showCommentEvents = pluginConfig.showCommentEvents
+    val showRetryEvents = pluginConfig.showRetryEvents
 
     transformRequestBody { request, _, _ ->
         LOGGER.trace("Sending SSE request ${request.url}")
         request.setCapability(SSECapability, Unit)
 
-        SSEContent(reconnectionTime)
+        val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
+        val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
+        val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
+
+        SSEContent(
+            localReconnectionTime ?: reconnectionTime,
+            localShowCommentEvents ?: showCommentEvents,
+            localShowRetryEvents ?: showRetryEvents
+        )
     }
 
     transformResponseBody { response, content, requestedType ->
@@ -53,4 +66,8 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             HttpResponseContainer(requestedType, content)
         }
     }
+}
+
+private fun <T : Any> getAttributeValue(request: HttpRequestBuilder, attributeKey: AttributeKey<T>): T? {
+    return request.attributes.getOrNull(attributeKey)
 }
