@@ -19,7 +19,7 @@ import kotlinx.coroutines.*
  */
 @Suppress("AddVarianceModifier")
 public interface Plugin<
-    in TPipeline : Pipeline<*, ApplicationCall>,
+    in TPipeline : Pipeline<*, PipelineCall>,
     out TConfiguration : Any,
     TPlugin : Any
     > {
@@ -41,7 +41,7 @@ public interface Plugin<
  * @param TPlugin is the instance type of the Plugin object
  */
 public interface BaseApplicationPlugin<
-    in TPipeline : Pipeline<*, ApplicationCall>,
+    in TPipeline : Pipeline<*, PipelineCall>,
     out TConfiguration : Any,
     TPlugin : Any
     > : Plugin<TPipeline, TConfiguration, TPlugin>
@@ -58,7 +58,7 @@ internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegi
 /**
  * Returns the existing plugin registry or registers and returns a new one.
  */
-public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
+public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
     get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
 
 /**
@@ -68,7 +68,7 @@ public val <A : Pipeline<*, ApplicationCall>> A.pluginRegistry: Attributes
  * @param plugin [Plugin] to lookup
  * @return an instance of a plugin
  */
-public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
+public fun <A : Pipeline<*, PipelineCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
     return when (this) {
         is Route -> findPluginInRoute(plugin)
         else -> pluginOrNull(plugin)
@@ -78,14 +78,14 @@ public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.plugin(plugin: Plugin<*
 /**
  * Returns a plugin instance for this pipeline, or null if the plugin is not installed.
  */
-public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.pluginOrNull(plugin: Plugin<*, *, F>): F? {
+public fun <A : Pipeline<*, PipelineCall>, F : Any> A.pluginOrNull(plugin: Plugin<*, *, F>): F? {
     return pluginRegistry.getOrNull(plugin.key)
 }
 
 /**
  * Installs a [plugin] into this pipeline, if it is not yet installed.
  */
-public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
+public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
@@ -141,6 +141,7 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
         is Routing -> Routing(application)
         else -> Route(parent, selector, developmentMode, environment)
     }
+
     val installed = plugin.install(fakePipeline, configure)
     pluginRegistry.put(plugin.key, installed)
 
@@ -165,7 +166,7 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
             .forEach { interceptor ->
                 intercept(phase) { subject ->
                     val call = context
-                    if (call is RoutingApplicationCall && call.route.findPluginInRoute(plugin) == pluginInstance) {
+                    if (call is RoutingPipelineCall && call.route.findPluginInRoute(plugin) == pluginInstance) {
                         interceptor(this, subject)
                     }
                 }
@@ -195,7 +196,7 @@ public fun <P : Route, B : Any, F : Any> P.install(
     "This method is misleading and will be removed. " +
         "If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
-public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
+public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
     pluginRegistry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST", "DEPRECATION")
         uninstallPlugin(it as AttributeKey<Any>)
@@ -210,7 +211,7 @@ public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllPlugins() {
     "This method is misleading and will be removed. " +
         "If you have use case that requires this functionaity, please add it in KTOR-2696"
 )
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
+public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
     plugin: Plugin<A, B, F>
 ): Unit = uninstallPlugin(plugin.key)
 
@@ -219,9 +220,9 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+        "If you have use case that requires this functionaдity, please add it in KTOR-2696"
 )
-public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>) {
+public fun <A : Pipeline<*, PipelineCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(pluginRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
     if (instance is Closeable) {

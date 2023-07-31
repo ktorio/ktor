@@ -59,7 +59,7 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     private val event: Event
 ) : Hook<(Param) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: (Param) -> Unit) {
-        pipeline.environment!!.monitor.subscribe(event) {
+        pipeline.environment.monitor.subscribe(event) {
             handler(it)
         }
     }
@@ -85,7 +85,7 @@ public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
  */
 public object ResponseBodyReadyForSend :
     Hook<suspend ResponseBodyReadyForSend.Context.(ApplicationCall, OutgoingContent) -> Unit> {
-    public class Context(private val context: PipelineContext<Any, ApplicationCall>) {
+    public class Context(private val context: PipelineContext<Any, PipelineCall>) {
         public fun transformBodyTo(body: OutgoingContent) {
             context.subject = body
         }

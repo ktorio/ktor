@@ -120,7 +120,7 @@ class CallIdTest {
         assertEquals(response, "null:call-id-1")
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.respondWithCallId() {
+    private suspend fun RoutingContext.respondWithCallId() {
         val callIdFromCall = call.callId ?: error("No call id in call")
         val callIdFromContext = coroutineContext[KtorCallIdContextElement]?.callId ?: error("No call id in context")
         val callIdFromHeader = call.request.headers[HttpHeaders.XRequestId] ?: error("No call id in header")

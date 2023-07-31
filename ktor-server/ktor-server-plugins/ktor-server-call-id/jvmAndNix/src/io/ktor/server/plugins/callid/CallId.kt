@@ -165,10 +165,10 @@ public class CallIdConfig {
 
 internal val CallIdKey: AttributeKey<String> = AttributeKey("ExtractedCallId")
 
-internal object CallIdSetup : Hook<suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit> {
+internal object CallIdSetup : Hook<suspend PipelineContext<Unit, PipelineCall>.(ApplicationCall) -> Unit> {
     override fun install(
         pipeline: ApplicationCallPipeline,
-        handler: suspend PipelineContext<Unit, ApplicationCall>.(ApplicationCall) -> Unit
+        handler: suspend PipelineContext<Unit, PipelineCall>.(ApplicationCall) -> Unit
     ) {
         pipeline.intercept(ApplicationCallPipeline.Setup) {
             handler(call)

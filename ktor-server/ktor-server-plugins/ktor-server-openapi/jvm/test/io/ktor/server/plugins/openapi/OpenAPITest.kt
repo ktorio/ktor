@@ -12,7 +12,7 @@ class OpenAPITest {
     @Test
     fun testResolveOpenAPIFile() = testApplication {
         routing {
-            val content = readOpenAPIFile("openapi/documentation.yaml", application.environment.classLoader)
+            val content = readOpenAPIFile("openapi/documentation.yaml", environment.classLoader)
             assertEquals("hello:world".filter(Char::isLetterOrDigit), content.filter(Char::isLetterOrDigit))
         }
     }

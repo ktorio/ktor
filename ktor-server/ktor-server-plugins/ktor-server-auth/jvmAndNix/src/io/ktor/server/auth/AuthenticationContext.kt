@@ -6,7 +6,6 @@ package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.util.*
-import kotlin.properties.*
 import kotlin.reflect.*
 
 /**

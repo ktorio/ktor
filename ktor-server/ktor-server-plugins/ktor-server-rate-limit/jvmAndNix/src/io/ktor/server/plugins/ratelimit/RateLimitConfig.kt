@@ -7,6 +7,7 @@ package io.ktor.server.plugins.ratelimit
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.jvm.*
@@ -22,7 +23,7 @@ public class RateLimitConfig {
     internal var global: RateLimitProvider? = null
 
     /**
-     * Registers the Rate-Limit provider that can be used in sub-routes via the [Route.rateLimit] function.
+     * Registers the Rate-Limit provider that can be used in sub-routes via the [RoutingBuilder.rateLimit] function.
      */
     public fun register(name: RateLimitName = LIMITER_NAME_EMPTY, block: RateLimitProviderConfig.() -> Unit) {
         if (providers.containsKey(name)) {

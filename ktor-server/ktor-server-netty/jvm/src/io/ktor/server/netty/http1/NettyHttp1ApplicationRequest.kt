@@ -13,7 +13,7 @@ import io.netty.handler.codec.http.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1ApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     coroutineContext: CoroutineContext,
     context: ChannelHandlerContext,
     val httpRequest: HttpRequest,

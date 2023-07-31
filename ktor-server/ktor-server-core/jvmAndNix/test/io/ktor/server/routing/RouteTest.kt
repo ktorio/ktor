@@ -15,15 +15,43 @@ class RouteTest {
 
     @Test
     fun testToStringSimple() {
-        val root = Route(parent = null, selector = PathSegmentConstantRouteSelector("root"))
-        val simpleChild = Route(parent = root, selector = PathSegmentConstantRouteSelector("simpleChild"))
+        val root = Route(
+            parent = null,
+            selector = PathSegmentConstantRouteSelector("root"),
+            environment = createTestEnvironment()
+        )
+        val simpleChild = Route(
+            parent = root,
+            selector = PathSegmentConstantRouteSelector("simpleChild"),
+            environment = createTestEnvironment()
+        )
         val simpleGrandChild =
-            Route(parent = simpleChild, selector = PathSegmentConstantRouteSelector("simpleGrandChild"))
+            Route(
+                parent = simpleChild,
+                selector = PathSegmentConstantRouteSelector("simpleGrandChild"),
+                environment = createTestEnvironment()
+            )
 
-        val slashChild = Route(parent = root, selector = TrailingSlashRouteSelector)
-        val slashGrandChild = Route(parent = slashChild, selector = TrailingSlashRouteSelector)
-        val simpleChildInSlash = Route(parent = slashGrandChild, PathSegmentConstantRouteSelector("simpleChildInSlash"))
-        val slashChildInSimpleChild = Route(parent = simpleChildInSlash, TrailingSlashRouteSelector)
+        val slashChild = Route(
+            parent = root,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
+        val slashGrandChild = Route(
+            parent = slashChild,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
+        val simpleChildInSlash = Route(
+            parent = slashGrandChild,
+            selector = PathSegmentConstantRouteSelector("simpleChildInSlash"),
+            environment = createTestEnvironment()
+        )
+        val slashChildInSimpleChild = Route(
+            parent = simpleChildInSlash,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
 
         assertEquals("/root", root.toString())
         assertEquals("/root/simpleChild", simpleChild.toString())
@@ -36,7 +64,12 @@ class RouteTest {
 
     @Test
     fun testCreateChildKeepsDevelopmentMode() {
-        val root = Route(parent = null, selector = PathSegmentConstantRouteSelector("root"), developmentMode = true)
+        val root = Route(
+            parent = null,
+            selector = PathSegmentConstantRouteSelector("root"),
+            developmentMode = true,
+            environment = createTestEnvironment()
+        )
         val simpleChild = root.createChild(PathSegmentConstantRouteSelector("simpleChild"))
         assertTrue(root.developmentMode)
         assertTrue(simpleChild.developmentMode)

@@ -13,7 +13,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
 import java.net.*
-import java.nio.file.*
 
 /**
  * Supported pre compressed file types and associated extensions
@@ -30,7 +29,7 @@ public enum class CompressedFileType(public val extension: String, public val en
 
 internal val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
 
-internal val Route.staticContentEncodedTypes: List<CompressedFileType>?
+internal val RoutingBuilder.staticContentEncodedTypes: List<CompressedFileType>?
     get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
 
 internal class PreCompressedResponse(

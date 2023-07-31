@@ -15,7 +15,6 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
@@ -24,7 +23,7 @@ import kotlin.reflect.*
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<Any, ApplicationCall>(Before, Transform, After) {
+) : Pipeline<Any, PipelineCall>(Before, Transform, After) {
     /**
      * Pipeline phases.
      */
@@ -84,31 +83,6 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
     return receiveNullable(TypeInfo(type, kotlinType.platformType, kotlinType))!!
-}
-
-/**
- * Receives content for this request.
- * @param typeInfo instance specifying type to be received.
- * @return instance of [T] received from this call.
- * @throws ContentTransformationException when content cannot be transformed to the requested type.
- */
-public suspend fun <T> ApplicationCall.receiveNullable(typeInfo: TypeInfo): T? {
-    val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
-    if (token == null) {
-        attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
-    }
-
-    receiveType = typeInfo
-    val incomingContent = token ?: request.receiveChannel()
-    val transformed = request.pipeline.execute(this, incomingContent)
-    when {
-        transformed == NullBody -> return null
-        transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-        !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo.kotlinType!!)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    return transformed as T
 }
 
 /**
@@ -203,9 +177,10 @@ public typealias ContentTransformationException = io.ktor.server.plugins.Content
  * the [receive] function is invoked. It is used to detect double receive invocation
  * that causes [RequestAlreadyConsumedException] to be thrown unless the [DoubleReceive] plugin installed.
  */
-private object DoubleReceivePreventionToken
+internal object DoubleReceivePreventionToken
 
-private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
+internal val DoubleReceivePreventionTokenKey =
+    AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**
  * Thrown when a request body has already been received.

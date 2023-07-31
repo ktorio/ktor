@@ -283,7 +283,7 @@ class CallIdTest {
         }
     }
 
-    private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, ApplicationCall>) {
+    private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, PipelineCall>) {
         application.intercept(ApplicationCallPipeline.Call, block)
     }
 }

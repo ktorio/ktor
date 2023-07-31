@@ -16,7 +16,6 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.logging.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
@@ -24,44 +23,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
-
-internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
-) {
-    val provider = call.providerLookup()
-    if (provider is OAuthServerSettings.OAuth2ServerSettings) {
-        val token = call.oauth2HandleCallback()
-        val callbackRedirectUrl = call.urlProvider(provider)
-        if (token == null) {
-            call.redirectAuthenticateOAuth2(
-                provider,
-                callbackRedirectUrl,
-                state = provider.nonceManager.newNonce(),
-                scopes = provider.defaultScopes,
-                interceptor = provider.authorizeUrlInterceptor
-            )
-        } else {
-            withContext(dispatcher) {
-                try {
-                    val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
-                    call.authentication.principal(accessToken)
-                } catch (cause: OAuth2Exception.InvalidGrant) {
-                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause)
-                    call.redirectAuthenticateOAuth2(
-                        provider,
-                        callbackRedirectUrl,
-                        state = provider.nonceManager.newNonce(),
-                        scopes = provider.defaultScopes,
-                        interceptor = provider.authorizeUrlInterceptor
-                    )
-                }
-            }
-        }
-    }
-}
 
 internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
     val params = when (request.contentType()) {

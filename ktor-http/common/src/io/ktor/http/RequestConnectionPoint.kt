@@ -69,7 +69,7 @@ public interface RequestConnectionPoint {
 
     /**
      * Client address or host name if it can be resolved.
-     * For [io.ktor.application.ApplicationRequest.local] instance could point to
+     * For [io.ktor.server.request.ApplicationRequest.local] instance could point to
      * a proxy our application running behind.
      * NEVER use it for user authentication as it can be easily falsified (user can simply set some HTTP headers
      * such as X-Forwarded-Host so you should NEVER rely on it in any security checks).
@@ -81,7 +81,7 @@ public interface RequestConnectionPoint {
 
     /**
      * Client port.
-     * For [io.ktor.application.ApplicationRequest.local] instance could point to
+     * For [io.ktor.server.request.ApplicationRequest.local.local] instance could point to
      * a proxy our application running behind.
      * NEVER use it for user authentication as it can be easily falsified (user can simply set some HTTP headers
      * such as X-Forwarded-Host so you should NEVER rely on it in any security checks).
@@ -93,7 +93,7 @@ public interface RequestConnectionPoint {
 
     /**
      * Client address.
-     * For [io.ktor.application.ApplicationRequest.local] instance could point to
+     * For [io.ktor.server.request.ApplicationRequest.local] instance could point to
      * a proxy our application running behind.
      * NEVER use it for user authentication as it can be easily falsified (user can simply set some HTTP headers
      * such as X-Forwarded-Host so you should NEVER rely on it in any security checks).

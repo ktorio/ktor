@@ -555,7 +555,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 post {
                     val byteStream = ByteChannel(autoFlush = true)
                     launch(Dispatchers.Unconfined) {
-                        byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                        byteStream.writePacket(call.receiveChannel().readRemaining())
                         byteStream.close(null)
                     }
                     call.respond(object : OutgoingContent.ReadChannelContent() {
@@ -683,6 +683,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     call.respondText { "From plugin" }
                 }
             }
+            check(this is Route)
             application.install(plugin)
             application.install(HSTS)
 

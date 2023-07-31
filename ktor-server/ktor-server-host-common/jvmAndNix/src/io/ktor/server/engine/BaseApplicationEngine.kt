@@ -86,7 +86,7 @@ public abstract class BaseApplicationEngine(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.verifyHostHeader() {
+private suspend fun PipelineContext<Unit, PipelineCall>.verifyHostHeader() {
     val hostHeaders = call.request.headers.getAll(HttpHeaders.Host) ?: return
     if (hostHeaders.size > 1) {
         call.respond(HttpStatusCode.BadRequest)

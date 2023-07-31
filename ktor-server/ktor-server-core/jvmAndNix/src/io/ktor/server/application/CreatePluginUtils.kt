@@ -178,7 +178,6 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
         configure: PluginConfigT.() -> Unit
     ): PluginInstance {
         val environment = pipeline.environment
-            ?: error("Can't install plugin with config: environment is not initialized.")
 
         val config = try {
             environment.config.config(configurationPath)
