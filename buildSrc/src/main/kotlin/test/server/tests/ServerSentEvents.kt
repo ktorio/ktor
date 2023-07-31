@@ -25,11 +25,6 @@ internal fun Application.serverSentEvents() {
                 }
                 call.respondSseEvents(events)
             }
-            get("/echo") {
-                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
-                    writeStringUtf8(call.parameters["input"] ?: "")
-                }
-            }
             get("/comments") {
                 val times = call.parameters["times"]?.toInt() ?: 1
                 var isComment = false
