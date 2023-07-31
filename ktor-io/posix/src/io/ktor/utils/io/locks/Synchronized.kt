@@ -4,9 +4,9 @@
 
 package io.ktor.utils.io.locks
 
-import platform.posix.*
-import interop.*
+import io.ktor.utils.io.interop.mutex.*
 import kotlinx.cinterop.*
+import platform.posix.*
 import kotlin.native.concurrent.*
 import kotlin.native.internal.NativePtr
 
@@ -182,16 +182,16 @@ public actual open class SynchronizedObject {
         public val nestedLocks: Int,
         public val waiters: Int,
         public val ownerThreadId: pthread_t? = null,
-        public val mutex: CPointer<mutex_node_t>? = null
+        public val mutex: CPointer<ktor_mutex_node_t>? = null
     ) {
         init { freeze() }
     }
 
     protected enum class Status { UNLOCKED, THIN, FAT }
 
-    private fun CPointer<mutex_node_t>.lock() = lock(this.pointed.mutex)
+    private fun CPointer<ktor_mutex_node_t>.lock() = ktor_lock(this.pointed.mutex)
 
-    private fun CPointer<mutex_node_t>.unlock() = unlock(this.pointed.mutex)
+    private fun CPointer<ktor_mutex_node_t>.unlock() = ktor_unlock(this.pointed.mutex)
 }
 
 public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
@@ -224,30 +224,30 @@ private val mutexPool by lazy { MutexPool(INITIAL_POOL_CAPACITY) }
 public class MutexPool(capacity: Int) {
     private val top = AtomicNativePtr(NativePtr.NULL)
 
-    private val mutexes = nativeHeap.allocArray<mutex_node_t>(capacity) { mutex_node_init(ptr) }
+    private val mutexes = nativeHeap.allocArray<ktor_mutex_node_t>(capacity) { ktor_mutex_node_init(ptr) }
 
     init {
         for (i in 0 until capacity) {
-            release(interpretCPointer(mutexes.rawValue.plus(i * sizeOf<mutex_node_t>()))!!)
+            release(interpretCPointer(mutexes.rawValue.plus(i * sizeOf<ktor_mutex_node_t>()))!!)
         }
     }
 
-    private fun allocMutexNode() = nativeHeap.alloc<mutex_node_t> { mutex_node_init(ptr) }.ptr
+    private fun allocMutexNode() = nativeHeap.alloc<ktor_mutex_node_t> { ktor_mutex_node_init(ptr) }.ptr
 
-    public fun allocate(): CPointer<mutex_node_t> = pop() ?: allocMutexNode()
+    public fun allocate(): CPointer<ktor_mutex_node_t> = pop() ?: allocMutexNode()
 
-    public fun release(mutexNode: CPointer<mutex_node_t>) {
+    public fun release(mutexNode: CPointer<ktor_mutex_node_t>) {
         while (true) {
-            val oldTop = interpretCPointer<mutex_node_t>(top.value)
+            val oldTop = interpretCPointer<ktor_mutex_node_t>(top.value)
             mutexNode.pointed.next = oldTop
             if (top.compareAndSet(oldTop.rawValue, mutexNode.rawValue))
                 return
         }
     }
 
-    private fun pop(): CPointer<mutex_node_t>? {
+    private fun pop(): CPointer<ktor_mutex_node_t>? {
         while (true) {
-            val oldTop = interpretCPointer<mutex_node_t>(top.value)
+            val oldTop = interpretCPointer<ktor_mutex_node_t>(top.value)
             if (oldTop.rawValue === NativePtr.NULL)
                 return null
             val newHead = oldTop!!.pointed.next
