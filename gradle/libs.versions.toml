@@ -23,6 +23,7 @@ apache-version = "4.1.5"
 apache5-version = "5.2.1"
 apacheds-version = "2.0.0-M24"
 okhttp-version = "4.11.0"
+okio-version = "3.4.0"
 
 json-simple-version = "1.1.1"
 gson-version = "2.10.1"
@@ -150,6 +151,7 @@ apacheds-server = { module = "org.apache.directory.server:apacheds-server-integ"
 apacheds-core = { module = "org.apache.directory.server:apacheds-core-integ", version.ref = "apacheds-version" }
 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio-version" }
 
 dropwizard-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "dropwizard-version" }
 dropwizard-jvm = { module = "io.dropwizard.metrics:metrics-jvm", version.ref = "dropwizard-version" }
