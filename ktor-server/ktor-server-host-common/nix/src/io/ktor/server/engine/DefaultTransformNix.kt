@@ -12,11 +12,11 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
-internal actual suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
     query: Any
 ): Any? = null
 
-internal actual fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData =
+internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData =
     error("Multipart is not supported in native")
 
 internal actual fun ByteReadPacket.readTextWithCustomCharset(charset: Charset): String =

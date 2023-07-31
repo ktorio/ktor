@@ -5,7 +5,6 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -152,7 +151,7 @@ class CookiesTest {
         }
     }
 
-    private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
+    private fun testSetCookies(expectedHeaderContent: String, block: PipelineResponse.() -> Unit) {
         withTestApplicationResponse {
             block()
             assertEquals(expectedHeaderContent, headers["Set-Cookie"]?.cutSetCookieHeader())

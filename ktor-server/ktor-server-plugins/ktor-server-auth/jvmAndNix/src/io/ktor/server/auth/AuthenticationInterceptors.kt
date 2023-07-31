@@ -200,11 +200,11 @@ public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
-public fun Route.authenticate(
+public fun RoutingBuilder.authenticate(
     vararg configurations: String? = arrayOf(null),
     optional: Boolean = false,
-    build: Route.() -> Unit
-): Route {
+    build: RoutingBuilder.() -> Unit
+): RoutingBuilder {
     return authenticate(
         configurations = configurations,
         strategy = if (optional) AuthenticationStrategy.Optional else AuthenticationStrategy.FirstSuccessful,
@@ -228,11 +228,11 @@ public fun Route.authenticate(
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
-public fun Route.authenticate(
+public fun RoutingBuilder.authenticate(
     vararg configurations: String? = arrayOf(null),
     strategy: AuthenticationStrategy,
-    build: Route.() -> Unit
-): Route {
+    build: RoutingBuilder.() -> Unit
+): RoutingBuilder {
     require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
 
     val configurationNames = configurations.distinct().toList()
@@ -264,7 +264,7 @@ public class RouteAuthenticationConfig {
 
 /**
  * An authentication route node that is used by [Authentication] plugin
- * and usually created by the [Route.authenticate] DSL function,
+ * and usually created by the [RoutingBuilder.authenticate] DSL function,
  * so generally there is no need to instantiate it directly unless you are writing an extension.
  * @param names of authentication providers to be applied to this route.
  */

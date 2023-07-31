@@ -156,7 +156,7 @@ public class CIOApplicationEngine(
         return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
 
-    private suspend fun ServerRequestScope.handleRequest(request: Request) {
+    private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(
                 application,

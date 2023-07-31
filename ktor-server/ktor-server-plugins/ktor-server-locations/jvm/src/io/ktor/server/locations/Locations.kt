@@ -84,7 +84,7 @@ public open class Locations constructor(
     }
 
     @OptIn(KtorExperimentalLocationsAPI::class)
-    private fun createEntry(parent: Route, info: LocationInfo): Route {
+    private fun createEntry(parent: RoutingBuilder, info: LocationInfo): RoutingBuilder {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         return hierarchyEntry.createRouteFromPath(info.path)
     }
@@ -92,7 +92,7 @@ public open class Locations constructor(
     /**
      * Creates all necessary routing entries to match specified [locationClass].
      */
-    public fun createEntry(parent: Route, locationClass: KClass<*>): Route {
+    public fun createEntry(parent: RoutingBuilder, locationClass: KClass<*>): RoutingBuilder {
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 

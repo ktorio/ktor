@@ -20,7 +20,7 @@ import kotlin.random.*
 public class WebResourcesConfig
 @Deprecated(
     "Direct instantiation will be impossible in 2.0.0. " +
-        "Use Route.webResources {} function instead " +
+        "Use RoutingBuilder.webResources {} function instead " +
         "or file an issue describing why do you need it.",
     level = DeprecationLevel.ERROR
 )
@@ -69,7 +69,7 @@ constructor() {
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
 @OptIn(InternalAPI::class)
-public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
+public fun RoutingBuilder.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
     @Suppress("DEPRECATION_ERROR")
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
@@ -86,7 +86,7 @@ public fun Route.webResources(subPath: String = "/", configure: WebResourcesConf
             return@get
         }
 
-        val url = application.attributes.getOrNull(ServletContextAttribute)?.getResource(path) ?: return@get
+        val url = call.application.attributes.getOrNull(ServletContextAttribute)?.getResource(path) ?: return@get
         val content = resourceClasspathResource(url, path, config.mimeResolve) ?: return@get
         call.respond(content)
     }

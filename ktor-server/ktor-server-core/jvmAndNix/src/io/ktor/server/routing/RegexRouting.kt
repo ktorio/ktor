@@ -7,9 +7,7 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import kotlin.jvm.*
 
 /**
@@ -27,7 +25,8 @@ import kotlin.jvm.*
  * ```
  */
 @KtorDsl
-public fun Route.route(path: Regex, build: Route.() -> Unit): Route = createRouteFromRegexPath(path).apply(build)
+public fun RoutingBuilder.route(path: Regex, build: RoutingBuilder.() -> Unit): RoutingBuilder =
+    createRouteFromRegexPath(path).apply(build)
 
 /**
  * Builds a route to match the specified HTTP [method] and regex [path].
@@ -44,7 +43,7 @@ public fun Route.route(path: Regex, build: Route.() -> Unit): Route = createRout
  * ```
  */
 @KtorDsl
-public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit): Route {
+public fun RoutingBuilder.route(path: Regex, method: HttpMethod, build: RoutingBuilder.() -> Unit): RoutingBuilder {
     val selector = HttpMethodRouteSelector(method)
     return createRouteFromRegexPath(path).createChild(selector).apply(build)
 }
@@ -62,7 +61,7 @@ public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit)
  * ```
  */
 @KtorDsl
-public fun Route.get(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.get(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Get) { handle(body) }
 }
 
@@ -79,7 +78,7 @@ public fun Route.get(path: Regex, body: PipelineInterceptor<Unit, ApplicationCal
  * ```
  */
 @KtorDsl
-public fun Route.post(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.post(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Post) { handle(body) }
 }
 
@@ -97,10 +96,10 @@ public fun Route.post(path: Regex, body: PipelineInterceptor<Unit, ApplicationCa
  */
 @KtorDsl
 @JvmName("postTypedPath")
-public inline fun <reified R : Any> Route.post(
+public inline fun <reified R : Any> RoutingBuilder.post(
     path: Regex,
-    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route = post(path) {
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): RoutingBuilder = post(path) {
     body(call.receive())
 }
 
@@ -117,7 +116,7 @@ public inline fun <reified R : Any> Route.post(
  * ```
  */
 @KtorDsl
-public fun Route.head(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.head(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Head) { handle(body) }
 }
 
@@ -134,7 +133,7 @@ public fun Route.head(path: Regex, body: PipelineInterceptor<Unit, ApplicationCa
  * ```
  */
 @KtorDsl
-public fun Route.put(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.put(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Put) { handle(body) }
 }
 
@@ -152,10 +151,10 @@ public fun Route.put(path: Regex, body: PipelineInterceptor<Unit, ApplicationCal
  */
 @KtorDsl
 @JvmName("putTypedPath")
-public inline fun <reified R : Any> Route.put(
+public inline fun <reified R : Any> RoutingBuilder.put(
     path: Regex,
-    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route = put(path) {
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): RoutingBuilder = put(path) {
     body(call.receive())
 }
 
@@ -172,7 +171,7 @@ public inline fun <reified R : Any> Route.put(
  * ```
  */
 @KtorDsl
-public fun Route.patch(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.patch(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Patch) { handle(body) }
 }
 
@@ -190,10 +189,10 @@ public fun Route.patch(path: Regex, body: PipelineInterceptor<Unit, ApplicationC
  */
 @KtorDsl
 @JvmName("patchTypedPath")
-public inline fun <reified R : Any> Route.patch(
+public inline fun <reified R : Any> RoutingBuilder.patch(
     path: Regex,
-    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route = patch(path) {
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): RoutingBuilder = patch(path) {
     body(call.receive())
 }
 
@@ -210,7 +209,7 @@ public inline fun <reified R : Any> Route.patch(
  * ```
  */
 @KtorDsl
-public fun Route.delete(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.delete(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Delete) { handle(body) }
 }
 
@@ -227,12 +226,12 @@ public fun Route.delete(path: Regex, body: PipelineInterceptor<Unit, Application
  * ```
  */
 @KtorDsl
-public fun Route.options(path: Regex, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+public fun RoutingBuilder.options(path: Regex, body: RoutingHandler): RoutingBuilder {
     return route(path, HttpMethod.Options) { handle(body) }
 }
 
-private fun Route.createRouteFromRegexPath(regex: Regex): Route {
-    return this.createChild(PathSegmentRegexRouteSelector(regex))
+private fun RoutingBuilder.createRouteFromRegexPath(regex: Regex): RoutingBuilder {
+    return createChild(PathSegmentRegexRouteSelector(regex))
 }
 
 public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSelector() {

@@ -91,7 +91,7 @@ public final class io/ktor/server/engine/ApplicationEngineJvmKt {
 	public static final fun stop (Lio/ktor/server/engine/ApplicationEngine;JJLjava/util/concurrent/TimeUnit;)V
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server/application/ApplicationCall {
+public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server/application/PipelineCall {
 	public fun <init> (Lio/ktor/server/application/Application;)V
 	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
@@ -100,6 +100,8 @@ public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server
 	public abstract fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	protected final fun putResponseAttribute (Lio/ktor/server/engine/BaseApplicationResponse;)V
 	public static synthetic fun putResponseAttribute$default (Lio/ktor/server/engine/BaseApplicationCall;Lio/ktor/server/engine/BaseApplicationResponse;ILjava/lang/Object;)V
+	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/server/engine/ApplicationEngine {
@@ -116,9 +118,10 @@ public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor
 	public fun <init> ()V
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/server/request/ApplicationRequest {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
-	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/server/request/PipelineRequest {
+	public fun <init> (Lio/ktor/server/application/PipelineCall;)V
+	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public final fun getCall ()Lio/ktor/server/application/PipelineCall;
 	protected abstract fun getEngineHeaders ()Lio/ktor/http/Headers;
 	protected abstract fun getEngineReceiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getHeaders ()Lio/ktor/http/Headers;
@@ -128,11 +131,12 @@ public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/ser
 	public final fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 }
 
-public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/server/response/ApplicationResponse {
+public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/server/response/PipelineResponse {
 	public static final field Companion Lio/ktor/server/engine/BaseApplicationResponse$Companion;
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public fun <init> (Lio/ktor/server/application/PipelineCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
-	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public final fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public fun getCookies ()Lio/ktor/server/response/ResponseCookies;
 	public final fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 	public fun isCommitted ()Z

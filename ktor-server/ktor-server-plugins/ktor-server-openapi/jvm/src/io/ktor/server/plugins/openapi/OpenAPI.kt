@@ -19,12 +19,12 @@ import java.io.*
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
  */
-public fun Route.openAPI(
+public fun RoutingBuilder.openAPI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    val apiDocument = readOpenAPIFile(swaggerFile, application.environment.classLoader)
+    val apiDocument = readOpenAPIFile(swaggerFile, environment.classLoader)
 
     val config = OpenAPIConfig()
     with(config) {

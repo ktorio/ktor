@@ -12,7 +12,7 @@ import io.ktor.util.pipeline.*
 
 internal object BodyTransformedHook :
     Hook<suspend BodyTransformedHook.Context.(call: ApplicationCall, message: Any) -> Unit> {
-    class Context(private val context: PipelineContext<Any, ApplicationCall>) {
+    class Context(private val context: PipelineContext<Any, PipelineCall>) {
         val call: ApplicationCall = context.call
 
         fun transformBodyTo(newValue: Any) {

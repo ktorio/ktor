@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.util.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -20,35 +19,18 @@ import kotlin.jvm.*
  * Sends a [message] as a response.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-@OptIn(InternalAPI::class)
-@JvmName("respondWithType")
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
-    if (message !is OutgoingContent && message !is ByteArray) {
-        response.responseType = typeInfo<T>()
-    }
-    response.pipeline.execute(this, message as Any)
-}
-
-/**
- * Sends a [message] of type [messageType] as a response.
- * @see [io.ktor.server.response.ApplicationResponse]
- */
-@OptIn(InternalAPI::class)
-public suspend fun ApplicationCall.respond(message: Any?, messageType: TypeInfo) {
-    response.responseType = messageType
-    response.pipeline.execute(this, message ?: NullBody)
+    // KT-42913
+    respond(message, runCatching { typeInfo<T>() }.getOrNull())
 }
 
 /**
  * Sends a [message] as a response.
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-@OptIn(InternalAPI::class)
 public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
-    if (message !is OutgoingContent && message !is ByteArray) {
-        response.responseType = typeInfo<T>()
-    }
-    response.pipeline.execute(this, message ?: NullBody)
+    // KT-42913
+    respond(message, runCatching { typeInfo<T>() }.getOrNull())
 }
 
 /**

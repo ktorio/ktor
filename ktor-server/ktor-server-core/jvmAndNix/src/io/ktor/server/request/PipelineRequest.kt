@@ -12,19 +12,29 @@ import io.ktor.utils.io.*
 /**
  * A client's request.
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [ApplicationCall.request]
+ * @see [io.ktor.server.application.ApplicationCall]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public interface ApplicationRequest {
+
+    /**
+     * Provides access to headers for the current request.
+     * You can also get access to specific headers using dedicated extension functions,
+     * such as [acceptEncoding], [contentType], [cacheControl], and so on.
+     */
+    public val headers: Headers
+
     /**
      * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
      */
     public val call: ApplicationCall
 
     /**
-     * A pipeline for receiving content.
+     * Provides access to connection details such as a host name, port, scheme, etc.
+     * To get information about a request passed through an HTTP proxy or a load balancer,
+     * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
      */
-    public val pipeline: ApplicationReceivePipeline
+    public val local: RequestConnectionPoint
 
     /**
      * Provides access to decoded parameters of a URL query string.
@@ -37,23 +47,27 @@ public interface ApplicationRequest {
     public val rawQueryParameters: Parameters
 
     /**
-     * Provides access to headers for the current request.
-     * You can also get access to specific headers using dedicated extension functions,
-     * such as [acceptEncoding], [contentType], [cacheControl], and so on.
-     */
-    public val headers: Headers
-
-    /**
-     * Provides access to connection details such as a host name, port, scheme, etc.
-     * To get information about a request passed through an HTTP proxy or a load balancer,
-     * install the ForwardedHeaders/XForwardedHeader plugin and use the [origin] property.
-     */
-    public val local: RequestConnectionPoint
-
-    /**
      * Provides access to cookies for this request.
      */
     public val cookies: RequestCookies
+}
+
+/**
+ * A client's request that is used in [ApplicationPlugin].
+ * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
+ * @see [PipelineCall]
+ * @see [io.ktor.server.response.PipelineResponse]
+ */
+public interface PipelineRequest : ApplicationRequest {
+    /**
+     * An [PipelineCall] instance this [PipelineRequest] is attached to.
+     */
+    public override val call: PipelineCall
+
+    /**
+     * A pipeline for receiving content.
+     */
+    public val pipeline: ApplicationReceivePipeline
 
     /**
      * Receives a raw body payload as a channel.

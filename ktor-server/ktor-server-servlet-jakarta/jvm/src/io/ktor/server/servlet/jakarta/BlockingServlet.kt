@@ -33,7 +33,7 @@ internal class BlockingServletApplicationCall(
 }
 
 private class BlockingServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
@@ -45,7 +45,7 @@ private class BlockingServletApplicationRequest(
 }
 
 internal class BlockingServletApplicationResponse(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()

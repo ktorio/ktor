@@ -5,7 +5,7 @@
 package io.ktor.server.routing
 
 import io.ktor.http.parametersOf
-import io.ktor.util.*
+import io.ktor.server.application.*
 
 /**
  * Creates a route to match a port on which a call was received.
@@ -21,7 +21,7 @@ import io.ktor.util.*
  *
  * @throws IllegalArgumentException if the port is outside the range of TCP/UDP ports
  */
-public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
+public fun RoutingBuilder.localPort(port: Int, build: RoutingBuilder.() -> Unit): RoutingBuilder {
     require(port in 1..65535) { "Port $port must be a positive number between 1 and 65,535" }
 
     val selector = LocalPortRouteSelector(port)
@@ -45,7 +45,7 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     public companion object {
         /**
-         * A parameter name for [RoutingApplicationCall.parameters] for a request host.
+         * A parameter name for [ApplicationCall.parameters] for a request host.
          */
         public const val LocalPortParameter: String = "\$LocalPort"
     }

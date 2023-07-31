@@ -26,7 +26,7 @@ import java.io.*
  * }
  * ```
  */
-public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
+public fun RoutingBuilder.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
     val config = SPAConfig()
     configBuilder.invoke(config)
 
@@ -52,7 +52,7 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
 }
 
 /**
- * Configuration for the [Route.singlePageApplication] plugin.
+ * Configuration for the [RoutingBuilder.singlePageApplication] plugin.
  */
 public class SPAConfig(
     /**

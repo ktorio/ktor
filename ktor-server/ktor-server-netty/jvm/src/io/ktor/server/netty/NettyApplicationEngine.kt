@@ -139,7 +139,7 @@ public class NettyApplicationEngine(
     }
 
     /**
-     * [EventLoopGroupProxy] for processing [ApplicationCall] instances
+     * [EventLoopGroupProxy] for processing [PipelineCall] instances
      */
     private val callEventGroup: EventLoopGroup by lazy {
         if (configuration.shareWorkGroup) {

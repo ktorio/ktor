@@ -12,7 +12,7 @@ import io.ktor.util.pipeline.*
  **/
 internal class Interception<T : Any>(
     val phase: PipelinePhase,
-    val action: (Pipeline<T, ApplicationCall>) -> Unit
+    val action: (Pipeline<T, PipelineCall>) -> Unit
 )
 
 /**

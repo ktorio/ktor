@@ -192,7 +192,7 @@ public open class TestApplicationBuilder {
      */
     @Suppress("UNCHECKED_CAST")
     @KtorDsl
-    public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> install(
+    public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
         configure: B.() -> Unit = {}
     ) {
@@ -204,7 +204,7 @@ public open class TestApplicationBuilder {
      * Installs routing into [TestApplication]
      */
     @KtorDsl
-    public fun routing(configuration: Routing.() -> Unit) {
+    public fun routing(configuration: RoutingBuilder.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
     }

@@ -36,7 +36,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -56,7 +56,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
             handle {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
@@ -81,8 +81,8 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
-            application.install(PartialContent)
+            install(Compression)
+            install(PartialContent)
 
             handle {
                 call.respond(LocalFileContent(file))
@@ -118,7 +118,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
 
             get("/") {
                 call.respondTextWriter(contentType = ContentType.Text.Plain) {

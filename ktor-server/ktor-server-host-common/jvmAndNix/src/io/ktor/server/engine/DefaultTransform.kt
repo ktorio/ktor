@@ -89,13 +89,13 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
     }
 }
 
-internal expect suspend fun PipelineContext<Any, ApplicationCall>.defaultPlatformTransformations(
+internal expect suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
     query: Any
 ): Any?
 
-internal expect fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData
+internal expect fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData
 
-internal inline fun <R> withContentType(call: ApplicationCall, block: () -> R): R = try {
+internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R = try {
     block()
 } catch (parseFailure: BadContentTypeFormatException) {
     throw BadRequestException(

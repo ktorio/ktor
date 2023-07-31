@@ -19,7 +19,7 @@ import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     coroutineContext: CoroutineContext,
     context: ChannelHandlerContext,
     val nettyHeaders: Http2Headers,

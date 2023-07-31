@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
 @KtorDsl
 public open class CallContext<PluginConfig : Any> internal constructor(
     public val pluginConfig: PluginConfig,
-    protected open val context: PipelineContext<*, ApplicationCall>
+    protected open val context: PipelineContext<*, PipelineCall>
 ) {
     // Internal usage for tests only
     internal fun finish() = context.finish()
@@ -32,7 +32,7 @@ public open class CallContext<PluginConfig : Any> internal constructor(
 @KtorDsl
 public class OnCallContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
-    context: PipelineContext<Unit, ApplicationCall>
+    context: PipelineContext<Unit, PipelineCall>
 ) : CallContext<PluginConfig>(pluginConfig, context)
 
 /**
@@ -50,7 +50,7 @@ public class TransformBodyContext(public val requestedType: TypeInfo?)
 @KtorDsl
 public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
-    override val context: PipelineContext<Any, ApplicationCall>
+    override val context: PipelineContext<Any, PipelineCall>
 ) : CallContext<PluginConfig>(pluginConfig, context) {
     /**
      * Specifies how to transform a request body that is being received from a client.
@@ -75,7 +75,7 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
 @KtorDsl
 public class OnCallRespondContext<PluginConfig : Any> internal constructor(
     pluginConfig: PluginConfig,
-    override val context: PipelineContext<Any, ApplicationCall>
+    override val context: PipelineContext<Any, PipelineCall>
 ) : CallContext<PluginConfig>(pluginConfig, context) {
     /**
      * Specifies how to transform a response body that is being sent to a client.

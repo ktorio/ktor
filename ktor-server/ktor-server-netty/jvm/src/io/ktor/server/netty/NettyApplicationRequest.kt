@@ -15,7 +15,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 public abstract class NettyApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     override val coroutineContext: CoroutineContext,
     public val context: ChannelHandlerContext,
     private val requestBodyChannel: ByteReadChannel,

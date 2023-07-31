@@ -218,7 +218,7 @@ class CallLoggingTest {
         }
         routing {
             get("/*") {
-                application.log.info("test message")
+                environment.log.info("test message")
                 call.respond("OK")
             }
         }

@@ -12,7 +12,6 @@ import io.ktor.client.plugins.json.tests.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -22,7 +21,7 @@ import kotlin.test.*
 class JacksonTest : JsonTest() {
     override val serializerImpl = JacksonSerializer()
 
-    override fun createRoutes(routing: Routing): Unit = with(routing) {
+    override fun createRoutes(routing: RoutingBuilder): Unit = with(routing) {
         super.createRoutes(routing)
 
         post("/jackson") {

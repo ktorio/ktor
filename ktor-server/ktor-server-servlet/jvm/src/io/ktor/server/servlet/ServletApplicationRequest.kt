@@ -11,7 +11,7 @@ import io.ktor.server.request.*
 import javax.servlet.http.*
 
 public abstract class ServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
 

@@ -16,11 +16,11 @@ private const val MIN_QUALITY = -Double.MAX_VALUE
 /**
  * Represents a context in which routing resolution is being performed
  * @param routing root node for resolution to start at
- * @param call instance of [ApplicationCall] to use during resolution
+ * @param call instance of [PipelineCall] to use during resolution
  */
 public class RoutingResolveContext(
     public val routing: Route,
-    public val call: ApplicationCall,
+    public val call: PipelineCall,
     private val tracers: List<(RoutingResolveTrace) -> Unit>
 ) {
     /**
