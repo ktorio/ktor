@@ -4,8 +4,12 @@ import kotlin.test.*
 
 abstract class ByteChannelTestBase(autoFlush: Boolean = false) {
     protected val coroutines = DummyCoroutines()
+
+    @Suppress("DEPRECATION")
     protected val ch: ByteChannel by lazy { ByteChannel(autoFlush) }
+
     protected val Size = 4096 - 8
+
     private var current = 0
 
     @AfterTest
@@ -13,6 +17,7 @@ abstract class ByteChannelTestBase(autoFlush: Boolean = false) {
         ch.close(CancellationException("Test finished"))
     }
 
+    @Suppress("DEPRECATION")
     protected open fun ByteChannel(autoFlush: Boolean): ByteChannel {
         return io.ktor.utils.io.ByteChannel(autoFlush)
     }

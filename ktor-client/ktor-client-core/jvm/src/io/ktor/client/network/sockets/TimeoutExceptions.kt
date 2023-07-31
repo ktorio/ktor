@@ -33,6 +33,7 @@ public actual class SocketTimeoutException actual constructor(
  * close it with [SocketTimeoutException]).
  */
 @OptIn(InternalAPI::class)
+@Suppress("DEPRECATION")
 internal actual fun ByteChannelWithMappedExceptions(request: HttpRequestData): ByteChannel = ByteChannel { cause ->
     when (cause?.rootCause) {
         is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)

@@ -46,6 +46,7 @@ public actual val CharsetEncoder.charset: Charset get() = _charset
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
     encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
 // ----------------------------------------------------------------------

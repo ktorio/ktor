@@ -1,11 +1,13 @@
 package io.ktor.utils.io.core.internal
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public open class ChunkBuffer(
     memory: Memory,
     origin: ChunkBuffer?,
@@ -188,4 +190,5 @@ public open class ChunkBuffer(
  * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
  * the fact that the buffer is actually shared.
  */
+@Suppress("DEPRECATION")
 internal fun ChunkBuffer.isExclusivelyOwned(): Boolean = referenceCount == 1

@@ -25,6 +25,7 @@ public data class FormPart<T : Any>(val key: String, val value: T, val headers: 
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  */
+@Suppress("DEPRECATION")
 public fun formData(vararg values: FormPart<*>): List<PartData> {
     val result = mutableListOf<PartData>()
 
@@ -128,6 +129,7 @@ public class FormBuilder internal constructor() {
     /**
      * Appends a pair [key]:[InputProvider(block)] with optional [headers].
      */
+    @Suppress("DEPRECATION")
     public fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
         parts += FormPart(key, InputProvider(size, block), headers)
     }
@@ -197,6 +199,7 @@ public inline fun FormBuilder.append(
  * @property size estimate for data produced by the block or `null` if no size estimation known
  * @param block: content generator
  */
+@Suppress("DEPRECATION")
 public class InputProvider(public val size: Long? = null, public val block: () -> Input)
 
 /**

@@ -1,7 +1,8 @@
 package io.ktor.utils.io.core
 
-import java.nio.ByteBuffer
+import java.nio.*
 
+@Suppress("DEPRECATION")
 internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     return if (hasArray()) {
         discardUntilDelimiterImplArrays(this, delimiter)
@@ -10,6 +11,7 @@ internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): Int {
     val bb = buffer.memory.buffer
     val array = bb.array()
@@ -27,6 +29,7 @@ private fun discardUntilDelimiterImplArrays(buffer: Buffer, delimiter: Byte): In
     return i - start
 }
 
+@Suppress("DEPRECATION")
 internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
     return if (hasArray()) {
         discardUntilDelimitersImplArrays(this, delimiter1, delimiter2)
@@ -35,6 +38,7 @@ internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimite
     }
 }
 
+@Suppress("DEPRECATION")
 private fun discardUntilDelimitersImplArrays(buffer: Buffer, delimiter1: Byte, delimiter2: Byte): Int {
     val bb = buffer.memory.buffer
     val array = bb.array()
@@ -66,12 +70,14 @@ internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: ByteArra
     }
 }
 
+@Suppress("DEPRECATION")
 private fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: ByteArray, offset: Int, length: Int): Int {
     val copied = copyUntil({ it == delimiter }, dst, offset, length)
     discardExact(copied)
     return copied
 }
 
+@Suppress("DEPRECATION")
 private fun readUntilDelimiterArrays(buffer: Buffer, delimiter: Byte, dst: ByteArray, offset: Int, length: Int): Int {
     val copied = buffer.memory.buffer.copyUntilArrays(
         { it == delimiter },
@@ -84,6 +90,7 @@ private fun readUntilDelimiterArrays(buffer: Buffer, delimiter: Byte, dst: ByteA
     return copied
 }
 
+@Suppress("DEPRECATION")
 internal actual fun Buffer.readUntilDelimitersImpl(
     delimiter1: Byte,
     delimiter2: Byte,
@@ -103,6 +110,7 @@ internal actual fun Buffer.readUntilDelimitersImpl(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun Buffer.readUntilDelimitersDirect(
     delimiter1: Byte,
     delimiter2: Byte,
@@ -115,6 +123,7 @@ private fun Buffer.readUntilDelimitersDirect(
     return copied
 }
 
+@Suppress("DEPRECATION")
 private fun Buffer.readUntilDelimitersArrays(
     delimiter1: Byte,
     delimiter2: Byte,
@@ -133,6 +142,7 @@ private fun Buffer.readUntilDelimitersArrays(
     return copied
 }
 
+@Suppress("DEPRECATION")
 internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output): Int {
     return if (hasArray()) {
         readUntilDelimiterArrays(delimiter, dst)
@@ -141,14 +151,17 @@ internal actual fun Buffer.readUntilDelimiterImpl(delimiter: Byte, dst: Output):
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.readUntilDelimiterDirect(delimiter: Byte, dst: Output): Int {
     return copyUntil({ it == delimiter }, dst)
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.readUntilDelimiterArrays(delimiter: Byte, dst: Output): Int {
     return copyUntilArrays({ it == delimiter }, dst)
 }
 
+@Suppress("DEPRECATION")
 internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     assert(delimiter1 != delimiter2)
 
@@ -159,10 +172,12 @@ internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2:
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.readUntilDelimitersDirect(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     return copyUntil({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.readUntilDelimitersArrays(delimiter1: Byte, delimiter2: Byte, dst: Output): Int {
     return copyUntilArrays({ it == delimiter1 || it == delimiter2 }, dst)
 }
@@ -209,6 +224,7 @@ private inline fun ByteBuffer.copyUntilArrays(
     return copied
 }
 
+@Suppress("DEPRECATION")
 private inline fun Buffer.copyUntilArrays(predicate: (Byte) -> Boolean, dst: Output): Int {
     val bb = memory.buffer
     val array = bb.array()

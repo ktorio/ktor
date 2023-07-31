@@ -73,6 +73,7 @@ public fun HttpClient.defaultTransformers() {
             }
 
             ByteReadPacket::class,
+            @Suppress("DEPRECATION")
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
@@ -91,7 +92,7 @@ public fun HttpClient.defaultTransformers() {
 
             ByteReadChannel::class -> {
                 // the response job could be already completed, so the job holder
-                // could be cancelled immediately, but it doesn't matter
+                // could be canceled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext[Job])
                 val channel: ByteReadChannel = writer(response.coroutineContext) {

@@ -1,8 +1,7 @@
 package io.ktor.utils.io.internal
 
-import io.ktor.utils.io.ByteChannelSequentialBase
-import io.ktor.utils.io.close
-import io.ktor.utils.io.core.internal.ChunkBuffer
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.internal.*
 
 internal suspend fun ByteChannelSequentialBase.joinToImpl(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
     copyToSequentialImpl(dst, Long.MAX_VALUE)
@@ -10,7 +9,7 @@ internal suspend fun ByteChannelSequentialBase.joinToImpl(dst: ByteChannelSequen
 }
 
 /**
- * Reads up to [limit] bytes from receiver channel and writes them to [dst] channel.
+ * Reads up to [limit] bytes from a receiver channel and writes them to [dst] channel.
  * Closes [dst] channel if fails to read or write with cause exception.
  * @return a number of copied bytes
  */
@@ -53,6 +52,7 @@ internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteCha
     return limit - remainingLimit
 }
 
+@Suppress("DEPRECATION")
 private suspend fun ByteChannelSequentialBase.copyToTail(dst: ByteChannelSequentialBase, limit: Long): Long {
     val lastPiece = ChunkBuffer.Pool.borrow()
     try {

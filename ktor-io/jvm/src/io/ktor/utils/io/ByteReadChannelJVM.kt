@@ -59,7 +59,10 @@ public actual interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+
+    @Suppress("DEPRECATION")
     public actual suspend fun readAvailable(dst: ChunkBuffer): Int
+
     public suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
@@ -67,7 +70,10 @@ public actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+
+    @Suppress("DEPRECATION")
     public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
+
     public suspend fun readFully(dst: ByteBuffer): Int
 
     /**
@@ -288,6 +294,7 @@ public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: L
 }
 
 private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Long): Long {
+    @Suppress("DEPRECATION")
     val buffer = ChunkBuffer.Pool.borrow()
     val dstNeedsFlush = !dst.autoFlush
 
@@ -314,6 +321,7 @@ private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Lon
         dst.close(t)
         throw t
     } finally {
+        @Suppress("DEPRECATION")
         buffer.release(ChunkBuffer.Pool)
     }
 }

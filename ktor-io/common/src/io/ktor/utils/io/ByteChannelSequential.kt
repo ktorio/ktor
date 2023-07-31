@@ -771,7 +771,6 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    @Suppress("DEPRECATION")
     private suspend fun writeAvailableSuspend(src: ChunkBuffer): Int {
         awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)

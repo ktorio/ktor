@@ -14,6 +14,7 @@ open class JvmByteChannelSmokeTest : ByteChannelSmokeTest() {
     @get:Rule
     val timeout = Timeout(10, TimeUnit.SECONDS)
 
+    @Suppress("DEPRECATION")
     @Test
     fun testReadAndWriteFullyByteBuffer() {
         runTest {
@@ -68,6 +69,7 @@ open class JvmByteChannelSmokeTest : ByteChannelSmokeTest() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
         return ByteChannelSequentialJVM(ChunkBuffer.Empty, autoFlush)
     }

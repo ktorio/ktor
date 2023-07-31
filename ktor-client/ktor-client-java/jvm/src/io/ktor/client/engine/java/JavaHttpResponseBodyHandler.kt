@@ -26,6 +26,7 @@ internal class JavaHttpResponseBodyHandler(
         return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, requestTime)
     }
 
+    @Suppress("DEPRECATION")
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,

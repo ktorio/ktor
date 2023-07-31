@@ -7,9 +7,9 @@ package io.ktor.utils.io
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
-import kotlin.test.Test
 
 open class StringsTest : ByteChannelTestBase(true) {
+    @Suppress("DEPRECATION")
     private val channel: ByteChannel get() = ch
 
     @Test
@@ -309,6 +309,7 @@ open class StringsTest : ByteChannelTestBase(true) {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCarriageReturnIsTreatedLikeEndOfLine() = runTest {
         val channel = ByteChannel()
         channel.writeStringUtf8("start\rend")

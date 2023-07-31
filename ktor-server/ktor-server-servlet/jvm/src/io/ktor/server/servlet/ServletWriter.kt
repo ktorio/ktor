@@ -13,6 +13,7 @@ import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
     return reader(Dispatchers.IO, writer.channel) {
@@ -48,7 +49,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
             finish()
 
             // we shouldn't recycle it in finally
-            // because in case of error the buffer could be still hold by servlet container
+            // because in case of error, the buffer could be still hold by servlet container,
             // so we simply drop it as buffer leak has only limited performance impact
             // (buffer will be collected by GC and pool will produce another one)
             ArrayPool.recycle(buffer)

@@ -177,6 +177,7 @@ public class CIOMultipartDataBase(
     }
 }
 
+@Suppress("DEPRECATION")
 private class MultipartInput(
     private val head: ByteBuffer,
     private val tail: ByteReadChannel

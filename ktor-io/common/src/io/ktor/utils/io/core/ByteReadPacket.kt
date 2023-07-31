@@ -11,6 +11,7 @@ import io.ktor.utils.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
+@Suppress("DEPRECATION")
 public class ByteReadPacket internal constructor(
     head: ChunkBuffer,
     remaining: Long,

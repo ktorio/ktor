@@ -76,6 +76,7 @@ public class AsyncServletApplicationRequest(
     }
 }
 
+@Suppress("DEPRECATION")
 public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,

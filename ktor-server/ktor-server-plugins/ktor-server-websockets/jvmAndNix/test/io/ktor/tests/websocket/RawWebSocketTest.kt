@@ -16,6 +16,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.reflect.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class RawWebSocketTest : BaseTest() {
     private lateinit var parent: CompletableJob

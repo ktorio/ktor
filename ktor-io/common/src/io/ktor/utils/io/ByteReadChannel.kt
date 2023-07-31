@@ -41,6 +41,8 @@ public expect interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+
+    @Suppress("DEPRECATION")
     public suspend fun readAvailable(dst: ChunkBuffer): Int
 
     /**
@@ -48,6 +50,8 @@ public expect interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     public suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+
+    @Suppress("DEPRECATION")
     public suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     /**
@@ -182,6 +186,7 @@ public expect interface ByteReadChannel {
      * @param max bytes to be copied even if there are more bytes buffered, could be [Int.MAX_VALUE].
      * @return number of bytes copied to the [destination] possibly `0`
      */
+    @Suppress("DEPRECATION")
     public suspend fun peekTo(
         destination: Memory,
         destinationOffset: Long,
@@ -200,6 +205,7 @@ public expect interface ByteReadChannel {
  */
 public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE)
 
+@Suppress("DEPRECATION")
 public suspend fun ByteReadChannel.readFully(dst: ChunkBuffer) {
     readFully(dst, dst.writeRemaining)
 }

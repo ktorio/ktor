@@ -3,8 +3,8 @@ package io.ktor.utils.io.core.internal
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.jvm.*
 
+@Suppress("DEPRECATION")
 internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     read { memory, start, endExclusive ->
         for (index in start until endExclusive) {
@@ -21,6 +21,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
     return true
 }
 
+@Suppress("DEPRECATION")
 internal suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
@@ -117,6 +118,7 @@ internal fun byteCountUtf8(firstByte: Int): Int {
  * @return number of bytes required to decode incomplete utf8 character or 0 if all bytes were processed
  * or -1 if consumer rejected loop
  */
+@Suppress("DEPRECATION")
 internal inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
@@ -191,6 +193,7 @@ internal inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     return 0
 }
 
+@Suppress("DEPRECATION")
 internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset: Int, dstLimit: Int): EncodeResult {
     // encode single-byte characters
     val lastCharIndex = minOf(to, from + UShort.MAX_VALUE.toInt())
@@ -218,6 +221,7 @@ internal fun Memory.encodeUTF8(text: CharSequence, from: Int, to: Int, dstOffset
 /**
  * Encode UTF-8 multibytes characters when we for sure have enough free space
  */
+@Suppress("DEPRECATION")
 private fun Memory.encodeUTF8Stage1(
     text: CharSequence,
     index1: Int,
@@ -260,6 +264,7 @@ private fun Memory.encodeUTF8Stage1(
     return EncodeResult((index - from).toUShort(), (resultPosition - dstOffset).toUShort())
 }
 
+@Suppress("DEPRECATION")
 private fun Memory.encodeUTF8Stage2(
     text: CharSequence,
     index1: Int,
@@ -310,7 +315,7 @@ private inline fun charactersSize(v: Int) = when (v) {
 }
 
 // TODO optimize it, now we are simply do naive encoding here
-@Suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE", "DEPRECATION")
 internal inline fun Memory.putUtf8Char(offset: Int, v: Int): Int = when (v) {
     in 0..0x7f -> {
         storeAt(offset, v.toByte())

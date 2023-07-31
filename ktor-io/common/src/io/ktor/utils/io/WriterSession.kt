@@ -14,6 +14,7 @@ import io.ktor.utils.io.core.internal.*
  * or when it is impossible to represent all [desiredSpace] bytes as a single memory range
  * due to internal implementation reasons.
  */
+@Suppress("DEPRECATION")
 public suspend inline fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
     block: (freeSpace: Memory, startOffset: Long, endExclusive: Long) -> Int
@@ -29,26 +30,27 @@ public suspend inline fun ByteWriteChannel.write(
     }
 }
 
-@Suppress("DEPRECATION")
-@Deprecated("Use writeMemory instead.")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public interface WriterSession {
+    @Suppress("DEPRECATION")
     public fun request(min: Int): ChunkBuffer?
     public fun written(n: Int)
     public fun flush()
 }
 
 @Suppress("DEPRECATION")
-@Deprecated("Use writeMemory instead.")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public interface WriterSuspendSession : WriterSession {
     public suspend fun tryAwait(n: Int)
 }
 
-@Suppress("DEPRECATION")
 internal interface HasWriteSession {
-    public fun beginWriteSession(): WriterSuspendSession?
-    public fun endWriteSession(written: Int)
+    @Suppress("DEPRECATION")
+    fun beginWriteSession(): WriterSuspendSession?
+    fun endWriteSession(written: Int)
 }
 
+@Suppress("DEPRECATION")
 @PublishedApi
 internal suspend fun ByteWriteChannel.requestWriteBuffer(desiredSpace: Int): Buffer? {
     val session = writeSessionFor()
@@ -64,6 +66,7 @@ internal suspend fun ByteWriteChannel.requestWriteBuffer(desiredSpace: Int): Buf
     return writeBufferFallback()
 }
 
+@Suppress("DEPRECATION")
 @PublishedApi
 internal suspend fun ByteWriteChannel.completeWriting(buffer: Buffer, written: Int) {
     if (this is HasWriteSession) {
@@ -91,13 +94,14 @@ private suspend fun writeBufferSuspend(session: WriterSuspendSession, desiredSpa
     return session.request(desiredSpace) ?: session.request(1)
 }
 
+@Suppress("DEPRECATION")
 private fun writeBufferFallback(): Buffer = ChunkBuffer.Pool.borrow().also {
     it.resetForWrite()
     it.reserveEndGap(Buffer.ReservedSize)
 }
 
-@Suppress("DEPRECATION", "NOTHING_TO_INLINE")
-private inline fun ByteWriteChannel.writeSessionFor(): WriterSuspendSession? = when {
+@Suppress("DEPRECATION")
+private fun ByteWriteChannel.writeSessionFor(): WriterSuspendSession? = when {
     this is HasWriteSession -> beginWriteSession()
     else -> null
 }

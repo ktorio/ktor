@@ -28,7 +28,7 @@ import kotlinx.coroutines.channels.*
  *
  * @return pipeline job
  */
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "DEPRECATION")
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,

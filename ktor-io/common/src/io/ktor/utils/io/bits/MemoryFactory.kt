@@ -1,5 +1,7 @@
 package io.ktor.utils.io.bits
 
+import io.ktor.utils.io.*
+import io.ktor.utils.io.IO_DEPRECATION_MESSAGE
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.contracts.*
@@ -16,6 +18,7 @@ import kotlin.contracts.*
  * 1. length has no default (blocked by expect/actual with default value compiler bug (fixed in KT 1.4.3))
  * 2. no inline -> can't suspend inside block (blocked by inline compiler bug)
  */
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
 
 /**
@@ -23,7 +26,9 @@ public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
  * may occur including crash and/or data corruption.
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -38,6 +43,7 @@ public inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
  * may occur including crash and/or data corruption.
  */
 @OptIn(ExperimentalContracts::class)
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

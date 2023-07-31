@@ -20,6 +20,7 @@ import kotlinx.coroutines.channels.*
 import java.net.*
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationRequest(
     call: ApplicationCall,

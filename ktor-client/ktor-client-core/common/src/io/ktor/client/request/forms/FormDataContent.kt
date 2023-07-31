@@ -88,7 +88,8 @@ public class MultiPartFormDataContent(
         }
     }
 
-    override val contentLength: Long?
+    override var contentLength: Long? = null
+        private set
 
     init {
         var rawLength: Long? = 0
@@ -146,6 +147,7 @@ private fun generateBoundary(): String = buildString {
 }.take(70)
 
 private sealed class PreparedPart(val headers: ByteArray, val size: Long?) {
+    @Suppress("DEPRECATION")
     class InputPart(headers: ByteArray, val provider: () -> Input, size: Long?) : PreparedPart(headers, size)
     class ChannelPart(
         headers: ByteArray,
@@ -154,6 +156,7 @@ private sealed class PreparedPart(val headers: ByteArray, val size: Long?) {
     ) : PreparedPart(headers, size)
 }
 
+@Suppress("DEPRECATION")
 private suspend fun Input.copyTo(channel: ByteWriteChannel) {
     if (this is ByteReadPacket) {
         channel.writePacket(this)

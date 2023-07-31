@@ -1,13 +1,12 @@
 package io.ktor.utils.io.nio
 
-import io.ktor.utils.io.bits.Memory
-import io.ktor.utils.io.bits.sliceSafe
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import java.nio.channels.*
-import kotlin.require
 
+@Suppress("DEPRECATION")
 private class ChannelAsInput(
     private val channel: ReadableByteChannel,
     pool: ObjectPool<ChunkBuffer>
@@ -25,6 +24,7 @@ private class ChannelAsInput(
     }
 }
 
+@Suppress("DEPRECATION")
 public fun ReadableByteChannel.asInput(
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ): Input = ChannelAsInput(this, pool)

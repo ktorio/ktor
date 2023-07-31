@@ -84,7 +84,7 @@ internal fun HttpResponse.complete() {
 public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.UTF_8): String {
     val originCharset = charset() ?: fallbackCharset
     val decoder = originCharset.newDecoder()
-    val input = body<Input>()
+    val input = body<ByteReadPacket>()
 
     return decoder.decode(input)
 }

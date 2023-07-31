@@ -115,6 +115,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
         is OutgoingContent.NoContent -> ByteReadChannel.Empty
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())

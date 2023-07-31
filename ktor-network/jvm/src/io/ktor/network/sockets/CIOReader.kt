@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.attachForReadingImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,
@@ -73,6 +74,7 @@ internal fun CoroutineScope.attachForReadingImpl(
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,

@@ -21,7 +21,6 @@ import org.apache.http.client.methods.*
 import org.apache.http.client.utils.*
 import org.apache.http.entity.*
 import org.apache.http.nio.*
-import org.apache.http.nio.ContentEncoder
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.*
@@ -44,6 +43,7 @@ internal class ApacheRequestProducer(
     private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     private val channel: ByteReadChannel = when (val body = requestData.body) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())

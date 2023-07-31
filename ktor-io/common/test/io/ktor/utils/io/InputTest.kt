@@ -5,7 +5,6 @@ import io.ktor.utils.io.bits.set
 import io.ktor.utils.io.bits.storeIntAt
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.*
 import kotlin.test.*
 
 class InputTest {
@@ -21,6 +20,7 @@ class InputTest {
         var closed = false
         var written = false
 
+        @Suppress("DEPRECATION")
         val input = object : Input(pool = pool) {
             override fun fill(destination: Memory, offset: Int, length: Int): Int {
                 if (written) return 0
@@ -50,6 +50,7 @@ class InputTest {
             "zxc."
         )
 
+        @Suppress("DEPRECATION")
         val input = object : Input(pool = pool) {
             override fun fill(): ChunkBuffer? {
                 if (items.isEmpty()) return null

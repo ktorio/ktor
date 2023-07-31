@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
     val reader = ServletReader(input, contentLength)
 

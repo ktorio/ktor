@@ -15,6 +15,7 @@ import kotlinx.coroutines.channels.Channel
 import java.lang.Integer.*
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 internal class RequestBodyHandler(
     val context: ChannelHandlerContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {

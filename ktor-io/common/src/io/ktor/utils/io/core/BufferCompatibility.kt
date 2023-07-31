@@ -5,11 +5,11 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.*
 
 /**
  * Write byte [value] repeated the specified [times].
  */
+@Suppress("DEPRECATION")
 public fun Buffer.fill(times: Int, value: Byte) {
     require(times >= 0) { "times shouldn't be negative: $times" }
     require(times <= writeRemaining) {
@@ -23,6 +23,7 @@ public fun Buffer.fill(times: Int, value: Byte) {
 /**
  * Write unsigned byte [value] repeated the specified [times].
  */
+@Suppress("DEPRECATION")
 public fun Buffer.fill(times: Int, value: UByte) {
     fill(times, value.toByte())
 }
@@ -31,6 +32,7 @@ public fun Buffer.fill(times: Int, value: UByte) {
  * Write byte [v] value repeated [n] times.
  */
 @Deprecated("Use fill with n with type Int")
+@Suppress("DEPRECATION")
 public fun Buffer.fill(n: Long, v: Byte) {
     fill(n.toIntOrFail("n"), v)
 }
@@ -43,6 +45,7 @@ public fun Buffer.fill(n: Long, v: Byte) {
     ReplaceWith("rewind(n)"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.pushBack(n: Int): Unit = rewind(n)
 
 @Deprecated(
@@ -50,6 +53,7 @@ public fun Buffer.pushBack(n: Int): Unit = rewind(n)
     ReplaceWith("duplicate()"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.makeView(): Buffer = duplicate()
 
 @Deprecated(
@@ -57,15 +61,18 @@ public fun Buffer.makeView(): Buffer = duplicate()
     ReplaceWith("duplicate()"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun ChunkBuffer.makeView(): ChunkBuffer = duplicate()
 
 @Deprecated(
     "Does nothing.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.flush() {
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.appendChars(csq: CharSequence, start: Int = 0, end: Int = csq.length): Int {
     var charactersWritten: Int
 
@@ -82,6 +89,7 @@ internal fun Buffer.appendChars(csq: CharSequence, start: Int = 0, end: Int = cs
     "This is no longer supported. Use a packet builder to append characters instead.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.append(c: Char): Buffer {
     write { memory, start, endExclusive ->
         val size = memory.putUtf8Char(start, c.code)
@@ -98,6 +106,7 @@ public fun Buffer.append(c: Char): Buffer {
     "This is no longer supported. Use a packet builder to append characters instead.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.append(csq: CharSequence?): Buffer {
     error("This is no longer supported. Use a packet builder to append characters instead.")
 }
@@ -106,6 +115,7 @@ public fun Buffer.append(csq: CharSequence?): Buffer {
     "This is no longer supported. Use a packet builder to append characters instead.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.append(csq: CharSequence?, start: Int, end: Int): Buffer = apply {
     error("This is no longer supported. Use a packet builder to append characters instead.")
 }
@@ -118,6 +128,7 @@ private fun appendFailed(length: Int): Nothing {
     "This is no longer supported. Use a packet builder to append characters instead.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer {
     error("This is no longer supported. Use a packet builder to append characters instead.")
 }
@@ -126,6 +137,7 @@ public fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer {
     "This is no longer supported. Read from a packet instead.",
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.readText(
     decoder: CharsetDecoder,
     out: Appendable,
@@ -145,8 +157,10 @@ public fun Buffer.readText(
     replaceWith = ReplaceWith("tryPeekByte()"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("DEPRECATION")
 public fun Buffer.tryPeek(): Int = tryPeekByte()
 
+@Suppress("DEPRECATION")
 public fun Buffer.readFully(dst: Array<Byte>, offset: Int = 0, length: Int = dst.size - offset) {
     read { memory, start, endExclusive ->
         if (endExclusive - start < length) {

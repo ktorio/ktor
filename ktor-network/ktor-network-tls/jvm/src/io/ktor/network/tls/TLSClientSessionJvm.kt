@@ -30,6 +30,7 @@ internal actual suspend fun openTLSSession(
     return TLSSocket(handshake.input, handshake.output, socket, context)
 }
 
+@Suppress("DEPRECATION")
 private class TLSSocket(
     private val input: ReceiveChannel<TLSRecord>,
     private val output: SendChannel<TLSRecord>,
@@ -61,7 +62,7 @@ private class TLSSocket(
                     else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
                 }
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         } finally {
             pipe.close()
         }

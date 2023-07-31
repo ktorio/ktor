@@ -1,12 +1,12 @@
 package io.ktor.utils.io.streams
 
-import io.ktor.utils.io.bits.Memory
-import io.ktor.utils.io.bits.sliceSafe
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import java.io.*
 
+@Suppress("DEPRECATION")
 private class OutputStreamAdapter(
     pool: ObjectPool<ChunkBuffer>,
     private val stream: OutputStream
@@ -38,4 +38,5 @@ private class OutputStreamAdapter(
     }
 }
 
+@Suppress("DEPRECATION")
 public fun OutputStream.asOutput(): Output = OutputStreamAdapter(ChunkBuffer.Pool, this)

@@ -14,8 +14,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
 /**
- * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
+ * Creates a buffered channel for asynchronous reading and writing of sequences of bytes.
  */
+@Suppress("DEPRECATION")
 public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
     return ByteChannelNative(ChunkBuffer.Empty, autoFlush)
 }
@@ -23,6 +24,7 @@ public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
 /**
  * Creates channel for reading from the specified byte array.
  */
+@Suppress("DEPRECATION")
 public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
     val head = ChunkBuffer.Pool.borrow()
@@ -59,6 +61,7 @@ public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: L
     return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), limit)
 }
 
+@Suppress("DEPRECATION")
 internal class ByteChannelNative(
     initial: ChunkBuffer,
     autoFlush: Boolean,
@@ -67,6 +70,7 @@ internal class ByteChannelNative(
     private var attachedJob: Job? by atomic(null)
 
     @OptIn(InternalCoroutinesApi::class)
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job

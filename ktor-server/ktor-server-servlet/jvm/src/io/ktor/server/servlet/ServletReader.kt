@@ -12,6 +12,7 @@ import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
     val reader = ServletReader(input, contentLength)
 
@@ -30,9 +31,10 @@ private class ServletReader(val input: ServletInputStream, val contentLength: In
             input.setReadListener(this)
             if (input.isFinished) {
                 // setting read listener on already completed stream could cause it to hang
-                // it is not by Servlet API spec but it actually works like this
+                // it is not by Servlet API spec, but it actually works like this
                 // it is relatively dangerous to touch isFinished due to async processing
-                // if the servlet container call us onAllDataRead then it we will close events again that is safe
+                // if the servlet container calls us onAllDataRead,
+                // then we will close events again that is safe
                 events.close()
                 return
             }

@@ -36,6 +36,7 @@ public fun ByteReadPacket.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_
  * Read a string line considering optionally specified [estimate] but up to optional [limit] characters length
  * (does fail once limit exceeded) or return `null` if the packet is empty
  */
+@Suppress("DEPRECATION")
 public fun Input.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE): String? {
     val sb = StringBuilder(estimate)
     return if (readUTF8LineTo(sb, limit)) sb.toString() else null
@@ -46,6 +47,7 @@ public fun Input.readUTF8Line(estimate: Int = 16, limit: Int = Int.MAX_VALUE): S
  * @return `true` if some characters were appended or line ending reached (empty line) or `false` if packet
  * is empty
  */
+@Suppress("DEPRECATION")
 public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
     var decoded = 0
     var size = 1
@@ -101,7 +103,7 @@ public fun Input.readUTF8LineTo(out: Appendable, limit: Int): Boolean {
  * @throws BufferLimitExceededException
  * @returns a string of characters read before delimiter
  */
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 public fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX_VALUE): String {
     return buildString {
         readUTF8UntilDelimiterTo(this, delimiters, limit)
@@ -115,6 +117,7 @@ public fun Input.readUTF8UntilDelimiter(delimiters: String, limit: Int = Int.MAX
  * @throws BufferLimitExceededException
  * @returns number of characters copied (possibly zero)
  */
+@Suppress("DEPRECATION")
 public fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     var decoded = 0
     var delimiter = false
@@ -147,6 +150,7 @@ public fun Input.readUTF8UntilDelimiterTo(out: Appendable, delimiters: String, l
  * @throws BufferLimitExceededException
  * @returns number of characters copied (possibly zero)
  */
+@Suppress("DEPRECATION")
 public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
     val delimitersCount = delimiters.length
     if (delimitersCount == 1 && delimiters[0].isAsciiChar()) {
@@ -172,17 +176,20 @@ public fun ByteReadPacket.readBytes(
 /**
  * Reads exactly [n] bytes from the input or fails if not enough bytes available.
  */
+@Suppress("DEPRECATION")
 public fun Input.readBytes(n: Int): ByteArray = readBytesOf(n, n)
 
 /**
  * Reads all remaining bytes from the input
  */
+@Suppress("DEPRECATION")
 public fun Input.readBytes(): ByteArray = readBytesOf()
 
 /**
  * Reads at least [min] but no more than [max] bytes from the input to a new byte array
  * @throws EOFException if not enough bytes available to get [min] bytes
  */
+@Suppress("DEPRECATION")
 public fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (min == max && min == 0) {
     EmptyByteArray
 } else if (min == max) {
@@ -212,6 +219,7 @@ public fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray 
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return number of characters copied to [out]
  */
+@Suppress("DEPRECATION")
 public fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): Int {
     return charset.newDecoder().decode(this, out, max)
 }
@@ -220,6 +228,7 @@ public fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, ma
  * Reads at most [max] characters decoding bytes with specified [decoder]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
+@Suppress("DEPRECATION")
 @Deprecated(
     "Use CharsetDecoder.decode instead",
     ReplaceWith("decoder.decode(this, max)", "io.ktor.utils.io.charsets.decode")
@@ -232,6 +241,7 @@ public fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): St
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
+@Suppress("DEPRECATION")
 public fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
     return charset.newDecoder().decode(this, max)
 }
@@ -240,6 +250,7 @@ public fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
  * @return a decoded string
  */
+@Suppress("DEPRECATION")
 public fun Buffer.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String = buildString {
     charset.newDecoder().decodeBuffer(this@readText, this, true, max)
 }
@@ -247,6 +258,7 @@ public fun Buffer.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX
 /**
  * Read exactly [n] characters interpreting bytes in the specified [charset].
  */
+@Suppress("DEPRECATION")
 @Deprecated(
     "Use readTextExactCharacters instead.",
     ReplaceWith("readTextExactCharacters(n, charset)")
@@ -258,6 +270,7 @@ public fun Input.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): Strin
 /**
  * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
  */
+@Suppress("DEPRECATION")
 public fun Input.readTextExactCharacters(charactersCount: Int, charset: Charset = Charsets.UTF_8): String {
     val s = readText(charset, charactersCount)
     if (s.length < charactersCount) {
@@ -270,6 +283,7 @@ public fun Input.readTextExactCharacters(charactersCount: Int, charset: Charset 
  * Read exactly the specified number of [bytes]
  * interpreting bytes in the specified [charset] (optional, UTF-8 by default).
  */
+@Suppress("DEPRECATION")
 @Deprecated("Parameters order is changed.", ReplaceWith("readTextExactBytes(bytes, charset)"))
 public fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: Int): String {
     return readTextExactBytes(bytes, charset)
@@ -278,6 +292,7 @@ public fun Input.readTextExactBytes(charset: Charset = Charsets.UTF_8, bytes: In
 /**
  * Read exactly [bytesCount] interpreting bytes in the specified [charset] (optional, UTF-8 by default).
  */
+@Suppress("DEPRECATION")
 public fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets.UTF_8): String {
     return charset.newDecoder().decodeExactBytes(this, inputLength = bytesCount)
 }
@@ -285,6 +300,7 @@ public fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
  */
+@Suppress("DEPRECATION")
 public fun Output.writeText(
     text: CharSequence,
     fromIndex: Int = 0,
@@ -301,6 +317,7 @@ public fun Output.writeText(
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
  */
+@Suppress("DEPRECATION")
 public fun Output.writeText(
     text: CharArray,
     fromIndex: Int = 0,
@@ -314,6 +331,7 @@ public fun Output.writeText(
     charset.newEncoder().encode(text, fromIndex, toIndex, this)
 }
 
+@Suppress("DEPRECATION")
 private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: Int) {
     var index = fromIndex
     writeWhileSize(1) { buffer ->
@@ -339,6 +357,7 @@ internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Char.isAsciiChar() = code <= 0x7f
 
+@Suppress("DEPRECATION")
 private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: Int, out: Output): Int {
     var decoded = 0
     var delimiter = false
@@ -373,6 +392,7 @@ private fun Input.readUTFUntilDelimiterToSlowAscii(delimiters: String, limit: In
     return decoded
 }
 
+@Suppress("DEPRECATION")
 private fun Input.readUTF8UntilDelimiterToSlowUtf8(
     out: Output,
     delimiters: String,
@@ -412,6 +432,7 @@ private fun Input.readUTF8UntilDelimiterToSlowUtf8(
     return decoded
 }
 
+@Suppress("DEPRECATION")
 private fun Input.readUTF8UntilDelimiterToSlowUtf8(
     out: Appendable,
     delimiters: String,

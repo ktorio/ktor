@@ -32,6 +32,7 @@ class ByteChannelTextTest {
         assertEquals(line, result)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testReadLineUtf8Chunks() = runBlocking {
         val line = "x".repeat(32 * 1024)

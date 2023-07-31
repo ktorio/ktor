@@ -45,6 +45,7 @@ public expect interface ByteWriteChannel {
      */
     public suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
 
+    @Suppress("DEPRECATION")
     public suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
@@ -53,8 +54,10 @@ public expect interface ByteWriteChannel {
      */
     public suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
+    @Suppress("DEPRECATION")
     public suspend fun writeFully(src: Buffer)
 
+    @Suppress("DEPRECATION")
     public suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 
     @Suppress("DEPRECATION")

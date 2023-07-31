@@ -29,6 +29,7 @@ fun List<PartData>.makeString(): String = buildString {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun filenameContentTypeAndContentString(provider: () -> Input, headers: Headers): String {
     val dispositionHeader: String = headers.getAll(HttpHeaders.ContentDisposition)!!.joinToString(";")
     val disposition: ContentDisposition = ContentDisposition.parse(dispositionHeader)

@@ -81,6 +81,7 @@ internal class ApacheResponseConsumer(
     private val consumerJob = Job(parentContext[Job])
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
 
+    @Suppress("DEPRECATION")
     private val channel = ByteChannel().also {
         it.attachJob(consumerJob)
     }
