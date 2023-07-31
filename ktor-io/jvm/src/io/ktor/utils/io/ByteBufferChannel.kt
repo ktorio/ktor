@@ -3,7 +3,6 @@ package io.ktor.utils.io
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
@@ -43,6 +42,7 @@ internal open class ByteBufferChannel(
         get() = _state.value
 
     private val _closed: AtomicRef<ClosedElement?> = atomic(null)
+
     private var closed: ClosedElement?
         get() = _closed.value
         set(value) {
@@ -53,6 +53,7 @@ internal open class ByteBufferChannel(
     private var joining: JoiningState? = null
 
     private val _readOp: AtomicRef<Continuation<Boolean>?> = atomic(null)
+
     private var readOp: Continuation<Boolean>?
         get() = _readOp.value
         set(value) {
@@ -77,6 +78,7 @@ internal open class ByteBufferChannel(
 
     internal fun getJoining(): JoiningState? = joining
 
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         // TODO actually it looks like one-direction attachChild API
@@ -497,7 +499,11 @@ internal open class ByteBufferChannel(
         return consumed
     }
 
-    private fun readAsMuchAsPossible(dst: Buffer, consumed: Int = 0, max: Int = dst.writeRemaining): Int {
+    private fun readAsMuchAsPossible(
+        dst: io.ktor.utils.io.core.Buffer,
+        consumed: Int = 0,
+        max: Int = dst.writeRemaining
+    ): Int {
         var currentConsumed = consumed
         var currentMax = max
 
@@ -1087,7 +1093,7 @@ internal open class ByteBufferChannel(
         return writeFullySuspend(src)
     }
 
-    override suspend fun writeFully(src: Buffer) {
+    override suspend fun writeFully(src: io.ktor.utils.io.core.Buffer) {
         writeAsMuchAsPossible(src)
 
         if (!src.canRead()) {
@@ -1112,7 +1118,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private suspend fun writeFullySuspend(src: Buffer) {
+    private suspend fun writeFullySuspend(src: io.ktor.utils.io.core.Buffer) {
         while (src.canRead()) {
             tryWriteSuspend(1)
 
@@ -1342,7 +1348,7 @@ internal open class ByteBufferChannel(
         return 0
     }
 
-    private fun writeAsMuchAsPossible(src: Buffer): Int {
+    private fun writeAsMuchAsPossible(src: io.ktor.utils.io.core.Buffer): Int {
         writing { dst, state ->
             var written = 0
 

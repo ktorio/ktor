@@ -1,7 +1,6 @@
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
 import java.nio.*
 import java.nio.charset.*
@@ -40,7 +39,13 @@ private fun CharsetEncoder.encodeToByteArraySlow(input: CharSequence, fromIndex:
     return existingArray ?: ByteArray(result.remaining()).also { result.get(it) }
 }
 
-internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
+@Suppress("DEPRECATION")
+internal actual fun CharsetEncoder.encodeImpl(
+    input: CharSequence,
+    fromIndex: Int,
+    toIndex: Int,
+    dst: io.ktor.utils.io.core.Buffer
+): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()
 
@@ -52,6 +57,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return before - cb.remaining()
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     if (charset === Charsets.UTF_8) {
         dst.writePacket(input)
@@ -128,7 +134,8 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
     }
 }
 
-internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
+@Suppress("DEPRECATION")
+internal actual fun CharsetEncoder.encodeComplete(dst: io.ktor.utils.io.core.Buffer): Boolean {
     var completed = false
 
     dst.writeDirect(0) { bb ->
@@ -142,8 +149,9 @@ internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
     return completed
 }
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetDecoder.decodeBuffer(
-    input: Buffer,
+    input: io.ktor.utils.io.core.Buffer,
     out: Appendable,
     lastBuffer: Boolean,
     max: Int
@@ -181,6 +189,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
 ): ByteArray {
     var start = fromIndex
     if (start >= toIndex) return EmptyByteArray
+    @Suppress("DEPRECATION")
     val single = ChunkBuffer.Pool.borrow()
 
     try {
@@ -197,6 +206,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
             encodeToImpl(this, input, start, toIndex)
         }.readBytes()
     } finally {
+        @Suppress("DEPRECATION")
         single.release(ChunkBuffer.Pool)
     }
 }
@@ -207,13 +217,14 @@ public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 
 public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: Buffer ->
+    input.takeWhileSize { buffer: io.ktor.utils.io.core.Buffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
@@ -257,6 +268,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
     return copied
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input.headRemaining >= inputLength) {
@@ -285,6 +297,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
     return decodeImplSlow(input, inputLength)
 }
 
+@Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeImplByteBuffer(input: Input, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
     val bb = input.headMemory.slice(input.head.readPosition, inputLength).buffer
@@ -296,6 +309,7 @@ private fun CharsetDecoder.decodeImplByteBuffer(input: Input, inputLength: Int):
     return cb.toString()
 }
 
+@Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
     var remainingInputBytes = inputLength
@@ -303,7 +317,7 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: Buffer ->
+    input.takeWhileSize { buffer: io.ktor.utils.io.core.Buffer ->
         if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
 
         buffer.readDirect { bb: ByteBuffer ->

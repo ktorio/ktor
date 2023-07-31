@@ -21,6 +21,7 @@ public expect abstract class CharsetEncoder
 
 public expect val CharsetEncoder.charset: Charset
 
+@Suppress("DEPRECATION")
 @Deprecated(
     "Use writeText on Output instead.",
     level = DeprecationLevel.ERROR,
@@ -52,6 +53,7 @@ public fun CharsetEncoder.encodeToByteArrayImpl(
     return encodeToByteArray(input, fromIndex, toIndex)
 }
 
+@Suppress("DEPRECATION")
 public expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output)
 
 public fun CharsetEncoder.encode(
@@ -66,6 +68,7 @@ public fun CharsetEncoder.encodeUTF8(input: ByteReadPacket): ByteReadPacket = bu
     encodeUTF8(input, this)
 }
 
+@Suppress("DEPRECATION")
 public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: Output) {
     var start = fromIndex
 
@@ -94,13 +97,16 @@ public expect abstract class CharsetDecoder
  */
 public expect val CharsetDecoder.charset: Charset
 
+@Suppress("DEPRECATION")
 public fun CharsetDecoder.decode(input: Input, max: Int = Int.MAX_VALUE): String =
     buildString(minOf(max.toLong(), input.sizeEstimate()).toInt()) {
         decode(input, this, max)
     }
 
+@Suppress("DEPRECATION")
 public expect fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int
 
+@Suppress("DEPRECATION")
 public expect fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String
 
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
@@ -115,15 +121,19 @@ public class TooLongLineException(message: String) : MalformedInputException(mes
 
 // ----------------------------- INTERNALS -----------------------------------------------------------------------------
 
+@Suppress("DEPRECATION")
 internal fun CharsetEncoder.encodeArrayImpl(input: CharArray, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     val length = toIndex - fromIndex
     return encodeImpl(CharArraySequence(input, fromIndex, length), 0, length, dst)
 }
 
+@Suppress("DEPRECATION")
 internal expect fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int
 
+@Suppress("DEPRECATION")
 internal expect fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean
 
+@Suppress("DEPRECATION")
 internal expect fun CharsetDecoder.decodeBuffer(
     input: Buffer,
     out: Appendable,
@@ -137,11 +147,13 @@ internal expect fun CharsetEncoder.encodeToByteArrayImpl1(
     toIndex: Int = input.length
 ): ByteArray
 
+@Suppress("DEPRECATION")
 internal fun Input.sizeEstimate(): Long = when (this) {
     is ByteReadPacket -> remaining
     else -> maxOf(remaining, 16)
 }
 
+@Suppress("DEPRECATION")
 private fun CharsetEncoder.encodeCompleteImpl(dst: Output): Int {
     var size = 1
     var bytesWritten = 0
@@ -160,6 +172,7 @@ private fun CharsetEncoder.encodeCompleteImpl(dst: Output): Int {
     return bytesWritten
 }
 
+@Suppress("DEPRECATION")
 internal fun CharsetEncoder.encodeToImpl(
     destination: Output,
     input: CharSequence,

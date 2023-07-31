@@ -58,6 +58,7 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     return builder.build()
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun OutgoingContent.convertToHttpRequestBody(
     callContext: CoroutineContext

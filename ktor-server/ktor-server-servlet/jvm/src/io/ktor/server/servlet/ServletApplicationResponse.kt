@@ -32,6 +32,7 @@ public abstract class ServletApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
+    @Suppress("DEPRECATION")
     protected abstract fun createResponseJob(): ReaderJob
 
     @Volatile

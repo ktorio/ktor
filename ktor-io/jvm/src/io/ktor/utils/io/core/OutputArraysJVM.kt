@@ -4,6 +4,7 @@ package io.ktor.utils.io.core
 
 import java.nio.*
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(bb: ByteBuffer) {
     val l = bb.limit()
 

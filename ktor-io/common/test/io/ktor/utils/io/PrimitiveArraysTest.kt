@@ -3,7 +3,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlin.require
 import kotlin.test.*
 
 class PrimitiveArraysTest {
@@ -930,6 +929,7 @@ class PrimitiveArraysTest {
         compareSubRange(tmp)
     }
 
+    @Suppress("DEPRECATION")
     private fun Buffer.readHex() = buildString(readRemaining * 2) {
         repeat(readRemaining) {
             val i = readByte().toInt() and 0xff
@@ -952,6 +952,7 @@ class PrimitiveArraysTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun Buffer.writeHex(hex: CharSequence) {
         for (idx in 0..hex.length - 2 step 2) {
             val l = unhex(hex[idx])

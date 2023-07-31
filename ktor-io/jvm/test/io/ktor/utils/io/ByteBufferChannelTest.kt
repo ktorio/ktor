@@ -12,6 +12,7 @@ import org.junit.*
 import java.io.*
 import kotlin.test.*
 import kotlin.test.Test
+import kotlin.text.toByteArray
 
 class ByteBufferChannelTest {
 
@@ -19,6 +20,7 @@ class ByteBufferChannelTest {
     public val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(60) }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCompleteExceptionallyJob() {
         val channel = ByteBufferChannel(false)
         Job().also { channel.attachJob(it) }.completeExceptionally(IOException("Text exception"))
@@ -109,6 +111,7 @@ class ByteBufferChannelTest {
         testWriteXRaceCondition { it.writeLong(1) }
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     private fun testWriteXRaceCondition(writer: suspend (ByteChannel) -> Unit): Unit = runBlocking {
         val channel = ByteBufferChannel(false)

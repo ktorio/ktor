@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
@@ -25,11 +24,13 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 /**
  * Decoder job type
  */
+@Suppress("DEPRECATION")
 public typealias DecoderJob = WriterJob
 
 /**
  * Start a chunked stream decoder coroutine
  */
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 @Deprecated(
     "Specify content length if known or pass -1L",
     ReplaceWith("decodeChunked(input, -1L)")
@@ -40,7 +41,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
 /**
  * Start a chunked stream decoder coroutine
  */
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER", "TYPEALIAS_EXPANSION_DEPRECATION")
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
     writer(coroutineContext) {
         decodeChunked(input, channel)
@@ -110,11 +111,13 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, 
 /**
  * Encoder job type
  */
+@Suppress("DEPRECATION")
 public typealias EncoderJob = ReaderJob
 
 /**
  * Start chunked stream encoding coroutine
  */
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 public suspend fun encodeChunked(
     output: ByteWriteChannel,
@@ -145,6 +148,7 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
     }
 }
 
+@Suppress("DEPRECATION")
 private fun ByteReadChannel.rethrowCloseCause() {
     val cause = when (this) {
         is ByteChannel -> closedCause
@@ -157,6 +161,7 @@ private const val CrLfShort: Short = 0x0d0a
 private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
+@Suppress("DEPRECATION")
 private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {
     val size = endIndex - startIndex
     writeIntHex(size)

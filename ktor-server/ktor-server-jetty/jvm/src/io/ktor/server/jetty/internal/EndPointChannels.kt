@@ -101,6 +101,7 @@ internal class EndPointReader(
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.endPointWriter(
     endPoint: EndPoint,
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool

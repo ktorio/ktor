@@ -1,7 +1,6 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.Memory
-import io.ktor.utils.io.bits.set
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
@@ -63,6 +62,7 @@ class PeekCharTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPeekUtf8Edge() {
         val oSlash = '\u00f8'
 
@@ -80,6 +80,7 @@ class PeekCharTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPeekUtf8EdgeFor3BytesCharacter() {
         val bopomofoChar = '\u310f'
 
@@ -98,6 +99,7 @@ class PeekCharTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPeekUtf8EdgeFor3BytesCharacter2() {
         val bopomofoChar = '\u310f'
 
@@ -116,6 +118,7 @@ class PeekCharTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPeekUtf8EdgeReservedFor3BytesCharacter() {
         val bopomofoChar = '\u310f'
 
@@ -139,6 +142,7 @@ class PeekCharTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPeekUtf8EdgeFor3BytesCharacterFromInput() {
         val bopomofoChar = '\u310f'
         var count = 0

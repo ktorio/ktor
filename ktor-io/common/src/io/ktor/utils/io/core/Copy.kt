@@ -6,6 +6,7 @@ package io.ktor.utils.io.core
  * All regular types such as [ByteReadPacket], [BytePacketBuilder], [Input] and [Output]
  * are always optimized so no bytes will be copied.
  */
+@Suppress("DEPRECATION")
 public fun Input.copyTo(output: Output): Long {
     var copied = 0L
     do {

@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class DefaultWebSocketTest : BaseTest() {
 

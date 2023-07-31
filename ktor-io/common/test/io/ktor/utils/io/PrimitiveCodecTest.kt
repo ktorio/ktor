@@ -753,6 +753,7 @@ class PrimitiveCodecTest {
         assertTrue { p.isEmpty }
     }
 
+    @Suppress("DEPRECATION")
     private fun Buffer.readHex() = buildString(readRemaining * 2) {
         repeat(readRemaining) {
             val i = readByte().toInt() and 0xff

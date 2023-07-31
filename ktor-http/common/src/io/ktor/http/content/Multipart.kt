@@ -26,6 +26,7 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      * Represents a file item
      * @property provider of content bytes
      */
+    @Suppress("DEPRECATION")
     public class FileItem(
         public val provider: () -> Input,
         dispose: () -> Unit,
@@ -41,6 +42,7 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      * Represents a binary item
      * @property provider of content bytes
      */
+    @Suppress("DEPRECATION")
     public class BinaryItem(
         public val provider: () -> Input,
         dispose: () -> Unit,
@@ -103,7 +105,7 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
  */
 public interface MultiPartData {
     /**
-     * Reads next part data or `null` if end of multipart stream encountered
+     * Reads next part data or `null` if the end of multipart stream encountered
      */
     public suspend fun readPart(): PartData?
 

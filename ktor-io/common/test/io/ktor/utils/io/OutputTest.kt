@@ -1,12 +1,13 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class OutputTest {
     @Test
+    @Suppress("DEPRECATION")
     fun smokeTest() {
         val builder = BytePacketBuilder()
 
@@ -28,9 +29,11 @@ class OutputTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCopy() {
         val result = BytePacketBuilder()
 
+        @Suppress("DEPRECATION")
         val output = object : Output() {
             override fun closeDestination() {
             }

@@ -24,6 +24,7 @@ public inline fun <R> BytePacketBuilder.preview(block: (tmp: ByteReadPacket) -> 
 }
 
 @PublishedApi
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.preview(): ByteReadPacket {
     val head = head
     return when {

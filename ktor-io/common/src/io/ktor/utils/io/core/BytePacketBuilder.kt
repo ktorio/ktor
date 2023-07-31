@@ -23,6 +23,7 @@ import io.ktor.utils.io.pool.*
  * }
  * ```
  */
+@Suppress("DEPRECATION")
 public class BytePacketBuilder(
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Output(pool) {

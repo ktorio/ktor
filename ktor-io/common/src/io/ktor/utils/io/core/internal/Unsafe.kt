@@ -4,14 +4,12 @@ package io.ktor.utils.io.core.internal
 
 import io.ktor.utils.io.core.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
- * Such API could be changed without notice including rename, removal and behaviour change.
- * Also using API marked with this annotation could cause data loss or any other damage.
+ * Such API could be changed without a notice including rename, removal and behavior change.
+ * Also, using an API marked with this annotation could cause data loss or any other damage.
  */
-@Suppress("DEPRECATION")
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 public annotation class DangerousInternalIoApi
 
@@ -28,10 +26,12 @@ internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
     return builderSize
 }
 
+@Suppress("DEPRECATION")
 @PublishedApi
 internal fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? = prepareReadHead(minSize)
 
 @PublishedApi
+@Suppress("DEPRECATION")
 internal fun Input.completeReadHead(current: ChunkBuffer) {
     when {
         current === this -> return
@@ -41,6 +41,7 @@ internal fun Input.completeReadHead(current: ChunkBuffer) {
     }
 }
 
+@Suppress("DEPRECATION")
 @PublishedApi
 internal fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
@@ -50,6 +51,7 @@ internal fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     return ensureNextHead(current)
 }
 
+@Suppress("DEPRECATION")
 internal fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     if (current != null) {
         afterHeadWrite()

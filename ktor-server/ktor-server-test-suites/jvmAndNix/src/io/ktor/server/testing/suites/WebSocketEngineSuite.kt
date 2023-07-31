@@ -771,6 +771,7 @@ internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Bool
 
 internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
 
+@Suppress("DEPRECATION")
 private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
     buildPacket {

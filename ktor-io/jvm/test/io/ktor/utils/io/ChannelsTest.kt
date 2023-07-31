@@ -44,7 +44,7 @@ class ChannelsTest {
         assertTrue { byteArrayOf(0x11, 0x22, 0x33, 0x44).contentEquals(result) }
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("UNUSED_PARAMETER", "DEPRECATION")
     private fun Input.peekEquals(text: String, iteration: Int): Boolean {
         var equals = false
 
@@ -59,6 +59,7 @@ class ChannelsTest {
         return equals
     }
 
+    @Suppress("DEPRECATION")
     private fun verify(buffer: Buffer) {
         var failedAt = -1
 
@@ -81,6 +82,7 @@ class ChannelsTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun verificationFailed(buffer: Buffer, errorIndex: Int): Nothing {
         buffer.read { memory, start, endExclusive ->
             print(

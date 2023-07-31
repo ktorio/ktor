@@ -1,9 +1,9 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class BufferTest {
     private val pool = VerifyingChunkBufferPool()
     private val Buffer.Companion.Pool get() = pool

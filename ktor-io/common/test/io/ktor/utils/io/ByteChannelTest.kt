@@ -9,6 +9,7 @@ import io.ktor.utils.io.bits.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ByteChannelTest {
 
     @Test

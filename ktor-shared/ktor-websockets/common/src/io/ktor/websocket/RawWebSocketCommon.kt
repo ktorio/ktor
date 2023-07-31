@@ -147,6 +147,7 @@ internal class RawWebSocketCommon(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
     buildPacket {

@@ -2,7 +2,6 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
@@ -46,7 +45,10 @@ public actual interface ByteWriteChannel {
      * Writes as much as possible and only suspends if buffer is full
      */
     public actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
+
+    @Suppress("DEPRECATION")
     public actual suspend fun writeAvailable(src: ChunkBuffer): Int
+
     public suspend fun writeAvailable(src: ByteBuffer): Int
 
     /**
@@ -54,6 +56,7 @@ public actual interface ByteWriteChannel {
      * Crashes if channel get closed while writing.
      */
     public actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
+
     public suspend fun writeFully(src: ByteBuffer)
 
     /**
@@ -170,7 +173,8 @@ public actual interface ByteWriteChannel {
 
     public actual suspend fun awaitFreeSpace()
 
-    public actual suspend fun writeFully(src: Buffer)
+    @Suppress("DEPRECATION")
+    public actual suspend fun writeFully(src: io.ktor.utils.io.core.Buffer)
 
     public actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 }

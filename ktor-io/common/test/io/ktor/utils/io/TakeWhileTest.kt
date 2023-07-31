@@ -9,6 +9,7 @@ class TakeWhileTest {
     private val chunk1 = pool.borrow()
     private val chunk2 = pool.borrow()
 
+    @Suppress("DEPRECATION")
     private val chunks = ArrayList<ChunkBuffer>()
     private val packets = ArrayList<ByteReadPacket>()
 

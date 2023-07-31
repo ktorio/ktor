@@ -10,6 +10,7 @@ import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class VerifyingChunkBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : ObjectPool<ChunkBuffer> {

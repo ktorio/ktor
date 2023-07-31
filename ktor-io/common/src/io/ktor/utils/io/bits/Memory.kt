@@ -2,6 +2,8 @@
 
 package io.ktor.utils.io.bits
 
+import io.ktor.utils.io.*
+
 /**
  * Represents a linear range of bytes.
  * All operations are guarded by range-checks by default however at some platforms they could be disabled
@@ -9,6 +11,7 @@ package io.ktor.utils.io.bits
  *
  * Instance of this class has no additional state except the bytes themselves.
  */
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public expect class Memory {
     /**
      * Size of memory range in bytes.
@@ -42,13 +45,13 @@ public expect class Memory {
     public inline fun storeAt(index: Long, value: Byte)
 
     /**
-     * Returns memory's subrange. On some platforms it could do range checks but it is not guaranteed to be safe.
+     * Returns memory's subrange. On some platforms it could do range checks, but it is not guaranteed to be safe.
      * It also could lead to memory allocations on some platforms.
      */
     public fun slice(offset: Int, length: Int): Memory
 
     /**
-     * Returns memory's subrange. On some platforms it could do range checks but it is not guaranteed to be safe.
+     * Returns memory's subrange. On some platforms it could do range checks, but it is not guaranteed to be safe.
      * It also could lead to memory allocations on some platforms.
      */
     public fun slice(offset: Long, length: Long): Memory

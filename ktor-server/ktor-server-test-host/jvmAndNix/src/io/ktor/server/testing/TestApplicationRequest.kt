@@ -141,6 +141,7 @@ public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
 /**
  * Sets a multipart HTTP request body.
  */
+@Suppress("DEPRECATION")
 public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IOBridge) {
         if (parts.isEmpty()) return@writer
@@ -183,6 +184,7 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
 /**
  * Sets a multipart HTTP request body.
  */
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,

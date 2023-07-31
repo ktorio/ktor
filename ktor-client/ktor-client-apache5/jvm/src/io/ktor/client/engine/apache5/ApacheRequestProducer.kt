@@ -6,7 +6,6 @@ package io.ktor.client.engine.apache5
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
@@ -16,17 +15,10 @@ import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.hc.client5.http.async.methods.*
-import org.apache.hc.client5.http.classic.methods.*
 import org.apache.hc.client5.http.config.*
-import org.apache.hc.client5.http.utils.*
-import org.apache.hc.core5.http.*
 import org.apache.hc.core5.http.HttpRequest
-import org.apache.hc.core5.http.io.entity.*
-import org.apache.hc.core5.http.message.*
 import org.apache.hc.core5.http.nio.*
-import org.apache.hc.core5.http.nio.entity.*
 import org.apache.hc.core5.http.nio.support.*
-import org.apache.hc.core5.http.protocol.*
 import java.nio.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -98,6 +90,7 @@ internal class ApacheRequestEntityProducer(
     private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     private val channel: ByteReadChannel = when (val body = requestData.body) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())

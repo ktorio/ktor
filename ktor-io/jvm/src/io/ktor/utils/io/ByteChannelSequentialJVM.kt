@@ -16,6 +16,7 @@ public class ByteChannelSequentialJVM(
     private var attachedJob: Job? = null
 
     @OptIn(InternalCoroutinesApi::class)
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job

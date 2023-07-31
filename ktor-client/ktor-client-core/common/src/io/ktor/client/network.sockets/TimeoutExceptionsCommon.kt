@@ -33,6 +33,7 @@ public fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: H
 
     val replacementChannel = ByteChannelWithMappedExceptions(request)
 
+    @Suppress("DEPRECATION")
     writer(channel = replacementChannel) {
         try {
             input.copyAndClose(replacementChannel)
@@ -56,6 +57,7 @@ public fun CoroutineScope.mapEngineExceptions(output: ByteWriteChannel, request:
 
     val replacementChannel = ByteChannelWithMappedExceptions(request)
 
+    @Suppress("DEPRECATION")
     writer(channel = replacementChannel) {
         try {
             replacementChannel.copyAndClose(output)
@@ -71,4 +73,5 @@ public fun CoroutineScope.mapEngineExceptions(output: ByteWriteChannel, request:
  * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to
  * close it with [SocketTimeoutException]).
  */
+@Suppress("DEPRECATION")
 internal expect fun ByteChannelWithMappedExceptions(request: HttpRequestData): ByteChannel

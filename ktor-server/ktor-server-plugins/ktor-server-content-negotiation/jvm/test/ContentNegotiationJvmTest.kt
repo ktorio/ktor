@@ -109,6 +109,7 @@ class ContentNegotiationJvmTest {
 }
 
 @OptIn(DelicateCoroutinesApi::class)
+@Suppress("DEPRECATION")
 internal fun buildMultipart(
     boundary: String,
     parts: List<PartData>

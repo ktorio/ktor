@@ -4,6 +4,7 @@ import kotlin.contracts.*
 
 @OptIn(ExperimentalContracts::class)
 @PublishedApi
+@Suppress("DEPRECATION")
 internal inline fun Input.read(n: Int = 1, block: (Buffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

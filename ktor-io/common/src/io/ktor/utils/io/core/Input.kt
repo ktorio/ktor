@@ -1,5 +1,6 @@
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
@@ -7,6 +8,8 @@ import io.ktor.utils.io.pool.*
 /**
  * Usually shouldn't be implemented directly. Inherit [Input] instead.
  */
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public abstract class Input(
     head: ChunkBuffer = ChunkBuffer.Empty,
     remaining: Long = head.remainingAll(),
@@ -783,6 +786,7 @@ public abstract class Input(
  * Discard all remaining bytes.
  * @return number of bytes were discarded
  */
+@Suppress("DEPRECATION")
 public fun Input.discard(): Long {
     return discard(Long.MAX_VALUE)
 }
@@ -790,6 +794,7 @@ public fun Input.discard(): Long {
 /**
  * Discard exactly [n] bytes or fail if not enough bytes in the input to be discarded.
  */
+@Suppress("DEPRECATION")
 public fun Input.discardExact(n: Long) {
     val discarded = discard(n)
     if (discarded != n) {
@@ -800,7 +805,7 @@ public fun Input.discardExact(n: Long) {
 /**
  * Discard exactly [n] bytes or fail if not enough bytes in the input to be discarded.
  */
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 public fun Input.discardExact(n: Int) {
     discardExact(n.toLong())
 }
@@ -813,6 +818,7 @@ public fun Input.discardExact(n: Int) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@Suppress("DEPRECATION")
 public inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
     var release = true
     var current = prepareReadFirstHead(1) ?: return
@@ -842,6 +848,7 @@ public inline fun Input.takeWhile(block: (Buffer) -> Boolean) {
  * [block] function should never release provided buffer and should not write to it otherwise an undefined behaviour
  * could be observed
  */
+@Suppress("DEPRECATION")
 internal inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var release = true
     var current = prepareReadFirstHead(initialSize) ?: return
@@ -883,6 +890,7 @@ internal inline fun Input.takeWhileSize(initialSize: Int = 1, block: (Buffer) ->
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Input.peekCharUtf8(): Char {
     val rc = tryPeek()
     if (rc and 0x80 == 0) return rc.toChar()
@@ -894,6 +902,7 @@ public fun Input.peekCharUtf8(): Char {
 /**
  * For every byte from this input invokes [block] function giving it as parameter.
  */
+@Suppress("DEPRECATION")
 internal inline fun Input.forEach(block: (Byte) -> Unit) {
     takeWhile { buffer ->
         buffer.forEach(block)
@@ -901,6 +910,7 @@ internal inline fun Input.forEach(block: (Byte) -> Unit) {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun Input.peekCharUtf8Impl(first: Int): Char {
     var rc = '?'
     var found = false

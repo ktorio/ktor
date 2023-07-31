@@ -11,6 +11,7 @@ import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 internal class MemoryCache(
     val body: ByteReadChannel,
     coroutineContext: CoroutineContext = EmptyCoroutineContext

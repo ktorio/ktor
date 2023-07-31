@@ -153,6 +153,7 @@ public class ApplicationEngineEnvironmentReloading(
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = classLoader
 

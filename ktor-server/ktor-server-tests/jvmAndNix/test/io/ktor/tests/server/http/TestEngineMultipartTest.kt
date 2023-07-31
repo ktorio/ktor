@@ -164,6 +164,7 @@ class TestEngineMultipartTest {
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,

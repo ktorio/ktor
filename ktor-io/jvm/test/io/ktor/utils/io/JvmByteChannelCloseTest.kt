@@ -19,6 +19,7 @@ class JvmSequentialReadPacketWithExceptionByteChannelCloseTest : ByteChannelClos
     { close() },
     { readPacket(Int.MAX_VALUE) }
 ) {
+    @Suppress("DEPRECATION")
     override fun ByteChannel(autoFlush: Boolean): ByteChannel {
         return ByteChannelSequentialJVM(ChunkBuffer.Empty, autoFlush)
     }
@@ -30,6 +31,7 @@ class JvmReadFullyWithExceptionByteChannelCloseTest : ByteChannelCloseTest(
     { readFully(ByteArray(10)) }
 )
 
+@Suppress("DEPRECATION")
 class JvmSequentialReadFullyWithExceptionByteChannelCloseTest : ByteChannelCloseTest(
     EOFException::class,
     { close() },

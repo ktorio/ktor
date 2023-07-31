@@ -25,6 +25,8 @@ internal class ApacheResponseConsumer(
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
 
     private val waiting = atomic(false)
+
+    @Suppress("DEPRECATION")
     private val channel = ByteChannel().also {
         it.attachJob(consumerJob)
     }

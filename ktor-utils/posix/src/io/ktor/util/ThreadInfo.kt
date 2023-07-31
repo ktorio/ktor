@@ -22,6 +22,7 @@ public object ThreadInfo {
     }
 
     public fun registerCurrentThread() {
+        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
         val thread = pthread_self()!!
         threads[Worker.current] = thread
     }

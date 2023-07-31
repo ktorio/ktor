@@ -11,9 +11,10 @@ import kotlinx.coroutines.*
 private const val CHUNK_BUFFER_SIZE = 4096L
 
 /**
- * Split source [ByteReadChannel] into 2 new one.
- * Cancel of one channel in split(input or both outputs) cancels other channels.
+ * Split source [ByteReadChannel] into 2 new ones.
+ * Cancel of one channel in split (input or both outputs) cancels other channels.
  */
+@Suppress("DEPRECATION")
 public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)
@@ -48,7 +49,7 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
 }
 
 /**
- * Copy source channel to both output channels chunk by chunk.
+ * Copy a source channel to both output channels chunk by chunk.
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {
@@ -83,6 +84,6 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
 }
 
 /**
- * Read channel to byte array.
+ * Read a channel to byte array.
  */
 public suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()

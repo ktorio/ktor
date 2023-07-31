@@ -268,6 +268,7 @@ class ReadTextCommonTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testDecodeWrapped2Bytes() {
         val first = ChunkBuffer.NoPool.borrow()
@@ -287,6 +288,7 @@ class ReadTextCommonTest {
         assertEquals("\u039b", text)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testDecodeWrapped3bytes1() {
         val first = ChunkBuffer.NoPool.borrow()
@@ -307,6 +309,7 @@ class ReadTextCommonTest {
         assertEquals("\u0BF5", text)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testDecodeWrapped3bytes2() {
         // the same but we have 2 bytes in the first chunk
@@ -341,6 +344,7 @@ class ReadTextCommonTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testReadTextAfterIntFromInput() {
         val content = buildPacket {
