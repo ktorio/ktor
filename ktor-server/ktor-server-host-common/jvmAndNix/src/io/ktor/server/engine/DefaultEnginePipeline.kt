@@ -23,7 +23,6 @@ import kotlinx.coroutines.CancellationException
 /**
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
-@OptIn(InternalAPI::class)
 public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline(environment.developmentMode)
 

@@ -295,7 +295,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     @Test
     fun testGetWithBody() {
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
 
             get("/") {
                 call.respondText(call.receive())
@@ -654,7 +654,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 exceptions.add(cause!!)
             }
         }
-        ApplicationCallPipeline().items
+        ApplicationCallPipeline(environment = createTestEnvironment()).items
             .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback } // fallback will reply with 404 and not 500
             .forEach { phase ->
                 val server = createServer(log = logger) {

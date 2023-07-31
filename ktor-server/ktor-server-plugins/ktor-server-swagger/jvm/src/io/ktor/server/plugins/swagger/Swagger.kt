@@ -20,12 +20,12 @@ import java.io.*
  * the file system using [java.io.File].
  *
  */
-public fun Route.swaggerUI(
+public fun RoutingBuilder.swaggerUI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: SwaggerConfig.() -> Unit = {}
 ) {
-    val resource = application.environment.classLoader.getResourceAsStream(swaggerFile)
+    val resource = environment.classLoader.getResourceAsStream(swaggerFile)
         ?.bufferedReader()
 
     if (resource != null) {
@@ -39,7 +39,7 @@ public fun Route.swaggerUI(
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  */
-public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
+public fun RoutingBuilder.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
     if (!apiFile.exists()) {
         throw FileNotFoundException("Swagger file not found: ${apiFile.absolutePath}")
     }
@@ -48,7 +48,7 @@ public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() 
     swaggerUI(path, apiFile.name, content, block)
 }
 
-internal fun Route.swaggerUI(
+internal fun RoutingBuilder.swaggerUI(
     path: String,
     apiUrl: String,
     api: String,
@@ -110,7 +110,7 @@ window.onload = function() {
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  */
-@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+@Deprecated("Replaced with the extension on [RoutingBuilder]", level = DeprecationLevel.HIDDEN)
 public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
     swaggerUI(path, apiFile, block)
 }
@@ -122,7 +122,7 @@ public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.(
  * the file system using [java.io.File].
  *
  */
-@Deprecated("Replaced with the extension on [Route]", level = DeprecationLevel.HIDDEN)
+@Deprecated("Replaced with the extension on [RoutingBuilder]", level = DeprecationLevel.HIDDEN)
 public fun Routing.swaggerUI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",

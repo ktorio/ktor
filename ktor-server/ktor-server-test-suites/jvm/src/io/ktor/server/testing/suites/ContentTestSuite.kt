@@ -140,7 +140,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(PartialContent)
+            install(PartialContent)
             handle {
                 call.respond(LocalFileContent(file))
             }

@@ -16,10 +16,10 @@ import io.ktor.util.*
  * @param configuration names of RateLimit providers defined in the [RateLimit] plugin configuration.
  * @throws IllegalArgumentException if there are no registered providers referred by [configuration] names.
  */
-public fun Route.rateLimit(
+public fun RoutingBuilder.rateLimit(
     configuration: RateLimitName = LIMITER_NAME_EMPTY,
-    build: Route.() -> Unit
-): Route {
+    build: RoutingBuilder.() -> Unit
+): RoutingBuilder {
     val rateLimitRoute = createChild(RateLimitRouteSelector(configuration))
     rateLimitRoute.attributes.put(RateLimitProviderNameKey, configuration)
     val allConfigurations = generateSequence(rateLimitRoute) { it.parent }
@@ -37,7 +37,7 @@ public fun Route.rateLimit(
 
 /**
  * A rate-limited route node that is used by the [RateLimit] plugin
- * and usually created by the [Route.rateLimit] DSL function, so generally there is no need to instantiate it directly
+ * and usually created by the [RoutingBuilder.rateLimit] DSL function, so generally there is no need to instantiate it directly
  * unless you are writing an extension.
  * @param name of rate-limit provider to be applied to this route.
  */

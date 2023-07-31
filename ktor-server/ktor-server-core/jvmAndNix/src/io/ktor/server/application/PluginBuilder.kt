@@ -59,7 +59,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     internal val hooks: MutableList<HookHandler<*>> = mutableListOf()
 
     /**
-     * Specifies the [block] handler for every incoming [ApplicationCall].
+     * Specifies the [block] handler for every incoming [PipelineCall].
      *
      * This block is invoked for every incoming call even if the call is already handled by other handler.
      * There you can handle the call in a way you want: add headers, change the response status, etc. You can also
@@ -78,7 +78,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
-    public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: ApplicationCall) -> Unit) {
+    public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
         onDefaultPhase(
             callInterceptions,
             ApplicationCallPipeline.Plugins,
@@ -97,7 +97,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall, body: Any) -> Unit
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: PipelineCall, body: Any) -> Unit
     ) {
         onDefaultPhase(
             onReceiveInterceptions,
@@ -115,7 +115,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
     public fun onCallRespond(
-        block: suspend OnCallRespondContext<PluginConfig>.(call: ApplicationCall, body: Any) -> Unit
+        block: suspend OnCallRespondContext<PluginConfig>.(call: PipelineCall, body: Any) -> Unit
     ) {
         onDefaultPhase(
             onResponseInterceptions,
@@ -158,7 +158,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall) -> Unit
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: PipelineCall) -> Unit
     ) {
         onCallReceive { call, _ -> block(call) }
     }
@@ -171,7 +171,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
     public fun onCallRespond(
-        block: suspend OnCallRespondContext<PluginConfig>.(call: ApplicationCall) -> Unit
+        block: suspend OnCallRespondContext<PluginConfig>.(call: PipelineCall) -> Unit
     ) {
         onCallRespond { call, _ -> block(call) }
     }
@@ -180,8 +180,8 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
         interceptions: MutableList<Interception<T>>,
         phase: PipelinePhase,
         handlerName: String,
-        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, ApplicationCall>) -> ContextT,
-        block: suspend ContextT.(ApplicationCall, T) -> Unit
+        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, PipelineCall>) -> ContextT,
+        block: suspend ContextT.(PipelineCall, T) -> Unit
     ) {
         interceptions.add(
             Interception(
@@ -209,8 +209,8 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
         interceptions: MutableList<Interception<T>>,
         phase: PipelinePhase,
         handlerName: String,
-        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, ApplicationCall>) -> ContextT,
-        block: suspend ContextT.(call: ApplicationCall, body: T) -> Unit
+        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, PipelineCall>) -> ContextT,
+        block: suspend ContextT.(call: PipelineCall, body: T) -> Unit
     ) {
         onDefaultPhaseWithMessage(interceptions, phase, handlerName, contextInit) { call, body -> block(call, body) }
     }

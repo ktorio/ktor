@@ -14,6 +14,7 @@ public final class io/ktor/server/jetty/JettyApplicationCall : io/ktor/server/se
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/jetty/JettyApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/PipelineResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/servlet/ServletApplicationResponse;
 }
 

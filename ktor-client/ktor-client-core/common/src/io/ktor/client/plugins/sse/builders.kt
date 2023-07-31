@@ -232,7 +232,6 @@ public suspend fun HttpClient.sse(
     block: suspend ClientSSESession.() -> Unit
 ): Unit = serverSentEvents(urlString, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
 
-
 private fun <T : Any> HttpRequestBuilder.addAttribute(attributeKey: AttributeKey<T>, value: T?) {
     if (value != null) {
         attributes.put(attributeKey, value)

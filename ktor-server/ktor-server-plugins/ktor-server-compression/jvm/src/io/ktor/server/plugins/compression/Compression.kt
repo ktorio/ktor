@@ -22,9 +22,9 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.Compr
  */
 internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
 
-private object ContentEncoding : Hook<suspend ContentEncoding.Context.(ApplicationCall) -> Unit> {
+private object ContentEncoding : Hook<suspend ContentEncoding.Context.(PipelineCall) -> Unit> {
 
-    class Context(private val pipelineContext: PipelineContext<Any, ApplicationCall>) {
+    class Context(private val pipelineContext: PipelineContext<Any, PipelineCall>) {
         fun transformBody(block: (OutgoingContent) -> OutgoingContent?) {
             val transformedContent = block(pipelineContext.subject as OutgoingContent)
             if (transformedContent != null) {
@@ -35,7 +35,7 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(Applicati
 
     override fun install(
         pipeline: ApplicationCallPipeline,
-        handler: suspend Context.(ApplicationCall) -> Unit
+        handler: suspend Context.(PipelineCall) -> Unit
     ) {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
             handler(Context(this), call)
@@ -79,7 +79,7 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
 }
 
 @OptIn(InternalAPI::class)
-private fun decode(call: ApplicationCall, options: CompressionOptions) {
+private fun decode(call: PipelineCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (encodingRaw == null) {
         LOGGER.trace("Skip decompression for ${call.request.uri} because no content encoding provided.")
@@ -108,7 +108,7 @@ private fun decode(call: ApplicationCall, options: CompressionOptions) {
     call.attributes.put(DecompressionListAttribute, encoderNames)
 }
 
-private fun ContentEncoding.Context.encode(call: ApplicationCall, options: CompressionOptions) {
+private fun ContentEncoding.Context.encode(call: PipelineCall, options: CompressionOptions) {
     val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
         { it.second.quality },
         { it.first.priority }

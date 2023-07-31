@@ -12,9 +12,9 @@ import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 
 /**
- * Base class for implementing [ApplicationRequest]
+ * Base class for implementing [PipelineRequest]
  */
-public abstract class BaseApplicationRequest(final override val call: ApplicationCall) : ApplicationRequest {
+public abstract class BaseApplicationRequest(final override val call: PipelineCall) : PipelineRequest {
 
     protected abstract val engineHeaders: Headers
     protected abstract val engineReceiveChannel: ByteReadChannel

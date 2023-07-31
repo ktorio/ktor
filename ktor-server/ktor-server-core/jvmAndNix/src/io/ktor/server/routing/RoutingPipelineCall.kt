@@ -14,31 +14,31 @@ import kotlin.coroutines.*
 
 /**
  * An application call handled by [Routing].
- * @property call original call from [ApplicationEngine]
+ * @property call original call from [io.ktor.server.engine.ApplicationEngine]
  * @property route is the selected route
  */
-public class RoutingApplicationCall(
-    public val engineCall: ApplicationCall,
+public class RoutingPipelineCall(
+    public val engineCall: PipelineCall,
     public val route: Route,
     override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
-    parameters: Parameters
-) : ApplicationCall, CoroutineScope {
+    public val pathParameters: Parameters
+) : PipelineCall, CoroutineScope {
 
     override val application: Application get() = engineCall.application
     override val attributes: Attributes get() = engineCall.attributes
 
-    override val request: RoutingApplicationRequest =
-        RoutingApplicationRequest(this, receivePipeline, engineCall.request)
+    override val request: RoutingPipelineRequest =
+        RoutingPipelineRequest(this, receivePipeline, engineCall.request)
 
-    override val response: RoutingApplicationResponse =
-        RoutingApplicationResponse(this, responsePipeline, engineCall.response)
+    override val response: RoutingPipelineResponse =
+        RoutingPipelineResponse(this, responsePipeline, engineCall.response)
 
     override val parameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
         Parameters.build {
             appendAll(engineCall.parameters)
-            appendMissing(parameters)
+            appendMissing(pathParameters)
         }
     }
 
@@ -48,17 +48,17 @@ public class RoutingApplicationCall(
 /**
  * An application request handled by [Routing].
  */
-public class RoutingApplicationRequest(
-    override val call: RoutingApplicationCall,
+public class RoutingPipelineRequest(
+    override val call: RoutingPipelineCall,
     override val pipeline: ApplicationReceivePipeline,
-    public val engineRequest: ApplicationRequest
-) : ApplicationRequest by engineRequest
+    public val engineRequest: PipelineRequest
+) : PipelineRequest by engineRequest
 
 /**
  * An application response handled by [Routing].
  */
-public class RoutingApplicationResponse(
-    override val call: RoutingApplicationCall,
+public class RoutingPipelineResponse(
+    override val call: RoutingPipelineCall,
     override val pipeline: ApplicationSendPipeline,
-    public val engineResponse: ApplicationResponse
-) : ApplicationResponse by engineResponse
+    public val engineResponse: PipelineResponse
+) : PipelineResponse by engineResponse

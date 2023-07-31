@@ -12,7 +12,6 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -29,7 +28,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
         register(contentType, converter)
     }
 
-    override fun createRoutes(routing: Routing): Unit = with(routing) {
+    override fun createRoutes(routing: RoutingBuilder): Unit = with(routing) {
         super.createRoutes(routing)
 
         post("/jackson") {

@@ -6,6 +6,7 @@ package io.ktor.server.websocket
 
 import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*

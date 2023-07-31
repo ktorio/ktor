@@ -9,7 +9,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
 import io.ktor.server.resources.patch
@@ -495,13 +494,20 @@ class ResourcesTest {
         class someResource
 
         routing {
-            get<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            options<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            head<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            post<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            put<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            delete<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
-            patch<someResource> { call.respondText("Hi!") }.apply { assertIs<HttpMethodRouteSelector>(selector) }
+            get<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            options<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            head<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            post<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            put<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            delete<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
+            patch<someResource> { call.respondText("Hi!") }
+                .apply { assertIs<HttpMethodRouteSelector>((this as Route).selector) }
         }
     }
 

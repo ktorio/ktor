@@ -6,13 +6,11 @@ package io.ktor.tests.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -24,7 +22,6 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import kotlin.test.*
