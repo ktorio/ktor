@@ -5,8 +5,10 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.apache.http.concurrent.*
@@ -14,6 +16,7 @@ import org.apache.http.impl.nio.client.*
 import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
     request: ApacheRequestProducer,
     callContext: CoroutineContext,
@@ -47,7 +50,19 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
         )
 
         val headers = HeadersImpl(rawHeaders)
-        return HttpResponseData(status, requestTime, headers, version, consumer.responseChannel, callContext)
+
+        val body: Any = if (requestData.isSseRequest()) {
+            DefaultClientSSESession(
+                requestData.body as SSEContent,
+                consumer.responseChannel,
+                callContext,
+                status,
+                headers
+            )
+        } else {
+            consumer.responseChannel
+        }
+        return HttpResponseData(status, requestTime, headers, version, body, callContext)
     } catch (cause: Exception) {
         future.cancel(true)
         val mappedCause = mapCause(cause, requestData)

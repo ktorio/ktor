@@ -9,7 +9,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlin.time.*
+
+internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime")
+internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
+internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
@@ -24,6 +30,9 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
  * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.serverSentEventsSession(
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit
 ): ClientSSESession {
     plugin(SSE)
@@ -31,13 +40,19 @@ public suspend fun HttpClient.serverSentEventsSession(
     val sessionDeferred = CompletableDeferred<ClientSSESession>()
     val statement = prepareRequest {
         block()
+        addAttribute(reconnectionTimeAttr, reconnectionTime)
+        addAttribute(showCommentEventsAttr, showCommentEvents)
+        addAttribute(showRetryEventsAttr, showRetryEvents)
     }
-    try {
-        statement.body<ClientSSESession, Unit> { session ->
-            sessionDeferred.complete(session)
+    @Suppress("SuspendFunctionOnCoroutineScope")
+    launch {
+        try {
+            statement.body<ClientSSESession, Unit> { session ->
+                sessionDeferred.complete(session)
+            }
+        } catch (cause: Throwable) {
+            sessionDeferred.completeExceptionally(SSEException(cause))
         }
-    } catch (cause: Throwable) {
-        sessionDeferred.completeExceptionally(SSEException(cause))
     }
     return sessionDeferred.await()
 }
@@ -50,8 +65,11 @@ public suspend fun HttpClient.serverSentEventsSession(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession {
+): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents) {
     url(scheme, host, port, path)
     block()
 }
@@ -61,8 +79,11 @@ public suspend fun HttpClient.serverSentEventsSession(
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession {
+): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents) {
     url.takeFrom(urlString)
     block()
 }
@@ -72,9 +93,12 @@ public suspend fun HttpClient.serverSentEventsSession(
  */
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: suspend ClientSSESession.() -> Unit
 ) {
-    val session = serverSentEventsSession(request)
+    val session = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, request)
     try {
         block(session)
     } catch (cause: Throwable) {
@@ -92,6 +116,9 @@ public suspend fun HttpClient.serverSentEvents(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESession.() -> Unit
 ) {
@@ -100,6 +127,9 @@ public suspend fun HttpClient.serverSentEvents(
             url(scheme, host, port, path)
             request()
         },
+        reconnectionTime,
+        showCommentEvents,
+        showRetryEvents,
         block
     )
 }
@@ -109,6 +139,9 @@ public suspend fun HttpClient.serverSentEvents(
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESession.() -> Unit
 ) {
@@ -117,6 +150,9 @@ public suspend fun HttpClient.serverSentEvents(
             url.takeFrom(urlString)
             request()
         },
+        reconnectionTime,
+        showCommentEvents,
+        showRetryEvents,
         block
     )
 }
@@ -125,8 +161,11 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.sseSession(
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit
-): ClientSSESession = serverSentEventsSession(block)
+): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [ClientSSESession].
@@ -136,24 +175,34 @@ public suspend fun HttpClient.sseSession(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession(scheme, host, port, path, block)
+): ClientSSESession =
+    serverSentEventsSession(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [ClientSSESession].
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession(urlString, block)
+): ClientSSESession = serverSentEventsSession(urlString, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [block] with [ClientSSESession].
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(request, block)
+): Unit = serverSentEvents(request, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [block] with [ClientSSESession].
@@ -164,8 +213,12 @@ public suspend fun HttpClient.sse(
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(scheme, host, port, path, request, block)
+): Unit =
+    serverSentEvents(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
 
 /**
  * Opens a [block] with [ClientSSESession].
@@ -173,5 +226,15 @@ public suspend fun HttpClient.sse(
 public suspend fun HttpClient.sse(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
+    reconnectionTime: Duration? = null,
+    showCommentEvents: Boolean? = null,
+    showRetryEvents: Boolean? = null,
     block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(urlString, request, block)
+): Unit = serverSentEvents(urlString, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
+
+
+private fun <T : Any> HttpRequestBuilder.addAttribute(attributeKey: AttributeKey<T>, value: T?) {
+    if (value != null) {
+        attributes.put(attributeKey, value)
+    }
+}

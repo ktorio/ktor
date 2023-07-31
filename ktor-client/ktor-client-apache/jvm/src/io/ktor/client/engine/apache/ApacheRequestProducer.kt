@@ -28,7 +28,7 @@ import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
 internal class ApacheRequestProducer(
-    private val requestData: HttpRequestData,
+    val requestData: HttpRequestData,
     private val config: ApacheEngineConfig,
     callContext: CoroutineContext
 ) : HttpAsyncRequestProducer, CoroutineScope {
