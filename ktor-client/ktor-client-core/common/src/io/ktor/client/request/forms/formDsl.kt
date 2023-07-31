@@ -201,7 +201,7 @@ public class InputProvider(public val size: Long? = null, public val block: () -
 
 /**
  * Supplies a new [ByteReadChannel].
- * @property size is total amount of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
+ * @property size is total number of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
  * @param block returns a new [ByteReadChannel]
  */
 public class ChannelProvider(public val size: Long? = null, public val block: () -> ByteReadChannel)

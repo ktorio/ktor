@@ -1291,8 +1291,6 @@ public abstract class io/ktor/http/content/PartData {
 	public final fun getDispose ()Lkotlin/jvm/functions/Function0;
 	public final fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getName ()Ljava/lang/String;
-	public final fun getPartHeaders ()Lio/ktor/http/Headers;
-	public final fun getPartName ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/content/PartData$BinaryChannelItem : io/ktor/http/content/PartData {

@@ -260,7 +260,7 @@ class TestApplicationEngineTest {
             val boundary = "***bbb***"
             val multipart = listOf(
                 PartData.FileItem(
-                    { buildPacket { writeText("BODY") } },
+                    { ByteReadChannel("BODY".toByteArray()) },
                     {},
                     headersOf(
                         HttpHeaders.ContentDisposition,
@@ -302,13 +302,15 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readBytes())
                         ""
                     }
+
                     is PartData.BinaryItem -> {
                         channel.writeFully(it.provider().readBytes())
                         ""
                     }
+
                     is PartData.FormItem -> it.value
                     is PartData.BinaryChannelItem -> {
                         it.provider().copyTo(channel)

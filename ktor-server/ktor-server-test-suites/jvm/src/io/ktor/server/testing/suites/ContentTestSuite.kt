@@ -566,10 +566,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
+                            "file:${part.name},${part.originalFileName},${part.provider().readRemaining().readText()}\n"
                         )
-                        is PartData.BinaryItem -> {
-                        }
+
+                        is PartData.BinaryItem -> {}
                         is PartData.BinaryChannelItem -> {}
                     }
 
@@ -633,11 +633,14 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> {
+                            @Suppress("DEPRECATION")
                             val lineSequence = part.streamProvider().bufferedReader().lineSequence()
                             response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
                         }
+
                         is PartData.BinaryItem -> {
                         }
+
                         is PartData.BinaryChannelItem -> {}
                     }
 
@@ -690,14 +693,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 bodyAsText()
             )
         }
-    }
-
-    @Test
-    @NoHttp2
-    open fun testMultipartFileUploadLargeSkipTempFile() {
-        System.setProperty("io.ktor.http.content.multipart.skipTempFile", "true")
-        testMultipartFileUploadLarge()
-        System.clearProperty("io.ktor.http.content.multipart.skipTempFile")
     }
 
     @Test

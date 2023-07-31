@@ -36,8 +36,8 @@ class TestEngineMultipartTest {
         val bytes = ByteArray(256) { it.toByte() }
         testMultiPartsFileItemBase(
             filename = "file.bin",
-            provider = { buildPacket { writeFully(bytes) } },
-            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readBytes())) }
+            provider = { ByteReadChannel(bytes) },
+            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes())) }
         )
     }
 
@@ -46,8 +46,8 @@ class TestEngineMultipartTest {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         testMultiPartsFileItemBase(
             filename = "file.txt",
-            provider = { buildPacket { writeFully(string.toByteArray()) } },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readText()) }
+            provider = { ByteReadChannel(string.toByteArray()) },
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
         )
     }
 
@@ -65,7 +65,7 @@ class TestEngineMultipartTest {
 
                 assertEquals("fileField", file.name)
                 assertEquals("file.bin", file.originalFileName)
-                assertEquals(hex(bytes), hex(file.provider().readBytes()))
+                assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
 
                 file.dispose()
             },
@@ -75,7 +75,7 @@ class TestEngineMultipartTest {
                     boundary,
                     listOf(
                         PartData.FileItem(
-                            provider = { runBlocking { ByteReadChannel(bytes).readRemaining() } },
+                            provider = { ByteReadChannel(bytes) },
                             dispose = {},
                             partHeaders = headersOf(
                                 HttpHeaders.ContentDisposition,
@@ -124,8 +124,8 @@ class TestEngineMultipartTest {
 
     private fun testMultiPartsFileItemBase(
         filename: String,
-        provider: () -> Input,
-        extraFileAssertions: (file: PartData.FileItem) -> Unit
+        provider: () -> ByteReadChannel,
+        extraFileAssertions: suspend (file: PartData.FileItem) -> Unit
     ) {
         testMultiParts(
             {
@@ -182,13 +182,15 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readBytes())
                         ""
                     }
+
                     is PartData.BinaryItem -> {
                         channel.writeFully(it.provider().readBytes())
                         ""
                     }
+
                     is PartData.FormItem -> it.value
                     is PartData.BinaryChannelItem -> {
                         it.provider().copyTo(channel)
