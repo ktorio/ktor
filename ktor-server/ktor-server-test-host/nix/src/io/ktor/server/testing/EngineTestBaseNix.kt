@@ -85,6 +85,7 @@ actual constructor(
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(message: String, cause: Throwable) {
+                    if (cause is ExpectedTestException) return
                     collectUnhandledException(cause)
                     println("Critical test exception: $cause")
                     cause.printStackTrace()

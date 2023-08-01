@@ -113,9 +113,7 @@ class TestApplicationEngine(
 
     private suspend fun PipelineContext<Unit, PipelineCall>.tryRespondError(statusCode: HttpStatusCode) {
         try {
-            if (call.response.status() == null) {
-                call.respond(statusCode)
-            }
+            call.respond(statusCode)
         } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }

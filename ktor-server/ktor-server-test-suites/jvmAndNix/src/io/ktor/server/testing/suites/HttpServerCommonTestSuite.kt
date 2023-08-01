@@ -698,6 +698,31 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Test
+    fun testErrorInBodyAndStatusIsSet() {
+        var throwError = false
+        createAndStartServer {
+            val plugin = createApplicationPlugin("plugin") {
+                onCallRespond { _ ->
+                    throwError = !throwError
+                    if (throwError) {
+                        throw ExpectedTestException("Test exception")
+                    }
+                }
+            }
+            application.install(plugin)
+
+            get("/") {
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.InternalServerError, status)
+            assertTrue(bodyAsText().isEmpty())
+        }
+    }
+
     private data class TestData(
         val name: String
     ) : AbstractCoroutineContextElement(TestData) {

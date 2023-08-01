@@ -116,7 +116,6 @@ private fun Application.installDefaultInterceptors() {
     }
 }
 
-@OptIn(InternalAPI::class)
 private fun Application.installDefaultTransformationChecker() {
     // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
     intercept(ApplicationCallPipeline.Plugins) {
