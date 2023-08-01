@@ -1,3 +1,25 @@
+# 2.3.3
+> Published 1 August 2023
+
+### Bugfixes
+* java.util.zip.DataFormatException after enabling permessage-deflate ([KTOR-5979](https://youtrack.jetbrains.com/issue/KTOR-5979))
+* DelegatingTestingClientEngine fails when ContentNegotiation with protobuf is installed and empty body ([KTOR-6125](https://youtrack.jetbrains.com/issue/KTOR-6125))
+* KtorServlet does not support yaml configuration ([KTOR-6108](https://youtrack.jetbrains.com/issue/KTOR-6108))
+* CIO ConnectionFactory leaks on cancellation ([KTOR-6127](https://youtrack.jetbrains.com/issue/KTOR-6127))
+* staticFiles responds twice if both index and defaultPath are set ([KTOR-6120](https://youtrack.jetbrains.com/issue/KTOR-6120))
+* Uncaught Kotlin exception: kotlin.IllegalArgumentException: Failed to open iconv for charset UTF-8 with error code 22 ([KTOR-5980](https://youtrack.jetbrains.com/issue/KTOR-5980))
+* Not compatible with kotlinx-html 0.9.1 ([KTOR-6124](https://youtrack.jetbrains.com/issue/KTOR-6124))
+* "Test engine is already completed" error while establishing Websockets connection ([KTOR-6057](https://youtrack.jetbrains.com/issue/KTOR-6057))
+* s-maxage is not used, even if `HttpCache.Config.isShared` is true ([KTOR-6087](https://youtrack.jetbrains.com/issue/KTOR-6087))
+* Cache returns null when vary header set different ways whatever it has same values ([KTOR-6081](https://youtrack.jetbrains.com/issue/KTOR-6081))
+* DefaultRequest: a cookie appears twice in the request header when sending a request with another cookie ([KTOR-5619](https://youtrack.jetbrains.com/issue/KTOR-5619))
+
+### Improvements
+* Drop linuxArm64 publication from ktor-client-curl ([KTOR-6154](https://youtrack.jetbrains.com/issue/KTOR-6154))
+* Client: Target linuxArm64 ([KTOR-872](https://youtrack.jetbrains.com/issue/KTOR-872))
+* Server: Target linuxArm64 ([KTOR-5753](https://youtrack.jetbrains.com/issue/KTOR-5753))
+* Add system property to disable automatic installation of runtime shutdown hook ([KTOR-6070](https://youtrack.jetbrains.com/issue/KTOR-6070))
+
 # 2.3.2
 > Published 28 June 2023
 
