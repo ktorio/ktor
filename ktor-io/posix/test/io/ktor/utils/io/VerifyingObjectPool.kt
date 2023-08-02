@@ -12,5 +12,5 @@ import kotlin.native.*
 internal actual inline fun identityHashCode(instance: Any): Int = instance.identityHashCode()
 
 actual class VerifyingObjectPool<T : Any> actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate) {
-    override val allocated: MutableSet<IdentityWrapper<T>> = HashSet<IdentityWrapper<T>>()
+    actual override val allocated: MutableSet<IdentityWrapper<T>> = HashSet<IdentityWrapper<T>>()
 }
