@@ -11,7 +11,7 @@ public actual sealed class SocketAddress {
 }
 
 public actual class InetSocketAddress internal constructor(
-    public actual override val address: java.net.InetSocketAddress
+    public override val address: java.net.InetSocketAddress
 ) : SocketAddress() {
 
 
@@ -54,7 +54,7 @@ public actual class InetSocketAddress internal constructor(
 }
 
 public actual class UnixSocketAddress internal constructor(
-    public actual override val address: java.net.SocketAddress // actually: java.net.UnixDomainSocketAddress
+    public override val address: java.net.SocketAddress // actually: java.net.UnixDomainSocketAddress
 ) : SocketAddress() {
 
     init {
