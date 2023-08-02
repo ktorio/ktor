@@ -6,7 +6,8 @@ import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
 @Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
-public actual class Memory constructor(public val buffer: ByteBuffer) { // KT-59262
+@JvmInline
+public actual value class Memory constructor(public val buffer: ByteBuffer) {
 
     /**
      * Size of memory range in bytes.
