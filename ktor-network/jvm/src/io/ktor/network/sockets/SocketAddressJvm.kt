@@ -7,13 +7,12 @@ package io.ktor.network.sockets
 import java.lang.reflect.*
 
 public actual sealed class SocketAddress {
-    internal abstract val address: java.net.SocketAddress
+    internal actual abstract val address: java.net.SocketAddress
 }
 
 public actual class InetSocketAddress internal constructor(
     public actual override val address: java.net.InetSocketAddress
 ) : SocketAddress() {
-
 
     // May trigger a name service reverse lookup when called.
     public actual val hostname: String get() = address.hostName

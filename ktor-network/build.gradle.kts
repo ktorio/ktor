@@ -9,6 +9,7 @@ kotlin {
         jvmAndNixMain {
             dependencies {
                 api(project(":ktor-utils"))
+                implementation(kotlin("stdlib-jdk8"))
             }
         }
 

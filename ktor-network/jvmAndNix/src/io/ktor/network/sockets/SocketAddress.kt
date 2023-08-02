@@ -4,7 +4,9 @@
 
 package io.ktor.network.sockets
 
-public expect sealed class SocketAddress
+public expect sealed class SocketAddress {
+    internal abstract val address: java.net.SocketAddress
+}
 
 public expect class InetSocketAddress(
     hostname: String,
@@ -43,6 +45,7 @@ public expect class InetSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+    public override val address: java.net.InetSocketAddress
 }
 
 public expect class UnixSocketAddress(
@@ -64,4 +67,5 @@ public expect class UnixSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+    public override val address: java.net.SocketAddress
 }
