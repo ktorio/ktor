@@ -148,7 +148,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     actorChannel.close()
                     connection.input.copyAndClose(requestBody as ByteChannel)
                     break
-                } else if (!expectedHttpBody && requestBody is ByteChannel) { // not upgraded, for example 404
+                } else if (requestBody is ByteChannel) { // not upgraded, for example 404
                     requestBody.close()
                 }
             }
@@ -204,7 +204,7 @@ private suspend fun pipelineWriterLoop(
     while (true) {
         val child = timeout.withTimeout(receiveChildOrNull) ?: break
         try {
-            child.joinTo(connection.output, false)
+            child.copyTo(connection.output)
             connection.output.flush()
         } catch (cause: Throwable) {
             if (child is ByteWriteChannel) {

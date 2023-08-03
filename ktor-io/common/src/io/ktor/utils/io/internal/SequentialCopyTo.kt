@@ -22,34 +22,39 @@ internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteCha
 
     var remainingLimit = limit
 
-    while (remainingLimit > 0) {
-        if (!awaitInternalAtLeast1()) {
-            break
-        }
-        val transferred = transferTo(dst, remainingLimit)
-        val copied = if (transferred == 0L) {
-            val tail = copyToTail(dst, remainingLimit)
-            if (tail == 0L) {
+    try {
+        while (remainingLimit > 0) {
+            if (!awaitInternalAtLeast1()) {
                 break
             }
+            val transferred = transferTo(dst, remainingLimit)
+            val copied = if (transferred == 0L) {
+                val tail = copyToTail(dst, remainingLimit)
+                if (tail == 0L) {
+                    break
+                }
 
-            tail
-        } else {
-            if (dst.availableForWrite == 0) {
-                dst.awaitAtLeastNBytesAvailableForWrite(1)
+                tail
+            } else {
+                if (dst.availableForWrite == 0) {
+                    dst.awaitAtLeastNBytesAvailableForWrite(1)
+                }
+
+                transferred
             }
 
-            transferred
+            remainingLimit -= copied
+
+            if (copied > 0) {
+                dst.flush()
+            }
         }
 
-        remainingLimit -= copied
-
-        if (copied > 0) {
-            dst.flush()
-        }
+        return limit - remainingLimit
+    } catch (cause: Throwable) {
+        dst.close(cause)
+        throw cause
     }
-
-    return limit - remainingLimit
 }
 
 @Suppress("DEPRECATION")

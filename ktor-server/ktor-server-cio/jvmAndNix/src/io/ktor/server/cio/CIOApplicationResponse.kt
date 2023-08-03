@@ -9,14 +9,10 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
-import io.ktor.util.collections.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 
-@Suppress("DEPRECATION")
 internal class CIOApplicationResponse(
     call: CIOApplicationCall,
     private val output: ByteWriteChannel,
@@ -98,7 +94,7 @@ internal class CIOApplicationResponse(
     override suspend fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(contentReady = true)
         val channel = preparedBodyChannel()
-        return withContext<Unit>(Dispatchers.Unconfined) {
+        return withContext(Dispatchers.Unconfined) {
             channel.writeFully(bytes)
             channel.close()
         }

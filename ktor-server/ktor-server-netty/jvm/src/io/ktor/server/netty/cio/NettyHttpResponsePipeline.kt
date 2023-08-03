@@ -23,7 +23,7 @@ private const val UNFLUSHED_LIMIT = 65536
 /**
  * Contains methods for handling http request with Netty
  */
-internal class NettyHttpResponsePipeline constructor(
+internal class NettyHttpResponsePipeline(
     private val context: ChannelHandlerContext,
     private val httpHandlerState: NettyHttpHandlerState,
     override val coroutineContext: CoroutineContext
@@ -103,11 +103,13 @@ internal class NettyHttpResponsePipeline constructor(
             else -> actualException
         }
 
+        flushIfNeeded()
         call.response.responseChannel.cancel(t)
         call.responseWriteJob.cancel()
         call.response.cancel()
         call.dispose()
         call.finishedEvent.setFailure(t)
+        context.close()
     }
 
     private fun respondWithUpgrade(call: NettyApplicationCall, responseMessage: Any): ChannelFuture {
