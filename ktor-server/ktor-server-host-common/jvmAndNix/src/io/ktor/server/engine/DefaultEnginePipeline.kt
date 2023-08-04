@@ -80,9 +80,7 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
 
 private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
     try {
-        if (call.response.status() == null) {
-            call.respond(statusCode)
-        }
+        call.respond(statusCode)
     } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
     }
 }
@@ -105,6 +103,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is BadRequestException,
             is NotFoundException,
             is UnsupportedMediaTypeException -> log.debug(infoString, cause)
+
             else -> log.error("$status: $logString", cause)
         }
     } catch (oom: OutOfMemoryError) {
