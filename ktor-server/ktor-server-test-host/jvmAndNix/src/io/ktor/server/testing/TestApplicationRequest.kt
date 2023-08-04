@@ -157,7 +157,7 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                 append(
                     when (it) {
                         is PartData.FileItem -> {
-                            channel.writeFully(it.provider().readBytes())
+                            channel.writeFully(it.provider().readRemaining().readBytes())
                             ""
                         }
                         is PartData.BinaryItem -> {
@@ -203,7 +203,7 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readBytes())
                         ""
                     }
                     is PartData.BinaryItem -> {

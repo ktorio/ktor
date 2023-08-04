@@ -18,7 +18,7 @@ private val RN_BYTES = "\r\n".toByteArray()
  *
  * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
  *
- * @param formData: data to send.
+ * @param formData data to send.
  */
 public class FormDataContent(
     public val formData: Parameters
@@ -36,7 +36,7 @@ public class FormDataContent(
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  *
- * @param parts: form part data
+ * @param parts form part data
  */
 public class MultiPartFormDataContent(
     parts: List<PartData>,
@@ -61,7 +61,7 @@ public class MultiPartFormDataContent(
             is PartData.FileItem -> {
                 val headers = headersBuilder.build().readBytes()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
-                PreparedPart.InputPart(headers, part.provider, size)
+                PreparedPart.ChannelPart(headers, part.provider, size)
             }
             is PartData.BinaryItem -> {
                 val headers = headersBuilder.build().readBytes()

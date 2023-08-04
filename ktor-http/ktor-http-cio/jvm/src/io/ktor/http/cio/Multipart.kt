@@ -73,20 +73,6 @@ public sealed class MultipartEvent {
  * Parse a multipart preamble
  * @return number of bytes copied
  */
-@Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
-public suspend fun parsePreamble(
-    boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel,
-    output: BytePacketBuilder,
-    limit: Long = Long.MAX_VALUE
-): Long {
-    return parsePreambleImpl(boundaryPrefixed, input, output, limit)
-}
-
-/**
- * Parse a multipart preamble
- * @return number of bytes copied
- */
 private suspend fun parsePreambleImpl(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
@@ -103,34 +89,6 @@ private suspend fun parsePreambleImpl(
 }
 
 /**
- * Parse multipart part headers and body. Body bytes will be copied to [output] but up to [limit] bytes
- */
-@Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
-public suspend fun parsePart(
-    boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    limit: Long = Long.MAX_VALUE
-): Pair<HttpHeadersMap, Long> {
-    val headers = parsePartHeadersImpl(input)
-    try {
-        val size = parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
-        return Pair(headers, size)
-    } catch (t: Throwable) {
-        headers.release()
-        throw t
-    }
-}
-
-/**
- * Parse multipart part headers
- */
-@Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
-public suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
-    return parsePartHeadersImpl(input)
-}
-
-/**
  * Parse multipart part headers
  */
 private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap {
@@ -143,20 +101,6 @@ private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap
         builder.release()
         throw t
     }
-}
-
-/**
- * Parse multipart part body copying them to [output] channel but up to [limit] bytes
- */
-@Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
-public suspend fun parsePartBody(
-    boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    headers: HttpHeadersMap,
-    limit: Long = Long.MAX_VALUE
-): Long {
-    return parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
 }
 
 /**
@@ -179,14 +123,6 @@ private suspend fun parsePartBodyImpl(
     output.flush()
 
     return size
-}
-
-/**
- * Skip multipart boundary
- */
-@Deprecated("This is going to be removed. Use parseMultipart instead.", level = DeprecationLevel.ERROR)
-public suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
-    return skipBoundary(boundaryPrefixed, input)
 }
 
 /**
@@ -227,14 +163,6 @@ private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadCh
 }
 
 /**
- * Check if we have multipart content
- */
-@Deprecated("This is going to be removed.", level = DeprecationLevel.ERROR)
-public fun expectMultipart(headers: HttpHeadersMap): Boolean {
-    return headers["Content-Type"]?.startsWith("multipart/") ?: false
-}
-
-/**
  * Starts a multipart parser coroutine producing multipart events
  */
 public fun CoroutineScope.parseMultipart(
@@ -269,17 +197,12 @@ public fun CoroutineScope.parseMultipart(
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
-/**
- * Starts a multipart parser coroutine producing multipart events
- */
 @OptIn(ExperimentalCoroutinesApi::class)
-@Deprecated("This is going to be removed. Use parseMultipart(contentType) instead.", level = DeprecationLevel.ERROR)
-public fun CoroutineScope.parseMultipart(
+private fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
     totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
-    @Suppress("DEPRECATION")
     val readBeforeParse = input.totalBytesRead
     val firstBoundary = boundaryPrefixed.duplicate()!!.apply {
         position(2)
@@ -438,20 +361,6 @@ private fun findBoundary(contentType: CharSequence): Int {
     }
 
     return -1
-}
-
-/**
- * Parse multipart boundary encoded in [contentType] header value
- * @return a buffer containing CRLF, prefix '--' and boundary bytes
- */
-@Deprecated(
-    "This is going to become internal. " +
-        "Use parseMultipart instead or file a ticket explaining why do you need this function.",
-    level = DeprecationLevel.ERROR
-)
-@Suppress("unused")
-public fun parseBoundary(contentType: CharSequence): ByteBuffer {
-    return parseBoundaryInternal(contentType)
 }
 
 /**
