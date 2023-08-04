@@ -118,6 +118,7 @@ actual abstract class EngineTestBase<
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
+                    if (t is ExpectedTestException) return
                     t?.let {
                         collectUnhandledException(it)
                         println("Critical test exception: $it")
