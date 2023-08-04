@@ -28,7 +28,7 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      */
     @Suppress("DEPRECATION")
     public class FileItem(
-        public val provider: () -> Input,
+        public val provider: () -> ByteReadChannel,
         dispose: () -> Unit,
         partHeaders: Headers
     ) : PartData(dispose, partHeaders) {
@@ -80,24 +80,6 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      * Optional part name based on `Content-Disposition` header
      */
     public val name: String? get() = contentDisposition?.name
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated(
-        "Use name property instead",
-        ReplaceWith("name"),
-        level = DeprecationLevel.ERROR
-    )
-    public val partName: String?
-        get() = name
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated(
-        "Use headers property instead",
-        ReplaceWith("headers"),
-        level = DeprecationLevel.ERROR
-    )
-    public val partHeaders: Headers
-        get() = headers
 }
 
 /**
