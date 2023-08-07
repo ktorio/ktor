@@ -190,7 +190,8 @@ public suspend fun ApplicationCall.respondBytesWriter(
  * If [contentType] is `null`, it tries to fetch an already set "Content-Type" response header.
  * If the header is not available, `text/plain` is used. If [contentType] is specified, it uses it.
  *
- * Additionally, if a charset is not set for a content type, it appends `; charset=UTF-8` to the content type.
+ * Additionally, if a content type is `Text` and a charset is not set for a content type,
+ * it appends `; charset=UTF-8` to the content type.
  */
 public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
     val result = when (contentType) {
@@ -204,10 +205,11 @@ public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): Co
                 }
             } ?: ContentType.Text.Plain
         }
+
         else -> contentType
     }
 
-    return if (result.charset() == null) {
+    return if (result.charset() == null && result.match(ContentType.Text.Any)) {
         result.withCharset(Charsets.UTF_8)
     } else {
         result

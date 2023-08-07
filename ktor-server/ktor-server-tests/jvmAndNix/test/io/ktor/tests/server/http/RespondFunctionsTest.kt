@@ -5,12 +5,14 @@
 package io.ktor.tests.server.http
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -68,5 +70,26 @@ class RespondFunctionsTest {
 
         client.get("/respond")
         client.get("/respond-with-status")
+    }
+
+    @Test
+    fun testRespondWithText() = testApplication {
+        routing {
+            get("json") {
+                call.respondText("Hello", contentType = ContentType.Application.Json)
+            }
+            get("text") {
+                call.respondText("Hello", contentType = ContentType.Text.Plain)
+            }
+        }
+
+        client.get("/json").let {
+            assertEquals("Hello", it.bodyAsText())
+            assertEquals(ContentType.Application.Json, it.contentType())
+        }
+        client.get("/text").let {
+            assertEquals("Hello", it.bodyAsText())
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), it.contentType())
+        }
     }
 }
