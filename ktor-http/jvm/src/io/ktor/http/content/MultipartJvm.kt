@@ -19,6 +19,7 @@ import java.io.*
 @Deprecated("This API uses blocking InputStream. Please use provider() directly.")
 public val PartData.FileItem.streamProvider: () -> InputStream get() = { MultipartInput(provider()).asStream() }
 
+@Suppress("DEPRECATION")
 private class MultipartInput(
     private val channel: ByteReadChannel
 ) : Input() {
