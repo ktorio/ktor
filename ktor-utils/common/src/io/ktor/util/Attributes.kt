@@ -9,7 +9,19 @@ package io.ktor.util
  * @param T is a type of the value stored in the attribute
  * @param name is a name of the attribute for diagnostic purposes. Can't be blank
  */
-public class AttributeKey<T : Any>(public val name: String) {
+public inline fun <reified T : Any> AttributeKey(name: String): AttributeKey<T> =
+    AttributeKey(name, T::class.qualifiedName ?: T::class.toString())
+
+/**
+ * Specifies a key for an attribute in [Attributes]
+ * @param T is a type of the value stored in the attribute
+ * @param name is a name of the attribute for diagnostic purposes. Can't be blank
+ */
+
+public class AttributeKey<T : Any> @PublishedApi internal constructor(
+    public val name: String,
+    private val type: String
+) {
     init {
         if (name.isEmpty()) {
             throw IllegalStateException("Name can't be blank")
@@ -20,13 +32,9 @@ public class AttributeKey<T : Any>(public val name: String) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
+        if (other == null || other !is AttributeKey<*>) return false
 
-        other as AttributeKey<*>
-
-        if (name != other.name) return false
-
-        return true
+        return name == other.name && type == other.type
     }
 
     override fun hashCode(): Int {
