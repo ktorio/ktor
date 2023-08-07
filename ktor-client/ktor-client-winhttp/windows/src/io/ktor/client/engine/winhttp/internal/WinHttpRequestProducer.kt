@@ -16,8 +16,6 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlin.collections.MutableMap
-import kotlin.collections.mutableMapOf
 import kotlin.collections.set
 import kotlin.coroutines.*
 
@@ -57,6 +55,7 @@ internal class WinHttpRequestProducer(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private suspend fun writeChunkedBody(requestBody: ByteReadChannel, readBuffer: ByteArray) {
         while (true) {
             val readBytes = requestBody.readAvailable(readBuffer).takeIf { it > 0 } ?: break
@@ -67,6 +66,7 @@ internal class WinHttpRequestProducer(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private suspend fun writeBodyChunk(readBuffer: ByteArray, length: Int) {
         // Write chunk length
         val chunkStart = "${length.toString(16)}\r\n".toByteArray()
@@ -83,6 +83,7 @@ internal class WinHttpRequestProducer(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private suspend fun writeRegularBody(requestBody: ByteReadChannel, readBuffer: ByteArray) {
         while (true) {
             val readBytes = requestBody.readAvailable(readBuffer).takeIf { it > 0 } ?: break

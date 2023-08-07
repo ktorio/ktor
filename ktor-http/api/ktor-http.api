@@ -40,6 +40,7 @@ public final class io/ktor/http/CacheControl$NoStore : io/ktor/http/CacheControl
 public final class io/ktor/http/CacheControl$Visibility : java/lang/Enum {
 	public static final field Private Lio/ktor/http/CacheControl$Visibility;
 	public static final field Public Lio/ktor/http/CacheControl$Visibility;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/CacheControl$Visibility;
 	public static fun values ()[Lio/ktor/http/CacheControl$Visibility;
 }
@@ -294,6 +295,7 @@ public final class io/ktor/http/CookieEncoding : java/lang/Enum {
 	public static final field DQUOTES Lio/ktor/http/CookieEncoding;
 	public static final field RAW Lio/ktor/http/CookieEncoding;
 	public static final field URI_ENCODING Lio/ktor/http/CookieEncoding;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/CookieEncoding;
 	public static fun values ()[Lio/ktor/http/CookieEncoding;
 }
@@ -837,6 +839,7 @@ public final class io/ktor/http/QueryKt {
 public final class io/ktor/http/RangeUnits : java/lang/Enum {
 	public static final field Bytes Lio/ktor/http/RangeUnits;
 	public static final field None Lio/ktor/http/RangeUnits;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getUnitToken ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/RangeUnits;
 	public static fun values ()[Lio/ktor/http/RangeUnits;
@@ -1065,6 +1068,7 @@ public final class io/ktor/http/auth/HeaderValueEncoding : java/lang/Enum {
 	public static final field QUOTED_ALWAYS Lio/ktor/http/auth/HeaderValueEncoding;
 	public static final field QUOTED_WHEN_REQUIRED Lio/ktor/http/auth/HeaderValueEncoding;
 	public static final field URI_ENCODE Lio/ktor/http/auth/HeaderValueEncoding;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/auth/HeaderValueEncoding;
 	public static fun values ()[Lio/ktor/http/auth/HeaderValueEncoding;
 }
@@ -1345,6 +1349,7 @@ public final class io/ktor/http/content/VersionCheckResult : java/lang/Enum {
 	public static final field NOT_MODIFIED Lio/ktor/http/content/VersionCheckResult;
 	public static final field OK Lio/ktor/http/content/VersionCheckResult;
 	public static final field PRECONDITION_FAILED Lio/ktor/http/content/VersionCheckResult;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getStatusCode ()Lio/ktor/http/HttpStatusCode;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/content/VersionCheckResult;
 	public static fun values ()[Lio/ktor/http/content/VersionCheckResult;

@@ -19,6 +19,7 @@ import libcurl.*
 @EagerInitialization
 private val curlGlobalInitReturnCode = curlInitBridge()
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun curlInitBridge(): Int = curl_global_init(CURL_GLOBAL_ALL.convert()).convert()
 
 @OptIn(ExperimentalStdlibApi::class)

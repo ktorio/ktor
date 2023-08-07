@@ -6,6 +6,7 @@ package io.ktor.server.engine.internal
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 
@@ -13,6 +14,7 @@ internal actual fun availableProcessorsBridge(): Int = 1
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default
 
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun printError(message: Any?) {
     fprintf(stderr, "%s", message?.toString())
 }

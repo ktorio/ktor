@@ -67,7 +67,7 @@ internal class DarwinLegacyTaskHandler(
         bodyChunks.close()
     }
 
-    @OptIn(UnsafeNumber::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
     fun NSHTTPURLResponse.toResponseData(): HttpResponseData = HttpResponseData(
         HttpStatusCode.fromValue(statusCode.convert()),
         requestTime,

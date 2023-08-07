@@ -140,7 +140,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
         ?: throw MalformedInputException("Failed to convert String to Bytes using $charset")
 }
 
-@OptIn(UnsafeNumber::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -148,7 +148,7 @@ private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
-@OptIn(UnsafeNumber::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val result = ByteArray(length.toInt())
     if (result.isEmpty()) return result

@@ -849,6 +849,7 @@ public final class io/ktor/utils/io/core/ByteOrder : java/lang/Enum {
 	public static final field BIG_ENDIAN Lio/ktor/utils/io/core/ByteOrder;
 	public static final field Companion Lio/ktor/utils/io/core/ByteOrder$Companion;
 	public static final field LITTLE_ENDIAN Lio/ktor/utils/io/core/ByteOrder;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getNioOrder ()Ljava/nio/ByteOrder;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/utils/io/core/ByteOrder;
 	public static fun values ()[Lio/ktor/utils/io/core/ByteOrder;
