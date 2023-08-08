@@ -13,7 +13,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
-internal class NettyHttp2ApplicationResponse constructor(
+internal class NettyHttp2ApplicationResponse(
     call: NettyApplicationCall,
     val handler: NettyHttp2Handler,
     context: ChannelHandlerContext,
@@ -36,9 +36,9 @@ internal class NettyHttp2ApplicationResponse constructor(
     }
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
-        // transfer encoding should be never set for HTTP/2
+        // transfer encoding should never be set for HTTP/2,
         // so we simply remove header
-        // it should be lower case
+        // it should be a lower case
         responseHeaders.remove("transfer-encoding")
         return DefaultHttp2HeadersFrame(responseHeaders, last)
     }

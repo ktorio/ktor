@@ -723,6 +723,58 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Test
+    fun testErrorInBodyClosesConnection() {
+        createAndStartServer {
+            get("/") {
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("first\n")
+                            channel.writeStringUtf8("second\n")
+                            throw ExpectedTestException("error")
+                        }
+                    }
+                )
+            }
+        }
+
+        try {
+            withUrl("/") {
+                body<ByteArray>()
+            }
+        } catch (cause: Throwable) {
+            // expected
+        }
+    }
+
+    @Test
+    fun testErrorInBodyClosesConnectionWithContentLength() {
+        createAndStartServer {
+            get("/") {
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override val contentLength: Long = 100
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("first\n")
+                            channel.writeStringUtf8("second\n")
+                            throw ExpectedTestException("error")
+                        }
+                    }
+                )
+            }
+        }
+
+        try {
+            withUrl("/") {
+                body<ByteArray>()
+            }
+        } catch (cause: Throwable) {
+            // expected
+        }
+    }
+
     private data class TestData(
         val name: String
     ) : AbstractCoroutineContextElement(TestData) {
