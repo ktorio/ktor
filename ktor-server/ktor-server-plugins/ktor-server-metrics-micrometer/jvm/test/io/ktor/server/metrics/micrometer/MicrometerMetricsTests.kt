@@ -18,11 +18,8 @@ import io.micrometer.core.instrument.binder.*
 import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
-import io.micrometer.core.instrument.distribution.pause.*
 import io.micrometer.core.instrument.logging.*
 import io.micrometer.core.instrument.simple.*
-import java.util.concurrent.*
-import java.util.function.*
 import kotlin.reflect.*
 import kotlin.test.*
 
