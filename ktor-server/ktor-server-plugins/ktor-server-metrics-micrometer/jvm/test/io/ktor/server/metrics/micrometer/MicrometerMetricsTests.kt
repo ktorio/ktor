@@ -18,7 +18,11 @@ import io.micrometer.core.instrument.binder.*
 import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
+import io.micrometer.core.instrument.distribution.pause.*
+import io.micrometer.core.instrument.logging.*
 import io.micrometer.core.instrument.simple.*
+import java.util.concurrent.*
+import java.util.function.*
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -397,6 +401,27 @@ class MicrometerMetricsTests {
         val response = client.get("/")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("OK", response.bodyAsText())
+    }
+
+    @Test
+    fun `test closes previous registry`(): Unit = testApplication {
+        var closed = false
+        val metrics = object : LoggingMeterRegistry() {
+            override fun close() {
+                super.close()
+                closed = true
+            }
+        }
+
+        application {
+            install(MicrometerMetrics) {
+                registry = metrics
+                registry = LoggingMeterRegistry()
+            }
+        }
+
+        startApplication()
+        assertTrue(closed)
     }
 
     private fun TestApplicationEngine.metersAreRegistered(
