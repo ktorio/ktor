@@ -4,13 +4,15 @@
 
 package io.ktor.util
 
+import kotlin.reflect.*
+
 /**
  * Specifies a key for an attribute in [Attributes]
  * @param T is a type of the value stored in the attribute
  * @param name is a name of the attribute for diagnostic purposes. Can't be blank
  */
 public inline fun <reified T : Any> AttributeKey(name: String): AttributeKey<T> =
-    AttributeKey(name, T::class.qualifiedName ?: T::class.toString())
+    AttributeKey(name, T::class.toString())
 
 /**
  * Specifies a key for an attribute in [Attributes]
