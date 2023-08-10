@@ -49,6 +49,10 @@ public class MicrometerMetricsConfig {
      * @see [MicrometerMetrics]
      */
     public var registry: MeterRegistry = LoggingMeterRegistry()
+        set(value) {
+            field.close()
+            field = value
+        }
 
     /**
      * Specifies if requests for non-existent routes should
