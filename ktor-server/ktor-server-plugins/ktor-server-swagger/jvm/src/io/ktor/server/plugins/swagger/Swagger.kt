@@ -10,6 +10,7 @@ import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.util.*
 import kotlinx.html.*
 import java.io.*
 
@@ -62,6 +63,8 @@ internal fun RoutingBuilder.swaggerUI(
         }
         get {
             val fullPath = call.request.path()
+            val docExpansion =
+                runCatching { call.request.queryParameters.getOrFail<String>("docExpansion") }.getOrNull()
             call.respondHtml {
                 head {
                     title { +"Swagger UI" }
@@ -96,6 +99,7 @@ window.onload = function() {
             SwaggerUIStandalonePreset
         ],
         layout: 'StandaloneLayout'
+        ${docExpansion?.let { "docExpansion: '$it'" } ?: ""}
     });
 }
                             """.trimIndent()
