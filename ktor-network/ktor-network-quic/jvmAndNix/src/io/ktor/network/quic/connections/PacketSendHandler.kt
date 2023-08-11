@@ -13,236 +13,187 @@ import io.ktor.network.quic.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 
-internal typealias FrameWriteFunction = suspend FrameWriter.(
-    builder: BytePacketBuilder,
-    hookConsumer: (hook: (Long) -> Unit) -> Unit,
-) -> Unit
+internal typealias FrameWriteFunction = suspend FrameWriter.() -> Unit
 
-internal sealed class PacketSendHandler(
+internal interface PacketSendHandler {
+    /**
+     * @param expectedFrameSize - Expected size of the frame when it will be written into a packet.
+     * It should not be less than the actual size, but it can be bigger.
+     *
+     * @return Packet number of the packet to which the frame was written
+     */
+    suspend fun writeFrame(expectedFrameSize: Int, handler: BytePacketBuilder.() -> Unit): Long
+}
+
+internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
+    protected val packetHandler: ReadyHandler,
     private val role: ConnectionRole,
-    private val hasPayload: Boolean = true,
-    private val packetHandler: ReadyPacketHandler,
-    type: QUICPacketType,
-    private val onPacketPayloadReady: suspend (payload: (Long) -> ByteArray) -> Unit,
-) {
+) : PacketSendHandler {
     protected abstract val logger: Logger
 
     private val buffer = MutexPacketBuilder()
-    private val packetNumberHooks = mutableListOf<(Long) -> Unit>()
+    private var currentPacketNumber: Long = 0L
 
-    private val maximumHeaderSize: Int by lazy {
-        when (type) {
-            QUICPacketType.Initial -> {
-                byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
-                    byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
-                    byteArrayFrameSize((packetHandler as ReadyPacketHandler.Initial).token.size) +
-                    PktConst.HEADER_FLAGS_LENGTH +
-                    PktConst.LONG_HEADER_VERSION_LENGTH +
-                    PktConst.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
-                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
-            }
-
-            QUICPacketType.OneRTT ->
-                packetHandler.destinationConnectionIDSize +
-                    PktConst.HEADER_FLAGS_LENGTH +
-                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
-
-            QUICPacketType.Retry -> TODO("Not yet implemented")
-            QUICPacketType.VersionNegotiation -> TODO("Not yet implemented")
-
-            // Handshake, 0-RTT
-            QUICPacketType.Handshake, QUICPacketType.ZeroRTT -> {
-                byteArrayFrameSize(packetHandler.destinationConnectionIDSize) +
-                    byteArrayFrameSize(packetHandler.sourceConnectionIDSize) +
-                    PktConst.HEADER_FLAGS_LENGTH +
-                    PktConst.LONG_HEADER_VERSION_LENGTH +
-                    PktConst.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
-                    PktConst.HEADER_PACKET_NUMBER_MAX_LENGTH
-            }
-        }
+    private val frameWriter: FrameWriter by lazy {
+        FrameWriterImpl(this)
     }
 
-    suspend fun writeFrame(write: FrameWriteFunction) = buffer.withLock { buffer ->
-        val temp = buildPacket {
-            write(FrameWriterImpl, this) { hook ->
-                packetNumberHooks.add(hook) // todo hooks are added, but packet number is wrong if frame does not fit
-            }
-        }.readBytes()
+    protected abstract val encryptionLevel: EncryptionLevel
+    protected abstract val maximumHeaderSize: Int
 
-        val usedSize = buffer.size +
-            temp.size +
-            maximumHeaderSize +
-            packetHandler.usedDatagramSize +
-            PktConst.ENCRYPTION_HEADER_LENGTH
+    suspend fun writeFrame(handler: FrameWriteFunction) {
+        frameWriter.handler()
+    }
+
+    override suspend fun writeFrame(
+        expectedFrameSize: Int,
+        handler: BytePacketBuilder.() -> Unit,
+    ): Long = buffer.withLock { buffer ->
+        val expectedPacketSize: Int =
+            buffer.size +
+                packetHandler.usedDatagramSize +
+                maximumHeaderSize +
+                expectedFrameSize +
+                PayloadSize.ENCRYPTION_HEADER_LENGTH
 
         // send an already pending packet as this one does not fit into datagram size limits
-        if (usedSize > packetHandler.maxUdpPayloadSize) {
+        if (expectedPacketSize > packetHandler.maxUdpPayloadSize) {
             logger.info("Frame exceeded max_udp_payload_size of ${packetHandler.maxUdpPayloadSize}, flushing datagram")
-            finish(getPacketPayloadNonBlocking())
+            finish(getPacketPayloadNonBlocking(), getAndNextPacketNumber())
 
             packetHandler.forceEndDatagram()
         }
 
-        buffer.writeFully(temp)
+        buffer.handler()
+        currentPacketNumber
     }
 
     suspend fun finish() {
-        finish(getPacketPayload())
+        var packetNumber: Long = 0
+        val payload = buffer.flush {
+            // hare we are in lock for buffer, so we can call getAndNextPacketNumber
+            packetNumber = getAndNextPacketNumber()
+        }.readBytes()
+
+        finish(payload, packetNumber)
     }
 
-    private suspend fun finish(payload: ByteArray) {
-        if (payload.isNotEmpty() || !hasPayload) {
-            onPacketPayloadReady { packetNumber ->
-                packetNumberHooks.forEach { hook -> hook(packetNumber) } // todo this looks wrong
-
-                payload
+    private suspend fun finish(payload: ByteArray, packetNumber: Long) {
+        if (payload.isNotEmpty()) {
+            packetHandler.withDatagramBuilder { builder ->
+                sendPacket(builder, payload, packetNumber)
             }
         }
     }
 
-    private suspend fun getPacketPayload(): ByteArray = if (!hasPayload) {
-        EMPTY_BYTE_ARRAY
-    } else {
-        buffer.flush().readBytes()
+    protected abstract suspend fun sendPacket(
+        datagramBuilder: BytePacketBuilder,
+        payload: ByteArray,
+        packetNumber: Long
+    )
+
+    private fun getPacketPayloadNonBlocking(): ByteArray {
+        return buffer.flushNonBlocking().readBytes()
     }
 
-    private fun getPacketPayloadNonBlocking(): ByteArray = if (!hasPayload) {
-        EMPTY_BYTE_ARRAY
-    } else {
-        buffer.flushNonBlocking().readBytes()
+    private fun getAndNextPacketNumber(): Long {
+        return currentPacketNumber.also {
+            currentPacketNumber = packetHandler.getPacketNumber(encryptionLevel)
+        }
     }
 
     class Initial(
-        tlsComponent: TLSComponent,
+        private val tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.Initial,
         role: ConnectionRole,
-    ) : PacketSendHandler(
-        type = QUICPacketType.Initial,
-        packetHandler = packetHandler,
-        role = role,
-        onPacketPayloadReady = { payload ->
-            val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Initial)
-
-            packetHandler.withDatagramBuilder { datagramBuilder ->
-                PacketWriter.writeInitialPacket(
-                    tlsComponent = tlsComponent,
-                    largestAcknowledged = packetHandler.getLargestAcknowledged(EncryptionLevel.Initial),
-                    packetBuilder = datagramBuilder,
-                    version = QUICVersion.V1,
-                    destinationConnectionID = packetHandler.destinationConnectionID,
-                    sourceConnectionID = packetHandler.sourceConnectionID,
-                    packetNumber = packetNumber,
-                    token = packetHandler.token,
-                    payload = payload(packetNumber),
-                )
-            }
-        }
-    ) {
+    ) : PacketSendHandlerImpl<ReadyPacketHandler.Initial>(packetHandler, role) {
         override val logger: Logger = logger()
+
+        override val encryptionLevel: EncryptionLevel = EncryptionLevel.Initial
+
+        override val maximumHeaderSize: Int by lazy {
+            PayloadSize.ofByteArrayWithLength(packetHandler.destinationConnectionIDSize) +
+                PayloadSize.ofByteArrayWithLength(packetHandler.sourceConnectionIDSize) +
+                PayloadSize.ofByteArrayWithLength(packetHandler.token.size) +
+                PayloadSize.HEADER_FLAGS_LENGTH +
+                PayloadSize.LONG_HEADER_VERSION_LENGTH +
+                PayloadSize.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
+                PayloadSize.HEADER_PACKET_NUMBER_MAX_LENGTH
+        }
+
+        override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
+            PacketWriter.writeInitialPacket(
+                tlsComponent = tlsComponent,
+                largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
+                packetBuilder = datagramBuilder,
+                version = QUICVersion.V1,
+                destinationConnectionID = packetHandler.destinationConnectionID,
+                sourceConnectionID = packetHandler.sourceConnectionID,
+                packetNumber = packetNumber,
+                token = packetHandler.token,
+                payload = payload,
+            )
+        }
     }
 
     class Handshake(
-        tlsComponent: TLSComponent,
+        private val tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler,
         role: ConnectionRole,
-    ) : PacketSendHandler(
-        type = QUICPacketType.Handshake,
-        packetHandler = packetHandler,
-        role = role,
-        onPacketPayloadReady = { payload ->
-            val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.Handshake)
-
-            packetHandler.withDatagramBuilder { datagramBuilder ->
-                PacketWriter.writeHandshakePacket(
-                    tlsComponent = tlsComponent,
-                    largestAcknowledged = packetHandler.getLargestAcknowledged(EncryptionLevel.Handshake),
-                    packetBuilder = datagramBuilder,
-                    version = QUICVersion.V1,
-                    destinationConnectionID = packetHandler.destinationConnectionID,
-                    sourceConnectionID = packetHandler.sourceConnectionID,
-                    packetNumber = packetNumber,
-                    payload = payload(packetNumber),
-                )
-            }
-        }
-    ) {
+    ) : PacketSendHandlerImpl<ReadyPacketHandler>(packetHandler, role) {
         override val logger: Logger = logger()
+
+        override val encryptionLevel: EncryptionLevel = EncryptionLevel.Handshake
+
+        override val maximumHeaderSize: Int by lazy {
+            PayloadSize.ofByteArrayWithLength(packetHandler.destinationConnectionIDSize) +
+                PayloadSize.ofByteArrayWithLength(packetHandler.sourceConnectionIDSize) +
+                PayloadSize.HEADER_FLAGS_LENGTH +
+                PayloadSize.LONG_HEADER_VERSION_LENGTH +
+                PayloadSize.LONG_HEADER_LENGTH_FIELD_MAX_LENGTH +
+                PayloadSize.HEADER_PACKET_NUMBER_MAX_LENGTH
+        }
+
+        override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
+            PacketWriter.writeHandshakePacket(
+                tlsComponent = tlsComponent,
+                largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
+                packetBuilder = datagramBuilder,
+                version = QUICVersion.V1,
+                destinationConnectionID = packetHandler.destinationConnectionID,
+                sourceConnectionID = packetHandler.sourceConnectionID,
+                packetNumber = packetNumber,
+                payload = payload,
+            )
+        }
     }
 
     class OneRTT(
-        tlsComponent: TLSComponent,
+        private val tlsComponent: TLSComponent,
         packetHandler: ReadyPacketHandler.OneRTT,
         role: ConnectionRole,
-    ) : PacketSendHandler(
-        type = QUICPacketType.OneRTT,
-        packetHandler = packetHandler,
-        role = role,
-        onPacketPayloadReady = { payload ->
-            val packetNumber = packetHandler.getPacketNumber(EncryptionLevel.AppData)
-
-            packetHandler.withDatagramBuilder { datagramBuilder ->
-                PacketWriter.writeOneRTTPacket(
-                    tlsComponent = tlsComponent,
-                    largestAcknowledged = packetHandler.getLargestAcknowledged(EncryptionLevel.AppData),
-                    packetBuilder = datagramBuilder,
-                    spinBit = packetHandler.spinBit,
-                    keyPhase = packetHandler.keyPhase,
-                    destinationConnectionID = packetHandler.destinationConnectionID,
-                    packetNumber = packetNumber,
-                    payload = payload(packetNumber),
-                )
-            }
-        }
-    ) {
+    ) : PacketSendHandlerImpl<ReadyPacketHandler.OneRTT>(packetHandler, role) {
         override val logger: Logger = logger()
-    }
 
-    @Suppress("unused")
-    class VersionNegotiation(
-        packetHandler: ReadyPacketHandler.VersionNegotiation,
-        role: ConnectionRole,
-    ) : PacketSendHandler(
-        type = QUICPacketType.VersionNegotiation,
-        hasPayload = false,
-        packetHandler = packetHandler,
-        role = role,
-        onPacketPayloadReady = { _ ->
-            packetHandler.withDatagramBuilder { datagramBuilder ->
-                PacketWriter.writeVersionNegotiationPacket(
-                    packetBuilder = datagramBuilder,
-                    version = QUICVersion.V1,
-                    destinationConnectionID = packetHandler.destinationConnectionID,
-                    sourceConnectionID = packetHandler.sourceConnectionID,
-                    supportedVersions = packetHandler.supportedVersions
-                )
-            }
-        }
-    ) {
-        override val logger: Logger = logger()
-    }
+        override val encryptionLevel: EncryptionLevel = EncryptionLevel.AppData
 
-    @Suppress("unused")
-    class Retry(
-        packetHandler: ReadyPacketHandler.Retry,
-        role: ConnectionRole,
-    ) : PacketSendHandler(
-        type = QUICPacketType.Retry,
-        hasPayload = false,
-        packetHandler = packetHandler,
-        role = role,
-        onPacketPayloadReady = { _ ->
-            packetHandler.withDatagramBuilder { datagramBuilder ->
-                PacketWriter.writeRetryPacket(
-                    packetBuilder = datagramBuilder,
-                    version = QUICVersion.V1,
-                    destinationConnectionID = packetHandler.destinationConnectionID,
-                    sourceConnectionID = packetHandler.sourceConnectionID,
-                    originalDestinationConnectionID = packetHandler.originalDestinationConnectionID,
-                    retryToken = packetHandler.retryToken,
-                )
-            }
+        override val maximumHeaderSize: Int by lazy {
+            packetHandler.destinationConnectionIDSize +
+                PayloadSize.HEADER_FLAGS_LENGTH +
+                PayloadSize.HEADER_PACKET_NUMBER_MAX_LENGTH
         }
-    ) {
-        override val logger: Logger = logger()
+
+        override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
+            PacketWriter.writeOneRTTPacket(
+                tlsComponent = tlsComponent,
+                largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
+                packetBuilder = datagramBuilder,
+                spinBit = packetHandler.spinBit,
+                keyPhase = packetHandler.keyPhase,
+                destinationConnectionID = packetHandler.destinationConnectionID,
+                packetNumber = packetNumber,
+                payload = payload,
+            )
+        }
     }
 }

@@ -16,13 +16,9 @@ import io.ktor.utils.io.core.*
  * [RFC Reference](https://www.rfc-editor.org/rfc/rfc9000.html#name-frame-types-and-formats)
  */
 internal interface FrameWriter {
-    fun writePadding(
-        packetBuilder: BytePacketBuilder,
-    )
+    suspend fun writePadding(): Long
 
-    fun writePing(
-        packetBuilder: BytePacketBuilder,
-    )
+    suspend fun writePing(): Long
 
     /**
      * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
@@ -30,12 +26,11 @@ internal interface FrameWriter {
      * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
      * fields of the ACK frame
      */
-    fun writeACK(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeACK(
         ackDelay: Long,
         ack_delay_exponent: Int,
-        ackRanges: LongArray,
-    )
+        ackRanges: List<Long>,
+    ): Long
 
     /**
      * @param ackRanges sorted ends in descending order of packet numbers ranges acknowledged by this frame.
@@ -43,151 +38,91 @@ internal interface FrameWriter {
      * [ackRanges] is decomposed into **largestAcknowledged**, **ackRangeCount**, **firstACKRange**, **ackRange...**
      * fields of the ACK frame
      */
-    fun writeACKWithECN(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeACKWithECN(
         ackDelay: Long,
         ack_delay_exponent: Int,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    )
+    ): Long
 
-    fun writeResetStream(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeResetStream(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finaSize: Long,
-    )
+    ): Long
 
-    fun writeStopSending(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        applicationProtocolErrorCode: AppError,
-    )
+    suspend fun writeStopSending(streamId: Long, applicationProtocolErrorCode: AppError): Long
 
-    fun writeCrypto(
-        packetBuilder: BytePacketBuilder,
-        offset: Long,
-        data: ByteArray,
-    )
+    suspend fun writeCrypto(offset: Long, data: ByteArray): Long
 
-    fun writeNewToken(
-        packetBuilder: BytePacketBuilder,
-        token: ByteArray,
-    )
+    suspend fun writeNewToken(token: ByteArray): Long
 
-    fun writeStream(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeStream(
         streamId: Long,
         offset: Long?,
         specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
-    )
+    ): Long
 
-    fun writeMaxData(
-        packetBuilder: BytePacketBuilder,
-        maximumData: Long,
-    )
+    suspend fun writeMaxData(maximumData: Long): Long
 
-    fun writeMaxStreamData(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        maximumStreamData: Long,
-    )
+    suspend fun writeMaxStreamData(streamId: Long, maximumStreamData: Long): Long
 
-    fun writeMaxStreamsBidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    )
+    suspend fun writeMaxStreamsBidirectional(maximumStreams: Long): Long
 
-    fun writeMaxStreamsUnidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    )
+    suspend fun writeMaxStreamsUnidirectional(maximumStreams: Long): Long
 
-    fun writeDataBlocked(
-        packetBuilder: BytePacketBuilder,
-        maximumData: Long,
-    )
+    suspend fun writeDataBlocked(maximumData: Long): Long
 
-    fun writeStreamDataBlocked(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        maximumStreamData: Long,
-    )
+    suspend fun writeStreamDataBlocked(streamId: Long, maximumStreamData: Long): Long
 
-    fun writeStreamsBlockedBidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    )
+    suspend fun writeStreamsBlockedBidirectional(maximumStreams: Long): Long
 
-    fun writeStreamsBlockedUnidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    )
+    suspend fun writeStreamsBlockedUnidirectional(maximumStreams: Long): Long
 
-    fun writeNewConnectionId(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeNewConnectionId(
         sequenceNumber: Long,
         retirePriorTo: Long,
         connectionID: QUICConnectionID,
         statelessResetToken: ByteArray,
-    )
+    ): Long
 
-    fun writeRetireConnectionId(
-        packetBuilder: BytePacketBuilder,
-        sequenceNumber: Long,
-    )
+    suspend fun writeRetireConnectionId(sequenceNumber: Long): Long
 
-    fun writePathChallenge(
-        packetBuilder: BytePacketBuilder,
-        data: ByteArray,
-    )
+    suspend fun writePathChallenge(data: ByteArray): Long
 
-    fun writePathResponse(
-        packetBuilder: BytePacketBuilder,
-        data: ByteArray,
-    )
+    suspend fun writePathResponse(data: ByteArray): Long
 
-    fun writeConnectionCloseWithTransportError(
-        packetBuilder: BytePacketBuilder,
+    suspend fun writeConnectionCloseWithTransportError(
         errorCode: QUICTransportError,
         frameTypeV1: QUICFrameType?,
         reasonPhrase: ByteArray,
-    )
+    ): Long
 
-    fun writeConnectionCloseWithAppError(
-        packetBuilder: BytePacketBuilder,
-        errorCode: AppError,
-        reasonPhrase: ByteArray,
-    )
+    suspend fun writeConnectionCloseWithAppError(applicationProtocolErrorCode: AppError, reasonPhrase: ByteArray): Long
 
-    fun writeHandshakeDone(
-        packetBuilder: BytePacketBuilder,
-    )
+    suspend fun writeHandshakeDone(): Long
 }
 
-internal object FrameWriterImpl : FrameWriter {
-    override fun writePadding(
-        packetBuilder: BytePacketBuilder,
-    ) = with(packetBuilder) {
+internal class FrameWriterImpl(
+    packetSendHandler: PacketSendHandler,
+) : FrameWriter, PacketSendHandler by packetSendHandler {
+    override suspend fun writePadding(): Long = writeFrame(PayloadSize.FRAME_TYPE_SIZE) {
         writeFrameType(QUICFrameType.PADDING)
     }
 
-    override fun writePing(
-        packetBuilder: BytePacketBuilder,
-    ) = with(packetBuilder) {
+    override suspend fun writePing(): Long = writeFrame(PayloadSize.FRAME_TYPE_SIZE) {
         writeFrameType(QUICFrameType.PING)
     }
 
-    override fun writeACK(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeACK(
         ackDelay: Long,
         ack_delay_exponent: Int,
-        ackRanges: LongArray,
-    ) = packetBuilder.writeACK(
+        ackRanges: List<Long>,
+    ): Long = writeACK(
         typeV1 = QUICFrameType.ACK,
         ackDelay = ackDelay,
         ack_delay_exponent = ack_delay_exponent,
@@ -197,15 +132,14 @@ internal object FrameWriterImpl : FrameWriter {
         ectCE = null
     )
 
-    override fun writeACKWithECN(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeACKWithECN(
         ackDelay: Long,
         ack_delay_exponent: Int,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long,
         ect1: Long,
         ectCE: Long,
-    ) = packetBuilder.writeACK(
+    ): Long = writeACK(
         typeV1 = QUICFrameType.ACK_ECN,
         ackDelay = ackDelay,
         ack_delay_exponent = ack_delay_exponent,
@@ -215,15 +149,15 @@ internal object FrameWriterImpl : FrameWriter {
         ectCE = ectCE
     )
 
-    private fun BytePacketBuilder.writeACK(
+    private suspend fun writeACK(
         typeV1: QUICFrameType,
         ackDelay: Long,
         ack_delay_exponent: Int,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long?,
         ect1: Long?,
         ectCE: Long?,
-    ) {
+    ): Long {
         require(ackRanges.isNotEmpty()) {
             "'ackRanges' parameter can not be empty"
         }
@@ -231,99 +165,129 @@ internal object FrameWriterImpl : FrameWriter {
             "'ackRanges' parameter's size should be even"
         }
 
-        val largestAcknowledged = ackRanges.first()
-        val firstACKRange = largestAcknowledged - ackRanges[1]
-        val ackRangeCount = ackRanges.size / 2 - 1
+        val largestAcknowledged: Long = ackRanges[0]
+        val firstACKRange: Long = largestAcknowledged - ackRanges[1]
+        val ackRangeCount: Int = ackRanges.size / 2 - 1
+        val ackDelayPowered: Long = ackDelay ushr ack_delay_exponent
 
-        writeFrameType(typeV1)
-        writeVarInt(largestAcknowledged)
-        writeVarInt(ackDelay ushr ack_delay_exponent)
-        writeVarInt(ackRangeCount)
-        writeVarInt(firstACKRange)
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(largestAcknowledged) +
+                PayloadSize.ofVarInt(ackDelayPowered) +
+                PayloadSize.ofVarInt(ackRangeCount) +
+                PayloadSize.ofVarInt(firstACKRange)
 
-        var lastSmallestAcknowledged = ackRanges[1]
-        var i = 2
-        while (i < ackRanges.size) {
-            val gap = lastSmallestAcknowledged - ackRanges[i] - 2
-            lastSmallestAcknowledged = ackRanges[i + 1]
-            val length = ackRanges[i] - lastSmallestAcknowledged
+        val expectedRangesSize: Int = ackRangeCount * 2 * PayloadSize.LONG_SIZE
 
-            writeVarInt(gap)
-            writeVarInt(length)
+        val expectedEctSize: Int = ect0?.let {
+            PayloadSize.ofVarInt(ect0) +
+                PayloadSize.ofVarInt(ect1!!) +
+                PayloadSize.ofVarInt(ectCE!!)
+        } ?: 0
 
-            i += 2
-        }
+        return writeFrame(expectedSize + expectedRangesSize + expectedEctSize) {
+            writeFrameType(typeV1)
+            writeVarInt(largestAcknowledged)
+            writeVarInt(ackDelayPowered)
+            writeVarInt(ackRangeCount)
+            writeVarInt(firstACKRange)
 
-        ect0?.let {
-            writeVarInt(ect0)
-            writeVarInt(ect1!!)
-            writeVarInt(ectCE!!)
+            var lastSmallestAcknowledged = ackRanges[1]
+            var i = 2
+            while (i < ackRanges.size) {
+                val gap = lastSmallestAcknowledged - ackRanges[i] - 2
+                lastSmallestAcknowledged = ackRanges[i + 1]
+                val length = ackRanges[i] - lastSmallestAcknowledged
+
+                writeVarInt(gap)
+                writeVarInt(length)
+
+                i += 2
+            }
+
+            ect0?.let {
+                writeVarInt(ect0)
+                writeVarInt(ect1!!)
+                writeVarInt(ectCE!!)
+            }
         }
     }
 
-    override fun writeResetStream(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeResetStream(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
         finaSize: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.RESET_STREAM)
-        writeVarInt(streamId)
-        applicationProtocolErrorCode.writeToFrame(this)
-        writeVarInt(finaSize)
+    ): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(streamId) +
+                PayloadSize.APP_ERROR_SIZE +
+                PayloadSize.ofVarInt(finaSize)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.RESET_STREAM)
+            writeVarInt(streamId)
+            applicationProtocolErrorCode.writeToFrame(this)
+            writeVarInt(finaSize)
+        }
     }
 
-    override fun writeStopSending(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        applicationProtocolErrorCode: AppError,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.STOP_SENDING)
-        writeVarInt(streamId)
-        applicationProtocolErrorCode.writeToFrame(this)
+    override suspend fun writeStopSending(streamId: Long, applicationProtocolErrorCode: AppError): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(streamId) +
+                PayloadSize.APP_ERROR_SIZE
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.STOP_SENDING)
+            writeVarInt(streamId)
+            applicationProtocolErrorCode.writeToFrame(this)
+        }
     }
 
-    override fun writeCrypto(
-        packetBuilder: BytePacketBuilder,
-        offset: Long,
-        data: ByteArray,
-    ) = with(packetBuilder) {
+    override suspend fun writeCrypto(offset: Long, data: ByteArray): Long {
         require(offset + data.size < POW_2_62) {
             "The sum of the 'offset' and 'data length' cannot exceed (2^62 - 1)"
         }
 
-        writeFrameType(QUICFrameType.CRYPTO)
-        writeVarInt(offset)
-        writeVarInt(data.size)
-        writeFully(data)
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(offset) +
+                PayloadSize.ofVarInt(data.size) +
+                PayloadSize.ofByteArray(data)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.CRYPTO)
+            writeVarInt(offset)
+            writeVarInt(data.size)
+            writeFully(data)
+        }
     }
 
-    override fun writeNewToken(
-        packetBuilder: BytePacketBuilder,
-        token: ByteArray,
-    ) = with(packetBuilder) {
+    override suspend fun writeNewToken(token: ByteArray): Long {
         require(token.isNotEmpty()) {
             "The 'token' MUST NOT be empty."
         }
 
-        writeFrameType(QUICFrameType.NEW_TOKEN)
-        writeVarInt(token.size)
-        writeFully(token)
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofByteArrayWithLength(token)) {
+            writeFrameType(QUICFrameType.NEW_TOKEN)
+            writeVarInt(token.size)
+            writeFully(token)
+        }
     }
 
-    override fun writeStream(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeStream(
         streamId: Long,
         offset: Long?,
         specifyLength: Boolean,
         fin: Boolean,
         data: ByteArray,
-    ) = with(packetBuilder) {
+    ): Long {
         require((offset ?: 0) + data.size.toLong() <= POW_2_62 - 1) {
             "The sum of the 'offset' and 'data length' - MUST NOT exceed 2^62 - 1"
         }
 
-        val length = if (specifyLength) data.size.toLong() else null
+        val length: Long? = if (specifyLength) data.size.toLong() else null
 
         @Suppress("KotlinConstantConditions")
         val type = when {
@@ -338,104 +302,112 @@ internal object FrameWriterImpl : FrameWriter {
             else -> unreachable()
         }
 
-        writeFrameType(type)
-        writeVarInt(streamId)
-        offset?.let { writeVarInt(it) }
-        length?.let { writeVarInt(it) }
-        writeFully(data)
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(streamId) +
+                (offset?.let { PayloadSize.ofVarInt(offset) } ?: 0) +
+                (length?.let { PayloadSize.ofVarInt(length) } ?: 0) +
+                PayloadSize.ofByteArray(data)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(type)
+            writeVarInt(streamId)
+            offset?.let { writeVarInt(it) }
+            length?.let { writeVarInt(it) }
+            writeFully(data)
+        }
     }
 
-    override fun writeMaxData(
-        packetBuilder: BytePacketBuilder,
-        maximumData: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.MAX_DATA)
-        writeVarInt(maximumData)
+    override suspend fun writeMaxData(maximumData: Long): Long {
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumData)) {
+            writeFrameType(QUICFrameType.MAX_DATA)
+            writeVarInt(maximumData)
+        }
     }
 
-    override fun writeMaxStreamData(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        maximumStreamData: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.MAX_STREAM_DATA)
-        writeVarInt(streamId)
-        writeVarInt(maximumStreamData)
+    override suspend fun writeMaxStreamData(streamId: Long, maximumStreamData: Long): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(streamId) +
+                PayloadSize.ofVarInt(maximumStreamData)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.MAX_STREAM_DATA)
+            writeVarInt(streamId)
+            writeVarInt(maximumStreamData)
+        }
     }
 
-    override fun writeMaxStreamsBidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    ) = with(packetBuilder) {
+    override suspend fun writeMaxStreamsBidirectional(maximumStreams: Long): Long {
         require(maximumStreams <= POW_2_60) {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(QUICFrameType.MAX_STREAMS_BIDIRECTIONAL)
-        writeVarInt(maximumStreams)
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumStreams)) {
+            writeFrameType(QUICFrameType.MAX_STREAMS_BIDIRECTIONAL)
+            writeVarInt(maximumStreams)
+        }
     }
 
-    override fun writeMaxStreamsUnidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    ) = with(packetBuilder) {
+    override suspend fun writeMaxStreamsUnidirectional(maximumStreams: Long): Long {
         require(maximumStreams <= POW_2_60) {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL)
-        writeVarInt(maximumStreams)
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumStreams)) {
+            writeFrameType(QUICFrameType.MAX_STREAMS_UNIDIRECTIONAL)
+            writeVarInt(maximumStreams)
+        }
     }
 
-    override fun writeDataBlocked(
-        packetBuilder: BytePacketBuilder,
-        maximumData: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.DATA_BLOCKED)
-        writeVarInt(maximumData)
+    override suspend fun writeDataBlocked(maximumData: Long): Long {
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumData)) {
+            writeFrameType(QUICFrameType.DATA_BLOCKED)
+            writeVarInt(maximumData)
+        }
     }
 
-    override fun writeStreamDataBlocked(
-        packetBuilder: BytePacketBuilder,
-        streamId: Long,
-        maximumStreamData: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.STREAM_DATA_BLOCKED)
-        writeVarInt(streamId)
-        writeVarInt(maximumStreamData)
+    override suspend fun writeStreamDataBlocked(streamId: Long, maximumStreamData: Long): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(streamId) +
+                PayloadSize.ofVarInt(maximumStreamData)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.STREAM_DATA_BLOCKED)
+            writeVarInt(streamId)
+            writeVarInt(maximumStreamData)
+        }
     }
 
-    override fun writeStreamsBlockedBidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    ) = with(packetBuilder) {
+    override suspend fun writeStreamsBlockedBidirectional(maximumStreams: Long): Long {
         require(maximumStreams <= POW_2_60) {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL)
-        writeVarInt(maximumStreams)
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumStreams)) {
+            writeFrameType(QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL)
+            writeVarInt(maximumStreams)
+        }
     }
 
-    override fun writeStreamsBlockedUnidirectional(
-        packetBuilder: BytePacketBuilder,
-        maximumStreams: Long,
-    ) = with(packetBuilder) {
+    override suspend fun writeStreamsBlockedUnidirectional(maximumStreams: Long): Long {
         require(maximumStreams <= POW_2_60) {
             "'Maximum streams' MUST NOT exceed 2^60."
         }
 
-        writeFrameType(QUICFrameType.STREAMS_BLOCKED_UNIDIRECTIONAL)
-        writeVarInt(maximumStreams)
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumStreams)) {
+            writeFrameType(QUICFrameType.STREAMS_BLOCKED_UNIDIRECTIONAL)
+            writeVarInt(maximumStreams)
+        }
     }
 
-    override fun writeNewConnectionId(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeNewConnectionId(
         sequenceNumber: Long,
         retirePriorTo: Long,
         connectionID: QUICConnectionID,
         statelessResetToken: ByteArray,
-    ) = with(packetBuilder) {
+    ): Long {
         require(retirePriorTo <= sequenceNumber) {
             "The value in the 'Retire Prior To' field in NEW_CONNECTION_ID frame " +
                 "MUST be less than or equal to the value in the 'Sequence Number' field"
@@ -444,75 +416,94 @@ internal object FrameWriterImpl : FrameWriter {
             "The size of the value in the 'Connection ID' field in NEW_CONNECTION_ID frame " +
                 "MUST be at least 1 byte and at most 20 bytes"
         }
-        require(statelessResetToken.size == 16) {
+        require(statelessResetToken.size == PayloadSize.STATELESS_RESET_TOKEN) {
             "The size of the value in the 'Stateless Reset Token' field in NEW_CONNECTION_ID frame " +
                 "MUST be 16 bytes"
         }
 
-        writeFrameType(QUICFrameType.NEW_CONNECTION_ID)
-        writeVarInt(sequenceNumber)
-        writeVarInt(retirePriorTo)
-        writeConnectionID(connectionID)
-        writeFully(statelessResetToken)
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofVarInt(sequenceNumber) +
+                PayloadSize.ofVarInt(retirePriorTo) +
+                PayloadSize.ofConnectionID(connectionID) +
+                PayloadSize.STATELESS_RESET_TOKEN
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.NEW_CONNECTION_ID)
+            writeVarInt(sequenceNumber)
+            writeVarInt(retirePriorTo)
+            writeConnectionID(connectionID)
+            writeFully(statelessResetToken)
+        }
     }
 
-    override fun writeRetireConnectionId(
-        packetBuilder: BytePacketBuilder,
-        sequenceNumber: Long,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.RETIRE_CONNECTION_ID)
-        writeVarInt(sequenceNumber)
+    override suspend fun writeRetireConnectionId(sequenceNumber: Long): Long {
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(sequenceNumber)) {
+            writeFrameType(QUICFrameType.RETIRE_CONNECTION_ID)
+            writeVarInt(sequenceNumber)
+        }
     }
 
-    override fun writePathChallenge(
-        packetBuilder: BytePacketBuilder,
-        data: ByteArray,
-    ) = with(packetBuilder) {
-        require(data.size == 8) {
+    override suspend fun writePathChallenge(data: ByteArray): Long {
+        require(data.size == PayloadSize.PATH_CHALLENGE_DATA) {
             "The size of the value in the 'Data' field in PATH_CHALLENGE frame MUST be 8 bytes"
         }
-        writeFrameType(QUICFrameType.PATH_CHALLENGE)
-        writeFully(data)
+
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.PATH_CHALLENGE_DATA) {
+            writeFrameType(QUICFrameType.PATH_CHALLENGE)
+            writeFully(data)
+        }
     }
 
-    override fun writePathResponse(
-        packetBuilder: BytePacketBuilder,
-        data: ByteArray,
-    ) = with(packetBuilder) {
-        require(data.size == 8) {
+    override suspend fun writePathResponse(data: ByteArray): Long {
+        require(data.size == PayloadSize.PATH_CHALLENGE_DATA) {
             "The size of the value in the 'Data' field in PATH_RESPONSE frame MUST be 8 bytes"
         }
-        writeFrameType(QUICFrameType.PATH_RESPONSE)
-        writeFully(data)
+
+        return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.PATH_CHALLENGE_DATA) {
+            writeFrameType(QUICFrameType.PATH_RESPONSE)
+            writeFully(data)
+        }
     }
 
-    override fun writeConnectionCloseWithTransportError(
-        packetBuilder: BytePacketBuilder,
+    override suspend fun writeConnectionCloseWithTransportError(
         errorCode: QUICTransportError,
         frameTypeV1: QUICFrameType?,
         reasonPhrase: ByteArray,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.CONNECTION_CLOSE_TRANSPORT_ERR)
-        errorCode.writeToFrame(this)
-        writeFrameType((frameTypeV1 ?: QUICFrameType.PADDING))
-        writeVarInt(reasonPhrase.size)
-        writeFully(reasonPhrase)
+    ): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofError(errorCode) +
+                PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.ofByteArrayWithLength(reasonPhrase)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.CONNECTION_CLOSE_TRANSPORT_ERR)
+            errorCode.writeToFrame(this)
+            writeFrameType((frameTypeV1 ?: QUICFrameType.PADDING))
+            writeVarInt(reasonPhrase.size)
+            writeFully(reasonPhrase)
+        }
     }
 
-    override fun writeConnectionCloseWithAppError(
-        packetBuilder: BytePacketBuilder,
-        errorCode: AppError,
+    override suspend fun writeConnectionCloseWithAppError(
+        applicationProtocolErrorCode: AppError,
         reasonPhrase: ByteArray,
-    ) = with(packetBuilder) {
-        writeFrameType(QUICFrameType.CONNECTION_CLOSE_APP_ERR)
-        errorCode.writeToFrame(this)
-        writeVarInt(reasonPhrase.size)
-        writeFully(reasonPhrase)
+    ): Long {
+        val expectedSize: Int =
+            PayloadSize.FRAME_TYPE_SIZE +
+                PayloadSize.APP_ERROR_SIZE +
+                PayloadSize.ofByteArrayWithLength(reasonPhrase)
+
+        return writeFrame(expectedSize) {
+            writeFrameType(QUICFrameType.CONNECTION_CLOSE_APP_ERR)
+            applicationProtocolErrorCode.writeToFrame(this)
+            writeVarInt(reasonPhrase.size)
+            writeFully(reasonPhrase)
+        }
     }
 
-    override fun writeHandshakeDone(
-        packetBuilder: BytePacketBuilder,
-    ) = with(packetBuilder) {
+    override suspend fun writeHandshakeDone(): Long = writeFrame(PayloadSize.FRAME_TYPE_SIZE) {
         writeFrameType(QUICFrameType.HANDSHAKE_DONE)
     }
 

@@ -43,7 +43,6 @@ internal object PacketWriter {
      */
     private const val SHORT_HEADER_FIRST_BYTE_TEMPLATE: UInt8 = 0x40u
 
-
     /**
      * Writes a Version Negotiation packet to [packetBuilder] according to specification.
      * If it is QUIC version 1, sets second bit to 1.
@@ -149,7 +148,7 @@ internal object PacketWriter {
             encryptionLevel = EncryptionLevel.Initial,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
-            packetType = PktConst.LONG_HEADER_PACKET_TYPE_INITIAL,
+            packetType = Consts.LONG_HEADER_PACKET_TYPE_INITIAL,
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -191,7 +190,7 @@ internal object PacketWriter {
             encryptionLevel = EncryptionLevel.Handshake,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
-            packetType = PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE,
+            packetType = Consts.LONG_HEADER_PACKET_TYPE_HANDSHAKE,
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -229,7 +228,7 @@ internal object PacketWriter {
             encryptionLevel = EncryptionLevel.AppData,
             largestAcknowledged = largestAcknowledged,
             packetBuilder = packetBuilder,
-            packetType = PktConst.LONG_HEADER_PACKET_TYPE_0_RTT,
+            packetType = Consts.LONG_HEADER_PACKET_TYPE_0_RTT,
             version = version,
             destinationConnectionID = destinationConnectionID,
             sourceConnectionID = sourceConnectionID,
@@ -262,7 +261,7 @@ internal object PacketWriter {
             writeConnectionID(destinationConnectionID)
             writeConnectionID(sourceConnectionID)
             writeBeforeLength()
-            writeVarInt(payload.size + packetNumberLength.toInt() + PktConst.ENCRYPTION_HEADER_LENGTH)
+            writeVarInt(payload.size + packetNumberLength.toInt() + PayloadSize.ENCRYPTION_HEADER_LENGTH)
             writeRawPacketNumber(this, packetNumberLength.toUInt32(), packetNumber.toUInt())
         }.readBytes()
 
@@ -313,15 +312,15 @@ internal object PacketWriter {
 
         val packetNumberLength: UInt8 = getPacketNumberLength(packetNumber, largestAcknowledged)
 
-        val spinBitValue: UInt8 = if (spinBit) PktConst.SHORT_HEADER_SPIN_BIT else 0x00u
-        val keyPhaseValue: UInt8 = if (keyPhase) PktConst.SHORT_HEADER_KEY_PHASE else 0x00u
+        val spinBitValue: UInt8 = if (spinBit) Consts.SHORT_HEADER_SPIN_BIT else 0x00u
+        val keyPhaseValue: UInt8 = if (keyPhase) Consts.SHORT_HEADER_KEY_PHASE else 0x00u
 
         val flags: UInt8 = SHORT_HEADER_FIRST_BYTE_TEMPLATE or
             spinBitValue or
             keyPhaseValue or
             (packetNumberLength - 1u).toUInt8()
 
-        val unencryptedHeader = buildPacket {
+        val unencryptedHeader: ByteArray = buildPacket {
             writeUInt8(flags)
             writeFully(destinationConnectionID.value)
             writeRawPacketNumber(this, packetNumberLength.toUInt32(), packetNumber.toUInt())
@@ -385,7 +384,7 @@ internal object PacketWriter {
         )
 
         val offset: Int = 4 - packetNumberLength
-        val sample: ByteArray = encryptedPayload.copyOfRange(offset, offset + PktConst.HP_SAMPLE_LENGTH)
+        val sample: ByteArray = encryptedPayload.copyOfRange(offset, offset + PayloadSize.HP_SAMPLE_LENGTH)
         val headerProtectionMask: Long = tlsComponent.headerProtectionMask(sample, level, isDecrypting = false)
 
         return body(encryptedPayload, headerProtectionMask)
