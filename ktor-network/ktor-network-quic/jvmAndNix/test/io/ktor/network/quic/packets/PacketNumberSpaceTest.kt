@@ -30,17 +30,17 @@ class PacketNumberSpaceTest {
         pns.receivePacket(3)
         pns.receivePacket(6)
 
-        val (ranges, setFunction) = pns.getAckRanges() ?: fail("Expected ack ranges")
+        val ranges = pns.getAckRanges() ?: fail("Expected ack ranges")
 
-        assertContentEquals(longArrayOf(6, 6, 3, 2), ranges, "Ack ranges")
+        assertContentEquals(listOf(6, 6, 3, 2), ranges, "Ack ranges")
 
-        setFunction(pns.next())
+        pns.registerSentRanges(ranges, pns.next())
 
         pns.receivePacket(0)
         pns.receivePacket(1)
         pns.receivePacket(4)
 
-        pns.processAcknowledgements(longArrayOf(3, 3, 1, 1))
+        pns.processAcknowledgements(listOf(3, 3, 1, 1))
 
         assertEquals(
             expected = setOf<Long>(0, 2, 4),
@@ -54,17 +54,17 @@ class PacketNumberSpaceTest {
         pns.receivePacket(14)
         pns.receivePacket(15)
 
-        pns.processAcknowledgements(longArrayOf(4, 4))
+        pns.processAcknowledgements(listOf(4, 4))
 
         assertEquals(4, pns.largestAcknowledged, "Largest acknowledged 2")
 
-        val (ranges2, setFunction2) = pns.getAckRanges() ?: fail("Expected ack ranges 2")
+        val ranges2 = pns.getAckRanges() ?: fail("Expected ack ranges 2")
 
-        assertContentEquals(longArrayOf(15, 13, 10, 9, 4, 4, 1, 0), ranges2, "Ack ranges 2")
+        assertContentEquals(listOf(15, 13, 10, 9, 4, 4, 1, 0), ranges2, "Ack ranges 2")
 
-        setFunction2(pns.next())
+        pns.registerSentRanges(ranges2, pns.next())
 
-        pns.processAcknowledgements(longArrayOf(5, 5, 2, 2, 0, 0))
+        pns.processAcknowledgements(listOf(5, 5, 2, 2, 0, 0))
 
         assertTrue(
             actual = pns.getUnacknowledgedLocalPacketNumbers().isEmpty(),

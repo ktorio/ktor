@@ -14,6 +14,7 @@ import kotlinx.atomicfu.*
  */
 internal class PacketNumberSpace {
     private val logger = logger()
+
     private val increment = atomic(0L)
     private val _largestAcknowledged = atomic(-1L) // -1 for no acknowledgements yet
 
@@ -79,8 +80,7 @@ internal class PacketNumberSpace {
 
     fun registerSentRanges(ranges: List<Long>, packetNumber: Long) {
         sentAckPackets[packetNumber]?.let {
-            // programmer's error
-            error("Each packet should have one ack frame, number: $packetNumber, old numbers: ${ranges.joinToString()}")
+            logger.warn("Each packet should have one ack frame, number: $packetNumber, old numbers: ${ranges.joinToString()}. Will overwrite") // ktlint-disable max-line-length argument-list-wrapping
         }
         sentAckPackets[packetNumber] = ranges
     }
