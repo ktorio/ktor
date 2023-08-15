@@ -17,9 +17,6 @@ public final class io/ktor/server/sse/SSEServerContent : io/ktor/http/content/Ou
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/sse/SSEServerContent$Companion {
-}
-
 public abstract interface class io/ktor/server/sse/ServerSSESession : kotlinx/coroutines/CoroutineScope {
 	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
