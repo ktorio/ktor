@@ -47,6 +47,7 @@ public interface ServerSSESession : CoroutineScope {
     /**
      * Closes the [ServerSSESession], terminating the connection with the client.
      * Once this method is called, the SSE session is closed and no further events can be sent.
+     * You don't need to call this method as it is called automatically when all the send operations are completed.
      *
      * It's important to note that closing the session using this method does not send a termination event
      * to the client. If you wish to send a specific event to signify the end of the SSE stream
