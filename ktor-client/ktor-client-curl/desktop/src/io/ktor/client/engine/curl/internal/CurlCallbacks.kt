@@ -44,6 +44,7 @@ internal fun onBodyChunkReceived(
     }
 
     val chunkSize = (size * count).toInt()
+
     @Suppress("DEPRECATION")
     val written = try {
         body.writeAvailable(1) { dst: Buffer ->

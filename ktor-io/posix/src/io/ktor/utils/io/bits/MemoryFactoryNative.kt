@@ -95,7 +95,9 @@ public fun NativeFreeablePlacement.free(memory: Memory) {
     free(memory.pointer)
 }
 
-internal value class PlacementAllocator @OptIn(ExperimentalForeignApi::class) constructor(private val placement: NativeFreeablePlacement) : Allocator {
+internal value class PlacementAllocator @OptIn(ExperimentalForeignApi::class) constructor(
+    private val placement: NativeFreeablePlacement
+) : Allocator {
     override fun alloc(size: Int): Memory = alloc(size.toLong())
 
     @OptIn(ExperimentalForeignApi::class)

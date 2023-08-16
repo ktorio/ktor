@@ -13,6 +13,7 @@ import platform.winhttp.*
 private val winHttpModuleHandle by lazy {
     GetModuleHandleW("winhttp.dll")
 }
+
 @OptIn(ExperimentalForeignApi::class)
 private val languageId = makeLanguageId(LANG_NEUTRAL.convert(), SUBLANG_DEFAULT.convert())
 

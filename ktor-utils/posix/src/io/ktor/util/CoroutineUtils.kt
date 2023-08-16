@@ -23,8 +23,10 @@ private val CLOSE_WORKER: Worker by lazy {
 private class MultiWorkerDispatcher(name: String, workersCount: Int) : CloseableCoroutineDispatcher() {
     private val closed = atomic(false)
     private val tasksQueue = Channel<Runnable>(Channel.UNLIMITED)
+
     @OptIn(ObsoleteWorkersApi::class)
     private val workers = Array(workersCount) { Worker.start(name = "$name-$it") }
+
     @OptIn(ObsoleteWorkersApi::class)
     private val futures = mutableListOf<Future<Unit>>()
 

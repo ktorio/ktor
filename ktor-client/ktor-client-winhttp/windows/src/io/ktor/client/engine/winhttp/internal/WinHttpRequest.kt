@@ -25,10 +25,12 @@ internal class WinHttpRequest @OptIn(ExperimentalForeignApi::class) constructor(
     config: WinHttpClientEngineConfig
 ) : Closeable {
     private val connect: WinHttpConnect
+
     @OptIn(ExperimentalForeignApi::class)
     private val hRequest: COpaquePointer
     private val closed = atomic(false)
     private val requestClosed = atomic(false)
+
     @OptIn(ExperimentalForeignApi::class)
     private val connectReference: StableRef<WinHttpConnect>
 
