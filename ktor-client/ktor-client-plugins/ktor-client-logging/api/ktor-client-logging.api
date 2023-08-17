@@ -5,6 +5,7 @@ public final class io/ktor/client/plugins/logging/LogLevel : java/lang/Enum {
 	public static final field INFO Lio/ktor/client/plugins/logging/LogLevel;
 	public static final field NONE Lio/ktor/client/plugins/logging/LogLevel;
 	public final fun getBody ()Z
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getHeaders ()Z
 	public final fun getInfo ()Z
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/plugins/logging/LogLevel;

@@ -5,13 +5,11 @@ import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 
 fun Project.configureCommon() {
-    val coroutines_version: String by extra
-
     kotlin {
         sourceSets {
             val commonMain by getting {
                 dependencies {
-                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+                    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
                 }
             }
 

@@ -278,6 +278,7 @@ public final class io/ktor/util/Platform : java/lang/Enum {
 	public static final field Jvm Lio/ktor/util/Platform;
 	public static final field Native Lio/ktor/util/Platform;
 	public static final field Node Lio/ktor/util/Platform;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/Platform;
 	public static fun values ()[Lio/ktor/util/Platform;
 }
@@ -707,6 +708,7 @@ public final class io/ktor/util/date/Month : java/lang/Enum {
 	public static final field NOVEMBER Lio/ktor/util/date/Month;
 	public static final field OCTOBER Lio/ktor/util/date/Month;
 	public static final field SEPTEMBER Lio/ktor/util/date/Month;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/Month;
 	public static fun values ()[Lio/ktor/util/date/Month;
@@ -726,6 +728,7 @@ public final class io/ktor/util/date/WeekDay : java/lang/Enum {
 	public static final field THURSDAY Lio/ktor/util/date/WeekDay;
 	public static final field TUESDAY Lio/ktor/util/date/WeekDay;
 	public static final field WEDNESDAY Lio/ktor/util/date/WeekDay;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/WeekDay;
 	public static fun values ()[Lio/ktor/util/date/WeekDay;
@@ -775,6 +778,7 @@ public final class io/ktor/util/debug/plugins/PluginTraceElement {
 public final class io/ktor/util/debug/plugins/PluginTraceElement$PluginEvent : java/lang/Enum {
 	public static final field FINISHED Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 	public static final field STARTED Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 	public static fun values ()[Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 }

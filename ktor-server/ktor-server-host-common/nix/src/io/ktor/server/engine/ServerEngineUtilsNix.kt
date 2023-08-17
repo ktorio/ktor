@@ -7,9 +7,9 @@ package io.ktor.server.engine
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal actual val WORKING_DIRECTORY_PATH: String get() = memScoped {
     val result = allocArray<ByteVar>(512)
-    getcwd(result, 512)
+    getcwd(result, 512.convert())
     result.toKString()
 }

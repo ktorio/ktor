@@ -15,11 +15,6 @@ fun Project.configureJvm() {
         else -> 8
     }
 
-    val kotlin_version: String by extra
-    val slf4j_version: String by extra
-    val junit_version: String by extra
-    val coroutines_version: String by extra
-
     val configuredVersion: String by rootProject.extra
 
     kotlin {
@@ -29,11 +24,11 @@ fun Project.configureJvm() {
             val jvmMain by getting {
                 dependencies {
                     if (jdk > 6) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}")
                     }
                     if (jdk > 7) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutines_version") {
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}")
+                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${Versions.coroutines}") {
                             exclude(module = "kotlin-stdlib")
                             exclude(module = "kotlin-stdlib-jvm")
                             exclude(module = "kotlin-stdlib-jdk8")
@@ -41,15 +36,15 @@ fun Project.configureJvm() {
                         }
                     }
 
-                    api("org.slf4j:slf4j-api:$slf4j_version")
+                    api("org.slf4j:slf4j-api:${Versions.slf4j}")
                 }
             }
 
             val jvmTest by getting {
                 dependencies {
-                    implementation("junit:junit:$junit_version")
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
-                    implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+                    implementation("junit:junit:${Versions.junit}")
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}")
+                    implementation("org.jetbrains.kotlin:kotlin-test-junit:${Versions.kotlin}")
                 }
             }
         }

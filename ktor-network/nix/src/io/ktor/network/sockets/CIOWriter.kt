@@ -12,7 +12,8 @@ import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.math.*
 
-@OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,

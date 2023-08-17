@@ -45,6 +45,7 @@ public final class io/ktor/network/tls/certificates/KeyType : java/lang/Enum {
 	public static final field CA Lio/ktor/network/tls/certificates/KeyType;
 	public static final field Client Lio/ktor/network/tls/certificates/KeyType;
 	public static final field Server Lio/ktor/network/tls/certificates/KeyType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/certificates/KeyType;
 	public static fun values ()[Lio/ktor/network/tls/certificates/KeyType;
 }

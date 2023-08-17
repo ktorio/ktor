@@ -108,6 +108,7 @@ public final class io/ktor/server/auth/AuthenticationStrategy : java/lang/Enum {
 	public static final field FirstSuccessful Lio/ktor/server/auth/AuthenticationStrategy;
 	public static final field Optional Lio/ktor/server/auth/AuthenticationStrategy;
 	public static final field Required Lio/ktor/server/auth/AuthenticationStrategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/AuthenticationStrategy;
 	public static fun values ()[Lio/ktor/server/auth/AuthenticationStrategy;
 }
@@ -471,6 +472,7 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 public final class io/ktor/server/auth/OAuthVersion : java/lang/Enum {
 	public static final field V10a Lio/ktor/server/auth/OAuthVersion;
 	public static final field V20 Lio/ktor/server/auth/OAuthVersion;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/OAuthVersion;
 	public static fun values ()[Lio/ktor/server/auth/OAuthVersion;
 }

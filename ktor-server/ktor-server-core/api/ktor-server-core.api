@@ -368,6 +368,7 @@ public final class io/ktor/server/http/content/CompressedFileType : java/lang/En
 	public static final field GZIP Lio/ktor/server/http/content/CompressedFileType;
 	public final fun file (Ljava/io/File;)Ljava/io/File;
 	public final fun getEncoding ()Ljava/lang/String;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getExtension ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/http/content/CompressedFileType;
 	public static fun values ()[Lio/ktor/server/http/content/CompressedFileType;
@@ -1344,6 +1345,7 @@ public final class io/ktor/server/routing/RoutingPathSegment {
 public final class io/ktor/server/routing/RoutingPathSegmentKind : java/lang/Enum {
 	public static final field Constant Lio/ktor/server/routing/RoutingPathSegmentKind;
 	public static final field Parameter Lio/ktor/server/routing/RoutingPathSegmentKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/routing/RoutingPathSegmentKind;
 	public static fun values ()[Lio/ktor/server/routing/RoutingPathSegmentKind;
 }
