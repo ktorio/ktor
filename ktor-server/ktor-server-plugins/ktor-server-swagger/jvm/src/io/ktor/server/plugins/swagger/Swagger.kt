@@ -63,8 +63,9 @@ internal fun RoutingBuilder.swaggerUI(
         }
         get {
             val fullPath = call.request.path()
-            val docExpansion =
-                runCatching { call.request.queryParameters.getOrFail<String>("docExpansion") }.getOrNull()
+            val docExpansion = runCatching {
+                call.request.queryParameters.getOrFail<String>("docExpansion")
+            }.getOrNull()
             call.respondHtml {
                 head {
                     title { +"Swagger UI" }
@@ -98,8 +99,7 @@ window.onload = function() {
             SwaggerUIBundle.presets.apis,
             SwaggerUIStandalonePreset
         ],
-        layout: 'StandaloneLayout'
-        ${docExpansion?.let { "docExpansion: '$it'" } ?: ""}
+        layout: 'StandaloneLayout'${docExpansion?.let { ",\n        docExpansion: '$it'" } ?: ""}
     });
 }
                             """.trimIndent()
