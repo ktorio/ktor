@@ -8,8 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import java.net.*
 import java.time.*
 import java.util.concurrent.*
 import kotlin.test.*
@@ -23,6 +25,21 @@ class JavaEngineTests {
         assertTrue("Java HTTP dispatcher is not working.") {
             engine.executor.isShutdown
         }
+    }
+
+    @Test
+    fun testProxy() = runBlocking {
+
+        val client = HttpClient(Java) {
+            engine {
+                proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 8082))
+            }
+        }
+
+        val body = client.get("http://127.0.0.1:8080/")
+            .bodyAsText()
+
+        assertEquals("proxy", body)
     }
 
     @Test
