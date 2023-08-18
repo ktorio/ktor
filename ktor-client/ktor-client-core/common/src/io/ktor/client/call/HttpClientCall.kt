@@ -195,7 +195,7 @@ public class NoTransformationFoundException(
     to: KClass<*>
 ) : UnsupportedOperationException() {
     override val message: String? = """
-        Expected response body of the type '${to.qualifiedName}' but was '${from.qualifiedName}'
+        Expected response body of the type '$to' but was '$from'
         In response from `${response.request.url}`
         With response header `ContentType: ${response.headers[HttpHeaders.ContentType]}` 
         And request header `Accept: ${response.request.headers[HttpHeaders.Accept]}`
