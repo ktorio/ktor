@@ -7,8 +7,6 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.config.*
-import io.ktor.util.*
-import io.ktor.utils.io.*
 import org.slf4j.*
 import kotlin.coroutines.*
 
@@ -16,21 +14,16 @@ import kotlin.coroutines.*
  * Engine environment configuration builder
  */
 @KtorDsl
-public actual class ApplicationEngineEnvironmentBuilder {
+public actual class ApplicationEnvironmentBuilder {
     /**
      * Root class loader
      */
-    public var classLoader: ClassLoader = ApplicationEngineEnvironment::class.java.classLoader
+    public var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
 
     /**
      * Parent coroutine context for an application
      */
     public actual var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
-
-    /**
-     * Paths to wait for application reload
-     */
-    public actual var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
 
     /**
      * Application logger
@@ -43,39 +36,41 @@ public actual class ApplicationEngineEnvironmentBuilder {
     public actual var config: ApplicationConfig = MapApplicationConfig()
 
     /**
-     * Application connectors list
-     */
-    public actual val connectors: MutableList<EngineConnectorConfig> = mutableListOf()
-
-    /**
-     * Application modules
-     */
-    public actual val modules: MutableList<Application.() -> Unit> = mutableListOf()
-
-    /**
-     * Application's root path (prefix, context path in servlet container).
-     */
-    public actual var rootPath: String = ""
-
-    /**
-     * Development mode enabled.
-     */
-    public actual var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
-
-    /**
-     * Install application module
-     */
-    public actual fun module(body: Application.() -> Unit) {
-        modules.add(body)
-    }
-
-    /**
      * Build an application engine environment
      */
-    public actual fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
+    public actual fun build(builder: ApplicationEnvironmentBuilder.() -> Unit): ApplicationEnvironment {
         builder(this)
-        return ApplicationEngineEnvironmentReloading(
-            classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, rootPath, developmentMode
-        )
+        return ApplicationEnvironmentImplJvm(classLoader, parentCoroutineContext, log, config, false)
+    }
+}
+
+internal class ApplicationEnvironmentImplJvm(
+    override val classLoader: ClassLoader,
+    parentCoroutineContext: CoroutineContext,
+    override val log: Logger,
+    override val config: ApplicationConfig,
+    isReloading: Boolean,
+) : ApplicationEnvironment {
+
+    override val parentCoroutineContext: CoroutineContext = when {
+        isReloading -> parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
+        else -> parentCoroutineContext
+    }
+}
+
+private object ClassLoaderAwareContinuationInterceptor : ContinuationInterceptor {
+    override val key: CoroutineContext.Key<*> =
+        object : CoroutineContext.Key<ClassLoaderAwareContinuationInterceptor> {}
+
+    override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
+        val classLoader = Thread.currentThread().contextClassLoader
+        return object : Continuation<T> {
+            override val context: CoroutineContext = continuation.context
+
+            override fun resumeWith(result: Result<T>) {
+                Thread.currentThread().contextClassLoader = classLoader
+                continuation.resumeWith(result)
+            }
+        }
     }
 }

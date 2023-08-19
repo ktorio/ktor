@@ -4,11 +4,60 @@
 
 package io.ktor.server.application
 
+import io.ktor.events.*
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+
+public class ApplicationPropertiesBuilder(
+    public val environment: ApplicationEnvironment
+) {
+
+    internal val modules: MutableList<Application.() -> Unit> = mutableListOf()
+
+    /**
+     * Paths to wait for application reload
+     */
+    public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
+
+    /**
+     * Application's root path (prefix, context path in servlet container).
+     */
+    public var rootPath: String = ""
+
+    /**
+     * Indicates if development mode is enabled.
+     */
+    public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
+
+    /**
+     * Install application module
+     */
+    public fun module(body: Application.() -> Unit) {
+        modules.add(body)
+    }
+
+    internal fun build(): ApplicationProperties =
+        ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode)
+}
+
+public class ApplicationProperties(
+    public val environment: ApplicationEnvironment,
+    internal val modules: MutableList<Application.() -> Unit>,
+    internal val watchPaths: List<String>,
+    public val rootPath: String,
+    public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
+)
+
+public fun applicationProperties(
+    environment: ApplicationEnvironment,
+    block: ApplicationPropertiesBuilder.() -> Unit = {}
+): ApplicationProperties {
+    return ApplicationPropertiesBuilder(environment).apply(block).build()
+}
 
 /**
  * Represents configured and running web application, capable of handling requests.
@@ -18,9 +67,12 @@ import kotlin.coroutines.*
  * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
 @KtorDsl
-public class Application(
-    environment: ApplicationEnvironment
-) : ApplicationCallPipeline(environment.developmentMode, environment), CoroutineScope {
+public class Application constructor(
+    environment: ApplicationEnvironment,
+    developmentMode: Boolean,
+    public var rootPath: String,
+    public val monitor: Events
+) : ApplicationCallPipeline(developmentMode, environment), CoroutineScope {
 
     private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])
 

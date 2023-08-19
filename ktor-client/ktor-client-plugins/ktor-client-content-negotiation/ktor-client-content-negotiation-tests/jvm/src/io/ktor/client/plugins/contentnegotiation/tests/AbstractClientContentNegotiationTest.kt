@@ -36,7 +36,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         User("y", 45)
     )
 
-    override val server: ApplicationEngine = embeddedServer(io.ktor.server.cio.CIO, serverPort) {
+    override val server: EmbeddedServer<*, *> = embeddedServer(io.ktor.server.cio.CIO, serverPort) {
         install(WebSockets)
         routing {
             createRoutes(this)

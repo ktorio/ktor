@@ -4,10 +4,10 @@
 
 package io.ktor.server.engine
 
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.internal.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
@@ -23,12 +23,14 @@ import kotlinx.coroutines.*
  * It creates default engine pipeline, provides [application] property and installs default transformations
  * on respond and receive
  *
- * @param environment instance of [ApplicationEngineEnvironment] for this engine
+ * @param environment instance of [ApplicationEnvironment] for this engine
  * @param pipeline pipeline to use with this engine
  */
 public abstract class BaseApplicationEngine(
-    public final override val environment: ApplicationEngineEnvironment,
-    public val pipeline: EnginePipeline = defaultEnginePipeline(environment)
+    public final override val environment: ApplicationEnvironment,
+    protected val monitor: Events,
+    developmentMode: Boolean,
+    public val pipeline: EnginePipeline = defaultEnginePipeline(environment.config, developmentMode)
 ) : ApplicationEngine {
 
     /**
@@ -45,7 +47,7 @@ public abstract class BaseApplicationEngine(
 
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
 
-        environment.monitor.subscribe(ApplicationStarting) {
+        monitor.subscribe(ApplicationStarting) {
             if (!info.isFirstLoading) {
                 info.initializedStartAt = getTimeMillis()
             }
@@ -56,7 +58,7 @@ public abstract class BaseApplicationEngine(
             it.installDefaultInterceptors()
             it.installDefaultTransformationChecker()
         }
-        environment.monitor.subscribe(ApplicationStarted) {
+        monitor.subscribe(ApplicationStarted) {
             val finishedAt = getTimeMillis()
             val elapsedTimeInSeconds = (finishedAt - info.initializedStartAt) / 1_000.0
             if (info.isFirstLoading) {
@@ -64,17 +66,6 @@ public abstract class BaseApplicationEngine(
                 info.isFirstLoading = false
             } else {
                 environment.log.info("Application auto-reloaded in $elapsedTimeInSeconds seconds.")
-            }
-        }
-
-        val connectors = resolvedConnectors
-        val log = environment.log
-        CoroutineScope(environment.application.coroutineContext).launch {
-            connectors.await().forEach {
-                val host = escapeHostname(it.host)
-                log.info(
-                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
-                )
             }
         }
     }

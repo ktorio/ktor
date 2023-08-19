@@ -8,7 +8,7 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.interop.*
 import kotlinx.cinterop.*
 
-internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
+internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
     host: String,
     sslPort: String,
     sslKeyStorePath: String?,
@@ -19,7 +19,7 @@ internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     error("SSL is not supported in native")
 }
 
-internal actual fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {}
+internal actual fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {}
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun getConfigFromEnvironment(): ApplicationConfig {

@@ -28,9 +28,12 @@ import kotlin.reflect.*
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
 public class NettyApplicationEngine(
-    environment: ApplicationEngineEnvironment,
-    configure: Configuration.() -> Unit = {}
-) : BaseApplicationEngine(environment) {
+    environment: ApplicationEnvironment,
+    monitor: Events,
+    developmentMode: Boolean,
+    private val configuration: Configuration,
+    private val applicationProvider: () -> Application
+) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**
      * Configuration for the [NettyApplicationEngine]
@@ -111,8 +114,6 @@ public class NettyApplicationEngine(
         )
     }
 
-    private val configuration = Configuration().apply(configure)
-
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
@@ -161,7 +162,7 @@ public class NettyApplicationEngine(
 
     private var channels: List<Channel>? = null
     internal val bootstraps: List<ServerBootstrap> by lazy {
-        environment.connectors.map(::createBootstrap)
+        configuration.connectors.map(::createBootstrap)
     }
 
     private val userContext = environment.parentCoroutineContext +
@@ -181,6 +182,7 @@ public class NettyApplicationEngine(
 
             childHandler(
                 NettyChannelInitializer(
+                    applicationProvider,
                     pipeline,
                     environment,
                     callEventGroup,
@@ -210,17 +212,15 @@ public class NettyApplicationEngine(
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
-        addShutdownHook {
+        addShutdownHook(monitor) {
             stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         }
 
-        environment.start()
-
         try {
-            channels = bootstraps.zip(environment.connectors)
+            channels = bootstraps.zip(configuration.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
-            val connectors = channels!!.zip(environment.connectors)
+            val connectors = channels!!.zip(configuration.connectors)
                 .map { it.second.withPort(it.first.localAddress().port) }
             resolvedConnectors.complete(connectors)
         } catch (cause: BindException) {
@@ -228,7 +228,7 @@ public class NettyApplicationEngine(
             throw cause
         }
 
-        environment.monitor.raiseCatching(ServerReady, environment, environment.log)
+        monitor.raiseCatching(ServerReady, environment, environment.log)
 
         cancellationDeferred =
             stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
@@ -247,7 +247,7 @@ public class NettyApplicationEngine(
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationDeferred?.complete()
-        environment.monitor.raise(ApplicationStopPreparing, environment)
+        monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 
         try {
@@ -265,8 +265,6 @@ public class NettyApplicationEngine(
                 shutdownWorkers.await()
                 shutdownCall.await()
             }
-
-            environment.stop()
         } finally {
             channelFutures.forEach { it.sync() }
         }

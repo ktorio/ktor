@@ -15,12 +15,10 @@ import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
-import io.ktor.util.collections.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 
 private val TEST_SELECTOR_MANAGER = SelectorManager()
@@ -45,7 +43,7 @@ actual constructor(
     }
 
     protected actual var sslPort: Int = 0
-    protected actual var server: TEngine? = null
+    protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
     protected actual var enableHttp2: Boolean = false
     protected actual var enableSsl: Boolean = false
@@ -55,7 +53,7 @@ actual constructor(
         log: Logger?,
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
-    ): TEngine {
+    ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
             val server = createServer(log, parent) {
@@ -77,9 +75,9 @@ actual constructor(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
-    ): TEngine {
+    ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
-        val environment = applicationEngineEnvironment {
+        val environment = applicationEnvironment {
             this.parentCoroutineContext = parent
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -93,16 +91,20 @@ actual constructor(
                     delegate.error(message, cause)
                 }
             }
-
-            connector { port = _port }
+        }
+        val properties = applicationProperties(environment) {
             module(module)
         }
 
-        return embeddedServer(applicationEngineFactory, environment)
+        return embeddedServer(applicationEngineFactory, properties) {
+            connector { port = _port }
+            shutdownGracePeriod = 1000
+            shutdownTimeout = 1000
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected fun startServer(server: TEngine): List<Throwable> {
+    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test

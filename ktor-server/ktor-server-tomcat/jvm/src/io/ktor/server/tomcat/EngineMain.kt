@@ -17,11 +17,12 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
-        val applicationEnvironment = commandLineEnvironment(args)
-        val engine = TomcatApplicationEngine(applicationEnvironment) {
-            loadConfiguration(applicationEnvironment.config)
+        val config = commandLineConfig(args)
+        val server = EmbeddedServer(config.applicationProperties, Tomcat) {
+            config.engineConfig(this)
+            loadConfiguration(config.applicationProperties.environment.config)
         }
-        engine.start(true)
+        server.start(true)
     }
 
     private fun TomcatApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {

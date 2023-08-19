@@ -11,14 +11,14 @@ class BuildApplicationConfigNixTest {
     @Test
     fun testPropertyConfig() {
         setenv("ktor.deployment.port", "1333", 0)
-        assertEquals(1333, commandLineEnvironment(emptyArray()).connectors.single().port)
+        assertEquals(1333, commandLineConfig(emptyArray()).connectors.single().port)
         unsetenv("ktor.deployment.port")
     }
 
     @Test
     fun testPropertyConfigOverride() {
         setenv("ktor.deployment.port", "1333", 0)
-        assertEquals(13698, commandLineEnvironment(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
+        assertEquals(13698, commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
         unsetenv("ktor.deployment.port")
     }
 }

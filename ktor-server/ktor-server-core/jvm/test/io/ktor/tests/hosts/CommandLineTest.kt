@@ -22,27 +22,33 @@ class CommandLineTest {
 
     @Test
     fun testEmpty() {
-        commandLineEnvironment(emptyArray())
+        commandLineConfig(emptyArray())
     }
 
     @Test
     fun testChangePort() {
-        assertEquals(13698, commandLineEnvironment(arrayOf("-port=13698")).connectors.single().port)
+        val config = BaseApplicationEngine.Configuration()
+            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        assertEquals(13698, config.connectors.single().port)
     }
 
     @Test
     fun testAmendConfig() {
-        assertEquals(13698, commandLineEnvironment(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
+        val config = BaseApplicationEngine.Configuration()
+            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        assertEquals(13698, config.connectors.single().port)
     }
 
     @Test
     fun testChangeHost() {
-        assertEquals("test-server", commandLineEnvironment(arrayOf("-host=test-server")).connectors.single().host)
+        val config = BaseApplicationEngine.Configuration()
+            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        assertEquals("test-server", config.connectors.single().host)
     }
 
     @Test
     fun testSingleArgument() {
-        commandLineEnvironment(arrayOf("-it-should-be-no-effect"))
+        commandLineConfig(arrayOf("-it-should-be-no-effect"))
     }
 
     @Test
@@ -54,14 +60,14 @@ class CommandLineTest {
         val opt = if (file != null) file.absolutePath else uri!!.toASCIIString()
         val expectedUri = uri ?: file!!.toURI()
 
-        val urlClassLoader = commandLineEnvironment(arrayOf("-jar=$opt")).classLoader as URLClassLoader
+        val urlClassLoader = commandLineConfig(arrayOf("-jar=$opt")).environment.classLoader as URLClassLoader
         assertEquals(expectedUri, urlClassLoader.urLs.single().toURI())
     }
 
     @Test
     fun configFileWithEnvironmentVariables() {
         val configPath = CommandLineTest::class.java.classLoader.getResource("applicationWithEnv.conf")!!.toURI().path
-        val port = commandLineEnvironment(arrayOf("-config=$configPath"))
+        val port = commandLineConfig(arrayOf("-config=$configPath")).environment
             .config.property("ktor.deployment.port").getString()
         assertEquals("8080", port)
     }
@@ -69,21 +75,23 @@ class CommandLineTest {
     @Test
     fun configYamlFile() {
         val configPath = CommandLineTest::class.java.classLoader.getResource("application.yaml")!!.toURI().path
-        val port = commandLineEnvironment(arrayOf("-config=$configPath"))
+        val port = commandLineConfig(arrayOf("-config=$configPath")).environment
             .config.property("ktor.deployment.port").getString()
         assertEquals("8081", port)
     }
 
     @Test
     fun hoconConfigResource() {
-        val port = commandLineEnvironment(arrayOf("-config=applicationWithEnv.conf"))
+        val port = commandLineConfig(arrayOf("-config=applicationWithEnv.conf"))
+            .environment
             .config.property("ktor.deployment.port").getString()
         assertEquals("8080", port)
     }
 
     @Test
     fun yamlConfigResource() {
-        val port = commandLineEnvironment(arrayOf("-config=application.yaml"))
+        val port = commandLineConfig(arrayOf("-config=application.yaml"))
+            .environment
             .config.property("ktor.deployment.port").getString()
         assertEquals("8081", port)
     }
@@ -98,7 +106,7 @@ class CommandLineTest {
             "-P:array.second.1=2",
             "-P:array.third.0=zero"
         )
-        val config = commandLineEnvironment(args).config
+        val config = commandLineConfig(args).environment.config
         val firstList = config.property("array.first").getList()
         val secondList = config.property("array.second").getList()
         val thirdList = config.property("array.third").getList()
@@ -119,7 +127,7 @@ class CommandLineTest {
             "-P:users.2.groups.0=group0", "-P:users.2.groups.1=group1",
             "-P:users.2.tasks.0.id=id0", "-P:users.2.tasks.1.id=id1"
         )
-        val config = commandLineEnvironment(args).config
+        val config = commandLineConfig(args).environment.config
 
         val users = config.configList("users")
         val groups = users[2].property("groups").getList()
@@ -142,7 +150,7 @@ class CommandLineTest {
             .getResource("application-additional.conf")!!.toURI().path
         val args = arrayOf("-config=$configPath", "-config=$additionalConfigPath")
 
-        val config = commandLineEnvironment(args) {}.config
+        val config = commandLineConfig(args).environment.config
 
         assertEquals("<org.company.ApplicationClass>", config.property("ktor.application.class").getString())
         assertEquals("8085", config.property("ktor.deployment.port").getString())

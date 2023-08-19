@@ -8,70 +8,61 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
+import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
-import kotlin.coroutines.*
 
-/**
- * Implements [ApplicationEngineEnvironment] by loading an [Application] from a folder or jar.
- *
- * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
- */
-public class ApplicationEngineEnvironmentReloading(
-    override val classLoader: ClassLoader,
-    override val log: Logger,
-    override val config: ApplicationConfig,
-    override val connectors: List<EngineConnectorConfig>,
-    internal val modules: List<Application.() -> Unit>,
-    internal val watchPaths: List<String> = emptyList(),
-    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    override val rootPath: String = "",
-    override val developmentMode: Boolean = true
-) : ApplicationEngineEnvironment {
+public actual class EmbeddedServer<
+    TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration
+    >
+actual constructor(
+    private val applicationProperties: ApplicationProperties,
+    engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    engineConfigBlock: TConfiguration.() -> Unit
+) {
 
-    private val configuredWatchPath get() = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
-    private val watchPatterns: List<String> = configuredWatchPath + watchPaths
+    public actual val monitor: Events = Events()
 
-    override val parentCoroutineContext: CoroutineContext = when {
-        developmentMode && watchPatterns.isNotEmpty() ->
-            parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
-        else -> parentCoroutineContext
-    }
+    public actual val environment: ApplicationEnvironment = applicationProperties.environment
 
-    public constructor(
-        classLoader: ClassLoader,
-        log: Logger,
-        config: ApplicationConfig,
-        connectors: List<EngineConnectorConfig>,
-        modules: List<Application.() -> Unit>,
-        watchPaths: List<String> = emptyList(),
-        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-        rootPath: String = "",
-    ) : this(
-        classLoader, log, config, connectors, modules, watchPaths,
-        parentCoroutineContext, rootPath, developmentMode = true
+    public actual val application: Application
+        get() = currentApplication()
+
+    public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
+
+    public actual val engine: TEngine = engineFactory.create(
+        environment,
+        monitor,
+        applicationProperties.developmentMode,
+        engineConfig,
+        ::currentApplication
     )
 
-    private var _applicationInstance: Application? = Application(this)
+    private val configuredWatchPath
+        get() = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
+
+    private var _applicationInstance: Application? = null
     private var recreateInstance: Boolean = false
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
     private val configModulesNames: List<String> = run {
-        config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
+        environment.config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
     }
 
     internal val modulesNames: List<String> = configModulesNames
@@ -84,27 +75,10 @@ public class ApplicationEngineEnvironmentReloading(
         }
     }
 
-    override val monitor: Events = Events()
-
-    override val application: Application
-        get() = currentApplication()
-
-    /**
-     * Reload application: destroy it first and then create again
-     */
-    public fun reload() {
-        applicationInstanceLock.write {
-            destroyApplication()
-            val (application, classLoader) = createApplication()
-            _applicationInstance = application
-            _applicationClassLoader = classLoader
-        }
-    }
-
     private fun currentApplication(): Application = applicationInstanceLock.read {
-        val currentApplication = _applicationInstance ?: error("ApplicationEngineEnvironment was not started")
+        val currentApplication = _applicationInstance ?: error("ApplicationEnvironment was not started")
 
-        if (!developmentMode) {
+        if (!applicationProperties.developmentMode) {
             return@read currentApplication
         }
 
@@ -113,7 +87,7 @@ public class ApplicationEngineEnvironmentReloading(
             return@read currentApplication
         }
 
-        log.info("Changes in application detected.")
+        environment.log.info("Changes in application detected.")
 
         var count = changes.size
         while (true) {
@@ -123,12 +97,12 @@ public class ApplicationEngineEnvironmentReloading(
                 break
             }
 
-            log.debug("Waiting for more changes.")
+            environment.log.debug("Waiting for more changes.")
             count += moreChanges.size
         }
 
-        log.debug("Changes to $count files caused application restart.")
-        changes.take(5).forEach { log.debug("...  ${it.context()}") }
+        environment.log.debug("Changes to $count files caused application restart.")
+        changes.take(5).forEach { environment.log.debug("...  ${it.context()}") }
 
         applicationInstanceLock.write {
             destroyApplication()
@@ -155,30 +129,29 @@ public class ApplicationEngineEnvironmentReloading(
 
     @Suppress("DEPRECATION")
     private fun createClassLoader(): ClassLoader {
-        val baseClassLoader = classLoader
+        val baseClassLoader = environment.classLoader
 
-        if (!developmentMode) {
-            log.info("Autoreload is disabled because the development mode is off.")
+        if (!applicationProperties.developmentMode) {
+            environment.log.info("Autoreload is disabled because the development mode is off.")
             return baseClassLoader
         }
 
         val watchPatterns = watchPatterns
         if (watchPatterns.isEmpty()) {
-            log.info("No ktor.deployment.watch patterns specified, automatic reload is not active.")
+            environment.log.info("No ktor.deployment.watch patterns specified, automatic reload is not active.")
             return baseClassLoader
         }
 
         val allUrls = baseClassLoader.allURLs()
         val jre = File(System.getProperty("java.home")).parent
         val debugUrls = allUrls.map { it.file }
-        log.debug("Java Home: $jre")
-        log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
+        environment.log.debug("Java Home: $jre")
+        environment.log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
 
         // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
             ApplicationEnvironment::class.java, // ktor-server
-            ApplicationEngineEnvironment::class.java, // ktor-server-host-common
             Pipeline::class.java, // ktor-parsing
             HttpStatusCode::class.java, // ktor-http
             kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
@@ -189,12 +162,16 @@ public class ApplicationEngineEnvironmentReloading(
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
-            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) } &&
-                !(url.path ?: "").startsWith(jre)
+            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) } && !(
+                url.path
+                    ?: ""
+                ).startsWith(jre)
         }
 
         if (watchUrls.isEmpty()) {
-            log.info("No ktor.deployment.watch patterns match classpath entries, automatic reload is not active")
+            environment.log.info(
+                "No ktor.deployment.watch patterns match classpath entries, automatic reload is not active"
+            )
             return baseClassLoader
         }
 
@@ -218,7 +195,7 @@ public class ApplicationEngineEnvironmentReloading(
                 currentApplication.dispose()
                 (applicationClassLoader as? OverridingClassLoader)?.close()
             } catch (e: Throwable) {
-                log.error("Failed to destroy application instance.", e)
+                environment.log.error("Failed to destroy application instance.", e)
             }
 
             safeRiseEvent(ApplicationStopped, currentApplication)
@@ -260,7 +237,7 @@ public class ApplicationEngineEnvironmentReloading(
         }
 
         paths.forEach { path ->
-            log.debug("Watching $path for changes.")
+            environment.log.debug("Watching $path for changes.")
         }
 
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
@@ -271,7 +248,7 @@ public class ApplicationEngineEnvironmentReloading(
         }
     }
 
-    override fun start() {
+    public actual fun start(wait: Boolean) {
         applicationInstanceLock.write {
             val (application, classLoader) = try {
                 createApplication()
@@ -286,9 +263,20 @@ public class ApplicationEngineEnvironmentReloading(
             _applicationInstance = application
             _applicationClassLoader = classLoader
         }
+        engine.start(wait)
+
+        CoroutineScope(application.coroutineContext).launch {
+            engine.resolvedConnectors().forEach {
+                val host = escapeHostname(it.host)
+                environment.log.info(
+                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
+                )
+            }
+        }
     }
 
-    override fun stop() {
+    public fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long, timeUnit: TimeUnit) {
+        engine.stop(timeUnit.toMillis(shutdownGracePeriod), timeUnit.toMillis(shutdownTimeout))
         applicationInstanceLock.write {
             destroyApplication()
         }
@@ -297,9 +285,13 @@ public class ApplicationEngineEnvironmentReloading(
         }
     }
 
+    public actual fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long) {
+        stop(shutdownGracePeriod, shutdownTimeout, TimeUnit.MILLISECONDS)
+    }
+
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
         val newInstance = if (recreateInstance || _applicationInstance == null) {
-            Application(this)
+            Application(environment, applicationProperties.developmentMode, applicationProperties.rootPath, monitor)
         } else {
             recreateInstance = true
             _applicationInstance!!
@@ -312,7 +304,7 @@ public class ApplicationEngineEnvironmentReloading(
                 launchModuleByName(name, currentClassLoader, newInstance)
             }
 
-            modules.forEach { module ->
+            applicationProperties.modules.forEach { module ->
                 val name = module.methodName()
 
                 try {
@@ -363,25 +355,6 @@ public class ApplicationEngineEnvironmentReloading(
         try {
             watcher?.close()
         } catch (_: NoClassDefFoundError) {
-        }
-    }
-
-    public companion object
-}
-
-private object ClassLoaderAwareContinuationInterceptor : ContinuationInterceptor {
-    override val key: CoroutineContext.Key<*> =
-        object : CoroutineContext.Key<ClassLoaderAwareContinuationInterceptor> {}
-
-    override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
-        val classLoader = Thread.currentThread().contextClassLoader
-        return object : Continuation<T> {
-            override val context: CoroutineContext = continuation.context
-
-            override fun resumeWith(result: Result<T>) {
-                Thread.currentThread().contextClassLoader = classLoader
-                continuation.resumeWith(result)
-            }
         }
     }
 }

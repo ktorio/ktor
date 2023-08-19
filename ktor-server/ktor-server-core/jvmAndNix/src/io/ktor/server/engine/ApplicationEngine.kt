@@ -46,6 +46,11 @@ public interface ApplicationEngine {
          * Specifies the maximum amount of time in milliseconds to wait until server stops gracefully
          */
         public var shutdownTimeout: Long = 5000
+
+        /**
+         * Connectors that describers where and how server should listen.
+         */
+        public var connectors: MutableList<EngineConnectorConfig> = mutableListOf()
     }
 
     /**
@@ -59,12 +64,7 @@ public interface ApplicationEngine {
     /**
      * An environment used to run this engine.
      */
-    public val environment: ApplicationEngineEnvironment
-
-    /**
-     * A currently running application instance.
-     */
-    public val application: Application get() = environment.application
+    public val environment: ApplicationEnvironment
 
     /**
      * Starts this [ApplicationEngine].

@@ -11,14 +11,14 @@ class BuildApplicationConfigJvmTest {
     @Test
     fun testPropertyConfig() {
         System.setProperty("ktor.deployment.port", "1333")
-        assertEquals(1333, commandLineEnvironment(emptyArray()).connectors.single().port)
+        assertEquals(1333, commandLineConfig(emptyArray()).connectors.single().port)
         System.clearProperty("ktor.deployment.port")
     }
 
     @Test
     fun testPropertyConfigOverride() {
         System.setProperty("ktor.deployment.port", "1333")
-        assertEquals(13698, commandLineEnvironment(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
+        assertEquals(13698, commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).connectors.single().port)
         System.clearProperty("ktor.deployment.port")
     }
 }

@@ -5,7 +5,6 @@
 
 package io.ktor.server.application
 
-import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
@@ -28,19 +27,4 @@ public expect interface ApplicationEnvironment {
      * Configuration for the [Application]
      */
     public val config: ApplicationConfig
-
-    /**
-     * Provides events on Application lifecycle
-     */
-    public val monitor: Events
-
-    /**
-     * Application's root path (prefix, context path in servlet container).
-     */
-    public val rootPath: String
-
-    /**
-     * Indicates if development mode is enabled.
-     */
-    public val developmentMode: Boolean
 }

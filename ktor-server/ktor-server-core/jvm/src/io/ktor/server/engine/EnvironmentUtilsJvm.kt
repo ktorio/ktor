@@ -11,7 +11,7 @@ import java.io.*
 import java.net.*
 import java.security.*
 
-internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
+internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
     host: String,
     sslPort: String,
     sslKeyStorePath: String?,
@@ -60,7 +60,7 @@ internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     }
 }
 
-internal actual fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {
+internal actual fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }.toMap()
     val jar = argumentsPairs["-jar"]?.let {
         when {

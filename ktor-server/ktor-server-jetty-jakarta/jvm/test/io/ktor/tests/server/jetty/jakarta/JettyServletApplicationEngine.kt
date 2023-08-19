@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.jetty.jakarta
 
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.servlet.jakarta.*
@@ -17,16 +18,18 @@ internal class Servlet(
     private val async: Boolean
 ) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
     override fun create(
-        environment: ApplicationEngineEnvironment,
+        environment: ApplicationEnvironment,
+        application: Application,
         configure: JettyApplicationEngineBase.Configuration.() -> Unit
-    ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, configure, async)
+    ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, application, configure, async)
 }
 
 internal class JettyServletApplicationEngine(
-    environment: ApplicationEngineEnvironment,
+    environment: ApplicationEnvironment,
+    application: Application,
     configure: Configuration.() -> Unit,
     async: Boolean
-) : JettyApplicationEngineBase(environment, configure) {
+) : JettyApplicationEngineBase(environment, application, configure) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader

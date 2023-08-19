@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.events.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.concurrent.*
@@ -18,7 +19,7 @@ private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
  * So [stop] block will be called once or never.
  */
 @OptIn(ExperimentalForeignApi::class)
-public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
+public actual fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
     shutdownHook.value = stop
 
     signal(

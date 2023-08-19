@@ -42,7 +42,7 @@ public abstract class BaseApplicationResponse(
     private var responded = false
 
     public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
-        call.application.environment.developmentMode
+        call.application.developmentMode
     ).apply {
         resetFrom(call.application.sendPipeline)
     }

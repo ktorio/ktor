@@ -55,14 +55,15 @@ public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
 ) : ClientProvider by builder {
 
-    internal val engine by lazy { builder.engine }
+    internal val externalApplications by lazy { builder.externalServices.externalApplications }
+    internal val server by lazy { builder.embeddedServer }
 
     /**
      * Starts this [TestApplication] instance.
      */
     public fun start() {
         if (builder.engine.state.value != TestApplicationEngine.State.Created) return
-        builder.engine.start()
+        builder.embeddedServer.start()
         builder.externalServices.externalApplications.values.forEach { it.start() }
     }
 
@@ -70,7 +71,7 @@ public class TestApplication internal constructor(
      * Stops this [TestApplication] instance.
      */
     public fun stop() {
-        builder.engine.stop(0, 0)
+        builder.embeddedServer.stop()
         builder.externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
@@ -132,14 +133,12 @@ public open class TestApplicationBuilder {
 
     internal val externalServices = ExternalServicesBuilder(this)
     internal val applicationModules = mutableListOf<Application.() -> Unit>()
-    internal var environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
+    internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
     internal val job = Job()
 
-    internal val environment by lazy {
+    internal val properties by lazy {
         built = true
-        createTestEnvironment {
-            modules.addAll(this@TestApplicationBuilder.applicationModules)
-            developmentMode = true
+        val environment = createTestEnvironment {
             val oldConfig = config
             this@TestApplicationBuilder.environmentBuilder(this)
             if (config == oldConfig) { // the user did not set config. load the default one
@@ -147,10 +146,18 @@ public open class TestApplicationBuilder {
             }
             parentCoroutineContext += this@TestApplicationBuilder.job
         }
+        applicationProperties(environment) {
+            this@TestApplicationBuilder.applicationModules.forEach { module(it) }
+            developmentMode = true
+        }
+    }
+
+    internal val embeddedServer by lazy {
+        EmbeddedServer(properties, TestEngine) {}
     }
 
     internal val engine by lazy {
-        TestApplicationEngine(environment)
+        embeddedServer.engine
     }
 
     /**
@@ -168,7 +175,7 @@ public open class TestApplicationBuilder {
      * @see [testApplication]
      */
     @KtorDsl
-    public fun environment(block: ApplicationEngineEnvironmentBuilder.() -> Unit) {
+    public fun environment(block: ApplicationEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = environmentBuilder
         environmentBuilder = { oldBuilder(); block() }
@@ -222,6 +229,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client by lazy { createClient { } }
 
+    internal val application by lazy { TestApplication(this) }
+
     /**
      * Starts instance of [TestApplication].
      * Usually, users do not need to call this method because application will start on the first client call.
@@ -230,8 +239,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      * After calling this method, no modification of the application is allowed.
      */
     public fun startApplication() {
-        val testApplication = TestApplication(this)
-        testApplication.start()
+        application.start()
     }
 
     @KtorDsl
@@ -240,8 +248,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
         engine {
             parentJob = this@ApplicationTestBuilder.job
-            appEngineProvider = { this@ApplicationTestBuilder.engine }
-            externalApplicationsProvider = { this@ApplicationTestBuilder.externalServices.externalApplications }
+            testApplicationProvder = this@ApplicationTestBuilder::application
         }
         block()
     }
@@ -312,7 +319,7 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
  * ```
  *
  * _Note: If you have the `application.conf` file in the `resources` folder,
- * [testApplication] loads all modules and properties specified in the configuration file automatically._
+ * [testApplication] loads all modules and properties specified in the configuration file automatically.
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  */
@@ -333,7 +340,7 @@ public fun testApplication(
             }
         }
 
-    val testApplication = TestApplication(builder)
+    val testApplication = builder.application
     testApplication.start()
     testApplication.stop()
 }

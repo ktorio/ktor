@@ -47,7 +47,7 @@ public interface EngineConnectorConfig {
 /**
  * Adds a non-secure connector to this engine environment
  */
-public inline fun ApplicationEngineEnvironmentBuilder.connector(builder: EngineConnectorBuilder.() -> Unit) {
+public inline fun ApplicationEngine.Configuration.connector(builder: EngineConnectorBuilder.() -> Unit) {
     connectors.add(EngineConnectorBuilder().apply(builder))
 }
 

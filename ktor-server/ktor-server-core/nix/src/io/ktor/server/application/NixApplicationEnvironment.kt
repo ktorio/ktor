@@ -5,7 +5,6 @@
 
 package io.ktor.server.application
 
-import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
@@ -22,22 +21,7 @@ public actual interface ApplicationEnvironment {
     public actual val config: ApplicationConfig
 
     /**
-     * Application's root path (prefix, context path in servlet container).
-     */
-    public actual val rootPath: String
-
-    /**
-     * Indicates if development mode is enabled.
-     */
-    public actual val developmentMode: Boolean
-
-    /**
      * Instance of [Logger] to be used for logging.
      */
     public actual val log: Logger
-
-    /**
-     * Provides events on Application lifecycle
-     */
-    public actual val monitor: Events
 }

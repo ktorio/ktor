@@ -22,7 +22,7 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
     final override val headers: Headers by lazy { DelegateHeaders(engineHeaders) }
 
     override val pipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(
-        call.application.environment.developmentMode
+        call.application.developmentMode
     ).apply {
         resetFrom(call.application.receivePipeline)
     }

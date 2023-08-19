@@ -4,7 +4,7 @@
 
 package io.ktor.server.engine.internal
 
-import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -19,8 +19,8 @@ internal actual fun printError(message: Any?) {
     fprintf(stderr, "%s", message?.toString())
 }
 
-internal actual fun configureShutdownUrl(environment: ApplicationEnvironment, pipeline: EnginePipeline) {
-    environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { _ ->
+internal actual fun configureShutdownUrl(config: ApplicationConfig, pipeline: EnginePipeline) {
+    config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { _ ->
         error("Shutdown url is not supported on native")
     }
 }

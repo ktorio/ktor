@@ -5,8 +5,10 @@
 package io.ktor.server.jetty
 
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -28,12 +30,13 @@ private const val THREAD_KEEP_ALIVE_TIME = 1L
 
 @OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
-    val environment: ApplicationEngineEnvironment,
-    private val pipeline: () -> EnginePipeline,
+    val environment: ApplicationEnvironment,
+    private val pipeline: EnginePipeline,
     private val engineDispatcher: CoroutineDispatcher,
-    configuration: JettyApplicationEngineBase.Configuration
+    configuration: JettyApplicationEngineBase.Configuration,
+    private val applicationProvider: () -> Application
 ) : AbstractHandler(), CoroutineScope {
-    private val environmentName = environment.connectors.joinToString("-") { it.port.toString() }
+    private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
     private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
     private val executor = ThreadPoolExecutor(
         configuration.callGroupSize,
@@ -81,7 +84,7 @@ internal class JettyKtorHandler(
 
             launch(dispatcher + JettyCallHandlerCoroutineName) {
                 val call = JettyApplicationCall(
-                    environment.application,
+                    applicationProvider(),
                     baseRequest,
                     request,
                     response,
@@ -91,7 +94,7 @@ internal class JettyKtorHandler(
                 )
 
                 try {
-                    pipeline().execute(call)
+                    pipeline.execute(call)
                 } catch (cancelled: CancellationException) {
                     response.sendErrorIfNotCommitted(HttpServletResponse.SC_GONE)
                 } catch (channelFailed: ChannelIOException) {
@@ -108,7 +111,7 @@ internal class JettyKtorHandler(
                 }
             }
         } catch (ex: Throwable) {
-            environment.log.error("Application ${environment.application::class.java} cannot fulfill the request", ex)
+            environment.log.error("Application cannot fulfill the request", ex)
             response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
     }

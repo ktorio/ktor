@@ -10,7 +10,7 @@ import java.security.*
 /**
  * Adds a secure connector to this engine environment
  */
-public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
+public inline fun ApplicationEngine.Configuration.sslConnector(
     keyStore: KeyStore,
     keyAlias: String,
     noinline keyStorePassword: () -> CharArray,

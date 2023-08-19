@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -29,9 +30,12 @@ internal const val CONFIG_KEY_THROW_ON_EXCEPTION = "ktor.test.throwOnException"
  * without actual HTTP connection.
  */
 class TestApplicationEngine(
-    environment: ApplicationEngineEnvironment = createTestEnvironment(),
-    configure: Configuration.() -> Unit = {}
-) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
+    environment: ApplicationEnvironment = createTestEnvironment(),
+    monitor: Events,
+    developmentMode: Boolean = true,
+    private val applicationProvider: () -> Application,
+    internal val configuration: Configuration
+) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
     internal enum class State {
         Created, Starting, Started, Stopped
@@ -40,10 +44,12 @@ class TestApplicationEngine(
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
     internal val state = atomic(State.Created)
-    internal val configuration = Configuration().apply(configure)
 
     override val coroutineContext: CoroutineContext =
         environment.parentCoroutineContext + testEngineJob + configuration.dispatcher
+
+    val application: Application
+        get() = applicationProvider()
 
     /**
      * An engine configuration for a test application.
@@ -51,6 +57,11 @@ class TestApplicationEngine(
      */
     class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = Dispatchers.IOBridge
+
+        init {
+            shutdownGracePeriod = 0
+            shutdownGracePeriod = 0
+        }
     }
 
     /**
@@ -120,8 +131,8 @@ class TestApplicationEngine(
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
-        if (environment.connectors.isNotEmpty()) {
-            return environment.connectors
+        if (configuration.connectors.isNotEmpty()) {
+            return configuration.connectors
         }
         return listOf(
             object : EngineConnectorConfig {
@@ -140,7 +151,6 @@ class TestApplicationEngine(
     override fun start(wait: Boolean): ApplicationEngine {
         if (state.compareAndSet(State.Created, State.Starting)) {
             check(testEngineJob.isActive) { "Test engine is already completed" }
-            environment.start()
             cancellationDeferred = stopServerOnCancellation()
             applicationStarting.complete()
             resolvedConnectors.complete(runBlocking { resolvedConnectors() })
@@ -159,8 +169,7 @@ class TestApplicationEngine(
             cancellationDeferred?.complete()
             client.close()
             engine.close()
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-            environment.stop()
+            monitor.raise(ApplicationStopPreparing, environment)
         } finally {
             testEngineJob.cancel()
         }
@@ -275,7 +284,7 @@ class TestApplicationEngine(
         closeRequest: Boolean = true,
         context: CoroutineContext = Dispatchers.IOBridge,
         setup: TestApplicationRequest.() -> Unit
-    ): TestApplicationCall = TestApplicationCall(application, readResponse, closeRequest, context).apply {
+    ): TestApplicationCall = TestApplicationCall(applicationProvider(), readResponse, closeRequest, context).apply {
         setup(request)
     }
 }

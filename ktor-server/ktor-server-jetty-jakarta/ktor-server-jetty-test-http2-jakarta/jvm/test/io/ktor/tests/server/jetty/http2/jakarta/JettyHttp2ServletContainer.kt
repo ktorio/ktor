@@ -1,9 +1,11 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.jetty.http2.jakarta
 
+import io.ktor.events.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.servlet.jakarta.*
@@ -15,23 +17,41 @@ import org.eclipse.jetty.servlet.*
 
 internal class Servlet(private val async: Boolean) :
     ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
-    override fun create(
-        environment: ApplicationEngineEnvironment,
+    override fun configuration(
         configure: JettyApplicationEngineBase.Configuration.() -> Unit
+    ): JettyApplicationEngineBase.Configuration {
+        return JettyApplicationEngineBase.Configuration().apply(configure)
+    }
+
+    override fun create(
+        environment: ApplicationEnvironment,
+        monitor: Events,
+        developmentMode: Boolean,
+        configuration: JettyApplicationEngineBase.Configuration,
+        applicationProvider: () -> Application
     ): JettyServletApplicationEngine {
-        return JettyServletApplicationEngine(environment, configure, async)
+        return JettyServletApplicationEngine(
+            environment,
+            monitor,
+            developmentMode,
+            configuration,
+            async
+        )
     }
 }
 
 internal class JettyServletApplicationEngine(
-    environment: ApplicationEngineEnvironment,
-    configure: Configuration.() -> Unit,
+    environment: ApplicationEnvironment,
+    monitor: Events,
+    developmentMode: Boolean,
+    configuration: Configuration,
     async: Boolean
-) : JettyApplicationEngineBase(environment, configure) {
+) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader
-            setAttribute(ServletApplicationEngine.ApplicationEngineEnvironmentAttributeKey, environment)
+            val embeddedServer = EmbeddedServer(applicationProperties(environment), EmptyEngineFactory)
+            setAttribute(ServletApplicationEngine.EmbeddedServerAttributeKey, embeddedServer)
             setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(
@@ -55,6 +75,29 @@ internal class JettyServletApplicationEngine(
                     )
                 }
             )
+        }
+    }
+}
+
+private object EmptyEngineFactory : ApplicationEngineFactory<ApplicationEngine, ApplicationEngine.Configuration> {
+    override fun configuration(
+        configure: ApplicationEngine.Configuration.() -> Unit
+    ): ApplicationEngine.Configuration {
+        return ApplicationEngine.Configuration()
+    }
+
+    override fun create(
+        environment: ApplicationEnvironment,
+        monitor: Events,
+        developmentMode: Boolean,
+        configuration: ApplicationEngine.Configuration,
+        applicationProvider: () -> Application
+    ): ApplicationEngine {
+        return object : ApplicationEngine {
+            override val environment: ApplicationEnvironment = environment
+            override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = emptyList()
+            override fun start(wait: Boolean): ApplicationEngine = this
+            override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = Unit
         }
     }
 }

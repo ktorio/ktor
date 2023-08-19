@@ -10,7 +10,7 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-internal fun ApplicationEnvironment.executeModuleFunction(
+internal fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
     application: Application
@@ -69,7 +69,7 @@ internal fun ApplicationEnvironment.executeModuleFunction(
     throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
 }
 
-private fun ApplicationEnvironment.createModuleContainer(
+private fun createModuleContainer(
     applicationEntryClass: KClass<*>,
     application: Application
 ): Any {
@@ -86,7 +86,7 @@ private fun ApplicationEnvironment.createModuleContainer(
     return callFunctionWithInjection(null, constructor, application)
 }
 
-private fun <R> ApplicationEnvironment.callFunctionWithInjection(
+private fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
     application: Application
@@ -96,7 +96,7 @@ private fun <R> ApplicationEnvironment.callFunctionWithInjection(
         { parameter ->
             when {
                 parameter.kind == KParameter.Kind.INSTANCE -> instance
-                isApplicationEnvironment(parameter) -> this
+                isApplicationEnvironment(parameter) -> application.environment
                 isApplication(parameter) -> application
                 parameter.type.toString().contains("Application") -> {
                     // It is possible that type is okay, but classloader is not
@@ -107,6 +107,7 @@ private fun <R> ApplicationEnvironment.callFunctionWithInjection(
                             "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
                     )
                 }
+
                 else -> throw IllegalArgumentException(
                     "Parameter type '${parameter.type}' of parameter " +
                         "'${parameter.name ?: "<receiver>"}' is not supported"

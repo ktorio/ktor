@@ -4,6 +4,7 @@
 
 package io.ktor.server.netty
 
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
@@ -26,8 +27,9 @@ import kotlin.coroutines.*
  * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
  */
 public class NettyChannelInitializer(
+    private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
-    private val environment: ApplicationEngineEnvironment,
+    private val environment: ApplicationEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
@@ -108,7 +110,7 @@ public class NettyChannelInitializer(
             ApplicationProtocolNames.HTTP_2 -> {
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    environment.application,
+                    applicationProvider(),
                     callEventGroup,
                     userContext,
                     runningLimit
@@ -123,6 +125,7 @@ public class NettyChannelInitializer(
 
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val handler = NettyHttp1Handler(
+                    applicationProvider,
                     enginePipeline,
                     environment,
                     callEventGroup,

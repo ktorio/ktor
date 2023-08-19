@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import java.util.concurrent.atomic.*
 
@@ -16,12 +17,12 @@ private val SHUTDOWN_HOOK_DISABLED = System.getProperty("io.ktor.server.engine.S
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
+public actual fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
     if (SHUTDOWN_HOOK_DISABLED) return
 
     val hook = ShutdownHook(stop)
-    environment.monitor.subscribe(ApplicationStarting) {
-        environment.monitor.subscribe(ApplicationStopping) {
+    monitor.subscribe(ApplicationStarting) {
+        monitor.subscribe(ApplicationStopping) {
             try {
                 Runtime.getRuntime().removeShutdownHook(hook)
             } catch (alreadyShuttingDown: IllegalStateException) {

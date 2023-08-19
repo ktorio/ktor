@@ -51,7 +51,7 @@ actual abstract class EngineTestBase<
 
     protected actual var port: Int = findFreePort()
     protected actual var sslPort: Int = findFreePort()
-    protected actual var server: TEngine? = null
+    protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
     protected var callGroupSize: Int = -1
         private set
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
@@ -99,7 +99,7 @@ actual abstract class EngineTestBase<
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            (server as? ApplicationEngine)?.stop(0, 200, TimeUnit.MILLISECONDS)
+            server?.stop(0, 200, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
@@ -111,9 +111,9 @@ actual abstract class EngineTestBase<
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
-    ): TEngine {
+    ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
-        val environment = applicationEngineEnvironment {
+        val environment = applicationEnvironment {
             this.parentCoroutineContext = parent
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -129,6 +129,14 @@ actual abstract class EngineTestBase<
                     delegate.error(msg, t)
                 }
             }
+        }
+        val properties = applicationProperties(environment) {
+            module(module)
+        }
+
+        return embeddedServer(applicationEngineFactory, properties) {
+            shutdownGracePeriod = 1000
+            shutdownTimeout = 1000
 
             connector { port = _port }
             if (enableSsl) {
@@ -141,11 +149,6 @@ actual abstract class EngineTestBase<
                     }
                 }
             }
-
-            module(module)
-        }
-
-        return embeddedServer(applicationEngineFactory, environment) {
             configure(this)
             this@EngineTestBase.callGroupSize = callGroupSize
         }
@@ -164,7 +167,7 @@ actual abstract class EngineTestBase<
         log: Logger?,
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
-    ): TEngine {
+    ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
             val server = createServer(log, parent) {
@@ -180,12 +183,12 @@ actual abstract class EngineTestBase<
 
                     port = findFreePort()
                     sslPort = findFreePort()
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop()
                     lastFailures = failures
                 }
 
                 else -> {
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop()
                     throw MultipleFailureException(failures)
                 }
             }
@@ -195,7 +198,7 @@ actual abstract class EngineTestBase<
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected fun startServer(server: TEngine): List<Throwable> {
+    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -204,7 +207,7 @@ actual abstract class EngineTestBase<
             server.start(wait = false)
 
             withTimeout(minOf(10.seconds, timeout)) {
-                server.environment.connectors.forEach { connector ->
+                server.engineConfig.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
             }

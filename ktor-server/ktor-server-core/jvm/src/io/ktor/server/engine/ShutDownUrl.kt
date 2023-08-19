@@ -36,12 +36,8 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
         call.application.launch {
             latch.join()
 
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-            if (environment is ApplicationEngineEnvironment) {
-                environment.stop()
-            } else {
-                application.dispose()
-            }
+            application.monitor.raise(ApplicationStopPreparing, environment)
+            application.dispose()
 
             exitProcess(exitCode)
         }
@@ -57,7 +53,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
      * A plugin to install into an engine pipeline.
      */
     public object EnginePlugin : BaseApplicationPlugin<EnginePipeline, Config, ShutDownUrl> {
-        override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
+        override val key: AttributeKey<ShutDownUrl> = AttributeKey("shutdown.url")
 
         override fun install(pipeline: EnginePipeline, configure: Config.() -> Unit): ShutDownUrl {
             val config = Config()

@@ -4,6 +4,8 @@
 
 package io.ktor.server.engine
 
+import io.ktor.events.*
+
 /**
  * Adds automatic application shutdown hooks management. Should be used **before** starting the engine.
  * Once application termination noticed, [stop] block will be executed.
@@ -11,4 +13,4 @@ package io.ktor.server.engine
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-public expect fun ApplicationEngine.addShutdownHook(stop: () -> Unit)
+public expect fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit)

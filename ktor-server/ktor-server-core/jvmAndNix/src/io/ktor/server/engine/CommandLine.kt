@@ -4,58 +4,79 @@
 
 package io.ktor.server.engine
 
+import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.util.*
 import io.ktor.util.logging.*
 
-internal object ConfigKeys {
-    const val applicationIdPath = "ktor.application.id"
-    const val hostConfigPath = "ktor.deployment.host"
-    const val hostPortPath = "ktor.deployment.port"
-    const val hostWatchPaths = "ktor.deployment.watch"
-
-    const val rootPathPath = "ktor.deployment.rootPath"
-
-    const val hostSslPortPath = "ktor.deployment.sslPort"
-    const val hostSslKeyStore = "ktor.security.ssl.keyStore"
-    const val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
-    const val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
-    const val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
-    const val developmentModeKey = "ktor.development"
+public class CommandLineConfig(
+    public val applicationProperties: ApplicationProperties,
+    public val engineConfig: ApplicationEngine.Configuration.() -> Unit
+) {
+    public val environment: ApplicationEnvironment = applicationProperties.environment
 }
 
-internal fun buildCommandLineEnvironment(
-    args: Array<String>,
-    environmentBuilder: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
-): ApplicationEngineEnvironment {
-    val argumentsPairs = args.mapNotNull { it.splitPair('=') }.toMap()
-    val configuration = buildApplicationConfig(args)
+public object ConfigKeys {
+    public const val applicationIdPath: String = "ktor.application.id"
+    public const val hostConfigPath: String = "ktor.deployment.host"
+    public const val hostPortPath: String = "ktor.deployment.port"
+    public const val hostWatchPaths: String = "ktor.deployment.watch"
+
+    public const val rootPathPath: String = "ktor.deployment.rootPath"
+
+    public const val hostSslPortPath: String = "ktor.deployment.sslPort"
+    public const val hostSslKeyStore: String = "ktor.security.ssl.keyStore"
+    public const val hostSslKeyAlias: String = "ktor.security.ssl.keyAlias"
+    public const val hostSslKeyStorePassword: String = "ktor.security.ssl.keyStorePassword"
+    public const val hostSslPrivateKeyPassword: String = "ktor.security.ssl.privateKeyPassword"
+    public const val developmentModeKey: String = "ktor.development"
+}
+
+/**
+ * Creates an [ApplicationEnvironment] instance from command line arguments
+ */
+public fun commandLineConfig(args: Array<String>): CommandLineConfig {
+    val argumentsPairs = args.mapNotNull { it.splitPair('=') }
+    val argumentsMap = argumentsPairs.toMap()
+    val configuration = buildApplicationConfig(argumentsPairs)
     val applicationId = configuration.tryGetString(ConfigKeys.applicationIdPath) ?: "Application"
     val logger = KtorSimpleLogger(applicationId)
 
-    val rootPath = argumentsPairs["-path"] ?: configuration.tryGetString(ConfigKeys.rootPathPath) ?: ""
-
-    val environment = applicationEngineEnvironment {
+    val environment = applicationEnvironment {
         log = logger
 
         configurePlatformProperties(args)
 
         config = configuration
+    }
 
-        this.rootPath = rootPath
-
-        val host = argumentsPairs["-host"] ?: configuration.tryGetString(ConfigKeys.hostConfigPath) ?: "0.0.0.0"
-        val port = argumentsPairs["-port"] ?: configuration.tryGetString(ConfigKeys.hostPortPath)
-        val sslPort = argumentsPairs["-sslPort"] ?: configuration.tryGetString(ConfigKeys.hostSslPortPath)
-        val sslKeyStorePath = argumentsPairs["-sslKeyStore"] ?: configuration.tryGetString(ConfigKeys.hostSslKeyStore)
-        val sslKeyStorePassword = configuration.tryGetString(ConfigKeys.hostSslKeyStorePassword)?.trim()
-        val sslPrivateKeyPassword = configuration.tryGetString(ConfigKeys.hostSslPrivateKeyPassword)?.trim()
-        val sslKeyAlias = configuration.tryGetString(ConfigKeys.hostSslKeyAlias) ?: "mykey"
-
+    val applicationProperties = applicationProperties(environment) {
+        rootPath = argumentsMap["-path"] ?: configuration.tryGetString(ConfigKeys.rootPathPath) ?: ""
         developmentMode = configuration.tryGetString(ConfigKeys.developmentModeKey)
             ?.let { it.toBoolean() } ?: PlatformUtils.IS_DEVELOPMENT_MODE
 
+        (argumentsMap["-watch"]?.split(",") ?: configuration.tryGetStringList(ConfigKeys.hostWatchPaths))?.let {
+            watchPaths = it
+        }
+    }
+
+    val host = argumentsMap["-host"] ?: configuration.tryGetString(ConfigKeys.hostConfigPath) ?: "0.0.0.0"
+    val port = argumentsMap["-port"] ?: configuration.tryGetString(ConfigKeys.hostPortPath)
+    val sslPort = argumentsMap["-sslPort"] ?: configuration.tryGetString(ConfigKeys.hostSslPortPath)
+    val sslKeyStorePath = argumentsMap["-sslKeyStore"] ?: configuration.tryGetString(ConfigKeys.hostSslKeyStore)
+    val sslKeyStorePassword = configuration.tryGetString(ConfigKeys.hostSslKeyStorePassword)?.trim()
+    val sslPrivateKeyPassword = configuration.tryGetString(ConfigKeys.hostSslPrivateKeyPassword)?.trim()
+    val sslKeyAlias = configuration.tryGetString(ConfigKeys.hostSslKeyAlias) ?: "mykey"
+
+    if (port == null && sslPort == null) {
+        throw IllegalArgumentException(
+            "Neither port nor sslPort specified. Use command line options -port/-sslPort " +
+                "or configure connectors in application.conf"
+        )
+    }
+
+    return CommandLineConfig(applicationProperties) {
         if (port != null) {
             connector {
                 this.host = host
@@ -73,37 +94,15 @@ internal fun buildCommandLineEnvironment(
                 sslKeyAlias
             )
         }
-
-        if (port == null && sslPort == null) {
-            throw IllegalArgumentException(
-                "Neither port nor sslPort specified. Use command line options -port/-sslPort " +
-                    "or configure connectors in application.conf"
-            )
-        }
-
-        (argumentsPairs["-watch"]?.split(",") ?: configuration.tryGetStringList(ConfigKeys.hostWatchPaths))?.let {
-            watchPaths = it
-        }
-
-        environmentBuilder()
     }
-
-    return environment
 }
 
-/**
- * Creates an [ApplicationEngineEnvironment] instance from command line arguments
- */
-public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment =
-    buildCommandLineEnvironment(args) {}
-
-internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
-    val argumentsPairs = args.mapNotNull { it.splitPair('=') }
-    val commandLineProperties = argumentsPairs
+internal fun buildApplicationConfig(args: List<Pair<String, String>>): ApplicationConfig {
+    val commandLineProperties = args
         .filter { it.first.startsWith("-P:") }
         .map { it.first.removePrefix("-P:") to it.second }
 
-    val configPaths = argumentsPairs.filter { it.first == "-config" }.map { it.second }
+    val configPaths = args.filter { it.first == "-config" }.map { it.second }
 
     val commandLineConfig = MapApplicationConfig(commandLineProperties)
     val environmentConfig = getConfigFromEnvironment()
@@ -117,7 +116,7 @@ internal fun buildApplicationConfig(args: Array<String>): ApplicationConfig {
     return fileConfig.mergeWith(environmentConfig).mergeWith(commandLineConfig)
 }
 
-internal expect fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
+internal expect fun ApplicationEngine.Configuration.configureSSLConnectors(
     host: String,
     sslPort: String,
     sslKeyStorePath: String?,
@@ -126,14 +125,14 @@ internal expect fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     sslKeyAlias: String
 )
 
-internal expect fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
+internal expect fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
 
 internal expect fun getConfigFromEnvironment(): ApplicationConfig
 
 /**
  * Load engine's configuration suitable for all engines from [deploymentConfig]
  */
-public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
+public fun ApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
         callGroupSize = it
     }
