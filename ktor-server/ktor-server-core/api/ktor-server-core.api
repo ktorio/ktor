@@ -1,7 +1,8 @@
 public final class io/ktor/server/application/Application : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;ZLjava/lang/String;Lio/ktor/events/Events;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;ZLjava/lang/String;Lio/ktor/events/Events;Lio/ktor/server/engine/ApplicationEngine;)V
 	public final fun dispose ()V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getEngine ()Lio/ktor/server/engine/ApplicationEngine;
 	public final fun getMonitor ()Lio/ktor/events/Events;
 	public final fun getRootPath ()Ljava/lang/String;
 	public final fun setRootPath (Ljava/lang/String;)V
@@ -378,15 +379,12 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 	public final fun setShutdownGracePeriod (J)V
 	public final fun setShutdownTimeout (J)V
 	public final fun setWorkerGroupSize (I)V
+	public final fun takeFrom (Lio/ktor/server/engine/ApplicationEngine$Configuration;)V
 }
 
 public final class io/ktor/server/engine/ApplicationEngine$DefaultImpls {
 	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
-}
-
-public final class io/ktor/server/engine/ApplicationEngineEnvironmentKt {
-	public static final fun applicationEnvironment (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationEnvironment;
 }
 
 public abstract interface class io/ktor/server/engine/ApplicationEngineFactory {
@@ -400,7 +398,7 @@ public final class io/ktor/server/engine/ApplicationEngineJvmKt {
 
 public final class io/ktor/server/engine/ApplicationEnvironmentBuilder {
 	public fun <init> ()V
-	public final fun build (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun build (Z)Lio/ktor/server/application/ApplicationEnvironment;
 	public final fun getClassLoader ()Ljava/lang/ClassLoader;
 	public final fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public final fun getLog ()Lorg/slf4j/Logger;
@@ -409,6 +407,11 @@ public final class io/ktor/server/engine/ApplicationEnvironmentBuilder {
 	public final fun setConfig (Lio/ktor/server/config/ApplicationConfig;)V
 	public final fun setLog (Lorg/slf4j/Logger;)V
 	public final fun setParentCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
+}
+
+public final class io/ktor/server/engine/ApplicationEnvironmentBuilderKt {
+	public static final fun applicationEnvironment (ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationEnvironment;
+	public static synthetic fun applicationEnvironment$default (ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ApplicationEnvironment;
 }
 
 public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server/application/PipelineCall {
@@ -502,9 +505,9 @@ public final class io/ktor/server/engine/BaseApplicationResponse$ResponseAlready
 }
 
 public final class io/ktor/server/engine/CommandLineConfig {
-	public fun <init> (Lio/ktor/server/application/ApplicationProperties;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationProperties;Lio/ktor/server/engine/BaseApplicationEngine$Configuration;)V
 	public final fun getApplicationProperties ()Lio/ktor/server/application/ApplicationProperties;
-	public final fun getEngineConfig ()Lkotlin/jvm/functions/Function1;
+	public final fun getEngineConfig ()Lio/ktor/server/engine/BaseApplicationEngine$Configuration;
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 }
 
@@ -576,6 +579,7 @@ public final class io/ktor/server/engine/EmbeddedServer {
 	public final fun getEngineConfig ()Lio/ktor/server/engine/ApplicationEngine$Configuration;
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public final fun getMonitor ()Lio/ktor/events/Events;
+	public final fun reload ()V
 	public final fun start (Z)V
 	public static synthetic fun start$default (Lio/ktor/server/engine/EmbeddedServer;ZILjava/lang/Object;)V
 	public final fun stop (JJ)V
@@ -1008,6 +1012,7 @@ public abstract interface class io/ktor/server/request/ApplicationRequest {
 	public abstract fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public abstract fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public abstract fun getRawQueryParameters ()Lio/ktor/http/Parameters;
+	public abstract fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
@@ -1043,7 +1048,6 @@ public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
 public abstract interface class io/ktor/server/request/PipelineRequest : io/ktor/server/request/ApplicationRequest {
 	public abstract fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public abstract fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
-	public abstract fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public abstract fun setHeader (Ljava/lang/String;Ljava/util/List;)V
 	public abstract fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
 }
@@ -1651,10 +1655,10 @@ public final class io/ktor/server/routing/RoutingBuilderKt {
 
 public final class io/ktor/server/routing/RoutingCall : io/ktor/server/application/ApplicationCall {
 	public fun getApplication ()Lio/ktor/server/application/Application;
-	public final fun getApplicationCall ()Lio/ktor/server/routing/RoutingPipelineCall;
 	public fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getParameters ()Lio/ktor/http/Parameters;
 	public final fun getPathParameters ()Lio/ktor/http/Parameters;
+	public final fun getPipelineCall ()Lio/ktor/server/routing/RoutingPipelineCall;
 	public final fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 	public fun getRequest ()Lio/ktor/server/routing/RoutingRequest;
@@ -1773,6 +1777,7 @@ public final class io/ktor/server/routing/RoutingRequest : io/ktor/server/reques
 	public final fun getPathVariables ()Lio/ktor/http/Parameters;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
+	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/server/routing/RoutingResolveContext {

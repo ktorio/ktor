@@ -15,6 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -55,22 +56,39 @@ public class TestApplication internal constructor(
     private val builder: ApplicationTestBuilder
 ) : ClientProvider by builder {
 
+    internal enum class State {
+        Created, Starting, Started, Stopped
+    }
+
+    internal val state = atomic(State.Created)
+
     internal val externalApplications by lazy { builder.externalServices.externalApplications }
     internal val server by lazy { builder.embeddedServer }
+    private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
     /**
      * Starts this [TestApplication] instance.
      */
     public fun start() {
-        if (builder.engine.state.value != TestApplicationEngine.State.Created) return
-        builder.embeddedServer.start()
-        builder.externalServices.externalApplications.values.forEach { it.start() }
+        if (state.compareAndSet(State.Created, State.Starting)) {
+            try {
+                builder.embeddedServer.start()
+                builder.externalServices.externalApplications.values.forEach { it.start() }
+            } finally {
+                state.value = State.Started
+                applicationStarting.complete()
+            }
+        }
+        if (state.value == State.Starting) {
+            runBlocking { applicationStarting.join() }
+        }
     }
 
     /**
      * Stops this [TestApplication] instance.
      */
     public fun stop() {
+        state.value = State.Stopped
         builder.embeddedServer.stop()
         builder.externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
@@ -133,6 +151,7 @@ public open class TestApplicationBuilder {
 
     internal val externalServices = ExternalServicesBuilder(this)
     internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal var engineConfig: TestApplicationEngine.Configuration.() -> Unit = {}
     internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
     internal val job = Job()
 
@@ -148,12 +167,13 @@ public open class TestApplicationBuilder {
         }
         applicationProperties(environment) {
             this@TestApplicationBuilder.applicationModules.forEach { module(it) }
+            watchPaths = emptyList()
             developmentMode = true
         }
     }
 
     internal val embeddedServer by lazy {
-        EmbeddedServer(properties, TestEngine) {}
+        EmbeddedServer(properties, TestEngine, engineConfig)
     }
 
     internal val engine by lazy {
@@ -168,6 +188,17 @@ public open class TestApplicationBuilder {
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
         checkNotBuilt()
         externalServices.block()
+    }
+
+    /**
+     * Adds a configuration block for the [TestApplicationEngine].
+     * @see [testApplication]
+     */
+    @KtorDsl
+    public fun engine(block: TestApplicationEngine.Configuration.() -> Unit) {
+        checkNotBuilt()
+        val oldBuilder = engineConfig
+        engineConfig = { oldBuilder(); block() }
     }
 
     /**

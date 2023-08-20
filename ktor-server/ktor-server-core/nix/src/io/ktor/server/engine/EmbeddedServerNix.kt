@@ -23,13 +23,6 @@ actual constructor(
 
     public actual val environment: ApplicationEnvironment = applicationProperties.environment
 
-    public actual val application: Application = Application(
-        environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
-        monitor
-    )
-
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
 
     public actual val engine: TEngine = engineFactory.create(
@@ -40,10 +33,18 @@ actual constructor(
         ::application
     )
 
+    public actual val application: Application = Application(
+        environment,
+        applicationProperties.developmentMode,
+        applicationProperties.rootPath,
+        monitor,
+        engine
+    )
+
     private val modules = applicationProperties.modules
 
     public actual fun start(wait: Boolean) {
-        safeRiseEvent(ApplicationStarting, application)
+        safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }
         } catch (cause: Throwable) {
@@ -51,7 +52,7 @@ actual constructor(
             destroy(application)
             throw cause
         }
-        safeRiseEvent(ApplicationStarted, application)
+        safeRaiseEvent(ApplicationStarted, application)
 
         engine.start(wait)
 
@@ -71,16 +72,16 @@ actual constructor(
     }
 
     private fun destroy(application: Application) {
-        safeRiseEvent(ApplicationStopping, application)
+        safeRaiseEvent(ApplicationStopping, application)
         try {
             application.dispose()
         } catch (e: Throwable) {
             environment.log.error("Failed to destroy application instance.", e)
         }
-        safeRiseEvent(ApplicationStopped, application)
+        safeRaiseEvent(ApplicationStopped, application)
     }
 
-    private fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
+    private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
         try {
             monitor.raise(event, application)
         } catch (cause: Throwable) {

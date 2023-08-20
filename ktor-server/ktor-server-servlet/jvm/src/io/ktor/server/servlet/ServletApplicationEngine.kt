@@ -20,10 +20,9 @@ import kotlin.coroutines.*
 @MultipartConfig
 public open class ServletApplicationEngine : KtorServlet() {
 
-    private val embeddedServer: EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration> by lazy {
-        @Suppress("UNCHECKED_CAST")
-        servletContext.getAttribute(EmbeddedServerAttributeKey)?.let {
-            return@lazy it as EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>
+    private val embeddedServer: EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>? by lazy {
+        servletContext.getAttribute(ApplicationAttributeKey)?.let {
+            return@lazy null
         }
 
         val servletContext = servletContext
@@ -66,16 +65,21 @@ public open class ServletApplicationEngine : KtorServlet() {
         }
     }
 
-    public val environment: ApplicationEnvironment get() = embeddedServer.environment
+    public val environment: ApplicationEnvironment
+        get() = servletContext.getAttribute(EnvironmentAttributeKey)?.let { it as ApplicationEnvironment }
+            ?: embeddedServer!!.environment
 
-    override val application: Application get() = embeddedServer.application
+    @Suppress("UNCHECKED_CAST")
+    override val application: Application
+        get() = servletContext.getAttribute(ApplicationAttributeKey)?.let { it as () -> Application }?.invoke()
+            ?: embeddedServer!!.application
 
-    override val logger: Logger get() = embeddedServer.environment.log
+    override val logger: Logger get() = environment.log
 
     override val enginePipeline: EnginePipeline by lazy {
         servletContext.getAttribute(ApplicationEnginePipelineAttributeKey)?.let { return@lazy it as EnginePipeline }
 
-        defaultEnginePipeline(environment.config, embeddedServer.application.developmentMode).also {
+        defaultEnginePipeline(environment.config, application.developmentMode).also {
             BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
         }
     }
@@ -95,14 +99,14 @@ public open class ServletApplicationEngine : KtorServlet() {
      * Called by the servlet container when loading the servlet (on load)
      */
     override fun init() {
-        embeddedServer.start()
+        embeddedServer?.start()
         super.init()
     }
 
     override fun destroy() {
         application.monitor.raise(ApplicationStopPreparing, environment)
         super.destroy()
-        embeddedServer.stop()
+        embeddedServer?.stop()
     }
 
     public companion object {
@@ -110,8 +114,8 @@ public open class ServletApplicationEngine : KtorServlet() {
          * An embedded server instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        public const val EmbeddedServerAttributeKey: String =
-            "_ktor_embedded_server_instance"
+        public const val EnvironmentAttributeKey: String = "_ktor_environment_instance"
+        public const val ApplicationAttributeKey: String = "_ktor_application_instance"
 
         /**
          * An application engine pipeline instance key. It is not recommended to use unless you are writing

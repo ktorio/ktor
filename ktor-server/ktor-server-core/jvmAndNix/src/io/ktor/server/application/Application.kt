@@ -53,7 +53,7 @@ public class ApplicationProperties(
 )
 
 public fun applicationProperties(
-    environment: ApplicationEnvironment,
+    environment: ApplicationEnvironment = applicationEnvironment {},
     block: ApplicationPropertiesBuilder.() -> Unit = {}
 ): ApplicationProperties {
     return ApplicationPropertiesBuilder(environment).apply(block).build()
@@ -63,15 +63,14 @@ public fun applicationProperties(
  * Represents configured and running web application, capable of handling requests.
  * It is also the application coroutine scope that is cancelled immediately at application stop so useful
  * for launching background coroutines.
- *
- * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
 @KtorDsl
-public class Application constructor(
+public class Application(
     environment: ApplicationEnvironment,
     developmentMode: Boolean,
     public var rootPath: String,
-    public val monitor: Events
+    public val monitor: Events,
+    public val engine: ApplicationEngine
 ) : ApplicationCallPipeline(developmentMode, environment), CoroutineScope {
 
     private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])

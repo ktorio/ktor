@@ -14,7 +14,7 @@ class NettySpecificTest {
     @Test
     fun testNoLeakWithoutStartAndStop() {
         repeat(100000) {
-            embeddedServer(Netty, applicationEngineEnvironment { })
+            embeddedServer(Netty, applicationEnvironment { })
         }
     }
 
@@ -30,7 +30,7 @@ class NettySpecificTest {
         } catch (_: BindException) {
         }
 
-        assertTrue(server.bootstraps.all { it.config().group().isTerminated })
+        assertTrue(server.engine.bootstraps.all { it.config().group().isTerminated })
     }
 
     @Test
@@ -45,7 +45,9 @@ class NettySpecificTest {
         socket.close()
 
         try {
-            val environment = applicationEngineEnvironment {
+            val environment = applicationEnvironment()
+
+            val server = embeddedServer(Netty, environment) {
                 connector {
                     this.port = port
                     this.host = host
@@ -56,14 +58,12 @@ class NettySpecificTest {
                 }
             }
 
-            val server = embeddedServer(Netty, environment)
-
             try {
                 server.start(wait = false)
             } catch (_: BindException) {
             }
 
-            assertTrue(server.bootstraps.all { it.config().group().isTerminated })
+            assertTrue(server.engine.bootstraps.all { it.config().group().isTerminated })
         } finally {
             socket2.close()
         }

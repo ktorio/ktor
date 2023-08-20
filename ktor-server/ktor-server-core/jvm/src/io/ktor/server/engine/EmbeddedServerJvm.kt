@@ -55,7 +55,8 @@ actual constructor(
         get() = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
     private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
 
-    private var _applicationInstance: Application? = null
+    private var _applicationInstance: Application? =
+        Application(environment, applicationProperties.developmentMode, applicationProperties.rootPath, monitor, engine)
     private var recreateInstance: Boolean = false
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
@@ -75,8 +76,20 @@ actual constructor(
         }
     }
 
+    /**
+     * Reload application: destroy it first and then create again
+     */
+    public fun reload() {
+        applicationInstanceLock.write {
+            destroyApplication()
+            val (application, classLoader) = createApplication()
+            _applicationInstance = application
+            _applicationClassLoader = classLoader
+        }
+    }
+
     private fun currentApplication(): Application = applicationInstanceLock.read {
-        val currentApplication = _applicationInstance ?: error("ApplicationEnvironment was not started")
+        val currentApplication = _applicationInstance ?: error("EmbeddedServer was stopped")
 
         if (!applicationProperties.developmentMode) {
             return@read currentApplication
@@ -111,7 +124,7 @@ actual constructor(
             _applicationClassLoader = classLoader
         }
 
-        return@read _applicationInstance ?: error("ApplicationEngineEnvironment was not started")
+        return@read _applicationInstance ?: error("EmbeddedServer was stopped")
     }
 
     private fun createApplication(): Pair<Application, ClassLoader> {
@@ -162,10 +175,8 @@ actual constructor(
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
-            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) } && !(
-                url.path
-                    ?: ""
-                ).startsWith(jre)
+            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) } &&
+                !(url.path ?: "").startsWith(jre)
         }
 
         if (watchUrls.isEmpty()) {
@@ -179,7 +190,7 @@ actual constructor(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    private fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
+    private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
         monitor.raiseCatching(event, application)
     }
 
@@ -190,7 +201,7 @@ actual constructor(
         _applicationClassLoader = null
 
         if (currentApplication != null) {
-            safeRiseEvent(ApplicationStopping, currentApplication)
+            safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
                 currentApplication.dispose()
                 (applicationClassLoader as? OverridingClassLoader)?.close()
@@ -198,7 +209,7 @@ actual constructor(
                 environment.log.error("Failed to destroy application instance.", e)
             }
 
-            safeRiseEvent(ApplicationStopped, currentApplication)
+            safeRaiseEvent(ApplicationStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
@@ -291,13 +302,19 @@ actual constructor(
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
         val newInstance = if (recreateInstance || _applicationInstance == null) {
-            Application(environment, applicationProperties.developmentMode, applicationProperties.rootPath, monitor)
+            Application(
+                environment,
+                applicationProperties.developmentMode,
+                applicationProperties.rootPath,
+                monitor,
+                engine
+            )
         } else {
             recreateInstance = true
             _applicationInstance!!
         }
 
-        safeRiseEvent(ApplicationStarting, newInstance)
+        safeRaiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
             modulesNames.forEach { name ->
@@ -315,7 +332,7 @@ actual constructor(
             }
         }
 
-        safeRiseEvent(ApplicationStarted, newInstance)
+        safeRaiseEvent(ApplicationStarted, newInstance)
         return newInstance
     }
 

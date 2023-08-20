@@ -27,22 +27,19 @@ class CommandLineTest {
 
     @Test
     fun testChangePort() {
-        val config = BaseApplicationEngine.Configuration()
-            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        val config = commandLineConfig(arrayOf("-port=13698")).engineConfig
         assertEquals(13698, config.connectors.single().port)
     }
 
     @Test
     fun testAmendConfig() {
-        val config = BaseApplicationEngine.Configuration()
-            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        val config = commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).engineConfig
         assertEquals(13698, config.connectors.single().port)
     }
 
     @Test
     fun testChangeHost() {
-        val config = BaseApplicationEngine.Configuration()
-            .apply { commandLineConfig(arrayOf("-port=13698")).engineConfig(this) }
+        val config = commandLineConfig(arrayOf("-host=test-server")).engineConfig
         assertEquals("test-server", config.connectors.single().host)
     }
 
@@ -191,7 +188,7 @@ class CommandLineTest {
 
         private fun withIsolatedClassLoader(block: (ClassLoader) -> Unit) {
             val classLoader = IsolatedResourcesClassLoader(
-                File("ktor-server/ktor-server-host-common/test-resources").absoluteFile,
+                File("ktor-server/ktor-server-core/test-resources").absoluteFile,
                 block::class.java.classLoader
             )
 

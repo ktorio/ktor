@@ -7,7 +7,7 @@ package io.ktor.server.engine
 import io.ktor.events.*
 import kotlinx.cinterop.*
 import platform.posix.*
-import kotlin.concurrent.*
+import kotlin.native.concurrent.*
 
 private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
 

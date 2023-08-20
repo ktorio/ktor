@@ -158,9 +158,9 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected actual open fun plugins(application: Application, routingConfigurer: Route.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         application.install(CallLogging)
-        application.install(Routing, routingConfigurer)
+        application.install(Routing, routingConfig)
     }
 
     protected actual fun createAndStartServer(

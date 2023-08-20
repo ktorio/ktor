@@ -161,11 +161,7 @@ class ConnectErrorsTest {
             val serverPort = ServerSocket(0).use { it.localPort }
             val server = embeddedServer(
                 Netty,
-                environment = applicationEngineEnvironment {
-                    sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                        port = serverPort
-                        keyStorePath = keyStoreFile.absoluteFile
-                    }
+                applicationProperties {
                     module {
                         routing {
                             get {
@@ -174,7 +170,12 @@ class ConnectErrorsTest {
                         }
                     }
                 }
-            )
+            ) {
+                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                    port = serverPort
+                    keyStorePath = keyStoreFile.absoluteFile
+                }
+            }
 
             try {
                 client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()

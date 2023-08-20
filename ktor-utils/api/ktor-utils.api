@@ -1,4 +1,5 @@
 public final class io/ktor/util/AttributeKey {
+	public synthetic fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;

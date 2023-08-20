@@ -12,7 +12,7 @@ import io.ktor.util.logging.*
 
 public class CommandLineConfig(
     public val applicationProperties: ApplicationProperties,
-    public val engineConfig: ApplicationEngine.Configuration.() -> Unit
+    public val engineConfig: BaseApplicationEngine.Configuration
 ) {
     public val environment: ApplicationEnvironment = applicationProperties.environment
 }
@@ -76,25 +76,25 @@ public fun commandLineConfig(args: Array<String>): CommandLineConfig {
         )
     }
 
-    return CommandLineConfig(applicationProperties) {
-        if (port != null) {
-            connector {
-                this.host = host
-                this.port = port.toInt()
-            }
-        }
-
-        if (sslPort != null) {
-            configureSSLConnectors(
-                host,
-                sslPort,
-                sslKeyStorePath,
-                sslKeyStorePassword,
-                sslPrivateKeyPassword,
-                sslKeyAlias
-            )
+    val engineConfig = BaseApplicationEngine.Configuration()
+    if (port != null) {
+        engineConfig.connector {
+            this.host = host
+            this.port = port.toInt()
         }
     }
+    if (sslPort != null) {
+        engineConfig.configureSSLConnectors(
+            host,
+            sslPort,
+            sslKeyStorePath,
+            sslKeyStorePassword,
+            sslPrivateKeyPassword,
+            sslKeyAlias
+        )
+    }
+
+    return CommandLineConfig(applicationProperties, engineConfig)
 }
 
 internal fun buildApplicationConfig(args: List<Pair<String, String>>): ApplicationConfig {

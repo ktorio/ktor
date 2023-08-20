@@ -4,6 +4,7 @@
 
 package io.ktor.tests.hosts
 
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -58,7 +59,20 @@ class ReceiveBlockingPrimitiveTest {
         }
     }
 
-    private class TestCall : BaseApplicationCall(Application(applicationEngineEnvironment {})) {
+    private class TestCall : BaseApplicationCall(
+        Application(
+            applicationEnvironment {},
+            false,
+            "/",
+            Events(),
+            object : ApplicationEngine {
+                override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = TODO("Not yet implemented")
+                override val environment: ApplicationEnvironment get() = TODO("Not yet implemented")
+                override fun start(wait: Boolean): ApplicationEngine = TODO("Not yet implemented")
+                override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = TODO("Not yet implemented")
+            }
+        )
+    ) {
         init {
             application.receivePipeline.installDefaultTransformations()
         }

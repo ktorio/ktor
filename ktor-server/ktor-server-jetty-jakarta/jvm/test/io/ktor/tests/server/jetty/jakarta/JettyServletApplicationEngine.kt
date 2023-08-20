@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.jetty.jakarta
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
@@ -17,23 +18,43 @@ import org.eclipse.jetty.servlet.*
 internal class Servlet(
     private val async: Boolean
 ) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+    override fun configuration(
+        configure: JettyApplicationEngineBase.Configuration.() -> Unit
+    ): JettyApplicationEngineBase.Configuration {
+        return JettyApplicationEngineBase.Configuration().apply(configure)
+    }
+
     override fun create(
         environment: ApplicationEnvironment,
-        application: Application,
-        configure: JettyApplicationEngineBase.Configuration.() -> Unit
-    ): JettyServletApplicationEngine = JettyServletApplicationEngine(environment, application, configure, async)
+        monitor: Events,
+        developmentMode: Boolean,
+        configuration: JettyApplicationEngineBase.Configuration,
+        applicationProvider: () -> Application
+    ): JettyServletApplicationEngine {
+        return JettyServletApplicationEngine(
+            environment,
+            monitor,
+            developmentMode,
+            configuration,
+            applicationProvider,
+            async
+        )
+    }
 }
 
 internal class JettyServletApplicationEngine(
     environment: ApplicationEnvironment,
-    application: Application,
-    configure: Configuration.() -> Unit,
+    monitor: Events,
+    developmentMode: Boolean,
+    configuration: Configuration,
+    applicationProvider: () -> Application,
     async: Boolean
-) : JettyApplicationEngineBase(environment, application, configure) {
+) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader
-            setAttribute(ServletApplicationEngine.ApplicationEngineEnvironmentAttributeKey, environment)
+            setAttribute(ServletApplicationEngine.EnvironmentAttributeKey, environment)
+            setAttribute(ServletApplicationEngine.ApplicationAttributeKey, applicationProvider)
             setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(

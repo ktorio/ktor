@@ -5,7 +5,6 @@ val jetty_alpn_boot_version: String? by extra
 kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {
-            api(project(":ktor-server:ktor-server-host-common"))
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-client:ktor-client-cio"))

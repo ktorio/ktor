@@ -30,7 +30,7 @@ class CIORequestTest : TestWithKtor() {
     @get:Rule
     override val timeout = CoroutinesTimeout.seconds(10)
 
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
+    override val server: EmbeddedServer<*, *> = embeddedServer(Netty, serverPort) {
         routing {
             param("param") {
                 get {

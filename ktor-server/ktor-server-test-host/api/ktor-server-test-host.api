@@ -129,6 +129,7 @@ public final class io/ktor/server/testing/TestApplication : io/ktor/server/testi
 public class io/ktor/server/testing/TestApplicationBuilder {
 	public fun <init> ()V
 	public final fun application (Lkotlin/jvm/functions/Function1;)V
+	public final fun engine (Lkotlin/jvm/functions/Function1;)V
 	public final fun environment (Lkotlin/jvm/functions/Function1;)V
 	public final fun externalServices (Lkotlin/jvm/functions/Function1;)V
 	public final fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V

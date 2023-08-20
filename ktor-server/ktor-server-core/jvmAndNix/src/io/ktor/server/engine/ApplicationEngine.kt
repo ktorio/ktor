@@ -51,6 +51,18 @@ public interface ApplicationEngine {
          * Connectors that describers where and how server should listen.
          */
         public var connectors: MutableList<EngineConnectorConfig> = mutableListOf()
+
+        /**
+         * Uses [other] configuration and overrides this with its values.
+         */
+        public fun takeFrom(other: Configuration) {
+            connectionGroupSize = other.connectionGroupSize
+            workerGroupSize = other.workerGroupSize
+            callGroupSize = other.callGroupSize
+            shutdownGracePeriod = other.shutdownGracePeriod
+            shutdownTimeout = other.shutdownTimeout
+            connectors.addAll(other.connectors)
+        }
     }
 
     /**

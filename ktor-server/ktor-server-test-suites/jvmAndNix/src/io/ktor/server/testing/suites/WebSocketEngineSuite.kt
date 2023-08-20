@@ -34,9 +34,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     private val errors = mutableListOf<Throwable>()
     override val timeout = 30.seconds
 
-    override fun plugins(application: Application, routingConfigurer: Route.() -> Unit) {
+    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         application.install(WebSockets)
-        super.plugins(application, routingConfigurer)
+        super.plugins(application, routingConfig)
     }
 
     @Test

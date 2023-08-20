@@ -7,6 +7,7 @@
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
@@ -21,13 +22,11 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 
-class ApplicationEngineEnvironmentReloadingTests {
+class EmbeddedServerReloadingTests {
 
     @Test
     fun `top level extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
-
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -37,39 +36,46 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
 
-        environment.start()
-        val application = environment.application
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("topLevelExtensionFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `top level extension function as module function reloading stress`() {
-        val environment = applicationEngineEnvironment {
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.deployment.watch" to listOf("ktor-server-host-common"),
+                        "ktor.deployment.watch" to listOf("ktor-server-core"),
                         "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
                     )
                 )
             )
         }
 
-        environment.start()
+        val props = applicationProperties(environment)
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        server.start()
         repeat(100) {
-            (environment as ApplicationEngineEnvironmentReloading).reload()
+            server.reload()
         }
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `top level non-extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -79,17 +85,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("topLevelFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `companion object extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -101,17 +111,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("companionObjectExtensionFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `companion object non-extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -123,17 +137,22 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("companionObjectFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `companion object jvmstatic extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -145,17 +164,22 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticExtensionFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `companion object jvmstatic non-extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -167,17 +191,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `object holder extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -189,17 +217,22 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("objectExtensionFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `object holder non-extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -211,17 +244,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("objectFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `class holder extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -233,17 +270,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("classExtensionFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `class holder non-extension function as module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -253,17 +294,22 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("classFunction", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `no-arg module function`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -273,17 +319,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals(1, NoArgModuleFunction.result)
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `multiple module functions`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -293,17 +343,21 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("best function called", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `multiple static module functions`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -313,39 +367,47 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("best function called", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `top level module function with default arg`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
                         "ktor.application.modules" to listOf(
-                            ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg"
+                            EmbeddedServerReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg"
                         )
                     )
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("topLevelWithDefaultArg", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `static module function with default arg`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
@@ -355,33 +417,42 @@ class ApplicationEngineEnvironmentReloadingTests {
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("functionWithDefaultArg", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     @Test
     fun `top level module function with jvm overloads`() {
-        val environment = applicationEngineEnvironment {
-            developmentMode = false
+        val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
                         "ktor.application.modules" to listOf(
-                            ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads"
+                            EmbeddedServerReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads"
                         )
                     )
                 )
             )
         }
-        environment.start()
-        val application = environment.application
+        val props = applicationProperties(environment) {
+            developmentMode = false
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val application = server.application
         assertNotNull(application)
         assertEquals("topLevelWithJvmOverloads", application.attributes[TestKey])
-        environment.stop()
+        server.stop()
     }
 
     object NoArgModuleFunction {
@@ -471,66 +542,96 @@ class ApplicationEngineEnvironmentReloadingTests {
     @Test
     fun `application is available before environment start`() {
         val env = dummyEnv()
-        val app = env.application
-        env.start()
-        assertEquals(app, env.application)
+        val props = applicationProperties(env)
+        val server = EmbeddedServer(props, DummyEngineFactory)
+        val app = server.application
+        server.start()
+        assertEquals(app, server.application)
     }
 
     @Test
     fun `completion handler is invoked when attached before environment start`() {
         val env = dummyEnv()
+        val props = applicationProperties(env)
+        val server = EmbeddedServer(props, DummyEngineFactory)
+        val job = server.application.coroutineContext[Job]!!
 
         var invoked = false
-        env.application.coroutineContext[Job]?.invokeOnCompletion {
+        job.invokeOnCompletion {
             invoked = true
         }
 
-        env.start()
-        env.stop()
+        server.start()
+        server.stop()
+
+        runBlocking { job.join() }
 
         assertTrue(invoked, "On completion handler wasn't invoked")
     }
 
     @Test
     fun `interceptor is invoked when added before environment start`() {
-        val engine = TestApplicationEngine(createTestEnvironment())
-        engine.application.intercept(ApplicationCallPipeline.Plugins) {
+        val server = EmbeddedServer(applicationProperties(), TestEngine) {}
+        val engine = server.engine
+        server.application.intercept(ApplicationCallPipeline.Plugins) {
             call.response.header("Custom", "Value")
         }
-        engine.start()
+        server.start()
 
         try {
-            engine.apply {
-                application.routing {
-                    get("/") {
-                        call.respondText { "Hello" }
-                    }
+            server.application.routing {
+                get("/") {
+                    call.respondText { "Hello" }
                 }
-
-                assertEquals("Value", handleRequest(HttpMethod.Get, "/").response.headers["Custom"])
             }
+
+            assertEquals("Value", engine.handleRequest(HttpMethod.Get, "/").response.headers["Custom"])
         } catch (cause: Throwable) {
             fail("Failed with an exception: ${cause.message}")
         } finally {
-            engine.stop(0L, 0L)
+            server.stop(0L, 0L)
         }
     }
 
-    private fun dummyEnv() = ApplicationEngineEnvironmentReloading(
-        classLoader = this::class.java.classLoader,
-        log = NOPLogger.NOP_LOGGER,
-        config = MapApplicationConfig(),
-        connectors = emptyList(),
-        modules = emptyList()
-    )
+    private fun dummyEnv() = applicationEnvironment {
+        classLoader = this::class.java.classLoader
+        log = NOPLogger.NOP_LOGGER
+        config = MapApplicationConfig()
+    }
+
+    private object DummyEngineFactory :
+        ApplicationEngineFactory<DummyEngine, BaseApplicationEngine.Configuration> {
+
+        override fun configuration(
+            configure: BaseApplicationEngine.Configuration.() -> Unit
+        ): BaseApplicationEngine.Configuration {
+            return BaseApplicationEngine.Configuration().apply(configure)
+        }
+
+        override fun create(
+            environment: ApplicationEnvironment,
+            monitor: Events,
+            developmentMode: Boolean,
+            configuration: BaseApplicationEngine.Configuration,
+            applicationProvider: () -> Application
+        ): DummyEngine {
+            return DummyEngine
+        }
+    }
+
+    private object DummyEngine : BaseApplicationEngine(applicationEnvironment { }, Events(), false) {
+        override fun start(wait: Boolean): ApplicationEngine = this
+
+        override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {}
+    }
 }
 
 fun Application.topLevelExtensionFunction() {
-    attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelExtensionFunction")
+    attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelExtensionFunction")
 }
 
 fun topLevelFunction(app: Application) {
-    app.attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelFunction")
+    app.attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelFunction")
 }
 
 @Suppress("unused")
@@ -539,10 +640,10 @@ fun topLevelFunction() {
 }
 
 fun Application.topLevelWithDefaultArg(testing: Boolean = false) {
-    attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelWithDefaultArg")
+    attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelWithDefaultArg")
 }
 
 @JvmOverloads
 fun Application.topLevelWithJvmOverloads(testing: Boolean = false) {
-    attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelWithJvmOverloads")
+    attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelWithJvmOverloads")
 }

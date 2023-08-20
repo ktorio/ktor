@@ -3,3 +3,4 @@ ktor:
         port: 8081
     application:
         class: org.company.ApplicationClass
+    test: test_value

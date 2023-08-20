@@ -34,8 +34,7 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    public actual fun build(builder: ApplicationEnvironmentBuilder.() -> Unit): ApplicationEnvironment {
-        builder(this)
+    public actual fun build(shouldReload: Boolean): ApplicationEnvironment {
         return ApplicationEngineEnvironmentImplNix(log, config, parentCoroutineContext)
     }
 }

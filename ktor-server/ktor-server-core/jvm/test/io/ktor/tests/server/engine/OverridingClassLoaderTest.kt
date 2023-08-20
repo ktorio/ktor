@@ -31,7 +31,7 @@ class OverridingClassLoaderTest {
         }
         val testClassesUrl = run {
             // class location is something like
-            // <AbsoluteFilePrefix>/ktor/ktor-server/ktor-server-host-common/build/classes/atomicfu/jvm/test/io/ktor/server/engine/OverridingClassLoaderTest.class
+            // <AbsoluteFilePrefix>/ktor/ktor-server/ktor-server-core/build/classes/atomicfu/jvm/test/io/ktor/server/engine/OverridingClassLoaderTest.class
             val classLocationString = classLocation.toString()
             val expectedTestClassPath = "io/ktor/server/engine/OverridingClassLoaderTest.class"
             check(classLocationString.endsWith(expectedTestClassPath)) {

@@ -38,9 +38,8 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    public actual fun build(builder: ApplicationEnvironmentBuilder.() -> Unit): ApplicationEnvironment {
-        builder(this)
-        return ApplicationEnvironmentImplJvm(classLoader, parentCoroutineContext, log, config, false)
+    public actual fun build(shouldReload: Boolean): ApplicationEnvironment {
+        return ApplicationEnvironmentImplJvm(classLoader, parentCoroutineContext, log, config, shouldReload)
     }
 }
 

@@ -19,7 +19,7 @@ public object EngineMain {
     public fun main(args: Array<String>) {
         val config = commandLineConfig(args)
         val server = EmbeddedServer(config.applicationProperties, Netty) {
-            config.engineConfig(this)
+            takeFrom(config.engineConfig)
             loadConfiguration(config.applicationProperties.environment.config)
         }
         server.start(true)
