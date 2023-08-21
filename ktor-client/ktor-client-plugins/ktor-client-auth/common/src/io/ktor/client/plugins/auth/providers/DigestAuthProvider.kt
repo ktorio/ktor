@@ -189,6 +189,7 @@ public class DigestAuthProvider(
                 this["uri"] = url.fullPath
                 actualQop?.let { this["qop"] = it }
                 this["nc"] = nonceCount.toString()
+                this["algorithm"] = algorithmName
             }
         )
 

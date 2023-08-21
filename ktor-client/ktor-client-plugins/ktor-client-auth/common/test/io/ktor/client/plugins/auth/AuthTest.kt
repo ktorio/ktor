@@ -15,7 +15,6 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
-import io.ktor.util.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -80,6 +79,22 @@ class AuthTest : ClientLoader() {
             client.get("$TEST_SERVER/auth/digest-2").let {
                 assertTrue(it.status.isSuccess())
             }
+        }
+    }
+
+    @Test
+    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native")) {
+        config {
+            install(Auth) {
+                digest {
+                    algorithmName = "SHA-256"
+                    credentials { DigestAuthCredentials("MyName", "Circle Of Life") }
+                    realm = "testrealm@host.com"
+                }
+            }
+        }
+        test { client ->
+            assertTrue(client.get("$TEST_SERVER/auth/digest-SHA256").status.isSuccess())
         }
     }
 
