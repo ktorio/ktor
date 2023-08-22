@@ -7,6 +7,7 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
@@ -183,19 +184,24 @@ public class ReceivePipelineException(
 ) : IllegalStateException("Fail to run receive pipeline: $cause")
 
 /**
- * Exception representing the no transformation was found.
- * It includes the received type and the expected type as part of the message.
+ * Exception represents the inability to find a suitable transformation for the received body from
+ * the resulted type to the expected by the client type.
+ *
+ * You can read how to resolve NoTransformationFoundException at [FAQ](https://ktor.io/docs/faq.html#no-transformation-found-exception)
  */
-@Suppress("KDocMissingDocumentation")
 public class NoTransformationFoundException(
     response: HttpResponse,
     from: KClass<*>,
     to: KClass<*>
 ) : UnsupportedOperationException() {
-    override val message: String? = """No transformation found: $from -> $to
-        |with response from ${response.request.url}:
-        |status: ${response.status}
-        |response headers: 
-        |${response.headers.flattenEntries().joinToString { (key, value) -> "$key: $value\n" }}
-    """.trimMargin()
+    override val message: String? = """
+        Expected response body of the type '$to' but was '$from'
+        In response from `${response.request.url}`
+        Response status `${response.status}`
+        Response header `ContentType: ${response.headers[HttpHeaders.ContentType]}` 
+        Request header `Accept: ${response.request.headers[HttpHeaders.Accept]}`
+        
+        You can read how to resolve NoTransformationFoundException at FAQ: 
+        https://ktor.io/docs/faq.html#no-transformation-found-exception
+    """.trimIndent()
 }
