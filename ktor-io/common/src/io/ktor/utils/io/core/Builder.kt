@@ -17,9 +17,8 @@ public inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPack
     try {
         block(builder)
         return builder.build()
-    } catch (t: Throwable) {
+    } finally {
         builder.release()
-        throw t
     }
 }
 
