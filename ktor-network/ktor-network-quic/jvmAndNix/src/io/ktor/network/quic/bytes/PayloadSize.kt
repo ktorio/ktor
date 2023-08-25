@@ -16,7 +16,6 @@ import io.ktor.network.quic.util.POW_2_62
  */
 internal object PayloadSize {
     const val FRAME_TYPE_SIZE = 1
-    const val APP_ERROR_SIZE = 8
     const val PATH_CHALLENGE_DATA = 8
     const val STATELESS_RESET_TOKEN = 16
 
@@ -65,7 +64,7 @@ internal object PayloadSize {
     inline fun ofByteArray(byteArray: ByteArray): Int = byteArray.size
 
     @Suppress("NOTHING_TO_INLINE")
-    inline fun ofByteArrayWithLength(byteArray: ByteArray): Int = ofVarInt(byteArray.size) + byteArray.size
+    inline fun ofByteArrayWithLength(byteArray: ByteArray): Int = ofVarInt(byteArray.size) + ofByteArray(byteArray)
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun ofByteArrayWithLength(byteArraySize: Int): Int = ofVarInt(byteArraySize) + byteArraySize

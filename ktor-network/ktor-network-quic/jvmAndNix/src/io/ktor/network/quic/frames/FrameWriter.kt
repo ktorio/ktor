@@ -50,7 +50,7 @@ internal interface FrameWriter {
     suspend fun writeResetStream(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-        finaSize: Long,
+        finalSize: Long,
     ): Long
 
     suspend fun writeStopSending(streamId: Long, applicationProtocolErrorCode: AppError): Long
@@ -216,19 +216,19 @@ internal class FrameWriterImpl(
     override suspend fun writeResetStream(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-        finaSize: Long,
+        finalSize: Long,
     ): Long {
         val expectedSize: Int =
             PayloadSize.FRAME_TYPE_SIZE +
                 PayloadSize.ofVarInt(streamId) +
-                PayloadSize.APP_ERROR_SIZE +
-                PayloadSize.ofVarInt(finaSize)
+                PayloadSize.ofVarInt(applicationProtocolErrorCode.intCode) +
+                PayloadSize.ofVarInt(finalSize)
 
         return writeFrame(expectedSize) {
             writeFrameType(QUICFrameType.RESET_STREAM)
             writeVarInt(streamId)
             applicationProtocolErrorCode.writeToFrame(this)
-            writeVarInt(finaSize)
+            writeVarInt(finalSize)
         }
     }
 
@@ -236,7 +236,7 @@ internal class FrameWriterImpl(
         val expectedSize: Int =
             PayloadSize.FRAME_TYPE_SIZE +
                 PayloadSize.ofVarInt(streamId) +
-                PayloadSize.APP_ERROR_SIZE
+                PayloadSize.ofVarInt(applicationProtocolErrorCode.intCode)
 
         return writeFrame(expectedSize) {
             writeFrameType(QUICFrameType.STOP_SENDING)
@@ -253,8 +253,7 @@ internal class FrameWriterImpl(
         val expectedSize: Int =
             PayloadSize.FRAME_TYPE_SIZE +
                 PayloadSize.ofVarInt(offset) +
-                PayloadSize.ofVarInt(data.size) +
-                PayloadSize.ofByteArray(data)
+                PayloadSize.ofByteArrayWithLength(data)
 
         return writeFrame(expectedSize) {
             writeFrameType(QUICFrameType.CRYPTO)
@@ -492,7 +491,7 @@ internal class FrameWriterImpl(
     ): Long {
         val expectedSize: Int =
             PayloadSize.FRAME_TYPE_SIZE +
-                PayloadSize.APP_ERROR_SIZE +
+                PayloadSize.ofVarInt(applicationProtocolErrorCode.intCode) +
                 PayloadSize.ofByteArrayWithLength(reasonPhrase)
 
         return writeFrame(expectedSize) {

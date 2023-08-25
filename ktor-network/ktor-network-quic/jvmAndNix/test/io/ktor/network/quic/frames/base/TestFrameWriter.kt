@@ -63,9 +63,9 @@ internal class TestFrameWriter(handler: TestPacketSendHandler) : FrameWriter {
     override suspend fun writeResetStream(
         streamId: Long,
         applicationProtocolErrorCode: AppError,
-        finaSize: Long,
+        finalSize: Long,
     ): Long = withLog(QUICFrameType.RESET_STREAM) {
-        writeResetStream(streamId, applicationProtocolErrorCode, finaSize)
+        writeResetStream(streamId, applicationProtocolErrorCode, finalSize)
     }
 
     override suspend fun writeStopSending(streamId: Long, applicationProtocolErrorCode: AppError): Long {
