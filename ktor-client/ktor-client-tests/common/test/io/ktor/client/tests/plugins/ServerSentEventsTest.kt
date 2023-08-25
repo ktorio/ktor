@@ -13,9 +13,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
-internal val ENGINES_WITHOUT_SSE =
-    listOf("Android", "Curl", "Darwin", "DarwinLegacy", "Js", "WinHttp")
-
 class ServerSentEventsTest : ClientLoader() {
 
     @Test
@@ -34,7 +31,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testSseSession() = clientTests(ENGINES_WITHOUT_SSE) {
+    fun testSseSession() = clientTests {
         config {
             install(SSE)
         }
@@ -54,7 +51,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testParallelSseSessions() = clientTests(ENGINES_WITHOUT_SSE) {
+    fun testParallelSseSessions() = clientTests {
         config {
             install(SSE)
         }
@@ -96,7 +93,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testSseSessionWithError() = clientTests(ENGINES_WITHOUT_SSE) {
+    fun testSseSessionWithError() = clientTests(listOf("Darwin", "DarwinLegacy")) {
         config {
             install(SSE)
         }
@@ -109,7 +106,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionSse() = clientTests(ENGINES_WITHOUT_SSE) {
+    fun testExceptionSse() = clientTests {
         config {
             install(SSE)
         }
@@ -124,7 +121,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testNoCommentsByDefault() = clientTests(ENGINES_WITHOUT_SSE) {
+    fun testNoCommentsByDefault() = clientTests {
         config {
             install(SSE)
         }
@@ -142,7 +139,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testShowComments() = clientTests(ENGINES_WITHOUT_SSE + "OkHttp") {
+    fun testShowComments() = clientTests(listOf("OkHttp")) {
         config {
             install(SSE) {
                 showCommentEvents()
@@ -166,7 +163,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testDifferentConfigs() = clientTests(ENGINES_WITHOUT_SSE + "OkHttp") {
+    fun testDifferentConfigs() = clientTests(listOf("OkHttp")) {
         config {
             install(SSE) {
                 showCommentEvents()
