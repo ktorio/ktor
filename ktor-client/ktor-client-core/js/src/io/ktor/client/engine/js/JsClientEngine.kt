@@ -65,23 +65,21 @@ internal class JsClientEngine(
     private fun createWebSocket(
         urlString_capturingHack: String,
         headers: Headers
-    ): WebSocket = when (PlatformUtils.platform) {
-        Platform.Browser -> js("new WebSocket(urlString_capturingHack)")
-        else -> {
-            val ws_capturingHack = js("eval('require')('ws')")
-            val headers_capturingHack: dynamic = object {}
-            val subProtocolHeaderValues = mutableListOf<String>()
-            headers.forEach { name, values ->
-                // Capture any and all websocket subprotocol headers to pass to the WebSocket constructor
-                if (name.equals("sec-websocket-protocol", true)) {
-                    subProtocolHeaderValues.addAll(values)
+    ): WebSocket {
+        val (protocolHeaderNames, otherHeaderNames) = headers.names().partition { it.equals("sec-websocket-protocol", true) }
+        val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
+        return when (PlatformUtils.platform) {
+            Platform.Browser -> js("new WebSocket(urlString_capturingHack, protocols)")
+            else -> {
+                val ws_capturingHack = js("eval('require')('ws')")
+                val headers_capturingHack: dynamic = object {}
+                headers.forEach { name, values ->
+                    headers_capturingHack[name] = values.joinToString(",")
                 }
-                headers_capturingHack[name] = values.joinToString(",")
+                js("new ws_capturingHack(urlString_capturingHack, protocols, { headers: headers_capturingHack })")
             }
-            val subprotocols_capturingHack = subProtocolHeaderValues.toTypedArray()
-            js("new ws_capturingHack(urlString_capturingHack, subprotocols_capturingHack, { headers: headers_capturingHack })")
         }
-        }
+    }
 
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
