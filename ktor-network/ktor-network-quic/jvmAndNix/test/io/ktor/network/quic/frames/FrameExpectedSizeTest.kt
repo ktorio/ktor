@@ -81,33 +81,33 @@ class FrameExpectedSizeTest {
     @Test
     fun crypto() = sizeTest {
         assertExpectedSize(6, "Crypto frame") {
-            writeCrypto(1, ByteArray(3) { 0x00 })
+            writeCrypto(1, zeroByteArray(3))
         }
 
         assertExpectedSize(6 + POW_2_14, "Crypto frame 2") {
-            writeCrypto(1, ByteArray((POW_2_14).toInt()) { 0x00 })
+            writeCrypto(1, zeroByteArray(POW_2_14))
         }
     }
 
     @Test
     fun newToken() = sizeTest {
         assertExpectedSize(3, "NewToken frame") {
-            writeNewToken(byteArrayOf(0x00))
+            writeNewToken(zeroByteArray(1))
         }
     }
 
     @Test
     fun stream() = sizeTest {
         assertExpectedSize(5, "Stream frame") {
-            writeStream(1, 1, specifyLength = true, fin = true, data = byteArrayOf(0x00))
+            writeStream(1, 1, specifyLength = true, fin = true, data = zeroByteArray(1))
         }
 
         assertExpectedSize(4, "Stream frame 2") {
-            writeStream(1, null, specifyLength = true, fin = true, data = byteArrayOf(0x00))
+            writeStream(1, null, specifyLength = true, fin = true, data = zeroByteArray(1))
         }
 
         assertExpectedSize(3, "Stream frame 3") {
-            writeStream(1, null, specifyLength = false, fin = true, data = byteArrayOf(0x00))
+            writeStream(1, null, specifyLength = false, fin = true, data = zeroByteArray(1))
         }
     }
 
@@ -164,11 +164,11 @@ class FrameExpectedSizeTest {
     @Test
     fun newConnectionId() = sizeTest {
         assertExpectedSize(21, "NewConnectionId frame") {
-            writeNewConnectionId(1, 1, QUICConnectionID(byteArrayOf(0x00)), ByteArray(16) { 0x00 })
+            writeNewConnectionId(1, 1, zeroByteArray(1).asCID(), zeroByteArray(16))
         }
 
         assertExpectedSize(26, "NewConnectionId frame 2") {
-            writeNewConnectionId(POW_2_14, POW_2_06, QUICConnectionID(byteArrayOf(0x00, 0x00)), ByteArray(16) { 0x00 })
+            writeNewConnectionId(POW_2_14, POW_2_06, zeroByteArray(2).asCID(), zeroByteArray(16))
         }
     }
 
@@ -182,29 +182,29 @@ class FrameExpectedSizeTest {
     @Test
     fun pathChallenge() = sizeTest {
         assertExpectedSize(9, "PathChallenge frame") {
-            writePathChallenge(ByteArray(8) { 0x00 })
+            writePathChallenge(zeroByteArray(8))
         }
     }
 
     @Test
     fun pathResponse() = sizeTest {
         assertExpectedSize(9, "PathResponse frame") {
-            writePathResponse(ByteArray(8) { 0x00 })
+            writePathResponse(zeroByteArray(8))
         }
     }
 
     @Test
     fun connectionClose() = sizeTest {
         assertExpectedSize(23, "ConnectionClose app frame") {
-            writeConnectionCloseWithAppError(AppError(POW_2_14), ByteArray(17) { 0x00 })
+            writeConnectionCloseWithAppError(AppError(POW_2_14), zeroByteArray(17))
         }
 
         assertExpectedSize(147, "ConnectionClose transport frame") {
-            writeConnectionCloseWithTransportError(QUICProtocolTransportError.FRAME_ENCODING_ERROR, null, ByteArray(142) { 0x00 }) // ktlint-disable max-line-length
+            writeConnectionCloseWithTransportError(QUICProtocolTransportError.FRAME_ENCODING_ERROR, null, zeroByteArray(142)) // ktlint-disable max-line-length
         }
 
         assertExpectedSize(148, "ConnectionClose transport frame") {
-            writeConnectionCloseWithTransportError(QUICCryptoHandshakeTransportError(0x00u), QUICFrameType.CRYPTO, ByteArray(142) { 0x00 }) // ktlint-disable max-line-length
+            writeConnectionCloseWithTransportError(QUICCryptoHandshakeTransportError(0x00u), QUICFrameType.CRYPTO, zeroByteArray(142)) // ktlint-disable max-line-length
         }
     }
 

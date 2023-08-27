@@ -193,18 +193,20 @@ internal class QUICConnection(
 
     private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
 
+    private val packetWriter = PacketWriterImpl(tlsComponent)
+
     private val initialPacketHandler = PacketSendHandlerImpl.Initial(
-        tlsComponent = tlsComponent,
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )
     private val handshakePacketHandler = PacketSendHandlerImpl.Handshake(
-        tlsComponent = tlsComponent,
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )
     private val oneRTTPacketHandler = PacketSendHandlerImpl.OneRTT(
-        tlsComponent = tlsComponent,
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )

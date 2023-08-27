@@ -107,7 +107,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
     }
 
     class Initial(
-        private val tlsComponent: TLSComponent,
+        private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler.Initial,
         role: ConnectionRole,
     ) : PacketSendHandlerImpl<ReadyPacketHandler.Initial>(packetHandler, EncryptionLevel.Initial, role) {
@@ -124,8 +124,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         }
 
         override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
-            PacketWriter.writeInitialPacket(
-                tlsComponent = tlsComponent,
+            packetWriter.writeInitialPacket(
                 largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
                 packetBuilder = datagramBuilder,
                 version = QUICVersion.V1,
@@ -139,7 +138,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
     }
 
     class Handshake(
-        private val tlsComponent: TLSComponent,
+        private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler,
         role: ConnectionRole,
     ) : PacketSendHandlerImpl<ReadyPacketHandler>(packetHandler, EncryptionLevel.Handshake, role) {
@@ -155,8 +154,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         }
 
         override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
-            PacketWriter.writeHandshakePacket(
-                tlsComponent = tlsComponent,
+            packetWriter.writeHandshakePacket(
                 largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
                 packetBuilder = datagramBuilder,
                 version = QUICVersion.V1,
@@ -169,7 +167,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
     }
 
     class OneRTT(
-        private val tlsComponent: TLSComponent,
+        private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler.OneRTT,
         role: ConnectionRole,
     ) : PacketSendHandlerImpl<ReadyPacketHandler.OneRTT>(packetHandler, EncryptionLevel.AppData, role) {
@@ -182,8 +180,7 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         }
 
         override suspend fun sendPacket(datagramBuilder: BytePacketBuilder, payload: ByteArray, packetNumber: Long) {
-            PacketWriter.writeOneRTTPacket(
-                tlsComponent = tlsComponent,
+            packetWriter.writeOneRTTPacket(
                 largestAcknowledged = packetHandler.getLargestAcknowledged(encryptionLevel),
                 packetBuilder = datagramBuilder,
                 spinBit = packetHandler.spinBit,
