@@ -66,7 +66,9 @@ internal class JsClientEngine(
         urlString_capturingHack: String,
         headers: Headers
     ): WebSocket {
-        val (protocolHeaderNames, otherHeaderNames) = headers.names().partition { it.equals("sec-websocket-protocol", true) }
+        val (protocolHeaderNames, otherHeaderNames) = headers.names().partition {
+            it.equals("sec-websocket-protocol", true)
+        }
         val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
         return when (PlatformUtils.platform) {
             Platform.Browser -> js("new WebSocket(urlString_capturingHack, protocols)")
