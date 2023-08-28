@@ -7,6 +7,7 @@ package io.ktor.client.engine.js
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -24,7 +25,7 @@ internal class JsClientEngine(
 
     override val dispatcher = Dispatchers.Default
 
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
+    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, SSECapability)
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
@@ -48,13 +49,18 @@ internal class JsClientEngine(
         val version = HttpProtocolVersion.HTTP_1_1
 
         val body = CoroutineScope(callContext).readBody(rawResponse)
+        val responseBody: Any = if (data.isSseRequest()) {
+            DefaultClientSSESession(data.body as SSEClientContent, body, callContext, status, headers)
+        } else {
+            body
+        }
 
         return HttpResponseData(
             status,
             requestTime,
             headers,
             version,
-            body,
+            responseBody,
             callContext
         )
     }

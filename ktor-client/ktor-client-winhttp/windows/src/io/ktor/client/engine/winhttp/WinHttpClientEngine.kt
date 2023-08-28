@@ -56,6 +56,6 @@ internal class WinHttpClientEngine(
             request.readBody(callContext)
         }
 
-        return rawResponse.convert(requestTime, responseBody, callContext)
+        return rawResponse.convert(data, requestTime, responseBody, callContext)
     }
 }
