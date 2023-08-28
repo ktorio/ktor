@@ -11,6 +11,7 @@ package io.ktor.util.network
  *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
+@AllowDifferentMembersInActual
 public actual abstract class NetworkAddress internal constructor(
     internal val hostname: String,
     internal val port: Int,

@@ -2,6 +2,7 @@ package io.ktor.utils.io.core
 
 import java.lang.reflect.*
 
+@AllowDifferentMembersInActual
 public actual typealias Closeable = java.io.Closeable
 
 @PublishedApi
