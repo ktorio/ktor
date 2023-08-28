@@ -11,6 +11,6 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
 //            allWarningsAsErrors = true
         }
 
-        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn", "-version")
+        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn", "-opt-in=kotlin.ExperimentalMultiplatform",  "-version")
     }
 }
