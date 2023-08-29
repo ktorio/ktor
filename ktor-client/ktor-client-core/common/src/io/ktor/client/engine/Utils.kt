@@ -47,7 +47,8 @@ public fun mergeHeaders(
                 block(key, value)
             }
         } else {
-            block(key, values.joinToString(","))
+            val separator = if (HttpHeaders.Cookie == key) "; " else ","
+            block(key, values.joinToString(separator))
         }
     }
 
