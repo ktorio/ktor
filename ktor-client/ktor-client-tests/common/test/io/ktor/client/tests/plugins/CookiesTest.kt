@@ -247,7 +247,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testSeparatedBySemicolon() = clientTests {
+    fun testSeparatedBySemicolon() = clientTests(listOf("Js")) {
         test { client ->
             client.get("$TEST_HOST/encoded") {
                 cookie("firstCookie", "first")
