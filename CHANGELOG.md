@@ -8,6 +8,7 @@
 * NPE in JavaClientEngine body() call ([KTOR-6190](https://youtrack.jetbrains.com/issue/KTOR-6190))
 * Digest Auth: algorithm isn't specified in the Authorization header ([KTOR-3391](https://youtrack.jetbrains.com/issue/KTOR-3391))
 * Confusing NoTransformationFoundException ([KTOR-6064](https://youtrack.jetbrains.com/issue/KTOR-6064))
+* Cookie name-value pairs should be separated by a semicolon instead of a comma ([KTOR-5868](https://youtrack.jetbrains.com/issue/KTOR-5868))
 
 # 2.3.3
 > Published 1 August 2023
