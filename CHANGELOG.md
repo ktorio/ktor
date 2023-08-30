@@ -1,3 +1,14 @@
+# 2.3.4
+> Published 31 August 2023
+
+### Bugfixes
+* The "charset=UTF-8" part is automatically added to the `application/json` Content-Type ([KTOR-6183](https://youtrack.jetbrains.com/issue/KTOR-6183))
+* MicrometerMetricsConfig default registry leaks coroutine ([KTOR-6178](https://youtrack.jetbrains.com/issue/KTOR-6178))
+* Darwin: App hangs when sending a huge MultiPart request without access to network ([KTOR-6147](https://youtrack.jetbrains.com/issue/KTOR-6147))
+* NPE in JavaClientEngine body() call ([KTOR-6190](https://youtrack.jetbrains.com/issue/KTOR-6190))
+* Digest Auth: algorithm isn't specified in the Authorization header ([KTOR-3391](https://youtrack.jetbrains.com/issue/KTOR-3391))
+* Confusing NoTransformationFoundException ([KTOR-6064](https://youtrack.jetbrains.com/issue/KTOR-6064))
+
 # 2.3.3
 > Published 1 August 2023
 
