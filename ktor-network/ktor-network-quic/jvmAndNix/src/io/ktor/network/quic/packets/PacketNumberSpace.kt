@@ -14,13 +14,14 @@ import kotlinx.atomicfu.*
  */
 internal class PacketNumberSpace {
     private val logger = logger()
+
     private val increment = atomic(0L)
     private val _largestAcknowledged = atomic(-1L) // -1 for no acknowledgements yet
 
     private val unacknowledgedLocalPacketNumbers = mutableSetOf<Long>()
     private val unacknowledgedPeerPacketNumbers = mutableSetOf<Long>()
 
-    private val sentAckPackets = mutableMapOf<Long, MutableSet<Long>>()
+    private val sentAckPackets = mutableMapOf<Long, List<Long>>()
 
     val largestPacketNumber: Long get() = increment.getAndAdd(0)
     val largestAcknowledged: Long get() = _largestAcknowledged.getAndAdd(0)
@@ -36,15 +37,13 @@ internal class PacketNumberSpace {
     /**
      * @param ackRanges from [io.ktor.network.quic.frames.FrameProcessor.acceptACK]
      */
-    fun processAcknowledgements(ackRanges: LongArray) {
+    fun processAcknowledgements(ackRanges: List<Long>) {
         if (ackRanges.isEmpty()) return // todo error?
 
-        for (i in ackRanges.indices step 2) {
-            for (packetNumber in ackRanges[i] downTo ackRanges[i + 1]) { // full loop
-                unacknowledgedLocalPacketNumbers.remove(packetNumber)
-                sentAckPackets.remove(packetNumber)?.let { numbers ->
-                    unacknowledgedPeerPacketNumbers.removeAll(numbers)
-                }
+        ackRanges.rangesToNumbers().forEach { packetNumber ->
+            unacknowledgedLocalPacketNumbers.remove(packetNumber)
+            sentAckPackets.remove(packetNumber)?.let { ranges ->
+                unacknowledgedPeerPacketNumbers.removeAll(ranges.rangesToNumbers().toSet())
             }
         }
 
@@ -57,7 +56,7 @@ internal class PacketNumberSpace {
      *
      * Null if everything is acknowledged
      */
-    fun getAckRanges(): Pair<LongArray, (Long) -> Unit>? {
+    fun getAckRanges(): List<Long>? {
         if (unacknowledgedPeerPacketNumbers.isEmpty()) return null
 
         val sorted = unacknowledgedPeerPacketNumbers.sortedDescending()
@@ -76,12 +75,14 @@ internal class PacketNumberSpace {
 
         logger.info("generated ACK ranges array: (${result.joinToString()}) from (${unacknowledgedPeerPacketNumbers.joinToString()})") // ktlint-disable max-line-length argument-list-wrapping
 
-        return result.toLongArray() to { packetNumber ->
-            // is the first case possible?
-            sentAckPackets[packetNumber]?.addAll(sorted) ?: run {
-                sentAckPackets[packetNumber] = sorted.toMutableSet()
-            }
+        return result
+    }
+
+    fun registerSentRanges(ranges: List<Long>, packetNumber: Long) {
+        sentAckPackets[packetNumber]?.let {
+            logger.warn("Each packet should have one ack frame, number: $packetNumber, old numbers: ${ranges.joinToString()}. Will overwrite") // ktlint-disable max-line-length argument-list-wrapping
         }
+        sentAckPackets[packetNumber] = ranges
     }
 
     /**
@@ -90,6 +91,10 @@ internal class PacketNumberSpace {
     @Suppress("unused")
     fun getUnacknowledgedLocalPacketNumbers(): Set<Long> {
         return unacknowledgedLocalPacketNumbers
+    }
+
+    private fun List<Long>.rangesToNumbers(): List<Long> {
+        return chunked(2) { (start, end) -> (start downTo end) }.flatten()
     }
 
     class Pool {

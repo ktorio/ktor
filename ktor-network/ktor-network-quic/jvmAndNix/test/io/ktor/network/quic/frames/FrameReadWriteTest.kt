@@ -17,25 +17,25 @@ import kotlin.test.*
 class FrameReadWriteTest {
     @Test
     fun testPaddingFrame() = frameTest(
-        writeFrames = { packetBuilder ->
-            writePadding(packetBuilder)
+        writeFrames = {
+            writePadding()
         }
     )
 
     @Test
     fun testPingFrame() = frameTest(
-        writeFrames = { packetBuilder ->
-            writePing(packetBuilder)
+        writeFrames = {
+            writePing()
         }
     )
 
     @Test
     fun testAckFrame() {
         val params = quicTransportParameters { ack_delay_exponent = 2 }
-        val ranges1 = LongArray(8) { 18L - it * 2 }
-        val ranges2 = longArrayOf(20, 17, 11, 3)
-        val ranges3 = longArrayOf(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
-        val ranges4 = longArrayOf(0, 0)
+        val ranges1 = List(8) { 18L - it * 2 }
+        val ranges2 = listOf<Long>(20, 17, 11, 3)
+        val ranges3 = listOf<Long>(1 shl 23, 1 shl 22, 1 shl 21, 1 shl 19)
+        val ranges4 = listOf<Long>(0, 0)
 
         var errCnt = 0
 
@@ -43,9 +43,9 @@ class FrameReadWriteTest {
             parameters = params,
             expectedBytesToLeft = 4L,
             writeFrames = { packetBuilder ->
-                writeACK(packetBuilder, 84, params.ack_delay_exponent, ranges1)
+                writeACK(84, params.ack_delay_exponent, ranges1)
 
-                writeACK(packetBuilder, POW_2_60, params.ack_delay_exponent, ranges2)
+                writeACK(POW_2_60, params.ack_delay_exponent, ranges2)
 
                 // first malformed ACK Frame
                 writeCustomFrame(packetBuilder, QUICFrameType.ACK, shouldFailOnRead = true) {
@@ -68,16 +68,16 @@ class FrameReadWriteTest {
                     writeVarInt(6) // on read should be error here
                 }
 
-                writeACKWithECN(packetBuilder, 4, params.ack_delay_exponent, ranges3, 42, 4242, 424242)
+                writeACKWithECN(4, params.ack_delay_exponent, ranges3, 42, 4242, 424242)
 
-                writeACK(packetBuilder, 4, params.ack_delay_exponent, ranges4)
+                writeACK(4, params.ack_delay_exponent, ranges4)
 
                 assertFails("Odd ACK ranges") {
-                    writeACK(packetBuilder, 1, 1, LongArray(3))
+                    writeACK(1, 1, listOf(3))
                 }
 
                 assertFails("Ascending ACK ranges") {
-                    writeACK(packetBuilder, 1, 1, LongArray(4) { 1L + it })
+                    writeACK(1, 1, List(4) { 1L + it })
                 }
             },
             validator = {
@@ -114,8 +114,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testResetStream() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeResetStream(packetBuilder, 1, AppError(42), 13)
+        writeFrames = {
+            writeResetStream(1, AppError(42), 13)
         },
         validator = {
             validateResetStream { streamId, applicationProtocolErrorCode, finalSize ->
@@ -128,8 +128,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testStopSending() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeStopSending(packetBuilder, 1, AppError(42))
+        writeFrames = {
+            writeStopSending(1, AppError(42))
         },
         validator = {
             validateStopSending { streamId, applicationProtocolErrorCode ->
@@ -149,7 +149,7 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 5,
             writeFrames = { packetBuilder ->
-                writeCrypto(packetBuilder, 1, bytes1)
+                writeCrypto(1, bytes1)
 
                 writeCustomFrame(packetBuilder, QUICFrameType.CRYPTO, shouldFailOnRead = true) {
                     writeVarInt(POW_2_62 - 1) // Offset
@@ -163,7 +163,7 @@ class FrameReadWriteTest {
                 }
 
                 assertFails("Offset + length exceeds 2^62 - 1") {
-                    writeCrypto(packetBuilder, POW_2_62, byteArrayOf())
+                    writeCrypto(POW_2_62, byteArrayOf())
                 }
             },
             validator = {
@@ -188,10 +188,10 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 1,
             writeFrames = { packetBuilder ->
-                writeNewToken(packetBuilder, token1)
+                writeNewToken(token1)
 
                 assertFails("Token is empty") {
-                    writeNewToken(packetBuilder, byteArrayOf())
+                    writeNewToken(byteArrayOf())
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.NEW_TOKEN, shouldFailOnRead = true) {
@@ -222,13 +222,13 @@ class FrameReadWriteTest {
         val bytes2 = byteArrayOf(0x01, 0x12, 0x11)
 
         frameTest(
-            writeFrames = { packetBuilder ->
-                writeStream(packetBuilder, 1, 1, specifyLength = true, fin = true, bytes1)
+            writeFrames = {
+                writeStream(1, 1, specifyLength = true, fin = true, bytes1)
 
-                writeStream(packetBuilder, 1, null, specifyLength = false, fin = false, bytes2)
+                writeStream(1, null, specifyLength = false, fin = false, bytes2)
 
                 assertFails("Offset + Length exceeds 2^62 - 1") {
-                    writeStream(packetBuilder, 1, POW_2_62 - 2, specifyLength = false, fin = false, bytes2)
+                    writeStream(1, POW_2_62 - 2, specifyLength = false, fin = false, bytes2)
                 }
             },
             validator = {
@@ -274,8 +274,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testMaxData() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeMaxData(packetBuilder, 1)
+        writeFrames = {
+            writeMaxData(1)
         },
         validator = {
             validateMaxData { maximumData ->
@@ -286,8 +286,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testMaxStreamData() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeMaxStreamData(packetBuilder, 1, 1)
+        writeFrames = {
+            writeMaxStreamData(1, 1)
         },
         validator = {
             validateMaxStreamData { streamId, maximumStreamData ->
@@ -303,14 +303,14 @@ class FrameReadWriteTest {
 
         frameTest(
             writeFrames = { packetBuilder ->
-                writeMaxStreamsBidirectional(packetBuilder, 1)
-                writeMaxStreamsUnidirectional(packetBuilder, 1)
+                writeMaxStreamsBidirectional(1)
+                writeMaxStreamsUnidirectional(1)
 
                 assertFails("Maximum streams exceeds 2^60") {
-                    writeMaxStreamsBidirectional(packetBuilder, POW_2_60 + 1)
+                    writeMaxStreamsBidirectional(POW_2_60 + 1)
                 }
                 assertFails("Maximum streams exceeds 2^60") {
-                    writeMaxStreamsUnidirectional(packetBuilder, POW_2_60 + 1)
+                    writeMaxStreamsUnidirectional(POW_2_60 + 1)
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.MAX_STREAMS_BIDIRECTIONAL, shouldFailOnRead = true) {
@@ -343,8 +343,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testdataBlocked() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeDataBlocked(packetBuilder, 1)
+        writeFrames = {
+            writeDataBlocked(1)
         },
         validator = {
             validateDataBlocked { maximumData ->
@@ -355,8 +355,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testStreamDataBlocked() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeStreamDataBlocked(packetBuilder, 1, 1)
+        writeFrames = {
+            writeStreamDataBlocked(1, 1)
         },
         validator = {
             validateStreamDataBlocked { streamId, maximumStreamData ->
@@ -372,14 +372,14 @@ class FrameReadWriteTest {
 
         frameTest(
             writeFrames = { packetBuilder ->
-                writeStreamsBlockedBidirectional(packetBuilder, 1)
-                writeStreamsBlockedUnidirectional(packetBuilder, 1)
+                writeStreamsBlockedBidirectional(1)
+                writeStreamsBlockedUnidirectional(1)
 
                 assertFails("Maximum streams exceeds 2^60") {
-                    writeStreamsBlockedBidirectional(packetBuilder, POW_2_60 + 1)
+                    writeStreamsBlockedBidirectional(POW_2_60 + 1)
                 }
                 assertFails("Maximum streams exceeds 2^60") {
-                    writeStreamsBlockedUnidirectional(packetBuilder, POW_2_60 + 1)
+                    writeStreamsBlockedUnidirectional(POW_2_60 + 1)
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.STREAMS_BLOCKED_BIDIRECTIONAL, shouldFailOnRead = true) {
@@ -420,19 +420,19 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 1,
             writeFrames = { packetBuilder ->
-                writeNewConnectionId(packetBuilder, 2, 1, bytes1, bytes2)
+                writeNewConnectionId(2, 1, bytes1, bytes2)
 
                 assertFails("Connection id length not in 1..20 (1)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(0).asCID(), bytes2)
+                    writeNewConnectionId(2, 1, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Connection id length not in 1..20 (2)") {
-                    writeNewConnectionId(packetBuilder, 2, 1, ByteArray(21).asCID(), bytes2)
+                    writeNewConnectionId(2, 1, ByteArray(21).asCID(), bytes2)
                 }
                 assertFails("Retire Prior To >= Sequence Number") {
-                    writeNewConnectionId(packetBuilder, 1, 2, ByteArray(0).asCID(), bytes2)
+                    writeNewConnectionId(1, 2, ByteArray(0).asCID(), bytes2)
                 }
                 assertFails("Stateless Reset Token != 16 bytes") {
-                    writeNewConnectionId(packetBuilder, 2, 1, bytes1, ByteArray(10))
+                    writeNewConnectionId(2, 1, bytes1, ByteArray(10))
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.NEW_CONNECTION_ID, shouldFailOnRead = true) {
@@ -506,8 +506,8 @@ class FrameReadWriteTest {
 
     @Test
     fun testRetireConnectionId() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeRetireConnectionId(packetBuilder, 1)
+        writeFrames = {
+            writeRetireConnectionId(1)
         },
         validator = {
             validateRetireConnectionId { sequenceNumber ->
@@ -526,10 +526,10 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 4,
             writeFrames = { packetBuilder ->
-                writePathChallenge(packetBuilder, data1)
+                writePathChallenge(data1)
 
                 assertFails("Data is not 8 bytes") {
-                    writePathChallenge(packetBuilder, data2)
+                    writePathChallenge(data2)
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.PATH_CHALLENGE, shouldFailOnRead = true) {
@@ -559,10 +559,10 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 4,
             writeFrames = { packetBuilder ->
-                writePathResponse(packetBuilder, data1)
+                writePathResponse(data1)
 
                 assertFails("Data is not 8 bytes") {
-                    writePathResponse(packetBuilder, data2)
+                    writePathResponse(data2)
                 }
 
                 writeCustomFrame(packetBuilder, QUICFrameType.PATH_RESPONSE, shouldFailOnRead = true) {
@@ -590,24 +590,21 @@ class FrameReadWriteTest {
         frameTest(
             expectedBytesToLeft = 1,
             writeFrames = { packetBuilder ->
-                writeConnectionCloseWithAppError(packetBuilder, AppError(42), bytes1)
+                writeConnectionCloseWithAppError(AppError(42), bytes1)
 
                 writeConnectionCloseWithTransportError(
-                    packetBuilder = packetBuilder,
                     errorCode = QUICProtocolTransportError.AEAD_LIMIT_REACHED,
                     frameTypeV1 = QUICFrameType.PATH_RESPONSE,
                     reasonPhrase = bytes1
                 )
 
                 writeConnectionCloseWithTransportError(
-                    packetBuilder = packetBuilder,
                     errorCode = QUICProtocolTransportError.AEAD_LIMIT_REACHED,
                     frameTypeV1 = QUICFrameType.PATH_RESPONSE,
                     reasonPhrase = byteArrayOf()
                 )
 
                 writeConnectionCloseWithTransportError(
-                    packetBuilder = packetBuilder,
                     errorCode = QUICCryptoHandshakeTransportError(0x01u),
                     frameTypeV1 = null,
                     reasonPhrase = bytes1
@@ -654,20 +651,20 @@ class FrameReadWriteTest {
 
     @Test
     fun testHandshakeDone() = frameTest(
-        writeFrames = { packetBuilder ->
-            writeHandshakeDone(packetBuilder)
+        writeFrames = {
+            writeHandshakeDone()
         }
     )
 
     private fun frameTest(
         parameters: QUICTransportParameters = quicTransportParameters(),
         expectedBytesToLeft: Long = 0,
-        writeFrames: TestFrameWriter.(BytePacketBuilder) -> Unit,
+        writeFrames: suspend TestFrameWriter.(BytePacketBuilder) -> Unit,
         validator: ReadFramesValidator.() -> Unit = {},
         onReaderError: (QUICTransportError, QUICFrameType) -> Unit = { _, _ -> },
     ) = runBlocking {
         val builder = BytePacketBuilder()
-        val writer = TestFrameWriter()
+        val writer = TestFrameWriter(TestPacketSendHandler(builder))
 
         writer.writeFrames(builder)
 

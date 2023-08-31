@@ -123,7 +123,7 @@ internal object FrameReader {
         val ackRangeCount = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
         val firstAckRange = payload.readVarIntOrElse { return FRAME_ENCODING_ERROR }
 
-        val ackRanges = LongArray((ackRangeCount * 2 + 2).toInt())
+        val ackRanges = MutableList<Long>((ackRangeCount * 2 + 2).toInt()) { 0 }
         ackRanges[0] = largestAcknowledged
         var previousSmallest = largestAcknowledged - firstAckRange
         ackRanges[1] = previousSmallest
