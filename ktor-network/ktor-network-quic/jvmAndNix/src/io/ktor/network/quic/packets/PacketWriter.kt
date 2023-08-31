@@ -80,7 +80,7 @@ internal interface PacketWriter {
     )
 }
 
-internal class PacketWriterImpl(private val tlsComponent: TLSComponent): PacketWriter {
+internal class PacketWriterImpl(private val tlsComponent: TLSComponent) : PacketWriter {
     companion object {
         /**
          * header form = 0b1 (long header)

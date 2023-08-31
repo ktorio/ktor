@@ -83,23 +83,23 @@ class PacketSendHandlerTest {
 }
 
 private class TestPacketWriter(private val buffer: BytePacketBuilder) : PacketWriter {
-    override fun writeVersionNegotiationPacket(packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, supportedVersions: Array<UInt32>) { } // ktlint-disable max-line-length
+    override fun writeVersionNegotiationPacket(packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, supportedVersions: Array<UInt32>) { } // ktlint-disable max-line-length parameter-list-wrapping
 
-    override fun writeRetryPacket(packetBuilder: BytePacketBuilder, originalDestinationConnectionID: QUICConnectionID, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, retryToken: ByteArray) { } // ktlint-disable max-line-length
+    override fun writeRetryPacket(packetBuilder: BytePacketBuilder, originalDestinationConnectionID: QUICConnectionID, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, retryToken: ByteArray) { } // ktlint-disable max-line-length parameter-list-wrapping
 
-    override suspend fun writeInitialPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, token: ByteArray, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length
+    override suspend fun writeInitialPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, token: ByteArray, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length parameter-list-wrapping
         buffer.writeFully(payload)
     }
 
-    override suspend fun writeHandshakePacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length
+    override suspend fun writeHandshakePacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length parameter-list-wrapping
         buffer.writeFully(payload)
     }
 
-    override suspend fun writeZeroRTTPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length
+    override suspend fun writeZeroRTTPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, version: UInt32, destinationConnectionID: QUICConnectionID, sourceConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length parameter-list-wrapping
         buffer.writeFully(payload)
     }
 
-    override suspend fun writeOneRTTPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, spinBit: Boolean, keyPhase: Boolean, destinationConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length
+    override suspend fun writeOneRTTPacket(largestAcknowledged: Long, packetBuilder: BytePacketBuilder, spinBit: Boolean, keyPhase: Boolean, destinationConnectionID: QUICConnectionID, packetNumber: Long, payload: ByteArray) { // ktlint-disable max-line-length parameter-list-wrapping
         buffer.writeFully(payload)
     }
 }

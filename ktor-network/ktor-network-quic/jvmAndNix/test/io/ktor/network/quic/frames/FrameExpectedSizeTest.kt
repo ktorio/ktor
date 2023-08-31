@@ -200,11 +200,11 @@ class FrameExpectedSizeTest {
         }
 
         assertExpectedSize(147, "ConnectionClose transport frame") {
-            writeConnectionCloseWithTransportError(QUICProtocolTransportError.FRAME_ENCODING_ERROR, null, zeroByteArray(142)) // ktlint-disable max-line-length
+            writeConnectionCloseWithTransportError(QUICProtocolTransportError.FRAME_ENCODING_ERROR, null, zeroByteArray(142)) // ktlint-disable max-line-length argument-list-wrapping
         }
 
         assertExpectedSize(148, "ConnectionClose transport frame") {
-            writeConnectionCloseWithTransportError(QUICCryptoHandshakeTransportError(0x00u), QUICFrameType.CRYPTO, zeroByteArray(142)) // ktlint-disable max-line-length
+            writeConnectionCloseWithTransportError(QUICCryptoHandshakeTransportError(0x00u), QUICFrameType.CRYPTO, zeroByteArray(142)) // ktlint-disable max-line-length argument-list-wrapping
         }
     }
 
@@ -250,7 +250,9 @@ class FrameExpectedSizeTest {
             ) // ktlint-disable max-line-length
 
             val actualFrameSize = buildPacket(handler).remaining
-            assertTrue("Actual size must not be greater than expectedFrameSize value, $testMessage: expectedFrameSize: $expectedFrameSize, actual: $actualFrameSize") { actualFrameSize <= expectedFrameSize } // ktlint-disable max-line-length
+            assertTrue("Actual size must not be greater than expectedFrameSize value, $testMessage: expectedFrameSize: $expectedFrameSize, actual: $actualFrameSize") { // ktlint-disable max-line-length argument-list-wrapping
+                actualFrameSize <= expectedFrameSize
+            }
 
             invoked++
 
