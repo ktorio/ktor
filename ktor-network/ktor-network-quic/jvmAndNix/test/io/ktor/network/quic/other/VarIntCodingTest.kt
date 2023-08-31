@@ -13,7 +13,7 @@ import kotlin.test.*
 @ExperimentalUnsignedTypes
 class VarIntCodingTest {
     @Test
-    fun testEncodeVarint() {
+    fun testEncodeVarInt() {
         val builder = BytePacketBuilder()
         with(builder) {
             writeVarInt(0)

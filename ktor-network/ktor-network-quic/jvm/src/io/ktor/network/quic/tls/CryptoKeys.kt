@@ -13,7 +13,7 @@ import java.nio.charset.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-internal class CryptoKeys(secret: ByteArray, version: UInt32, private val debugLabel: String? = null) {
+internal class CryptoKeys(secret: ByteArray, version: UInt32, val debugLabel: String? = null) {
     private val key: ByteArray
     val iv: ByteArray
     private val hp: ByteArray

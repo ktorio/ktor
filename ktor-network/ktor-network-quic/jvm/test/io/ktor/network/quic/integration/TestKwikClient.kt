@@ -9,7 +9,6 @@ import net.luminis.quic.*
 import net.luminis.quic.log.*
 import java.io.*
 import java.net.*
-import java.nio.charset.*
 import kotlin.test.*
 
 class TestKwikClient(serverPort: Int) {

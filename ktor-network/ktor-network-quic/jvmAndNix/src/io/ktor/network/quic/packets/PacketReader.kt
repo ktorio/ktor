@@ -19,7 +19,6 @@ import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask1
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask2
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask3
 import io.ktor.network.quic.packets.HeaderProtectionUtils.pnHPMask4
-import io.ktor.network.quic.packets.PktConst.HP_SAMPLE_LENGTH
 import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.bits.*
@@ -28,7 +27,7 @@ import io.ktor.utils.io.core.*
 internal object PacketReader {
     private val logger = logger()
 
-    private const val HEADER_TYPE: UInt8 = 0x80u
+    private const val HEADER_TYPE_BIT: UInt8 = 0x80u
     private const val FIXED_BIT: UInt8 = 0x40u
 
     private const val LONG_HEADER_PACKET_TYPE: UInt8 = 0x30u
@@ -54,7 +53,7 @@ internal object PacketReader {
     ): QUICPacket? {
         val flags: UInt8 = bytes.readUInt8 { raiseError(PACKET_END) }
 
-        if (flags and HEADER_TYPE == HEADER_TYPE) { // Long Header bit is set
+        if (flags and HEADER_TYPE_BIT == HEADER_TYPE_BIT) { // Long Header bit is set
             // Version independent properties of packets with the Long Header
 
             val version: UInt32 = bytes.readUInt32 { raiseError(PACKET_END) }
@@ -80,10 +79,10 @@ internal object PacketReader {
             }
 
             val type = when (flags and LONG_HEADER_PACKET_TYPE) {
-                PktConst.LONG_HEADER_PACKET_TYPE_INITIAL -> QUICPacketType.Initial
-                PktConst.LONG_HEADER_PACKET_TYPE_0_RTT -> QUICPacketType.ZeroRTT
-                PktConst.LONG_HEADER_PACKET_TYPE_HANDSHAKE -> QUICPacketType.Handshake
-                PktConst.LONG_HEADER_PACKET_TYPE_RETRY -> QUICPacketType.Retry
+                Consts.LONG_HEADER_PACKET_TYPE_INITIAL -> QUICPacketType.Initial
+                Consts.LONG_HEADER_PACKET_TYPE_0_RTT -> QUICPacketType.ZeroRTT
+                Consts.LONG_HEADER_PACKET_TYPE_HANDSHAKE -> QUICPacketType.Handshake
+                Consts.LONG_HEADER_PACKET_TYPE_RETRY -> QUICPacketType.Retry
                 else -> unreachable()
             }
 
@@ -293,12 +292,12 @@ internal object PacketReader {
             }
 
             QUICPacketType.Retry -> {
-                val retryTokenLength = bytes.remaining - PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH
+                val retryTokenLength = bytes.remaining - PayloadSize.RETRY_PACKET_INTEGRITY_TAG_LENGTH
                 if (retryTokenLength < 0) {
                     raiseError(PROTOCOL_VIOLATION.withReason("Negative token length"))
                 }
                 val retryToken = bytes.readBytes(retryTokenLength.toInt())
-                val integrityTag = bytes.readBytes(PktConst.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
+                val integrityTag = bytes.readBytes(PayloadSize.RETRY_PACKET_INTEGRITY_TAG_LENGTH)
 
                 QUICRetryPacket(version, destinationConnectionID, sourceConnectionID, retryToken, integrityTag)
             }
@@ -342,9 +341,9 @@ internal object PacketReader {
             pnLen = packetNumberLength,
         )
 
-        val spinBit: Boolean = decodedFlags and PktConst.SHORT_HEADER_SPIN_BIT == PktConst.SHORT_HEADER_SPIN_BIT
+        val spinBit: Boolean = decodedFlags and Consts.SHORT_HEADER_SPIN_BIT == Consts.SHORT_HEADER_SPIN_BIT
         val reservedBits: Int = (decodedFlags and SHORT_HEADER_RESERVED_BITS).toInt() ushr 3
-        val keyPhase: Boolean = decodedFlags and PktConst.SHORT_HEADER_KEY_PHASE == PktConst.SHORT_HEADER_KEY_PHASE
+        val keyPhase: Boolean = decodedFlags and Consts.SHORT_HEADER_KEY_PHASE == Consts.SHORT_HEADER_KEY_PHASE
 
         val associatedData = buildPacket {
             writeUByte(decodedFlags)
@@ -406,7 +405,7 @@ internal object PacketReader {
             raiseError(PACKET_END)
         }
 
-        val array = ByteArray(HP_SAMPLE_LENGTH)
+        val array = ByteArray(PayloadSize.HP_SAMPLE_LENGTH)
         array.useMemory(0, array.size) {
             bytes.peekTo(it, destinationOffset = 0, offset = 4)
         }

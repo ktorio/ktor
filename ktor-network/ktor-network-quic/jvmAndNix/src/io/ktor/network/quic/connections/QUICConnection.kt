@@ -193,18 +193,20 @@ internal class QUICConnection(
 
     private val readyPacketHandler = ReadyPacketHandlerImpl(outgoingDatagramHandler)
 
-    private val initialPacketHandler = PacketSendHandler.Initial(
-        tlsComponent = tlsComponent,
+    private val packetWriter = PacketWriterImpl(tlsComponent)
+
+    private val initialPacketHandler = PacketSendHandlerImpl.Initial(
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )
-    private val handshakePacketHandler = PacketSendHandler.Handshake(
-        tlsComponent = tlsComponent,
+    private val handshakePacketHandler = PacketSendHandlerImpl.Handshake(
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )
-    private val oneRTTPacketHandler = PacketSendHandler.OneRTT(
-        tlsComponent = tlsComponent,
+    private val oneRTTPacketHandler = PacketSendHandlerImpl.OneRTT(
+        packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
     )
@@ -242,7 +244,7 @@ internal class QUICConnection(
     }
 
     private suspend fun send(
-        packetSendHandler: PacketSendHandler,
+        packetSendHandler: PacketSendHandlerImpl<*>,
         forceEndPacket: Boolean = false,
         forceEndDatagram: Boolean = false,
         write: FrameWriteFunction,
@@ -288,9 +290,8 @@ internal class QUICConnection(
 
             when {
                 encryptionLevel == EncryptionLevel.Handshake && flush -> {
-                    sendInHandshakePacket(forceEndDatagram = true) { builder, _ ->
+                    sendInHandshakePacket(forceEndDatagram = true) {
                         writeCrypto(
-                            packetBuilder = builder,
                             offset = handshakeOffset,
                             data = buffer.build().readBytes().also {
                                 buffer.reset()
@@ -301,29 +302,22 @@ internal class QUICConnection(
                 }
 
                 encryptionLevel == EncryptionLevel.AppData -> {
-                    sendInOneRTT(forceEndDatagram = true) { builder, _ ->
-                        writeHandshakeDone(builder)
+                    sendInOneRTT(forceEndDatagram = true) {
+                        writeHandshakeDone()
 
-                        writeCrypto(
-                            packetBuilder = builder,
-                            offset = 0,
-                            data = cryptoPayload,
-                        )
+                        writeCrypto(offset = 0, data = cryptoPayload)
                     }
                 }
 
                 else -> {
-                    sendInInitialPacket(
-                        forceEndPacket = flush,
-                    ) { builder, hookConsumer ->
+                    sendInInitialPacket(forceEndPacket = flush) {
                         writeCrypto(
-                            packetBuilder = builder,
                             offset = 0,
                             data = cryptoPayload,
                         )
                         logger.trace("Crypto payload: ${cryptoPayload.toDebugString()}")
 
-                        withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Initial)
+                        withAckFrameIfAny(EncryptionLevel.Initial)
                     }
                 }
             }
@@ -434,8 +428,8 @@ internal class QUICConnection(
             val encryptionLevel = packet.encryptionLevel ?: return QUICProtocolTransportError.PROTOCOL_VIOLATION
 
             // todo remove force after adding packet auto sending loop
-            send(encryptionLevel, forceEndDatagram = true) { builder, hookConsumer ->
-                withAckFrameIfAny(builder, hookConsumer, encryptionLevel)
+            send(encryptionLevel, forceEndDatagram = true) {
+                withAckFrameIfAny(encryptionLevel)
             }
 
             return null
@@ -444,7 +438,7 @@ internal class QUICConnection(
         override suspend fun acceptACK(
             packet: QUICPacket,
             ackDelay: Long,
-            ackRanges: LongArray,
+            ackRanges: List<Long>,
         ): QUICTransportError? {
             logAcceptedFrame(QUICFrameType.ACK)
 
@@ -458,7 +452,7 @@ internal class QUICConnection(
         override suspend fun acceptACKWithECN(
             packet: QUICPacket,
             ackDelay: Long,
-            ackRanges: LongArray,
+            ackRanges: List<Long>,
             ect0: Long,
             ect1: Long,
             ectCE: Long,
@@ -503,8 +497,8 @@ internal class QUICConnection(
                 EncryptionLevel.Handshake -> {
                     tlsComponent.finishHandshake(cryptoData)
 
-                    sendInHandshakePacket(forceEndPacket = true) { builder, hookConsumer ->
-                        withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.Handshake)
+                    sendInHandshakePacket(forceEndPacket = true) {
+                        withAckFrameIfAny(EncryptionLevel.Handshake)
                     }
                 }
 
@@ -662,8 +656,8 @@ internal class QUICConnection(
             }
 
             if (sequenceNumber < peerConnectionIDs.threshold) {
-                sendInOneRTT { builder, _ ->
-                    writeRetireConnectionId(builder, sequenceNumber)
+                sendInOneRTT {
+                    writeRetireConnectionId(sequenceNumber)
                 }
                 return null
             }
@@ -675,9 +669,9 @@ internal class QUICConnection(
             val retired = peerConnectionIDs.removePriorToAndSetThreshold(retirePriorTo)
 
             // todo wait for ack frames, send in batches, cache new CID and proceed here
-            sendInOneRTT { builder, _ ->
+            sendInOneRTT {
                 retired.forEach { retireSequenceNumber ->
-                    writeRetireConnectionId(builder, retireSequenceNumber)
+                    writeRetireConnectionId(retireSequenceNumber)
                 }
             }
 
@@ -726,8 +720,8 @@ internal class QUICConnection(
 
         override suspend fun acceptPathChallenge(packet: QUICPacket, data: ByteArray): QUICTransportError? {
             logAcceptedFrame(QUICFrameType.PATH_CHALLENGE)
-            sendInOneRTT { builder, _ ->
-                writePathResponse(builder, data)
+            sendInOneRTT {
+                writePathResponse(data)
             }
 
             return null
@@ -788,9 +782,8 @@ internal class QUICConnection(
                 while (isActive) {
                     try {
                         val frame = sendChannel.receive()
-                        sendInOneRTT(forceEndDatagram = frame.fin) { builder, hookConsumer ->
+                        sendInOneRTT(forceEndDatagram = frame.fin) {
                             writeStream(
-                                packetBuilder = builder,
                                 streamId = frame.streamId,
                                 offset = frame.offset,
                                 specifyLength = true,
@@ -798,7 +791,7 @@ internal class QUICConnection(
                                 data = frame.data
                             )
 
-                            withAckFrameIfAny(builder, hookConsumer, EncryptionLevel.AppData)
+                            withAckFrameIfAny(EncryptionLevel.AppData)
                         }
                     } catch (e: Exception) {
                         logger.error(e)
@@ -860,20 +853,16 @@ internal class QUICConnection(
         val fin: Boolean,
     )
 
-    private fun FrameWriter.withAckFrameIfAny(
-        builder: BytePacketBuilder,
-        hookConsumer: ((Long) -> Unit) -> Unit,
-        encryptionLevel: EncryptionLevel,
-    ) {
-        packetNumberSpacePool[encryptionLevel].getAckRanges()?.let { (ranges, hook) ->
-            hookConsumer(hook)
-
-            writeACK(
-                packetBuilder = builder,
+    private suspend fun FrameWriter.withAckFrameIfAny(encryptionLevel: EncryptionLevel) {
+        val ranges = packetNumberSpacePool[encryptionLevel].getAckRanges()
+        if (ranges != null) {
+            val packetNumber: Long = writeACK(
                 ackDelay = 0,
                 ack_delay_exponent = localTransportParameters.ack_delay_exponent,
                 ackRanges = ranges,
             )
+
+            packetNumberSpacePool[encryptionLevel].registerSentRanges(ranges, packetNumber)
         }
     }
 }

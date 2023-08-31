@@ -42,6 +42,11 @@ internal value class AppError(val intCode: Long) {
 internal sealed interface QUICTransportError {
     fun writeToFrame(packetBuilder: BytePacketBuilder)
 
+    /**
+     * Expected size in bytes of this error in a frame
+     */
+    val expectedSize: Int
+
     fun toDebugString(): String
 
     companion object {
@@ -86,6 +91,8 @@ internal enum class QUICProtocolTransportError(val intCode: UInt8) : QUICTranspo
         packetBuilder.writeUInt8(intCode)
     }
 
+    override val expectedSize: Int = 1
+
     override fun toDebugString(): String {
         return "Transport Error $name, code: $intCode"
     }
@@ -108,6 +115,8 @@ internal class QUICCryptoHandshakeTransportError(val tlsAlertCode: UInt8) : QUIC
         packetBuilder.writeUInt8(tlsAlertCode)
     }
 
+    override val expectedSize: Int = 2
+
     override fun toDebugString(): String {
         return "Crypto Handshake Error: $tlsAlertCode"
     }
@@ -120,6 +129,8 @@ internal class QUICReasonedTransportError(
     override fun writeToFrame(packetBuilder: BytePacketBuilder) {
         error.writeToFrame(packetBuilder)
     }
+
+    override val expectedSize: Int = error.expectedSize
 
     override fun toDebugString(): String {
         return "Error: ${error.toDebugString()}, reason: ${String(reasonPhrase)}"

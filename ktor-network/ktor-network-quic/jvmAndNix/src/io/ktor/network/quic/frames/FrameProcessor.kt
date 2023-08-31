@@ -22,7 +22,7 @@ internal interface FrameProcessor {
     suspend fun acceptACK(
         packet: QUICPacket,
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
     ): QUICTransportError?
 
     /**
@@ -34,7 +34,7 @@ internal interface FrameProcessor {
     suspend fun acceptACKWithECN(
         packet: QUICPacket,
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long,
         ect1: Long,
         ectCE: Long,

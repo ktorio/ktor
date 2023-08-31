@@ -25,7 +25,7 @@ internal class TestFrameProcessor(
     override suspend fun acceptACK(
         packet: QUICPacket,
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
     ) = testAccept(QUICFrameType.ACK) {
         listACKValidators[it](ackDelay, ackRanges)
     }
@@ -33,7 +33,7 @@ internal class TestFrameProcessor(
     override suspend fun acceptACKWithECN(
         packet: QUICPacket,
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long,
         ect1: Long,
         ectCE: Long,
@@ -218,12 +218,12 @@ internal class TestFrameProcessor(
 internal class ReadFramesValidator {
     val listACKValidators = mutableListOf<(
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
     ) -> Unit>()
 
     val listACKWithECNValidators = mutableListOf<(
         ackDelay: Long,
-        ackRanges: LongArray,
+        ackRanges: List<Long>,
         ect0: Long,
         ect1: Long,
         ectCE: Long,
@@ -320,11 +320,11 @@ internal class ReadFramesValidator {
         reasonPhrase: ByteArray,
     ) -> Unit>()
 
-    fun validateACK(body: (ackDelay: Long, ackRanges: LongArray) -> Unit) {
+    fun validateACK(body: (ackDelay: Long, ackRanges: List<Long>) -> Unit) {
         listACKValidators.add(body)
     }
 
-    fun validateACKWithECN(body: (ackDelay: Long, ackRanges: LongArray, ect0: Long, ect1: Long, ectCE: Long) -> Unit) {
+    fun validateACKWithECN(body: (ackDelay: Long, ackRanges: List<Long>, ect0: Long, ect1: Long, ectCE: Long) -> Unit) {
         listACKWithECNValidators.add(body)
     }
 
