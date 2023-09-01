@@ -91,7 +91,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                 setConnectionManager(
                     PoolingAsyncClientConnectionManagerBuilder.create()
                         .setMaxConnTotal(MAX_CONNECTIONS_COUNT)
-                        .setMaxConnTotal(MAX_CONNECTIONS_COUNT)
+                        .setMaxConnPerRoute(MAX_CONNECTIONS_COUNT)
                         .setTlsStrategy(
                             ClientTlsStrategyBuilder.create()
                                 .setSslContext(config.sslContext ?: SSLContexts.createSystemDefault())
