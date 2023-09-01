@@ -91,7 +91,7 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.7.20" apply false
+    id("org.jetbrains.dokka") version "1.9.0" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
     id("kotlinx-atomicfu") version "0.21.0" apply false
     id("com.osacky.doctor") version "0.8.1"
@@ -152,7 +152,7 @@ fun configureDokka() {
 
         val dokkaPlugin by configurations
         dependencies {
-            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.7.20")
+            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.9.0")
         }
     }
 
