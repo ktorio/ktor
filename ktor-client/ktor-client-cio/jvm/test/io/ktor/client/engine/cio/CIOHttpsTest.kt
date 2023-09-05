@@ -23,7 +23,7 @@ import javax.net.ssl.*
 import kotlin.test.*
 import kotlin.test.Test
 
-class CIOHttpsTest : TestWithKtor() {
+class CIOSpecificHttpsTest : TestWithKtor() {
 
     override val server: ApplicationEngine = embeddedServer(
         Netty,
@@ -139,17 +139,6 @@ class CIOHttpsTest : TestWithKtor() {
                         client.cancel("Failed with: $cause")
                         fail("${suite.name}: $cause")
                     }
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testCertificateIsVerified() {
-        testWithEngine(CIO) {
-            test { client ->
-                assertFailsWith<IOException> {
-                    client.get("https://wrong.host.badssl.com/")
                 }
             }
         }

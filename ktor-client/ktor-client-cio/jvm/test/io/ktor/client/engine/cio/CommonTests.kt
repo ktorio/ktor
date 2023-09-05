@@ -8,7 +8,7 @@ import io.ktor.client.tests.*
 
 class CIOHttpClientTest : HttpClientTest(CIO)
 
-class CIOSslOverProxyTest : SslOverProxyTest<CIOEngineConfig>(CIO) {
+class CIOHttpsTest : HttpsTest<CIOEngineConfig>(CIO) {
 
     override fun CIOEngineConfig.disableCertificatePinning() {
         https {

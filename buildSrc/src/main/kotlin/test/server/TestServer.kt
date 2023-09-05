@@ -28,11 +28,11 @@ internal fun startServer(): Closeable {
             tests()
         }.start()
 
-        scope.use(Closeable { server.stop(0L, 0L, TimeUnit.MILLISECONDS) })
+        scope.use { server.stop(0L, 0L, TimeUnit.MILLISECONDS) }
 
         val tlsServer = setupTLSServer()
         tlsServer.start()
-        scope.use(Closeable { tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS) })
+        scope.use { tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS) }
 
         Thread.sleep(1000)
     } catch (cause: Throwable) {

@@ -10,9 +10,9 @@ import kotlin.test.*
 
 class AndroidHttpClientTest : HttpClientTest(Android)
 
-class AndroidSslOverProxyTest : SslOverProxyTest<AndroidEngineConfig>(Android) {
+class AndroidHttpsTest : HttpsTest<AndroidEngineConfig>(Android) {
 
-    private lateinit var defaultSslSocketFactory: SSLSocketFactory
+    private var defaultSslSocketFactory: SSLSocketFactory? = null
 
     override fun AndroidEngineConfig.disableCertificatePinning() {
         defaultSslSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory()
@@ -21,6 +21,8 @@ class AndroidSslOverProxyTest : SslOverProxyTest<AndroidEngineConfig>(Android) {
 
     @AfterTest
     fun tearDown() {
-        HttpsURLConnection.setDefaultSSLSocketFactory(defaultSslSocketFactory)
+        defaultSslSocketFactory?.let {
+            HttpsURLConnection.setDefaultSSLSocketFactory(it)
+        }
     }
 }

@@ -8,7 +8,7 @@ import io.ktor.client.tests.*
 
 class OkHttpHttpClientTest : HttpClientTest(OkHttp)
 
-class OkHttpSslOverProxyTest : SslOverProxyTest<OkHttpConfig>(OkHttp) {
+class OkHttpHttpsTest : HttpsTest<OkHttpConfig>(OkHttp) {
 
     override fun OkHttpConfig.disableCertificatePinning() {
         config {

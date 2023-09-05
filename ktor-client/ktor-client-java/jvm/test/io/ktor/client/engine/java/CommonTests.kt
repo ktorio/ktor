@@ -8,7 +8,7 @@ import io.ktor.client.tests.*
 
 class JavaClientTest : HttpClientTest(Java)
 
-class JavaSslOverProxyTest : SslOverProxyTest<JavaHttpConfig>(Java) {
+class JavaHttpsTest : HttpsTest<JavaHttpConfig>(Java) {
 
     override fun JavaHttpConfig.disableCertificatePinning() {
         config {

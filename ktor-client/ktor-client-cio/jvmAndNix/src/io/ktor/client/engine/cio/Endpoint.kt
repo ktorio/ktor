@@ -233,7 +233,7 @@ internal class Endpoint(
                     }
                     val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)
-                        serverName = serverName ?: realAddress.hostname
+                        serverName = serverName ?: realAddress.hostname.takeIf { it != "localhost" }
                     }
                     return tlsSocket.connection()
                 } catch (cause: Throwable) {
