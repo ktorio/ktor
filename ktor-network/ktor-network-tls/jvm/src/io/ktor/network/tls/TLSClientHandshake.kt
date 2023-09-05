@@ -72,6 +72,7 @@ internal class TLSClientHandshake(
                         channel.close(cause)
                         return@produce
                     }
+
                     TLSRecordType.ChangeCipherSpec -> {
                         check(!useCipher)
                         val flag = packet.readByte()
@@ -81,6 +82,7 @@ internal class TLSClientHandshake(
                         useCipher = true
                         continue@loop
                     }
+
                     else -> {
                     }
                 }
@@ -178,6 +180,10 @@ internal class TLSClientHandshake(
             throw TLSException("No appropriate hash algorithm for suite: $suite")
         }
 
+        // Check server name
+        val serverName: TLSExtension? = serverHello.extensions.firstOrNull { it.type == TLSExtensionType.SERVER_NAME }
+        if (serverName != null) checkServerName(serverName, config)
+
         val serverExchanges = serverHello.hashAndSignAlgorithms
         if (serverExchanges.isEmpty()) return
 
@@ -187,6 +193,16 @@ internal class TLSClientHandshake(
                 "Client candidates: $clientExchanges"
 
             throw TLSException(message)
+        }
+    }
+
+    private fun checkServerName(serverName: TLSExtension, config: TLSConfig) {
+        val name = serverName.packet.readBytes().decodeToString()
+        if (name != config.serverName) {
+            throw TLSException(
+                "Host name '${config.serverName}' does " +
+                    "not match the certificate subject provided by the peer: $name"
+            )
         }
     }
 
@@ -239,9 +255,11 @@ internal class TLSClientHandshake(
                         }
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
+
                 TLSHandshakeType.CertificateRequest -> {
                     certificateInfo = readClientCertificateRequest(packet)
                 }
+
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
                         ECDHE -> {
@@ -274,12 +292,14 @@ internal class TLSClientHandshake(
 
                             encryptionInfo = generateECKeys(curve, point)
                         }
+
                         RSA -> {
                             packet.release()
                             error("Server key exchange handshake doesn't expected in RCA exchange type")
                         }
                     }
                 }
+
                 TLSHandshakeType.ServerDone -> {
                     handleServerDone(
                         exchangeType,
@@ -289,6 +309,7 @@ internal class TLSClientHandshake(
                     )
                     return
                 }
+
                 else -> throw TLSException("Unsupported message type during handshake: ${handshake.type}")
             }
         }
@@ -331,6 +352,7 @@ internal class TLSClientHandshake(
                 it[0] = 0x03
                 it[1] = 0x03
             }
+
             ECDHE -> KeyAgreement.getInstance("ECDH")!!.run {
                 if (encryptionInfo == null) throw TLSException("ECDHE_ECDSA: Encryption info should be provided")
                 init(encryptionInfo.clientPrivate)
@@ -349,6 +371,7 @@ internal class TLSClientHandshake(
             RSA -> buildPacket {
                 writeEncryptedPreMasterSecret(preSecret, serverCertificate.publicKey, config.random)
             }
+
             ECDHE -> buildPacket {
                 if (encryptionInfo == null) throw TLSException("ECDHE: Encryption info should be provided")
                 writePublicKeyUncompressed(encryptionInfo.clientPublic)

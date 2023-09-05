@@ -10,7 +10,6 @@ import io.ktor.client.tests.utils.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
@@ -140,6 +139,17 @@ class CIOHttpsTest : TestWithKtor() {
                         client.cancel("Failed with: $cause")
                         fail("${suite.name}: $cause")
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testCertificateIsVerified() {
+        testWithEngine(CIO) {
+            test { client ->
+                assertFailsWith<IOException> {
+                    client.get("https://wrong.host.badssl.com/")
                 }
             }
         }
