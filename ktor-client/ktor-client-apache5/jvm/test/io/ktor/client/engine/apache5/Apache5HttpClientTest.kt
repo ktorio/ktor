@@ -7,10 +7,3 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.tests.*
 
 class Apache5HttpClientTest : HttpClientTest(Apache5)
-
-class Apache5SslOverProxyTest : SslOverProxyTest<Apache5EngineConfig>(Apache5) {
-
-    override fun Apache5EngineConfig.disableCertificatePinning() {
-        this.sslContext = this@Apache5SslOverProxyTest.unsafeSslContext
-    }
-}
