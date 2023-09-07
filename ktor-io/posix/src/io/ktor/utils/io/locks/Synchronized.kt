@@ -10,10 +10,24 @@ import platform.posix.*
 import kotlin.native.concurrent.*
 import kotlin.native.internal.NativePtr
 
+/**
+ * [SynchronizedObject] from `kotlinx.atomicfu.locks`
+ *
+ * [SynchronizedObject] is designed for inheritance. You write `class MyClass : SynchronizedObject()`
+ * and then use `synchronized(instance) { ... }` extension function similarly to the synchronized function
+ * from the standard library that is available for JVM.
+ * The [SynchronizedObject] superclass gets erased (transformed to Any) on JVM and JS,
+ * with `synchronized` leaving no trace in the code on JS and getting replaced with built-in monitors for locking on JVM.
+ */
+@OptIn(ExperimentalForeignApi::class)
 public actual open class SynchronizedObject {
 
     protected val lock: AtomicReference<LockState> = AtomicReference(LockState(Status.UNLOCKED, 0, 0))
 
+    /**
+     * Acquires the lock. If the lock is already held by another thread, the current thread
+     * will block until it can acquire the lock.
+     */
     public fun lock() {
         val currentThreadId = pthread_self()!!
         while (true) {
@@ -87,6 +101,13 @@ public actual open class SynchronizedObject {
         }
     }
 
+    /**
+     * Attempts to acquire the lock. If the lock is available, it will be acquired, and this
+     * function will return true. If the lock is already held by another thread, this function
+     * will return false immediately without blocking.
+     *
+     * @return true if the lock was acquired, false otherwise.
+     */
     public fun tryLock(): Boolean {
         val currentThreadId = pthread_self()!!
         while (true) {
@@ -115,6 +136,10 @@ public actual open class SynchronizedObject {
         }
     }
 
+    /**
+     * Releases the lock. If the current thread holds the lock, it will be released, allowing
+     * other threads to acquire it.
+     */
     public fun unlock() {
         val currentThreadId = pthread_self()!!
         while (true) {
@@ -195,7 +220,9 @@ public actual open class SynchronizedObject {
         public val ownerThreadId: pthread_t? = null,
         public val mutex: CPointer<ktor_mutex_node_t>? = null
     ) {
-        init { freeze() }
+        init {
+            freeze()
+        }
     }
 
     protected enum class Status { UNLOCKED, THIN, FAT }
@@ -205,10 +232,32 @@ public actual open class SynchronizedObject {
     private fun CPointer<ktor_mutex_node_t>.unlock() = ktor_unlock(this.pointed.mutex)
 }
 
-public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
-
+/**
+ * [ReentrantLock] from kotlinx.atomicfu.locks
+ *
+ * [ReentrantLock] is designed for delegation. You write `val lock = reentrantLock()` to construct its instance and
+ * use `lock/tryLock/unlock` functions or `lock.withLock { ... }` extension function similarly to
+ * the way jucl.ReentrantLock is used on JVM. On JVM it is a typealias to the later class, erased on JS.
+ */
 public actual typealias ReentrantLock = SynchronizedObject
 
+/**
+ * Creates a new [ReentrantLock] instance.
+ */
+public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
+
+/**
+ * Executes the given [block] of code while holding the specified [ReentrantLock]. This function
+ * simplifies the process of acquiring and releasing a lock safely.
+ *
+ * Usage:
+ * ```
+ * val lock = reentrantLock()
+ * lock.withLock {
+ *     // Critical section of code
+ * }
+ * ```
+ */
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
     lock()
     try {
@@ -218,6 +267,19 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
     }
 }
 
+/**
+ * Executes the given [block] of code within a synchronized block, using the specified
+ * [SynchronizedObject] as the synchronization object. This function simplifies the process
+ * of creating synchronized blocks safely.
+ *
+ * Usage:
+ * ```
+ * val syncObject = SynchronizedObject()
+ * synchronized(syncObject) {
+ *     // Critical section of code
+ * }
+ * ```
+ */
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T {
     lock.lock()
     try {
@@ -232,7 +294,8 @@ private const val INITIAL_POOL_CAPACITY = 64
 @SharedImmutable
 private val mutexPool by lazy { MutexPool(INITIAL_POOL_CAPACITY) }
 
-public class MutexPool(capacity: Int) {
+@OptIn(ExperimentalForeignApi::class)
+private class MutexPool(capacity: Int) {
     private val top = AtomicNativePtr(NativePtr.NULL)
 
     private val mutexes = nativeHeap.allocArray<ktor_mutex_node_t>(capacity) { ktor_mutex_node_init(ptr) }
@@ -245,9 +308,9 @@ public class MutexPool(capacity: Int) {
 
     private fun allocMutexNode() = nativeHeap.alloc<ktor_mutex_node_t> { ktor_mutex_node_init(ptr) }.ptr
 
-    public fun allocate(): CPointer<ktor_mutex_node_t> = pop() ?: allocMutexNode()
+    fun allocate(): CPointer<ktor_mutex_node_t> = pop() ?: allocMutexNode()
 
-    public fun release(mutexNode: CPointer<ktor_mutex_node_t>) {
+    fun release(mutexNode: CPointer<ktor_mutex_node_t>) {
         while (true) {
             val oldTop = interpretCPointer<ktor_mutex_node_t>(top.value)
             mutexNode.pointed.next = oldTop
