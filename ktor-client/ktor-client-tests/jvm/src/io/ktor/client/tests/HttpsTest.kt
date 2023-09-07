@@ -10,12 +10,13 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.utils.io.errors.*
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
 
-abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
+abstract class HttpsTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>
 ) : TestWithKtor() {
 
@@ -45,9 +46,18 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
         }
 
         test { client ->
-            val response = client.get("https://localhost:8089/")
-            assertEquals("Hello, TLS!", response.body())
-            assertEquals("TLS test server", response.headers["X-Comment"])
+            val first = client.get("https://localhost:8089/")
+            assertEquals("Hello, TLS!", first.body())
+            assertEquals("TLS test server", first.headers["X-Comment"])
+        }
+    }
+
+    @Test
+    fun `test hostname is verified`() = testWithEngine(factory) {
+        test { client ->
+            assertFailsWith<IOException> {
+                client.get("https://wrong.host.badssl.com/")
+            }
         }
     }
 }

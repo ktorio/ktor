@@ -35,7 +35,7 @@ public interface EngineConnectorConfig {
     public val type: ConnectorType
 
     /**
-     * The network interface this host binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
+     * The network interface this host binds to as an IP address or a hostname. If null or 0.0.0.0, then bind to all interfaces.
      */
     public val host: String
 
