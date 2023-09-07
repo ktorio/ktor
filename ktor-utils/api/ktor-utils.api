@@ -957,6 +957,7 @@ public class io/ktor/util/pipeline/Pipeline {
 	public final fun merge (Lio/ktor/util/pipeline/Pipeline;)V
 	public final fun mergePhases (Lio/ktor/util/pipeline/Pipeline;)V
 	public final fun resetFrom (Lio/ktor/util/pipeline/Pipeline;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {

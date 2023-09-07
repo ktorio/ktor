@@ -27,18 +27,18 @@ class ClientPipelinesTest : ClientLoader() {
                         appendAll(response.headers)
                         append(HttpHeaders.WWWAuthenticate, "Bearer")
                     }
-                    proceedWith(
-                        object : HttpResponse() {
-                            override val call: HttpClientCall = response.call
-                            override val status: HttpStatusCode = response.status
-                            override val version: HttpProtocolVersion = response.version
-                            override val requestTime: GMTDate = response.requestTime
-                            override val responseTime: GMTDate = response.responseTime
-                            override val content: ByteReadChannel = response.content
-                            override val headers get() = headers
-                            override val coroutineContext: CoroutineContext = response.coroutineContext
-                        }
-                    )
+                    val responseWithHeaders = object : HttpResponse() {
+                        override val call: HttpClientCall = response.call
+                        override val status: HttpStatusCode = response.status
+                        override val version: HttpProtocolVersion = response.version
+                        override val requestTime: GMTDate = response.requestTime
+                        override val responseTime: GMTDate = response.responseTime
+                        override val content: ByteReadChannel = response.content
+                        override val headers get() = headers
+                        override val coroutineContext: CoroutineContext = response.coroutineContext
+                    }
+
+                    proceedWith(responseWithHeaders)
                 }
             }
         }

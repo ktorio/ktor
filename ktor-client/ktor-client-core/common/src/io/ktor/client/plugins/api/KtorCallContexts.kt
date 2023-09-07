@@ -35,8 +35,7 @@ public class TransformRequestBodyContext internal constructor()
 @KtorDsl
 public class TransformResponseBodyContext internal constructor()
 
-internal object RequestHook :
-    ClientHook<suspend OnRequestContext.(request: HttpRequestBuilder, content: Any) -> Unit> {
+internal object RequestHook : ClientHook<suspend OnRequestContext.(request: HttpRequestBuilder, content: Any) -> Unit> {
 
     override fun install(
         client: HttpClient,
@@ -48,8 +47,7 @@ internal object RequestHook :
     }
 }
 
-internal object ResponseHook :
-    ClientHook<suspend OnResponseContext.(response: HttpResponse) -> Unit> {
+internal object ResponseHook : ClientHook<suspend OnResponseContext.(response: HttpResponse) -> Unit> {
 
     override fun install(
         client: HttpClient,
@@ -61,14 +59,13 @@ internal object ResponseHook :
     }
 }
 
-internal object TransformRequestBodyHook :
-    ClientHook<
-        suspend TransformRequestBodyContext.(
-            request: HttpRequestBuilder,
-            content: Any,
-            bodyType: TypeInfo?
-        ) -> OutgoingContent?
-        > {
+internal object TransformRequestBodyHook : ClientHook<
+    suspend TransformRequestBodyContext.(
+        request: HttpRequestBuilder,
+        content: Any,
+        bodyType: TypeInfo?
+    ) -> OutgoingContent?
+    > {
 
     override fun install(
         client: HttpClient,

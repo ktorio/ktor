@@ -44,7 +44,7 @@ internal class SavedHttpRequest(
 
 internal class SavedHttpResponse(
     override val call: SavedHttpCall,
-    body: ByteArray,
+    private val body: ByteArray,
     origin: HttpResponse
 ) : HttpResponse() {
     private val context = Job()
@@ -62,7 +62,7 @@ internal class SavedHttpResponse(
     override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
     @OptIn(InternalAPI::class)
-    override val content: ByteReadChannel = ByteReadChannel(body)
+    override val content: ByteReadChannel get() = ByteReadChannel(body)
 }
 
 /**

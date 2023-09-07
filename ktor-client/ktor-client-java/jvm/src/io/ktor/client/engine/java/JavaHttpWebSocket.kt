@@ -117,7 +117,7 @@ internal class JavaHttpWebSocket(
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
-            } catch (cause: Exception) {
+            } catch (cause: Throwable) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.toInt()
                 webSocket.sendClose(code, "Client failed")
             } finally {
