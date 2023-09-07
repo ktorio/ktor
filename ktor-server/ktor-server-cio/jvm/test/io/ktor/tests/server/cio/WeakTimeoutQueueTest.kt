@@ -5,9 +5,10 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.internal.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import java.time.*
