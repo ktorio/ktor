@@ -7,8 +7,8 @@ package io.ktor.tests.servlet
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
-import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
 import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationAttributeKey
+import io.ktor.server.servlet.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
 import io.ktor.server.servlet.ServletApplicationEngine.Companion.EnvironmentAttributeKey
 import io.mockk.*
 import java.util.*
