@@ -5,7 +5,7 @@
 package io.ktor.client.plugins.kotlinx.serializer
 
 import io.ktor.client.plugins.json.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("unused", "DEPRECATION")

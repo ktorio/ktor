@@ -5,7 +5,7 @@
 package io.ktor.server.engine
 
 import io.ktor.server.engine.internal.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**

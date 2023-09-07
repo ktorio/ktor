@@ -12,12 +12,10 @@ import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * Base class for implementing [ApplicationEngine]

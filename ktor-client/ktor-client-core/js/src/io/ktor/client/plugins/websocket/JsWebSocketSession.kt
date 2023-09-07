@@ -4,7 +4,7 @@
 
 package io.ktor.client.plugins.websocket
 
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*

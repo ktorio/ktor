@@ -5,8 +5,8 @@ package io.ktor.network.selector
 
 import io.ktor.network.interop.*
 import io.ktor.network.util.*
-import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -62,7 +62,7 @@ internal class SelectorHelper {
         wakeupSignal.signal()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
     private fun selectionLoop() {
         val readSet = select_create_fd_set()
         val writeSet = select_create_fd_set()

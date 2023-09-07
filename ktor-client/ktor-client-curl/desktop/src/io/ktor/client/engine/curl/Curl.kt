@@ -5,7 +5,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import libcurl.*
 

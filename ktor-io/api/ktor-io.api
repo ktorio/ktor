@@ -282,6 +282,15 @@ public final class io/ktor/utils/io/ExceptionUtilsJvmKt {
 	public static final fun tryCopyException (Ljava/lang/Throwable;Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
+public abstract interface annotation class io/ktor/utils/io/InternalAPI : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/utils/io/KtorDsl : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/utils/io/KtorExperimentalAPI : java/lang/annotation/Annotation {
+}
+
 public abstract interface class io/ktor/utils/io/LookAheadSession {
 	public abstract fun consumed (I)V
 	public abstract fun request (II)Ljava/nio/ByteBuffer;
@@ -294,6 +303,10 @@ public final class io/ktor/utils/io/LookAheadSessionKt {
 
 public abstract interface class io/ktor/utils/io/LookAheadSuspendSession : io/ktor/utils/io/LookAheadSession {
 	public abstract fun awaitAtLeast (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class io/ktor/utils/io/PublicAPICandidate : java/lang/annotation/Annotation {
+	public abstract fun version ()Ljava/lang/String;
 }
 
 public abstract interface class io/ktor/utils/io/ReadSession {

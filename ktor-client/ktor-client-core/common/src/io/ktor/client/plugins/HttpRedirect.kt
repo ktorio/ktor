@@ -12,7 +12,7 @@ import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
-import kotlin.native.concurrent.*
+import io.ktor.utils.io.*
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 

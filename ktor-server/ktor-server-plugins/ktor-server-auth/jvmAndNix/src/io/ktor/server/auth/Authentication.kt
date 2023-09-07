@@ -6,6 +6,7 @@ package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * A configuration for the [Authentication] plugin.

@@ -4,7 +4,7 @@
 
 package io.ktor.server.config
 
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import platform.posix.*
 

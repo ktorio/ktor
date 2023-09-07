@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import io.ktor.utils.io.*
+
 /**
  * Represents a nonce manager. Its responsibility is to produce nonce values
  * and verify nonce values from untrusted sources that they are provided by this manager.

@@ -5,6 +5,7 @@
 package io.ktor.util
 
 import io.ktor.util.collections.*
+import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.experimental.*

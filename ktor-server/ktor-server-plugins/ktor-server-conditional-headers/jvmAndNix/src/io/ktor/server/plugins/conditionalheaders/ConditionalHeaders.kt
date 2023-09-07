@@ -11,6 +11,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * A configuration for the [ConditionalHeaders] plugin.

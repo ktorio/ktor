@@ -10,7 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * A configuration for the [XForwardedHeaders] plugin.

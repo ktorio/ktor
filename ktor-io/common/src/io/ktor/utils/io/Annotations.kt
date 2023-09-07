@@ -2,7 +2,7 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-package io.ktor.util
+package io.ktor.utils.io
 
 /**
  * API marked with this annotation is internal, and it is not intended to be used outside Ktor.

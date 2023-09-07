@@ -14,7 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlin.native.concurrent.*
+import io.ktor.utils.io.*
 
 private val UploadProgressListenerAttributeKey =
     AttributeKey<ProgressListener>("UploadProgressListenerAttributeKey")

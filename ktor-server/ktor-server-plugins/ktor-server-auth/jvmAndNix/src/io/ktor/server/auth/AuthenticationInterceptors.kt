@@ -11,6 +11,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.auth.Authentication")
 

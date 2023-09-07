@@ -740,7 +740,7 @@ public abstract class ByteChannelSequentialBase(
             return false
         }
 
-        return close(cause ?: io.ktor.utils.io.CancellationException("Channel cancelled"))
+        return close(cause ?: CancellationException("Channel cancelled"))
     }
 
     override fun close(cause: Throwable?): Boolean {

@@ -17,6 +17,7 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.*
 import org.junit.*
 import kotlin.coroutines.*
+import io.ktor.utils.io.*
 
 class TracingWrapperTest {
     @Test
