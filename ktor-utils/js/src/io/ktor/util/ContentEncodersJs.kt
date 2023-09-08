@@ -9,7 +9,6 @@ package io.ktor.util
 /**
  * Implementation of [ContentEncoder] using gzip algorithm
  */
-@Suppress("NO_ACTUAL_FOR_EXPECT")
 public actual object GZipEncoder : ContentEncoder, Encoder by Identity {
     actual override val name: String = "gzip"
 }
@@ -17,7 +16,6 @@ public actual object GZipEncoder : ContentEncoder, Encoder by Identity {
 /**
  * Implementation of [ContentEncoder] using deflate algorithm
  */
-@Suppress("NO_ACTUAL_FOR_EXPECT")
 public actual object DeflateEncoder : ContentEncoder, Encoder by Identity {
     actual override val name: String = "deflate"
 }
