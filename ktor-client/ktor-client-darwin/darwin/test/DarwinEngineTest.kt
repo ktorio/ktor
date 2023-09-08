@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.test.dispatcher.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -226,6 +227,21 @@ class DarwinEngineTest {
         assertEquals("test", response.readText())
         assertTrue(customChallengeCalled)
         session.close()
+    }
+
+
+    @Test
+    fun testWebSocketPinInterval() = testSuspend {
+        val client = HttpClient(Darwin) {
+            install(WebSockets) {
+                pingInterval = 1000
+            }
+        }
+
+        client.webSocket("wss://ws.postman-echo.com/raw") {
+            delay(3000)
+            close()
+        }
     }
 
     private fun stringToNSUrlString(value: String): String {
