@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 public expect sealed class SocketAddress
 
-@Suppress("ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED")
 public expect class InetSocketAddress(
     hostname: String,
     port: Int
@@ -46,7 +45,6 @@ public expect class InetSocketAddress(
     override fun toString(): String
 }
 
-@Suppress("ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED")
 public expect class UnixSocketAddress(
     path: String
 ) : SocketAddress {
