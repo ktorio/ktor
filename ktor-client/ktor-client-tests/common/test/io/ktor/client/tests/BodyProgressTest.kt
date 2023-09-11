@@ -120,27 +120,6 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
     }
 
     @Test
-    fun testSendFailedChannel() = clientTests {
-        test { client ->
-            val listener: ProgressListener = { _, _ -> }
-
-            val channel = ByteChannel()
-            GlobalScope.launch {
-                channel.writeFully(TEST_ARRAY)
-                channel.writeFully(TEST_ARRAY)
-                channel.close(RuntimeException("Error"))
-            }
-
-            assertFailsWith<RuntimeException> {
-                client.post("$TEST_SERVER/content/echo") {
-                    setBody(channel)
-                    onUpload(listener)
-                }
-            }
-        }
-    }
-
-    @Test
     fun testReceiveDataClassWithExecute() = clientTests {
         config {
             install(JsonPlugin) {

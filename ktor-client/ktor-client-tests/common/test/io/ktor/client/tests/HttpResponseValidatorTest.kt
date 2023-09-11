@@ -14,7 +14,7 @@ import io.ktor.http.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-class CallValidatorTest {
+class HttpResponseValidatorTest {
     private var firstHandler = 0
     private var secondHandler = 0
     private var handleTriggered = false
@@ -485,6 +485,29 @@ class CallValidatorTest {
             } catch (cause: ResponseException) {
                 assertEquals(cause.message?.contains("<body failed decoding>"), true)
             }
+        }
+    }
+
+    @Test
+    fun testConsumeBody() = testWithEngine(MockEngine) {
+        config {
+            HttpResponseValidator {
+                validateResponse {
+                    assertEquals("Hello, world!", it.bodyAsText())
+                }
+            }
+
+            engine {
+                addHandler {
+                    respondOk("Hello, world!")
+                }
+            }
+        }
+
+        test {
+            it.prepareGet("").execute {
+            }
+            assertEquals("Hello, world!", it.get("").bodyAsText())
         }
     }
 }

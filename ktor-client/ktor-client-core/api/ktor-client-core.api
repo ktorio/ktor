@@ -312,6 +312,12 @@ public final class io/ktor/client/plugins/DefaultTransformKt {
 	public static final fun defaultTransformers (Lio/ktor/client/HttpClient;)V
 }
 
+public final class io/ktor/client/plugins/DoubleReceivePluginKt {
+	public static final fun getSaveBodyPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+	public static final fun isSaved (Lio/ktor/client/statement/HttpResponse;)Z
+	public static final fun skipSavingBody (Lio/ktor/client/request/HttpRequestBuilder;)V
+}
+
 public final class io/ktor/client/plugins/HttpCallValidator {
 	public static final field Companion Lio/ktor/client/plugins/HttpCallValidator$Companion;
 }
@@ -553,6 +559,12 @@ public class io/ktor/client/plugins/ResponseException : java/lang/IllegalStateEx
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;)V
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+}
+
+public final class io/ktor/client/plugins/SaveBodyPluginConfig {
+	public fun <init> ()V
+	public final fun getDisabled ()Z
+	public final fun setDisabled (Z)V
 }
 
 public final class io/ktor/client/plugins/SendCountExceedException : java/lang/IllegalStateException {
@@ -813,6 +825,7 @@ public final class io/ktor/client/plugins/observer/DelegatedCallKt {
 	public static final fun wrap (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/Headers;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;Z)Lio/ktor/client/call/HttpClientCall;
+	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lkotlin/jvm/functions/Function0;)Lio/ktor/client/call/HttpClientCall;
 }
 
 public final class io/ktor/client/plugins/observer/ResponseObserver {
@@ -1483,7 +1496,8 @@ public final class io/ktor/client/statement/HttpStatement {
 	public final fun cleanup (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun executeUnsafe (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchResponse (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchStreamingResponse (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun toString ()Ljava/lang/String;
 }

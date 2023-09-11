@@ -36,6 +36,13 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
 }
 
 /**
+ * Wrap existing [HttpClientCall] with new [content].
+ */
+public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpClientCall {
+    return DelegatedCall(client, block, this)
+}
+
+/**
  * Wrap existing [HttpClientCall] with new response [content] and [headers].
  */
 public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
@@ -44,14 +51,21 @@ public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): Http
 
 internal class DelegatedCall(
     client: HttpClient,
-    content: ByteReadChannel,
+    block: () -> ByteReadChannel,
     originCall: HttpClientCall,
     responseHeaders: Headers = originCall.response.headers
 ) : HttpClientCall(client) {
 
+    constructor(
+        client: HttpClient,
+        content: ByteReadChannel,
+        originCall: HttpClientCall,
+        responseHeaders: Headers = originCall.response.headers
+    ) : this(client, { content }, originCall, responseHeaders)
+
     init {
         request = DelegatedRequest(this, originCall.request)
-        response = DelegatedResponse(this, content, originCall.response, responseHeaders)
+        response = DelegatedResponse(this, block, originCall.response, responseHeaders)
     }
 }
 
@@ -63,10 +77,20 @@ internal class DelegatedRequest(
 @OptIn(InternalAPI::class)
 internal class DelegatedResponse(
     override val call: HttpClientCall,
-    override val content: ByteReadChannel,
+    private val block: () -> ByteReadChannel,
     private val origin: HttpResponse,
     override val headers: Headers = origin.headers
 ) : HttpResponse() {
+
+    constructor(
+        call: HttpClientCall,
+        content: ByteReadChannel,
+        origin: HttpResponse,
+        headers: Headers = origin.headers
+    ) : this(call, { content }, origin, headers)
+
+    override val content: ByteReadChannel get() = block()
+
     override val coroutineContext: CoroutineContext = origin.coroutineContext
 
     override val status: HttpStatusCode get() = origin.status
