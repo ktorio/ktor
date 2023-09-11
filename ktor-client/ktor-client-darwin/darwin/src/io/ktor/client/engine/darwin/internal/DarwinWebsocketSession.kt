@@ -115,12 +115,13 @@ internal class DarwinWebsocketSession(
                 }
 
                 FrameType.PING -> {
+                    val payload = frame.readBytes()
                     task.sendPingWithPongReceiveHandler { error ->
                         if (error != null) {
                             cancel("Error receiving pong", DarwinHttpRequestException(error))
                             return@sendPingWithPongReceiveHandler
                         }
-                        _incoming.trySend(Frame.Pong(ByteReadPacket.Empty))
+                        _incoming.trySend(Frame.Pong(payload))
                     }
                 }
 
@@ -166,6 +167,7 @@ internal class DarwinWebsocketSession(
         socketJob.completeExceptionally(exception)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun didClose(
         code: NSURLSessionWebSocketCloseCode,
         reason: NSData?,

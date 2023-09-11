@@ -15,7 +15,13 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.posix.*
 
-@OptIn(DelicateCoroutinesApi::class, UnsafeNumber::class, InternalAPI::class)
+@OptIn(
+    DelicateCoroutinesApi::class,
+    UnsafeNumber::class,
+    InternalAPI::class,
+    ExperimentalForeignApi::class,
+    BetaInteropApi::class
+)
 internal suspend fun OutgoingContent.toDataOrStream(): Any? {
     if (this is OutgoingContent.ByteArrayContent) return bytes().toNSData()
     if (this is OutgoingContent.NoContent) return null
