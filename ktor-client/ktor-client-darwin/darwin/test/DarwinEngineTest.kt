@@ -238,9 +238,13 @@ class DarwinEngineTest {
             }
         }
 
-        client.webSocket("wss://ws.postman-echo.com/raw") {
-            delay(3000)
-            close()
+        assertFailsWith<TimeoutCancellationException> {
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                withTimeout(5000) {
+                    for (frame in incoming) {
+                    }
+                }
+            }
         }
     }
 
