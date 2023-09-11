@@ -34,6 +34,11 @@ public class ApplicationPropertiesBuilder(
     public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
     /**
+     * Parent coroutine context for an application
+     */
+    public var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+
+    /**
      * Install application module
      */
     public fun module(body: Application.() -> Unit) {
@@ -41,7 +46,7 @@ public class ApplicationPropertiesBuilder(
     }
 
     internal fun build(): ApplicationProperties =
-        ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode)
+        ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
 public class ApplicationProperties(
@@ -49,8 +54,12 @@ public class ApplicationProperties(
     internal val modules: MutableList<Application.() -> Unit>,
     internal val watchPaths: List<String>,
     public val rootPath: String,
-    public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
-)
+    public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,
+    parentCoroutineContext: CoroutineContext
+) {
+    private val bridge = ApplicationPropertiesBridge(this, parentCoroutineContext)
+    public val parentCoroutineContext: CoroutineContext = bridge.parentCoroutineContext
+}
 
 public fun applicationProperties(
     environment: ApplicationEnvironment = applicationEnvironment {},
@@ -70,12 +79,15 @@ public class Application(
     developmentMode: Boolean,
     public var rootPath: String,
     public val monitor: Events,
-    public val engine: ApplicationEngine
+    public val parentCoroutineContext: CoroutineContext,
+    private val engineProvider: () -> ApplicationEngine
 ) : ApplicationCallPipeline(developmentMode, environment), CoroutineScope {
 
-    private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])
+    private val applicationJob = SupervisorJob(parentCoroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = environment.parentCoroutineContext + applicationJob
+    public val engine: ApplicationEngine get() = engineProvider()
+
+    override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
 
     /**
      * Called by [ApplicationEngine] when [Application] is terminated

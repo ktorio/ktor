@@ -124,10 +124,10 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
     val environment = applicationEnvironment {
-        this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.log = KtorSimpleLogger("io.ktor.server.Application")
     }
     val applicationProperties = applicationProperties(environment) {
+        this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.watchPaths = watchPaths
         this.module(module)
     }

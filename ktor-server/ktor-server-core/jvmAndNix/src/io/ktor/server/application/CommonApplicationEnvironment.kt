@@ -13,10 +13,6 @@ import kotlin.coroutines.*
  * Represents an environment in which [Application] runs
  */
 public expect interface ApplicationEnvironment {
-    /**
-     * Parent coroutine context for an application
-     */
-    public val parentCoroutineContext: CoroutineContext
 
     /**
      * Instance of [Logger] to be used for logging.
@@ -27,4 +23,11 @@ public expect interface ApplicationEnvironment {
      * Configuration for the [Application]
      */
     public val config: ApplicationConfig
+}
+
+internal expect class ApplicationPropertiesBridge(
+    applicationProperties: ApplicationProperties,
+    parentCoroutineContext: CoroutineContext
+) {
+    internal val parentCoroutineContext: CoroutineContext
 }

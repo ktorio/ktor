@@ -16,10 +16,6 @@ import kotlin.coroutines.*
  */
 @KtorDsl
 public actual class ApplicationEnvironmentBuilder {
-    /**
-     * Parent coroutine context for an application
-     */
-    public actual var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
 
     /**
      * Application logger
@@ -34,13 +30,12 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    public actual fun build(shouldReload: Boolean): ApplicationEnvironment {
-        return ApplicationEngineEnvironmentImplNix(log, config, parentCoroutineContext)
+    public actual fun build(): ApplicationEnvironment {
+        return ApplicationEngineEnvironmentImplNix(log, config)
     }
 }
 
 public class ApplicationEngineEnvironmentImplNix(
     override val log: Logger,
     override val config: ApplicationConfig,
-    override val parentCoroutineContext: CoroutineContext,
 ) : ApplicationEnvironment

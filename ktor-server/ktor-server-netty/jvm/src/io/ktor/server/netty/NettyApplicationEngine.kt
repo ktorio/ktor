@@ -165,7 +165,7 @@ public class NettyApplicationEngine(
         configuration.connectors.map(::createBootstrap)
     }
 
-    private val userContext = environment.parentCoroutineContext +
+    private val userContext = applicationProvider().parentCoroutineContext +
         nettyDispatcher +
         NettyApplicationCallHandler.CallHandlerCoroutineName +
         DefaultUncaughtExceptionHandler(environment.log)
@@ -230,8 +230,11 @@ public class NettyApplicationEngine(
 
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred =
-            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        cancellationDeferred = stopServerOnCancellation(
+            applicationProvider(),
+            configuration.shutdownGracePeriod,
+            configuration.shutdownTimeout
+        )
 
         if (wait) {
             channels?.map { it.closeFuture() }?.forEach { it.sync() }

@@ -49,7 +49,7 @@ internal class JettyServletApplicationEngine(
     configuration: Configuration,
     applicationProvider: () -> Application,
     async: Boolean
-) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration) {
+) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader

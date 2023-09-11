@@ -78,7 +78,6 @@ actual constructor(
     ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
         val environment = applicationEnvironment {
-            this.parentCoroutineContext = parent
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(message: String, cause: Throwable) {
@@ -93,6 +92,7 @@ actual constructor(
             }
         }
         val properties = applicationProperties(environment) {
+            this.parentCoroutineContext = parent
             module(module)
         }
 

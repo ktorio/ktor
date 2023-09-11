@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -13,10 +14,11 @@ import kotlinx.coroutines.*
  */
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(
+    application: Application,
     gracePeriodMillis: Long = 50,
     timeoutMillis: Long = 5000
 ): CompletableJob =
-    environment.parentCoroutineContext[Job]?.launchOnCancellation {
+    application.parentCoroutineContext[Job]?.launchOnCancellation {
         stop(gracePeriodMillis, timeoutMillis)
     } ?: Job()
 

@@ -28,10 +28,10 @@ class NettyConfigurationTest {
         val application = mockk<Application>().apply {
             every { coroutineContext } returns Job()
             every { developmentMode } returns false
+            every { parentCoroutineContext } returns Dispatchers.Default
         }
         val environment = mockk<ApplicationEnvironment>().apply {
             every { log } returns KtorSimpleLogger("test-logger")
-            every { parentCoroutineContext } returns Dispatchers.Default
             every { this@apply.config } returns config
         }
         every { server.application } returns application

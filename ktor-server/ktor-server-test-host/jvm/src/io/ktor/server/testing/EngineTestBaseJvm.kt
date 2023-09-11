@@ -114,7 +114,6 @@ actual abstract class EngineTestBase<
     ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
         val environment = applicationEnvironment {
-            this.parentCoroutineContext = parent
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
@@ -131,6 +130,7 @@ actual abstract class EngineTestBase<
             }
         }
         val properties = applicationProperties(environment) {
+            this.parentCoroutineContext = parent
             module(module)
         }
 

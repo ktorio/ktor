@@ -25,20 +25,21 @@ actual constructor(
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
 
+    public actual val application: Application = Application(
+        environment,
+        applicationProperties.developmentMode,
+        applicationProperties.rootPath,
+        monitor,
+        applicationProperties.parentCoroutineContext,
+        ::engine
+    )
+
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
         applicationProperties.developmentMode,
         engineConfig,
         ::application
-    )
-
-    public actual val application: Application = Application(
-        environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
-        monitor,
-        engine
     )
 
     private val modules = applicationProperties.modules

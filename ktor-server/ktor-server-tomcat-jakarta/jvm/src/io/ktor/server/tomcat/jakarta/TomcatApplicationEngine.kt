@@ -60,7 +60,7 @@ public class TomcatApplicationEngine(
         override val logger: Logger
             get() = this@TomcatApplicationEngine.environment.log
         override val coroutineContext: CoroutineContext
-            get() = super.coroutineContext + environment.parentCoroutineContext
+            get() = super.coroutineContext + application.parentCoroutineContext
     }
 
     private val server = Tomcat().apply {
@@ -167,8 +167,11 @@ public class TomcatApplicationEngine(
         resolvedConnectors.complete(connectors)
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred =
-            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        cancellationDeferred = stopServerOnCancellation(
+            applicationProvider(),
+            configuration.shutdownGracePeriod,
+            configuration.shutdownTimeout
+        )
         if (wait) {
             server.server.await()
             stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)

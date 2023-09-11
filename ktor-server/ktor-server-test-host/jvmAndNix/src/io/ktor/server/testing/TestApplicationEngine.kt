@@ -37,11 +37,11 @@ class TestApplicationEngine(
     internal val configuration: Configuration
 ) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
-    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private val testEngineJob = Job(applicationProvider().parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext =
-        environment.parentCoroutineContext + testEngineJob + configuration.dispatcher
+        applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
 
     val application: Application
         get() = applicationProvider()
@@ -143,7 +143,11 @@ class TestApplicationEngine(
 
     override fun start(wait: Boolean): ApplicationEngine {
         check(testEngineJob.isActive) { "Test engine is already completed" }
-        cancellationDeferred = stopServerOnCancellation()
+        cancellationDeferred = stopServerOnCancellation(
+            applicationProvider(),
+            configuration.shutdownGracePeriod,
+            configuration.shutdownTimeout
+        )
         resolvedConnectors.complete(runBlocking { resolvedConnectors() })
 
         return this

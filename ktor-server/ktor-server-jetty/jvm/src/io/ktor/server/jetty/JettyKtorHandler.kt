@@ -50,10 +50,10 @@ internal class JettyKtorHandler(
     private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
-    private val handlerJob = SupervisorJob(environment.parentCoroutineContext[Job])
+    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext =
-        environment.parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
+        applicationProvider().parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
         try {

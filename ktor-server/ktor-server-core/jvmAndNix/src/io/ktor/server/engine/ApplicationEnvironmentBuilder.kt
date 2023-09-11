@@ -18,10 +18,6 @@ import kotlin.coroutines.*
  */
 @KtorDsl
 public expect class ApplicationEnvironmentBuilder() {
-    /**
-     * Parent coroutine context for an application
-     */
-    public var parentCoroutineContext: CoroutineContext
 
     /**
      * Application logger
@@ -36,12 +32,11 @@ public expect class ApplicationEnvironmentBuilder() {
     /**
      * Build an application engine environment
      */
-    public fun build(shouldReload: Boolean): ApplicationEnvironment
+    public fun build(): ApplicationEnvironment
 }
 
 public fun applicationEnvironment(
-    isReloading: Boolean = false,
     block: ApplicationEnvironmentBuilder.() -> Unit = {}
 ): ApplicationEnvironment {
-    return ApplicationEnvironmentBuilder().apply(block).build(isReloading)
+    return ApplicationEnvironmentBuilder().apply(block).build()
 }

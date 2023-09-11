@@ -42,6 +42,28 @@ actual constructor(
         get() = currentApplication()
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
+    private val applicationInstanceLock = ReentrantReadWriteLock()
+    private var recreateInstance: Boolean = false
+    private var _applicationClassLoader: ClassLoader? = null
+    private var packageWatchKeys = emptyList<WatchKey>()
+
+    private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
+    private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
+
+    private val configModulesNames: List<String> = run {
+        environment.config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
+    }
+
+    private val modulesNames: List<String> = configModulesNames
+
+    private var _applicationInstance: Application? = Application(
+        environment,
+        applicationProperties.developmentMode,
+        applicationProperties.rootPath,
+        monitor,
+        applicationProperties.parentCoroutineContext,
+        ::engine
+    )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
@@ -50,23 +72,6 @@ actual constructor(
         engineConfig,
         ::currentApplication
     )
-
-    private val configuredWatchPath
-        get() = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
-    private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
-
-    private var _applicationInstance: Application? =
-        Application(environment, applicationProperties.developmentMode, applicationProperties.rootPath, monitor, engine)
-    private var recreateInstance: Boolean = false
-    private var _applicationClassLoader: ClassLoader? = null
-    private val applicationInstanceLock = ReentrantReadWriteLock()
-    private var packageWatchKeys = emptyList<WatchKey>()
-
-    private val configModulesNames: List<String> = run {
-        environment.config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
-    }
-
-    internal val modulesNames: List<String> = configModulesNames
 
     private val watcher: WatchService? by lazy {
         try {
@@ -307,7 +312,8 @@ actual constructor(
                 applicationProperties.developmentMode,
                 applicationProperties.rootPath,
                 monitor,
-                engine
+                applicationProperties.parentCoroutineContext,
+                ::engine
             )
         } else {
             recreateInstance = true

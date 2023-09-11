@@ -183,7 +183,7 @@ public class CIOApplicationEngine(
         val cioConnectors = resolvedConnectors
 
         return CoroutineScope(
-            environment.parentCoroutineContext + engineDispatcher
+            applicationProvider().parentCoroutineContext + engineDispatcher
         ).launch(start = CoroutineStart.LAZY) {
             val connectors = ArrayList<HttpServer>(configuration.connectors.size)
 

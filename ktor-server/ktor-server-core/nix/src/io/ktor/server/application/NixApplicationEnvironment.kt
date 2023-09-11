@@ -10,10 +10,6 @@ import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
 public actual interface ApplicationEnvironment {
-    /**
-     * Parent coroutine context for an application
-     */
-    public actual val parentCoroutineContext: CoroutineContext
 
     /**
      * Configuration for the [Application]
@@ -25,3 +21,8 @@ public actual interface ApplicationEnvironment {
      */
     public actual val log: Logger
 }
+
+internal actual class ApplicationPropertiesBridge actual constructor(
+    applicationProperties: ApplicationProperties,
+    internal actual val parentCoroutineContext: CoroutineContext,
+)

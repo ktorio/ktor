@@ -90,9 +90,7 @@ class TestApplicationTestJvm {
 
     @Test
     fun testCustomEnvironmentKeepsDefaultProperties() = testApplication {
-        environment {
-            parentCoroutineContext = CoroutineName("ktor")
-        }
+        environment { }
         routing {
             val config = environment.config
             get("a") {
@@ -176,7 +174,7 @@ class TestApplicationTestJvm {
                 error = exception
             }
         }
-        environment {
+        testApplicationProperties {
             parentCoroutineContext = exceptionHandler
         }
         application {

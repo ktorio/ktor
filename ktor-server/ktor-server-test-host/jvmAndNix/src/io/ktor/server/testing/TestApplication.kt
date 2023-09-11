@@ -153,6 +153,7 @@ public open class TestApplicationBuilder {
     internal val applicationModules = mutableListOf<Application.() -> Unit>()
     internal var engineConfig: TestApplicationEngine.Configuration.() -> Unit = {}
     internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
+    internal var applicationProperties: ApplicationPropertiesBuilder.() -> Unit = {}
     internal val job = Job()
 
     internal val properties by lazy {
@@ -163,12 +164,13 @@ public open class TestApplicationBuilder {
             if (config == oldConfig) { // the user did not set config. load the default one
                 config = DefaultTestConfig()
             }
-            parentCoroutineContext += this@TestApplicationBuilder.job
         }
         applicationProperties(environment) {
             this@TestApplicationBuilder.applicationModules.forEach { module(it) }
+            parentCoroutineContext += this@TestApplicationBuilder.job
             watchPaths = emptyList()
             developmentMode = true
+            this@TestApplicationBuilder.applicationProperties(this)
         }
     }
 
@@ -199,6 +201,17 @@ public open class TestApplicationBuilder {
         checkNotBuilt()
         val oldBuilder = engineConfig
         engineConfig = { oldBuilder(); block() }
+    }
+
+    /**
+     * Adds a configuration block for the [ApplicationProperties].
+     * @see [testApplication]
+     */
+    @KtorDsl
+    public fun testApplicationProperties(block: ApplicationPropertiesBuilder.() -> Unit) {
+        checkNotBuilt()
+        val oldBuilder = applicationProperties
+        applicationProperties = { oldBuilder(); block() }
     }
 
     /**
@@ -363,7 +376,7 @@ public fun testApplication(
         .apply {
             runBlocking(parentCoroutineContext) {
                 if (parentCoroutineContext != EmptyCoroutineContext) {
-                    environment {
+                    testApplicationProperties {
                         this.parentCoroutineContext = parentCoroutineContext
                     }
                 }

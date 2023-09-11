@@ -22,7 +22,8 @@ public open class JettyApplicationEngineBase(
     /**
      * Application engine configuration specifying engine-specific options such as parallelism level.
      */
-    protected val configuration: Configuration
+    protected val configuration: Configuration,
+    private val applicationProvider: () -> Application
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**
@@ -57,8 +58,11 @@ public open class JettyApplicationEngineBase(
         }
 
         server.start()
-        cancellationDeferred =
-            stopServerOnCancellation(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        cancellationDeferred = stopServerOnCancellation(
+            applicationProvider(),
+            configuration.shutdownGracePeriod,
+            configuration.shutdownTimeout
+        )
 
         val connectors = server.connectors.zip(configuration.connectors)
             .map { it.second.withPort((it.first as ServerConnector).localPort) }

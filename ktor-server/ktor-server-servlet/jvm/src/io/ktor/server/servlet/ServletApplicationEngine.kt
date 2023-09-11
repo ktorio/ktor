@@ -93,7 +93,7 @@ public open class ServletApplicationEngine : KtorServlet() {
     }
 
     override val coroutineContext: CoroutineContext
-        get() = super.coroutineContext + environment.parentCoroutineContext
+        get() = super.coroutineContext + application.parentCoroutineContext
 
     /**
      * Called by the servlet container when loading the servlet (on load)

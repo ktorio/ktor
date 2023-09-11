@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class ReceiveBlockingPrimitiveTest {
@@ -65,13 +66,15 @@ class ReceiveBlockingPrimitiveTest {
             false,
             "/",
             Events(),
+            EmptyCoroutineContext
+        ) {
             object : ApplicationEngine {
                 override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = TODO("Not yet implemented")
                 override val environment: ApplicationEnvironment get() = TODO("Not yet implemented")
                 override fun start(wait: Boolean): ApplicationEngine = TODO("Not yet implemented")
                 override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = TODO("Not yet implemented")
             }
-        )
+        }
     ) {
         init {
             application.receivePipeline.installDefaultTransformations()

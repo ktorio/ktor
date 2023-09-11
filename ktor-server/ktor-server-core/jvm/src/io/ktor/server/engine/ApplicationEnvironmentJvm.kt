@@ -21,11 +21,6 @@ public actual class ApplicationEnvironmentBuilder {
     public var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
 
     /**
-     * Parent coroutine context for an application
-     */
-    public actual var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
-
-    /**
      * Application logger
      */
     public actual var log: Logger = LoggerFactory.getLogger("io.ktor.server.Application")
@@ -38,38 +33,13 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    public actual fun build(shouldReload: Boolean): ApplicationEnvironment {
-        return ApplicationEnvironmentImplJvm(classLoader, parentCoroutineContext, log, config, shouldReload)
+    public actual fun build(): ApplicationEnvironment {
+        return ApplicationEnvironmentImplJvm(classLoader, log, config)
     }
 }
 
 internal class ApplicationEnvironmentImplJvm(
     override val classLoader: ClassLoader,
-    parentCoroutineContext: CoroutineContext,
     override val log: Logger,
     override val config: ApplicationConfig,
-    isReloading: Boolean,
-) : ApplicationEnvironment {
-
-    override val parentCoroutineContext: CoroutineContext = when {
-        isReloading -> parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
-        else -> parentCoroutineContext
-    }
-}
-
-private object ClassLoaderAwareContinuationInterceptor : ContinuationInterceptor {
-    override val key: CoroutineContext.Key<*> =
-        object : CoroutineContext.Key<ClassLoaderAwareContinuationInterceptor> {}
-
-    override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
-        val classLoader = Thread.currentThread().contextClassLoader
-        return object : Continuation<T> {
-            override val context: CoroutineContext = continuation.context
-
-            override fun resumeWith(result: Result<T>) {
-                Thread.currentThread().contextClassLoader = classLoader
-                continuation.resumeWith(result)
-            }
-        }
-    }
-}
+) : ApplicationEnvironment
