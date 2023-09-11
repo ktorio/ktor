@@ -231,7 +231,7 @@ class DarwinEngineTest {
 
 
     @Test
-    fun testWebSocketPinInterval() = testSuspend {
+    fun testWebSocketPingInterval() = testSuspend {
         val client = HttpClient(Darwin) {
             install(WebSockets) {
                 pingInterval = 1000
