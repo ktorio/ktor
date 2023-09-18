@@ -6,7 +6,7 @@ atomicfu-version = "0.20.2"
 serialization-version = "1.5.1"
 ktlint-version = "3.15.0"
 
-netty-version = "4.1.92.Final"
+netty-version = "4.1.97.Final"
 netty-tcnative-version = "2.0.61.Final"
 
 jetty-version = "9.4.51.v20230217"
