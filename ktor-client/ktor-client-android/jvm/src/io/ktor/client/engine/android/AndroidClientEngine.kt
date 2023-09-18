@@ -9,7 +9,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -30,13 +29,6 @@ private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
  */
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
-
-    override val dispatcher: CoroutineDispatcher by lazy {
-        Dispatchers.clientDispatcher(
-            config.threadsCount,
-            "ktor-android-dispatcher"
-        )
-    }
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeout, SSECapability)
 

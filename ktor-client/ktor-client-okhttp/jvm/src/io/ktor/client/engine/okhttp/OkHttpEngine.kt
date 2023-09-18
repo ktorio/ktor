@@ -10,7 +10,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -22,20 +21,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
 import okio.*
-import java.io.Closeable
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
-
-    public override val dispatcher: CoroutineDispatcher by lazy {
-        Dispatchers.clientDispatcher(
-            config.threadsCount,
-            "ktor-okhttp-dispatcher"
-        )
-    }
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeout, WebSocketCapability, SSECapability)
@@ -63,7 +54,6 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                     client.connectionPool.evictAll()
                     client.dispatcher.executorService.shutdown()
                 }
-                (dispatcher as Closeable).close()
             }
         }
     }

@@ -236,6 +236,15 @@ public final class io/ktor/util/InputJvmKt {
 	public static final fun asStream (Lio/ktor/utils/io/core/Input;)Ljava/io/InputStream;
 }
 
+public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/util/KtorDsl : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
+}
+
 public final class io/ktor/util/NIOKt {
 	public static final fun copy (Ljava/nio/ByteBuffer;I)Ljava/nio/ByteBuffer;
 	public static final fun copy (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;I)Ljava/nio/ByteBuffer;
@@ -286,6 +295,10 @@ public final class io/ktor/util/PlatformUtils {
 
 public final class io/ktor/util/PlatformUtilsJvmKt {
 	public static final fun getPlatform (Lio/ktor/util/PlatformUtils;)Lio/ktor/util/Platform;
+}
+
+public abstract interface annotation class io/ktor/util/PublicAPICandidate : java/lang/annotation/Annotation {
+	public abstract fun version ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/RangesKt {
