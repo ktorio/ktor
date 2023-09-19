@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io.locks
 
+import io.ktor.utils.io.*
+
 /**
  * [SynchronizedObject] from `kotlinx.atomicfu.locks`
  *
@@ -13,6 +15,7 @@ package io.ktor.utils.io.locks
  * The [SynchronizedObject] superclass gets erased (transformed to Any) on JVM and JS,
  * with `synchronized` leaving no trace in the code on JS and getting replaced with built-in monitors for locking on JVM.
  */
+@InternalAPI
 public expect open class SynchronizedObject()
 
 /**
@@ -22,6 +25,7 @@ public expect open class SynchronizedObject()
  * use `lock/tryLock/unlock` functions or `lock.withLock { ... }` extension function similarly to
  * the way jucl.ReentrantLock is used on JVM. On JVM it is a typealias to the later class, erased on JS.
  */
+@InternalAPI
 public expect class ReentrantLock {
     /**
      * Acquires the lock. If the lock is already held by another thread, the current thread
@@ -48,6 +52,7 @@ public expect class ReentrantLock {
 /**
  * Creates a new [ReentrantLock] instance.
  */
+@InternalAPI
 public expect fun reentrantLock(): ReentrantLock
 
 /**
@@ -62,6 +67,7 @@ public expect fun reentrantLock(): ReentrantLock
  * }
  * ```
  */
+@InternalAPI
 public expect inline fun <T> ReentrantLock.withLock(block: () -> T): T
 
 /**
@@ -77,4 +83,5 @@ public expect inline fun <T> ReentrantLock.withLock(block: () -> T): T
  * }
  * ```
  */
+@InternalAPI
 public expect inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T

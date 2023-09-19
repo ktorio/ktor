@@ -5,11 +5,13 @@
 
 package io.ktor.util.collections
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.locks.*
 
 /**
  * Ktor concurrent map implementation. Please do not use it.
  */
+@OptIn(InternalAPI::class)
 public actual class ConcurrentMap<Key, Value> public actual constructor(
     initialCapacity: Int
 ) : MutableMap<Key, Value> {

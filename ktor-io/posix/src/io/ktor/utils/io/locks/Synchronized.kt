@@ -4,6 +4,7 @@
 
 package io.ktor.utils.io.locks
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.interop.mutex.*
 import kotlinx.cinterop.*
 import platform.posix.*
@@ -20,6 +21,7 @@ import kotlin.native.internal.NativePtr
  * with `synchronized` leaving no trace in the code on JS and getting replaced with built-in monitors for locking on JVM.
  */
 @OptIn(ExperimentalForeignApi::class)
+@InternalAPI
 public actual open class SynchronizedObject {
 
     protected val lock: AtomicReference<LockState> = AtomicReference(LockState(Status.UNLOCKED, 0, 0))
@@ -239,11 +241,13 @@ public actual open class SynchronizedObject {
  * use `lock/tryLock/unlock` functions or `lock.withLock { ... }` extension function similarly to
  * the way jucl.ReentrantLock is used on JVM. On JVM it is a typealias to the later class, erased on JS.
  */
+@InternalAPI
 public actual typealias ReentrantLock = SynchronizedObject
 
 /**
  * Creates a new [ReentrantLock] instance.
  */
+@InternalAPI
 public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
 
 /**
@@ -258,6 +262,7 @@ public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
  * }
  * ```
  */
+@InternalAPI
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
     lock()
     try {
@@ -280,6 +285,7 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
  * }
  * ```
  */
+@InternalAPI
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T {
     lock.lock()
     try {

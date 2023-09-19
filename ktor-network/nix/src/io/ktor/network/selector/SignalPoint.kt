@@ -5,6 +5,7 @@
 package io.ktor.network.selector
 
 import io.ktor.network.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.locks.*
@@ -12,7 +13,7 @@ import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
 internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int

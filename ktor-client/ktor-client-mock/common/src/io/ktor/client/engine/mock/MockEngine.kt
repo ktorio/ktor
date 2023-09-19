@@ -24,6 +24,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         WebSocketExtensionsCapability
     )
 
+    @OptIn(InternalAPI::class)
     private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 

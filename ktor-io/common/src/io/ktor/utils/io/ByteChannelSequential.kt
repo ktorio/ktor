@@ -66,6 +66,7 @@ public abstract class ByteChannelSequentialBase(
             error("Closed cause shouldn't be changed directly")
         }
 
+    @OptIn(InternalAPI::class)
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
 
@@ -109,6 +110,7 @@ public abstract class ByteChannelSequentialBase(
      *
      * This method is writer-only safe.
      */
+    @OptIn(InternalAPI::class)
     private fun flushWrittenBytes() {
         synchronized(flushMutex) {
             val size = writable.size
@@ -123,6 +125,7 @@ public abstract class ByteChannelSequentialBase(
      *
      * This method is reader-only safe.
      */
+    @OptIn(InternalAPI::class)
     protected fun prepareFlushedBytes() {
         synchronized(flushMutex) {
             readable.unsafeAppend(flushBuffer)

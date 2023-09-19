@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io.locks
 
+import io.ktor.utils.io.*
+
 /**
  * [SynchronizedObject] from `kotlinx.atomicfu.locks`
  *
@@ -13,6 +15,7 @@ package io.ktor.utils.io.locks
  * The [SynchronizedObject] superclass gets erased (transformed to Any) on JVM and JS,
  * with `synchronized` leaving no trace in the code on JS and getting replaced with built-in monitors for locking on JVM.
  */
+@InternalAPI
 public actual typealias SynchronizedObject = Any
 
 /**
@@ -23,6 +26,7 @@ public actual typealias SynchronizedObject = Any
  * the way jucl.ReentrantLock is used on JVM. On JVM it is a typealias to the later class, erased on JS.
  */
 @Suppress("NOTHING_TO_INLINE")
+@InternalAPI
 public actual class ReentrantLock {
     public actual inline fun lock() {}
     public actual inline fun tryLock(): Boolean = true
@@ -33,12 +37,14 @@ public actual class ReentrantLock {
  * Creates a new [ReentrantLock] instance.
  */
 @JsName(REENTRANT_LOCK)
+@InternalAPI
 public val Lock: ReentrantLock = ReentrantLock()
 
 /**
  * Creates a new [ReentrantLock] instance.
  */
 @Suppress("NOTHING_TO_INLINE")
+@InternalAPI
 public actual inline fun reentrantLock(): ReentrantLock = Lock
 
 /**
@@ -53,6 +59,7 @@ public actual inline fun reentrantLock(): ReentrantLock = Lock
  * }
  * ```
  */
+@InternalAPI
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T = block()
 
 /**
@@ -68,6 +75,7 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T = block()
  * }
  * ```
  */
+@InternalAPI
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T = block()
 
 private const val REENTRANT_LOCK = "atomicfu\$reentrantLock"
