@@ -21,10 +21,12 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
         skipEngines: List<String>,
         onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): dynamic {
+    ): Unit {
         val skipEnginesLowerCase = skipEngines.map { it.lowercase() }
-        return if ((onlyWithEngine != null && onlyWithEngine != "js") || skipEnginesLowerCase.contains("js")) {
-            GlobalScope.async {}.asPromise()
+        if ((onlyWithEngine != null && onlyWithEngine != "js") || skipEnginesLowerCase.contains("js")) {
+            GlobalScope.async {}.asPromise().then {
+                 Unit
+            }
         } else {
             testWithEngine(Js) {
                 withTimeout(timeoutSeconds.toLong() * 1000) {
