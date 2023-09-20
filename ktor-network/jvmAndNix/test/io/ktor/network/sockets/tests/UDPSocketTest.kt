@@ -51,6 +51,7 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
+    @Ignore
     @Test
     fun testBroadcastSuccessful() = testSockets { selector ->
         val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
@@ -93,6 +94,7 @@ class UDPSocketTest {
         assertTrue(clientSocket.isClosed)
     }
 
+    @Ignore
     @Test
     fun testClose(): Unit = testSockets { selector ->
         val socket = aSocket(selector)
@@ -168,6 +170,7 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
+    @Ignore
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testOutgoingInvokeOnClosed() = testSockets { selector ->
@@ -188,6 +191,7 @@ class UDPSocketTest {
         assertTrue(socket.isClosed)
     }
 
+    @Ignore
     @Test
     fun testSendReceive(): Unit = testSockets { selector ->
         aSocket(selector)

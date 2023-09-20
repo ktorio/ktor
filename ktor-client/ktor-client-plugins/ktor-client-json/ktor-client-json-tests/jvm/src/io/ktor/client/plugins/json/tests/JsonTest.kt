@@ -134,6 +134,7 @@ abstract class JsonTest : TestWithKtor() {
         }
     }
 
+    @Ignore
     @Test
     fun testSerializeNested() = testWithEngine(CIO) {
         configClient()

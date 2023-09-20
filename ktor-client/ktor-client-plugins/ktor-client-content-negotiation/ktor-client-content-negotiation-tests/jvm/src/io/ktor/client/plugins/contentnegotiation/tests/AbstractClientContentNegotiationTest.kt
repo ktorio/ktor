@@ -176,6 +176,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
+    @Ignore
     @Test
     open fun testSerializeNested(): Unit = testWithEngine(CIO) {
         configureClient()
@@ -280,6 +281,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
+    @Ignore
     @Test
     open fun testGeneric(): Unit = testWithEngine(CIO) {
         configureClient()

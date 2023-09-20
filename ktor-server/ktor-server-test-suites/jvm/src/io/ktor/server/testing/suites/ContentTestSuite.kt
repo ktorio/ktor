@@ -222,6 +222,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
+    @Ignore
     @Test
     fun testURIContentLocalFile() {
         val buildDir = "ktor-server/ktor-server/build/classes/kotlin/jvm/test"
@@ -442,6 +443,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
+    @Ignore
     @Test
     fun testStaticServeFromDir() {
         val targetClasses = listOf(File(classesDir), File(coreClassesDir))

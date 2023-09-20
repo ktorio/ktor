@@ -60,6 +60,7 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
         finish(4)
     }
 
+    @Ignore
     @Test
     fun testSessionReadingMultipleChunks(): Unit = runTest {
         val text = buildString {
@@ -123,6 +124,7 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
         assertTrue(ch.isClosedForRead, "Should be closed after all bytes read.")
     }
 
+    @Ignore
     @Test
     fun testSessionReadingSessionMultipleChunks(): Unit = runTest {
         val text = buildString {

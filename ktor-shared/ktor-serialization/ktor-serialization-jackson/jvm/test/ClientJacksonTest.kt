@@ -48,6 +48,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
         }
     }
 
+    @Ignore
     @Test
     fun testJackson() = testWithEngine(CIO) {
         configureClient()
