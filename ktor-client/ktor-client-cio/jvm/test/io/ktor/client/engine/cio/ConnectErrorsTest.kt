@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*

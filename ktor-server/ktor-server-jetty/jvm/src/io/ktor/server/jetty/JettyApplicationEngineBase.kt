@@ -49,7 +49,7 @@ public open class JettyApplicationEngineBase(
      */
     protected val server: Server = Server().apply {
         configuration.configureServer(this)
-        initializeServer(environment, configuration)
+        initializeServer(configuration)
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {

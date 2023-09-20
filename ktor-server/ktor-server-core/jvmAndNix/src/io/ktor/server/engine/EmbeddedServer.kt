@@ -25,11 +25,11 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
     public val engine: TEngine
     public val engineConfig: TConfiguration
 
-    public fun start(wait: Boolean = false)
+    public fun start(wait: Boolean = false): EmbeddedServer<TEngine, TConfiguration>
 
     public fun stop(
-        shutdownGracePeriod: Long = engineConfig.shutdownGracePeriod,
-        shutdownTimeout: Long = engineConfig.shutdownGracePeriod
+        gracePeriodMillis: Long = engineConfig.shutdownGracePeriod,
+        timeoutMillis: Long = engineConfig.shutdownGracePeriod
     )
 }
 

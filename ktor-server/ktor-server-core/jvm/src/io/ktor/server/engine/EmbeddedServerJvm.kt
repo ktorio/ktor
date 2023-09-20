@@ -264,7 +264,7 @@ actual constructor(
         }
     }
 
-    public actual fun start(wait: Boolean) {
+    public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         applicationInstanceLock.write {
             val (application, classLoader) = try {
                 createApplication()
@@ -289,6 +289,7 @@ actual constructor(
                 )
             }
         }
+        return this
     }
 
     public fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long, timeUnit: TimeUnit) {
@@ -301,8 +302,8 @@ actual constructor(
         }
     }
 
-    public actual fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long) {
-        stop(shutdownGracePeriod, shutdownTimeout, TimeUnit.MILLISECONDS)
+    public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+        stop(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {

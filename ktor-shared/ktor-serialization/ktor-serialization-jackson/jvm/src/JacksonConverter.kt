@@ -33,7 +33,7 @@ public class JacksonConverter(
     private val streamRequestBody: Boolean = true
 ) : ContentConverter {
 
-    override suspend fun serializeNullable(
+    override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,

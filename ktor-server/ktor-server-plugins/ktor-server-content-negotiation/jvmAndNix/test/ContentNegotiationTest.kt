@@ -26,7 +26,7 @@ import kotlin.test.*
 class ContentNegotiationTest {
 
     private val alwaysFailingConverter = object : ContentConverter {
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
@@ -69,7 +69,7 @@ class ContentNegotiationTest {
             routing {
                 install(ContentNegotiation) {
                     val nullConverter = object : ContentConverter {
-                        override suspend fun serializeNullable(
+                        override suspend fun serialize(
                             contentType: ContentType,
                             charset: Charset,
                             typeInfo: TypeInfo,
@@ -89,7 +89,7 @@ class ContentNegotiationTest {
                         }
                     }
                     val okConverter = object : ContentConverter {
-                        override suspend fun serializeNullable(
+                        override suspend fun serialize(
                             contentType: ContentType,
                             charset: Charset,
                             typeInfo: TypeInfo,
@@ -140,7 +140,7 @@ class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
@@ -157,7 +157,7 @@ class ContentNegotiationTest {
     }
 
     private val textContentConverter = object : ContentConverter {
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,

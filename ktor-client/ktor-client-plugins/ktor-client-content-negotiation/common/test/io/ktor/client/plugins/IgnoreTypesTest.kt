@@ -26,7 +26,7 @@ class IgnoreTypesTest {
             error("This should not be called")
         }
 
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,

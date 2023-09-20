@@ -10,6 +10,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
@@ -24,28 +25,28 @@ import kotlin.test.Test
 
 class CIOSpecificHttpsTest : TestWithKtor() {
 
-    override val server: ApplicationEngine = embeddedServer(
+    override val server: EmbeddedServer<*, *> = embeddedServer(
         Netty,
-        applicationEngineEnvironment {
-            sslConnector(
-                keyStore,
-                "sha384ecdsa",
-                { "changeit".toCharArray() },
-                { "changeit".toCharArray() }
-            ) {
-                port = serverPort
-                keyStorePath = keyStoreFile.absoluteFile
-
-                module {
-                    routing {
-                        get("/") {
-                            call.respondText("Hello, world")
-                        }
+        applicationProperties {
+            module {
+                routing {
+                    get("/") {
+                        call.respondText("Hello, world")
                     }
                 }
             }
         }
-    )
+    ) {
+        sslConnector(
+            keyStore,
+            "sha384ecdsa",
+            { "changeit".toCharArray() },
+            { "changeit".toCharArray() }
+        ) {
+            port = serverPort
+            keyStorePath = keyStoreFile.absoluteFile
+        }
+    }
 
     companion object {
         val keyStoreFile = File("build/temp.jks")

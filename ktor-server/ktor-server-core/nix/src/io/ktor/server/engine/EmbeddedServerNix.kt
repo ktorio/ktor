@@ -44,7 +44,7 @@ actual constructor(
 
     private val modules = applicationProperties.modules
 
-    public actual fun start(wait: Boolean) {
+    public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }
@@ -65,10 +65,11 @@ actual constructor(
                 )
             }
         }
+        return this
     }
 
-    public actual fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long) {
-        engine.stop(shutdownGracePeriod, shutdownTimeout)
+    public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
+        engine.stop(gracePeriodMillis, timeoutMillis)
         destroy(application)
     }
 

@@ -31,11 +31,11 @@ public actual class ApplicationEnvironmentBuilder {
      * Build an application engine environment
      */
     public actual fun build(): ApplicationEnvironment {
-        return ApplicationEngineEnvironmentImplNix(log, config)
+        return ApplicationEnvironmentImplNix(log, config)
     }
 }
 
-public class ApplicationEngineEnvironmentImplNix(
+public class ApplicationEnvironmentImplNix(
     override val log: Logger,
     override val config: ApplicationConfig,
 ) : ApplicationEnvironment

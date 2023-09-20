@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.*
  * One of the most typical examples of content converter is a JSON content converter that provides both
  * serialization and deserialization
  *
- * Implementations must override at least one of [serialize] or [serializeNullable] methods.
+ * Implementations must override at least one of [serialize] or [serialize] methods.
  */
 public interface ContentConverter {
 
@@ -37,7 +37,7 @@ public interface ContentConverter {
      *
      * @return a converted [OutgoingContent] value, or null if [value] isn't suitable for this converter
      */
-    public suspend fun serializeNullable(
+    public suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,

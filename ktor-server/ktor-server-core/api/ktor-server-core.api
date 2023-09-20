@@ -581,8 +581,8 @@ public final class io/ktor/server/engine/EmbeddedServer {
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public final fun getMonitor ()Lio/ktor/events/Events;
 	public final fun reload ()V
-	public final fun start (Z)V
-	public static synthetic fun start$default (Lio/ktor/server/engine/EmbeddedServer;ZILjava/lang/Object;)V
+	public final fun start (Z)Lio/ktor/server/engine/EmbeddedServer;
+	public static synthetic fun start$default (Lio/ktor/server/engine/EmbeddedServer;ZILjava/lang/Object;)Lio/ktor/server/engine/EmbeddedServer;
 	public final fun stop (JJ)V
 	public final fun stop (JJLjava/util/concurrent/TimeUnit;)V
 	public static synthetic fun stop$default (Lio/ktor/server/engine/EmbeddedServer;JJILjava/lang/Object;)V

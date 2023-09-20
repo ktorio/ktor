@@ -13,7 +13,6 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.ssl.*
 
 internal fun Server.initializeServer(
-    environment: ApplicationEngine,
     configuration: JettyApplicationEngineBase.Configuration
 ) {
     configuration.connectors.map { ktorConnector ->

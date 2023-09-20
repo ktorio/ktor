@@ -26,7 +26,7 @@ class WebSocketWithContentNegotiationTest {
         application.install(WebSockets)
         application.install(ContentNegotiation) {
             val converter = object : ContentConverter {
-                override suspend fun serializeNullable(
+                override suspend fun serialize(
                     contentType: ContentType,
                     charset: Charset,
                     typeInfo: TypeInfo,
