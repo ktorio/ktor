@@ -15,6 +15,10 @@ public actual fun testSuspend(
     context: CoroutineContext,
     timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
-): dynamic = GlobalScope.promise(block = {
-    withTimeout(timeoutMillis, block)
-}, context = context)
+): Unit {
+    GlobalScope.promise(block = {
+        withTimeout(timeoutMillis, block)
+    }, context = context).then {
+        return@then
+    }
+}
