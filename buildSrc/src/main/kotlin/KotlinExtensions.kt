@@ -6,15 +6,12 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jmailen.gradle.kotlinter.*
 
 fun Project.kotlin(block: KotlinMultiplatformExtension.() -> Unit) {
     configure(block)
 }
 
 val Project.kotlin: KotlinMultiplatformExtension get() = the()
-
-val Project.kotlinter: KotlinterExtension get() = the()
 
 fun KotlinMultiplatformExtension.createCInterop(
     name: String,

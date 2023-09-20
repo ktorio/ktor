@@ -191,10 +191,6 @@ allprojects {
     }
 }
 
-subprojects {
-    configureCodestyle()
-}
-
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 

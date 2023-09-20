@@ -48,17 +48,6 @@ dependencies {
     implementation(kotlin("gradle-plugin", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
 
-    val ktlint_version = libs.versions.ktlint.version.get()
-    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version") {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk7")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-common")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-reflect")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-script-runtime")
-    }
-    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
-
     implementation("io.ktor:ktor-server-default-headers:2.0.2")
     implementation("io.ktor:ktor-server-netty:2.0.2")
     implementation("io.ktor:ktor-server-cio:2.0.2")
