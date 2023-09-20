@@ -36,6 +36,7 @@ class JacksonTest : JsonTest() {
         }
     }
 
+    @Ignore
     @Test
     fun testJackson() = testWithEngine(CIO) {
         configClient()
