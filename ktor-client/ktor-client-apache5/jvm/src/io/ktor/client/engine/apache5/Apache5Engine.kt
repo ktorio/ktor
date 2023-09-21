@@ -9,7 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.apache.hc.client5.http.config.*
 import org.apache.hc.client5.http.impl.async.*

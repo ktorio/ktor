@@ -232,7 +232,6 @@ class DarwinEngineTest {
         session.close()
     }
 
-
     @Test
     fun testWebSocketPingInterval() = testSuspend {
         val client = HttpClient(Darwin) {

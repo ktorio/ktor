@@ -15,8 +15,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 
 internal suspend fun PipelineContext<Any, HttpRequestBuilder>.interceptSendLegacy(
     plugin: HttpCache,

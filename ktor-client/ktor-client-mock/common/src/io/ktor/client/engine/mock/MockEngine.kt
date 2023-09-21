@@ -8,13 +8,9 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
-import io.ktor.util.*
-import io.ktor.util.collections.*
-import io.ktor.utils.io.concurrent.*
-import kotlinx.atomicfu.locks.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.locks.*
 import kotlinx.coroutines.*
-import kotlin.jvm.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
@@ -28,6 +24,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         WebSocketExtensionsCapability
     )
 
+    @OptIn(InternalAPI::class)
     private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 

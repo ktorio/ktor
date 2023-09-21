@@ -6,7 +6,7 @@
 
 package io.ktor.client.plugins.json
 
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * Platform default serializer.

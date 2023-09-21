@@ -4,6 +4,7 @@
 
 package io.ktor.util
 
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*

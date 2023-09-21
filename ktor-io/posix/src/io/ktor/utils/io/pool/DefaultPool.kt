@@ -1,8 +1,10 @@
 package io.ktor.utils.io.pool
 
+import io.ktor.utils.io.*
+import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.*
-import kotlinx.atomicfu.locks.*
 
+@OptIn(InternalAPI::class)
 public actual abstract class DefaultPool<T : Any> actual constructor(
     actual final override val capacity: Int
 ) : ObjectPool<T> {

@@ -6,6 +6,7 @@ package io.ktor.server.plugins.cors
 
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * A configuration for the [io.ktor.server.plugins.cors.routing.CORS] plugin.

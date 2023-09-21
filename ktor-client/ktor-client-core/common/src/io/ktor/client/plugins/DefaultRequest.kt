@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
 

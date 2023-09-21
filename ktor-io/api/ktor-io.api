@@ -282,6 +282,15 @@ public final class io/ktor/utils/io/ExceptionUtilsJvmKt {
 	public static final fun tryCopyException (Ljava/lang/Throwable;Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
+public abstract interface annotation class io/ktor/utils/io/InternalAPI : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/utils/io/KtorDsl : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class io/ktor/utils/io/KtorExperimentalAPI : java/lang/annotation/Annotation {
+}
+
 public abstract interface class io/ktor/utils/io/LookAheadSession {
 	public abstract fun consumed (I)V
 	public abstract fun request (II)Ljava/nio/ByteBuffer;
@@ -294,6 +303,10 @@ public final class io/ktor/utils/io/LookAheadSessionKt {
 
 public abstract interface class io/ktor/utils/io/LookAheadSuspendSession : io/ktor/utils/io/LookAheadSession {
 	public abstract fun awaitAtLeast (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class io/ktor/utils/io/PublicAPICandidate : java/lang/annotation/Annotation {
+	public abstract fun version ()Ljava/lang/String;
 }
 
 public abstract interface class io/ktor/utils/io/ReadSession {
@@ -1436,6 +1449,12 @@ public final class io/ktor/utils/io/jvm/nio/WritingKt {
 	public static final fun copyTo (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/channels/WritableByteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun copyTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/channels/Pipe;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun copyTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/channels/WritableByteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/utils/io/locks/SynchronizedKt {
+	public static final fun reentrantLock ()Ljava/util/concurrent/locks/ReentrantLock;
+	public static final fun synchronized (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static final fun withLock (Ljava/util/concurrent/locks/ReentrantLock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 }
 
 public final class io/ktor/utils/io/nio/ChannelsKt {

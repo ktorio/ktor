@@ -5,8 +5,9 @@
 
 package io.ktor.server.cio.internal
 
-import io.ktor.util.*
 import io.ktor.util.internal.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*

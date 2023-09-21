@@ -6,8 +6,9 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.locks.*
+import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import libcurl.*
@@ -24,6 +25,7 @@ private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
     }
 }
 
+@OptIn(InternalAPI::class)
 internal class CurlMultiApiHandler : Closeable {
     @OptIn(ExperimentalForeignApi::class)
     private val activeHandles = mutableMapOf<EasyHandle, RequestHolder>()

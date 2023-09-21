@@ -14,8 +14,8 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlin.native.concurrent.*
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 

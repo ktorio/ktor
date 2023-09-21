@@ -10,6 +10,7 @@ import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
 
