@@ -7,6 +7,7 @@ package io.ktor.client.engine.winhttp
 import io.ktor.client.engine.*
 import io.ktor.client.engine.winhttp.internal.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
@@ -19,7 +20,7 @@ internal class WinHttpClientEngine(
 
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
+    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, SSECapability)
 
     private val session = WinHttpSession(config)
 
