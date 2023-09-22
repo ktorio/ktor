@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -269,6 +270,35 @@ class WebSocketTest : ClientLoader() {
 
             client.coroutineContext[Job]!!.cancel("test", IllegalStateException("test"))
             assertNotNull(session.closeReason.await())
+        }
+    }
+
+    @Test
+    fun testWebsocketRequiringSubProtocolWithSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol", request = { header(HttpHeaders.SecWebSocketProtocol, "test-protocol")}) {
+                send(Frame.Text("test"))
+                val result = incoming.receive() as Frame.Text
+                assertEquals("test", result.readText())
+            }
+        }
+    }
+    @Test
+    fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol") {
+                    send(Frame.Text("test"))
+                }
+            }
         }
     }
 }
