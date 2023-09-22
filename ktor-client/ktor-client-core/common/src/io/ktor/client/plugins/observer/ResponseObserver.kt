@@ -66,14 +66,11 @@ public class ResponseObserver(
                 val sideResponse = response.call.wrapWithContent(loggingContent).response
 
                 scope.launch(getResponseObserverContext()) {
-                    try {
-                        plugin.responseHandler(sideResponse)
-                    } catch (_: Throwable) {
-                    }
+                    runCatching { plugin.responseHandler(sideResponse) }
 
                     val content = sideResponse.content
                     if (!content.isClosedForRead) {
-                        content.discard()
+                        runCatching { content.discard() }
                     }
                 }
 
