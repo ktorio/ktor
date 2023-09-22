@@ -771,6 +771,8 @@ public final class io/ktor/client/plugins/cache/storage/HttpCacheStorageKt {
 
 public final class io/ktor/client/plugins/cookies/AcceptAllCookiesStorage : io/ktor/client/plugins/cookies/CookiesStorage {
 	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
 	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
