@@ -302,6 +302,7 @@ class OAuth1aFlowTest {
         routing {
             authenticate {
                 get("/login") {
+                    @Suppress("DEPRECATION_ERROR")
                     call.respondText("Ho, ${call.authentication.principal}")
                 }
             }

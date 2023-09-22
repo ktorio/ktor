@@ -85,12 +85,19 @@ public class HttpCallValidator internal constructor(
          * Last added handler executes first.
          */
         @Deprecated(
-            "Consider using `handleResponseExceptionWithRequest` instead",
-            replaceWith = ReplaceWith("this.handleResponseExceptionWithRequest(block)"),
-            level = DeprecationLevel.WARNING
+            "Consider using the callback with request parameter",
+            level = DeprecationLevel.ERROR
         )
         public fun handleResponseException(block: CallExceptionHandler) {
             responseExceptionHandlers += ExceptionHandlerWrapper(block)
+        }
+
+        /**
+         * Add [CallRequestExceptionHandler].
+         * Last added handler executes first.
+         */
+        public fun handleResponseException(block: CallRequestExceptionHandler) {
+            responseExceptionHandlers += RequestExceptionHandlerWrapper(block)
         }
 
         /**

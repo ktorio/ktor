@@ -119,24 +119,6 @@ public class Url internal constructor(
     public companion object
 }
 
-@Suppress("UNUSED_PARAMETER")
-@Deprecated(
-    "Url is not a data class anymore. Please use URLBuilder(url)",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("URLBuilder(this)")
-)
-public fun Url.copy(
-    protocol: URLProtocol = this.protocol,
-    host: String = this.host,
-    specifiedPort: Int = this.specifiedPort,
-    encodedPath: String = this.encodedPath,
-    parameters: Parameters = this.parameters,
-    fragment: String = this.fragment,
-    user: String? = this.user,
-    password: String? = this.password,
-    trailingQuery: Boolean = this.trailingQuery
-): Url = error("Please use URLBuilder(url)")
-
 /**
  * [Url] authority.
  */

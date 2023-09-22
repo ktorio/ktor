@@ -26,7 +26,10 @@ public sealed class RoutingResolveResult(public val route: Route) {
         internal val quality: Double
     ) : RoutingResolveResult(route) {
 
-        @Deprecated("This will become internal in future releases.")
+        @Deprecated(
+            "This will become internal in future releases.",
+            level = DeprecationLevel.ERROR
+        )
         public constructor(route: Route, parameters: Parameters) : this(route, parameters, 0.0)
 
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route"
@@ -42,7 +45,10 @@ public sealed class RoutingResolveResult(public val route: Route) {
         public val errorStatusCode: HttpStatusCode
     ) : RoutingResolveResult(route) {
 
-        @Deprecated("This will become internal in future releases.")
+        @Deprecated(
+            "This will become internal in future releases.",
+            level = DeprecationLevel.ERROR
+        )
         public constructor(route: Route, reason: String) : this(route, reason, HttpStatusCode.NotFound)
 
         override val parameters: Nothing

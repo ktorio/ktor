@@ -18,30 +18,6 @@ import kotlin.reflect.jvm.*
 private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
 
 /**
- * Creates the default [SessionSerializer] for the type [T].
- */
-@Suppress("DEPRECATION_ERROR", "UNUSED")
-@Deprecated(
-    "Use defaultSessionSerializer instead.",
-    ReplaceWith("defaultSessionSerializer<T>()"),
-    level = DeprecationLevel.ERROR
-)
-public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> =
-    defaultSessionSerializer<T>() as SessionSerializerReflection<T>
-
-/**
- * Creates the default [SessionSerializer] for the class [type].
- */
-@Suppress("DEPRECATION_ERROR")
-@Deprecated(
-    "Use defaultSessionSerializer<T> instead.",
-    replaceWith = ReplaceWith("defaultSessionSerializer<T>()"),
-    level = DeprecationLevel.ERROR
-)
-public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> =
-    defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
-
-/**
  * Creates the default [SessionSerializer] by [typeInfo].
  */
 @Suppress("DEPRECATION_ERROR")
@@ -54,17 +30,9 @@ public actual fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSe
  *
  * @property type is a session instance class handled by this serializer
  */
-@Deprecated(
-    "Don't refer to the implementation class directly. " +
-        "Use interface type if possible or use defaultSessionSerializer function to create.",
-    level = DeprecationLevel.ERROR
-)
-public class SessionSerializerReflection<T : Any> internal constructor(
-    internal val typeInfo: KType
+internal class SessionSerializerReflection<T : Any>(
+    typeInfo: KType
 ) : SessionSerializer<T> {
-
-    @Deprecated("Use defaultSessionSerializer() function instead", level = DeprecationLevel.ERROR)
-    public constructor(type: KClass<T>) : this(type.starProjectedType)
 
     @Suppress("UNCHECKED_CAST")
     public val type: KClass<T> = typeInfo.jvmErasure as KClass<T>

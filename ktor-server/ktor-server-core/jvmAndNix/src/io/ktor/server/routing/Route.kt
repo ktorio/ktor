@@ -33,19 +33,6 @@ public open class Route(
 ) : ApplicationCallPipeline(developmentMode, environment), RoutingBuilder {
 
     /**
-     * Describes a node in a routing tree.
-     *
-     * @param parent is a parent node in the tree, or null for root node.
-     * @param selector is an instance of [RouteSelector] for this node.
-     */
-    @Deprecated(message = "Please use constructor with developmentMode parameter", level = DeprecationLevel.HIDDEN)
-    public constructor(
-        parent: Route?,
-        selector: RouteSelector,
-        environment: ApplicationEnvironment
-    ) : this(parent, selector, developmentMode = false, environment = environment)
-
-    /**
      * List of child routes for this node.
      */
     public val children: List<Route> get() = childList

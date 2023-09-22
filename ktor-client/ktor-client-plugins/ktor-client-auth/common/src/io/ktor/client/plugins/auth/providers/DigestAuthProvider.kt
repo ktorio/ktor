@@ -37,13 +37,13 @@ public class DigestAuthConfig {
     /**
      * Required: The username of the basic auth.
      */
-    @Deprecated("Please use `credentials {}` function instead")
+    @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var username: String = ""
 
     /**
      * Required: The password of the basic auth.
      */
-    @Deprecated("Please use `credentials {}` function instead")
+    @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var password: String = ""
 
     /**
@@ -51,7 +51,7 @@ public class DigestAuthConfig {
      */
     public var realm: String? = null
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     internal var _credentials: suspend () -> DigestAuthCredentials? = {
         DigestAuthCredentials(username = username, password = password)
     }
@@ -80,11 +80,11 @@ public class DigestAuthCredentials(
 @Suppress("KDocMissingDocumentation")
 public class DigestAuthProvider(
     private val credentials: suspend () -> DigestAuthCredentials?,
-    @Deprecated("This will become private") public val realm: String? = null,
-    @Deprecated("This will become private") public val algorithmName: String = "MD5",
+    @Deprecated("This will become private", level = DeprecationLevel.ERROR) public val realm: String? = null,
+    @Deprecated("This will become private", level = DeprecationLevel.ERROR) public val algorithmName: String = "MD5",
 ) : AuthProvider {
 
-    @Deprecated("Consider using constructor with credentials provider instead")
+    @Deprecated("Consider using constructor with credentials provider instead", level = DeprecationLevel.ERROR)
     public constructor(
         username: String,
         password: String,
@@ -96,16 +96,8 @@ public class DigestAuthProvider(
         algorithmName = algorithmName
     )
 
-    @Deprecated("This will be removed")
-    public val username: String
-        get() = error("Static username is not supported anymore")
-
-    @Deprecated("This will be removed")
-    public val password: String
-        get() = error("Static username is not supported anymore")
-
     @Suppress("OverridingDeprecatedMember")
-    @Deprecated("Please use sendWithoutRequest function instead")
+    @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 
@@ -139,6 +131,7 @@ public class DigestAuthProvider(
             LOGGER.trace("Digest Auth Provider can not handle response without realm parameter")
             return false
         }
+        @Suppress("DEPRECATION_ERROR")
         if (newRealm != realm && realm != null) {
             LOGGER.trace("Digest Auth Provider is not applicable for this realm")
             return false
@@ -161,6 +154,7 @@ public class DigestAuthProvider(
         val serverOpaque = opaque.value
         val actualQop = qop.value
 
+        @Suppress("DEPRECATION_ERROR")
         val realm = realm ?: authHeader?.let { auth ->
             (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
         }
@@ -190,6 +184,7 @@ public class DigestAuthProvider(
                 this["uri"] = url.fullPath
                 actualQop?.let { this["qop"] = it }
                 this["nc"] = nonceCount.toString()
+                @Suppress("DEPRECATION_ERROR")
                 this["algorithm"] = algorithmName
             }
         )
@@ -204,7 +199,7 @@ public class DigestAuthProvider(
         return true
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @OptIn(InternalAPI::class)
     private suspend fun makeDigest(data: String): ByteArray {
         val digest = Digest(algorithmName)

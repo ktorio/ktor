@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
 @EagerInitialization
 private val initHook = SerializerInitializer
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 @OptIn(InternalAPI::class)
 private object SerializerInitializer {
     init {

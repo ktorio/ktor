@@ -32,19 +32,19 @@ public class BasicAuthConfig {
     /**
      * Required: The username of the basic auth.
      */
-    @Deprecated("Please use `credentials {}` function instead")
+    @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public lateinit var username: String
 
     /**
      * Required: The password of the basic auth.
      */
-    @Deprecated("Please use `credentials {}` function instead")
+    @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public lateinit var password: String
 
     /**
      * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
      */
-    @Deprecated("Please use `sendWithoutRequest {}` function instead")
+    @Deprecated("Please use `sendWithoutRequest {}` function instead", level = DeprecationLevel.ERROR)
     public var sendWithoutRequest: Boolean = false
 
     /**
@@ -52,10 +52,10 @@ public class BasicAuthConfig {
      */
     public var realm: String? = null
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { sendWithoutRequest }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     internal var _credentials: suspend () -> BasicAuthCredentials? = {
         BasicAuthCredentials(username = username, password = password)
     }
@@ -95,7 +95,7 @@ public class BasicAuthProvider(
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false }
 ) : AuthProvider {
 
-    @Deprecated("Consider using constructor with credentials provider instead")
+    @Deprecated("Consider using constructor with credentials provider instead", level = DeprecationLevel.ERROR)
     public constructor(
         username: String,
         password: String,
@@ -110,7 +110,7 @@ public class BasicAuthProvider(
     private val tokensHolder = AuthTokenHolder(credentials)
 
     @Suppress("OverridingDeprecatedMember")
-    @Deprecated("Please use sendWithoutRequest function instead")
+    @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 

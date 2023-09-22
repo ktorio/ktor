@@ -11,6 +11,7 @@ import io.ktor.client.content.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.json.*
 import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.client.request.*
@@ -18,6 +19,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -39,8 +41,8 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
     @Test
     fun testSendDataClass() = clientTests {
         config {
-            install(JsonPlugin) {
-                serializer = KotlinxSerializer()
+            install(ContentNegotiation) {
+                json()
             }
         }
 
@@ -122,8 +124,8 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
     @Test
     fun testReceiveDataClassWithExecute() = clientTests {
         config {
-            install(JsonPlugin) {
-                serializer = KotlinxSerializer()
+            install(ContentNegotiation) {
+                json()
             }
         }
 
@@ -146,8 +148,8 @@ class BodyProgressTest : ClientLoader(timeoutSeconds = 60) {
     @Test
     fun testReceiveDataClassWithReceive() = clientTests {
         config {
-            install(JsonPlugin) {
-                serializer = KotlinxSerializer()
+            install(ContentNegotiation) {
+                json()
             }
         }
 

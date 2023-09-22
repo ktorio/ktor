@@ -144,7 +144,6 @@ public final class io/ktor/server/servlet/UpgradeRequest {
 }
 
 public final class io/ktor/server/servlet/WebResourcesConfig {
-	public fun <init> ()V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun getExcludes ()Ljava/util/List;
 	public final fun getIncludes ()Ljava/util/List;

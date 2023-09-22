@@ -192,7 +192,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
     return charactersCopied
 }
 
-internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
     toIndex: Int

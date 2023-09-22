@@ -286,22 +286,16 @@ public fun URLBuilder.set(
     block(this)
 }
 
-@Deprecated(level = DeprecationLevel.HIDDEN, message = "Plesae use method with boolean parameter")
-public fun URLBuilder.appendPathSegments(segments: List<String>): URLBuilder =
-    appendPathSegments(segments, false)
-
-@Deprecated(level = DeprecationLevel.HIDDEN, message = "Plesae use method with boolean parameter")
-public fun URLBuilder.appendPathSegments(vararg components: String): URLBuilder =
-    appendPathSegments(components.toList(), false)
-
 @Deprecated(
     message = "Please use appendPathSegments method",
-    replaceWith = ReplaceWith("this.appendPathSegments(components")
+    replaceWith = ReplaceWith("this.appendPathSegments(components"),
+    level = DeprecationLevel.ERROR
 )
 public fun URLBuilder.pathComponents(vararg components: String): URLBuilder = appendPathSegments(components.toList())
 
 @Deprecated(
     message = "Please use appendPathSegments method",
-    replaceWith = ReplaceWith("this.appendPathSegments(components")
+    replaceWith = ReplaceWith("this.appendPathSegments(components"),
+    level = DeprecationLevel.ERROR
 )
 public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = appendPathSegments(components)

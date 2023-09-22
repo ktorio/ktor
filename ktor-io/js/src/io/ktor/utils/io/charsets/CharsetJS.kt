@@ -71,7 +71,7 @@ private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEnc
 public actual val CharsetEncoder.charset: Charset get() = _charset
 
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
-    encodeToByteArrayImpl1(input, fromIndex, toIndex)
+    encodeToByteArrayImpl(input, fromIndex, toIndex)
 
 @Suppress("DEPRECATION")
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
@@ -147,7 +147,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 }
 
 @Suppress("DEPRECATION")
-internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
     toIndex: Int

@@ -48,13 +48,19 @@ public class TestApplicationRequest constructor(
         override val scheme: String
             get() = protocol
 
-        @Deprecated("Use localPort or serverPort instead")
+        @Deprecated(
+            "Use localPort or serverPort instead",
+            level = DeprecationLevel.ERROR
+        )
         override val port: Int
             get() = this@TestApplicationRequest.port
                 ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt()
                 ?: 80
 
-        @Deprecated("Use localHost or serverHost instead")
+        @Deprecated(
+            "Use localHost or serverHost instead",
+            level = DeprecationLevel.ERROR
+        )
         override val host: String
             get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"
 
@@ -160,10 +166,12 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                             channel.writeFully(it.provider().readRemaining().readBytes())
                             ""
                         }
+
                         is PartData.BinaryItem -> {
                             channel.writeFully(it.provider().readBytes())
                             ""
                         }
+
                         is PartData.FormItem -> it.value
                         is PartData.BinaryChannelItem -> {
                             it.provider().copyTo(channel)
@@ -206,10 +214,12 @@ internal fun buildMultipart(
                         channel.writeFully(it.provider().readRemaining().readBytes())
                         ""
                     }
+
                     is PartData.BinaryItem -> {
                         channel.writeFully(it.provider().readBytes())
                         ""
                     }
+
                     is PartData.FormItem -> it.value
                     is PartData.BinaryChannelItem -> {
                         it.provider().copyTo(channel)

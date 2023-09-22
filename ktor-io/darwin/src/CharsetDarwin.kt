@@ -139,7 +139,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 }
 
 @OptIn(UnsafeNumber::class)
-internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
     toIndex: Int

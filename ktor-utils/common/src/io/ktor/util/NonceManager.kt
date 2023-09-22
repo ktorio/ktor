@@ -39,19 +39,3 @@ public object GenerateOnlyNonceManager : NonceManager {
         return true
     }
 }
-
-/**
- * Stub implementation that always fails.
- * Will be removed so no public signatures should rely on it
- */
-@Deprecated("This should be removed with OAuth2StateProvider", level = DeprecationLevel.ERROR)
-@InternalAPI
-public object AlwaysFailNonceManager : NonceManager {
-    override suspend fun newNonce(): String {
-        throw UnsupportedOperationException("This manager should never be used")
-    }
-
-    override suspend fun verifyNonce(nonce: String): Boolean {
-        throw UnsupportedOperationException("This manager should never be used")
-    }
-}

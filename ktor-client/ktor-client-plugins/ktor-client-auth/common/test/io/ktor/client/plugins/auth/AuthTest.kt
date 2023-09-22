@@ -98,7 +98,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {
@@ -199,7 +199,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testUnauthorizedBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {

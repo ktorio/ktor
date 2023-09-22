@@ -52,7 +52,8 @@ public class AttributeKey<T : Any> @PublishedApi internal constructor(
 @Suppress("DEPRECATION")
 @Deprecated(
     "Please use `AttributeKey` class instead",
-    replaceWith = ReplaceWith("AttributeKey")
+    replaceWith = ReplaceWith("AttributeKey"),
+    level = DeprecationLevel.ERROR
 )
 public typealias EquatableAttributeKey<T> = AttributeKey<T>
 

@@ -162,15 +162,6 @@ public class HttpRequestRetry internal constructor(configuration: Configuration)
         /**
          * Enables retrying a request if an exception is thrown during the [HttpSend] phase
          * and specifies the number of retries.
-         */
-        @Deprecated(level = DeprecationLevel.HIDDEN, message = "This will be removed")
-        public fun retryOnException(maxRetries: Int = -1) {
-            retryOnException(maxRetries, false)
-        }
-
-        /**
-         * Enables retrying a request if an exception is thrown during the [HttpSend] phase
-         * and specifies the number of retries.
          * By default, [HttpRequestTimeoutException], [ConnectTimeoutException] and [SocketTimeoutException]
          * are not retried.
          * Set [retryOnTimeout] to `true` to retry on timeout.

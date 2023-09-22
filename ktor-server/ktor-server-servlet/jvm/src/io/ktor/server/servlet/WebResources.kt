@@ -15,14 +15,7 @@ import kotlin.random.*
 /**
  * Web resources serve configuration
  */
-public class WebResourcesConfig
-@Deprecated(
-    "Direct instantiation will be impossible in 2.0.0. " +
-        "Use RoutingBuilder.webResources {} function instead " +
-        "or file an issue describing why do you need it.",
-    level = DeprecationLevel.ERROR
-)
-constructor() {
+public class WebResourcesConfig internal constructor() {
     /**
      * Path predicates to be included. All files will be served if no include rules specified.
      * A path provided to a predicate is always slash-separated (`/`).
@@ -68,7 +61,6 @@ constructor() {
  */
 @OptIn(InternalAPI::class)
 public fun RoutingBuilder.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
-    @Suppress("DEPRECATION_ERROR")
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
     val prefix = subPath.split('/', '\\').filter { it.isNotEmpty() }
