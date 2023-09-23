@@ -280,7 +280,12 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol", request = { header(HttpHeaders.SecWebSocketProtocol, "test-protocol")}) {
+            client.webSocket(
+                "$TEST_WEBSOCKET_SERVER/websockets/sub-protocol",
+                request = { 
+                    header(HttpHeaders.SecWebSocketProtocol, "test-protocol")
+                }
+            ) {
                 send(Frame.Text("test"))
                 val result = incoming.receive() as Frame.Text
                 assertEquals("test", result.readText())
