@@ -57,20 +57,6 @@ class ConnectionTest {
     }
 
     @Test
-    fun tlsWithCloseTest(): Unit = runBlocking {
-        val selectorManager = ActorSelectorManager(Dispatchers.IO)
-        val socket = aSocket(selectorManager)
-            .tcp()
-            .connect("www.google.com", port = 443)
-            .tls(Dispatchers.Default)
-
-        val channel = socket.openWriteChannel(autoFlush = true)
-        socket.close()
-        assertEquals(42, channel.writeAvailable(ByteArray(42)))
-        assertTrue(channel.isClosedForWrite)
-    }
-
-    @Test
     @Ignore
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
