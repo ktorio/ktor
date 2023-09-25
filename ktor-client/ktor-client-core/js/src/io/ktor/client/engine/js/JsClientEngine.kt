@@ -22,8 +22,6 @@ internal class JsClientEngine(
     override val config: HttpClientEngineConfig
 ) : HttpClientEngineBase("ktor-js") {
 
-    override val dispatcher = Dispatchers.Default
-
     override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
 
     init {

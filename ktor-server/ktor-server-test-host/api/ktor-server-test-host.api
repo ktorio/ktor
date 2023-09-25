@@ -281,7 +281,6 @@ public final class io/ktor/server/testing/client/TestHttpClientEngine : io/ktor/
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/server/testing/client/TestHttpClientConfig;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public fun getSupportedCapabilities ()Ljava/util/Set;
 }
 
