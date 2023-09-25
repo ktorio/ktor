@@ -9,7 +9,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.util.*
@@ -24,9 +23,6 @@ import kotlin.coroutines.*
 internal class CIOEngine(
     override val config: CIOEngineConfig
 ) : HttpClientEngineBase("ktor-cio") {
-
-    override val dispatcher: CoroutineDispatcher =
-        Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
 
     override val supportedCapabilities =
         setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
