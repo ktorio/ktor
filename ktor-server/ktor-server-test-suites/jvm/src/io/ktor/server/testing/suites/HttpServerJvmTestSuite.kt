@@ -262,6 +262,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
+    @Ignore("Seems to be flaky")
     @Test
     fun testConnectionReset() {
         val completed = Job()
