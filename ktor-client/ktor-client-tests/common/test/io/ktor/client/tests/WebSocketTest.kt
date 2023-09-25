@@ -282,7 +282,7 @@ class WebSocketTest : ClientLoader() {
         test { client ->
             client.webSocket(
                 "$TEST_WEBSOCKET_SERVER/websockets/sub-protocol",
-                request = { 
+                request = {
                     header(HttpHeaders.SecWebSocketProtocol, "test-protocol")
                 }
             ) {
