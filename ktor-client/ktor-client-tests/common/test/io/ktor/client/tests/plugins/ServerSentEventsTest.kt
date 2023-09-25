@@ -21,12 +21,12 @@ class ServerSentEventsTest : ClientLoader() {
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEventsSession()
         }.let {
-            assertContains(it.message!!, SSE.key.name)
+            kotlin.test.assertContains(it.message!!, SSE.key.name)
         }
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEvents {}
         }.let {
-            assertContains(it.message!!, SSE.key.name)
+            kotlin.test.assertContains(it.message!!, SSE.key.name)
         }
     }
 
@@ -115,7 +115,7 @@ class ServerSentEventsTest : ClientLoader() {
             kotlin.test.assertFailsWith<SSEException> {
                 client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
             }.let {
-                assertContains(it.message!!, "error")
+                kotlin.test.assertContains(it.message!!, "error")
             }
         }
     }
