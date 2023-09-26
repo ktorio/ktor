@@ -13,7 +13,6 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -58,7 +57,6 @@ public open class HttpClientCall(
         this.response = DefaultHttpResponse(this, responseData)
 
         if (responseData.body !is ByteReadChannel) {
-            @Suppress("DEPRECATION_ERROR")
             attributes.put(CustomResponse, responseData.body)
         }
     }
@@ -83,7 +81,6 @@ public open class HttpClientCall(
                 throw DoubleReceiveException(this)
             }
 
-            @Suppress("DEPRECATION_ERROR")
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
@@ -126,17 +123,7 @@ public open class HttpClientCall(
     }
 
     public companion object {
-        /**
-         * [CustomResponse] key used to process the response of custom type in case of [HttpClientEngine] can't return body bytes directly.
-         * If present, attribute value will be an initial value for [HttpResponseContainer] in [HttpClient.responsePipeline].
-         *
-         * Example: [WebSocketSession]
-         */
-        @Deprecated(
-            "This is going to be removed. Please file a ticket with clarification why and what for do you need it.",
-            level = DeprecationLevel.ERROR
-        )
-        public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
+        private val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
 }
 

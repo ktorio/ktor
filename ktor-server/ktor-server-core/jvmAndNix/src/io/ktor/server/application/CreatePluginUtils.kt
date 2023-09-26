@@ -317,27 +317,3 @@ private fun <Configuration : Any, Builder : PluginBuilder<Configuration>> Builde
 
     hooks.forEach { it.install(pipeline) }
 }
-
-@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
-@kotlin.jvm.JvmName("createRouteScopedPluginOld")
-public fun createRouteScopedPlugin(
-    name: String,
-    body: PluginBuilder<Unit>.() -> Unit
-): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name, {}, body)
-
-@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
-@kotlin.jvm.JvmName("createRouteScopedPluginOld")
-public fun <PluginConfigT : Any> createRouteScopedPlugin(
-    name: String,
-    createConfiguration: () -> PluginConfigT,
-    body: PluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT> = createRouteScopedPlugin(name, createConfiguration, body)
-
-@Deprecated("This will be removed", level = DeprecationLevel.HIDDEN)
-@kotlin.jvm.JvmName("createRouteScopedPluginOld")
-public fun <PluginConfigT : Any> createRouteScopedPlugin(
-    name: String,
-    configurationPath: String,
-    createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
-    body: PluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT> = createRouteScopedPlugin(name, configurationPath, createConfiguration, body)

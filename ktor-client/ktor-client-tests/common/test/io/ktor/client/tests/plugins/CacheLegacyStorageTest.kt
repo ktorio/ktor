@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "DEPRECATION_ERROR")
 class CacheLegacyStorageTest : ClientLoader() {
 
     @Test

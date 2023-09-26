@@ -318,20 +318,6 @@ public final class io/ktor/http/DateUtilsKt {
 	public static final fun toHttpDate (Lio/ktor/util/date/GMTDate;)Ljava/lang/String;
 }
 
-public final class io/ktor/http/EmptyHeaders : io/ktor/http/Headers {
-	public static final field INSTANCE Lio/ktor/http/EmptyHeaders;
-	public fun contains (Ljava/lang/String;)Z
-	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
-	public fun entries ()Ljava/util/Set;
-	public fun forEach (Lkotlin/jvm/functions/Function2;)V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun getAll (Ljava/lang/String;)Ljava/util/List;
-	public fun getCaseInsensitiveName ()Z
-	public fun isEmpty ()Z
-	public fun names ()Ljava/util/Set;
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class io/ktor/http/FileContentTypeJvmKt {
 	public static final fun defaultForFile (Lio/ktor/http/ContentType$Companion;Ljava/io/File;)Lio/ktor/http/ContentType;
 	public static final fun defaultForPath (Lio/ktor/http/ContentType$Companion;Ljava/nio/file/Path;)Lio/ktor/http/ContentType;
@@ -576,10 +562,8 @@ public final class io/ktor/http/HttpMessagePropertiesKt {
 	public static final fun cacheControl (Lio/ktor/http/HttpMessage;)Ljava/util/List;
 	public static final fun charset (Lio/ktor/http/HttpMessage;)Ljava/nio/charset/Charset;
 	public static final fun charset (Lio/ktor/http/HttpMessageBuilder;)Ljava/nio/charset/Charset;
-	public static final fun charset (Lio/ktor/http/HttpMessageBuilder;Ljava/nio/charset/Charset;)Lkotlin/Unit;
 	public static final fun contentLength (Lio/ktor/http/HttpMessage;)Ljava/lang/Long;
 	public static final fun contentLength (Lio/ktor/http/HttpMessageBuilder;)Ljava/lang/Long;
-	public static final fun contentLength (Lio/ktor/http/HttpMessageBuilder;I)V
 	public static final fun contentType (Lio/ktor/http/HttpMessage;)Lio/ktor/http/ContentType;
 	public static final fun contentType (Lio/ktor/http/HttpMessageBuilder;)Lio/ktor/http/ContentType;
 	public static final fun contentType (Lio/ktor/http/HttpMessageBuilder;Lio/ktor/http/ContentType;)V
@@ -720,7 +704,6 @@ public final class io/ktor/http/HttpStatusCode$Companion {
 }
 
 public final class io/ktor/http/HttpStatusCodeKt {
-	public static final fun getExceptionFailed (Lio/ktor/http/HttpStatusCode$Companion;)Lio/ktor/http/HttpStatusCode;
 	public static final fun isSuccess (Lio/ktor/http/HttpStatusCode;)Z
 }
 
@@ -936,9 +919,7 @@ public final class io/ktor/http/URLBuilderKt {
 	public static final field DEFAULT_PORT I
 	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun appendEncodedPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
-	public static final synthetic fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
 	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;Ljava/util/List;Z)Lio/ktor/http/URLBuilder;
-	public static final synthetic fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 	public static final fun appendPathSegments (Lio/ktor/http/URLBuilder;[Ljava/lang/String;Z)Lio/ktor/http/URLBuilder;
 	public static synthetic fun appendPathSegments$default (Lio/ktor/http/URLBuilder;Ljava/util/List;ZILjava/lang/Object;)Lio/ktor/http/URLBuilder;
 	public static synthetic fun appendPathSegments$default (Lio/ktor/http/URLBuilder;[Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/URLBuilder;
@@ -1049,8 +1030,6 @@ public final class io/ktor/http/Url$Companion {
 }
 
 public final class io/ktor/http/UrlKt {
-	public static final fun copy (Lio/ktor/http/Url;Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lio/ktor/http/Url;
-	public static synthetic fun copy$default (Lio/ktor/http/Url;Lio/ktor/http/URLProtocol;Ljava/lang/String;ILjava/lang/String;Lio/ktor/http/Parameters;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/Url;
 	public static final fun getAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getProtocolWithAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
 }

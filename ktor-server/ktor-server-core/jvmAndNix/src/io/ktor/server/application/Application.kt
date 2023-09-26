@@ -29,7 +29,7 @@ public class Application(
     /**
      * Called by [ApplicationEngine] when [Application] is terminated
      */
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     public fun dispose() {
         applicationJob.cancel()
         uninstallAllPlugins()

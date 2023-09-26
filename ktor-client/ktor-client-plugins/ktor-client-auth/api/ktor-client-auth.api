@@ -124,10 +124,8 @@ public final class io/ktor/client/plugins/auth/providers/DigestAuthProvider : io
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAlgorithmName ()Ljava/lang/String;
-	public final fun getPassword ()Ljava/lang/String;
 	public final fun getRealm ()Ljava/lang/String;
 	public fun getSendWithoutRequest ()Z
-	public final fun getUsername ()Ljava/lang/String;
 	public fun isApplicable (Lio/ktor/http/auth/HttpAuthHeader;)Z
 	public fun refreshToken (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendWithoutRequest (Lio/ktor/client/request/HttpRequestBuilder;)Z

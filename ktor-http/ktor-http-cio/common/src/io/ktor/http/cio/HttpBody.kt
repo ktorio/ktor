@@ -116,7 +116,10 @@ public suspend fun parseHttpBody(
  * @param transferEncoding header or `null`
  * @param
  */
-@Deprecated("Please use method with version parameter")
+@Deprecated(
+    "Please use method with version parameter",
+    level = DeprecationLevel.ERROR
+)
 public suspend fun parseHttpBody(
     contentLength: Long,
     transferEncoding: CharSequence?,

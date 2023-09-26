@@ -81,16 +81,6 @@ public fun RoutingBuilder.header(name: String, value: String, build: RoutingBuil
 }
 
 /**
- * Builds a route to match requests with the [HttpHeaders.Accept] header matching the specified [contentType].
- * @see [Application.routing]
- */
-@KtorDsl
-@Deprecated("Please use method with vararg parameter", level = DeprecationLevel.HIDDEN)
-public fun RoutingBuilder.accept(contentType: ContentType, build: RoutingBuilder.() -> Unit): RoutingBuilder {
-    return accept(contentType) { build() }
-}
-
-/**
  * Builds a route to match requests with the [HttpHeaders.Accept] header matching any of the specified [contentTypes].
  * @see [Application.routing]
  */
@@ -361,34 +351,12 @@ public object PathSegmentSelectorBuilder {
     }
 
     /**
-     * Builds a [RouteSelector] to match a path segment parameter with a prefix/suffix, name, and trailing slash, if any.
-     */
-    @Deprecated(
-        "hasTrailingSlash is not used anymore. This is going to be removed",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("parseParameter(value)")
-    )
-    @Suppress("UNUSED_PARAMETER")
-    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector = parseParameter(value)
-
-    /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter.
      */
     public fun parseConstant(value: String): RouteSelector = when (value) {
         "*" -> PathSegmentWildcardRouteSelector
         else -> PathSegmentConstantRouteSelector(value)
     }
-
-    /**
-     * Builds a [RouteSelector] to match a constant or wildcard segment parameter and trailing slash, if any.
-     */
-    @Deprecated(
-        "hasTrailingSlash is not used anymore. This is going to be removed",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("parseConstant(value)")
-    )
-    @Suppress("UNUSED_PARAMETER")
-    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = parseConstant(value)
 
     /**
      * Parses a name out of segment specification.

@@ -110,27 +110,3 @@ window.onload = function() {
         }
     }
 }
-
-/**
- * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
- */
-@Deprecated("Replaced with the extension on [RoutingBuilder]", level = DeprecationLevel.HIDDEN)
-public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
-    swaggerUI(path, apiFile, block)
-}
-
-/**
- * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the OpenAPI file located at [swaggerFile].
- *
- * This method tries to lookup [swaggerFile] in the resources first, and if it's not found, it will try to read it from
- * the file system using [java.io.File].
- *
- */
-@Deprecated("Replaced with the extension on [RoutingBuilder]", level = DeprecationLevel.HIDDEN)
-public fun Routing.swaggerUI(
-    path: String,
-    swaggerFile: String = "openapi/documentation.yaml",
-    block: SwaggerConfig.() -> Unit = {}
-) {
-    swaggerUI(path, swaggerFile, block)
-}

@@ -80,7 +80,6 @@ public class io/ktor/server/testing/ExpectedTestException : java/lang/Throwable 
 }
 
 public final class io/ktor/server/testing/ExternalServicesBuilder {
-	public synthetic fun <init> ()V
 	public final fun hosts ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 }
 
@@ -145,7 +144,6 @@ public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/e
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public fun getRequest ()Lio/ktor/server/testing/TestApplicationRequest;
-	public final fun getRequestHandled ()Z
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/PipelineResponse;

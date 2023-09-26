@@ -5,7 +5,6 @@ apiValidation {
         'ktor',
         'ktor-client-tests',
         'ktor-client-js',
-        'ktor-client-json-tests',
         'ktor-client-content-negotiation-tests',
         'ktor-serialization-kotlinx-tests',
         'ktor-serialization-tests',

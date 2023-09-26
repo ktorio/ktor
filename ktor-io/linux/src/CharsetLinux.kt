@@ -224,7 +224,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 }
 
 @Suppress("DEPRECATION")
-internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
     toIndex: Int

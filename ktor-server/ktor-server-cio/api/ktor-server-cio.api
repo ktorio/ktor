@@ -30,10 +30,6 @@ public final class io/ktor/server/cio/HttpServer {
 	public final fun getServerSocket ()Lkotlinx/coroutines/Deferred;
 }
 
-public final class io/ktor/server/cio/HttpServerKt {
-	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function6;)Lio/ktor/server/cio/HttpServer;
-}
-
 public final class io/ktor/server/cio/HttpServerSettings {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;IJZ)V
@@ -51,12 +47,6 @@ public final class io/ktor/server/cio/HttpServerSettings {
 	public final fun getReuseAddress ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/cio/PipelineKt {
-	public static final fun getHttpPipelineCoroutine ()Lkotlinx/coroutines/CoroutineName;
-	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
-	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
 }
 
 public final class io/ktor/server/cio/backend/HttpServerKt {

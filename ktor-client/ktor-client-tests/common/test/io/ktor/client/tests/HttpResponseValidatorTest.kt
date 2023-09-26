@@ -23,24 +23,33 @@ class HttpResponseValidatorTest {
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
         var thirdHandler = 0
+        var fourthHandler = 0
 
         config {
             engine {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException {
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
                     firstHandler++
-                    assertTrue(it is CallValidatorTestException)
+                    assertTrue(cause is CallValidatorTestException)
                 }
 
-                handleResponseException {
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
                     secondHandler++
-                    assertTrue(it is CallValidatorTestException)
+                    assertTrue(cause is CallValidatorTestException)
                 }
 
                 handleResponseExceptionWithRequest { cause, request ->
                     thirdHandler++
+                    assertTrue(cause is CallValidatorTestException)
+                    assertNotNull(request)
+                }
+
+                handleResponseException { cause, request ->
+                    fourthHandler++
                     assertTrue(cause is CallValidatorTestException)
                     assertNotNull(request)
                 }
@@ -50,17 +59,18 @@ class HttpResponseValidatorTest {
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
-            var fourthHandler = false
+            var throwableHandler = false
             try {
                 client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
-                fourthHandler = true
+                throwableHandler = true
             }
 
             assertEquals(1, firstHandler)
             assertEquals(1, secondHandler)
             assertEquals(1, thirdHandler)
-            assertTrue(fourthHandler)
+            assertEquals(1, fourthHandler)
+            assertTrue(throwableHandler)
         }
     }
 
@@ -71,8 +81,9 @@ class HttpResponseValidatorTest {
                 addHandler { throw CallValidatorTestException() }
             }
             HttpResponseValidator {
-                handleResponseException {
-                    assertTrue(it is CallValidatorTestException)
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
+                    assertTrue(cause is CallValidatorTestException)
                     firstHandler++
                 }
                 handleResponseExceptionWithRequest { cause, request ->
@@ -100,8 +111,9 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException {
-                    assertTrue(it is CallValidatorTestException)
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
+                    assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
             }
@@ -124,8 +136,9 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException {
-                    assertTrue(it is CallValidatorTestException)
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
+                    assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
             }
@@ -148,16 +161,18 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException {
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
                     firstHandler++
-                    assertTrue(it is CallValidatorTestException)
+                    assertTrue(cause is CallValidatorTestException)
                 }
             }
 
             HttpResponseValidator {
-                handleResponseException {
+                @Suppress("DEPRECATION_ERROR")
+                handleResponseException { cause ->
                     secondHandler++
-                    assertTrue(it is CallValidatorTestException)
+                    assertTrue(cause is CallValidatorTestException)
                 }
             }
         }

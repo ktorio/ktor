@@ -27,13 +27,19 @@ internal class NettyConnectionPoint(
 
     override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
 
-    @Deprecated("Use localHost or serverHost instead")
+    @Deprecated(
+        "Use localHost or serverHost instead",
+        level = DeprecationLevel.ERROR
+    )
     override val host: String
         get() = request.headers().get(HttpHeaders.Host)?.substringBefore(":")
             ?: (context.channel().localAddress() as? InetSocketAddress)
                 ?.let { it.hostName ?: it.address.hostAddress } ?: "localhost"
 
-    @Deprecated("Use localPort or serverPort instead")
+    @Deprecated(
+        "Use localPort or serverPort instead",
+        level = DeprecationLevel.ERROR
+    )
     override val port: Int
         get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: 80
 

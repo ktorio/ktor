@@ -106,10 +106,12 @@ public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
                 throw t
             }
         }
+
         plugin -> {
             // environment.log.warning("`${plugin.name}` plugin is already installed")
             installedPlugin
         }
+
         else -> {
             throw DuplicatePluginException(
                 "Please make sure that you use unique name for the plugin and don't install it twice. " +
@@ -194,11 +196,12 @@ public fun <P : Route, B : Any, F : Any> P.install(
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+        "If you have use case that requires this functionaity, please add it in KTOR-2696",
+    level = DeprecationLevel.ERROR
 )
 public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
     pluginRegistry.allKeys.forEach {
-        @Suppress("UNCHECKED_CAST", "DEPRECATION")
+        @Suppress("UNCHECKED_CAST", "DEPRECATION_ERROR")
         uninstallPlugin(it as AttributeKey<Any>)
     }
 }
@@ -206,10 +209,11 @@ public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
 /**
  * Uninstalls a [plugin] from the pipeline.
  */
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696"
+        "If you have use case that requires this functionaity, please add it in KTOR-2696",
+    level = DeprecationLevel.ERROR
 )
 public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
     plugin: Plugin<A, B, F>
@@ -220,7 +224,8 @@ public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaдity, please add it in KTOR-2696"
+        "If you have use case that requires this functionaдity, please add it in KTOR-2696",
+    level = DeprecationLevel.ERROR
 )
 public fun <A : Pipeline<*, PipelineCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(pluginRegistryKey) ?: return
@@ -236,14 +241,15 @@ public fun <A : Pipeline<*, PipelineCall>, F : Any> A.uninstallPlugin(key: Attri
  */
 @Deprecated(
     message = "Please use DuplicatePluginException instead",
-    replaceWith = ReplaceWith("DuplicatePluginException")
+    replaceWith = ReplaceWith("DuplicatePluginException"),
+    level = DeprecationLevel.ERROR
 )
 public open class DuplicateApplicationPluginException(message: String) : Exception(message)
 
 /**
  * Thrown on an attempt to install the plugin with the same key as for the already installed plugin.
  */
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 public class DuplicatePluginException(message: String) : DuplicateApplicationPluginException(message)
 
 /**

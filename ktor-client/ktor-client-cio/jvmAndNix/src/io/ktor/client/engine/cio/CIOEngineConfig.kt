@@ -80,20 +80,6 @@ public class EndpointConfig {
 
     /**
      * Specifies a maximum number of connection attempts.
-     */
-    @Deprecated(
-        "This is deprecated due to the misleading name. Use connectAttempts instead.",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("connectAttempts")
-    )
-    public var connectRetryAttempts: Int
-        get() = connectAttempts
-        set(value) {
-            connectAttempts = value
-        }
-
-    /**
-     * Specifies a maximum number of connection attempts.
      * Note: this property affects only connection retries, but not request retries.
      */
     public var connectAttempts: Int = 1

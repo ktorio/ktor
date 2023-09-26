@@ -17,20 +17,6 @@ import kotlin.coroutines.*
 /**
  * Wrap existing [HttpClientCall] with new [content].
  */
-@Deprecated(
-    "Parameter [shouldCloseOrigin] is deprecated",
-    ReplaceWith("wrapWithContent(content)"),
-    level = DeprecationLevel.ERROR
-)
-@Suppress("UNUSED_PARAMETER")
-public fun HttpClientCall.wrapWithContent(
-    content: ByteReadChannel,
-    shouldCloseOrigin: Boolean
-): HttpClientCall = wrapWithContent(content)
-
-/**
- * Wrap existing [HttpClientCall] with new [content].
- */
 public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall {
     return DelegatedCall(client, content, this)
 }

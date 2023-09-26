@@ -97,9 +97,6 @@ public fun TestApplication(
 @KtorDsl
 public class ExternalServicesBuilder internal constructor(private val testApplicationBuilder: TestApplicationBuilder) {
 
-    @Deprecated(message = "This constructor will be removed from public API", level = DeprecationLevel.HIDDEN)
-    public constructor() : this(TestApplicationBuilder())
-
     private val externalApplicationBuilders = mutableMapOf<String, () -> TestApplication>()
     internal val externalApplications: Map<String, TestApplication> by lazy {
         externalApplicationBuilders.mapValues { it.value.invoke() }

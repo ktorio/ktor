@@ -261,7 +261,8 @@ internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructo
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        level = DeprecationLevel.ERROR
     )
     override fun terminate() {
         socketJob.cancel()

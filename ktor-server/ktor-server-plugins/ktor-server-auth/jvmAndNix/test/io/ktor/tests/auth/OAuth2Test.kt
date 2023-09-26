@@ -22,7 +22,7 @@ import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
@@ -52,7 +52,7 @@ class OAuth2Test {
         accessTokenUrl = "https://login-server-com/oauth/access_token",
         clientId = "clientId1",
         clientSecret = "clientSecret1",
-        extraAuthParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1")
+        extraAuthParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1"),
     )
 
     private val DefaultSettingsWithInterceptor = OAuthServerSettings.OAuth2ServerSettings(
@@ -169,6 +169,7 @@ class OAuth2Test {
             authenticate("login") {
                 route("/login") {
                     handle {
+                        @Suppress("DEPRECATION_ERROR")
                         val principal = call.authentication.principal as? OAuthAccessTokenResponse.OAuth2
                         call.respondText("Hej, $principal")
                     }

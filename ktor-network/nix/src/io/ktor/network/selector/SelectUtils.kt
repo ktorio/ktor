@@ -207,5 +207,8 @@ internal class SelectorHelper {
     }
 }
 
-@Deprecated("This will not be thrown since 2.0.0.")
+@Deprecated(
+    "This will not be thrown since 2.0.0.",
+    level = DeprecationLevel.ERROR
+)
 public class SocketError : IllegalStateException()
