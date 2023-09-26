@@ -5,6 +5,7 @@
 package io.ktor.client.tests.plugins
 
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.tests.utils.*
 import io.ktor.sse.*
@@ -34,6 +35,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testSseSession() = clientTests {
         config {
             install(SSE)
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -54,6 +56,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testParallelSseSessions() = clientTests {
         config {
             install(SSE)
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -96,6 +99,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testSseSessionWithError() = clientTests(listOf("Darwin", "DarwinLegacy")) {
         config {
             install(SSE)
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -109,6 +113,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testExceptionSse() = clientTests {
         config {
             install(SSE)
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -124,6 +129,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testNoCommentsByDefault() = clientTests {
         config {
             install(SSE)
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -144,6 +150,7 @@ class ServerSentEventsTest : ClientLoader() {
             install(SSE) {
                 showCommentEvents()
             }
+            install(HttpTimeout)
         }
 
         test { client ->
@@ -168,6 +175,7 @@ class ServerSentEventsTest : ClientLoader() {
             install(SSE) {
                 showCommentEvents()
             }
+            install(HttpTimeout)
         }
 
         test { client ->
