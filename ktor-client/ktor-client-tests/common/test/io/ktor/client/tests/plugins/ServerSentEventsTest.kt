@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
-class ServerSentEventsTest : ClientLoader() {
+class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
 
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {

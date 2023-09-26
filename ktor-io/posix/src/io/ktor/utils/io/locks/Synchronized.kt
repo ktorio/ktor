@@ -8,6 +8,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.interop.mutex.*
 import kotlinx.cinterop.*
 import platform.posix.*
+import kotlin.concurrent.AtomicNativePtr
+import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.*
 import kotlin.native.internal.NativePtr
 

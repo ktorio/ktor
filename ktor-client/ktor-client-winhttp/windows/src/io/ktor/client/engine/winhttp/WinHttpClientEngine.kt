@@ -13,6 +13,7 @@ import io.ktor.client.request.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 internal class WinHttpClientEngine(
     override val config: WinHttpClientEngineConfig
@@ -29,6 +30,8 @@ internal class WinHttpClientEngine(
             session.close()
         }
     }
+
+    override fun toString(): String = "WinHttp"
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
