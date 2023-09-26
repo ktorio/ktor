@@ -61,7 +61,7 @@ xmlutil-version = "0.86.1"
 yamlkt-version = "0.12.0"
 
 swagger-codegen-version = "3.0.41"
-swagger-codegen-generators-version = "1.0.38"
+swagger-codegen-generators-version = "1.0.42"
 swagger-parser-version = "2.1.13"
 
 [libraries]
