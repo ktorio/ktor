@@ -26,7 +26,7 @@ okio-version = "3.4.0"
 
 json-simple-version = "1.1.1"
 gson-version = "2.10.1"
-jackson-version = "2.15.1"
+jackson-version = "2.15.2"
 
 junit-version = "4.13.2"
 slf4j-version = "2.0.7"
