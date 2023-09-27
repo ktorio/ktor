@@ -63,7 +63,7 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
  *    }
  *    ```
  *
- * 2. Protect a desired resource using the [io.ktor.server.routing.RoutingBuilder.authenticate] function
+ * 2. Protect a desired resource using the [io.ktor.server.routing.Route.authenticate] function
  *    that accepts a name of the authentication provider:
  *    ```kotlin
  *    routing {

@@ -70,7 +70,7 @@ public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
  */
 public fun <A : Pipeline<*, PipelineCall>, F : Any> A.plugin(plugin: Plugin<*, *, F>): F {
     return when (this) {
-        is Route -> findPluginInRoute(plugin)
+        is RouteNode -> findPluginInRoute(plugin)
         else -> pluginOrNull(plugin)
     } ?: throw MissingApplicationPluginException(plugin.key)
 }
@@ -89,7 +89,7 @@ public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    if (this is Route && plugin is BaseRouteScopedPlugin) {
+    if (this is RouteNode && plugin is BaseRouteScopedPlugin) {
         return installIntoRoute(plugin, configure)
     }
 
@@ -121,7 +121,7 @@ public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
     }
 }
 
-private fun <B : Any, F : Any> Route.installIntoRoute(
+private fun <B : Any, F : Any> RouteNode.installIntoRoute(
     plugin: BaseRouteScopedPlugin<B, F>,
     configure: B.() -> Unit = {}
 ): F {
@@ -141,7 +141,7 @@ private fun <B : Any, F : Any> Route.installIntoRoute(
     // to avoid having multiple interceptors after pipelines are merged
     val fakePipeline = when (this) {
         is Routing -> Routing(application)
-        else -> Route(parent, selector, developmentMode, environment)
+        else -> RouteNode(parent, selector, developmentMode, environment)
     }
 
     val installed = plugin.install(fakePipeline, configure)
@@ -184,7 +184,7 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
         "Consider moving installation to the application level " +
         "or migrate this plugin to `RouteScopedPlugin` to support installing into route."
 )
-public fun <P : Route, B : Any, F : Any> P.install(
+public fun <P : RouteNode, B : Any, F : Any> P.install(
     plugin: BaseApplicationPlugin<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {

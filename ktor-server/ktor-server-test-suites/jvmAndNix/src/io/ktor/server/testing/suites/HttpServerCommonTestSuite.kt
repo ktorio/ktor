@@ -24,7 +24,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -683,7 +682,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     call.respondText { "From plugin" }
                 }
             }
-            check(this is Route)
+            check(this is RouteNode)
             application.install(plugin)
             application.install(HSTS)
 

@@ -19,7 +19,7 @@ import java.io.*
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
  */
-public fun RoutingBuilder.openAPI(
+public fun Route.openAPI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: OpenAPIConfig.() -> Unit = {}

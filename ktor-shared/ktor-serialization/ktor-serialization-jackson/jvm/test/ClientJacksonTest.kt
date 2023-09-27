@@ -28,7 +28,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
         register(contentType, converter)
     }
 
-    override fun createRoutes(routing: RoutingBuilder): Unit = with(routing) {
+    override fun createRoutes(routing: Route): Unit = with(routing) {
         super.createRoutes(routing)
 
         post("/jackson") {
