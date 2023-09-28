@@ -9,6 +9,8 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
@@ -27,6 +29,11 @@ public open class JettyApplicationEngineBase(
          * with the server instance as receiver.
          */
         public var configureServer: Server.() -> Unit = {}
+
+        /**
+         * The duration of time that a connection can be idle before the connector takes action to close the connection.
+         */
+        public var idleTimeout: Duration = 30.seconds
     }
 
     /**
@@ -41,7 +48,7 @@ public open class JettyApplicationEngineBase(
      */
     protected val server: Server = Server().apply {
         configuration.configureServer(this)
-        initializeServer(environment)
+        initializeServer(environment, configuration)
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
