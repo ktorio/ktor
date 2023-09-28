@@ -167,7 +167,7 @@ public fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(Outgoin
  * Note that adding a single minimum size condition removes the default configuration.
  */
 public fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
-    condition { content -> content.contentLength?.let { it >= minSize } ?: true }
+    condition { content -> content.contentLength?.let { it >= minSize } ?: false }
 }
 
 /**
