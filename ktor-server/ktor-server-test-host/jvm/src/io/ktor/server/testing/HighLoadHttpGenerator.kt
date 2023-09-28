@@ -5,7 +5,7 @@
 package io.ktor.server.testing
 
 import io.ktor.http.*
-import io.ktor.http.cio.RequestResponseBuilder
+import io.ktor.http.cio.*
 import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
@@ -75,9 +75,11 @@ public class HighLoadHttpGenerator(
     private val writeErrors = AtomicLong()
     private val connectErrors = AtomicLong()
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var cancelled = false
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     @Volatile
     private var shutdown = false
 

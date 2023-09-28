@@ -12,11 +12,12 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import libcurl.*
 
-private class RequestHolder(
+private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
     val responseCompletable: CompletableDeferred<CurlSuccess>,
     val requestWrapper: StableRef<CurlRequestBodyData>,
     val responseWrapper: StableRef<CurlResponseBodyData>,
 ) {
+    @OptIn(ExperimentalForeignApi::class)
     fun dispose() {
         requestWrapper.dispose()
         responseWrapper.dispose()
@@ -24,17 +25,23 @@ private class RequestHolder(
 }
 
 internal class CurlMultiApiHandler : Closeable {
+    @OptIn(ExperimentalForeignApi::class)
     private val activeHandles = mutableMapOf<EasyHandle, RequestHolder>()
 
+    @OptIn(ExperimentalForeignApi::class)
     private val cancelledHandles = mutableSetOf<Pair<EasyHandle, Throwable>>()
 
+    @OptIn(ExperimentalForeignApi::class)
     @Suppress("DEPRECATION")
     private val multiHandle: MultiHandle = curl_multi_init()
         ?: throw CurlRuntimeException("Could not initialize curl multi handle")
 
     private val easyHandlesToUnpauseLock = SynchronizedObject()
+
+    @OptIn(ExperimentalForeignApi::class)
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun close() {
         for ((handle, holder) in activeHandles) {
             curl_multi_remove_handle(multiHandle, handle).verify()
@@ -46,6 +53,7 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw
@@ -121,11 +129,13 @@ internal class CurlMultiApiHandler : Closeable {
         return easyHandle
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     internal fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         cancelledHandles += Pair(easyHandle, cause)
         curl_multi_remove_handle(multiHandle, easyHandle).verify()
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     internal fun perform() {
         if (activeHandles.isEmpty()) return
 
@@ -150,8 +160,10 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     internal fun hasHandlers(): Boolean = activeHandles.isNotEmpty()
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun setupMethod(
         easyHandle: EasyHandle,
         method: String,
@@ -175,6 +187,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
         val requestPointer = CurlRequestBodyData(
             body = request.content,
@@ -195,6 +208,7 @@ internal class CurlMultiApiHandler : Closeable {
         return requestPointer
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun handleCompleted() {
         for (cancellation in cancelledHandles) {
             val cancelled = processCancelledEasyHandle(cancellation.first, cancellation.second)
@@ -232,6 +246,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun processCancelledEasyHandle(easyHandle: EasyHandle, cause: Throwable): CurlFail = memScoped {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
@@ -249,6 +264,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun processCompletedEasyHandle(
         message: CURLMSG?,
         easyHandle: EasyHandle,
@@ -277,6 +293,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun collectFailedResponse(
         message: CURLMSG?,
         request: CurlRequestData,
@@ -317,6 +334,7 @@ internal class CurlMultiApiHandler : Closeable {
         )
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun collectSuccessResponse(easyHandle: EasyHandle): CurlSuccess? = memScoped {
         val responseDataRef = alloc<COpaquePointerVar>()
         val httpProtocolVersion = alloc<LongVar>()
@@ -345,6 +363,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     fun wakeup() {
         curl_multi_wakeup(multiHandle)
     }

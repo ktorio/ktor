@@ -75,12 +75,14 @@ public actual interface ByteReadChannel {
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int
 
     /**
@@ -99,12 +101,14 @@ public actual interface ByteReadChannel {
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
 
     /**

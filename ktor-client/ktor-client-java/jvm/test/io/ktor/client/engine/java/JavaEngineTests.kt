@@ -19,7 +19,6 @@ class JavaEngineTests {
 
     @Test
     fun testProxy() = runBlocking {
-
         val client = HttpClient(Java) {
             engine {
                 proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 8082))

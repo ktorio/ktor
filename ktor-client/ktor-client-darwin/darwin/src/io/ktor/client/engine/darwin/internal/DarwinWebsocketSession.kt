@@ -17,7 +17,7 @@ import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
-@OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class)
+@OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
@@ -35,6 +35,7 @@ internal class DarwinWebsocketSession(
         get() = true
         set(_) {}
 
+    @OptIn(ExperimentalForeignApi::class)
     override var maxFrameSize: Long
         get() = task.maximumMessageSize.convert()
         set(value) {

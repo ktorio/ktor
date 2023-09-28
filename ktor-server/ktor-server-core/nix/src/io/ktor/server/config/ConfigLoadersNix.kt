@@ -12,6 +12,7 @@ internal actual val CONFIG_PATH: List<String> get() = buildList {
     fromEnv("CONFIG_FILE")?.let { add(it) }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun fromEnv(name: String): String? = getenv(name)?.toKString()
 
 /**

@@ -4,7 +4,6 @@
 
 package io.ktor.client.engine.darwin.internal.legacy
 
-import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -68,7 +67,7 @@ internal class DarwinLegacyTaskHandler(
         bodyChunks.close()
     }
 
-    @OptIn(UnsafeNumber::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
     fun NSHTTPURLResponse.toResponseData(): HttpResponseData = HttpResponseData(
         HttpStatusCode.fromValue(statusCode.convert()),
         requestTime,

@@ -82,7 +82,7 @@ internal class DatagramSocketNative(
         }
     }
 
-    @OptIn(UnsafeNumber::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
     private fun tryReadDatagram(): Datagram? = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()
