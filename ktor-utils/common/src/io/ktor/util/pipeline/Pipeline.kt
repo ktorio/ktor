@@ -248,7 +248,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         val interceptors = interceptorsForTests()
             .joinToString("\n") { "    " + it::class.toString() }
 
-        return "${this::class.qualifiedName}(0x${hashCode().toString(16)}) [\n$interceptors\n]"
+        return "${this::class}(0x${hashCode().toString(16)}) [\n$interceptors\n]"
     }
 
     internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptorFunction<TSubject, TContext>> =
