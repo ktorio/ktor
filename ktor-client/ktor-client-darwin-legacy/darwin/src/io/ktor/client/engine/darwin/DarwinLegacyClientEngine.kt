@@ -25,7 +25,7 @@ internal class DarwinLegacyClientEngine(
 
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeout, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
     private val session = DarwinLegacySession(config, requestQueue)
 

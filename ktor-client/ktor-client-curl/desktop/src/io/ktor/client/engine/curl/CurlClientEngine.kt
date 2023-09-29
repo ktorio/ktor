@@ -21,7 +21,7 @@ internal class CurlClientEngine(
 ) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeout, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 

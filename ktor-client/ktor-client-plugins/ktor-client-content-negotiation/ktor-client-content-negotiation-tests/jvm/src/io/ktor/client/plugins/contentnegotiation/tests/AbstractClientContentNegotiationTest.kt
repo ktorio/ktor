@@ -65,9 +65,9 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         respondText(receiveText(), contentType)
     }
 
-    protected abstract fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType)
+    protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
     protected fun TestClientBuilder<*>.configureClient(
-        block: ContentNegotiation.Config.() -> Unit = {}
+        block: ContentNegotiationConfig.() -> Unit = {}
     ) {
         config {
             install(ContentNegotiation) {

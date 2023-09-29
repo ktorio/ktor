@@ -42,7 +42,7 @@ class ContentEncodingRequestBodyTest {
 
         val body = ByteArray(500) { it.toByte() }
         val client = createClient {
-            ContentEncoding()
+            ContentEncoding(mode = ContentEncodingConfig.Mode.All)
         }
 
         val gzipResponse = client.post("/gzip") {

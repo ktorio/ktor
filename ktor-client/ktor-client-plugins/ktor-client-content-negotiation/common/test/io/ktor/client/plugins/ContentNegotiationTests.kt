@@ -25,7 +25,7 @@ class ContentNegotiationTests {
     private val XReturnAs = "X-Return-As"
 
     private fun TestClientBuilder<MockEngineConfig>.setupWithContentNegotiation(
-        block: ContentNegotiation.Config.() -> Unit
+        block: ContentNegotiationConfig.() -> Unit
     ) {
         config {
             engine {

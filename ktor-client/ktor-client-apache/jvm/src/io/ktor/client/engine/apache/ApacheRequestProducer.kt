@@ -160,7 +160,7 @@ internal class ApacheRequestProducer(
 
 @OptIn(InternalAPI::class)
 private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
-    requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+    requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
         timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
     }

@@ -51,7 +51,7 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
         var sendTimeout = 30_000
         var receiveTimeout = 30_000
 
-        data.getCapabilityOrNull(HttpTimeout)?.let { timeoutExtension ->
+        data.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutExtension ->
             timeoutExtension.connectTimeoutMillis?.let { value ->
                 connectTimeout = value.toInt()
             }

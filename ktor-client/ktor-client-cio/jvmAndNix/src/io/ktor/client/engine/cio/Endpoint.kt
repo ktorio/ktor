@@ -208,7 +208,7 @@ internal class Endpoint(
                 }
 
                 val socket = when (connectTimeout) {
-                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
+                    HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> connect()
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
                         if (connection == null) {
@@ -273,7 +273,7 @@ internal class Endpoint(
      */
     private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Long, Long> {
         val default = config.endpoint.connectTimeout to config.endpoint.socketTimeout
-        val timeoutAttributes = requestData.getCapabilityOrNull(HttpTimeout)
+        val timeoutAttributes = requestData.getCapabilityOrNull(HttpTimeoutCapability)
             ?: return default
 
         val socketTimeout = timeoutAttributes.socketTimeoutMillis ?: config.endpoint.socketTimeout
@@ -298,7 +298,7 @@ internal class Endpoint(
 
 @OptIn(DelicateCoroutinesApi::class)
 private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData, timeout: Long) {
-    if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS || timeout == 0L) return
+    if (timeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS || timeout == 0L) return
 
     val timeoutJob = GlobalScope.launch {
         delay(timeout)
@@ -324,8 +324,8 @@ internal fun getRequestTimeout(
      * The request timeout is handled by the plugin and disabled for the WebSockets.
      */
     val isWebSocket = request.url.protocol.isWebsocket()
-    if (request.getCapabilityOrNull(HttpTimeout) != null || isWebSocket || request.isUpgradeRequest()) {
-        return HttpTimeout.INFINITE_TIMEOUT_MS
+    if (request.getCapabilityOrNull(HttpTimeoutCapability) != null || isWebSocket || request.isUpgradeRequest()) {
+        return HttpTimeoutConfig.INFINITE_TIMEOUT_MS
     }
 
     return engineConfig.requestTimeout

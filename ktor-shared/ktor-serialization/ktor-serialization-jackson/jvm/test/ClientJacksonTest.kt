@@ -24,7 +24,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
     override val customContentType: ContentType = ContentType.parse("application/x-json")
     override val webSocketsConverter: WebsocketContentConverter = JacksonWebsocketContentConverter()
 
-    override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)
     }
 

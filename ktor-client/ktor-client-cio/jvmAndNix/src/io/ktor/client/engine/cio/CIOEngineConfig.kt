@@ -76,7 +76,7 @@ public class EndpointConfig {
     /**
      * Specifies a maximum time (in milliseconds) of inactivity between two data packets when exchanging data with a server.
      */
-    public var socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+    public var socketTimeout: Long = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
 
     /**
      * Specifies a maximum number of connection attempts.
