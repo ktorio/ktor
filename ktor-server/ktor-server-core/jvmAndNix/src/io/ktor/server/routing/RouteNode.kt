@@ -25,19 +25,19 @@ import kotlin.coroutines.*
  */
 @Suppress("DEPRECATION")
 @KtorDsl
-public open class Route(
-    public override val parent: Route?,
+public open class RouteNode(
+    public override val parent: RouteNode?,
     public val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment
-) : ApplicationCallPipeline(developmentMode, environment), RoutingBuilder {
+) : ApplicationCallPipeline(developmentMode, environment), Route {
 
     /**
      * List of child routes for this node.
      */
-    public val children: List<Route> get() = childList
+    public val children: List<RouteNode> get() = childList
 
-    private val childList: MutableList<Route> = mutableListOf()
+    private val childList: MutableList<RouteNode> = mutableListOf()
 
     private var cachedPipeline: ApplicationCallPipeline? = null
 
@@ -46,10 +46,10 @@ public open class Route(
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      */
-    public override fun createChild(selector: RouteSelector): Route {
+    public override fun createChild(selector: RouteSelector): RouteNode {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
-            val entry = Route(this, selector, developmentMode, environment)
+            val entry = RouteNode(this, selector, developmentMode, environment)
             childList.add(entry)
             return entry
         }
@@ -59,7 +59,7 @@ public open class Route(
     /**
      * Allows using a route instance for building additional routes.
      */
-    public operator fun invoke(body: Route.() -> Unit): Unit = body()
+    public operator fun invoke(body: RouteNode.() -> Unit): Unit = body()
 
     /**
      * Installs a handler into this route which is called when the route is selected for a call.
@@ -91,7 +91,7 @@ public open class Route(
     }
 
     internal fun buildPipeline(): ApplicationCallPipeline = cachedPipeline ?: run {
-        var current: Route? = this
+        var current: RouteNode? = this
         val pipeline = ApplicationCallPipeline(developmentMode, application.environment)
         val routePipelines = mutableListOf<ApplicationCallPipeline>()
         while (current != null) {
@@ -207,7 +207,7 @@ public class RoutingCall internal constructor(
     public override val parameters: Parameters = applicationCall.parameters
     public val pathParameters: Parameters = applicationCall.pathParameters
     public val queryParameters: Parameters = applicationCall.engineCall.parameters
-    public val route: Route = applicationCall.route
+    public val route: RouteNode = applicationCall.route
 
     override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = applicationCall.receiveNullable(typeInfo)
 
@@ -235,10 +235,10 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
 /**
  * A builder for a routing tree.
  */
-public interface RoutingBuilder {
+public interface Route {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
-    public val parent: RoutingBuilder?
+    public val parent: Route?
 
     /**
      * Installs a handler into this route which is called when the route is selected for a call.
@@ -248,7 +248,7 @@ public interface RoutingBuilder {
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      */
-    public fun createChild(selector: RouteSelector): RoutingBuilder
+    public fun createChild(selector: RouteSelector): Route
 
     /**
      * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
@@ -272,7 +272,7 @@ public interface RoutingBuilder {
 /**
  * A builder for a routing tree root.
  */
-public interface RootRoutingBuilder : RoutingBuilder {
+public interface RootRoute : Route {
 
     /**
      * Registers a function used to trace route resolution.
@@ -301,13 +301,13 @@ private fun RoutingPipelineCall.routingCall(): RoutingCall {
 /**
  * Return list of endpoints with handlers under this route.
  */
-public fun Route.getAllRoutes(): List<Route> {
-    val endpoints = mutableListOf<Route>()
+public fun RouteNode.getAllRoutes(): List<RouteNode> {
+    val endpoints = mutableListOf<RouteNode>()
     getAllRoutes(endpoints)
     return endpoints
 }
 
-private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
+private fun RouteNode.getAllRoutes(endpoints: MutableList<RouteNode>) {
     if (handlers.isNotEmpty()) {
         endpoints.add(this)
     }
@@ -315,19 +315,19 @@ private fun Route.getAllRoutes(endpoints: MutableList<Route>) {
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun RoutingBuilder.intercept(
+public fun Route.intercept(
     phase: PipelinePhase,
     block: suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit
 ) {
-    (this as Route).intercept(phase, block)
+    (this as RouteNode).intercept(phase, block)
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun RoutingBuilder.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
-    (this as Route).insertPhaseAfter(reference, phase)
+public fun Route.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
+    (this as RouteNode).insertPhaseAfter(reference, phase)
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun RoutingBuilder.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
-    (this as Route).insertPhaseBefore(reference, phase)
+public fun Route.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
+    (this as RouteNode).insertPhaseBefore(reference, phase)
 }

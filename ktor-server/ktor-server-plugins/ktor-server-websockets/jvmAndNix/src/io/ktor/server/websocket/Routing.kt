@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
@@ -28,7 +27,7 @@ import kotlinx.coroutines.CancellationException
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
  */
-public fun RoutingBuilder.webSocketRaw(
+public fun Route.webSocketRaw(
     path: String,
     protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
@@ -50,7 +49,7 @@ public fun RoutingBuilder.webSocketRaw(
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun RoutingBuilder.webSocketRaw(
+public fun Route.webSocketRaw(
     path: String,
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
@@ -75,7 +74,7 @@ public fun RoutingBuilder.webSocketRaw(
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  */
-public fun RoutingBuilder.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
+public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol, negotiateExtensions = false, handler)
 }
 
@@ -93,7 +92,7 @@ public fun RoutingBuilder.webSocketRaw(protocol: String? = null, handler: suspen
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun RoutingBuilder.webSocketRaw(
+public fun Route.webSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
@@ -125,7 +124,7 @@ public fun RoutingBuilder.webSocketRaw(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun RoutingBuilder.webSocket(
+public fun Route.webSocket(
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
@@ -146,7 +145,7 @@ public fun RoutingBuilder.webSocket(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun RoutingBuilder.webSocket(
+public fun Route.webSocket(
     path: String,
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
@@ -167,7 +166,7 @@ private suspend fun ApplicationCall.respondWebSocketRaw(
     respond(WebSocketUpgrade(this, protocol, negotiateExtensions, handler))
 }
 
-private fun RoutingBuilder.webSocketProtocol(protocol: String?, block: RoutingBuilder.() -> Unit) {
+private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) {
     if (protocol == null) {
         block()
     } else {
