@@ -17,6 +17,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -739,6 +740,28 @@ class CompressionTest {
             header(HttpHeaders.ContentEncoding, "unknown")
         }
         assertEquals("unknown", responseUnknown.bodyAsText())
+    }
+
+    @Test
+    fun testSkipCompressionForSSEResponse(): Unit = testApplication {
+        install(Compression) {
+            deflate {
+                minimumSize(1024)
+            }
+        }
+        install(SSE)
+
+        routing {
+            sse {
+                send("Hello")
+            }
+        }
+
+        client.get {
+            header(HttpHeaders.AcceptEncoding, "*")
+        }.apply {
+            assertNull(headers[HttpHeaders.ContentEncoding], "SSE response shouldn't be compressed")
+        }
     }
 
     private fun TestApplicationEngine.handleAndAssert(
