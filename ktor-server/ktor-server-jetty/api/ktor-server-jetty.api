@@ -38,7 +38,9 @@ public class io/ktor/server/jetty/JettyApplicationEngineBase : io/ktor/server/en
 public final class io/ktor/server/jetty/JettyApplicationEngineBase$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
 	public fun <init> ()V
 	public final fun getConfigureServer ()Lkotlin/jvm/functions/Function1;
+	public final fun getIdleTimeout-UwyO8pc ()J
 	public final fun setConfigureServer (Lkotlin/jvm/functions/Function1;)V
+	public final fun setIdleTimeout-LRDsOJo (J)V
 }
 
 public final class io/ktor/server/jetty/JettyApplicationResponse : io/ktor/server/servlet/AsyncServletApplicationResponse {

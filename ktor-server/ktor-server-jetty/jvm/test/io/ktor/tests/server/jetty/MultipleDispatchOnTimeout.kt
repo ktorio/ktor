@@ -53,9 +53,8 @@ class MultipleDispatchOnTimeout {
 
             Thread.sleep(1000)
 
-            val result = URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().let {
-                it
-            } ?: "<empty>"
+            val result = URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine()
+                ?: "<empty>"
 
             // println("Got result: $result" )
 
