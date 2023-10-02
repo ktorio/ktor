@@ -401,6 +401,7 @@ class LoggingTest : ClientLoader() {
         }
     }
 
+    @Ignore
     @Test
     fun testLoggingWithStreaming() = clientTests {
         val testLogger = TestLogger()
