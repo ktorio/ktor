@@ -8,7 +8,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.locks.*
 import kotlinx.coroutines.*

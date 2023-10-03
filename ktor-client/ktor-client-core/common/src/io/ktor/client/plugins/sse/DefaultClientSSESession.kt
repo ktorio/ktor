@@ -6,7 +6,6 @@ package io.ktor.client.plugins.sse
 
 import io.ktor.http.*
 import io.ktor.sse.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*

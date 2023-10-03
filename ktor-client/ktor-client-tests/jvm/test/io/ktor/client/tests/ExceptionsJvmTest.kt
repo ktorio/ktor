@@ -6,22 +6,12 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.*
 import org.apache.http.*
 import org.junit.*
-import org.junit.Test
 import java.net.*
-import kotlin.test.*
 
 @Suppress("BlockingMethodInNonBlockingContext", "ControlFlowWithEmptyBody")
 class ExceptionsJvmTest {
