@@ -109,6 +109,11 @@ private fun decode(call: PipelineCall, options: CompressionOptions) {
 }
 
 private fun ContentEncoding.Context.encode(call: PipelineCall, options: CompressionOptions) {
+    if (call.response.isSSEResponse()) {
+        LOGGER.trace("Skip compression for sse response ${call.request.uri} ")
+        return
+    }
+
     val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
         { it.second.quality },
         { it.first.priority }
@@ -172,3 +177,8 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
  */
 public val ApplicationRequest.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
+
+
+private fun PipelineResponse.isSSEResponse(): Boolean {
+    return headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
+}
