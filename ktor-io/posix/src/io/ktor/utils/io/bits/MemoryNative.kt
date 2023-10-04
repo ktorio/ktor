@@ -185,6 +185,7 @@ public actual fun Memory.copyTo(
     }
 }
 
+@OptIn(ExperimentalNativeApi::class)
 @PublishedApi
 internal inline fun Memory.assertIndex(offset: Int, valueSize: Int): Int {
     assert(offset in 0..size - valueSize) {

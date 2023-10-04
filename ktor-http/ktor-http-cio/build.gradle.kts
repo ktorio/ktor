@@ -4,6 +4,7 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-http"))
+            implementation(libs.kotlinx.coroutines.core)
         }
     }
 

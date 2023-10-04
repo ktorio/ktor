@@ -5,7 +5,7 @@ package io.ktor.utils.io.bits
 import kotlinx.cinterop.*
 import kotlin.experimental.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -17,7 +17,7 @@ public actual inline fun Memory.loadShortAt(offset: Int): Short {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadShortAt(offset: Long): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -29,7 +29,7 @@ public actual inline fun Memory.loadShortAt(offset: Long): Short {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadIntAt(offset: Int): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -41,7 +41,7 @@ public actual inline fun Memory.loadIntAt(offset: Int): Int {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadIntAt(offset: Long): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -53,7 +53,7 @@ public actual inline fun Memory.loadIntAt(offset: Long): Int {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadLongAt(offset: Int): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -65,7 +65,7 @@ public actual inline fun Memory.loadLongAt(offset: Int): Long {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadLongAt(offset: Long): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -77,7 +77,7 @@ public actual inline fun Memory.loadLongAt(offset: Long): Long {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -89,7 +89,7 @@ public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -101,7 +101,7 @@ public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -113,7 +113,7 @@ public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -128,7 +128,7 @@ public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -143,7 +143,7 @@ public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -158,7 +158,7 @@ public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -173,7 +173,7 @@ public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -188,7 +188,7 @@ public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -203,7 +203,7 @@ public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -218,7 +218,7 @@ public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -233,7 +233,7 @@ public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -248,7 +248,7 @@ public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -263,7 +263,7 @@ public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!

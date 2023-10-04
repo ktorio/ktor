@@ -18,19 +18,24 @@ import platform.windows.SECURITY_FLAG_IGNORE_UNKNOWN_CA
 import platform.winhttp.*
 import kotlin.coroutines.*
 
-internal class WinHttpRequest(
+@OptIn(ExperimentalForeignApi::class)
+internal class WinHttpRequest @OptIn(ExperimentalForeignApi::class) constructor(
     hSession: COpaquePointer,
     data: HttpRequestData,
     config: WinHttpClientEngineConfig
 ) : Closeable {
     private val connect: WinHttpConnect
+
+    @OptIn(ExperimentalForeignApi::class)
     private val hRequest: COpaquePointer
     private val closed = atomic(false)
     private val requestClosed = atomic(false)
+
+    @OptIn(ExperimentalForeignApi::class)
     private val connectReference: StableRef<WinHttpConnect>
 
     init {
-        val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0)
+        val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0.convert())
             ?: throw getWinHttpException("Unable to create connection")
         connect = WinHttpConnect(hConnect)
         connectReference = StableRef.create(connect)
@@ -58,7 +63,7 @@ internal class WinHttpRequest(
     }
 
     fun upgradeToWebSocket() {
-        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET, null, 0) == 0) {
+        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET.convert(), null, 0.convert()) == 0) {
             throw getWinHttpException("Unable to request WebSocket upgrade")
         }
     }
@@ -86,8 +91,8 @@ internal class WinHttpRequest(
                     headersString,
                     headersString.length.convert(),
                     WINHTTP_NO_REQUEST_DATA,
-                    0,
-                    WINHTTP_IGNORE_REQUEST_TOTAL_LENGTH,
+                    0.convert(),
+                    WINHTTP_IGNORE_REQUEST_TOTAL_LENGTH.convert(),
                     statePtr.convert()
                 ) == 0
             ) {
@@ -201,6 +206,7 @@ internal class WinHttpRequest(
      *
      * @param callContext is call context.
      */
+    @OptIn(ExperimentalForeignApi::class)
     fun createWebSocket(callContext: CoroutineContext): WinHttpWebSocket {
         val statePtr = connectReference.asCPointer().rawValue.toLong()
         val hWebsocket = WinHttpWebSocketCompleteUpgrade(hRequest, statePtr.convert())
@@ -214,6 +220,7 @@ internal class WinHttpRequest(
     /**
      * Disables built-in features which are handled by Ktor client.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun configureFeatures() = memScoped {
         val options = alloc<DWORDVar> {
             value = (WINHTTP_DISABLE_COOKIES or WINHTTP_DISABLE_REDIRECTS).convert()
@@ -221,7 +228,7 @@ internal class WinHttpRequest(
 
         if (WinHttpSetOption(
                 hRequest,
-                WINHTTP_OPTION_DISABLE_FEATURE,
+                WINHTTP_OPTION_DISABLE_FEATURE.convert(),
                 options.ptr,
                 sizeOf<DWORDVar>().convert()
             ) == 0
@@ -233,6 +240,7 @@ internal class WinHttpRequest(
     /**
      * Receive status callbacks about all operations.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun configureStatusCallback(enable: Boolean) = memScoped {
         val notifications = WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS.convert<UInt>()
         val callback = if (enable) {
@@ -241,7 +249,7 @@ internal class WinHttpRequest(
             null
         }
 
-        val oldStatusCallback = WinHttpSetStatusCallback(hRequest, callback, notifications, 0)
+        val oldStatusCallback = WinHttpSetStatusCallback(hRequest, callback, notifications, 0.convert())
         if (oldStatusCallback?.rawValue?.toLong() == WINHTTP_INVALID_STATUS_CALLBACK) {
             val errorCode = GetLastError()
             if (errorCode != ERROR_INVALID_HANDLE) {
@@ -255,6 +263,7 @@ internal class WinHttpRequest(
      *
      * @param protocolVersion is required protocol version.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun enableHttpProtocols(protocolVersion: HttpProtocolVersion) = memScoped {
         if (protocolVersion != HttpProtocolVersion.HTTP_2_0) return@memScoped
         val flags = alloc<UIntVar> {
@@ -266,6 +275,7 @@ internal class WinHttpRequest(
     /**
      * Disables TLS verification for testing purposes.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun disableTlsVerification() = memScoped {
         val flags = alloc<UIntVar> {
             value = (
@@ -275,7 +285,7 @@ internal class WinHttpRequest(
                     SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
                 ).convert()
         }
-        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, flags.ptr, UINT_SIZE) == 0) {
+        if (WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS.convert(), flags.ptr, UINT_SIZE) == 0) {
             throw getWinHttpException("Unable to disable TLS verification")
         }
     }
@@ -291,6 +301,7 @@ internal class WinHttpRequest(
     /**
      * Gets a string length in bytes.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun getLength(dwSize: UIntVar) = (dwSize.value / sizeOf<ShortVar>().convert()).convert<Int>()
 
     /**
@@ -298,6 +309,7 @@ internal class WinHttpRequest(
      *
      * @param headerId is header identifier.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun getHeader(headerId: Int): String = memScoped {
         val dwSize = alloc<UIntVar>()
 
@@ -321,6 +333,7 @@ internal class WinHttpRequest(
     /**
      * Gets a HTTP protocol version from server response.
      */
+    @OptIn(ExperimentalForeignApi::class)
     private fun isHttp2Response() = memScoped {
         val flags = alloc<UIntVar>()
         val dwSize = alloc<UIntVar> {
@@ -334,6 +347,7 @@ internal class WinHttpRequest(
         false
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun closeRequest() {
         if (!requestClosed.compareAndSet(expect = false, update = true)) return
 
@@ -341,6 +355,7 @@ internal class WinHttpRequest(
         WinHttpCloseHandle(hRequest)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun close() {
         if (!closed.compareAndSet(expect = false, update = true)) return
 
