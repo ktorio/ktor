@@ -1,14 +1,13 @@
-// ktlint-disable experimental:argument-list-wrapping
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.network.tls.tests
+// ktlint-disable experimental:argument-list-wrapping
+package io.ktor.network.tls
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -55,6 +54,20 @@ class ConnectionTest {
 
         socket.openReadChannel().readRemaining()
         Unit
+    }
+
+    @Test
+    fun tlsWithCloseTest(): Unit = runBlocking {
+        val selectorManager = ActorSelectorManager(Dispatchers.IO)
+        val socket = aSocket(selectorManager)
+            .tcp()
+            .connect("www.google.com", port = 443)
+            .tls(Dispatchers.Default)
+
+        val channel = socket.openWriteChannel(autoFlush = true)
+        socket.close()
+        assertEquals(42, channel.writeAvailable(ByteArray(42)))
+        assertTrue(channel.isClosedForWrite)
     }
 
     @Test

@@ -9,13 +9,13 @@ fun Project.configureCommon() {
 
     kotlin {
         sourceSets {
-            val commonMain by getting {
+            commonMain {
                 dependencies {
                     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
                 }
             }
 
-            val commonTest by getting {
+            commonTest {
                 dependencies {
                     implementation(kotlin("test"))
                 }

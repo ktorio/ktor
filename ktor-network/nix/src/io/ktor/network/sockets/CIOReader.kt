@@ -11,7 +11,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForReadingImpl(
     userChannel: ByteChannel,
     descriptor: Int,

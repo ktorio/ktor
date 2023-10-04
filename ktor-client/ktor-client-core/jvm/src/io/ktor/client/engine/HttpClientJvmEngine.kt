@@ -6,7 +6,6 @@ package io.ktor.client.engine
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -20,21 +19,9 @@ import kotlin.coroutines.*
 )
 public abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val clientContext = SilentSupervisor()
-    private val _dispatcher by lazy {
-        Executors.newFixedThreadPool(config.threadsCount) {
-            Thread(it).apply {
-                isDaemon = true
-            }
-        }.asCoroutineDispatcher()
-    }
 
-    @OptIn(InternalCoroutinesApi::class)
-    override val dispatcher: CoroutineDispatcher
-        get() = _dispatcher
-
-    @OptIn(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
-        _dispatcher + clientContext + CoroutineName("$engineName-context")
+        dispatcher + clientContext + CoroutineName("$engineName-context")
     }
 
     /**
@@ -60,12 +47,8 @@ public abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine
     }
 
     override fun close() {
-        val job = clientContext[Job] as CompletableJob
-
+        val job = clientContext.job as CompletableJob
         job.complete()
-        job.invokeOnCompletion {
-            _dispatcher.close()
-        }
     }
 }
 

@@ -73,26 +73,26 @@ class CallLoggingTest {
         testApplication {
             environment { environment() }
             application {
-                hash = this.toString()
+                hash = hashCode().toString(radix = 16)
             }
         }
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
-        assertEquals(
-            "INFO: Application started: $hash",
-            messages[messages.size - 3],
-            "No started message logged:\n$messages"
-        )
-        assertEquals(
-            "INFO: Application stopping: $hash",
-            messages[messages.size - 2],
-            "No stopping message logged:\n$messages"
-        )
-        assertEquals(
-            "INFO: Application stopped: $hash",
-            messages[messages.size - 1],
-            "No stopped message logged:\n$messages"
-        )
+        assertTrue {
+            messages[messages.size - 3].startsWith(
+                "INFO: Application started: class io.ktor.server.application.Application(0x$hash)"
+            )
+        }
+        assertTrue {
+            messages[messages.size - 2].startsWith(
+                "INFO: Application stopping: class io.ktor.server.application.Application(0x$hash)"
+            )
+        }
+        assertTrue {
+            messages[messages.size - 1].startsWith(
+                "INFO: Application stopped: class io.ktor.server.application.Application(0x$hash)"
+            )
+        }
     }
 
     @Test
@@ -374,7 +374,7 @@ class CallLoggingTest {
                 }
             }
         }
-        var hash: String? = null
+        lateinit var hash: String
 
         testApplication {
             environment {
@@ -385,11 +385,11 @@ class CallLoggingTest {
                     }
                 }
             }
-            application { hash = this.toString() }
+            application { hash = hashCode().toString(radix = 16) }
         }
 
         assertTrue(customMessages.isNotEmpty())
-        assertTrue(customMessages.all { it.startsWith("CUSTOM TRACE:") && it.contains(hash!!) })
+        assertTrue(customMessages.all { it.startsWith("CUSTOM TRACE:") && it.contains(hash) })
         assertTrue(messages.isEmpty())
     }
 

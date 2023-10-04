@@ -14,6 +14,10 @@ public open class HttpClientEngineConfig {
     /**
      * Specifies network threads count advice.
      */
+    @Deprecated(
+        "The [threadsCount] property is deprecated. The [Dispatchers.IO] is used by default.",
+        level = DeprecationLevel.WARNING
+    )
     public var threadsCount: Int = 4
 
     /**

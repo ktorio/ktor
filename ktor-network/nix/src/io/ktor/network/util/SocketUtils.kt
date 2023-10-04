@@ -8,6 +8,7 @@ import io.ktor.utils.io.bits.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun getAddressInfo(
     hostname: String,
     portInfo: Int
@@ -27,6 +28,7 @@ internal fun getAddressInfo(
     return result.pointed.toIpList()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun getLocalAddress(descriptor: Int): NativeSocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
@@ -37,6 +39,7 @@ internal fun getLocalAddress(descriptor: Int): NativeSocketAddress = memScoped {
     return@memScoped address.reinterpret<sockaddr>().toNativeSocketAddress()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun getRemoteAddress(descriptor: Int): NativeSocketAddress = memScoped {
     val address = alloc<sockaddr_storage>()
     val length: UIntVarOf<UInt> = alloc()
@@ -47,6 +50,7 @@ internal fun getRemoteAddress(descriptor: Int): NativeSocketAddress = memScoped 
     return@memScoped address.reinterpret<sockaddr>().toNativeSocketAddress()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     var current: addrinfo? = this
     val result = mutableListOf<NativeSocketAddress>()
@@ -59,7 +63,7 @@ internal fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     return result
 }
 
-@OptIn(UnsafeNumber::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed
@@ -93,6 +97,7 @@ internal fun hostToNetworkOrder(value: UShort): UShort {
     return value.reverseByteOrder()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 internal expect fun ktor_inet_ntop(
     family: Int,
     src: CValuesRef<*>?,
@@ -102,6 +107,7 @@ internal expect fun ktor_inet_ntop(
 
 internal expect fun <T> unpack_sockaddr_un(sockaddr: sockaddr, block: (family: UShort, path: String) -> T): T
 
+@OptIn(ExperimentalForeignApi::class)
 internal expect fun pack_sockaddr_un(
     family: UShort,
     path: String,

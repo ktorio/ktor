@@ -2,12 +2,12 @@
 kotlin-version = "1.8.22"
 kotlinx-html-version = "0.9.1"
 coroutines-version = "1.7.2"
-atomicfu-version = "0.20.2"
+atomicfu-version = "0.22.0"
 serialization-version = "1.5.1"
 validator-version = "0.8.0"
 ktlint-version = "3.15.0"
 
-netty-version = "4.1.92.Final"
+netty-version = "4.1.97.Final"
 netty-tcnative-version = "2.0.61.Final"
 
 jetty-version = "9.4.51.v20230217"
@@ -58,7 +58,7 @@ jakarta-servlet-version = "5.0.0"
 node-fetch-version = "2.6.7"
 abort-controller-version = "3.0.0"
 ws-version = "8.5.0"
-xmlutil-version = "0.86.1"
+xmlutil-version = "0.86.2"
 yamlkt-version = "0.12.0"
 
 swagger-codegen-version = "3.0.41"

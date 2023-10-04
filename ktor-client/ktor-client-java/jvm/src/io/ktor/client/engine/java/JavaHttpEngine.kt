@@ -9,36 +9,15 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.net.*
 import java.net.http.*
 import java.time.*
 import java.time.temporal.*
-import java.util.concurrent.*
 
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
 
-    private val executorThreadCounter = atomic(0L)
-
     private val protocolVersion = config.protocolVersion
-
-    /**
-     * Exposed for tests only.
-     */
-    internal val executor by lazy {
-        Executors.newFixedThreadPool(config.threadsCount) {
-            val number = executorThreadCounter.getAndIncrement()
-            Thread(it, "ktor-client-java-$number").apply {
-                isDaemon = true
-                setUncaughtExceptionHandler { _, _ -> }
-            }
-        }
-    }
-
-    public override val dispatcher: CoroutineDispatcher by lazy {
-        executor.asCoroutineDispatcher()
-    }
 
     public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeout, WebSocketCapability)
@@ -74,7 +53,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         return httpClient ?: synchronized(this) {
             httpClient ?: HttpClient.newBuilder().apply {
                 version(protocolVersion)
-                executor(executor)
+                executor(dispatcher.asExecutor())
 
                 apply(config.config)
 
@@ -105,6 +84,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
                 proxy(ProxySelector.of(address))
             }
+
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
             else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }

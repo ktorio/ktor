@@ -13,6 +13,7 @@ import libcurl.*
 import platform.posix.*
 import kotlin.coroutines.*
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun onHeadersReceived(
     buffer: CPointer<ByteVar>,
     size: size_t,
@@ -25,6 +26,8 @@ internal fun onHeadersReceived(
     return chunkSize
 }
 
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalForeignApi::class)
 internal fun onBodyChunkReceived(
     buffer: CPointer<ByteVar>,
     size: size_t,
@@ -70,6 +73,8 @@ internal fun onBodyChunkReceived(
     return CURL_WRITEFUNC_PAUSE
 }
 
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalForeignApi::class)
 internal fun onBodyChunkRequested(
     buffer: CPointer<ByteVar>,
     size: size_t,

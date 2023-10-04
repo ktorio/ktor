@@ -7,7 +7,6 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.apache.hc.client5.http.config.*
@@ -28,13 +27,6 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 
 @OptIn(InternalAPI::class)
 internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpClientEngineBase("ktor-apache") {
-
-    override val dispatcher by lazy {
-        Dispatchers.clientDispatcher(
-            config.threadsCount,
-            "ktor-apache-dispatcher"
-        )
-    }
 
     override val supportedCapabilities = setOf(HttpTimeout)
 
@@ -91,7 +83,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                 setConnectionManager(
                     PoolingAsyncClientConnectionManagerBuilder.create()
                         .setMaxConnTotal(MAX_CONNECTIONS_COUNT)
-                        .setMaxConnTotal(MAX_CONNECTIONS_COUNT)
+                        .setMaxConnPerRoute(MAX_CONNECTIONS_COUNT)
                         .setTlsStrategy(
                             ClientTlsStrategyBuilder.create()
                                 .setSslContext(config.sslContext ?: SSLContexts.createSystemDefault())
