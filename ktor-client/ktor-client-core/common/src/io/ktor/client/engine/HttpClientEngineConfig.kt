@@ -16,7 +16,7 @@ public open class HttpClientEngineConfig {
      */
     @Deprecated(
         "The [threadsCount] property is deprecated. The [Dispatchers.IO] is used by default.",
-        level = DeprecationLevel.ERROR
+        level = DeprecationLevel.WARNING
     )
     public var threadsCount: Int = 4
 
