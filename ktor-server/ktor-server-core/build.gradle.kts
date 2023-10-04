@@ -12,6 +12,7 @@ kotlin.sourceSets {
             api(project(":ktor-shared:ktor-serialization"))
             api(project(":ktor-shared:ktor-events"))
 
+            implementation(libs.kotlinx.coroutines.core)
             api(libs.kotlin.reflect)
         }
     }
