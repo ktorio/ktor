@@ -184,5 +184,17 @@ fun Project.configurePublication() {
                 gpgAgentLock.unlock()
             }
         }
+
+        val publishLinuxX64PublicationToMavenRepository = tasks.findByName("publishLinuxX64PublicationToMavenRepository")
+        val signLinuxArm64Publication = tasks.findByName("signLinuxArm64Publication")
+        if (publishLinuxX64PublicationToMavenRepository != null && signLinuxArm64Publication != null) {
+            publishLinuxX64PublicationToMavenRepository.dependsOn(signLinuxArm64Publication)
+        }
+
+        val publishLinuxArm64PublicationToMavenRepository = tasks.findByName("publishLinuxArm64PublicationToMavenRepository")
+        val signLinuxX64Publication = tasks.findByName("signLinuxX64Publication")
+        if (publishLinuxArm64PublicationToMavenRepository != null && signLinuxX64Publication != null) {
+            publishLinuxArm64PublicationToMavenRepository.dependsOn(signLinuxX64Publication)
+        }
     }
 }
