@@ -1,3 +1,11 @@
+# 2.3.5
+> Published 5 October 2023
+
+### Bugfixes
+* 300+ ktor-client-java threads eat up lots of memory ([KTOR-6292](https://youtrack.jetbrains.com/issue/KTOR-6292))
+* Apache5 engine limits concurrent requests to individual route to 5 ([KTOR-6221](https://youtrack.jetbrains.com/issue/KTOR-6221))
+* DarwinClientEngine WebSocket rejects all received pongs ([KTOR-5540](https://youtrack.jetbrains.com/issue/KTOR-5540))
+
 # 2.3.4
 > Published 31 August 2023
 
