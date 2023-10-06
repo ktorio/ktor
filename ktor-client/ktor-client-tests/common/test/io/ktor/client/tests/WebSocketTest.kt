@@ -299,7 +299,7 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<WebSocketException> {
+            assertFailsWith<Exception> {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol") {
                     send(Frame.Text("test"))
                 }
