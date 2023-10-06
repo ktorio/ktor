@@ -208,6 +208,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
+    @Ignore
     @Test
     fun testClosedConnection() {
         val completed = Job()

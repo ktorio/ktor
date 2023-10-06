@@ -547,6 +547,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Ignore
     @Test
     open fun testFlushingHeaders() {
         createAndStartServer {

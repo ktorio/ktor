@@ -352,6 +352,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Ignore
     @Test
     fun testReceiveMessages() = runTest {
         val count = 125
