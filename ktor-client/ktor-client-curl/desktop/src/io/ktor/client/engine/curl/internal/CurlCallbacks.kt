@@ -45,12 +45,12 @@ internal fun onBodyChunkReceived(
 
     val chunkSize = (size * count).toInt()
 
-    @Suppress("DEPRECATION")
+    // TODO: delete `runBlocking` with fix of https://youtrack.jetbrains.com/issue/KTOR-6030/Migrate-to-new-kotlinx.io-library
     val written = try {
-        body.writeAvailable(1) { dst: Buffer ->
-            val toWrite = minOf(chunkSize - wrapper.bytesWritten.value, dst.writeRemaining)
-            dst.writeFully(buffer, wrapper.bytesWritten.value, toWrite)
+        runBlocking {
+            body.writeFully(buffer, 0, chunkSize)
         }
+        chunkSize
     } catch (cause: Throwable) {
         return -1
     }
