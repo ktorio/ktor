@@ -292,6 +292,7 @@ class WebSocketTest : ClientLoader() {
             }
         }
     }
+
     @Test
     fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
         config {
