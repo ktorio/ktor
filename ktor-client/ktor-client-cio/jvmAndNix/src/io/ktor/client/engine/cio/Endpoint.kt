@@ -321,10 +321,14 @@ internal fun getRequestTimeout(
     engineConfig: CIOEngineConfig
 ): Long {
     /**
-     * The request timeout is handled by the plugin and disabled for the WebSockets.
+     * The request timeout is handled by the plugin and disabled for the WebSockets and SSE.
      */
     val isWebSocket = request.url.protocol.isWebsocket()
-    if (request.getCapabilityOrNull(HttpTimeoutCapability) != null || isWebSocket || request.isUpgradeRequest()) {
+    if (request.getCapabilityOrNull(HttpTimeoutCapability) != null ||
+        isWebSocket ||
+        request.isUpgradeRequest() ||
+        request.isSseRequest()
+    ) {
         return HttpTimeoutConfig.INFINITE_TIMEOUT_MS
     }
 

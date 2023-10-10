@@ -29,9 +29,6 @@ public class HttpStatement(
     @PublishedApi
     internal val client: HttpClient
 ) {
-    init {
-        checkCapabilities()
-    }
 
     /**
      * Executes this statement and calls the [block] with the streaming [response].
@@ -136,19 +133,6 @@ public class HttpStatement(
             }
             join()
         }
-    }
-
-    /**
-     * Checks that all request configuration related to client capabilities have correspondent plugin installed.
-     */
-    private fun checkCapabilities() {
-        builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys
-            ?.filterIsInstance<HttpClientPlugin<*, *>>()
-            ?.forEach {
-                requireNotNull(client.pluginOrNull(it)) {
-                    "Consider installing $it plugin because the request requires it to be installed"
-                }
-            }
     }
 
     override fun toString(): String = "HttpStatement[${builder.url}]"

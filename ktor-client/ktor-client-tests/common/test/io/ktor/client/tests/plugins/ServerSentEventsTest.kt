@@ -35,7 +35,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testSseSession() = clientTests {
         config {
             install(SSE)
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -56,7 +55,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testParallelSseSessions() = clientTests {
         config {
             install(SSE)
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -99,7 +97,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testSseSessionWithError() = clientTests(listOf("Darwin", "DarwinLegacy")) {
         config {
             install(SSE)
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -113,7 +110,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testExceptionSse() = clientTests {
         config {
             install(SSE)
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -129,7 +125,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testNoCommentsByDefault() = clientTests {
         config {
             install(SSE)
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -150,7 +145,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             install(SSE) {
                 showCommentEvents()
             }
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -175,7 +169,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             install(SSE) {
                 showCommentEvents()
             }
-            install(HttpTimeout)
         }
 
         test { client ->
@@ -199,6 +192,24 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
                     size++
                 }
                 assertEquals(100, size)
+            }
+        }
+    }
+
+    @Test
+    fun testRequestTimeoutIsNotApplied() = clientTests {
+        config {
+            install(SSE)
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 10
+            }
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/hello?delay=20") {
+                val result = incoming.single()
+                assertEquals("hello 0", result.event)
             }
         }
     }

@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -135,7 +136,12 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
 
     on(Send) { request ->
         val isWebSocket = request.url.protocol.isWebsocket()
-        if (isWebSocket || request.body is ClientUpgradeContent) return@on proceed(request)
+        if (isWebSocket ||
+            request.body is ClientUpgradeContent ||
+            request.body is SSEClientContent
+        ) {
+            return@on proceed(request)
+        }
 
         var configuration = request.getCapabilityOrNull(HttpTimeoutCapability)
         if (configuration == null && hasNotNullTimeouts()) {
