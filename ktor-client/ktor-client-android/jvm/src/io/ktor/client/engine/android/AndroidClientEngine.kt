@@ -10,7 +10,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -73,7 +72,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
                 addRequestProperty(HttpHeaders.TransferEncoding, "chunked")
             }
 
-            contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
+            contentLength?.let { setFixedLengthStreamingMode(it) } ?: setChunkedStreamingMode(0)
             doOutput = true
 
             outgoingContent.writeTo(outputStream, callContext)
