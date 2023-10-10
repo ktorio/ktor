@@ -25,8 +25,24 @@ public object Js : HttpClientEngineFactory<JsClientEngineConfig> {
         JsClientEngine(JsClientEngineConfig().apply(block))
 }
 
-
+/** Configuration for the [Js] client. */
 public open class JsClientEngineConfig : HttpClientEngineConfig() {
+    /**
+     * An `Object` which can contain additional configuration options that should get passed to node-fetch.
+     *
+     * For example, this can be used to configure a custom `Agent`:
+     *
+     * ```kotlin
+     * HttpClient(Js) {
+     *     engine {
+     *         val agentOptions = js("Object").create(null)
+     *         agentOptions.minVersion = "TLSv1.2"
+     *         agentOptions.maxVersion = "TLSv1.3"
+     *         nodeOptions.agent = Agent(agentOptions)
+     *     }
+     * }
+     * ```
+     */
     public var nodeOptions: dynamic = js("Object").create(null)
 }
 
