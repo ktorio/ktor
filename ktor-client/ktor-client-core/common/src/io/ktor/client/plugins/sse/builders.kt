@@ -43,11 +43,6 @@ public suspend fun HttpClient.serverSentEventsSession(
         addAttribute(reconnectionTimeAttr, reconnectionTime)
         addAttribute(showCommentEventsAttr, showCommentEvents)
         addAttribute(showRetryEventsAttr, showRetryEvents)
-
-        setCapability(
-            HttpTimeoutCapability,
-            HttpTimeoutConfig(requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS)
-        )
     }
     @Suppress("SuspendFunctionOnCoroutineScope")
     launch {

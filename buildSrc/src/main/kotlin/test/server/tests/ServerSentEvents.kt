@@ -9,12 +9,16 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 internal fun Application.serverSentEvents() {
     routing {
         route("/sse") {
             get("/hello") {
+                val delayMillis = call.parameters["delay"]?.toLong() ?: 0
+                delay(delayMillis)
+
                 val times = call.parameters["times"]?.toInt() ?: 1
                 val events = flow {
                     repeat(times) {
