@@ -129,7 +129,7 @@ internal class JavaHttpWebSocket(
 
     @OptIn(InternalAPI::class)
     suspend fun getResponse(): HttpResponseData {
-        val builder: WebSocket.Builder = httpClient.newWebSocketBuilder()
+        val builder = httpClient.newWebSocketBuilder()
 
         with(builder) {
             requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
