@@ -1,6 +1,7 @@
 [versions]
 kotlin-version = "1.8.22"
 kotlinx-html-version = "0.9.1"
+kotlinx-datetime = "0.4.1"
 coroutines-version = "1.7.2"
 atomicfu-version = "0.20.2"
 serialization-version = "1.5.1"
@@ -85,6 +86,8 @@ kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization-version" }
 
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html-version" }
+
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty-version" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty-version" }

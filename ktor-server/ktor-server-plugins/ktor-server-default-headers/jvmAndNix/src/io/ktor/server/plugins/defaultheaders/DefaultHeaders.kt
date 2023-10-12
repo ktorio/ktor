@@ -11,7 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
-import java.util.*
 
 /**
  * A configuration for the [DefaultHeaders] plugin.
@@ -32,7 +31,7 @@ public class DefaultHeadersConfig {
     /**
      * Provides a time source. Useful for testing.
      */
-    public var clock: Clock = Clock { System.currentTimeMillis() }
+    public var clock: Clock = Clock { kotlinx.datetime.Clock.System.now().toEpochMilliseconds() }
 
     /**
      * Utility interface for obtaining timestamp.
@@ -65,32 +64,21 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
     ::DefaultHeadersConfig
 ) {
     val ktorPackageVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
-        pluginConfig::class.java.`package`.implementationVersion ?: "debug"
+        readVersion()
     } else {
         "debug"
     }
 
     val headers = pluginConfig.headers.build()
     val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
-    val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
     var cachedDateTimeStamp = 0L
-
-    val calendar = object : ThreadLocal<Calendar>() {
-        override fun initialValue(): Calendar {
-            return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
-        }
-    }
-
-    fun now(time: Long): GMTDate {
-        return calendar.get().toDate(time)
-    }
 
     fun calculateDateHeader(): String {
         val captureCached = cachedDateTimeStamp
         val currentTimeStamp = pluginConfig.clock.now()
         if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
             cachedDateTimeStamp = currentTimeStamp
-            pluginConfig.cachedDateText.value = now(currentTimeStamp).toHttpDate()
+            pluginConfig.cachedDateText.value = GMTDate(currentTimeStamp).toHttpDate()
         }
         return pluginConfig.cachedDateText.value
     }
@@ -109,3 +97,5 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
         }
     }
 }
+
+internal expect fun readVersion(): String
