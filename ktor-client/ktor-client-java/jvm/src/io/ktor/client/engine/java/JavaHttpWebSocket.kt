@@ -143,6 +143,14 @@ internal class JavaHttpWebSocket(
                     header(key, value)
                 }
             }
+
+            requestData.headers.getAll(HttpHeaders.SecWebSocketProtocol)?.toTypedArray()?.let {
+                if (it.isNotEmpty()) {
+                    val mostPreferred = it.first()
+                    val leastPreferred = it.sliceArray(1..<it.size)
+                    subprotocols(mostPreferred, *leastPreferred)
+                }
+            }
         }
 
         webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
