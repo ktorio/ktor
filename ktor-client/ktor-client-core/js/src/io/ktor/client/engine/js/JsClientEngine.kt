@@ -63,15 +63,21 @@ internal class JsClientEngine(
     private fun createWebSocket(
         urlString_capturingHack: String,
         headers: Headers
-    ): WebSocket = when (PlatformUtils.platform) {
-        Platform.Browser -> js("new WebSocket(urlString_capturingHack)")
-        else -> {
-            val ws_capturingHack = js("eval('require')('ws')")
-            val headers_capturingHack: dynamic = object {}
-            headers.forEach { name, values ->
-                headers_capturingHack[name] = values.joinToString(",")
+    ): WebSocket {
+        val protocolHeaderNames = headers.names().filter { headerName ->
+            headerName.equals("sec-websocket-protocol", true)
+        }
+        val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
+        return when (PlatformUtils.platform) {
+            Platform.Browser -> js("new WebSocket(urlString_capturingHack, protocols)")
+            else -> {
+                val ws_capturingHack = js("eval('require')('ws')")
+                val headers_capturingHack: dynamic = object {}
+                headers.forEach { name, values ->
+                    headers_capturingHack[name] = values.joinToString(",")
+                }
+                js("new ws_capturingHack(urlString_capturingHack, protocols, { headers: headers_capturingHack })")
             }
-            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
         }
     }
 
