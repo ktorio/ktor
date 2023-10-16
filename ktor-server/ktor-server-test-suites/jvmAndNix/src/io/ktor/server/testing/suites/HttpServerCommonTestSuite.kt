@@ -80,6 +80,25 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    fun testAllHeaders() {
+        createAndStartServer {
+            handle {
+                call.response.headers.append("Name-1", "value-1")
+                call.response.headers.append("Name-1", "value-2")
+                call.response.headers.append("Name-2", "value")
+                call.respondText(call.response.headers.allValues().toString())
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            val body = call.response.bodyAsText()
+            assertTrue(body.contains("Name-1=[value-1, value-2]"))
+            assertTrue(body.contains("Name-2=[value]"))
+        }
+    }
+
+    @Test
     open fun testHeadRequest() {
         createAndStartServer {
             application.install(AutoHeadResponse)
