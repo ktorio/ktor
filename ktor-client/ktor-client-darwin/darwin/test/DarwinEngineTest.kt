@@ -1,8 +1,10 @@
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -248,6 +250,24 @@ class DarwinEngineTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun testFormWithBinaryData() = testSuspend {
+        val client = HttpClient(Darwin)
+
+        val formData = formData {
+            append(
+                key = "image",
+                value = ByteArray(100 * 1024) { 0 },
+                headers = Headers.build {
+                    append(HttpHeaders.ContentType, "image/jpeg")
+                    append(HttpHeaders.ContentDisposition, "filename=image.jpeg")
+                },
+            )
+        }
+
+        client.submitFormWithBinaryData("$TEST_SERVER/content/upload", formData).body<ByteArray>()
     }
 
     private fun stringToNSUrlString(value: String): String {

@@ -489,7 +489,7 @@ public abstract class ByteChannelSequentialBase(
             awaitSuspend(1)
         }
 
-        if (!readable.canRead()) {
+        if (readable.remaining < availableForRead) {
             prepareFlushedBytes()
         }
 
@@ -533,9 +533,7 @@ public abstract class ByteChannelSequentialBase(
             awaitSuspend(1)
         }
 
-        if (!readable.canRead()) {
-            prepareFlushedBytes()
-        }
+        prepareFlushedBytes()
 
         val size = minOf(length.toLong(), readable.remaining).toInt()
         readable.readFully(dst, offset, size)
@@ -640,7 +638,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private fun requestNextView(atLeast: Int): ChunkBuffer? {
-        if (readable.isEmpty) {
+        if (availableForRead > 0) {
             prepareFlushedBytes()
         }
 
