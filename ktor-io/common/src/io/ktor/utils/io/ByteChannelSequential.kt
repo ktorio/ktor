@@ -537,7 +537,7 @@ public abstract class ByteChannelSequentialBase(
         if (!readable.canRead()) {
             prepareFlushedBytes()
         }
- 
+
         val size = minOf(length.toLong(), readable.remaining).toInt()
         readable.readFully(dst, offset, size)
         afterRead(size)
