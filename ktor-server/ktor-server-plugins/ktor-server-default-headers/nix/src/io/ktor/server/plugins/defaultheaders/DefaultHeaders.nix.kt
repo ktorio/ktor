@@ -4,26 +4,11 @@
 
 package io.ktor.server.plugins.defaultheaders
 
+import io.ktor.server.application.*
 import kotlinx.cinterop.*
-import platform.posix.*
+import utils.*
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun readVersion(): String {
-    memScoped {
-        val versionFilePath = "/nix/resources/ktor-version.txt"
-        val versionFile: CPointer<FILE>? = fopen(versionFilePath, "r")
-
-        if (versionFile != null) {
-            try {
-                val bufferLength = 128
-                val buffer = allocArray<ByteVar>(bufferLength)
-
-                return fgets(buffer, bufferLength, versionFile)?.toKString()?.removeSuffix("\n") ?: "debug"
-            } finally {
-                fclose(versionFile)
-            }
-        }
-
-        return "debug"
-    }
+internal actual fun <T : Any> readKtorVersion(plugin: RouteScopedPluginBuilder<T>): String {
+    return read_ktor_version()?.toKString() ?: "debug"
 }

@@ -4,6 +4,8 @@
 
 package io.ktor.server.plugins.defaultheaders
 
-internal actual fun readVersion(): String {
-    return Any::class.java.`package`.implementationVersion ?: "debug"
+import io.ktor.server.application.*
+
+internal actual fun <T : Any> readKtorVersion(plugin: RouteScopedPluginBuilder<T>): String {
+    return plugin.javaClass.`package`.implementationVersion ?: "debug"
 }
