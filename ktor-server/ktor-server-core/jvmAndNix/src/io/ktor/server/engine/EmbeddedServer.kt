@@ -63,15 +63,14 @@ public interface ApplicationEngineFactory<
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-embeddedServer(
+    embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): EmbeddedServer<TEngine, TConfiguration> =
-    GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
+    GlobalScope.embeddedServer(factory, port, host, watchPaths, module = module)
 
 /**
  * Creates an embedded server with the given [factory], listening on [host]:[port]
@@ -82,14 +81,13 @@ embeddedServer(
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     CoroutineScope.embeddedServer(
-        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-        port: Int = 80,
-        host: String = "0.0.0.0",
-        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-        configure: TConfiguration.() -> Unit = {},
-        module: Application.() -> Unit
-    ): EmbeddedServer<TEngine, TConfiguration> {
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    port: Int = 80,
+    host: String = "0.0.0.0",
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    module: Application.() -> Unit
+): EmbeddedServer<TEngine, TConfiguration> {
     val connectors: Array<EngineConnectorConfig> = arrayOf(
         EngineConnectorBuilder().apply {
             this.port = port
@@ -101,7 +99,6 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
         connectors = connectors,
         watchPaths = watchPaths,
         parentCoroutineContext = parentCoroutineContext,
-        configure = configure,
         module = module
     )
 }
@@ -116,13 +113,12 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     CoroutineScope.embeddedServer(
-        factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-        vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
-        watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-        configure: TConfiguration.() -> Unit = {},
-        module: Application.() -> Unit
-    ): EmbeddedServer<TEngine, TConfiguration> {
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    vararg connectors: EngineConnectorConfig = arrayOf(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    module: Application.() -> Unit
+): EmbeddedServer<TEngine, TConfiguration> {
     val environment = applicationEnvironment {
         this.log = KtorSimpleLogger("io.ktor.server.Application")
     }
@@ -133,7 +129,6 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     }
     val config: TConfiguration.() -> Unit = {
         this.connectors.addAll(connectors)
-        configure()
     }
 
     return embeddedServer(factory, applicationProperties, config)
@@ -144,10 +139,14 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    environment: ApplicationEnvironment,
-    configure: TConfiguration.() -> Unit = {}
+    environment: ApplicationEnvironment = applicationEnvironment(),
+    configure: TConfiguration.() -> Unit = {},
+    module: Application.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
-    return embeddedServer(factory, applicationProperties(environment), configure)
+    val applicationProperties = applicationProperties(environment) {
+        module(body = module)
+    }
+    return embeddedServer(factory, applicationProperties, configure)
 }
 
 /**

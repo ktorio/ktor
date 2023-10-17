@@ -4,9 +4,11 @@
 
 package io.ktor.tests.server.netty
 
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import java.net.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class NettySpecificTest {
@@ -14,7 +16,7 @@ class NettySpecificTest {
     @Test
     fun testNoLeakWithoutStartAndStop() {
         repeat(100000) {
-            embeddedServer(Netty, applicationEnvironment { })
+            embeddedServer(Netty, applicationProperties { })
         }
     }
 
@@ -30,7 +32,7 @@ class NettySpecificTest {
         } catch (_: BindException) {
         }
 
-        assertTrue(server.engine.bootstraps.all { it.config().group().isTerminated })
+        assertTrue(server.engine.bootstraps.all { (it.config().group() as ExecutorService).isTerminated })
     }
 
     @Test
@@ -47,7 +49,7 @@ class NettySpecificTest {
         try {
             val environment = applicationEnvironment()
 
-            val server = embeddedServer(Netty, environment) {
+            val server = embeddedServer(Netty, environment, {
                 connector {
                     this.port = port
                     this.host = host
@@ -56,14 +58,14 @@ class NettySpecificTest {
                     this.port = port2
                     this.host = host
                 }
-            }
+            })
 
             try {
                 server.start(wait = false)
             } catch (_: BindException) {
             }
 
-            assertTrue(server.engine.bootstraps.all { it.config().group().isTerminated })
+            assertTrue(server.engine.bootstraps.all { (it.config().group() as ExecutorService).isTerminated })
         } finally {
             socket2.close()
         }

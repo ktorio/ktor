@@ -24,7 +24,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
     fun testNetworkAddresses() = runBlocking {
         val server = embeddedServer(
             engine,
-            applicationEnvironment {}
+            applicationProperties {}
         ) {
             connector { port = 0 }
             connector { port = ServerSocket(0).use { it.localPort } }

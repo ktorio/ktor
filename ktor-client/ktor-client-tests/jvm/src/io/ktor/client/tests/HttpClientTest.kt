@@ -27,49 +27,48 @@ import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: EmbeddedServer<*, *> =
-        embeddedServer(CIO, serverPort) {
-            routing {
-                get("/empty") {
-                    call.respondText("")
-                }
-                get("/hello") {
-                    call.respondText("hello")
-                }
-                post("/echo") {
-                    val text = call.receiveText()
-                    call.respondText(text)
-                }
+    override val server: EmbeddedServer<*, *> = embeddedServer(CIO, serverPort) {
+        routing {
+            get("/empty") {
+                call.respondText("")
+            }
+            get("/hello") {
+                call.respondText("hello")
+            }
+            post("/echo") {
+                val text = call.receiveText()
+                call.respondText(text)
+            }
 
-                route("/sse") {
-                    val messages = Channel<String>()
-                    get("/stream") {
-                        val body = object : OutgoingContent.WriteChannelContent() {
-                            override val contentType: ContentType
-                                get() = ContentType.Text.EventStream
+            route("/sse") {
+                val messages = Channel<String>()
+                get("/stream") {
+                    val body = object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.EventStream
 
-                            override suspend fun writeTo(channel: ByteWriteChannel) {
-                                for (message in messages) {
-                                    channel.writeStringUtf8(message)
-                                    channel.flush()
-                                }
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            for (message in messages) {
+                                channel.writeStringUtf8(message)
+                                channel.flush()
                             }
                         }
+                    }
 
-                        call.respond(body)
-                    }
-                    post("/next") {
-                        val message = call.receiveText()
-                        messages.send(message)
-                        call.respond("OK")
-                    }
-                    get("/done") {
-                        messages.close()
-                        call.respond("OK")
-                    }
+                    call.respond(body)
+                }
+                post("/next") {
+                    val message = call.receiveText()
+                    messages.send(message)
+                    call.respond("OK")
+                }
+                get("/done") {
+                    messages.close()
+                    call.respond("OK")
                 }
             }
         }
+    }
 
     @Test
     fun testClientSSE() = runBlocking {

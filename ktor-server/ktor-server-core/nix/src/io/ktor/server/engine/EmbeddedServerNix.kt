@@ -55,8 +55,6 @@ actual constructor(
         }
         safeRaiseEvent(ApplicationStarted, application)
 
-        engine.start(wait)
-
         CoroutineScope(application.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
                 val host = escapeHostname(it.host)
@@ -65,6 +63,9 @@ actual constructor(
                 )
             }
         }
+
+        engine.start(wait)
+
         return this
     }
 

@@ -279,7 +279,6 @@ actual constructor(
             _applicationInstance = application
             _applicationClassLoader = classLoader
         }
-        engine.start(wait)
 
         CoroutineScope(application.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
@@ -289,6 +288,8 @@ actual constructor(
                 )
             }
         }
+
+        engine.start(wait)
         return this
     }
 
