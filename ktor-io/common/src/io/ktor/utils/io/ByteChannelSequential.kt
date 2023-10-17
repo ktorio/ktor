@@ -638,7 +638,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     private fun requestNextView(atLeast: Int): ChunkBuffer? {
-        if (availableForRead > 0) {
+        if (readable.isEmpty) {
             prepareFlushedBytes()
         }
 
