@@ -12,8 +12,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.json.*
-import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*

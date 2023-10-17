@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.tasks.*
-
 apply<test.server.TestServerPlugin>()
 
 val paths = listOf(

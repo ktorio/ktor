@@ -12,11 +12,8 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.serialization.*
 import io.ktor.util.*
-import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 

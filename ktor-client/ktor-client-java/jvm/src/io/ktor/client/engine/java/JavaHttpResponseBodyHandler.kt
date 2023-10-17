@@ -7,7 +7,6 @@ package io.ktor.client.engine.java
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
