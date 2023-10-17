@@ -489,7 +489,7 @@ public abstract class ByteChannelSequentialBase(
             awaitSuspend(1)
         }
 
-        if (readable.remaining < availableForRead) {
+        if (!readable.canRead()) {
             prepareFlushedBytes()
         }
 
