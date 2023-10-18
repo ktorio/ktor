@@ -11,7 +11,6 @@ import io.ktor.server.engine.internal.ClosedChannelException
 import io.ktor.server.logging.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
@@ -73,6 +72,7 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
         is BadRequestException -> HttpStatusCode.BadRequest
         is NotFoundException -> HttpStatusCode.NotFound
         is UnsupportedMediaTypeException -> HttpStatusCode.UnsupportedMediaType
+        is PayloadTooLargeException -> HttpStatusCode.PayloadTooLarge
         is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
         else -> null
     }
@@ -102,6 +102,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is IOException,
             is BadRequestException,
             is NotFoundException,
+            is PayloadTooLargeException,
             is UnsupportedMediaTypeException -> log.debug(infoString, cause)
 
             else -> log.error("$status: $logString", cause)
