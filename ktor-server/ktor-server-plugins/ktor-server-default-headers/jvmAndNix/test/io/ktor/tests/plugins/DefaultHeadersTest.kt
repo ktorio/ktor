@@ -40,9 +40,7 @@ class DefaultHeadersTest {
             get { call.respond("OK") }
         }
 
-        client.get("/").let { response ->
-            assertEquals("xserver/1.0", response.headers["Server"])
-        }
+        assertEquals("xserver/1.0", client.get("/").headers["Server"])
     }
 
     @Test
@@ -61,9 +59,7 @@ class DefaultHeadersTest {
             assertTrue(actual.startsWith("Ktor/"))
         }
 
-        client.get("/2").let { response ->
-            assertNull(response.headers["Server"])
-        }
+        assertNull(client.get("/2").headers["Server"])
     }
 
     @Test
