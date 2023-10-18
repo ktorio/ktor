@@ -178,7 +178,6 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
 public val ApplicationRequest.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
 
-
 private fun PipelineResponse.isSSEResponse(): Boolean {
     return headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
 }

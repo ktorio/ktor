@@ -533,7 +533,6 @@ public abstract class ByteChannelSequentialBase(
             awaitSuspend(1)
         }
 
-
         if (!readable.canRead()) {
             prepareFlushedBytes()
         }
