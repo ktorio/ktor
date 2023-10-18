@@ -129,7 +129,7 @@ internal class ByteChannelNative(
             awaitSuspend(1)
         }
 
-        if (!readable.canRead()) {
+        if (readable.remaining < availableForRead) {
             prepareFlushedBytes()
         }
 
