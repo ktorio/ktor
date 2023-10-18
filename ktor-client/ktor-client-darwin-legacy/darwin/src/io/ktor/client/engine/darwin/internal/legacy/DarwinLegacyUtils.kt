@@ -24,7 +24,7 @@ internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     else -> throw UnsupportedContentTypeException(this)
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -32,7 +32,7 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 internal fun NSData.toByteArray(): ByteArray {
     val result = ByteArray(length.toInt())
     if (result.isEmpty()) return result
@@ -48,7 +48,7 @@ internal fun NSData.toByteArray(): ByteArray {
  * Executes the given block function on this resource and then releases it correctly whether an
  * exception is thrown or not.
  */
-@OptIn(ExperimentalForeignApi::class)
+
 internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R): R {
     try {
         return block(this)

@@ -8,7 +8,6 @@ import kotlinx.cinterop.*
 import platform.darwin.*
 import kotlin.Byte
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun inetNtopBridge(
     type: Int,
     address: CPointer<*>,

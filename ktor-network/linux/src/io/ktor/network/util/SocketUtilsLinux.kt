@@ -8,7 +8,6 @@ import kotlinx.cinterop.*
 import platform.linux.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_inet_ntop(
     family: Int,
     src: CValuesRef<*>?,
@@ -16,7 +15,6 @@ internal actual fun ktor_inet_ntop(
     size: socklen_t
 ): CPointer<ByteVar>? = inet_ntop(family, src, dst, size)
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun <T> unpack_sockaddr_un(
     sockaddr: sockaddr,
     block: (family: UShort, path: String) -> T
@@ -25,7 +23,6 @@ internal actual fun <T> unpack_sockaddr_un(
     return block(address.sun_family, address.sun_path.toKString())
 }
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun pack_sockaddr_un(
     family: UShort,
     path: String,

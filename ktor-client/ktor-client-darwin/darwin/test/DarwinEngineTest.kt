@@ -201,7 +201,7 @@ class DarwinEngineTest {
         assertEquals("my header value", response.bodyAsText())
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(UnsafeNumber::class)
     @Test
     fun testConfigureWebsocketRequest(): Unit = runBlocking {
         var customChallengeCalled = false

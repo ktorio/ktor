@@ -7,7 +7,7 @@ package io.ktor.util
 import kotlinx.cinterop.*
 import platform.windows.*
 
-@OptIn(ExperimentalUnsignedTypes::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 internal actual fun secureRandom(bytes: ByteArray) {
     bytes.toUByteArray().usePinned { pinned ->
         val result = BCryptGenRandom(
