@@ -183,6 +183,13 @@ allprojects {
         setCompilationOptions()
         configureSourceSets()
         setupJvmToolchain()
+        targets.all {
+            compilations.all {
+                compilerOptions.configure {
+                    freeCompilerArgs.add("-Xpartial-linkage-loglevel=ERROR")
+                }
+            }
+        }
     }
 
     val skipPublish: List<String> by rootProject.extra
@@ -190,6 +197,12 @@ allprojects {
         configurePublication()
     }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xpartial-linkage-loglevel=ERROR")
+        }
+    }
 
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
