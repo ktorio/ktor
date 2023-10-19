@@ -163,8 +163,8 @@ public fun HttpClientConfig<*>.Auth(block: AuthConfig.() -> Unit) {
 @PublishedApi
 internal val AuthProvidersKey: AttributeKey<List<AuthProvider>> = AttributeKey("AuthProviders")
 
-public val HttpClient.AuthProviders: List<AuthProvider>
+public val HttpClient.authProviders: List<AuthProvider>
     get() = attributes.getOrNull(AuthProvidersKey) ?: emptyList()
 
 public inline fun <reified T : AuthProvider> HttpClient.authProvider(): T? =
-    attributes.getOrNull(AuthProvidersKey)?.filterIsInstance<T>()?.singleOrNull()
+    authProviders.filterIsInstance<T>().singleOrNull()
