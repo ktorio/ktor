@@ -5,8 +5,6 @@
 package io.ktor.server.jetty
 
 import io.ktor.server.engine.*
-import io.ktor.server.util.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**

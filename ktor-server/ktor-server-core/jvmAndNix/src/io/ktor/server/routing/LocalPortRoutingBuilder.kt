@@ -4,7 +4,7 @@
 
 package io.ktor.server.routing
 
-import io.ktor.http.parametersOf
+import io.ktor.http.*
 import io.ktor.server.application.*
 
 /**

@@ -16,7 +16,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.*
-import org.junit.*
 import org.junit.Test
 import kotlin.test.*
 

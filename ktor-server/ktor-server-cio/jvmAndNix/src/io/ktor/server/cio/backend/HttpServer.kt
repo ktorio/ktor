@@ -17,7 +17,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 
 /**
- * Start an http server with [settings] invoking [handler] for every request
+ * Start a http server with [settings] invoking [handler] for every request
  */
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.httpServer(

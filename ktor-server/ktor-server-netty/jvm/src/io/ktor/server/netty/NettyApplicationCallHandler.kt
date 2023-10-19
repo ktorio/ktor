@@ -5,14 +5,12 @@
 package io.ktor.server.netty
 
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
-import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 

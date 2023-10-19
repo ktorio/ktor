@@ -7,7 +7,6 @@ package io.ktor.tests.server.jetty
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.*
