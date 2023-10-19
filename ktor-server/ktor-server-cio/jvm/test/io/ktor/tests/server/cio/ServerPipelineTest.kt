@@ -7,12 +7,10 @@ package io.ktor.tests.server.cio
 import io.ktor.http.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import kotlinx.coroutines.scheduling.*
 import org.junit.*
 import org.junit.rules.*
 import java.util.concurrent.*

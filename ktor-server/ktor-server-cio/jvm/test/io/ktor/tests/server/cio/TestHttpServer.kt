@@ -9,7 +9,6 @@ import io.ktor.network.util.*
 import io.ktor.server.cio.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.*

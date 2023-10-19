@@ -13,7 +13,6 @@ import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.io.*
 import kotlin.coroutines.*

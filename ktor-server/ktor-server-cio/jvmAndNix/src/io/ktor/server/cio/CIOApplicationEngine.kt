@@ -6,7 +6,6 @@ package io.ktor.server.cio
 
 import io.ktor.events.*
 import io.ktor.http.*
-import io.ktor.http.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*

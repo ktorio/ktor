@@ -6,7 +6,6 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
-import io.ktor.util.network.*
 
 /**
  * An engine which runs an application.
