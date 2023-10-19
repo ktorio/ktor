@@ -4,7 +4,6 @@
 
 package io.ktor.websocket
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 
