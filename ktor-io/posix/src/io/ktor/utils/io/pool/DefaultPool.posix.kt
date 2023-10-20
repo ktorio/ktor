@@ -14,8 +14,17 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
     )
     protected val lock: SynchronizedObject = SynchronizedObject()
 
-    private val instances = atomicArrayOfNulls<Any?>(capacity)
-    private var size by atomic(0)
+    private val instances = mutableListOf<T>()
+
+    private val _allocated = atomic(0)
+    private val _released = atomic(0)
+    private val _recycled = atomic(0)
+
+    public val inCache: Int get() = instances.size
+    public val inUsed: Int get() = _allocated.value - _released.value
+    public val allocated: Int get() = _allocated.value
+    public val released: Int get() = _released.value
+    public val recycled: Int get() = _recycled.value
 
     protected actual abstract fun produceInstance(): T
     protected actual open fun disposeInstance(instance: T) {}
@@ -25,24 +34,26 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
 
     @Suppress("DEPRECATION")
     public actual final override fun borrow(): T = synchronized(lock) {
-        if (size == 0) return produceInstance()
-        val idx = --size
+        if (instances.isEmpty()) {
+            _allocated.incrementAndGet()
+            return@synchronized produceInstance()
+        }
 
-        @Suppress("UNCHECKED_CAST")
-        val instance = instances[idx].value as T
-        instances[idx].value = null
-
-        return clearInstance(instance)
+        val result = instances.removeAt(instances.lastIndex)
+        clearInstance(result)
+        return@synchronized result
     }
 
     @Suppress("DEPRECATION")
     public actual final override fun recycle(instance: T) {
         synchronized(lock) {
+            _recycled.incrementAndGet()
             validateInstance(instance)
-            if (size == capacity) {
-                disposeInstance(instance)
+            if (instances.size < capacity) {
+                instances.add(instance)
             } else {
-                instances[size++].value = instance
+                _released.incrementAndGet()
+                disposeInstance(instance)
             }
         }
     }
@@ -50,13 +61,8 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
     @Suppress("DEPRECATION")
     public actual final override fun dispose() {
         synchronized(lock) {
-            for (i in 0 until size) {
-                @Suppress("UNCHECKED_CAST")
-                val instance = instances[i].value as T
-                instances[i].value = null
-                disposeInstance(instance)
-            }
-            size = 0
+            instances.forEach { disposeInstance(it) }
+            instances.clear()
         }
     }
 }

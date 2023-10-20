@@ -19,42 +19,43 @@ internal fun CoroutineScope.attachForReadingImpl(
     selectable: Selectable,
     selector: SelectorManager
 ): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
-    while (!channel.isClosedForWrite) {
-        var close = false
-        val count = channel.write { memory, startIndex, endIndex ->
-            val bufferStart = memory.pointer + startIndex
-            val size = endIndex - startIndex
-            val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
+    try {
+        while (!channel.isClosedForWrite) {
+            var close = false
+            val count = channel.write { memory, startIndex, endIndex ->
+                val bufferStart = memory.pointer + startIndex
+                val size = endIndex - startIndex
+                val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
-            when (bytesRead) {
-                0 -> close = true
-                -1 -> {
-                    if (errno == EAGAIN) return@write 0
-                    throw PosixException.forErrno()
+                when (bytesRead) {
+                    0 -> close = true
+                    -1 -> {
+                        if (errno == EAGAIN) return@write 0
+                        throw PosixException.forErrno()
+                    }
                 }
+
+                bytesRead
             }
 
-            bytesRead
-        }
-
-        channel.flush()
-        if (close) {
-            channel.close()
-            break
-        }
-
-        if (count == 0) {
-            try {
-                selector.select(selectable, SelectInterest.READ)
-            } catch (_: IOException) {
+            channel.flush()
+            if (close) {
+                channel.close()
                 break
             }
-        }
-    }
 
-    channel.closedCause?.let { throw it }
-}.apply {
-    invokeOnCompletion {
+            if (count == 0) {
+                try {
+                    selector.select(selectable, SelectInterest.READ)
+                } catch (_: IOException) {
+                    break
+                }
+            }
+        }
+
+        channel.closedCause?.let { throw it }
+    } finally {
         shutdown(descriptor, SHUT_RD)
+        channel.close()
     }
 }
