@@ -756,6 +756,7 @@ public abstract class ByteChannelSequentialBase(
             flushBuffer.release()
         } else {
             flush()
+            writable.release()
         }
 
         slot.cancel(cause)
