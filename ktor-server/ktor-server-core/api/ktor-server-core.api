@@ -582,6 +582,12 @@ public final class io/ktor/server/plugins/ParameterConversionException : io/ktor
 	public final fun getType ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/plugins/PayloadTooLargeException : io/ktor/server/plugins/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (J)V
+	public fun createCopy ()Lio/ktor/server/plugins/PayloadTooLargeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+}
+
 public final class io/ktor/server/plugins/UnsupportedMediaTypeException : io/ktor/server/plugins/ContentTransformationException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/http/ContentType;)V
 	public fun createCopy ()Lio/ktor/server/plugins/UnsupportedMediaTypeException;
