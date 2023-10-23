@@ -55,7 +55,7 @@ internal class OkHttpSSESession(
 
             response != null && response.headers[HttpHeaders.ContentType] != ContentType.Text.EventStream.toString() ->
                 SSEException(
-                    "Content type must be ${ContentType.Text.EventStream} but was: ${response.headers[HttpHeaders.ContentType]}"
+                    "Content type must be ${ContentType.Text.EventStream} but was: ${response.headers[HttpHeaders.ContentType]}" // ktlint-disable max-line-length
                 )
 
             else -> SSEException("Unexpected error occurred")
