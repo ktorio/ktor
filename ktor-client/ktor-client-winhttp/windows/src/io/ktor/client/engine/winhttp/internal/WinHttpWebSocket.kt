@@ -195,6 +195,8 @@ internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructo
                 continuation.resume(Unit)
             }
 
+            if (buffer.get().isEmpty()) return@closeableCoroutine
+
             if (WinHttpWebSocketSend(
                     hWebSocket,
                     type,
