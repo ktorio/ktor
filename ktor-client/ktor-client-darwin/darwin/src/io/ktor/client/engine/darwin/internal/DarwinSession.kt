@@ -35,6 +35,12 @@ internal class DarwinSession(
             task to response
         }
 
+        callContext.job.invokeOnCompletion { cause ->
+            if (cause != null) {
+                task.cancel()
+            }
+        }
+
         task.resume()
 
         try {
