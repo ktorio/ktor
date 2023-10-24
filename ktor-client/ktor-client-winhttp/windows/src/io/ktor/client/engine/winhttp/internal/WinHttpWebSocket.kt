@@ -104,9 +104,11 @@ internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructo
                 }
             }
 
+            val data = if (buffer.get().isEmpty()) null else buffer.addressOf(0)
+
             if (WinHttpWebSocketReceive(
                     hWebSocket,
-                    buffer.addressOf(0),
+                    data,
                     buffer.get().size.convert(),
                     null,
                     null
@@ -195,10 +197,12 @@ internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructo
                 continuation.resume(Unit)
             }
 
+            val data = if (buffer.get().isEmpty()) null else buffer.addressOf(0)
+
             if (WinHttpWebSocketSend(
                     hWebSocket,
                     type,
-                    buffer.addressOf(0),
+                    data,
                     buffer.get().size.convert()
                 ) != 0u
             ) {
