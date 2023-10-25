@@ -13,6 +13,8 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import java.io.*
 import java.net.*
+import java.nio.file.*
+import kotlin.io.path.*
 
 private const val pathParameterName = "static-content-path-parameter"
 
@@ -45,7 +47,9 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         when (it) {
             is File -> ContentType.defaultForFile(it)
             is URL -> ContentType.defaultForFilePath(it.path)
-            else -> throw IllegalArgumentException("Argument can be only of type File or URL, but was ${it::class}")
+            is Path -> ContentType.defaultForPath(it)
+            else ->
+                throw IllegalArgumentException("Argument can be only of type File, Path or URL, but was ${it::class}")
         }
     }
     internal var contentType: (Resource) -> ContentType = defaultContentType
@@ -216,6 +220,72 @@ public fun Route.staticResources(
             contentType = contentType,
             cacheControl = cacheControl,
             modifier = modifier,
+            exclude = exclude,
+            extensions = extensions,
+            defaultPath = defaultPath
+        )
+    }
+}
+
+/**
+ * Sets up [Routing] to serve contents of [zip] as static content.
+ * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
+ * If requested path doesn't exist and [index] is not `null`,
+ * then response will be [index] path in the requested package.
+ *
+ * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ */
+public fun Route.staticZip(
+    remotePath: String,
+    basePath: String?,
+    zip: Path,
+    index: String? = "index.html",
+    block: StaticContentConfig<Path>.() -> Unit = {}
+): Route = staticFileSystem(
+    remotePath = remotePath,
+    basePath = basePath,
+    index = index,
+    fileSystem = FileSystems.newFileSystem(zip, environment.classLoader),
+    block = block
+)
+
+/**
+ * Sets up [Routing] to serve [fileSystem] as static content.
+ * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
+ * If requested path doesn't exist and [index] is not `null`,
+ * then response will be [index] path in the requested package.
+ *
+ * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ */
+public fun Route.staticFileSystem(
+    remotePath: String,
+    basePath: String?,
+    index: String? = "index.html",
+    fileSystem: FileSystem = FileSystems.getDefault(),
+    block: StaticContentConfig<Path>.() -> Unit = {}
+): Route {
+    val staticRoute = StaticContentConfig<Path>().apply(block)
+    val autoHead = staticRoute.autoHeadResponse
+    val compressedTypes = staticRoute.preCompressedFileTypes
+    val contentType = staticRoute.contentType
+    val cacheControl = staticRoute.cacheControl
+    val extensions = staticRoute.extensions
+    val modify = staticRoute.modifier
+    val exclude = staticRoute.exclude
+    val defaultPath = staticRoute.defaultPath
+    return staticContentRoute(remotePath, autoHead) {
+        respondStaticPath(
+            fileSystem = fileSystem,
+            index = index,
+            basePath = basePath,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modify = modify,
             exclude = exclude,
             extensions = extensions,
             defaultPath = defaultPath
@@ -478,6 +548,56 @@ private suspend fun ApplicationCall.respondStaticFile(
     if (isHandled) return
     if (defaultPath != null) {
         respondStaticFile(File(dir, defaultPath), compressedTypes, contentType, cacheControl, modify)
+    }
+}
+
+private suspend fun ApplicationCall.respondStaticPath(
+    fileSystem: FileSystem,
+    index: String?,
+    basePath: String?,
+    compressedTypes: List<CompressedFileType>?,
+    contentType: (Path) -> ContentType,
+    cacheControl: (Path) -> List<CacheControl>,
+    modify: suspend (Path, ApplicationCall) -> Unit,
+    exclude: (Path) -> Boolean,
+    extensions: List<String>,
+    defaultPath: String?
+) {
+    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+    val requestedPath = fileSystem.getPath(basePath ?: "").combineSafe(fileSystem.getPath(relativePath))
+
+    suspend fun checkExclude(path: Path): Boolean {
+        if (!exclude(path)) return false
+        respond(HttpStatusCode.Forbidden)
+        return true
+    }
+
+    val isDirectory = requestedPath.isDirectory()
+    if (index != null && isDirectory) {
+        respondStaticPath(fileSystem, requestedPath.resolve(index), compressedTypes, contentType, cacheControl, modify)
+    } else if (!isDirectory) {
+        if (checkExclude(requestedPath)) return
+
+        respondStaticPath(fileSystem, requestedPath, compressedTypes, contentType, cacheControl, modify)
+        if (isHandled) return
+        for (extension in extensions) {
+            val pathWithExtension = fileSystem.getPath("${requestedPath.pathString}.$extension")
+            if (checkExclude(pathWithExtension)) return
+            respondStaticPath(fileSystem, pathWithExtension, compressedTypes, contentType, cacheControl, modify)
+            if (isHandled) return
+        }
+    }
+
+    if (isHandled) return
+    if (defaultPath != null) {
+        respondStaticPath(
+            fileSystem,
+            fileSystem.getPath(basePath ?: "", defaultPath),
+            compressedTypes,
+            contentType,
+            cacheControl,
+            modify
+        )
     }
 }
 
