@@ -21,7 +21,7 @@ internal class WebSocketContent : ClientUpgradeContent() {
 
     override val headers: Headers = HeadersBuilder().apply {
         append(HttpHeaders.Upgrade, "websocket")
-        append(HttpHeaders.Connection, "upgrade")
+        append(HttpHeaders.Connection, "Upgrade")
 
         append(HttpHeaders.SecWebSocketKey, nonce)
         append(HttpHeaders.SecWebSocketVersion, WEBSOCKET_VERSION)
