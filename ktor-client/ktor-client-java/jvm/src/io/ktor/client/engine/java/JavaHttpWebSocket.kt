@@ -127,7 +127,7 @@ internal class JavaHttpWebSocket(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, ExperimentalStdlibApi::class)
     suspend fun getResponse(): HttpResponseData {
         val builder = httpClient.newWebSocketBuilder()
 
