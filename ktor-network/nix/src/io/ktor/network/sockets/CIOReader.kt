@@ -18,7 +18,7 @@ internal fun CoroutineScope.attachForReadingImpl(
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
+): WriterJob = writer(Dispatchers.IO, userChannel) {
     try {
         while (!channel.isClosedForWrite) {
             var close = false
