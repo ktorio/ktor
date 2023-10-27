@@ -7,5 +7,4 @@ package io.ktor.util.pipeline
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual val DISABLE_SFG: Boolean = getenv("KTOR_INTERNAL_DISABLE_SFG")?.toKString() == "true"

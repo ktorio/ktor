@@ -13,10 +13,8 @@ import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.winhttp.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : Closeable {
 
-    @OptIn(ExperimentalForeignApi::class)
     private var hSession: COpaquePointer
 
     private val closed = atomic(false)

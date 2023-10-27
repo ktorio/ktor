@@ -58,7 +58,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private suspend fun drainRequestQueue(api: CurlMultiApiHandler) {
         while (true) {
             val container = if (api.hasHandlers()) {
@@ -93,7 +92,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         curlScope.launch {
             curlApi!!.cancelRequest(easyHandle, cause)

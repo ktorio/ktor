@@ -10,7 +10,6 @@ import kotlinx.coroutines.*
 import platform.winhttp.*
 import kotlin.coroutines.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal suspend inline fun <T> Closeable.closeableCoroutine(
     state: WinHttpConnect,
     errorMessage: String,

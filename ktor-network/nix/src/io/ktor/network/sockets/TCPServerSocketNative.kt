@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.coroutines.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal class TCPServerSocketNative(
     private val descriptor: Int,
     private val selectorManager: SelectorManager,

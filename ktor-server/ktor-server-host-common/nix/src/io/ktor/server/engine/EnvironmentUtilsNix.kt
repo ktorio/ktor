@@ -21,7 +21,6 @@ internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
 
 internal actual fun ApplicationEngineEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {}
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun getConfigFromEnvironment(): ApplicationConfig {
     var index = 0
     val config = MapApplicationConfig()

@@ -14,7 +14,6 @@ import platform.posix.*
 import kotlin.coroutines.*
 import kotlin.math.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal expect fun inetNtopBridge(type: Int, address: CPointer<*>, addressOf: CPointer<*>, size: Int)
 
 @OptIn(InternalAPI::class)
@@ -61,7 +60,6 @@ internal class SelectorHelper {
         wakeupSignal.signal()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun selectionLoop() {
         val readSet = select_create_fd_set()
         val writeSet = select_create_fd_set()
@@ -103,7 +101,6 @@ internal class SelectorHelper {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun fillHandlers(
         watchSet: MutableSet<EventInfo>,
         readSet: CValue<selection_set>,
@@ -129,7 +126,6 @@ internal class SelectorHelper {
         return maxDescriptor
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun addInterest(
         event: EventInfo,
         readSet: CValue<selection_set>,
@@ -145,7 +141,6 @@ internal class SelectorHelper {
         check(select_fd_isset(event.descriptor, errorSet) != 0)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
         closeSet: MutableSet<Int>,
@@ -193,7 +188,6 @@ internal class SelectorHelper {
         completed.clear()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun descriptorSetByInterestKind(
         event: EventInfo,
         readSet: CValue<selection_set>,

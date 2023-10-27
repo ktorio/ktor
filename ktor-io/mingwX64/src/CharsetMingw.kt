@@ -15,7 +15,6 @@ public actual object Charsets {
     internal val UTF_16: Charset = CharsetIconv(platformUtf16)
 }
 
-@OptIn(ExperimentalForeignApi::class)
 private class CharsetIconv(name: String) : Charset(name) {
     init {
         val v = iconv_open(name, "UTF-8")
@@ -40,10 +39,8 @@ internal fun iconvCharsetName(name: String) = when (name) {
     else -> name
 }
 
-@OptIn(ExperimentalForeignApi::class)
 private val negativePointer = (-1L).toCPointer<IntVar>()
 
-@OptIn(ExperimentalForeignApi::class)
 internal fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
     if (iconvOpenResults == null || iconvOpenResults === negativePointer) {
         throw IllegalArgumentException("Failed to open iconv for charset $charset with error code ${posix_errno()}")
@@ -51,7 +48,7 @@ internal fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     val length = toIndex - fromIndex
     if (length == 0) return 0
@@ -95,7 +92,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 @Suppress("DEPRECATION")
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     val charset = iconvCharsetName(charset.name)
     val cd = iconv_open(platformUtf16, charset)
@@ -166,7 +163,6 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun CharsetDecoder.decodeBuffer(
     input: Buffer,
     out: Appendable,
@@ -249,7 +245,6 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl1(
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
 
@@ -321,7 +316,6 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     val cd = iconv_open(charset.name, "UTF-8")
     checkErrors(cd, "UTF-8")
