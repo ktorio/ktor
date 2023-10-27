@@ -4,7 +4,6 @@ import kotlinx.cinterop.*
 import platform.posix.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     val content = content
     var idx = readPosition
@@ -20,7 +19,6 @@ internal actual fun Buffer.discardUntilDelimiterImpl(delimiter: Byte): Int {
     return idx - start
 }
 
-@OptIn(ExperimentalForeignApi::class)
 @Suppress("DEPRECATION")
 internal actual fun Buffer.discardUntilDelimitersImpl(delimiter1: Byte, delimiter2: Byte): Int {
     val content = content
@@ -80,7 +78,7 @@ internal actual fun Buffer.readUntilDelimitersImpl(delimiter1: Byte, delimiter2:
     return readUntilImpl({ it == delimiter1 || it == delimiter2 }, dst)
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 @Suppress("DEPRECATION")
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
@@ -113,7 +111,7 @@ private inline fun Buffer.readUntilImpl(
 }
 
 @Suppress("DEPRECATION")
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class)
 private inline fun Buffer.readUntilImpl(
     predicate: (Byte) -> Boolean,
     dst: Output
@@ -146,6 +144,5 @@ private inline fun Buffer.readUntilImpl(
     return copiedTotal
 }
 
-@OptIn(ExperimentalForeignApi::class)
 @Suppress("DEPRECATION")
 internal inline val Buffer.content: CPointer<ByteVar> get() = memory.pointer

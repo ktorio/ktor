@@ -23,8 +23,7 @@ private object WinHttpWebSocketBuffer {
     val Close = WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE
 }
 
-@OptIn(ExperimentalForeignApi::class)
-internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructor(
+internal class WinHttpWebSocket constructor(
     private val hWebSocket: COpaquePointer,
     private val connect: WinHttpConnect,
     callContext: CoroutineContext

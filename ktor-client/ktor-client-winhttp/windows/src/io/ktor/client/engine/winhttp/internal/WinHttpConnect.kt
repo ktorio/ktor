@@ -11,7 +11,6 @@ import kotlinx.cinterop.*
 import platform.windows.*
 import platform.winhttp.*
 
-@OptIn(ExperimentalForeignApi::class)
 internal typealias WinHttpStatusHandler = (statusInfo: LPVOID?, statusInfoLength: DWORD) -> Unit
 
 internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(private val hConnect: COpaquePointer) :
@@ -19,7 +18,6 @@ internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(
 
     private val closed = atomic(false)
 
-    @OptIn(ExperimentalForeignApi::class)
     val handlers = mutableMapOf<UInt, WinHttpStatusHandler>()
 
     val isClosed: Boolean
@@ -31,7 +29,7 @@ internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(
      * @param url is request URL.
      * @param chunkedMode is request body chunking mode.
      */
-    @OptIn(ExperimentalForeignApi::class)
+
     fun openRequest(
         method: HttpMethod,
         url: Url,
@@ -56,12 +54,10 @@ internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(
         )
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     fun on(status: WinHttpCallbackStatus, handler: WinHttpStatusHandler) {
         handlers[status.value] = handler
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     override fun close() {
         if (!closed.compareAndSet(expect = false, update = true)) return
 

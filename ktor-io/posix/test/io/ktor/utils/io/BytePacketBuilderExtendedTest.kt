@@ -11,10 +11,8 @@ import kotlin.test.*
 class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
     override val pool = VerifyingChunkBufferPool()
 
-    @OptIn(ExperimentalForeignApi::class)
     private val buffer = nativeHeap.allocArray<ByteVar>(8888)
 
-    @OptIn(ExperimentalForeignApi::class)
     @Test
     fun smokeSingleBufferTestExtended() {
         val p = buildPacket {
@@ -48,7 +46,6 @@ class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
         assertEquals("1|2|3", p.readUTF8Line())
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     @Test
     fun smokeMultiBufferTestExtended() {
         val p = buildPacket {

@@ -103,7 +103,6 @@ internal class DatagramSendChannel(
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun sento(datagram: Datagram, bytes: ByteArray): Int {
         var bytesWritten: Int? = null
         bytes.usePinned { pinned ->

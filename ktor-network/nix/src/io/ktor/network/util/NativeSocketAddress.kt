@@ -13,7 +13,7 @@ import platform.posix.*
  */
 @OptIn(UnsafeNumber::class)
 internal sealed class NativeSocketAddress(val family: sa_family_t) {
-    @OptIn(ExperimentalForeignApi::class)
+
     internal abstract fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit)
 }
 
@@ -38,7 +38,6 @@ internal class NativeIPv4SocketAddress(
 
     override fun toString(): String = "NativeIPv4SocketAddress[$ipString:$port]"
 
-    @ExperimentalForeignApi
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
         cValue<sockaddr_in> {
             sin_addr.s_addr = address
@@ -49,7 +48,6 @@ internal class NativeIPv4SocketAddress(
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     override val ipString: String
         get() = memScoped {
             val string = allocArray<ByteVar>(INET_ADDRSTRLEN)
@@ -74,7 +72,6 @@ internal class NativeIPv6SocketAddress(
     private val flowInfo: uint32_t,
     private val scopeId: uint32_t
 ) : NativeInetSocketAddress(family, port) {
-    @ExperimentalForeignApi
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
         cValue<sockaddr_in6> {
             sin6_family = family
@@ -86,7 +83,6 @@ internal class NativeIPv6SocketAddress(
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     override val ipString: String
         get() = memScoped {
             val string = allocArray<ByteVar>(INET6_ADDRSTRLEN)
@@ -108,7 +104,6 @@ internal class NativeUnixSocketAddress(
     family: sa_family_t,
     val path: String,
 ) : NativeSocketAddress(family) {
-    @ExperimentalForeignApi
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: socklen_t) -> Unit) {
         pack_sockaddr_un(family.convert(), path) { address, size ->
             block(address, size)

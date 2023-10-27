@@ -6,7 +6,7 @@ package io.ktor.server.engine
 
 import kotlinx.cinterop.*
 import platform.posix.*
-import kotlin.concurrent.*
+import kotlin.native.concurrent.*
 
 private val shutdownHook = AtomicReference {}
 
@@ -17,7 +17,7 @@ private val shutdownHook = AtomicReference {}
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-@OptIn(ExperimentalForeignApi::class)
+
 public actual fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
     shutdownHook.value = stop
 

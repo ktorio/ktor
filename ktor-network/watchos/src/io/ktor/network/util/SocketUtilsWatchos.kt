@@ -13,7 +13,6 @@ internal actual fun <T> unpack_sockaddr_un(
     error("Address ${sockaddr.sa_family} is not supported on watchos")
 }
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun pack_sockaddr_un(
     family: UShort,
     path: String,
