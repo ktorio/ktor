@@ -375,6 +375,17 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testStartupJobsCompletion() = testApplication {
+        startApplication()
+        val childrenJobsSize = engine.application.coroutineContext.job.children.toList().size
+        assertEquals(
+            expected = 0,
+            actual = childrenJobsSize,
+            message = "all the children jobs should be completed",
+        )
+    }
+
+    @Test
     fun testCanPassCoroutineContextFromOutside() = runBlocking(MyElement("test")) {
         testApplication(coroutineContext) {
             assertEquals("test", coroutineContext[MyElement]!!.data)

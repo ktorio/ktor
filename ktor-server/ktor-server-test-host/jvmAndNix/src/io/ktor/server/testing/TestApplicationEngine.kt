@@ -143,6 +143,7 @@ class TestApplicationEngine(
             environment.start()
             cancellationDeferred = stopServerOnCancellation()
             applicationStarting.complete()
+            resolvedConnectors.complete(runBlocking { resolvedConnectors() })
             state.value = State.Started
         }
         if (state.value == State.Starting) {
