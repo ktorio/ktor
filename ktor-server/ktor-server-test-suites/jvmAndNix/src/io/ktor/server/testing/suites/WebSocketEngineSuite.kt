@@ -421,9 +421,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                         }
                     }
                 } catch (cancelled: CancellationException) {
-                } catch (t: Throwable) {
-                    errors.add(t)
-                    collected.send(t.toString())
+                } catch (cause: Throwable) {
+                    errors.add(cause)
+                    collected.send(cause.toString())
                 }
             }
         }
