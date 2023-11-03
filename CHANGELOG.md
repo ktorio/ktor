@@ -1,3 +1,22 @@
+# 2.3.6
+> Published 7 November 2023
+
+### Bugfixes
+* Resolved connectors job does not complete in TestApplicationEngine ([KTOR-6411](https://youtrack.jetbrains.com/issue/KTOR-6411))
+* Darwin: Even a coroutine Job is canceled network load keeps high ([KTOR-6243](https://youtrack.jetbrains.com/issue/KTOR-6243))
+* Darwin: EOFException when sending multipart data using Ktor 2.3.4 ([KTOR-6281](https://youtrack.jetbrains.com/issue/KTOR-6281))
+* Ktor JS client unconfigurable logging in node ([KTOR-6275](https://youtrack.jetbrains.com/issue/KTOR-6275))
+* CIO: getEngineHeaderValues() returns duplicated values ([KTOR-6352](https://youtrack.jetbrains.com/issue/KTOR-6352))
+* "Server sent a subprotocol but none was requested" when using Node WebSockets ([KTOR-4001](https://youtrack.jetbrains.com/issue/KTOR-4001))
+* YAML properties with literal value null cannot be read since 2.3.1 ([KTOR-6357](https://youtrack.jetbrains.com/issue/KTOR-6357))
+* AndroidClientEngine cannot handle content length that exceeds Int range ([KTOR-6344](https://youtrack.jetbrains.com/issue/KTOR-6344))
+* Client unable to make subsequent requests after the network disconnection and connection when ResponseObserver is installed ([KTOR-6252](https://youtrack.jetbrains.com/issue/KTOR-6252))
+* Outdated Gradle jib plubin does not support application/vnd.oci.image.index.v1+json media type ([KTOR-6280](https://youtrack.jetbrains.com/issue/KTOR-6280))
+* KTor 2.3.5 Kotlin 1.9.x upgrade is a breaking change ([KTOR-6354](https://youtrack.jetbrains.com/issue/KTOR-6354))
+* WebSockets (CIO): Connection Failure Due to Lowercase 'upgrade' in 'Connection: upgrade' Header ([KTOR-6388](https://youtrack.jetbrains.com/issue/KTOR-6388))
+* WinHttp: ArrayIndexOutOfBoundsException when sending WS frame with empty body ([KTOR-6394](https://youtrack.jetbrains.com/issue/KTOR-6394))
+* Update dependency com.auth0:jwks-rsa to v0.22.1
+
 # 2.3.5
 > Published 5 October 2023
 
