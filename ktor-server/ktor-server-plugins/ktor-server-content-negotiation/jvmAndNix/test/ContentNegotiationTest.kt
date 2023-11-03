@@ -756,4 +756,52 @@ class ContentNegotiationTest {
             assertEquals(HttpStatusCode.OK, call.response.status())
         }
     }
+
+    @Test
+    fun testWithCharset() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                clearIgnoredTypes()
+                register(
+                    contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8),
+                    converter = object : ContentConverter {
+                        override suspend fun serializeNullable(
+                            contentType: ContentType,
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            value: Any?
+                        ): OutgoingContent {
+                            return TextContent("$value!", contentType)
+                        }
+
+                        override suspend fun deserialize(
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            content: ByteReadChannel
+                        ): Any {
+                            content.readRemaining().readText().let { text ->
+                                return text.substring(0, text.length - 1)
+                            }
+                        }
+                    }
+                )
+            }
+
+            routing {
+                post {
+                    val request = call.receive<String>()
+                    assertEquals("text", request)
+                    call.respond(request)
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            contentType(ContentType.Application.Json)
+            setBody("text!")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
+        assertEquals("text!", response.bodyAsText())
+    }
 }
