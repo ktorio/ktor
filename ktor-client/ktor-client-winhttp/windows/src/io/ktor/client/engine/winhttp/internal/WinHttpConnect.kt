@@ -13,7 +13,7 @@ import platform.winhttp.*
 
 internal typealias WinHttpStatusHandler = (statusInfo: LPVOID?, statusInfoLength: DWORD) -> Unit
 
-internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(private val hConnect: COpaquePointer) :
+internal class WinHttpConnect(private val hConnect: COpaquePointer) :
     Closeable {
 
     private val closed = atomic(false)
@@ -27,9 +27,7 @@ internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(
      * Opens an HTTP request to the target server.
      * @param method is request method.
      * @param url is request URL.
-     * @param chunkedMode is request body chunking mode.
      */
-
     fun openRequest(
         method: HttpMethod,
         url: Url,
