@@ -14,7 +14,6 @@ public data class ConnectorType(val name: String) {
     public companion object {
         /**
          * Non-secure HTTP connector.
-         * 1
          */
         public val HTTP: ConnectorType = ConnectorType("HTTP")
 
