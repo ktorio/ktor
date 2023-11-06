@@ -9,10 +9,11 @@ import io.ktor.util.*
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
 
+    @OptIn(kotlin.ExperimentalStdlibApi::class)
     override val level: LogLevel = when (PlatformUtils.IS_NODE) {
         true -> runCatching { js("process.env.KTOR_LOG_LEVEL") as String? }
             .getOrNull()
-            ?.let { rawLevel: String -> LogLevel.entries.firstOrNull { it.name == rawLevel } }
+            ?.let { rawLevel: String -> LogLevel.values().firstOrNull { it.name == rawLevel } }
             ?: LogLevel.INFO
 
         false -> LogLevel.TRACE
