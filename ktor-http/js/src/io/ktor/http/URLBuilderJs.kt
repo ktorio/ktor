@@ -16,12 +16,13 @@ public actual val URLBuilder.Companion.origin: String
         Platform.Browser -> {
             js(
                 """
-                var origin = ""
-                if (typeof window !== 'undefined') {
-                  origin = window.location.origin 
-                } else {
-                  origin = self.location.origin 
+                let origin = ""
+                const global = typeof window !== 'undefined' ? window : self;
+                
+                if (global && global.location) {
+                    origin = global.location.origin;
                 }
+                
                 origin && origin != "null" ? origin : "http://localhost"
                 """
             ) as String
