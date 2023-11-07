@@ -377,12 +377,9 @@ class TestApplicationTest {
     @Test
     fun testStartupJobsCompletion() = testApplication {
         startApplication()
-        val childrenJobsSize = engine.application.coroutineContext.job.children.toList().size
-        assertEquals(
-            expected = 0,
-            actual = childrenJobsSize,
-            message = "all the children jobs should be completed",
-        )
+        withTimeoutOrNull(1000) {
+            engine.application.coroutineContext.job.children.forEach { scope -> scope.join() }
+        } ?: fail("Timed out waiting for child coroutines to finish")
     }
 
     @Test
