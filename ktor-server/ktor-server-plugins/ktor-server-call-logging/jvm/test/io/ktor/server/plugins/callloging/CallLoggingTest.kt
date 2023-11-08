@@ -78,21 +78,26 @@ class CallLoggingTest {
         }
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
-        assertTrue {
-            messages[messages.size - 3].startsWith(
+        val startingMessageIndex = messages.indexOfFirst {
+            it.startsWith(
                 "INFO: Application started: class io.ktor.server.application.Application(0x$hash)"
             )
         }
-        assertTrue {
-            messages[messages.size - 2].startsWith(
+        val stoppingMessageIndex = messages.indexOfFirst {
+            it.startsWith(
                 "INFO: Application stopping: class io.ktor.server.application.Application(0x$hash)"
             )
         }
-        assertTrue {
-            messages[messages.size - 1].startsWith(
+        val stoppedMessageIndex = messages.indexOfFirst {
+            it.startsWith(
                 "INFO: Application stopped: class io.ktor.server.application.Application(0x$hash)"
             )
         }
+        assertTrue { startingMessageIndex >= 0 }
+        assertTrue { stoppingMessageIndex >= 0 }
+        assertTrue { stoppedMessageIndex >= 0 }
+        assertTrue { startingMessageIndex < stoppingMessageIndex }
+        assertTrue { stoppingMessageIndex < stoppedMessageIndex }
     }
 
     @Test
