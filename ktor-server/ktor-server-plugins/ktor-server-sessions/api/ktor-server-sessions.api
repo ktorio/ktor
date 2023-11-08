@@ -202,10 +202,10 @@ public abstract interface class io/ktor/server/sessions/SessionTransportTransfor
 
 public final class io/ktor/server/sessions/SessionTransportTransformerEncrypt : io/ktor/server/sessions/SessionTransportTransformer {
 	public static final field Companion Lio/ktor/server/sessions/SessionTransportTransformerEncrypt$Companion;
-	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> ([B[BLkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> ([B[BLkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljavax/crypto/spec/SecretKeySpec;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([B[BLkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> ([B[BLkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getEncryptAlgorithm ()Ljava/lang/String;
 	public final fun getEncryptionKeySize ()I
 	public final fun getEncryptionKeySpec ()Ljavax/crypto/spec/SecretKeySpec;
