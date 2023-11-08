@@ -78,7 +78,6 @@ class CallLoggingTest {
         }
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
-        println(messages.joinToString("\n"))
         val startingMessageIndex = messages.indexOfFirst {
             it.startsWith(
                 "INFO: Application started: class io.ktor.server.application.Application(0x$hash)"
