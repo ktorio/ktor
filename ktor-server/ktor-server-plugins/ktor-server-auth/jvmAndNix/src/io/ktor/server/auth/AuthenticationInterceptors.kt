@@ -202,7 +202,7 @@ public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(
-    vararg configurations: String? = arrayOf(null),
+    vararg configurations: String? = arrayOf<String?>(null),
     optional: Boolean = false,
     build: Route.() -> Unit
 ): Route {
@@ -230,7 +230,7 @@ public fun Route.authenticate(
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(
-    vararg configurations: String? = arrayOf(null),
+    vararg configurations: String? = arrayOf<String?>(null),
     strategy: AuthenticationStrategy,
     build: Route.() -> Unit
 ): Route {
