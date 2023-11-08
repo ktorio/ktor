@@ -78,15 +78,26 @@ class CallLoggingTest {
         }
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
-        assertTrue {
-            messages.contains("INFO: Application started: io.ktor.server.application.Application@$hash")
+        val startingMessageIndex = messages.indexOfFirst {
+            it.startsWith(
+                "INFO: Application started: io.ktor.server.application.Application@$hash"
+            )
         }
-        assertTrue {
-            messages.contains("INFO: Application stopping: io.ktor.server.application.Application@$hash")
+        val stoppingMessageIndex = messages.indexOfFirst {
+            it.startsWith(
+                "INFO: Application stopping: io.ktor.server.application.Application@$hash"
+            )
         }
-        assertTrue {
-            messages.contains("INFO: Application stopped: io.ktor.server.application.Application@$hash")
+        val stoppedMessageIndex = messages.indexOfFirst {
+            it.startsWith(
+                "INFO: Application stopped: io.ktor.server.application.Application@$hash"
+            )
         }
+        assertTrue { startingMessageIndex >= 0 }
+        assertTrue { stoppingMessageIndex >= 0 }
+        assertTrue { stoppedMessageIndex >= 0 }
+        assertTrue { startingMessageIndex < stoppingMessageIndex }
+        assertTrue { stoppingMessageIndex < stoppedMessageIndex }
     }
 
     @Test
@@ -220,6 +231,32 @@ class CallLoggingTest {
         client.get("/uri1")
         assertTrue { "INFO: test message [mdc-uri=/uri1]" in messages }
         assertTrue { "INFO: /uri1 [mdc-status=200, mdc-uri=/uri1]" in messages }
+    }
+
+    @Test
+    fun `reuses provider value`() = testApplication {
+        environment {
+            log = logger
+        }
+        var counter = 0
+        application {
+            install(CallLogging) {
+                mdc("mdc-test") { "${counter++}" }
+                format { it.request.uri }
+                clock { 0 }
+            }
+        }
+        routing {
+            get("/*") {
+                this@routing.environment?.log?.info("test1")
+                this@routing.environment?.log?.info("test2")
+                call.respond("OK")
+            }
+        }
+
+        client.get("/uri1")
+        assertTrue { "INFO: test1 [mdc-test=0]" in messages }
+        assertFalse { "INFO: test1 [mdc-test=1]" in messages }
     }
 
     @Test
