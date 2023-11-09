@@ -54,6 +54,9 @@ internal fun CoroutineScope.attachForReadingImpl(
         }
 
         channel.closedCause?.let { throw it }
+    } catch (cause: Throwable) {
+        channel.close(cause)
+        throw cause
     } finally {
         shutdown(descriptor, SHUT_RD)
         channel.close()
