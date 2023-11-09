@@ -30,6 +30,19 @@ public actual class InetSocketAddress actual constructor(
     public actual operator fun component2(): Int {
         return port
     }
+
+    public actual override fun equals(other: Any?): Boolean {
+        if (other == null || other !is InetSocketAddress) return false
+        return other.hostname == hostname && other.port == port
+    }
+
+    public actual override fun hashCode(): Int {
+        return hostname.hashCode() * 31 + port.hashCode()
+    }
+
+    public actual override fun toString(): String {
+        return "InetSocketSddress($hostname:$port)"
+    }
 }
 
 public actual class UnixSocketAddress actual constructor(
@@ -40,6 +53,19 @@ public actual class UnixSocketAddress actual constructor(
      */
     public actual operator fun component1(): String {
         return path
+    }
+
+    public actual override fun equals(other: Any?): Boolean {
+        if (other == null || other !is UnixSocketAddress) return false
+        return other.path == path
+    }
+
+    public actual override fun hashCode(): Int {
+        return path.hashCode()
+    }
+
+    public actual override fun toString(): String {
+        return "UnixSocketAddress($path)"
     }
 
     /**
