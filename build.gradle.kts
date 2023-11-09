@@ -93,7 +93,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.0" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
     id("kotlinx-atomicfu") version "0.21.0" apply false
-    id("com.osacky.doctor") version "0.8.1"
+    id("com.osacky.doctor") version "0.9.0"
 }
 
 allprojects {
