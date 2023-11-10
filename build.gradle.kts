@@ -3,7 +3,6 @@
  */
 
 import org.jetbrains.dokka.gradle.*
-import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
@@ -117,7 +116,8 @@ doctor {
     enableTestCaching = false
 }
 
-val kotlinVersion = libs.versions.kotlin.version.get()
+val kotlinVersion = project.findProperty("kotlin_version") as? String
+println("Starting build with  Kotlin version $kotlinVersion")
 
 allprojects {
     group = "io.ktor"
