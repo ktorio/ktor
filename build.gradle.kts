@@ -107,7 +107,6 @@ apply(from = "gradle/compatibility.gradle")
 plugins {
     id("org.jetbrains.dokka") version "1.9.10" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
-    id("kotlinx-atomicfu") version "0.22.0" apply false
     id("com.osacky.doctor") version "0.9.0"
 }
 
@@ -115,7 +114,8 @@ doctor {
     enableTestCaching = false
 }
 
-val kotlinVersion = libs.versions.kotlin.version.get()
+val kotlinVersion = project.findProperty("kotlin_version") as? String
+println("Starting build with  Kotlin version $kotlinVersion")
 
 allprojects {
     group = "io.ktor"
