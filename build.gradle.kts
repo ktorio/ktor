@@ -101,6 +101,10 @@ doctor {
     enableTestCaching = false
 }
 
+doctor {
+    enableTestCaching = false
+}
+
 allprojects {
     group = "io.ktor"
     version = configuredVersion
