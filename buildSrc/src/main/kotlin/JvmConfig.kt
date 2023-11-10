@@ -15,10 +15,10 @@ fun Project.configureJvm() {
         else -> 8
     }
 
-    val kotlinVersion = rootProject.versionCatalog.findVersion("kotlin-version").get().requiredVersion
+    val kotlinVersion = project.findProperty("kotlin_version") as? String
     val slf4jVersion = rootProject.versionCatalog.findVersion("slf4j-version").get().requiredVersion
     val junitVersion = rootProject.versionCatalog.findVersion("junit-version").get().requiredVersion
-    val coroutinesVersion = rootProject.versionCatalog.findVersion("coroutines-version").get().requiredVersion
+    val coroutinesVersion = project.findProperty("coroutines_version") as? String
 
     val configuredVersion: String by rootProject.extra
 
@@ -30,6 +30,7 @@ fun Project.configureJvm() {
                 dependencies {
                     if (jdk > 6) {
                         api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
+                        println("JvmConfig starting with kotlin version $kotlinVersion")
                     }
                     if (jdk > 7) {
                         api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
@@ -38,6 +39,7 @@ fun Project.configureJvm() {
                             exclude(module = "kotlin-stdlib-jvm")
                             exclude(module = "kotlin-stdlib-jdk8")
                             exclude(module = "kotlin-stdlib-jdk7")
+                            println("JvmConfig starting with coroutines version $coroutinesVersion")
                         }
                     }
 
