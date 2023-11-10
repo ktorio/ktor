@@ -299,7 +299,6 @@ public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () ->
 
 private const val INITIAL_POOL_CAPACITY = 64
 
-@SharedImmutable
 private val mutexPool by lazy { MutexPool(INITIAL_POOL_CAPACITY) }
 
 @OptIn(ExperimentalForeignApi::class)

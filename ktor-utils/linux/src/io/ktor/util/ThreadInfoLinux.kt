@@ -17,6 +17,7 @@ internal actual fun collectStack(thread: pthread_t): List<String> {
     return List(stack_size) { symbols[it]!!.toKString() }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun setSignalHandler() {
     set_signal_handler()
 }
