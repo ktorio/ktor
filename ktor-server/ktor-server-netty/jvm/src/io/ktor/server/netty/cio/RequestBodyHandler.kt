@@ -8,6 +8,7 @@ import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.timeout.*
 import io.netty.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -49,15 +50,18 @@ internal class RequestBodyHandler(
                         }
                         requestMoreEvents()
                     }
+
                     is ByteBuf -> {
                         val channel = current ?: error("No current channel but received a byte buf")
                         processContent(channel, event)
                         requestMoreEvents()
                     }
+
                     is ByteWriteChannel -> {
                         current?.close()
                         current = event
                     }
+
                     is Upgrade -> {
                         upgraded = true
                     }
@@ -183,8 +187,16 @@ internal class RequestBodyHandler(
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable) {
-        handlerJob.completeExceptionally(cause)
-        queue.close(cause)
+        when (cause) {
+            is ReadTimeoutException -> {
+                ctx?.fireExceptionCaught(cause)
+            }
+
+            else -> {
+                handlerJob.completeExceptionally(cause)
+                queue.close(cause)
+            }
+        }
     }
 
     override fun handlerRemoved(ctx: ChannelHandlerContext?) {

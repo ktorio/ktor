@@ -134,7 +134,7 @@ public class NettyChannelInitializer(
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
                     if (requestReadTimeout > 0) {
-                        addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
+                        addLast("readTimeout", KtorReadTimeoutHandler(requestReadTimeout))
                     }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
@@ -142,8 +142,6 @@ public class NettyChannelInitializer(
                     addLast("http1", handler)
                     channelPipelineConfig()
                 }
-
-                pipeline.context("codec").fireChannelActive()
             }
 
             else -> {
@@ -200,6 +198,17 @@ public class NettyChannelInitializer(
             }
 
             return null
+        }
+    }
+}
+
+internal class KtorReadTimeoutHandler(requestReadTimeout: Int) : ReadTimeoutHandler(requestReadTimeout) {
+    private var closed = false
+
+    override fun readTimedOut(ctx: ChannelHandlerContext?) {
+        if (!closed) {
+            ctx?.fireExceptionCaught(ReadTimeoutException.INSTANCE)
+            closed = true
         }
     }
 }

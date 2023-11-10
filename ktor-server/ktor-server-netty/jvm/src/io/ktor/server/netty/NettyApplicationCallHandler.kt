@@ -8,9 +8,11 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
+import io.netty.handler.timeout.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -20,6 +22,9 @@ internal class NettyApplicationCallHandler(
     userCoroutineContext: CoroutineContext,
     private val enginePipeline: EnginePipeline
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
+    private var currentCall: PipelineCall? = null
+    private var currentJob: Job? = null
+
     override val coroutineContext: CoroutineContext = userCoroutineContext
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -30,13 +35,15 @@ internal class NettyApplicationCallHandler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
+        currentCall = call
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 
-        launch(callContext, start = CoroutineStart.UNDISPATCHED) {
+        currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
                 call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
                     respondError400BadRequest(call)
                 }
+
                 else ->
                     try {
                         enginePipeline.execute(call)
@@ -44,6 +51,19 @@ internal class NettyApplicationCallHandler(
                         handleFailure(call, error)
                     }
             }
+        }
+    }
+
+    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        when (cause) {
+            is ReadTimeoutException -> {
+                runBlocking {
+                    currentCall?.respond(HttpStatusCode.RequestTimeout) ?: ctx.fireExceptionCaught(cause)
+                    ctx.close()
+                }
+            }
+
+            else -> ctx.fireExceptionCaught(cause)
         }
     }
 
@@ -77,11 +97,7 @@ internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
     if (!headers.contains(HttpHeaders.TransferEncoding)) return true
 
     val encodings = headers.getAll(HttpHeaders.TransferEncoding) ?: return true
-    if (!encodings.hasValidTransferEncoding()) {
-        return false
-    }
-
-    return true
+    return encodings.hasValidTransferEncoding()
 }
 
 internal fun List<String>.hasValidTransferEncoding(): Boolean {
@@ -111,5 +127,4 @@ internal fun List<String>.hasValidTransferEncoding(): Boolean {
     return true
 }
 
-private fun Char.isSeparator(): Boolean =
-    (this == ' ' || this == ',')
+private fun Char.isSeparator(): Boolean = (this == ' ' || this == ',')
