@@ -19,7 +19,7 @@ internal fun CoroutineScope.attachForWritingImpl(
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): ReaderJob = reader(Dispatchers.Unconfined, userChannel) {
+): ReaderJob = reader(Dispatchers.IO, userChannel) {
     val source = channel
     var sockedClosed = false
     var needSelect = false
