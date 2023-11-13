@@ -42,7 +42,8 @@ class NettyReadRequestTimeoutTest :
                     call.respondText(call.receiveText())
                 }
             }
-        }, configure = {
+        },
+        configure = {
             if (timeout != null) {
                 requestReadTimeoutSeconds = timeout
             }
@@ -74,17 +75,24 @@ class NettyReadRequestTimeoutTest :
     @Test
     fun `test with ktor HttpClient`() = requestTimeoutTest(timeout = 1) { _, _ ->
         val client = HttpClient()
+        client.performAndCheckRequestWithTimeout()
+    }
+
+    @Test
+    fun `parallel requests`() = requestTimeoutTest(timeout = 1) { _, _ ->
+        val client = HttpClient()
+        client.performAndCheckRequestWithTimeout()
         client.performAndCheckRequestWithoutTimeout()
     }
 
     @Test
-    fun `parallel requests on one client`() = requestTimeoutTest(timeout = 1) { _, _ ->
+    fun `parallel timeout requests`() = requestTimeoutTest(timeout = 1) { _, _ ->
         val client = HttpClient()
-        client.performAndCheckRequestWithoutTimeout()
+        client.performAndCheckRequestWithTimeout()
         client.performAndCheckRequestWithTimeout()
     }
 
-    private suspend fun HttpClient.performAndCheckRequestWithoutTimeout() {
+    private suspend fun HttpClient.performAndCheckRequestWithTimeout() {
         get {
             url(host = TEST_SERVER_HOST, path = "/echo", port = this@NettyReadRequestTimeoutTest.port)
             setBody(object : OutgoingContent.WriteChannelContent() {
@@ -98,8 +106,7 @@ class NettyReadRequestTimeoutTest :
         }
     }
 
-
-    private suspend fun HttpClient.performAndCheckRequestWithTimeout() {
+    private suspend fun HttpClient.performAndCheckRequestWithoutTimeout() {
         get {
             url(host = TEST_SERVER_HOST, path = "/echo", port = this@NettyReadRequestTimeoutTest.port)
             setBody("Hello world")
@@ -109,7 +116,9 @@ class NettyReadRequestTimeoutTest :
     }
 
     private suspend fun performAndCheckSuccessRequest(
-        path: String, writeChannel: ByteWriteChannel, readChannel: ByteReadChannel
+        path: String,
+        writeChannel: ByteWriteChannel,
+        readChannel: ByteReadChannel
     ) {
         writeChannel.writeHeaders(path)
         writeChannel.writeBody()

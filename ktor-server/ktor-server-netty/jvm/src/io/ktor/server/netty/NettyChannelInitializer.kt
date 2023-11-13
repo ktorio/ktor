@@ -142,6 +142,8 @@ public class NettyChannelInitializer(
                     addLast("http1", handler)
                     channelPipelineConfig()
                 }
+
+                pipeline.context("codec").fireChannelActive()
             }
 
             else -> {
