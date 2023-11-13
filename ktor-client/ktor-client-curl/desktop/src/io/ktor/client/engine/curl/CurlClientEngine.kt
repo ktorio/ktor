@@ -45,7 +45,7 @@ internal class CurlClientEngine(
             val headers = HeadersImpl(rawHeaders.toMap())
             rawHeaders.release()
 
-            val responseBody: Any = if (data.isSseRequest()) {
+            val responseBody: Any = if (needToProcessSSE(data, status)) {
                 DefaultClientSSESession(data.body as SSEClientContent, bodyChannel, callContext, status, headers)
             } else {
                 bodyChannel

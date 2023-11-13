@@ -37,8 +37,15 @@ internal class OkHttpSSESession(
     }
 
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-        val error = t?.let { SSEException(it) } ?: mapException(response)
-        originResponse.completeExceptionally(error)
+        val statusCode = response?.code
+
+        if (statusCode == HttpStatusCode.Unauthorized.value) {
+            originResponse.complete(response)
+        } else {
+            val error = t?.let { SSEException(it) } ?: mapException(response)
+            originResponse.completeExceptionally(error)
+        }
+
         _incoming.close()
         serverSentEventsSource.cancel()
     }

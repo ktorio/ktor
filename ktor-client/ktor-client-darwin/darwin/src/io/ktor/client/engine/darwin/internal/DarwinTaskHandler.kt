@@ -74,7 +74,7 @@ internal class DarwinTaskHandler(
     fun NSHTTPURLResponse.toResponseData(requestData: HttpRequestData): HttpResponseData {
         val status = HttpStatusCode.fromValue(statusCode.convert())
         val headers = readHeaders()
-        val responseBody: Any = if (requestData.isSseRequest()) {
+        val responseBody: Any = if (needToProcessSSE(requestData, status)) {
             DefaultClientSSESession(requestData.body as SSEClientContent, body, callContext, status, headers)
         } else {
             body

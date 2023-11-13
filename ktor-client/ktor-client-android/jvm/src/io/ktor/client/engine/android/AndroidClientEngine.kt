@@ -93,7 +93,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
             val responseHeaders = HeadersImpl(headerFields)
 
-            val responseBody: Any = if (data.isSseRequest()) {
+            val responseBody: Any = if (needToProcessSSE(data, statusCode)) {
                 DefaultClientSSESession(
                     data.body as SSEClientContent,
                     content,

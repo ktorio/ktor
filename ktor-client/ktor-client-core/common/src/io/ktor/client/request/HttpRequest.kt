@@ -309,3 +309,9 @@ public fun HttpRequestData.isUpgradeRequest(): Boolean {
 public fun HttpRequestData.isSseRequest(): Boolean {
     return body is SSEClientContent
 }
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode): Boolean {
+    return data.isSseRequest() && status != HttpStatusCode.Unauthorized
+}

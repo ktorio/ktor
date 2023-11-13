@@ -46,6 +46,18 @@ internal fun Application.serverSentEvents() {
                 }
                 call.respondSseEvents(events)
             }
+            get("/auth") {
+                val token = call.request.headers["Authorization"]
+                if (token.isNullOrEmpty() || token.contains("invalid")) {
+                    call.response.header(HttpHeaders.WWWAuthenticate, "Bearer realm=\"TestServer\"")
+                    call.respond(HttpStatusCode.Unauthorized)
+                    return@get
+                }
+
+                call.respondSseEvents(flow {
+                    emit(SseEvent("hello after refresh"))
+                })
+            }
         }
     }
 }

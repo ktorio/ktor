@@ -31,7 +31,7 @@ internal suspend fun WinHttpResponseData.convert(
         HeadersImpl(response.headers.toMap())
     } ?: throw IllegalStateException("Failed to parse response header")
 
-    val responseBody: Any = if (data.isSseRequest()) {
+    val responseBody: Any = if (needToProcessSSE(data, status)) {
         DefaultClientSSESession(data.body as SSEClientContent, body as ByteReadChannel, callContext, status, headers)
     } else {
         body

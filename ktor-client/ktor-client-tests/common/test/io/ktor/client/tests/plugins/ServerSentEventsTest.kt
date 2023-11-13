@@ -6,6 +6,8 @@ package io.ktor.client.tests.plugins
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.tests.utils.*
 import io.ktor.sse.*
@@ -210,6 +212,28 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             client.sse("$TEST_SERVER/sse/hello?delay=20") {
                 val result = incoming.single()
                 assertEquals("hello 0", result.event)
+            }
+        }
+    }
+
+    @Test
+    fun testWithAuthPlugin() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+            }
+
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/auth") {
+                val result = incoming.single()
+                assertEquals("hello after refresh", result.data)
             }
         }
     }
