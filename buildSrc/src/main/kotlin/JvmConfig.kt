@@ -15,6 +15,9 @@ fun Project.configureJvm() {
         else -> 8
     }
 
+    val kotlinVersion = project.findProperty("kotlin_version") as? String
+    val coroutinesVersion = project.findProperty("coroutines_version") as? String
+
     val configuredVersion: String by rootProject.extra
 
     kotlin {
@@ -22,13 +25,15 @@ fun Project.configureJvm() {
 
         sourceSets.apply {
             val jvmMain by getting {
+                println("JvmConfig starting with kotlin version $kotlinVersion")
+                println("JvmConfig starting with coroutines version $coroutinesVersion")
                 dependencies {
                     if (jdk > 6) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}")
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
                     }
                     if (jdk > 7) {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}")
-                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${Versions.coroutines}") {
+                        api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+                        api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion") {
                             exclude(module = "kotlin-stdlib")
                             exclude(module = "kotlin-stdlib-jvm")
                             exclude(module = "kotlin-stdlib-jdk8")
@@ -43,8 +48,8 @@ fun Project.configureJvm() {
             val jvmTest by getting {
                 dependencies {
                     implementation("junit:junit:${Versions.junit}")
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}")
-                    implementation("org.jetbrains.kotlin:kotlin-test-junit:${Versions.kotlin}")
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutinesVersion")
+                    implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
                 }
             }
         }

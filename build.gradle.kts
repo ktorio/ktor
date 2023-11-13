@@ -63,6 +63,7 @@ buildscript {
     }
 }
 
+val kotlinVersion = project.findProperty("kotlin_version") as? String
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
 val native_targets_enabled: Boolean by extra
