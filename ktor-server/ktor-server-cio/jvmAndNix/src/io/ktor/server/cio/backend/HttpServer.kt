@@ -30,7 +30,9 @@ public fun CoroutineScope.httpServer(
             aSocket(selector).tcp().bind(
                 hostname = settings.host,
                 port = settings.port
-            )
+            ) {
+                reuseAddress = settings.reuseAddress
+            }
         },
         serverJobName = CoroutineName("server-root-${settings.port}"),
         acceptJobName = CoroutineName("accept-${settings.port}"),
@@ -68,9 +70,7 @@ public fun CoroutineScope.httpServer(
     )
 
     val acceptJob = launch(serverJob + acceptJobName) {
-        createServer() {
-            reuseAddress = settings.reuseAddress
-        }.use { server ->
+        createServer().use { server ->
             socket.complete(server)
 
             val exceptionHandler = coroutineContext[CoroutineExceptionHandler]

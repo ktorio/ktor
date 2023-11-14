@@ -6,13 +6,13 @@ package io.ktor.server.cio
 
 import io.ktor.events.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
@@ -170,7 +170,7 @@ public class CIOApplicationEngine(
         return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
 
-    private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
+    private suspend fun ServerRequestScope.handleRequest(request: Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(
                 application,
