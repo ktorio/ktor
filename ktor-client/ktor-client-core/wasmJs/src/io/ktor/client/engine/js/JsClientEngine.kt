@@ -123,33 +123,22 @@ internal class JsClientEngine(
     }
 }
 
-private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
-    if (continuation.isCancelled) return@suspendCancellableCoroutine
+public actual typealias CommonEventListener = EventListener
+public actual typealias CommonEvent = Event
+public actual typealias CommonEventTarget = EventTarget
+public actual typealias CommonWebSocket = WebSocket
 
-    val eventListener = { it: JsAny ->
-        val event: Event = it.unsafeCast()
-        when (event.type) {
-            "open" -> continuation.resume(this)
-            "error" -> {
-                continuation.resumeWithException(WebSocketException(eventAsString(event)))
-            }
-        }
-    }
-
-    addEventListener("open", callback = eventListener)
-    addEventListener("error", callback = eventListener)
-
-    continuation.invokeOnCancellation {
-        removeEventListener("open", callback = eventListener)
-        removeEventListener("error", callback = eventListener)
-
-        if (it != null) {
-            this@awaitConnection.close()
-        }
-    }
+internal actual fun addEventListener(target: CommonWebSocket, type: String, callback: ((Event) -> Unit)?) {
+    target.addEventListener(type, callback)
 }
 
-private fun eventAsString(event: Event): String =
+internal actual fun removeEventListener(target: CommonWebSocket, type: String, callback: ((CommonEvent) -> Unit)?) {
+    target.removeEventListener(type, callback)
+}
+
+internal actual fun close(socket: WebSocket): Unit = socket.close()
+
+internal actual fun eventAsString(event: Event): String =
     js("JSON.stringify(event, ['message', 'target', 'type', 'isTrusted'])")
 
 private fun getKeys(headers: org.w3c.fetch.Headers): JsArray<JsString> =

@@ -118,33 +118,25 @@ internal class JsClientEngine(
     }
 }
 
-private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
-    if (continuation.isCancelled) return@suspendCancellableCoroutine
+public actual typealias CommonEventListener = EventListener
+public actual typealias CommonEvent = Event
+public actual typealias CommonEventTarget = EventTarget
+public actual typealias CommonWebSocket = WebSocket
 
-    val eventListener = { event: Event ->
-        when (event.type) {
-            "open" -> continuation.resume(this)
-            "error" -> {
-                continuation.resumeWithException(WebSocketException(event.asString()))
-            }
-        }
-    }
-
-    addEventListener("open", callback = eventListener)
-    addEventListener("error", callback = eventListener)
-
-    continuation.invokeOnCancellation {
-        removeEventListener("open", callback = eventListener)
-        removeEventListener("error", callback = eventListener)
-
-        if (it != null) {
-            this@awaitConnection.close()
-        }
-    }
+internal actual fun addEventListener(target: CommonWebSocket, type: String, callback: ((Event) -> Unit)?) {
+    target.addEventListener(type, callback)
 }
 
-private fun Event.asString(): String = buildString {
-    append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
+internal actual fun removeEventListener(target: CommonWebSocket, type: String, callback: ((CommonEvent) -> Unit)?) {
+    target.removeEventListener(type, callback)
+}
+
+internal actual fun close(socket: WebSocket) {
+    socket.close()
+}
+
+internal actual fun eventAsString(event: Event): String = buildString {
+    append(JSON.stringify(event, arrayOf("message", "target", "type", "isTrusted")))
 }
 
 private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
