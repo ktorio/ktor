@@ -3,7 +3,7 @@
 */
 
 plugins {
-    kotlin("plugin.serialization") version "1.9.10"
+    kotlin("plugin.serialization") version "1.9.20"
     id("org.gradle.kotlin.kotlin-dsl") version "4.2.1"
 }
 
