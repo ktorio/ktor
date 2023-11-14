@@ -7,7 +7,7 @@ package io.ktor.http
 import io.ktor.util.*
 
 private fun locationOrigin(): String = js(
-"""{
+    """function() {
     var origin = ""
     if (typeof window !== 'undefined') {
       origin = window.location.origin
@@ -15,7 +15,7 @@ private fun locationOrigin(): String = js(
       origin = self.location.origin
     }
     return origin && origin != "null" ? origin : "http://localhost"
-}"""
+}()"""
 )
 
 /**
