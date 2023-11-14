@@ -21,7 +21,7 @@ class NodeFetchOptionsTest {
     @Test
     fun testNodeOptions() = testSuspend {
         // Custom nodeOptions only work on Node.js (as the name suggests ;)
-        if (PlatformUtils.IS_BROWSER) return
+        if (PlatformUtils.IS_BROWSER) return@testSuspend
 
         val client = HttpClient(Js) {
             engine {
