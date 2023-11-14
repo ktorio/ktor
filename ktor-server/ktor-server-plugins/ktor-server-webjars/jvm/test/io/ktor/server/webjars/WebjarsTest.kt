@@ -8,12 +8,17 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
+import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.date.*
+import io.ktor.util.pipeline.*
+import org.slf4j.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
@@ -127,6 +132,24 @@ class WebjarsTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
             }
+        }
+    }
+
+    @Test
+    fun classifiedAsStatic() {
+        var isStatic = false
+        var location = ""
+        withTestApplication {
+            application.install(Webjars)
+            application.addPhase(ApplicationSendPipeline.After)
+            application.intercept(ApplicationSendPipeline.After) {
+                isStatic = call.isStaticContent()
+                location = call.attributes[StaticFileLocationProperty]
+            }
+            handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js")
+
+            assertTrue(isStatic, "Should be static file")
+            assertEquals(location, "jquery/jquery.js")
         }
     }
 
