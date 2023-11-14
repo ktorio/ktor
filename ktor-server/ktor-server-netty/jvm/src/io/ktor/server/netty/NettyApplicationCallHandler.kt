@@ -5,16 +5,18 @@
 package io.ktor.server.netty
 
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
-import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
+import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.coroutines.cancellation.*
 
 private const val CHUNKED_VALUE = "chunked"
 
@@ -22,7 +24,6 @@ internal class NettyApplicationCallHandler(
     userCoroutineContext: CoroutineContext,
     private val enginePipeline: EnginePipeline
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private var currentCall: PipelineCall? = null
     private var currentJob: Job? = null
 
     override val coroutineContext: CoroutineContext = userCoroutineContext
@@ -35,7 +36,6 @@ internal class NettyApplicationCallHandler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
-        currentCall = call
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 
         currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
@@ -57,14 +57,22 @@ internal class NettyApplicationCallHandler(
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         when (cause) {
             is ReadTimeoutException -> {
-                runBlocking {
-                    currentCall?.respond(HttpStatusCode.RequestTimeout) ?: ctx.fireExceptionCaught(cause)
-                    ctx.close()
-                }
+                currentJob?.let {
+                    respond408RequestTimeout(ctx)
+                    it.cancel(CancellationException(cause))
+                } ?: ctx.fireExceptionCaught(cause)
             }
 
             else -> ctx.fireExceptionCaught(cause)
         }
+    }
+
+    private fun respond408RequestTimeout(ctx: ChannelHandlerContext) {
+        val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
+        response.headers().add(HttpHeaders.ContentLength, "0")
+        response.headers().add(HttpHeaders.Connection, "close")
+        ctx.writeAndFlush(response)
+        ctx.close()
     }
 
     private suspend fun respondError400BadRequest(call: NettyHttp1ApplicationCall) {
