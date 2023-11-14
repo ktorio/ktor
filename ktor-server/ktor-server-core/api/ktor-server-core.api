@@ -468,6 +468,7 @@ public final class io/ktor/server/http/content/StaticContentKt {
 	public static final fun files (Lio/ktor/server/routing/Route;Ljava/io/File;)V
 	public static final fun files (Lio/ktor/server/routing/Route;Ljava/lang/String;)V
 	public static final fun getStaticBasePackage (Lio/ktor/server/routing/Route;)Ljava/lang/String;
+	public static final fun getStaticFileLocationProperty ()Lio/ktor/util/AttributeKey;
 	public static final fun getStaticRootFolder (Lio/ktor/server/routing/Route;)Ljava/io/File;
 	public static final fun isStaticContent (Lio/ktor/server/application/ApplicationCall;)Z
 	public static final fun preCompressed (Lio/ktor/server/routing/Route;[Lio/ktor/server/http/content/CompressedFileType;Lkotlin/jvm/functions/Function1;)V
