@@ -12,6 +12,7 @@ import io.ktor.client.engine.js.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -19,6 +20,9 @@ class NodeFetchOptionsTest {
 
     @Test
     fun testNodeOptions() = testSuspend {
+        // Custom nodeOptions only work on Node.js (as the name suggests ;)
+        if (PlatformUtils.IS_BROWSER) return
+
         val client = HttpClient(Js) {
             engine {
                 nodeOptions.headers = js("""{"Content-Type": "image/jpeg"}""")
