@@ -53,7 +53,7 @@ private fun Project.configureWasmTasks() {
 }
 
 private fun Project.configureWasmTestTasks() {
-    val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-wasm-tests")
+    val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunWasmBrowserTest) return
 
     val cleanWasmJsBrowserTest by tasks.getting
