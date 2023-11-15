@@ -431,18 +431,15 @@ public data class PathSegmentTailcardRouteSelector(
                 }
             )
         }
-        return when {
-            segmentIndex < segments.size ->
-                RouteSelectorEvaluation.Success(
-                    RouteSelectorEvaluation.qualityTailcard,
-                    values,
-                    segmentIncrement = segments.size - segmentIndex
-                )
-            else -> RouteSelectorEvaluation.Failure(
-                RouteSelectorEvaluation.qualityMissing,
-                HttpStatusCode.NotFound
-            )
+        val quality = when {
+            segmentIndex < segments.size -> RouteSelectorEvaluation.qualityTailcard
+            else -> RouteSelectorEvaluation.qualityMissing
         }
+        return RouteSelectorEvaluation.Success(
+            quality,
+            values,
+            segmentIncrement = segments.size - segmentIndex
+        )
     }
 
     override fun toString(): String = "{...}"
