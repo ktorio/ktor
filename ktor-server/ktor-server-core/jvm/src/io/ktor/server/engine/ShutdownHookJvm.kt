@@ -34,6 +34,17 @@ public actual fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () ->
     }
 }
 
+/**
+ * Adds automatic JVM shutdown hooks management. Should be used **before** starting the server.
+ * Once JVM termination noticed, [stop] block will be executed.
+ * Please note that a shutdown hook only registered when the application is running. If the application
+ * is already stopped then there will be no hook and no [stop] function invocation possible.
+ * So [stop] block will be called once or never.
+ */
+public actual fun EmbeddedServer<*, *>.addShutdownHook(stop: () -> Unit) {
+    engine.addShutdownHook(monitor, stop)
+}
+
 private class ShutdownHook(private val stopFunction: () -> Unit) : Thread("KtorShutdownHook") {
     private val shouldStop = AtomicBoolean(true)
 

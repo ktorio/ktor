@@ -36,7 +36,7 @@ public object ConfigKeys {
 /**
  * Creates an [ApplicationEnvironment] instance from command line arguments
  */
-public fun commandLineConfig(args: Array<String>): CommandLineConfig {
+public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }
     val argumentsMap = argumentsPairs.toMap()
     val configuration = buildApplicationConfig(argumentsPairs)

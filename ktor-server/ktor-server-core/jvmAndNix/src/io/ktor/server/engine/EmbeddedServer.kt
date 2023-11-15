@@ -10,6 +10,13 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+/**
+ * Represents an embedded server that hosts an application.
+ * It's an entry point to the application and handles the lifecycle of the application engine.
+ *
+ * @param TEngine The type of the application engine used by the server.
+ * @param TConfiguration The type of the configuration used by the engine.
+ */
 public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     applicationProperties: ApplicationProperties,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
@@ -62,8 +69,7 @@ public interface ApplicationEngineFactory<
  * @param module application module function
  */
 @OptIn(DelicateCoroutinesApi::class)
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -79,8 +85,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
  * @param module application module function
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -111,8 +116,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * @param configure configuration script for the engine
  * @param module application module function
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-    CoroutineScope.embeddedServer(
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(),
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),

@@ -50,7 +50,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val server = embeddedServer(
             engine,
-            applicationProperties(applicationEnvironment { }) {
+            applicationProperties(applicationEnvironment()) {
                 module {
                     routing {
                         get("/") {

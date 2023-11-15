@@ -12,6 +12,9 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+/**
+ * A builder for [ApplicationProperties]
+ */
 public class ApplicationPropertiesBuilder(
     public val environment: ApplicationEnvironment
 ) {
@@ -49,6 +52,9 @@ public class ApplicationPropertiesBuilder(
         ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
+/**
+ * An application config with which the application is running
+ */
 public class ApplicationProperties(
     public val environment: ApplicationEnvironment,
     internal val modules: MutableList<Application.() -> Unit>,
@@ -61,6 +67,9 @@ public class ApplicationProperties(
     public val parentCoroutineContext: CoroutineContext = bridge.parentCoroutineContext
 }
 
+/**
+ * Creates an [ApplicationProperties] instance
+ */
 public fun applicationProperties(
     environment: ApplicationEnvironment = applicationEnvironment {},
     block: ApplicationPropertiesBuilder.() -> Unit = {}

@@ -11,7 +11,7 @@ class BuildApplicationConfigJvmTest {
     @Test
     fun testPropertyConfig() {
         System.setProperty("ktor.deployment.port", "1333")
-        val config = commandLineConfig(emptyArray()).engineConfig
+        val config = CommandLineConfig(emptyArray()).engineConfig
         assertEquals(1333, config.connectors.single().port)
         System.clearProperty("ktor.deployment.port")
     }
@@ -19,7 +19,7 @@ class BuildApplicationConfigJvmTest {
     @Test
     fun testPropertyConfigOverride() {
         System.setProperty("ktor.deployment.port", "1333")
-        val config = commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).engineConfig
+        val config = CommandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).engineConfig
         assertEquals(13698, config.connectors.single().port)
         System.clearProperty("ktor.deployment.port")
     }

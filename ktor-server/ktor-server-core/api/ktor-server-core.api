@@ -513,7 +513,7 @@ public final class io/ktor/server/engine/CommandLineConfig {
 }
 
 public final class io/ktor/server/engine/CommandLineKt {
-	public static final fun commandLineConfig ([Ljava/lang/String;)Lio/ktor/server/engine/CommandLineConfig;
+	public static final fun CommandLineConfig ([Ljava/lang/String;)Lio/ktor/server/engine/CommandLineConfig;
 	public static final fun loadCommonConfiguration (Lio/ktor/server/engine/ApplicationEngine$Configuration;Lio/ktor/server/config/ApplicationConfig;)V
 }
 
@@ -711,6 +711,7 @@ public final class io/ktor/server/engine/ShutDownUrl$EnginePlugin : io/ktor/serv
 
 public final class io/ktor/server/engine/ShutdownHookJvmKt {
 	public static final fun addShutdownHook (Lio/ktor/server/engine/ApplicationEngine;Lio/ktor/events/Events;Lkotlin/jvm/functions/Function0;)V
+	public static final fun addShutdownHook (Lio/ktor/server/engine/EmbeddedServer;Lkotlin/jvm/functions/Function0;)V
 }
 
 public final class io/ktor/server/http/HttpDateJvmKt {

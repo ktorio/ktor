@@ -15,27 +15,24 @@ fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
 fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
 
-suspend fun List<PartData>.makeString(): String = buildString {
-    val list = this@makeString
-    list.forEach {
-        append("${it.name!!}\n")
-        val content = when (it) {
-            is PartData.FileItem -> error("Not implemented")
-            is PartData.FormItem -> it.value
-            is PartData.BinaryItem -> error("Not implemented")
-            is PartData.BinaryChannelItem ->filenameContentTypeAndContentString(it.provider, it.headers)
-        }
-
-        append(content)
+suspend fun PartData.makeString(): String = buildString {
+    val part = this@makeString
+    append("${part.name!!}\n")
+    val content = when (part) {
+        is PartData.FileItem -> filenameContentTypeAndContentString(part.provider, part.headers)
+        is PartData.FormItem -> part.value
+        is PartData.BinaryItem -> error("BinaryItem is not supported in test server")
+        is PartData.BinaryChannelItem -> filenameContentTypeAndContentString(part.provider, part.headers)
     }
+
+    append(content)
 }
 
-@Suppress("DEPRECATION")
-private suspend fun filenameContentTypeAndContentString(provider: () -> ByteReadChannel, headers: Headers): String {
+internal suspend fun filenameContentTypeAndContentString(provider: () -> ByteReadChannel, headers: Headers): String {
     val dispositionHeader: String = headers.getAll(HttpHeaders.ContentDisposition)!!.joinToString(";")
     val disposition: ContentDisposition = ContentDisposition.parse(dispositionHeader)
     val filename: String = disposition.parameter("filename") ?: ""
     val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ""
-    val content: String = provider().readRemaining().readText(Charsets.ISO_8859_1)
+    val content: String = provider().readRemaining().readBytes().let { "Content of ${it.size} bytes" }
     return "$filename$contentType$content"
 }

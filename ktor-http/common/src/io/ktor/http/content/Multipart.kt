@@ -116,6 +116,7 @@ public suspend fun MultiPartData.forEachPart(partHandler: suspend (PartData) -> 
  * Parse multipart data stream and put all parts into a list
  * @return a list of part data
  */
+@Deprecated("This method can deadlock on large requests. Use forEachPart instead.")
 public suspend fun MultiPartData.readAllParts(): List<PartData> {
     var part = readPart() ?: return emptyList()
     val parts = ArrayList<PartData>()

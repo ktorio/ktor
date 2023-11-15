@@ -780,7 +780,7 @@ class ContentNegotiationTest {
             register(
                 contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8),
                 converter = object : ContentConverter {
-                    override suspend fun serializeNullable(
+                    override suspend fun serialize(
                         contentType: ContentType,
                         charset: Charset,
                         typeInfo: TypeInfo,

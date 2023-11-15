@@ -11,7 +11,7 @@ class BuildApplicationConfigNixTest {
     @Test
     fun testPropertyConfig() {
         setenv("ktor.deployment.port", "1333", 0)
-        val config = commandLineConfig(emptyArray()).engineConfig
+        val config = CommandLineConfig(emptyArray()).engineConfig
         assertEquals(1333, config.connectors.single().port)
         unsetenv("ktor.deployment.port")
     }
@@ -19,7 +19,7 @@ class BuildApplicationConfigNixTest {
     @Test
     fun testPropertyConfigOverride() {
         setenv("ktor.deployment.port", "1333", 0)
-        val config = commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).engineConfig
+        val config = CommandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).engineConfig
         assertEquals(13698, config.connectors.single().port)
         unsetenv("ktor.deployment.port")
     }
