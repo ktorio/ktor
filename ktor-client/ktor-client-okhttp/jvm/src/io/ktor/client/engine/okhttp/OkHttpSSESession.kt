@@ -39,7 +39,7 @@ internal class OkHttpSSESession(
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
         val statusCode = response?.code
 
-        if (statusCode == HttpStatusCode.Unauthorized.value) {
+        if (response != null && statusCode != HttpStatusCode.OK.value) {
             originResponse.complete(response)
         } else {
             val error = t?.let { SSEException(it) } ?: mapException(response)

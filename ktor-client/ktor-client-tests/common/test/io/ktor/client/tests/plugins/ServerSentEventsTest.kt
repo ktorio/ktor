@@ -237,4 +237,19 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }
         }
     }
+
+    @Test
+    fun testSseExceptionOn404Response() = clientTests(listOf("CIO", "Apache", "Apache5", "Android", "Java")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            kotlin.test.assertFailsWith<SSEException> {
+                client.sse("$TEST_SERVER/sse/404") {}
+            }.let {
+                kotlin.test.assertContains(it.message!!, "Expected status code 200 but was: 404")
+            }
+        }
+    }
 }

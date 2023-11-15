@@ -312,6 +312,8 @@ public fun HttpRequestData.isSseRequest(): Boolean {
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode): Boolean {
-    return data.isSseRequest() && status != HttpStatusCode.Unauthorized
+public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode, headers: Headers): Boolean {
+    return data.isSseRequest() &&
+        status == HttpStatusCode.OK &&
+        headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
 }

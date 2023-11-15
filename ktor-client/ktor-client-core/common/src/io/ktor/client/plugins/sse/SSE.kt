@@ -8,6 +8,8 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
@@ -58,14 +60,30 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         )
     }
 
-    transformResponseBody { response, content, requestedType ->
-        if (content !is ClientSSESession) {
-            LOGGER.trace("Skipping non SSE response from ${response.request.url}: $content")
-            content
-        } else {
-            LOGGER.trace("Receive SSE session from ${response.request.url}: $content")
-            HttpResponseContainer(requestedType, content)
+    client.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, session) ->
+        val response = context.response
+        val status = response.status
+        val contentType = response.headers[HttpHeaders.ContentType]
+        val requestContent = response.request.content
+
+        if (requestContent !is SSEClientContent) {
+            LOGGER.trace("Skipping non SSE response from ${response.request.url}")
+            return@intercept
         }
+        if (status != HttpStatusCode.OK) {
+            throw SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${status.value}")
+        }
+        if (contentType != ContentType.Text.EventStream.toString()) {
+            throw SSEException("Content type must be ${ContentType.Text.EventStream} but was: $contentType")
+        }
+        if (session !is ClientSSESession) {
+            throw SSEException(
+                "Expected `ClientSSESession` content for SSE response from ${response.request.url} but was: $session"
+            )
+        }
+
+        LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
+        proceedWith(HttpResponseContainer(info, session))
     }
 }
 
