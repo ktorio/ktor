@@ -21,7 +21,8 @@ fun resolve(
     routing: RouteNode,
     path: String,
     parameters: Parameters = Parameters.Empty,
-    headers: Headers = Headers.Empty
+    headers: Headers = Headers.Empty,
+    tracers: List<(RoutingResolveTrace) -> Unit> = emptyList(),
 ): RoutingResolveResult {
     return withTestApplication {
         RoutingResolveContext(
@@ -36,7 +37,7 @@ fun resolve(
                 }
                 headers.flattenForEach { name, value -> request.addHeader(name, value) }
             },
-            emptyList()
+            tracers
         ).resolve()
     }
 }
@@ -409,8 +410,8 @@ class RoutingResolveTest {
             }
         }
 
-        on("resolving /foo") {
-            val result = resolve(root, "/foo")
+        on("resolving /foo/") {
+            val result = resolve(root, "/foo/")
 
             it("should successfully resolve") {
                 assertTrue(result is RoutingResolveResult.Success)
@@ -452,8 +453,8 @@ class RoutingResolveTest {
             }
         }
 
-        on("resolving /foo") {
-            val result = resolve(root, "/foo")
+        on("resolving /foo/") {
+            val result = resolve(root, "/foo/")
 
             it("should successfully resolve") {
                 assertTrue(result is RoutingResolveResult.Success)
@@ -462,7 +463,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, result.route)
             }
             it("should have empty parameter") {
-                assertNull(result.parameters["items"])
+                assertEquals("", result.parameters["items"])
             }
         }
 
@@ -737,6 +738,37 @@ class RoutingResolveTest {
             assertTrue(result is RoutingResolveResult.Success)
             assertSame(prefixChild, result.route)
             assertEquals(listOf("a", "b", "c"), result.parameters.getAll("param"))
+        }
+    }
+
+    @Test
+    fun `tailcard allows trailing slash`() {
+        val routing = routing()
+        val prefixChild = routing.route("/foo/{param...}") {
+            handle {}
+        }
+
+        assertTrue(resolve(routing, "/foo") is RoutingResolveResult.Failure)
+
+        resolve(routing, "/foo/").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals("", result.parameters["param"])
+        }
+        resolve(routing, "/foo/bar/").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals(listOf("bar", ""), result.parameters.getAll("param"))
+        }
+        resolve(routing, "/foo/bar/baz").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals(listOf("bar", "baz"), result.parameters.getAll("param"))
+        }
+        resolve(routing, "/foo/bar/baz/").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals(listOf("bar", "baz", ""), result.parameters.getAll("param"))
         }
     }
 
@@ -1158,37 +1190,6 @@ class RoutingResolveTest {
             }
             it("/ should be called") {
                 assertEquals("bar", result.response.content)
-            }
-        }
-    }
-
-    @Test
-    fun testRoutingTrailingSlashWithTrailcard() = withTestApplication {
-        application.routing {
-            get("test/a{foo...}") {
-                call.respondText("foo")
-            }
-            get("test/a{foo...}/") {
-                call.respondText("foo/")
-            }
-        }
-
-        on("making /test/a{foo...} request") {
-            val result = handleRequest {
-                uri = "test/aB/C/D"
-                method = HttpMethod.Get
-            }
-            it("/test/a{foo...} should be called") {
-                assertEquals("foo", result.response.content)
-            }
-        }
-        on("making /test/a{foo...}/ request") {
-            val result = handleRequest {
-                uri = "test/aB/C/D/"
-                method = HttpMethod.Get
-            }
-            it("/test/a{foo...}/ should be called") {
-                assertEquals("foo/", result.response.content)
             }
         }
     }

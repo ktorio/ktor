@@ -410,7 +410,7 @@ public data class PathSegmentTailcardRouteSelector(
     }
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val segments = context.segments.dropLastWhile { it.isEmpty() } // remove extra segment from trailing slash
+        val segments = context.segments
         if (prefix.isNotEmpty()) {
             val segmentText = segments.getOrNull(segmentIndex)
             if (segmentText == null || !segmentText.startsWith(prefix)) {
@@ -431,15 +431,18 @@ public data class PathSegmentTailcardRouteSelector(
                 }
             )
         }
-        val quality = when {
-            segmentIndex < segments.size -> RouteSelectorEvaluation.qualityTailcard
-            else -> RouteSelectorEvaluation.qualityMissing
+        return when {
+            segmentIndex < segments.size ->
+                RouteSelectorEvaluation.Success(
+                    RouteSelectorEvaluation.qualityTailcard,
+                    values,
+                    segmentIncrement = segments.size - segmentIndex
+                )
+            else -> RouteSelectorEvaluation.Failure(
+                RouteSelectorEvaluation.qualityMissing,
+                HttpStatusCode.NotFound
+            )
         }
-        return RouteSelectorEvaluation.Success(
-            quality,
-            values,
-            segmentIncrement = segments.size - segmentIndex
-        )
     }
 
     override fun toString(): String = "{...}"
