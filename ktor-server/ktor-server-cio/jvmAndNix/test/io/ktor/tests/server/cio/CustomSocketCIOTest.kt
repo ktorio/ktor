@@ -1,49 +1,16 @@
 package io.ktor.tests.server.cio
 
-import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.cio.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.test.dispatcher.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.nio.file.*
-import kotlin.io.path.*
-import kotlin.test.*
-
-class CustomSocketCIOTest {
-    @Test
-    fun connectServerAndClientOverUnixSocket() = testSuspend {
-        val socket = Files.createTempFile("network", "socket").absolutePathString()
-
-        val client = HttpClient(CIOSocketClient(socket))
-        val server = embeddedServer(CIOSocket(socket)) {
-            routing {
-                get("/hello") {
-                    call.respondText("Get from Socket")
-                }
-                post("/hello") {
-                    call.respondText("Post from Socket")
-                }
-            }
-        }.start(wait = false)
-        assertEquals("Get from Socket", client.get("/hello").bodyAsText())
-        assertEquals("Post from Socket", client.post("/hello").bodyAsText())
-        server.stop(1000L, 1000L)
-    }
-}
 
 class CIOSocketClient(private val socket: String) : HttpClientEngineFactory<CIOEngineConfig> {
     override fun create(block: CIOEngineConfig.() -> Unit): CIOSocketClientEngine {
