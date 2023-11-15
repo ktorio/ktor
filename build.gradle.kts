@@ -94,14 +94,6 @@ plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
     id("kotlinx-atomicfu") version "0.22.0" apply false
     id("com.osacky.doctor") version "0.9.0"
-    id("io.snyk.gradle.plugin.snykplugin") version "0.5"
-}
-
-snyk {
-    setArguments("--all-sub-projects")
-    setSeverity("low")
-    setAutoDownload(true)
-    setAutoUpdate(true)
 }
 
 doctor {
