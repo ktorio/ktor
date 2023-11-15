@@ -313,7 +313,7 @@ internal class NettyHttpResponsePipeline(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
         requestMessageFuture: ChannelFuture,
-        shouldFlush: (channel: ByteReadChannel, unflushedBytes: Int) -> Boolean
+        shouldFlush: ShouldFlush
     ) {
         val channel = response.responseChannel
 
@@ -363,3 +363,7 @@ private fun NettyApplicationResponse.isUpgradeResponse() =
     status()?.value == HttpStatusCode.SwitchingProtocols.value
 
 public class NettyResponsePipelineException(message: String) : Exception(message)
+
+internal fun interface ShouldFlush {
+    fun invoke(channel: ByteReadChannel, unflushedBytes: Int): Boolean
+}
