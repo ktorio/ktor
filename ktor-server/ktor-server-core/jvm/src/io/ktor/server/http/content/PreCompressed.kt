@@ -119,6 +119,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
     modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
 ) {
+    attributes.put(StaticFileLocationProperty, requestedFile.path)
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
     val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
     if (bestCompressionFit == null) {
@@ -145,6 +146,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     cacheControl: (Path) -> List<CacheControl> = { emptyList() },
     modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> }
 ) {
+    attributes.put(StaticFileLocationProperty, requestedPath.toString())
     val bestCompressionFit =
         bestCompressionFit(fileSystem, requestedPath, request.acceptEncodingItems(), compressedTypes)
     val cacheControlValues = cacheControl(requestedPath).joinToString(", ")
@@ -173,6 +175,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
     exclude: (URL) -> Boolean = { false }
 ) {
+    attributes.put(StaticFileLocationProperty, requestedResource)
     val bestCompressionFit = bestCompressionFit(
         call = this,
         resource = requestedResource,

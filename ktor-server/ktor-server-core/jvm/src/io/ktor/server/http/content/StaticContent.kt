@@ -16,6 +16,13 @@ import java.net.*
 import java.nio.file.*
 import kotlin.io.path.*
 
+/**
+ * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
+ * to subsequent interceptors that a static file was served via the `ApplicationCall.isStaticContent()` extension
+ * function.
+ */
+public val StaticFileLocationProperty: AttributeKey<String> = AttributeKey("StaticFileLocation")
+
 private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
@@ -487,7 +494,7 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
 /**
  *  Checks if the application call is requesting static content
  */
-public fun ApplicationCall.isStaticContent(): Boolean = parameters.contains(pathParameterName)
+public fun ApplicationCall.isStaticContent(): Boolean = attributes.contains(StaticFileLocationProperty)
 
 private fun Route.staticContentRoute(
     remotePath: String,
