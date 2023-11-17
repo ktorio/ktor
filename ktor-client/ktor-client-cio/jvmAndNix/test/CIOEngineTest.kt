@@ -172,6 +172,21 @@ class CIOEngineTest {
         }
     }
 
+    @Test
+    fun testErrorMessageWhenServerDontRespondWithUpgrade() = testWithEngine(CIO) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            kotlin.test.assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/500") {}
+            }.apply {
+                assertEquals(message, "Handshake exception, expected status code 101 but was 500")
+            }
+        }
+    }
+
     private suspend fun sendExpectRequest(socket: ServerSocket, client: HttpClient, body: String? = null) =
         client.post {
             val serverPort = (socket.localAddress as InetSocketAddress).port

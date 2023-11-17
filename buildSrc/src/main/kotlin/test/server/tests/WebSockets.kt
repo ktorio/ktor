@@ -64,6 +64,9 @@ internal fun Application.webSockets() {
                     }
                 }
             }
+            get("500") {
+                throw IllegalStateException()
+            }
         }
     }
 }
