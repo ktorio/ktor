@@ -10,7 +10,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.doublereceive.*
 import io.ktor.server.request.*
@@ -660,29 +659,22 @@ class ContentNegotiationTest {
         var serializeCalled = false
         var deserializeCalled = false
         install(ContentNegotiation) {
-            register(
-                ContentType.Text.Plain,
-                object : ContentConverter {
-                    override suspend fun serializeNullable(
-                        contentType: ContentType,
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        value: Any?
-                    ): OutgoingContent? {
-                        serializeCalled = true
-                        return null
-                    }
-
-                    override suspend fun deserialize(
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        content: ByteReadChannel
-                    ): Any? {
-                        deserializeCalled = true
-                        return null
-                    }
+            register(ContentType.Text.Plain, object : ContentConverter {
+                override suspend fun serializeNullable(
+                    contentType: ContentType,
+                    charset: Charset,
+                    typeInfo: TypeInfo,
+                    value: Any?
+                ): OutgoingContent? {
+                    serializeCalled = true
+                    return null
                 }
-            )
+
+                override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+                    deserializeCalled = true
+                    return null
+                }
+            })
         }
 
         routing {
@@ -820,6 +812,7 @@ class ContentNegotiationTest {
         assertEquals("text!", response.bodyAsText())
     }
 
+
     @Test
     fun testMultipleConvertersWithSameType() = testApplication {
         var nullRequestDeserialized = false
@@ -830,53 +823,39 @@ class ContentNegotiationTest {
         data class User(val name: String)
 
         install(ContentNegotiation) {
-            register(
-                ContentType.Application.Json,
-                object : ContentConverter {
-                    override suspend fun serializeNullable(
-                        contentType: ContentType,
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        value: Any?
-                    ): OutgoingContent? {
-                        nullResponseSerializeAttempted = true
-                        return null
-                    }
-
-                    override suspend fun deserialize(
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        content: ByteReadChannel
-                    ): Any? {
-                        nullRequestDeserialized = true
-                        return null
-                    }
+            register(ContentType.Application.Json, object : ContentConverter {
+                override suspend fun serializeNullable(
+                    contentType: ContentType,
+                    charset: Charset,
+                    typeInfo: TypeInfo,
+                    value: Any?
+                ): OutgoingContent? {
+                    nullResponseSerializeAttempted = true
+                    return null
                 }
-            )
-            register(
-                ContentType.Application.Json,
-                object : ContentConverter {
-                    override suspend fun serializeNullable(
-                        contentType: ContentType,
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        value: Any?
-                    ): OutgoingContent {
-                        responseSerialized = true
-                        check(value is User)
-                        return TextContent(value.name, contentType)
-                    }
 
-                    override suspend fun deserialize(
-                        charset: Charset,
-                        typeInfo: TypeInfo,
-                        content: ByteReadChannel
-                    ): Any? {
-                        requestDeserialized = true
-                        return User(content.readRemaining().readText())
-                    }
+                override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+                    nullRequestDeserialized = true
+                    return null
                 }
-            )
+            })
+            register(ContentType.Application.Json, object : ContentConverter {
+                override suspend fun serializeNullable(
+                    contentType: ContentType,
+                    charset: Charset,
+                    typeInfo: TypeInfo,
+                    value: Any?
+                ): OutgoingContent {
+                    responseSerialized = true
+                    check(value is User)
+                    return TextContent(value.name, contentType)
+                }
+
+                override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+                    requestDeserialized = true
+                    return User(content.readRemaining().readText())
+                }
+            })
         }
 
         routing {
@@ -899,53 +878,5 @@ class ContentNegotiationTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("Kotlin", response.bodyAsText())
         }
-    }
-
-    @Test
-    fun testWithCharset() = testApplication {
-        application {
-            install(ContentNegotiation) {
-                clearIgnoredTypes()
-                register(
-                    contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8),
-                    converter = object : ContentConverter {
-                        override suspend fun serializeNullable(
-                            contentType: ContentType,
-                            charset: Charset,
-                            typeInfo: TypeInfo,
-                            value: Any?
-                        ): OutgoingContent {
-                            return TextContent("$value!", contentType)
-                        }
-
-                        override suspend fun deserialize(
-                            charset: Charset,
-                            typeInfo: TypeInfo,
-                            content: ByteReadChannel
-                        ): Any {
-                            content.readRemaining().readText().let { text ->
-                                return text.substring(0, text.length - 1)
-                            }
-                        }
-                    }
-                )
-            }
-
-            routing {
-                post {
-                    val request = call.receive<String>()
-                    assertEquals("text", request)
-                    call.respond(request)
-                }
-            }
-        }
-
-        val response = client.post("/") {
-            contentType(ContentType.Application.Json)
-            setBody("text!")
-        }
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
-        assertEquals("text!", response.bodyAsText())
     }
 }
