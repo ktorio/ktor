@@ -71,7 +71,7 @@ private suspend fun convertBody(
 
     return when {
         convertedBody != null -> convertedBody
-        !body.isClosedForRead -> body
+        !body.isClosedForRead -> null
         receiveType.kotlinType?.isMarkedNullable == true -> NullBody
         else -> null
     }
