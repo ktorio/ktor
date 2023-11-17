@@ -74,12 +74,10 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             throw SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${status.value}")
         }
         if (contentType != ContentType.Text.EventStream.toString()) {
-            throw SSEException("Content type must be ${ContentType.Text.EventStream} but was: $contentType")
+            throw SSEException("Expected Content-Type ${ContentType.Text.EventStream} but was: $contentType")
         }
         if (session !is ClientSSESession) {
-            throw SSEException(
-                "Expected `ClientSSESession` content for SSE response from ${response.request.url} but was: $session"
-            )
+            throw SSEException("Expected `ClientSSESession` content but was: $session")
         }
 
         LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
