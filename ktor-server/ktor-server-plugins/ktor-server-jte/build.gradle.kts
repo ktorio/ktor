@@ -3,7 +3,7 @@
  */
 
 kotlin.sourceSets {
-    val jteVersion = "2.3.2"
+    val jteVersion = "3.1.4"
     jvmMain {
         dependencies {
             api("gg.jte:jte:$jteVersion")
