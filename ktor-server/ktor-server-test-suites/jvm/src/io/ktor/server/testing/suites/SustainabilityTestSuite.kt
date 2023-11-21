@@ -676,7 +676,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
@@ -715,7 +715,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
@@ -757,7 +757,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
@@ -779,7 +779,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
             }
         }
-        (server as BaseApplicationEngine).pipeline.intercept(phase) {
+        (server.engine as BaseApplicationEngine).pipeline.intercept(phase) {
             throw IllegalStateException("Failed in engine pipeline")
         }
         startServer(server)
@@ -791,7 +791,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             exceptions.clear()
         }
 
-        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+        server.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
     @OptIn(InternalAPI::class)

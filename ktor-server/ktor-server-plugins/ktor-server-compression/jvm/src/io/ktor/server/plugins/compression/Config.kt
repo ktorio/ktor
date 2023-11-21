@@ -47,6 +47,16 @@ public data class CompressionEncoderConfig(
  */
 @KtorDsl
 public class CompressionConfig : ConditionsHolderBuilder {
+
+    public enum class Mode(internal val request: Boolean, internal val response: Boolean) {
+        CompressResponse(false, true), DecompressRequest(true, false), All(true, true)
+    }
+
+    /**
+     * Specifies if the plugin should compress response, decompress request, or both.
+     */
+    public var mode: Mode = Mode.All
+
     /**
      * Provides access to a map of encoders.
      */

@@ -21,12 +21,12 @@ internal class DelegatingTestClientEngine(
     override val supportedCapabilities =
         setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeoutCapability)
 
-    private val appEngine by lazy(config.appEngineProvider)
+    private val appEngine by lazy { config.testApplicationProvder().server.engine }
     private val externalEngines by lazy {
         val engines = mutableMapOf<String, TestHttpClientEngine>()
-        config.externalApplicationsProvider().forEach { (authority, testApplication) ->
+        config.testApplicationProvder().externalApplications.forEach { (authority, testApplication) ->
             engines[authority] = TestHttpClientEngine(
-                TestHttpClientConfig().apply { app = testApplication.engine }
+                TestHttpClientConfig().apply { app = testApplication.server.engine }
             )
         }
         engines.toMap()
@@ -44,6 +44,7 @@ internal class DelegatingTestClientEngine(
 
     @InternalAPI
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        config.testApplicationProvder().start()
         val authority = data.url.protocolWithAuthority
         val hostWithPort = data.url.hostWithPort
         return when {
@@ -89,7 +90,6 @@ public class InvalidTestRequestException(
 )
 
 internal class DelegatingTestHttpClientConfig : HttpClientEngineConfig() {
-    lateinit var externalApplicationsProvider: () -> Map<String, TestApplication>
-    lateinit var appEngineProvider: () -> TestApplicationEngine
+    lateinit var testApplicationProvder: () -> TestApplication
     lateinit var parentJob: Job
 }

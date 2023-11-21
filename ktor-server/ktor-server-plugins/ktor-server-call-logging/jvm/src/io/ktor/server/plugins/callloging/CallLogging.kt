@@ -55,7 +55,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     }
 
     setupMDCProvider()
-    setupLogging(application.environment.monitor, ::log)
+    setupLogging(application.monitor, ::log)
 
     on(CallSetup) { call ->
         call.attributes.put(CALL_START_TIME, clock())

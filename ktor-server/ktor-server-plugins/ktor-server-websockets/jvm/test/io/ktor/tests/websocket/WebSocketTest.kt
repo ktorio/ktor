@@ -36,7 +36,7 @@ class WebSocketTest {
     class Data(val string: String)
 
     private val customContentConverter = object : WebsocketContentConverter {
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             charset: Charset,
             typeInfo: TypeInfo,
             value: Any?

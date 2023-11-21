@@ -152,6 +152,8 @@ public class RoutingRequest internal constructor(
     public override val headers: Headers = request.headers
     public override val local: RequestConnectionPoint = request.local
     public override val cookies: RequestCookies = request.cookies
+
+    override fun receiveChannel(): ByteReadChannel = request.receiveChannel()
 }
 
 /**
@@ -194,7 +196,7 @@ public class RoutingCall internal constructor(
     /**
      * The original [ApplicationCall] that is being handled.
      */
-    public val applicationCall: RoutingPipelineCall
+    public val pipelineCall: RoutingPipelineCall
 ) : ApplicationCall {
 
     public override lateinit var request: RoutingRequest
@@ -202,17 +204,17 @@ public class RoutingCall internal constructor(
     public override lateinit var response: RoutingResponse
         internal set
 
-    public override val attributes: Attributes = applicationCall.attributes
-    public override val application: Application = applicationCall.application
-    public override val parameters: Parameters = applicationCall.parameters
-    public val pathParameters: Parameters = applicationCall.pathParameters
-    public val queryParameters: Parameters = applicationCall.engineCall.parameters
-    public val route: RouteNode = applicationCall.route
+    public override val attributes: Attributes = pipelineCall.attributes
+    public override val application: Application = pipelineCall.application
+    public override val parameters: Parameters = pipelineCall.parameters
+    public val pathParameters: Parameters = pipelineCall.pathParameters
+    public val queryParameters: Parameters = pipelineCall.engineCall.parameters
+    public val route: RouteNode = pipelineCall.route
 
-    override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = applicationCall.receiveNullable(typeInfo)
+    override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = pipelineCall.receiveNullable(typeInfo)
 
     override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
-        applicationCall.respond(message, typeInfo)
+        pipelineCall.respond(message, typeInfo)
     }
 }
 
@@ -284,7 +286,7 @@ public interface RootRoute : Route {
 
 private fun RoutingPipelineCall.routingCall(): RoutingCall {
     val call = RoutingCall(
-        applicationCall = this
+        pipelineCall = this
     )
     call.request = RoutingRequest(
         pathVariables = call.pathParameters,

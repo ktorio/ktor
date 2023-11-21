@@ -18,8 +18,9 @@ import java.io.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1Handler(
+    private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
-    private val environment: ApplicationEngineEnvironment,
+    private val environment: ApplicationEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
@@ -89,7 +90,7 @@ internal class NettyHttp1Handler(
     override fun exceptionCaught(context: ChannelHandlerContext, cause: Throwable) {
         when (cause) {
             is IOException -> {
-                environment.application.log.debug("I/O operation failed", cause)
+                environment.log.debug("I/O operation failed", cause)
                 handlerJob.cancel()
                 context.close()
             }
@@ -138,7 +139,7 @@ internal class NettyHttp1Handler(
         }
 
         return NettyHttp1ApplicationCall(
-            environment.application,
+            applicationProvider(),
             context,
             message,
             requestBodyChannel,

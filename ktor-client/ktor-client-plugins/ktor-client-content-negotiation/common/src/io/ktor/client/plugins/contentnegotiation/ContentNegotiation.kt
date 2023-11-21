@@ -179,7 +179,7 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
 
         // Pick the first one that can convert the subject successfully
         val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
-            val result = registration.converter.serializeNullable(
+            val result = registration.converter.serialize(
                 contentType,
                 contentType.charset() ?: Charsets.UTF_8,
                 request.bodyType!!,

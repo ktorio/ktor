@@ -26,7 +26,7 @@ import kotlin.reflect.jvm.*
  */
 public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
-    override suspend fun serializeNullable(
+    override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,

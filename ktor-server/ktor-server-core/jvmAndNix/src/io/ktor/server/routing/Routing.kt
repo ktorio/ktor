@@ -30,8 +30,8 @@ public class Routing(
     public val application: Application
 ) : RouteNode(
     parent = null,
-    selector = RootRouteSelector(application.environment.rootPath),
-    application.environment.developmentMode,
+    selector = RootRouteSelector(application.rootPath),
+    application.developmentMode,
     application.environment
 ),
     RootRoute {
@@ -95,11 +95,11 @@ public class Routing(
             parameters
         )
         val routingCall = RoutingCall(routingApplicationCall)
-        application.environment.monitor.raise(RoutingCallStarted, routingCall)
+        application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
         } finally {
-            application.environment.monitor.raise(RoutingCallFinished, routingCall)
+            application.monitor.raise(RoutingCallFinished, routingCall)
         }
     }
 

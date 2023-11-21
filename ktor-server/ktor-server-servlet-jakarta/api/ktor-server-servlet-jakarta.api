@@ -63,14 +63,16 @@ public final class io/ktor/server/servlet/jakarta/KtorServletKt {
 }
 
 public class io/ktor/server/servlet/jakarta/ServletApplicationEngine : io/ktor/server/servlet/jakarta/KtorServlet {
-	public static final field ApplicationEngineEnvironmentAttributeKey Ljava/lang/String;
+	public static final field ApplicationAttributeKey Ljava/lang/String;
 	public static final field ApplicationEnginePipelineAttributeKey Ljava/lang/String;
 	public static final field Companion Lio/ktor/server/servlet/jakarta/ServletApplicationEngine$Companion;
+	public static final field EnvironmentAttributeKey Ljava/lang/String;
 	public fun <init> ()V
 	public fun destroy ()V
 	protected fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	protected fun getLogger ()Lorg/slf4j/Logger;
 	protected fun getUpgrade ()Lio/ktor/server/servlet/jakarta/ServletUpgrade;
 	public fun init ()V

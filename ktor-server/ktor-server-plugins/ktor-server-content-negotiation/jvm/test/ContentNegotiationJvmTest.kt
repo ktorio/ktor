@@ -24,7 +24,7 @@ import kotlin.text.toByteArray
 
 class ContentNegotiationJvmTest {
     private val alwaysFailingConverter = object : ContentConverter {
-        override suspend fun serializeNullable(
+        override suspend fun serialize(
             contentType: ContentType,
             charset: Charset,
             typeInfo: TypeInfo,
@@ -53,7 +53,7 @@ class ContentNegotiationJvmTest {
                 }
                 post("/multipart") {
                     val multipart = call.receiveMultipart()
-                    val parts = multipart.readAllParts()
+                    @Suppress("DEPRECATION") val parts = multipart.readAllParts()
                     call.respondText("parts: ${parts.map { it.name }}")
                 }
             }

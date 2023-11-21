@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
@@ -24,23 +25,23 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class AndroidSpecificHttpsTest : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(
+    override val server: EmbeddedServer<*, *> = embeddedServer(
         Netty,
-        applicationEngineEnvironment {
-            sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                port = serverPort
-                keyStorePath = keyStoreFile.absoluteFile
-
-                module {
-                    routing {
-                        get("/") {
-                            call.respondText("Hello, world")
-                        }
+        applicationProperties {
+            module {
+                routing {
+                    get("/") {
+                        call.respondText("Hello, world")
                     }
                 }
             }
         }
-    )
+    ) {
+        sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+            port = serverPort
+            keyStorePath = keyStoreFile.absoluteFile
+        }
+    }
 
     companion object {
         val keyStoreFile = File("build/temp.jks")

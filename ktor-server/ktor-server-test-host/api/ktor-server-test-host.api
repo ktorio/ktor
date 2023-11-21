@@ -24,10 +24,10 @@ public abstract class io/ktor/server/testing/EngineTestBase : io/ktor/server/tes
 	public static field trustManager Ljavax/net/ssl/X509TrustManager;
 	public fun <init> (Lio/ktor/server/engine/ApplicationEngineFactory;)V
 	protected fun configure (Lio/ktor/server/engine/ApplicationEngine$Configuration;)V
-	protected final fun createAndStartServer (Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
-	public static synthetic fun createAndStartServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
-	protected fun createServer (Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
-	public static synthetic fun createServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	protected final fun createAndStartServer (Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/EmbeddedServer;
+	public static synthetic fun createAndStartServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/EmbeddedServer;
+	protected fun createServer (Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/EmbeddedServer;
+	public static synthetic fun createServer$default (Lio/ktor/server/testing/EngineTestBase;Lorg/slf4j/Logger;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/EmbeddedServer;
 	protected final fun findFreePort ()I
 	public final fun getApplicationEngineFactory ()Lio/ktor/server/engine/ApplicationEngineFactory;
 	protected final fun getCallGroupSize ()I
@@ -36,7 +36,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : io/ktor/server/tes
 	protected final fun getEnableHttp2 ()Z
 	protected final fun getEnableSsl ()Z
 	protected final fun getPort ()I
-	protected final fun getServer ()Lio/ktor/server/engine/ApplicationEngine;
+	protected final fun getServer ()Lio/ktor/server/engine/EmbeddedServer;
 	protected final fun getSslPort ()I
 	protected final fun getTestDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getTestLog ()Lorg/slf4j/Logger;
@@ -47,12 +47,12 @@ public abstract class io/ktor/server/testing/EngineTestBase : io/ktor/server/tes
 	protected final fun setEnableHttp2 (Z)V
 	protected final fun setEnableSsl (Z)V
 	protected final fun setPort (I)V
-	protected final fun setServer (Lio/ktor/server/engine/ApplicationEngine;)V
+	protected final fun setServer (Lio/ktor/server/engine/EmbeddedServer;)V
 	protected final fun setSslPort (I)V
 	public final fun setUpBase ()V
 	public static final fun setupAll ()V
 	protected final fun socket (Lkotlin/jvm/functions/Function1;)V
-	protected final fun startServer (Lio/ktor/server/engine/ApplicationEngine;)Ljava/util/List;
+	protected final fun startServer (Lio/ktor/server/engine/EmbeddedServer;)Ljava/util/List;
 	public final fun tearDownBase ()V
 	protected final fun withUrl (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
 	public static synthetic fun withUrl$default (Lio/ktor/server/testing/EngineTestBase;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
@@ -129,11 +129,13 @@ public final class io/ktor/server/testing/TestApplication : io/ktor/server/testi
 public class io/ktor/server/testing/TestApplicationBuilder {
 	public fun <init> ()V
 	public final fun application (Lkotlin/jvm/functions/Function1;)V
+	public final fun engine (Lkotlin/jvm/functions/Function1;)V
 	public final fun environment (Lkotlin/jvm/functions/Function1;)V
 	public final fun externalServices (Lkotlin/jvm/functions/Function1;)V
 	public final fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun install$default (Lio/ktor/server/testing/TestApplicationBuilder;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun routing (Lkotlin/jvm/functions/Function1;)V
+	public final fun testApplicationProperties (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
@@ -152,11 +154,11 @@ public final class io/ktor/server/testing/TestApplicationCall : io/ktor/server/e
 }
 
 public final class io/ktor/server/testing/TestApplicationEngine : io/ktor/server/engine/BaseApplicationEngine, kotlinx/coroutines/CoroutineScope {
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;Lio/ktor/events/Events;ZLkotlin/jvm/functions/Function0;Lio/ktor/server/testing/TestApplicationEngine$Configuration;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationEnvironment;Lio/ktor/events/Events;ZLkotlin/jvm/functions/Function0;Lio/ktor/server/testing/TestApplicationEngine$Configuration;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun createCall (ZZLkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
 	public static synthetic fun createCall$default (Lio/ktor/server/testing/TestApplicationEngine;ZZLkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
+	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getCallInterceptor ()Lkotlin/jvm/functions/Function3;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -241,17 +243,19 @@ public final class io/ktor/server/testing/TestApplicationResponseJvmKt {
 
 public final class io/ktor/server/testing/TestEngine : io/ktor/server/engine/ApplicationEngineFactory {
 	public static final field INSTANCE Lio/ktor/server/testing/TestEngine;
-	public synthetic fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
-	public fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationEngine;
+	public synthetic fun configuration (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine$Configuration;
+	public fun configuration (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationEngine$Configuration;
+	public synthetic fun create (Lio/ktor/server/application/ApplicationEnvironment;Lio/ktor/events/Events;ZLio/ktor/server/engine/ApplicationEngine$Configuration;Lkotlin/jvm/functions/Function0;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun create (Lio/ktor/server/application/ApplicationEnvironment;Lio/ktor/events/Events;ZLio/ktor/server/testing/TestApplicationEngine$Configuration;Lkotlin/jvm/functions/Function0;)Lio/ktor/server/testing/TestApplicationEngine;
 }
 
 public final class io/ktor/server/testing/TestEngineKt {
-	public static final fun createTestEnvironment (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
-	public static synthetic fun createTestEnvironment$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+	public static final fun createTestEnvironment (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationEnvironment;
+	public static synthetic fun createTestEnvironment$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ApplicationEnvironment;
 	public static final fun handleRequest (Lio/ktor/server/testing/TestApplicationEngine;Lio/ktor/http/HttpMethod;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplicationCall;
 	public static synthetic fun handleRequest$default (Lio/ktor/server/testing/TestApplicationEngine;Lio/ktor/http/HttpMethod;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/testing/TestApplicationCall;
-	public static final fun withApplication (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static synthetic fun withApplication$default (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun withApplication (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun withApplication$default (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun withTestApplication (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun withTestApplication (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun withTestApplication (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;

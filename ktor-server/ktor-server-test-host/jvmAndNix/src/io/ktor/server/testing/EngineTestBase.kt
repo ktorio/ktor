@@ -31,15 +31,15 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected var port: Int
     protected var sslPort: Int
-    protected var server: TEngine?
+    protected var server: EmbeddedServer<TEngine, TConfiguration>?
 
     protected fun createAndStartServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         routingConfigurer: Route.() -> Unit
-    ): TEngine
+    ): EmbeddedServer<TEngine, TConfiguration>
 
-    protected open fun plugins(application: Application, routingConfigurer: Route.() -> Unit)
+    protected open fun plugins(application: Application, routingConfig: Route.() -> Unit)
 
     protected fun withUrl(
         path: String,

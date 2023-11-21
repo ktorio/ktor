@@ -129,7 +129,7 @@ public class WebSockets private constructor(
                     contentConverter
                 )
 
-                pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
+                pipeline.monitor.subscribe(ApplicationStopPreparing) {
                     LOGGER.trace("Shutdown WebSockets due to application stop")
                     webSockets.shutdown()
                 }

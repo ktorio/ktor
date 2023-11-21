@@ -484,13 +484,11 @@ class CacheTest : ClientLoader() {
         }
 
         test { client ->
-            println("client ${client.engine}")
             val url = Url("$TEST_SERVER/cache/etag?max-age=10")
 
             val responseNoCache = client.get(url) {
                 header(HttpHeaders.CacheControl, "only-if-cached")
             }
-            println("responseNoCache ${responseNoCache.status}")
             assertEquals(HttpStatusCode.GatewayTimeout, responseNoCache.status)
 
             val bodyOriginal = client.get(url).bodyAsText()

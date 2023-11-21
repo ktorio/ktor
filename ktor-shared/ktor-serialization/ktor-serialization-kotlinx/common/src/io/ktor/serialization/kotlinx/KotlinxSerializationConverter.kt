@@ -33,7 +33,7 @@ public class KotlinxSerializationConverter(
         }
     }
 
-    override suspend fun serializeNullable(
+    override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,

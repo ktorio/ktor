@@ -6,6 +6,7 @@ package io.ktor.client.tests.utils
 
 import ch.qos.logback.classic.*
 import ch.qos.logback.classic.Logger
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -21,7 +22,7 @@ abstract class TestWithKtor {
     @get:Rule
     open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(5 * 60)
 
-    abstract val server: ApplicationEngine
+    abstract val server: EmbeddedServer<*, *>
 
     init {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as? Logger)?.level = Level.ERROR

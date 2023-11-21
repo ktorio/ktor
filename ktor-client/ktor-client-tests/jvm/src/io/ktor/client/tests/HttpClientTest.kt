@@ -27,7 +27,7 @@ import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
+    override val server: EmbeddedServer<*, *> = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
                 call.respondText("")

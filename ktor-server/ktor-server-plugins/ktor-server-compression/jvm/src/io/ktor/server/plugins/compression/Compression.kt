@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.compression
 
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -14,6 +15,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.Compression")
 
@@ -44,10 +46,15 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(PipelineC
 }
 
 /**
- * A plugin that provides the capability to compress a response body.
+ * A plugin that provides the capability to compress a response and decompress request bodies.
  * You can use different compression algorithms, including `gzip` and `deflate`,
  * specify the required conditions for compressing data (such as a content type or response size),
  * or even compress data based on specific request parameters.
+ *
+ * Note that if the request body was decompressed,
+ * the plugin will remove [HttpHeaders.ContentEncoding] and [HttpHeaders.ContentLength] headers.
+ * Also, it will add [HttpHeaders.TransferEncoding] header with `chunked` value.
+ * Original encodings can be accessed through [ApplicationRequest.appliedDecoders] property.
  *
  * The example below shows how to compress JavaScript content using `gzip` with the specified priority:
  * ```kotlin
@@ -69,11 +76,14 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
         pluginConfig.default()
     }
     val options = pluginConfig.buildOptions()
+    val mode = pluginConfig.mode
 
     on(ContentEncoding) { call ->
+        if (!mode.response) return@on
         encode(call, options)
     }
     onCall { call ->
+        if (!mode.request) return@onCall
         decode(call, options)
     }
 }

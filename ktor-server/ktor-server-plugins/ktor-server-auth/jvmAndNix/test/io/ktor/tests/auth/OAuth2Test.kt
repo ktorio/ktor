@@ -13,6 +13,7 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -592,7 +593,8 @@ internal interface OAuth2Server {
 }
 
 internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
-    val environment = createTestEnvironment {
+    val environment = createTestEnvironment {}
+    val props = applicationProperties(environment) {
         module {
             routing {
                 route("/oauth/access_token") {
@@ -664,11 +666,10 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
             }
         }
     }
-    with(TestApplicationEngine(environment)) {
-        start()
-        return client.config {
-            expectSuccess = false
-        }
+    val embeddedServer = EmbeddedServer(props, TestEngine)
+    embeddedServer.start()
+    return embeddedServer.engine.client.config {
+        expectSuccess = false
     }
 }
 

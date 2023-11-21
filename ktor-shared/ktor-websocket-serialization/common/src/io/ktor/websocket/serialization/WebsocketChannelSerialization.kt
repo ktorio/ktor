@@ -48,7 +48,7 @@ public suspend fun WebSocketSession.sendSerializedBase(
     converter: WebsocketContentConverter,
     charset: Charset
 ) {
-    val serializedData = converter.serializeNullable(
+    val serializedData = converter.serialize(
         charset = charset,
         typeInfo = typeInfo,
         value = data
