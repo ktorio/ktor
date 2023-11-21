@@ -130,7 +130,9 @@ internal expect fun ApplicationEnvironmentBuilder.configurePlatformProperties(ar
 internal expect fun getConfigFromEnvironment(): ApplicationConfig
 
 /**
- * Load engine's configuration suitable for all engines from [deploymentConfig]
+ * Loads common engine configuration parameters applicable to all engine types from the specified [ApplicationConfig].
+ *
+ * @param deploymentConfig The application configuration.
  */
 public fun ApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {

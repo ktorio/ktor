@@ -30,7 +30,7 @@ public class TomcatApplicationEngine(
     environment: ApplicationEnvironment,
     monitor: Events,
     developmentMode: Boolean,
-    private val configuration: Configuration,
+    public val configuration: Configuration,
     private val applicationProvider: () -> Application
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
     /**

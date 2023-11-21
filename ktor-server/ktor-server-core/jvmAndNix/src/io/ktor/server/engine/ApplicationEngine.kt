@@ -48,7 +48,7 @@ public interface ApplicationEngine {
         public var shutdownTimeout: Long = 5000
 
         /**
-         * Connectors that describers where and how server should listen.
+         * List of connectors describing where and how the server should listen.
          */
         public var connectors: MutableList<EngineConnectorConfig> = mutableListOf()
 

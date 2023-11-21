@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A builder for [ApplicationProperties]
+ * A builder for [ApplicationProperties].
  */
 public class ApplicationPropertiesBuilder(
     public val environment: ApplicationEnvironment
@@ -22,7 +22,7 @@ public class ApplicationPropertiesBuilder(
     internal val modules: MutableList<Application.() -> Unit> = mutableListOf()
 
     /**
-     * Paths to wait for application reload
+     * Paths to wait for application reload.
      */
     public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
 
@@ -32,17 +32,17 @@ public class ApplicationPropertiesBuilder(
     public var rootPath: String = ""
 
     /**
-     * Indicates if development mode is enabled.
+     * Indicates whether development mode is enabled.
      */
     public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
     /**
-     * Parent coroutine context for an application
+     * Parent coroutine context for an application.
      */
     public var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
 
     /**
-     * Install application module
+     * Installs an application module.
      */
     public fun module(body: Application.() -> Unit) {
         modules.add(body)
@@ -53,9 +53,9 @@ public class ApplicationPropertiesBuilder(
 }
 
 /**
- * An application config with which the application is running
+ * An application config with which the application is running.
  */
-public class ApplicationProperties(
+public class ApplicationProperties internal constructor(
     public val environment: ApplicationEnvironment,
     internal val modules: MutableList<Application.() -> Unit>,
     internal val watchPaths: List<String>,
@@ -68,7 +68,7 @@ public class ApplicationProperties(
 }
 
 /**
- * Creates an [ApplicationProperties] instance
+ * Creates an [ApplicationProperties] instance.
  */
 public fun applicationProperties(
     environment: ApplicationEnvironment = applicationEnvironment {},
@@ -83,7 +83,7 @@ public fun applicationProperties(
  * for launching background coroutines.
  */
 @KtorDsl
-public class Application(
+public class Application internal constructor(
     environment: ApplicationEnvironment,
     developmentMode: Boolean,
     public var rootPath: String,
@@ -99,7 +99,7 @@ public class Application(
     override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
 
     /**
-     * Called by [ApplicationEngine] when [Application] is terminated
+     * Called by [ApplicationEngine] when [Application] is terminated.
      */
     @Suppress("DEPRECATION_ERROR")
     public fun dispose() {

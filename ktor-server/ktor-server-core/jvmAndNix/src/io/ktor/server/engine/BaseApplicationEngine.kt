@@ -34,7 +34,7 @@ public abstract class BaseApplicationEngine(
 ) : ApplicationEngine {
 
     /**
-     * Configuration for the [BaseApplicationEngine]
+     * Configuration for the [BaseApplicationEngine].
      */
     public open class Configuration : ApplicationEngine.Configuration()
 

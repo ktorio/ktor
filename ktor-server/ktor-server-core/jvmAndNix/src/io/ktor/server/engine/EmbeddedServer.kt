@@ -41,7 +41,7 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
 }
 
 /**
- * Factory interface for creating [ApplicationEngine] instances
+ * Factory interface for creating [ApplicationEngine] instances.
  */
 public interface ApplicationEngineFactory<
     out TEngine : ApplicationEngine,
@@ -51,7 +51,7 @@ public interface ApplicationEngineFactory<
     public fun configuration(configure: TConfiguration.() -> Unit): TConfiguration
 
     /**
-     * Creates an engine from the given [environment] and [configure] script
+     * Creates an engine from the given [environment] and [configuration].
      */
     public fun create(
         environment: ApplicationEnvironment,
@@ -63,10 +63,7 @@ public interface ApplicationEngineFactory<
 }
 
 /**
- * Creates an embedded server with the given [factory], listening on [host]:[port]
- * @param watchPaths specifies path substrings that will be watched for automatic reloading
- * @param configure configuration script for the engine
- * @param module application module function
+ * Creates an embedded server with the given [factory], listening on [host]:[port].
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
@@ -79,11 +76,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     GlobalScope.embeddedServer(factory, port, host, watchPaths, module = module)
 
 /**
- * Creates an embedded server with the given [factory], listening on [host]:[port]
- * @param watchPaths specifies path substrings that will be watched for automatic reloading
- * @param configure configuration script for the engine
- * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
- * @param module application module function
+ * Creates an embedded server with the given [factory], listening on [host]:[port].
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
@@ -109,12 +102,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 }
 
 /**
- * Creates an embedded server with the given [factory], listening on given [connectors]
- * @param connectors default listening on 0.0.0.0:80
- * @param watchPaths specifies path substrings that will be watched for automatic reloading
- * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
- * @param configure configuration script for the engine
- * @param module application module function
+ * Creates an embedded server with the given [factory], listening on given [connectors].
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
@@ -139,7 +127,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 }
 
 /**
- * Creates an embedded server with the given [factory], [environment] and [configure] script
+ * Creates an embedded server with the given [factory], [environment] and [configure] script.
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
@@ -154,7 +142,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 }
 
 /**
- * Creates an embedded server with the given [factory], [environment] and [configure] script
+ * Creates an embedded server with the given [factory], [environment] and [configure] script.
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,

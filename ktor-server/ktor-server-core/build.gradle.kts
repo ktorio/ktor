@@ -4,24 +4,7 @@
 
 description = ""
 
-
 kotlin {
-    sourceSets {
-        jvmAndNixMain {
-            dependencies {
-             
-            }
-        }
-
-        jvmTest {
-            dependencies {
-                
-            }
-        }
-    }
-}
-
-kotlin{
     createCInterop("host_common", nixTargets()) {
         defFile = projectDir.resolve("nix/interop/host_common.def")
     }

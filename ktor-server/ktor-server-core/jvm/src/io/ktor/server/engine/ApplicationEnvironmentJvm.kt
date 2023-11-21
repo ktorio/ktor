@@ -12,27 +12,27 @@ import org.slf4j.*
 import kotlin.coroutines.*
 
 /**
- * Engine environment configuration builder
+ * Builder for configuring the environment of the Ktor application.
  */
 @KtorDsl
 public actual class ApplicationEnvironmentBuilder {
     /**
-     * Root class loader
+     * Root class loader.
      */
     public var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
 
     /**
-     * Application logger
+     * Application logger.
      */
     public actual var log: Logger = LoggerFactory.getLogger("io.ktor.server.Application")
 
     /**
-     * Application config
+     * Configuration for the application.
      */
     public actual var config: ApplicationConfig = MapApplicationConfig()
 
     /**
-     * Build an application engine environment
+     * Builds and returns an instance of the application engine environment based on the configured settings.
      */
     public actual fun build(): ApplicationEnvironment {
         return ApplicationEnvironmentImplJvm(classLoader, log, config)

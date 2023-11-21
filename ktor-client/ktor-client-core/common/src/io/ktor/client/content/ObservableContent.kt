@@ -14,9 +14,9 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Callback that can be registered to listen for upload/download progress
- * @param bytesSentTotal number of transmitted bytes
- * @param contentLength body size. Can be null if the size is unknown
+ * Callback that can be registered to listen for upload/download progress.
+ * @param bytesSentTotal number of transmitted bytes.
+ * @param contentLength body size. Can be null if the size is unknown.
  */
 public fun interface ProgressListener {
     /**
