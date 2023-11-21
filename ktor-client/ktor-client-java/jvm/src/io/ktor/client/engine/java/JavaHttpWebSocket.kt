@@ -156,7 +156,7 @@ internal class JavaHttpWebSocket(
         webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
 
         return HttpResponseData(
-            HttpStatusCode.OK,
+            HttpStatusCode.SwitchingProtocols,
             requestTime,
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
