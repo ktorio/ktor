@@ -34,8 +34,6 @@ class NettyReadRequestTimeoutTest :
 
     private fun getServer(timeout: Int?) = embeddedServer(
         Netty,
-        port = port,
-        host = TEST_SERVER_HOST,
         module = {
             routing {
                 get("/echo") {
@@ -44,6 +42,10 @@ class NettyReadRequestTimeoutTest :
             }
         },
         configure = {
+            connector {
+                this.port = this@NettyReadRequestTimeoutTest.port
+                this.host = TEST_SERVER_HOST
+            }
             if (timeout != null) {
                 requestReadTimeoutSeconds = timeout
             }

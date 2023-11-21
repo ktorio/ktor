@@ -662,7 +662,7 @@ class ContentNegotiationTest {
             register(
                 ContentType.Text.Plain,
                 object : ContentConverter {
-                    override suspend fun serializeNullable(
+                    override suspend fun serialize(
                         contentType: ContentType,
                         charset: Charset,
                         typeInfo: TypeInfo,
@@ -832,7 +832,7 @@ class ContentNegotiationTest {
             register(
                 ContentType.Application.Json,
                 object : ContentConverter {
-                    override suspend fun serializeNullable(
+                    override suspend fun serialize(
                         contentType: ContentType,
                         charset: Charset,
                         typeInfo: TypeInfo,
@@ -855,7 +855,7 @@ class ContentNegotiationTest {
             register(
                 ContentType.Application.Json,
                 object : ContentConverter {
-                    override suspend fun serializeNullable(
+                    override suspend fun serialize(
                         contentType: ContentType,
                         charset: Charset,
                         typeInfo: TypeInfo,

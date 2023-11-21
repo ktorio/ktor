@@ -1,5 +1,4 @@
 public final class io/ktor/server/application/Application : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;ZLjava/lang/String;Lio/ktor/events/Events;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function0;)V
 	public final fun dispose ()V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getEngine ()Lio/ktor/server/engine/ApplicationEngine;
@@ -77,8 +76,6 @@ public final class io/ktor/server/application/ApplicationPluginKt {
 }
 
 public final class io/ktor/server/application/ApplicationProperties {
-	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;Ljava/util/List;Ljava/util/List;Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;)V
-	public synthetic fun <init> (Lio/ktor/server/application/ApplicationEnvironment;Ljava/util/List;Ljava/util/List;Ljava/lang/String;ZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getDevelopmentMode ()Z
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public final fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
