@@ -54,13 +54,11 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
         )
 
         val headers = HeadersImpl(rawHeaders)
-        val body: Any = if (requestData.isSseRequest()) {
+        val body: Any = if (needToProcessSSE(requestData, status, headers)) {
             DefaultClientSSESession(
                 requestData.body as SSEClientContent,
                 bodyConsumer.responseChannel,
-                callContext,
-                status,
-                headers
+                callContext
             )
         } else {
             bodyConsumer.responseChannel

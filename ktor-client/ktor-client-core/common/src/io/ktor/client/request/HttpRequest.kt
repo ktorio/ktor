@@ -309,3 +309,11 @@ public fun HttpRequestData.isUpgradeRequest(): Boolean {
 public fun HttpRequestData.isSseRequest(): Boolean {
     return body is SSEClientContent
 }
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode, headers: Headers): Boolean {
+    return data.isSseRequest() &&
+        status == HttpStatusCode.OK &&
+        headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
+}
