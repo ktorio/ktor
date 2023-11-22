@@ -60,6 +60,9 @@ class TomcatHttpServerCommonTest :
             Logger.getLogger(it).apply { level = Level.WARNING }
         }
     }
+
+    @Ignore // KTOR-6480
+    override fun testErrorInBodyClosesConnectionWithContentLength() {}
 }
 
 class TomcatHttpServerJvmTest :
