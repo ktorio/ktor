@@ -991,6 +991,7 @@ public final class io/ktor/http/URLUtilsKt {
 	public static final fun appendUrlFullPath (Ljava/lang/Appendable;Ljava/lang/String;Lio/ktor/http/ParametersBuilder;Z)V
 	public static final fun getFullPath (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getHostWithPort (Lio/ktor/http/Url;)Ljava/lang/String;
+	public static final fun getHostWithPortIfSpecified (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun isAbsolutePath (Lio/ktor/http/URLBuilder;)Z
 	public static final fun isAbsolutePath (Lio/ktor/http/Url;)Z
 	public static final fun isRelativePath (Lio/ktor/http/URLBuilder;)Z
