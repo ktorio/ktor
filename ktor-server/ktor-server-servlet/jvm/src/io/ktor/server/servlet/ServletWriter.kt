@@ -32,37 +32,90 @@ internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
     }
 }
 
+private const val MAX_COPY_SIZE = 512 * 1024 // 512K
+
 private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     val channel = ByteChannel()
 
-    private val finishedEvent = Channel<Unit>(2)
+    private val events = Channel<Unit>(2)
 
     suspend fun run() {
-        output.setWriteListener(this)
-        finishedEvent.receive()
+        val buffer = ArrayPool.borrow()
+        try {
+            output.setWriteListener(this)
+            events.receive()
+            loop(buffer)
+
+            finish()
+
+            // we shouldn't recycle it in finally
+            // because in case of error, the buffer could be still hold by servlet container,
+            // so we simply drop it as buffer leak has only limited performance impact
+            // (buffer will be collected by GC and pool will produce another one)
+            ArrayPool.recycle(buffer)
+        } catch (t: Throwable) {
+            onError(t)
+        } finally {
+            events.close()
+        }
     }
 
-    override fun onWritePossible() = runBlocking {
-        val buffer = ArrayPool.borrow()
-        while (output.isReady) {
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun finish() {
+        awaitReady()
+        output.flush()
+        awaitReady()
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    private suspend fun loop(buffer: ByteArray) {
+        if (channel.availableForRead == 0) {
+            awaitReady()
+            output.flush()
+        }
+
+        var copied = 0L
+        while (true) {
             val rc = channel.readAvailable(buffer)
-            if (rc == -1) {
-                finishedEvent.trySendBlocking(Unit)
-                return@runBlocking
+            if (rc == -1) break
+
+            copied += rc
+            if (copied > MAX_COPY_SIZE) {
+                copied = 0
+                yield()
             }
 
+            awaitReady()
             output.write(buffer, 0, rc)
+            awaitReady()
+
+            if (channel.availableForRead == 0) output.flush()
         }
-        // we shouldn't recycle it in finally
-        // because in case of error the buffer could be still hold by servlet container
-        // so we simply drop it as buffer leak has only limited performance impact
-        // (buffer will be collected by GC and pool will produce another one)
-        ArrayPool.recycle(buffer)
+    }
+
+    private suspend fun awaitReady() {
+        if (output.isReady) return
+        return awaitReadySuspend()
+    }
+
+    private suspend fun awaitReadySuspend() {
+        do {
+            events.receive()
+        } while (!output.isReady)
+    }
+
+    override fun onWritePossible() {
+        try {
+            if (!events.trySend(Unit).isSuccess) {
+                events.trySendBlocking(Unit)
+            }
+        } catch (ignore: Throwable) {
+        }
     }
 
     override fun onError(t: Throwable) {
         val wrapped = wrapException(t)
-        finishedEvent.close(wrapped)
+        events.close(wrapped)
         channel.cancel(wrapped)
     }
 
