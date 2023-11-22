@@ -244,11 +244,6 @@ fun Project.setupJvmToolchain() {
 
 fun KotlinMultiplatformExtension.setCompilationOptions() {
     targets.all {
-        if (this is KotlinJsTarget) {
-            irTarget?.compilations?.all {
-                configureCompilation()
-            }
-        }
         compilations.all {
             configureCompilation()
         }
