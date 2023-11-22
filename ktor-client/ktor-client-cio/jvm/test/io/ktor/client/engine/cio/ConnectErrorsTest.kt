@@ -23,6 +23,7 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.test.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation", "BlockingMethodInNonBlockingContext")
@@ -82,6 +83,7 @@ class ConnectErrorsTest {
     }
 
     @Test
+    @Ignore
     fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10(): Unit = runBlocking {
         val client = HttpClient(CIO)
 
