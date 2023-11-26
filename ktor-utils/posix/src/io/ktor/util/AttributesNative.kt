@@ -36,7 +36,7 @@ private class AttributesNative : Attributes {
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun <T : Any> computeIfAbsentSuspend(key: AttributeKey<T>, block: suspend () -> T): T {
-        return map.computeIfAbsent(key, block) as T
+        return map.computeIfAbsentSuspend(key, block) as T
     }
 
     override val allKeys: List<AttributeKey<*>>

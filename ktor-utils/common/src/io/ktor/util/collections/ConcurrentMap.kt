@@ -19,6 +19,11 @@ public expect class ConcurrentMap<Key, Value>(
     public fun computeIfAbsent(key: Key, block: () -> Value): Value
 
     /**
+     * Computes [block] and inserts result in map. The [block] will be evaluated at most once.
+     */
+    public suspend fun computeIfAbsentSuspend(key: Key, block: suspend () -> Value): Value
+
+    /**
      * Removes [key] from map if it is mapped to [value].
      */
     public fun remove(key: Key, value: Value): Boolean

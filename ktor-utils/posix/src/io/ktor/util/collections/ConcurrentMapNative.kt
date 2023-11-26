@@ -28,6 +28,16 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
         return value
     }
 
+    /**
+     * Computes [block] and inserts result in map. The suspend [block] will be evaluated at most once.
+     */
+    public actual suspend fun computeIfAbsentSuspend(key: Key, block: suspend () -> Value): Value {
+        if (delegate.containsKey(key)) return delegate[key]!!
+        val value = block()
+        delegate[key] = value
+        return value
+    }
+
     override val size: Int
         get() = delegate.size
 
