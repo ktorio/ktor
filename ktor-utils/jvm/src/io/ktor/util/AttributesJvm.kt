@@ -47,6 +47,15 @@ private class ConcurrentSafeAttributes : AttributesJvmBase() {
         @Suppress("UNCHECKED_CAST")
         return (map.putIfAbsent(key, result) ?: result) as T
     }
+
+    override suspend fun <T : Any> computeIfAbsentSuspend(key: AttributeKey<T>, block: suspend () -> T): T {
+        @Suppress("UNCHECKED_CAST")
+        map[key]?.let { return it as T }
+        val result = block()
+        @Suppress("UNCHECKED_CAST")
+        return (map.putIfAbsent(key, result) ?: result) as T
+    }
+
 }
 
 private class HashMapAttributes : AttributesJvmBase() {
@@ -64,4 +73,13 @@ private class HashMapAttributes : AttributesJvmBase() {
         @Suppress("UNCHECKED_CAST")
         return (map.put(key, result) ?: result) as T
     }
+
+    override suspend fun <T : Any> computeIfAbsentSuspend(key: AttributeKey<T>, block: suspend () -> T): T {
+        @Suppress("UNCHECKED_CAST")
+        map[key]?.let { return it as T }
+        val result = block()
+        @Suppress("UNCHECKED_CAST")
+        return (map.put(key, result) ?: result) as T
+    }
+
 }

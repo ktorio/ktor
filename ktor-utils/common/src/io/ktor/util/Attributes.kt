@@ -113,6 +113,11 @@ public interface Attributes {
     public fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T
 
     /**
+     * Gets a value of the attribute for the specified [key], or calls supplied suspend [block] to compute its value
+     */
+    public suspend fun <T : Any> computeIfAbsentSuspend(key: AttributeKey<T>, block: suspend () -> T): T
+
+    /**
      * Returns [List] of all [AttributeKey] instances in this map
      */
     public val allKeys: List<AttributeKey<*>>

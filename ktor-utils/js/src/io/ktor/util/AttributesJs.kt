@@ -35,6 +35,14 @@ public class AttributesJs : Attributes {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T : Any> computeIfAbsentSuspend(key: AttributeKey<T>, block: suspend () -> T): T {
+        map[key]?.let { return it as T }
+        return block().also { result ->
+            map[key] = result
+        }
+    }
+
     override val allKeys: List<AttributeKey<*>>
         get() = map.keys.toList()
 }
