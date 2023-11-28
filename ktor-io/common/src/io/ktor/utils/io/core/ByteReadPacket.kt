@@ -40,7 +40,7 @@ public class ByteReadPacket internal constructor(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "ByteReadPacket[${hashCode().toHexString()}]"
+        return "ByteReadPacket[${hashCode()}]"
     }
 
     public companion object {
