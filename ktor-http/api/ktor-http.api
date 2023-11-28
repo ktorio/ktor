@@ -53,7 +53,8 @@ public final class io/ktor/http/CodecsKt {
 	public static final fun encodeOAuth (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLParameter (Ljava/lang/String;Z)Ljava/lang/String;
 	public static synthetic fun encodeURLParameter$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/lang/String;
-	public static final fun encodeURLPath (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun encodeURLPath (Ljava/lang/String;ZZ)Ljava/lang/String;
+	public static synthetic fun encodeURLPath$default (Ljava/lang/String;ZZILjava/lang/Object;)Ljava/lang/String;
 	public static final fun encodeURLPathPart (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeURLQueryComponent (Ljava/lang/String;ZZLjava/nio/charset/Charset;)Ljava/lang/String;
 	public static synthetic fun encodeURLQueryComponent$default (Ljava/lang/String;ZZLjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
