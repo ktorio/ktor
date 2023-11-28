@@ -56,6 +56,10 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public final fun setWatchPaths (Ljava/util/List;)V
 }
 
+public final class io/ktor/server/engine/ApplicationEngineEnvironmentKt {
+	public static final fun applicationEngineEnvironment (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngineEnvironment;
+}
+
 public final class io/ktor/server/engine/ApplicationEngineEnvironmentReloading : io/ktor/server/engine/ApplicationEngineEnvironment {
 	public static final field Companion Lio/ktor/server/engine/ApplicationEngineEnvironmentReloading$Companion;
 	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/server/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;)V
