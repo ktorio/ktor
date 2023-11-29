@@ -5,6 +5,7 @@
 * Server ContentNegotiation no longer allows multiple decoders for one Content-Type ([KTOR-5410](https://youtrack.jetbrains.com/issue/KTOR-5410/Server-ContentNegotiation-no-longer-allows-multiple-decoders-for-one-Content-Type))
 * High Native Server Memory Usage ([KTOR-6321](https://youtrack.jetbrains.com/issue/KTOR-6321/High-Native-Server-Memory-Usage))
 * WebSockets: Confusing error message when server doesn't respond with Upgrade ([KTOR-6397](https://youtrack.jetbrains.com/issue/KTOR-6397/WebSockets-Confusing-error-message-when-server-doesnt-respond-with-Upgrade))
+* ContentNegotiation: Adding charset to content type of JacksonConverter breaks request matching ([KTOR-6420](https://youtrack.jetbrains.com/issue/KTOR-6420))
 
 # 2.3.6
 > Published 7 November 2023
