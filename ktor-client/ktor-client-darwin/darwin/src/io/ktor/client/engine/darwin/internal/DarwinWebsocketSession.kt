@@ -146,7 +146,7 @@ internal class DarwinWebsocketSession(
 
     fun didOpen() {
         val response = HttpResponseData(
-            HttpStatusCode.OK,
+            HttpStatusCode.SwitchingProtocols,
             requestTime,
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
