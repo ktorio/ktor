@@ -808,6 +808,18 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testMaxAgeMoreThanIntMaxValue() = clientTests {
+        config {
+            install(HttpCache)
+        }
+        test { client ->
+            client.get("$TEST_SERVER/cache/set-max-age").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
+    }
+
     /**
      * Does delay and ensures that the [GMTDate] measurements report at least
      * the specified number of [milliseconds].
