@@ -809,7 +809,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxAgeMoreThanIntMaxValue() = clientTests {
+    fun testMaxAgeMoreThanMaxValue() = clientTests {
         config {
             install(HttpCache)
         }

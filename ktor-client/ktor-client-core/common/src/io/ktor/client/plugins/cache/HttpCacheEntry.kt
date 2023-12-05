@@ -70,13 +70,7 @@ internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDat
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
-        ?.get(1)?.let { value ->
-            if (value.all { it.isDigit() }) {
-                value.toIntOrNull() ?: Int.MAX_VALUE
-            } else {
-                null
-            }
-        }
+        ?.get(1)?.toLongOrNull()
 
     if (maxAge != null) {
         return requestTime + maxAge * 1000L

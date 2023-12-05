@@ -111,7 +111,7 @@ internal fun Application.cacheTestServer() {
                 call.respondText { "abc" }
             }
             get("/set-max-age") {
-                call.response.header(HttpHeaders.CacheControl, "max-age=${Long.MAX_VALUE}")
+                call.response.header(HttpHeaders.CacheControl, "max-age=${Long.MAX_VALUE}000")
                 call.respond(HttpStatusCode.OK)
             }
         }
