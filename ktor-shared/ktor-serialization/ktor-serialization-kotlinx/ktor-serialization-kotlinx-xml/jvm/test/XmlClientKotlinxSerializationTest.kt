@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.xml.*
-import org.junit.*
+import kotlin.test.*
 
 class XmlClientKotlinxSerializationTest : AbstractClientContentNegotiationTest() {
     private val converter = KotlinxSerializationConverter(DefaultXml)

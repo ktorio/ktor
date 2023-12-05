@@ -10,8 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import org.apache.http.*
-import org.junit.*
 import java.net.*
+import kotlin.test.*
 
 @Suppress("BlockingMethodInNonBlockingContext", "ControlFlowWithEmptyBody")
 class ExceptionsJvmTest {

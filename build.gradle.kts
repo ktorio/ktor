@@ -3,8 +3,10 @@
  */
 
 import org.jetbrains.dokka.gradle.*
+import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.*
+import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -85,6 +87,7 @@ val disabledExplicitApiModeProjects = listOf(
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-client-content-negotiation-tests",
+    "ktor-junit"
 )
 
 apply(from = "gradle/compatibility.gradle")
@@ -186,7 +189,7 @@ fun Project.setupJvmToolchain() {
     kotlin {
         jvmToolchain {
             check(this is JavaToolchainSpec)
-            languageVersion.set(JavaLanguageVersion.of(jdk))
+            languageVersion = JavaLanguageVersion.of(jdk)
         }
     }
 }

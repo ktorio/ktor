@@ -23,6 +23,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlin.random.*
 import kotlin.test.*
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds

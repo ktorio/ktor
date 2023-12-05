@@ -14,7 +14,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
+import org.junit.jupiter.api.*
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * This tests uses a CA, which creates server and client certificates.
@@ -58,7 +60,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
                         }
                     }
                 }
-                server.start()
+                server.start(wait = false)
 
                 val port = server.engine.resolvedConnectors().first().port
 

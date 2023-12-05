@@ -5,20 +5,14 @@
 package io.ktor.tests.hosts
 
 import io.ktor.server.engine.*
-import org.junit.*
-import org.junit.rules.*
-import org.junit.runner.*
-import org.junit.runners.model.*
+import org.junit.jupiter.api.extension.*
 import java.io.*
 import java.net.*
 import java.util.*
 import kotlin.test.*
-import kotlin.test.Test
 
+@ExtendWith(UseIsolatedClassLoader::class)
 class CommandLineTest {
-
-    @get:Rule
-    var classLoader = IsolatedClassLoaderRule()
 
     @Test
     fun testEmpty() {
@@ -172,53 +166,6 @@ class CommandLineTest {
             return Pair(null, uri)
         } else {
             return findContainingZipFileOrUri(URI(uri.rawSchemeSpecificPart))
-        }
-    }
-
-    class IsolatedClassLoaderRule : TestRule {
-        override fun apply(s: Statement, d: Description): Statement {
-            return object : Statement() {
-                override fun evaluate() {
-                    withIsolatedClassLoader {
-                        s.evaluate()
-                    }
-                }
-            }
-        }
-
-        private fun withIsolatedClassLoader(block: (ClassLoader) -> Unit) {
-            val classLoader = IsolatedResourcesClassLoader(
-                File("ktor-server/ktor-server-core/test-resources").absoluteFile,
-                block::class.java.classLoader
-            )
-
-            val oldClassLoader = Thread.currentThread().contextClassLoader
-            Thread.currentThread().contextClassLoader = classLoader
-            try {
-                block(classLoader)
-            } finally {
-                Thread.currentThread().contextClassLoader = oldClassLoader
-            }
-        }
-    }
-
-    private class IsolatedResourcesClassLoader(val dir: File, parent: ClassLoader) : ClassLoader(parent) {
-        override fun getResources(name: String): Enumeration<URL> {
-            val lookup = File(dir, name)
-            if (lookup.isFile) {
-                return listOf(lookup.absoluteFile.toURI().toURL()).let { Collections.enumeration<URL>(it) }
-            }
-            return parent.getResources(name)
-        }
-
-        override fun getResource(name: String): URL? {
-            val lookup = File(dir, name)
-            if (lookup.isFile) return lookup.absoluteFile.toURI().toURL()
-            return parent.getResource(name)
-        }
-
-        override fun getResourceAsStream(name: String): InputStream? {
-            return getResource(name)?.openStream()
         }
     }
 }

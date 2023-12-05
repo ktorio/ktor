@@ -19,9 +19,9 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Assert.*
 import java.io.*
+import kotlin.test.*
+import kotlin.test.Test
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -47,7 +47,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             val contentType = fields.getAll(HttpHeaders.ContentType)?.single()
             fields.remove(HttpHeaders.ContentType)
             assertNotNull(contentType) // Content-Type should be present
-            val parsedContentType = ContentType.parse(contentType!!) // It should parse
+            val parsedContentType = ContentType.parse(contentType) // It should parse
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
             assertEquals("4", headers[HttpHeaders.ContentLength])
@@ -339,40 +339,40 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/array") {
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/array-chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/fixed-read-channel") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/pseudo-chunked") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/read-channel") {
             assertNull(headers[HttpHeaders.ContentLength])
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
     }
 

@@ -9,19 +9,15 @@ import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
+import kotlinx.coroutines.debug.junit5.*
 import java.time.*
 import kotlin.test.*
-import kotlin.test.Test
 
 @OptIn(InternalAPI::class)
+@CoroutinesTimeout(2_000, cancelOnTimeout = true)
 class WeakTimeoutQueueTest {
     private val testClock = TestClock(0L)
     private val q = WeakTimeoutQueue(1000L, clock = { testClock.millis() })
-
-    @get:Rule
-    val timeout = CoroutinesTimeout(2000L, true)
 
     @Test
     fun testNoTimeout() = runBlocking {

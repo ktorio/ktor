@@ -25,10 +25,6 @@ import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
-import org.junit.Assert.*
-import org.junit.Ignore
-import org.junit.Test
-import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
@@ -354,7 +350,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                         content.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                kotlin.test.fail("Premature end of response stream at iteration $i")
+                                fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
                                 Thread.sleep(random.nextInt(1000).toLong())
@@ -373,9 +369,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         latch.await()
 
         if (errors.isNotEmpty()) {
-            throw MultipleFailureException(errors)
+            throw RuntimeException("Exceptions thrown: ${errors.joinToString { it::class.simpleName ?: "<no name>" }}")
         }
-
         var multiplier = 1
         if (enableHttp2) multiplier++
         if (enableSsl) multiplier++
@@ -551,7 +546,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 "HTTP/1.0 400"
             )
 
-            assertTrue("Invalid response: $result", expected.any { result.startsWith(it) })
+            assert(expected.any { result.startsWith(it) }) {
+                "Invalid response: $result"
+            }
         }
     }
 
@@ -594,7 +591,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 "HTTP/1.0 400"
             )
 
-            assertTrue("Invalid response: $result", expected.any { result.startsWith(it) })
+            assert(expected.any { result.startsWith(it) }) {
+                "Invalid response: $result"
+            }
         }
     }
 
@@ -626,10 +625,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             getInputStream().bufferedReader().apply {
                 // we are expecting either 400 BadRequest or 200 OK Hello, World
                 val status = readLine().trim().split(" ")[1].toInt()
-                assertTrue(
-                    "status should be either 200 or 400 or 431 but it's $status",
-                    status in listOf(200, 400, 431)
-                )
+                assert(status in listOf(200, 400, 431)) {
+                    "status should be either 200 or 400 or 431 but it's $status"
+                }
 
                 val contentLength = parseHeadersAndGetContentLength()
 
@@ -670,8 +668,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/") {
-                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
@@ -709,9 +707,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     "/",
                     { method = HttpMethod.Post; setBody("body") }
                 ) {
-                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
-                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
+                    assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
 
@@ -751,8 +749,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl("/", { intercepted = false }) {
                     body<String>()
-                    assertEquals("Failed in phase $phase", HttpStatusCode.InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
@@ -785,9 +783,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         startServer(server)
 
         withUrl("/req") {
-            assertEquals("Failed in engine pipeline", HttpStatusCode.InternalServerError, status)
-            assertEquals("Failed in phase $phase", exceptions.size, 1)
-            assertEquals(exceptions[0].message, "Failed in engine pipeline")
+            assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
+            assertEquals(exceptions.size, 1, "Failed in phase $phase")
+            assertEquals("Failed in engine pipeline", exceptions[0].message)
             exceptions.clear()
         }
 

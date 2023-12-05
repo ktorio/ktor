@@ -11,10 +11,11 @@ import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.*
 import org.eclipse.jetty.server.handler.*
-import org.junit.*
-import org.junit.rules.*
-import java.io.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.io.*
 import java.net.*
+import java.nio.file.*
+import kotlin.io.path.*
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -22,25 +23,26 @@ private const val PlainTextContent = "plain text"
 private const val HtmlContent = "<p>HTML</p>"
 
 class WebResourcesTest {
-    @get:Rule
-    val testDir: TemporaryFolder = TemporaryFolder()
+    @TempDir
+    lateinit var testDir: Path
 
-    lateinit var textFile: File
-    lateinit var htmlFile: File
+    lateinit var textFile: Path
+    lateinit var htmlFile: Path
 
-    @BeforeTest
+    @BeforeEach
     fun createFiles() {
-        textFile = File(testDir.root, "1.txt").apply {
+        textFile = testDir.resolve("1.txt").apply {
             writeText(PlainTextContent)
         }
-        htmlFile = File(testDir.root, "2.html").apply {
+        htmlFile = testDir.resolve("2.html").apply {
             writeText(HtmlContent)
         }
     }
 
-    @AfterTest
+    @OptIn(ExperimentalPathApi::class)
+    @AfterEach
     fun cleanup() {
-        testDir.root.deleteRecursively()
+        testDir.deleteRecursively()
     }
 
     @Test
@@ -77,7 +79,7 @@ class WebResourcesTest {
                 "/pages/password.txt" -> textFile
                 "/pages/index.html" -> htmlFile
                 else -> null
-            }?.toURI()?.toURL()
+            }?.toUri()?.toURL()
         }
     }
 }

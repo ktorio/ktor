@@ -15,7 +15,7 @@ import io.ktor.server.response.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
 import kotlinx.serialization.json.*
-import org.junit.*
+import kotlin.test.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class CborClientKotlinxSerializationTest : AbstractClientContentNegotiationTest() {

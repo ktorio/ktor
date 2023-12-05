@@ -29,6 +29,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.Test
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>

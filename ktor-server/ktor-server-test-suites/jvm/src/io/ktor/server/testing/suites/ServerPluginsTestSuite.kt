@@ -12,8 +12,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
-import org.junit.*
-import org.junit.Assert.*
+import org.junit.jupiter.api.*
+import kotlin.test.*
+import kotlin.test.Test
 
 @Suppress("DEPRECATION")
 abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(

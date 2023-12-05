@@ -4,6 +4,8 @@
 
 package io.ktor.server.metrics.dropwizard
 
+import assertk.*
+import assertk.assertions.*
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
 import io.ktor.client.request.*
@@ -14,9 +16,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.MatcherAssert.*
-import org.junit.Test
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -96,7 +95,9 @@ class DropwizardMetricsTests {
 
         handleRequest { uri = "/uri" }
 
-        assertThat(registry.names, everyItem(startsWith(prefix)))
+        assertThat(registry.names).each {
+            it.startsWith(prefix)
+        }
     }
 
     @Test

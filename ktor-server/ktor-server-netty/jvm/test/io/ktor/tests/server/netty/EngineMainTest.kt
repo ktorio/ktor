@@ -9,8 +9,7 @@ import io.ktor.server.config.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.EngineMain.loadConfiguration
 import io.netty.handler.codec.http.*
-import org.junit.*
-import org.junit.Assert.*
+import kotlin.test.*
 
 class EngineMainTest {
 

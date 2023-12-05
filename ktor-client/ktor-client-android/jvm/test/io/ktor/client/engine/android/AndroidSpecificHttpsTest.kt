@@ -17,7 +17,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import org.junit.*
+import org.junit.jupiter.api.BeforeAll
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -49,7 +49,7 @@ class AndroidSpecificHttpsTest : TestWithKtor() {
         lateinit var sslContext: SSLContext
         private lateinit var x509TrustManager: X509TrustManager
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupAll() {
             keyStore = buildKeyStore {

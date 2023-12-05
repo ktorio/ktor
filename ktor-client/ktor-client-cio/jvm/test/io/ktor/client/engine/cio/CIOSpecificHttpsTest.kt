@@ -16,7 +16,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import org.junit.*
+import org.junit.jupiter.api.*
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -54,7 +54,7 @@ class CIOSpecificHttpsTest : TestWithKtor() {
         private lateinit var sslContext: SSLContext
         lateinit var x509TrustManager: X509TrustManager
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupAll() {
             keyStore = buildKeyStore {
