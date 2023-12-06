@@ -10,6 +10,9 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 
 fun Project.configureJvm() {
+    repositories {
+        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+    }
     val jdk = when (name) {
         in jdk11Modules -> 11
         else -> 8
