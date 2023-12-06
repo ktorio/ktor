@@ -5,6 +5,9 @@ import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 
 fun Project.configureCommon() {
+    repositories {
+        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+    }
     kotlin {
         sourceSets {
             commonMain {

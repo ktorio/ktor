@@ -23,6 +23,10 @@ tasks.register("generateModuleInfo") {
     }
 }
 
+repositories {
+    maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
+}
+
 val compileJava = tasks.getByName<JavaCompile>("compileJava") {
     dependsOn("generateModuleInfo")
     doFirst {
