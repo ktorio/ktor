@@ -75,7 +75,9 @@ val configuredVersion: String by extra
 
 apply(from = "gradle/verifier.gradle")
 
-extra["skipPublish"] = mutableListOf<String>()
+extra["skipPublish"] = mutableListOf(
+    "ktor-junit"
+)
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",

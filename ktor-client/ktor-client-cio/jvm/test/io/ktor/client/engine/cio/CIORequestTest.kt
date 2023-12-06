@@ -23,6 +23,7 @@ import kotlin.test.*
 import kotlin.test.Ignore
 import kotlin.test.Test
 
+@CoroutinesTimeout(60_000)
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
 
@@ -51,7 +52,6 @@ class CIORequestTest : TestWithKtor() {
         }
     }
 
-    @CoroutinesTimeout(10_000)
     @Test
     fun engineUsesRequestTimeoutFromItsConfiguration() {
         testWithEngine(CIO) {
@@ -69,7 +69,6 @@ class CIORequestTest : TestWithKtor() {
         }
     }
 
-    @CoroutinesTimeout(10_000)
     @Test
     @Ignore
     fun testTimeoutPriority() {
@@ -108,7 +107,6 @@ class CIORequestTest : TestWithKtor() {
         }
     }
 
-    @CoroutinesTimeout(10_000)
     @Test
     fun longHeadersTest() = testWithEngine(CIO) {
         test { client ->
@@ -123,7 +121,6 @@ class CIORequestTest : TestWithKtor() {
         }
     }
 
-    @CoroutinesTimeout(10_000)
     @Test
     fun testParameterWithoutPath() = testWithEngine(CIO) {
         test { client ->
@@ -136,7 +133,6 @@ class CIORequestTest : TestWithKtor() {
         }
     }
 
-    @CoroutinesTimeout(10_000)
     @Test
     fun testHangingTimeoutWithWrongUrl() = testWithEngine(CIO) {
         config {

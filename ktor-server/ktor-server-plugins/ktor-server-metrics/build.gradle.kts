@@ -11,7 +11,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-cors"))
-                api(libs.assertk)
+                api(project(":ktor-shared:ktor-junit"))
             }
         }
     }

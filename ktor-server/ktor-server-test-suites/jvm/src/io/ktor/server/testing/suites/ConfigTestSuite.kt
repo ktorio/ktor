@@ -56,8 +56,6 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
             server.stop(0, 100, TimeUnit.SECONDS)
         }
 
-        assert(time < 100) {
-            "Stop time is $time"
-        }
+        assertTrue(time < 100, "Stop time is $time")
     }
 }
