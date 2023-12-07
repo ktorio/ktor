@@ -75,6 +75,18 @@ protected abstract interface annotation class io/ktor/server/testing/EngineTestB
 protected abstract interface annotation class io/ktor/server/testing/EngineTestBase$NoHttp2 : java/lang/annotation/Annotation {
 }
 
+public final class io/ktor/server/testing/ErrorCollector : org/junit/jupiter/api/extension/AfterEachCallback, org/junit/jupiter/api/extension/ParameterResolver, org/junit/jupiter/api/extension/TestExecutionExceptionHandler {
+	public fun <init> ()V
+	public fun afterEach (Lorg/junit/jupiter/api/extension/ExtensionContext;)V
+	public fun handleTestExecutionException (Lorg/junit/jupiter/api/extension/ExtensionContext;Ljava/lang/Throwable;)V
+	public final fun plusAssign (Ljava/lang/Throwable;)V
+	public fun resolveParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Ljava/lang/Object;
+	public fun supportsParameter (Lorg/junit/jupiter/api/extension/ParameterContext;Lorg/junit/jupiter/api/extension/ExtensionContext;)Z
+}
+
+public abstract interface annotation class io/ktor/server/testing/ErrorCollectorTest : java/lang/annotation/Annotation {
+}
+
 public class io/ktor/server/testing/ExpectedTestException : java/lang/Throwable {
 	public fun <init> (Ljava/lang/String;)V
 }
@@ -107,6 +119,10 @@ public final class io/ktor/server/testing/It {
 	public static final field INSTANCE Lio/ktor/server/testing/It;
 }
 
+public final class io/ktor/server/testing/MultipleFailureException : java/lang/RuntimeException {
+	public fun <init> (Ljava/util/List;)V
+}
+
 public final class io/ktor/server/testing/On {
 	public static final field INSTANCE Lio/ktor/server/testing/On;
 }
@@ -117,6 +133,11 @@ public final class io/ktor/server/testing/StressSuiteRunner : org/junit/runner/R
 	public fun getDescription ()Lorg/junit/runner/Description;
 	public fun run (Lorg/junit/runner/notification/RunNotifier;)V
 	public fun sort (Lorg/junit/runner/manipulation/Sorter;)V
+}
+
+public final class io/ktor/server/testing/StressTestCondition : org/junit/jupiter/api/extension/ExecutionCondition {
+	public fun <init> ()V
+	public fun evaluateExecutionCondition (Lorg/junit/jupiter/api/extension/ExtensionContext;)Lorg/junit/jupiter/api/extension/ConditionEvaluationResult;
 }
 
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
