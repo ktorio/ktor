@@ -4,6 +4,11 @@
 
 kotlin {
     sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
         posixMain {
             dependencies {
                 implementation(project(":ktor-utils"))
