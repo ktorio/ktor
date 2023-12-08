@@ -6,6 +6,7 @@ kotlin {
         darwinMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
             }
         }
         darwinTest {

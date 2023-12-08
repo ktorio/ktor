@@ -42,6 +42,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-http:ktor-http-cio"))
+                implementation("org.jetbrains.kotlinx:atomicfu:0.23.1")
             }
         }
         desktopTest {
