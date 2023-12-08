@@ -143,8 +143,16 @@ public class CORSConfig {
      * If you specify a wildcard in the host, you cannot add specific subdomains.
      * Otherwise, you can mix wildcard and non-wildcard subdomains as long as
      * the wildcard is always in front of the domain, e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
+     *
+     * @param host host as it appears in the Host header (e.g. localhost:8080)
+     * @param schemes protocols allowed for the origin site; defaults to http and https
+     * @param subDomains additional subdomains for the given host
      */
-    public fun allowHost(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
+    public fun allowHost(
+        host: String,
+        schemes: List<String> = listOf("http", "https"),
+        subDomains: List<String> = emptyList()
+    ) {
         if (host == "*") return anyHost()
 
         require("://" !in host) { "scheme should be specified as a separate parameter schemes" }

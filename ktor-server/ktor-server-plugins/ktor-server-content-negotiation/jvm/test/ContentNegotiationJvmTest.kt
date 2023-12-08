@@ -53,6 +53,7 @@ class ContentNegotiationJvmTest {
                 }
                 post("/multipart") {
                     val multipart = call.receiveMultipart()
+
                     @Suppress("DEPRECATION") val parts = multipart.readAllParts()
                     call.respondText("parts: ${parts.map { it.name }}")
                 }
