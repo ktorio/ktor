@@ -626,6 +626,9 @@ class EmbeddedServerReloadingTests {
     }
 }
 
+// some weirdness with the compiler ignores default in expect
+fun EmbeddedServer<*, *>.start() = start(wait = false)
+
 fun Application.topLevelExtensionFunction() {
     attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelExtensionFunction")
 }

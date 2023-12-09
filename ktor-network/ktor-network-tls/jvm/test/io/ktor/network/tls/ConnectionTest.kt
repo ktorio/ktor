@@ -18,22 +18,19 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.ssl.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import org.junit.Ignore
-import org.junit.Test
+import kotlinx.coroutines.debug.junit5.*
 import java.io.*
 import java.net.ServerSocket
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
 
 @Suppress("UNCHECKED_CAST")
+@CoroutinesTimeout(20_000)
 class ConnectionTest {
-
-    @get:Rule
-    val timeout = CoroutinesTimeout.seconds(20)
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {

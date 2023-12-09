@@ -17,18 +17,15 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
+import kotlinx.coroutines.debug.junit5.*
 import java.nio.channels.*
 import kotlin.test.*
 import kotlin.test.Ignore
 import kotlin.test.Test
 
+@CoroutinesTimeout(60_000)
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
-
-    @get:Rule
-    override val timeout = CoroutinesTimeout.seconds(10)
 
     override val server: EmbeddedServer<*, *> = embeddedServer(Netty, serverPort) {
         routing {

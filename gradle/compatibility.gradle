@@ -11,6 +11,8 @@ apiValidation {
         'ktor-client',
         'ktor-client-plugins',
         'ktor-server-test-suites',
+        "ktor-server-test-host",
+        'ktor-junit',
     ].toSet()
 
     if (rootProject.ext.native_targets_enabled) {

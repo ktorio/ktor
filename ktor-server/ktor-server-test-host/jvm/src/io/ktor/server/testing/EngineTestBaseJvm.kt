@@ -11,6 +11,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -18,8 +19,8 @@ import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.runners.model.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assumptions.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
@@ -79,13 +80,12 @@ actual abstract class EngineTestBase<
         System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
     }
 
-    @Before
+    @BeforeEach
     fun setUpBase() {
-        val method = this.javaClass.getMethod(testName.methodName)
-            ?: throw AssertionError("Method ${testName.methodName} not found")
+        val method = testMethod.orElseThrow { AssertionError("Method $testName not found") }
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
-            Assume.assumeTrue("http2 is not enabled", enableHttp2)
+            assumeTrue(enableHttp2, "http2 is not enabled")
         }
         if (method.isAnnotationPresent(NoHttp2::class.java)) {
             enableHttp2 = false
@@ -94,7 +94,7 @@ actual abstract class EngineTestBase<
         testLog.trace("Starting server on port $port (SSL $sslPort)")
     }
 
-    @After
+    @AfterEach
     fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
@@ -325,7 +325,7 @@ actual abstract class EngineTestBase<
         lateinit var sslContext: SSLContext
         lateinit var trustManager: X509TrustManager
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupAll() {
             keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)

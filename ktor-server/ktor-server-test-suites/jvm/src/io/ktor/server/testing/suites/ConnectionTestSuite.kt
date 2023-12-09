@@ -13,9 +13,10 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Assert.*
+import org.junit.jupiter.api.*
 import java.net.*
+import kotlin.test.*
+import kotlin.test.Test
 
 abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 

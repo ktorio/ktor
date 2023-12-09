@@ -14,8 +14,8 @@ import io.mockk.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import kotlinx.coroutines.*
-import org.junit.*
 import java.util.concurrent.*
+import kotlin.test.*
 
 class NettyConfigurationTest {
     private fun server(

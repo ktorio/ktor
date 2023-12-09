@@ -127,8 +127,9 @@ class HttpTimeoutTest : ClientLoader() {
 
                 client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                delay(5000) // Channel is closing asynchronously.
-                assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
+                waitForCondition("all children to be cancelled") {
+                    requestBuilder.executionContext.getActiveChildren().none()
+                }
             }
         }
     }

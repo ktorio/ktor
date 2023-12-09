@@ -1,11 +1,11 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:Suppress("UNUSED_VARIABLE")
 
 import org.gradle.api.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.jvm.tasks.*
+import org.gradle.jvm.toolchain.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 
@@ -42,9 +42,9 @@ fun Project.configureJvm() {
 
             val jvmTest by getting {
                 dependencies {
-                    implementation("junit:junit:${Versions.junit}")
+                    implementation(kotlin("test-junit5"))
+                    implementation("org.junit.jupiter:junit-jupiter:${Versions.junit}")
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}")
-                    implementation("org.jetbrains.kotlin:kotlin-test-junit:${Versions.kotlin}")
                 }
             }
         }
@@ -69,7 +69,9 @@ fun Project.configureJvm() {
     val jvmTest: KotlinJvmTest = tasks.getByName<KotlinJvmTest>("jvmTest") {
         ignoreFailures = true
         maxHeapSize = "2g"
-        exclude("**/*StressTest *")
+        exclude("**/*StressTest*")
+        useJUnitPlatform()
+        configureJavaLauncher(jdk)
     }
 
     tasks.create<Test>("stressTest") {
@@ -82,6 +84,8 @@ fun Project.configureJvm() {
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
+        useJUnitPlatform()
+        configureJavaLauncher(jdk)
     }
 
     tasks.getByName<Jar>("jvmJar").apply {
@@ -93,6 +97,19 @@ fun Project.configureJvm() {
             val name = project.javaModuleName()
             attributes("Automatic-Module-Name" to name)
         }
+    }
+}
+
+/**
+ * JUnit 5 requires Java 11+
+ */
+fun Test.configureJavaLauncher(jdk: Int) {
+    if (jdk < 11) {
+        val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+        val customLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of("11")
+        }
+        javaLauncher = customLauncher
     }
 }
 

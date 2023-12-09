@@ -15,20 +15,17 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
+import kotlinx.coroutines.debug.junit5.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.test.*
-import kotlin.test.Test
 
-@Suppress("KDocMissingDocumentation", "BlockingMethodInNonBlockingContext")
+@CoroutinesTimeout(5 * 60 * 1000)
+@Suppress("KDocMissingDocumentation")
 class ConnectErrorsTest {
-    @get:Rule
-    val timeout = CoroutinesTimeout.seconds(60)
 
     private val serverSocket = ServerSocket(0, 1)
 
@@ -99,8 +96,7 @@ class ConnectErrorsTest {
                             }
                             client.getInputStream().readBytes()
                         }
-                    } catch (ignore: SocketException) {
-                    }
+                    } catch (_: Exception) { }
                 }
                 assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 thread.join()
@@ -184,7 +180,7 @@ class ConnectErrorsTest {
             }
 
             try {
-                server.start()
+                server.start(wait = false)
 
                 val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)

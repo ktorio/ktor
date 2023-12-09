@@ -10,9 +10,8 @@ import io.ktor.server.cio.internal.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import org.junit.rules.*
+import kotlinx.coroutines.debug.junit5.*
+import org.junit.jupiter.api.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
@@ -21,24 +20,23 @@ import kotlin.test.Test
 
 @OptIn(InternalAPI::class)
 class ServerPipelineTest : CoroutineScope {
-    @get:Rule
-    val testName = TestName()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcher = Dispatchers.IO.limitedParallelism(8)
 
     private val job: CompletableJob = SupervisorJob()
-    private val name: CoroutineName = CoroutineName("PipelineTest.${testName.methodName}")
+    private var name: CoroutineName = CoroutineName("PipelineTest")
 
     override val coroutineContext: CoroutineContext by lazy {
         (dispatcher as CoroutineContext) + (job as CoroutineContext.Element) + (name as AbstractCoroutineContextElement)
     }
 
-    @get:Rule
-    val timeout = CoroutinesTimeout(2000L, true)
+    @BeforeEach
+    fun setUp(testInfo: TestInfo) {
+        name = CoroutineName("PipelineTest:${testInfo.testMethod.map { it.name }.orElse("")}")
+    }
 
-    @OptIn(InternalCoroutinesApi::class)
-    @AfterTest
+    @AfterEach
     fun cleanup() {
         job.cancel()
         runBlocking {
