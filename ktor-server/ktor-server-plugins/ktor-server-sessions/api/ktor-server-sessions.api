@@ -81,6 +81,19 @@ public final class io/ktor/server/sessions/KotlinTimeJvmKt {
 	public static final fun setMaxAge-6Au4x4Y (Lio/ktor/server/sessions/CookieConfiguration;Lkotlin/time/Duration;)V
 }
 
+public final class io/ktor/server/sessions/SameSite {
+	public static final field INSTANCE Lio/ktor/server/sessions/SameSite;
+	public static final field Lax Ljava/lang/String;
+	public static final field None Ljava/lang/String;
+	public static final field Strict Ljava/lang/String;
+}
+
+public final class io/ktor/server/sessions/SameSiteKt {
+	public static final fun getSameSite (Lio/ktor/http/Cookie;)Ljava/lang/String;
+	public static final fun getSameSite (Lio/ktor/server/sessions/CookieConfiguration;)Ljava/lang/String;
+	public static final fun setSameSite (Lio/ktor/server/sessions/CookieConfiguration;Ljava/lang/String;)V
+}
+
 public final class io/ktor/server/sessions/SessionDataKt {
 	public static final fun clear (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)V
 	public static final fun get (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)Ljava/lang/Object;

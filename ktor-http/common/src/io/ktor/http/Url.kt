@@ -125,12 +125,7 @@ public class Url internal constructor(
 public val Url.authority: String
     get() = buildString {
         append(encodedUserAndPassword)
-
-        if (specifiedPort == DEFAULT_PORT || specifiedPort == protocol.defaultPort) {
-            append(host)
-        } else {
-            append(hostWithPort)
-        }
+        append(hostWithPortIfSpecified)
     }
 
 /**

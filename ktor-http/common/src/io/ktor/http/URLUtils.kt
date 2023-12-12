@@ -81,6 +81,15 @@ public val Url.fullPath: String
  */
 public val Url.hostWithPort: String get() = "$host:$port"
 
+/**
+ * Returns "host:port" when port is specified. Else, returns host.
+ */
+public val Url.hostWithPortIfSpecified: String get() =
+    when (specifiedPort) {
+        DEFAULT_PORT, protocol.defaultPort -> host
+        else -> hostWithPort
+    }
+
 internal fun Appendable.appendUrlFullPath(
     encodedPath: String,
     encodedQuery: String,
