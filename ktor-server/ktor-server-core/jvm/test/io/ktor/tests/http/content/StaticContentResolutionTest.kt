@@ -69,4 +69,22 @@ class StaticContentResolutionTest {
         val secretEncoded = client.get("/static/%2e%2e/secret.txt")
         assertEquals(HttpStatusCode.BadRequest, secretEncoded.status)
     }
+
+    @Test
+    fun resourceUrlsAreCached() = testApplication {
+        application {
+            var callCount = 0
+            val countingClassLoader = object : ClassLoader(environment.classLoader) {
+                override fun findResources(name: String?) = super.findResources(name).also {
+                    callCount++
+                }
+            }
+            repeat(5) {
+                resolveResource("test-config.yaml", classLoader = countingClassLoader) {
+                    ContentType.defaultForFileExtension("yaml")
+                }
+            }
+            assertEquals(1, callCount)
+        }
+    }
 }
