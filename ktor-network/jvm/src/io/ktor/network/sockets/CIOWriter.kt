@@ -102,19 +102,17 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
                 }
 
                 while (buffer.hasRemaining()) {
-                    var rc = 0
-
                     timeout.withTimeout {
                         do {
-                            rc = nioChannel.write(buffer)
+                            val rc = nioChannel.write(buffer)
                             if (rc == 0) {
                                 selectable.interestOp(SelectInterest.WRITE, true)
                                 selector.select(selectable, SelectInterest.WRITE)
+                                break
                             }
-                        } while (buffer.hasRemaining() && rc == 0)
+                            consumed(rc)
+                        } while (buffer.hasRemaining())
                     }
-
-                    consumed(rc)
                 }
             }
             timeout?.finish()
