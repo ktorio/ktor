@@ -67,7 +67,8 @@ class CSRFTest {
             }.let { response ->
                 assertEquals(400, response.status.value)
                 assertEquals(
-                    "Cross-site request validation failed; expected \"Origin\" [localhost] host to match \"Host\" [127.0.0.1:8080] header value",
+                    "Cross-site request validation failed; " +
+                        "expected \"Origin\" [localhost] host to match \"Host\" [127.0.0.1:8080] header value",
                     response.bodyAsText()
                 )
             }
