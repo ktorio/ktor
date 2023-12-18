@@ -62,6 +62,9 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
+        if (build_snapshot_train?.toBoolean() == true) {
+            classpath("org.jetbrains.kotlin:atomicfu:${rootProject.properties["kotlin_snapshot_version"]}")
+        }
     }
 }
 
