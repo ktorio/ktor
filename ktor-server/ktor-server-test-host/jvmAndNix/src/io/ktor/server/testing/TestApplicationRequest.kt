@@ -85,6 +85,9 @@ public class TestApplicationRequest constructor(
 
         override val version: String
             get() = this@TestApplicationRequest.version
+
+        override fun toString(): String =
+            "TestConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
     }
 
     /**
