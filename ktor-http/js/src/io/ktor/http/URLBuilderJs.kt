@@ -26,7 +26,7 @@ public actual val URLBuilder.Companion.origin: String
                 }
                 var origin = ""
                 if (tmpLocation) {
-                  origin = location.origin
+                  origin = tmpLocation.origin
                 }
                 origin && origin != "null" ? origin : "http://localhost"
                 """
