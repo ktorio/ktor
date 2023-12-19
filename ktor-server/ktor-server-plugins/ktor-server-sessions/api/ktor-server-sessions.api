@@ -123,8 +123,12 @@ public abstract interface class io/ktor/server/sessions/SessionSerializer {
 	public abstract fun serialize (Ljava/lang/Object;)Ljava/lang/String;
 }
 
-public final class io/ktor/server/sessions/SessionSerializerReflectionKt {
+public final class io/ktor/server/sessions/SessionSerializerKt {
 	public static final fun defaultSessionSerializer (Lkotlin/reflect/KType;)Lio/ktor/server/sessions/SessionSerializer;
+}
+
+public final class io/ktor/server/sessions/SessionSerializerReflectionKt {
+	public static final fun reflectionSessionSerializer (Lkotlin/reflect/KType;)Lio/ktor/server/sessions/SessionSerializer;
 }
 
 public abstract interface class io/ktor/server/sessions/SessionStorage {

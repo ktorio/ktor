@@ -58,8 +58,8 @@ class SessionTestJvm {
                 val sessionCookie = call.response.cookies[cookieName]
                 assertEquals(
                     "00112233445566778899aabbccddeeff/" +
-                        "c3850fc1ddc62f71ec5eaad6d393b91fa809fe32a1cf0cb4730788c5a489daef:" +
-                        "65f0bd15bfa7e96b8bd9e134e23a24860b324e361c606e6800af050f5d104b68",
+                        "9b8cf9900ff0f63849cb7a2ad71ed8a1ac9f0e2735492d2a5129cf278d70ab27:" +
+                        "40af9f393a00034b53d2267251047259005bdf5ff104eede599149e80e6fee13",
                     sessionCookie!!.value
                 )
             }
@@ -89,6 +89,7 @@ class SessionTestJvm {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
+                    serializer = reflectionSessionSerializer()
                     transform(
                         SessionTransportTransformerEncrypt(
                             encryptKey,
@@ -144,6 +145,7 @@ class SessionTestJvm {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
+                    serializer = reflectionSessionSerializer()
                     transform(
                         SessionTransportTransformerEncrypt(
                             encryptKey,

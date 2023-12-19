@@ -146,9 +146,9 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
 
             sender.join()
             if (readerFailure != null && writerFailure != null) {
-                throw RuntimeException(
-                    "Exceptions thrown: ${listOfNotNull(readerFailure, writerFailure).joinToString { it::class.simpleName ?: "<no name>" }}"
-                )
+                val failureMessages = listOfNotNull(readerFailure, writerFailure)
+                    .joinToString { it::class.simpleName ?: "<no name>" }
+                throw RuntimeException("Exceptions thrown: $failureMessages")
             }
             readerFailure?.let { throw it }
             writerFailure?.let { throw it }
