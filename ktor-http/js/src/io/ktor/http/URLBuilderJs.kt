@@ -21,7 +21,7 @@ public actual val URLBuilder.Companion.origin: String
                 var tmpLocation = null
                 if (typeof window !== 'undefined') {
                   tmpLocation = window.location
-                } else {
+                } else if (typeof self !== 'undefined') {
                   tmpLocation = self.location
                 }
                 var origin = ""
