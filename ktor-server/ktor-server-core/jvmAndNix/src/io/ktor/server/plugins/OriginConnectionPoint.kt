@@ -8,8 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
-import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
@@ -119,6 +117,10 @@ internal class OriginConnectionPoint(
         get() = local.remotePort
     override val remoteAddress: String
         get() = local.remoteAddress
+
+    override fun toString(): String =
+        "OriginConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }
 
 /**
