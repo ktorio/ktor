@@ -99,5 +99,6 @@ internal class CIOConnectionPoint(
         get() = remoteNetworkAddress?.address ?: "unknown"
 
     override fun toString(): String =
-        "CIOConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
+        "CIOConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }

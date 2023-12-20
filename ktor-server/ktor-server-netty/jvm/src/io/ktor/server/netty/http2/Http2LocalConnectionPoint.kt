@@ -71,5 +71,6 @@ internal class Http2LocalConnectionPoint(
         get() = remoteNetworkAddress?.hostString ?: "unknown"
 
     override fun toString(): String =
-        "Http2LocalConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
+        "Http2LocalConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }

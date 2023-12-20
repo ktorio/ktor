@@ -119,7 +119,8 @@ internal class OriginConnectionPoint(
         get() = local.remoteAddress
 
     override fun toString(): String =
-        "OriginConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
+        "OriginConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }
 
 /**
