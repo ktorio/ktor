@@ -55,4 +55,8 @@ internal class ServletConnectionPoint(private val servletRequest: HttpServletReq
         get() = servletRequest.remotePort
     override val remoteAddress: String
         get() = servletRequest.remoteAddr
+
+    override fun toString(): String =
+        "ServletConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }
