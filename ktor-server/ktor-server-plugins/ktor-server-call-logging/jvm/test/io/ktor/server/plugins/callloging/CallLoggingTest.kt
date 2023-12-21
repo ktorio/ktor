@@ -231,6 +231,32 @@ class CallLoggingTest {
     }
 
     @Test
+    fun `reuses provider value`() = testApplication {
+        environment {
+            log = logger
+        }
+        var counter = 0
+        application {
+            install(CallLogging) {
+                mdc("mdc-test") { "${counter++}" }
+                format { it.request.uri }
+                clock { 0 }
+            }
+        }
+        routing {
+            get("/*") {
+                environment.log.info("test1")
+                environment.log.info("test2")
+                call.respond("OK")
+            }
+        }
+
+        client.get("/uri1")
+        assertTrue { "INFO: test1 [mdc-test=0]" in messages }
+        assertFalse { "INFO: test1 [mdc-test=1]" in messages }
+    }
+
+    @Test
     fun `can fill MDC before routing`() = testApplication {
         @Suppress("LocalVariableName")
         val TestPlugin = createApplicationPlugin("TestPlugin") {
