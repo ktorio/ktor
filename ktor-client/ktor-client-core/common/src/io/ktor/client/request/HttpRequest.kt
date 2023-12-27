@@ -313,7 +313,8 @@ public fun HttpRequestData.isSseRequest(): Boolean {
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode, headers: Headers): Boolean {
+    val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
     return data.isSseRequest() &&
         status == HttpStatusCode.OK &&
-        headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
+        contentType?.withoutParameters() == ContentType.Text.EventStream
 }

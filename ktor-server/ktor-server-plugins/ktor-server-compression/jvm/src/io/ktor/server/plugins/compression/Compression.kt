@@ -189,5 +189,6 @@ public val ApplicationRequest.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
 
 private fun PipelineResponse.isSSEResponse(): Boolean {
-    return headers[HttpHeaders.ContentType] == ContentType.Text.EventStream.toString()
+    val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+    return contentType?.withoutParameters() == ContentType.Text.EventStream
 }
