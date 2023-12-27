@@ -252,4 +252,24 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }
         }
     }
+
+    @Test
+    fun testContentTypeWithCharset() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val session = client.serverSentEventsSession("$TEST_SERVER/sse/content_type_with_charset")
+            session.incoming.single().apply {
+                assertEquals("0", id)
+                assertEquals("hello 0", event)
+                val lines = data?.lines() ?: emptyList()
+                assertEquals(2, lines.size)
+                assertEquals("hello", lines[0])
+                assertEquals("from server", lines[1])
+            }
+            session.cancel()
+        }
+    }
 }
