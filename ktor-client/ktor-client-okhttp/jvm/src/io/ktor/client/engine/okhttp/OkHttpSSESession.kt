@@ -60,7 +60,8 @@ internal class OkHttpSSESession(
             response != null && response.code != HttpStatusCode.OK.value ->
                 SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${response.code}")
 
-            response != null && response.headers[HttpHeaders.ContentType] != ContentType.Text.EventStream.toString() ->
+            response != null && response.headers[HttpHeaders.ContentType]
+                ?.let { ContentType.parse(it) }?.withoutParameters() != ContentType.Text.EventStream ->
                 SSEException(
                     "Content type must be ${ContentType.Text.EventStream} but was: ${response.headers[HttpHeaders.ContentType]}" // ktlint-disable max-line-length
                 )
