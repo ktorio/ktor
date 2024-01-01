@@ -57,6 +57,7 @@ public suspend fun HttpClient.webSocketSession(
 
 /**
  * Opens a [DefaultClientWebSocketSession].
+ * WARNING: By not specifying host, port and path it may not work on all engines.
  */
 public suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get,
@@ -107,6 +108,7 @@ public suspend fun HttpClient.webSocket(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ * WARNING: By not specifying host, port and path it may not work on all engines
  */
 public suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get,
@@ -152,6 +154,7 @@ public suspend fun HttpClient.webSocket(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ * WARNING: By not specifying host, port and path it may not work on all engines.
  */
 public suspend fun HttpClient.ws(
     method: HttpMethod = HttpMethod.Get,
@@ -211,6 +214,7 @@ public suspend fun HttpClient.wss(
 
 /**
  * Opens a [block] with secure [DefaultClientWebSocketSession].
+ * WARNING: By not specifying host, port and path it may not work on all engines.
  */
 public suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get,
