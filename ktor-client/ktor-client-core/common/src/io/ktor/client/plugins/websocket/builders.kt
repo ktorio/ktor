@@ -214,9 +214,9 @@ public suspend fun HttpClient.wss(
  */
 public suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get,
-    host: String? = null,
-    port: Int? = null,
-    path: String? = null,
+    host: String,
+    port: Int,
+    path: String,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(
@@ -226,7 +226,7 @@ public suspend fun HttpClient.wss(
     path,
     request = {
         url.protocol = URLProtocol.WSS
-        if (port != null) url.port = port
+        url.port = port
 
         request()
     },
