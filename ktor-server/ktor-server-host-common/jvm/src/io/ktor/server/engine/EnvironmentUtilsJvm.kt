@@ -38,7 +38,7 @@ internal actual fun ApplicationEngineEnvironmentBuilder.configureSSLConnectors(
     val keyStoreFile = File(sslKeyStorePath).let { file ->
         if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile
     }
-    val keyStore = KeyStore.getInstance("JKS").apply {
+    val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
         FileInputStream(keyStoreFile).use {
             load(it, sslKeyStorePassword.toCharArray())
         }
