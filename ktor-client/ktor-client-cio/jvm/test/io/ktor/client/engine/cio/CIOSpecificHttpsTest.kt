@@ -6,7 +6,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
@@ -19,6 +21,7 @@ import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
 import java.io.*
 import java.security.*
+import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
 import kotlin.test.Test
@@ -140,6 +143,35 @@ class CIOSpecificHttpsTest : TestWithKtor() {
                         fail("${suite.name}: $cause")
                     }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun testGetServerTrusted() {
+        testWithEngine(CIO) {
+            config {
+                engine {
+                    https {
+                        trustManager = object : X509TrustManager {
+                            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+                            }
+
+                            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+                            }
+
+                            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                                return emptyArray()
+                            }
+                        }
+                    }
+                }
+            }
+            test { client ->
+                assertEquals(
+                    HttpStatusCode.MethodNotAllowed,
+                    client.get("https://pt.api.sandbox.npay.eu/token/Grant").status
+                )
             }
         }
     }
