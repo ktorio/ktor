@@ -14,6 +14,7 @@ import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
@@ -119,6 +120,28 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
                 client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
             }.let {
                 kotlin.test.assertContains(it.message!!, "error")
+            }
+        }
+    }
+
+    @Test
+    fun testCancellationExceptionSse() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            coroutineScope {
+                val job: Job
+                suspendCoroutine { cont ->
+                    job = launch {
+                        client.serverSentEvents("$TEST_SERVER/sse/hello") {
+                            cont.resume(Unit)
+                            awaitCancellation()
+                        }
+                    }
+                }
+                job.cancelAndJoin()
             }
         }
     }
