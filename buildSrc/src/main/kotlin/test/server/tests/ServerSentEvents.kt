@@ -58,6 +58,15 @@ internal fun Application.serverSentEvents() {
                     emit(SseEvent("hello after refresh"))
                 })
             }
+            get("/content_type_with_charset") {
+                val events = flow {
+                    emit(SseEvent("hello\nfrom server", "hello 0", "0"))
+                }
+                val contentType = ContentType.Text.EventStream.withCharset(Charsets.UTF_8)
+                call.respondBytesWriter(contentType = contentType) {
+                    writeSseEvents(events)
+                }
+            }
         }
     }
 }

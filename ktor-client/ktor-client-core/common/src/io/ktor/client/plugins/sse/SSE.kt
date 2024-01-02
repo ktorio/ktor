@@ -63,7 +63,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     client.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, session) ->
         val response = context.response
         val status = response.status
-        val contentType = response.headers[HttpHeaders.ContentType]
+        val contentType = response.contentType()
         val requestContent = response.request.content
 
         if (requestContent !is SSEClientContent) {
@@ -73,7 +73,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         if (status != HttpStatusCode.OK) {
             throw SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${status.value}")
         }
-        if (contentType != ContentType.Text.EventStream.toString()) {
+        if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
             throw SSEException("Expected Content-Type ${ContentType.Text.EventStream} but was: $contentType")
         }
         if (session !is ClientSSESession) {
