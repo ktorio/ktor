@@ -23,7 +23,7 @@ public const val DEFAULT_PORT: Int = 0
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
 public class URLBuilder(
-    public var protocol: URLProtocol = URLProtocol.HTTP,
+    protocol: URLProtocol? = null,
     public var host: String = "",
     public var port: Int = DEFAULT_PORT,
     user: String? = null,
@@ -33,6 +33,11 @@ public class URLBuilder(
     fragment: String = "",
     public var trailingQuery: Boolean = false
 ) {
+    public var protocolOrNull: URLProtocol? = protocol
+    public var protocol: URLProtocol
+        get() = protocolOrNull ?: URLProtocol.HTTP
+        set(value) { protocolOrNull = value }
+
     public var encodedUser: String? = user?.encodeURLParameter()
 
     public var user: String?
@@ -91,7 +96,7 @@ public class URLBuilder(
     public fun build(): Url {
         applyOrigin()
         return Url(
-            protocol = protocol,
+            protocol = protocolOrNull,
             host = host,
             specifiedPort = port,
             pathSegments = pathSegments,
@@ -107,7 +112,7 @@ public class URLBuilder(
     private fun applyOrigin() {
         if (host.isNotEmpty() || protocol.name == "file") return
         host = originUrl.host
-        if (protocol == URLProtocol.HTTP) protocol = originUrl.protocol
+        if (protocolOrNull == null) protocolOrNull = originUrl.protocolOrNull
         if (port == DEFAULT_PORT) port = originUrl.specifiedPort
     }
 

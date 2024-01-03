@@ -40,7 +40,7 @@ public fun URLBuilder(builder: URLBuilder): URLBuilder = URLBuilder().takeFrom(b
  * Take components from another [url] builder
  */
 public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
-    protocol = url.protocol
+    protocolOrNull = url.protocolOrNull
     host = url.host
     port = url.port
     encodedPathSegments = url.encodedPathSegments
@@ -57,7 +57,7 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
  * Take components from another [url]
  */
 public fun URLBuilder.takeFrom(url: Url): URLBuilder {
-    protocol = url.protocol
+    protocolOrNull = url.protocolOrNull
     host = url.host
     port = url.port
     encodedPath = url.encodedPath
