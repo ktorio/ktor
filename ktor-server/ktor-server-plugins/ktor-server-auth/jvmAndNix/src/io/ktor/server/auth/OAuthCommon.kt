@@ -98,6 +98,13 @@ public sealed class OAuthCallback {
      * @property state passed from a client (ktor server) during authorization startup
      */
     public data class TokenSingle(val token: String, val state: String) : OAuthCallback()
+
+    /**
+     * Oauth2 error callback parameters
+     * @property error the error code passed from the identity provider
+     * @property errorDescription optionally passed, human-readable description of the error code
+     */
+    public data class Error(val error: String, val errorDescription: String?) : OAuthCallback()
 }
 
 /**

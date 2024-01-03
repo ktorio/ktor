@@ -299,10 +299,18 @@ public final class io/ktor/server/auth/OAuth2Kt {
 	public static final fun verifyWithOAuth2 (Lio/ktor/server/auth/UserPasswordCredential;Lio/ktor/client/HttpClient;Lio/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/server/auth/OAuth2RedirectError : io/ktor/server/auth/AuthenticationFailedCause$Error {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getError ()Ljava/lang/String;
+	public final fun getErrorDescription ()Ljava/lang/String;
+}
+
 public final class io/ktor/server/auth/OAuth2RequestParameters {
 	public static final field ClientId Ljava/lang/String;
 	public static final field ClientSecret Ljava/lang/String;
 	public static final field Code Ljava/lang/String;
+	public static final field Error Ljava/lang/String;
+	public static final field ErrorDescription Ljava/lang/String;
 	public static final field GrantType Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/server/auth/OAuth2RequestParameters;
 	public static final field Password Ljava/lang/String;
@@ -382,6 +390,19 @@ public final class io/ktor/server/auth/OAuthAuthenticationProvider$Config : io/k
 }
 
 public abstract class io/ktor/server/auth/OAuthCallback {
+}
+
+public final class io/ktor/server/auth/OAuthCallback$Error : io/ktor/server/auth/OAuthCallback {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/OAuthCallback$Error;
+	public static synthetic fun copy$default (Lio/ktor/server/auth/OAuthCallback$Error;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/OAuthCallback$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ljava/lang/String;
+	public final fun getErrorDescription ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/auth/OAuthCallback$TokenPair : io/ktor/server/auth/OAuthCallback {

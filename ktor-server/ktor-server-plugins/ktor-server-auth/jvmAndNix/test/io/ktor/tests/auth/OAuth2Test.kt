@@ -337,6 +337,24 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRequestTokenErrorRedirect() = withTestApplication({ module() }) {
+        val call = handleRequest {
+            uri = "/login?" + listOf(
+                OAuth2RequestParameters.Error to "access_denied",
+                OAuth2RequestParameters.ErrorDescription to "User denied access"
+            ).formUrlEncode()
+        }
+
+        assertTrue { call.authentication.allFailures.all { it is OAuth2RedirectError && it.error == "access_denied" } }
+
+        assertEquals(HttpStatusCode.Found, call.response.status())
+        assertNotNull(call.response.headers[HttpHeaders.Location])
+        assertTrue {
+            call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize")
+        }
+    }
+
+    @Test
     fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
         handleRequestWithBasic("/resource", "user", "pass").let { result ->
             assertWWWAuthenticateHeaderExist(result)
