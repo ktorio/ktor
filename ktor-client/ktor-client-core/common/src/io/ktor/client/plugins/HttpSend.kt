@@ -78,8 +78,7 @@ public class HttpSend private constructor(
 
                 val realSender: Sender = DefaultSender(plugin.maxSendCount, scope)
                 var interceptedSender = realSender
-                (plugin.interceptors.lastIndex downTo 0).forEach {
-                    val interceptor = plugin.interceptors[it]
+                for (interceptor in plugin.interceptors.reversed()) {
                     interceptedSender = InterceptedSender(interceptor, interceptedSender)
                 }
                 val call = interceptedSender.execute(context)

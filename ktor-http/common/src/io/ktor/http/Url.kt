@@ -31,10 +31,9 @@ public class Url internal constructor(
     private val urlString: String
 ) {
     init {
-        require(
-            specifiedPort in 0..65535 ||
-                specifiedPort == DEFAULT_PORT
-        ) { "port must be between 0 and 65535, or $DEFAULT_PORT if not set" }
+        require(specifiedPort in 0..65535) {
+            "Port must be between 0 and 65535, or $DEFAULT_PORT if not set. Provided: $specifiedPort"
+        }
     }
 
     public val protocolOrNull: URLProtocol? = protocol

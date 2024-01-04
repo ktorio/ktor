@@ -25,7 +25,7 @@ public const val DEFAULT_PORT: Int = 0
 public class URLBuilder(
     protocol: URLProtocol? = null,
     public var host: String = "",
-    public var port: Int = DEFAULT_PORT,
+    port: Int = DEFAULT_PORT,
     user: String? = null,
     password: String? = null,
     pathSegments: List<String> = emptyList(),
@@ -33,6 +33,14 @@ public class URLBuilder(
     fragment: String = "",
     public var trailingQuery: Boolean = false
 ) {
+    public var port: Int = port
+        set(value) {
+            require(value in 0..65535) {
+                "Port must be between 0 and 65535, or $DEFAULT_PORT if not set. Provided: $value"
+            }
+            field = value
+        }
+
     public var protocolOrNull: URLProtocol? = protocol
     public var protocol: URLProtocol
         get() = protocolOrNull ?: URLProtocol.HTTP
