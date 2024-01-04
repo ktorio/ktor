@@ -890,6 +890,7 @@ public final class io/ktor/http/URLBuilder {
 	public final fun getPathSegments ()Ljava/util/List;
 	public final fun getPort ()I
 	public final fun getProtocol ()Lio/ktor/http/URLProtocol;
+	public final fun getProtocolOrNull ()Lio/ktor/http/URLProtocol;
 	public final fun getTrailingQuery ()Z
 	public final fun getUser ()Ljava/lang/String;
 	public final fun setEncodedFragment (Ljava/lang/String;)V
@@ -903,6 +904,7 @@ public final class io/ktor/http/URLBuilder {
 	public final fun setPathSegments (Ljava/util/List;)V
 	public final fun setPort (I)V
 	public final fun setProtocol (Lio/ktor/http/URLProtocol;)V
+	public final fun setProtocolOrNull (Lio/ktor/http/URLProtocol;)V
 	public final fun setTrailingQuery (Z)V
 	public final fun setUser (Ljava/lang/String;)V
 	public fun toString ()Ljava/lang/String;
@@ -1021,6 +1023,7 @@ public final class io/ktor/http/Url {
 	public final fun getPathSegments ()Ljava/util/List;
 	public final fun getPort ()I
 	public final fun getProtocol ()Lio/ktor/http/URLProtocol;
+	public final fun getProtocolOrNull ()Lio/ktor/http/URLProtocol;
 	public final fun getSpecifiedPort ()I
 	public final fun getTrailingQuery ()Z
 	public final fun getUser ()Ljava/lang/String;
