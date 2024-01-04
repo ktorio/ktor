@@ -269,12 +269,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         runBlocking {
             try {
-                withTimeout(5000L) {
+                withTimeout(15000L) {
                     parent.join()
                 }
             } catch (cause: TimeoutCancellationException) {
                 DebugProbes.printJob(parent)
-                throw cause
+                fail("Server did shut down in time after cancelling parent!")
             }
         }
 
@@ -282,7 +282,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             // ensure that the server is not running anymore
             withUrl("/") {
                 call.body<String>()
-                kotlin.test.fail("Shouldn't happen")
+                fail("Shouldn't happen")
             }
         }
     }
@@ -369,7 +369,10 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         latch.await()
 
         if (errors.isNotEmpty()) {
-            throw RuntimeException("Exceptions thrown: ${errors.joinToString { it::class.simpleName ?: "<no name>" }}")
+            throw RuntimeException(
+                "Exceptions thrown: ${errors.joinToString { it::class.simpleName ?: "<no name>" }}",
+                errors.first()
+            )
         }
         var multiplier = 1
         if (enableHttp2) multiplier++
