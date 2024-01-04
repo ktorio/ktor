@@ -54,9 +54,11 @@ internal fun Application.serverSentEvents() {
                     return@get
                 }
 
-                call.respondSseEvents(flow {
-                    emit(SseEvent("hello after refresh"))
-                })
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent("hello after refresh"))
+                    }
+                )
             }
             get("/content_type_with_charset") {
                 val events = flow {
