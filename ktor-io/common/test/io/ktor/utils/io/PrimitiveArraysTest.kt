@@ -3,7 +3,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlin.require
 import kotlin.test.*
 
 class PrimitiveArraysTest {
@@ -930,6 +929,7 @@ class PrimitiveArraysTest {
         compareSubRange(tmp)
     }
 
+    @Suppress("DEPRECATION")
     private fun Buffer.readHex() = buildString(readRemaining * 2) {
         repeat(readRemaining) {
             val i = readByte().toInt() and 0xff
@@ -945,10 +945,14 @@ class PrimitiveArraysTest {
         require(d < 16) { "digit $d should be in [0..15]" }
         require(d >= 0) { "digit $d should be in [0..15]" }
 
-        if (d < 10) append('0' + d)
-        else append('a' + (d - 10))
+        if (d < 10) {
+            append('0' + d)
+        } else {
+            append('a' + (d - 10))
+        }
     }
 
+    @Suppress("DEPRECATION")
     private fun Buffer.writeHex(hex: CharSequence) {
         for (idx in 0..hex.length - 2 step 2) {
             val l = unhex(hex[idx])

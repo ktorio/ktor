@@ -4,28 +4,32 @@
 
 package io.ktor.client.engine
 
-import io.ktor.client.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * Base configuration for [HttpClientEngine].
  */
-@HttpClientDsl
+@KtorDsl
 public open class HttpClientEngineConfig {
     /**
-     * Network threads count advice.
+     * Specifies network threads count advice.
      */
+    @Deprecated(
+        "The [threadsCount] property is deprecated. The [Dispatchers.IO] is used by default.",
+        level = DeprecationLevel.ERROR
+    )
     public var threadsCount: Int = 4
 
     /**
-     * Enable http pipelining advice.
+     * Enables HTTP pipelining advice.
      */
     public var pipelining: Boolean = false
 
     /**
-     * Proxy address to use. Use system proxy by default.
+     * Specifies a proxy address to use.
+     * Uses a system proxy by default.
      *
-     * See [ProxyBuilder] to create proxy.
+     * You can learn more from [Proxy](https://ktor.io/docs/proxy.html).
      */
     public var proxy: ProxyConfig? = null
 }

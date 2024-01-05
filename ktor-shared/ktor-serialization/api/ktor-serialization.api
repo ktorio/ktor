@@ -17,8 +17,11 @@ public abstract interface class io/ktor/serialization/ContentConverter {
 }
 
 public final class io/ktor/serialization/ContentConverterKt {
+	public static final fun deserialize (Ljava/util/List;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/util/reflect/TypeInfo;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun suitableCharset (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
 	public static synthetic fun suitableCharset$default (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
+	public static final fun suitableCharsetOrNull (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;)Ljava/nio/charset/Charset;
+	public static synthetic fun suitableCharsetOrNull$default (Lio/ktor/http/Headers;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/nio/charset/Charset;
 }
 
 public final class io/ktor/serialization/JsonConvertException : io/ktor/serialization/ContentConvertException {
@@ -35,6 +38,10 @@ public abstract interface class io/ktor/serialization/WebsocketContentConverter 
 	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun isApplicable (Lio/ktor/websocket/Frame;)Z
 	public abstract fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/serialization/WebsocketContentConverter$DefaultImpls {
+	public static fun serialize (Lio/ktor/serialization/WebsocketContentConverter;Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/serialization/WebsocketConverterNotFoundException : io/ktor/serialization/WebsocketContentConvertException {

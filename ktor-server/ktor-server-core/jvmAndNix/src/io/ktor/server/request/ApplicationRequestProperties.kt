@@ -7,142 +7,151 @@
 package io.ktor.server.request
 
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.utils.io.charsets.*
 
 /**
- * First header value for header with [name] or `null` if missing
+ * Gets the first value of a [name] header or returns `null` if missing.
  */
 public fun ApplicationRequest.header(name: String): String? = headers[name]
 
 /**
- * Request's query string or empty string if missing
+ * Gets a request's query string or returns an empty string if missing.
  */
 public fun ApplicationRequest.queryString(): String = origin.uri.substringAfter('?', "")
 
 /**
- * Request's content type or `ContentType.Any`
+ * Gets a request's content type or returns `ContentType.Any`.
  */
 public fun ApplicationRequest.contentType(): ContentType =
     header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
 
 /**
- * Request's charset
+ * Gets a request's `Content-Length` header value.
+ */
+public fun ApplicationRequest.contentLength(): Long? =
+    header(HttpHeaders.ContentLength)?.toLongOrNull()
+
+/**
+ * Gets a request's charset.
  */
 public fun ApplicationRequest.contentCharset(): Charset? = contentType().charset()
 
 /**
- * Request's document name (substring after the last slash but before query string)
+ * A document name is a substring after the last slash but before a query string.
  */
 public fun ApplicationRequest.document(): String = path().substringAfterLast('/')
 
 /**
- * Request's path without query string
+ * Get a request's URL path without a query string.
  */
 public fun ApplicationRequest.path(): String = origin.uri.substringBefore('?')
 
 /**
- * Request authorization header value
+ * Get a request's `Authorization` header value.
  */
 public fun ApplicationRequest.authorization(): String? = header(HttpHeaders.Authorization)
 
 /**
- * Request's `Location` header value
+ * Get a request's `Location` header value.
  */
 public fun ApplicationRequest.location(): String? = header(HttpHeaders.Location)
 
 /**
- * Request's `Accept` header value
+ * Get a request's `Accept` header value.
  */
 public fun ApplicationRequest.accept(): String? = header(HttpHeaders.Accept)
 
 /**
- * Parsed request's `Accept` header and sorted according to quality
+ * Gets the `Accept` header content types sorted according to their qualities.
  */
 public fun ApplicationRequest.acceptItems(): List<HeaderValue> =
     parseAndSortContentTypeHeader(header(HttpHeaders.Accept))
 
 /**
- * Request's `Accept-Encoding` header value
+ * Gets a request's `Accept-Encoding` header value.
  */
 public fun ApplicationRequest.acceptEncoding(): String? = header(HttpHeaders.AcceptEncoding)
 
 /**
- * Parsed and sorted request's `Accept-Encoding` header value
+ * Gets the `Accept-Encoding` header encoding types sorted according to their qualities.
  */
 public fun ApplicationRequest.acceptEncodingItems(): List<HeaderValue> =
     parseAndSortHeader(header(HttpHeaders.AcceptEncoding))
 
 /**
- * Request's `Accept-Language` header value
+ * Gets a request's `Accept-Language` header value.
  */
 public fun ApplicationRequest.acceptLanguage(): String? = header(HttpHeaders.AcceptLanguage)
 
 /**
- * Parsed and sorted request's `Accept-Language` header value
+ * Gets the `Accept-Language` header languages sorted according to their qualities.
  */
 public fun ApplicationRequest.acceptLanguageItems(): List<HeaderValue> =
     parseAndSortHeader(header(HttpHeaders.AcceptLanguage))
 
 /**
- * Request's `Accept-Charset` header value
+ * Gets a request's `Accept-Charset` header value.
  */
 public fun ApplicationRequest.acceptCharset(): String? = header(HttpHeaders.AcceptCharset)
 
 /**
- * Parsed and sorted request's `Accept-Charset` header value
+ * Gets the `Accept-Charset` header charsets sorted according to their qualities.
  */
 public fun ApplicationRequest.acceptCharsetItems(): List<HeaderValue> =
     parseAndSortHeader(header(HttpHeaders.AcceptCharset))
 
 /**
- * Check if request's body is chunk-encoded
+ * Checks whether a request's body is chunk-encoded.
  */
 public fun ApplicationRequest.isChunked(): Boolean =
     header(HttpHeaders.TransferEncoding)?.compareTo("chunked", ignoreCase = true) == 0
 
 /**
- * Check if request body is multipart-encoded
+ * Checks whether a request body is multipart-encoded.
  */
 public fun ApplicationRequest.isMultipart(): Boolean = contentType().match(ContentType.MultiPart.Any)
 
 /**
- * Request's `User-Agent` header value
+ * Gets a request's `User-Agent` header value.
  */
 public fun ApplicationRequest.userAgent(): String? = header(HttpHeaders.UserAgent)
 
 /**
- * Request's `Cache-Control` header value
+ * Gets a request's `Cache-Control` header value.
  */
 public fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl)
 
 /**
- * Request's host without port
+ * Gets a request's host value without a port.
+ * @see [port]
  */
-public fun ApplicationRequest.host(): String = origin.host
+public fun ApplicationRequest.host(): String = origin.serverHost
 
 /**
- * Request's port extracted from `Host` header value
+ * Gets a request's port extracted from the `Host` header value.
+ * @see [host]
  */
-public fun ApplicationRequest.port(): Int = origin.port
+public fun ApplicationRequest.port(): Int = origin.serverPort
 
 /**
- * Parsed request's `Range` header value
+ * Gets ranges parsed from a request's `Range` header value.
  */
 public fun ApplicationRequest.ranges(): RangesSpecifier? =
     header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
 /**
- * Request's URI (including query string)
+ * Gets a request's URI, including a query string.
  */
 public val ApplicationRequest.uri: String get() = origin.uri
 
 /**
- * Returns request HTTP method possibly overridden via header X-Http-Method-Override
+ * Gets a request HTTP method possibly overridden using the `X-Http-Method-Override` header.
  */
 public val ApplicationRequest.httpMethod: HttpMethod get() = origin.method
 
 /**
- * Request's HTTP version
+ * Gets a request's HTTP version.
  */
 public val ApplicationRequest.httpVersion: String get() = origin.version

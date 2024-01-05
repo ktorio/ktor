@@ -5,7 +5,6 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
 private val HeaderFieldValueSeparators =
@@ -26,21 +25,31 @@ public abstract class HeaderValueWithParameters(
     /**
      * The first value for the parameter with [name] comparing case-insensitively or `null` if no such parameters found
      */
-    public fun parameter(name: String): String? =
-        parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
+    public fun parameter(name: String): String? {
+        for (index in 0..parameters.lastIndex) {
+            val parameter = parameters[index]
+
+            if (parameter.name.equals(name, ignoreCase = true)) {
+                return parameter.value
+            }
+        }
+
+        return null
+    }
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content
         else -> {
             val size = content.length + parameters.sumOf { it.name.length + it.value.length + 3 }
+
             StringBuilder(size).apply {
                 append(content)
-                for (element in parameters) {
-                    val (name, value) = element
+                for (index in 0..parameters.lastIndex) {
+                    val element = parameters[index]
                     append("; ")
-                    append(name)
+                    append(element.name)
                     append("=")
-                    value.escapeIfNeededTo(this)
+                    element.value.escapeIfNeededTo(this)
                 }
             }.toString()
         }
@@ -51,7 +60,7 @@ public abstract class HeaderValueWithParameters(
          * Parse header with parameter and pass it to [init] function to instantiate particular type
          */
         public inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
-            val headerValue = parseHeaderValue(value).single()
+            val headerValue = parseHeaderValue(value).last()
             return init(headerValue.value, headerValue.params)
         }
     }
@@ -68,19 +77,19 @@ public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParame
  * Escape using double quotes if needed or keep as is if no dangerous strings found
  */
 public fun String.escapeIfNeeded(): String = when {
-    checkNeedEscape() -> quote()
+    needQuotes() -> quote()
     else -> this
 }
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.escapeIfNeededTo(out: StringBuilder) {
     when {
-        checkNeedEscape() -> out.append(quote())
+        needQuotes() -> out.append(quote())
         else -> out.append(this)
     }
 }
 
-private fun String.checkNeedEscape(): Boolean {
+private fun String.needQuotes(): Boolean {
     if (isEmpty()) return true
     if (isQuoted()) return false
 

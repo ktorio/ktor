@@ -25,6 +25,8 @@ internal class ApacheResponseConsumer(
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
 
     private val waiting = atomic(false)
+
+    @Suppress("DEPRECATION")
     private val channel = ByteChannel().also {
         it.attachJob(consumerJob)
     }
@@ -51,6 +53,7 @@ internal class ApacheResponseConsumer(
             channel.writeAvailable {
                 result = decoder.read(it)
             }
+            channel.flush()
         } while (result > 0)
 
         if (result < 0 || decoder.isCompleted) {

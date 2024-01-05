@@ -1,32 +1,27 @@
 description = "Ktor network utilities"
 
-val mockk_version: String by project.extra
-
 kotlin {
-    nixTargets().forEach {
-        it.compilations.getByName("main").cinterops {
-            create("network") {
-                defFile = projectDir.resolve("nix/interop/network.def")
-            }
-        }
+    createCInterop("network", nixTargets()) {
+        defFile = projectDir.resolve("nix/interop/network.def")
     }
 
     sourceSets {
-        val jvmAndNixMain by getting {
+        jvmAndNixMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
         }
 
-        val jvmAndNixTest by getting {
+        jvmAndNixTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }
         }
 
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
-                implementation("io.mockk:mockk:$mockk_version")
+                implementation(project(":ktor-shared:ktor-junit"))
+                implementation(libs.mockk)
             }
         }
     }

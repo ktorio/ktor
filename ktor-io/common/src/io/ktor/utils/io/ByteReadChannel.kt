@@ -41,6 +41,8 @@ public expect interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+
+    @Suppress("DEPRECATION")
     public suspend fun readAvailable(dst: ChunkBuffer): Int
 
     /**
@@ -48,6 +50,8 @@ public expect interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     public suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+
+    @Suppress("DEPRECATION")
     public suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     /**
@@ -134,7 +138,7 @@ public expect interface ByteReadChannel {
      * Supports both CR-LF and LF line endings.
      * Throws an exception if the specified [limit] has been exceeded.
      *
-     * @return a line string with no line endings or `null` of channel has been closed
+     * @return a line string with no line endings or `null` if channel has been closed
      * and no characters were read.
      */
     public suspend fun readUTF8Line(limit: Int): String?
@@ -159,6 +163,11 @@ public expect interface ByteReadChannel {
     public suspend fun discard(max: Long): Long
 
     /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public suspend fun awaitContent()
+
+    /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
      * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
      * bytes then it will trigger the underlying source reading first and after that will
@@ -177,6 +186,7 @@ public expect interface ByteReadChannel {
      * @param max bytes to be copied even if there are more bytes buffered, could be [Int.MAX_VALUE].
      * @return number of bytes copied to the [destination] possibly `0`
      */
+    @Suppress("DEPRECATION")
     public suspend fun peekTo(
         destination: Memory,
         destinationOffset: Long,
@@ -195,6 +205,7 @@ public expect interface ByteReadChannel {
  */
 public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket = readRemaining(Long.MAX_VALUE)
 
+@Suppress("DEPRECATION")
 public suspend fun ByteReadChannel.readFully(dst: ChunkBuffer) {
     readFully(dst, dst.writeRemaining)
 }

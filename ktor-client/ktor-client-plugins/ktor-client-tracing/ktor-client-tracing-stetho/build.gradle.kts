@@ -2,8 +2,6 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-val android_stetho_version: String by project.extra
-
 repositories {
     google()
 }
@@ -32,9 +30,8 @@ kotlin {
             kotlin.srcDir("android/test")
             dependencies {
                 implementation(project(":ktor-client:ktor-client-cio"))
-                implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
-                implementation("org.mockito:mockito-core:3.3.3")
+                implementation(kotlin("test-junit5"))
+                implementation("org.mockito:mockito-core:3.12.4")
             }
         }
     }

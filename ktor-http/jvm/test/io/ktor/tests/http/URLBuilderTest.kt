@@ -48,16 +48,18 @@ class URLBuilderTestJvm {
     fun testEmptyPath() {
         val urlStr1 = "http://localhost"
         val urlStr2 = "http://localhost?param1=foo"
+        val uri1 = URI.create(urlStr1)
+        val uri2 = URI.create(urlStr2)
 
         val url1 = URLBuilder().apply {
-            takeFrom(URI.create(urlStr1))
+            takeFrom(uri1)
         }
         val url2 = URLBuilder().apply {
-            takeFrom(URI.create(urlStr2))
+            takeFrom(uri2)
         }
 
-        assertEquals("http://localhost/", url1.buildString())
-        assertEquals("http://localhost/?param1=foo", url2.buildString())
+        assertEquals("http://localhost", url1.buildString())
+        assertEquals("http://localhost?param1=foo", url2.buildString())
     }
 
     @Test
@@ -107,5 +109,13 @@ class URLBuilderTestJvm {
             port = 9093
             takeFrom(URI("/test"))
         }.buildString().let { url -> assertEquals("http://localhost:9093/test", url) }
+    }
+
+    @Test
+    fun testUnderscoreInHost() {
+        assertEquals(
+            "http://my_service:8080",
+            URLBuilder().takeFrom(URL("http://my_service:8080")).buildString()
+        )
     }
 }

@@ -13,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
@@ -107,17 +108,17 @@ class ApplicationRequestContentTest {
         withTestApplication {
             val value = IntList(listOf(1, 2, 3, 4))
 
-            application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
-                if (query.typeInfo.type != IntList::class) return@intercept
-                val message = query.value as? ByteReadChannel ?: return@intercept
+            application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { body ->
+                if (call.receiveType != typeInfo<IntList>()) return@intercept
+                val message = body as? ByteReadChannel ?: return@intercept
 
                 val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
-                proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
+                proceedWith(transformed)
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(value, call.receive<IntList>())
+                assertEquals(value, call.receive())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -155,9 +156,7 @@ class ApplicationRequestContentTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(415, call.response.status()?.value)
-        }
+        assertEquals(415, handleRequest(HttpMethod.Get, "/").response.status()?.value)
     }
 
     @Test
@@ -166,14 +165,12 @@ class ApplicationRequestContentTest {
 
         application.routing {
             get("/") {
-                val v = call.receiveOrNull<IntList>()
+                val v = runCatching { call.receiveNullable<IntList>() }.getOrNull()
                 call.respondText(v?.values?.joinToString() ?: "(none)")
             }
         }
 
-        handleRequest(HttpMethod.Get, "/").let { call ->
-            assertEquals(200, call.response.status()?.value)
-        }
+        assertEquals(200, handleRequest(HttpMethod.Get, "/").response.status()?.value)
     }
 
     @Test
@@ -182,24 +179,6 @@ class ApplicationRequestContentTest {
             assertEquals("bodyContent", call.receiveText())
             assertFailsWith<RequestAlreadyConsumedException> {
                 call.receiveText()
-            }
-        }
-
-        handleRequest(HttpMethod.Get, "") {
-            setBody("bodyContent")
-        }
-    }
-
-    @Test
-    fun testDoubleReceive(): Unit = withTestApplication {
-        application.install(DoubleReceive)
-
-        application.intercept(ApplicationCallPipeline.Call) {
-            assertEquals("bodyContent", call.receiveText())
-            assertEquals("bodyContent", call.receiveText())
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // we can't receive a channel because we have a string cached
-                call.receiveChannel()
             }
         }
 
@@ -233,9 +212,8 @@ class ApplicationRequestContentTest {
             call.receiveChannel().readRemaining().use { packet ->
                 assertEquals(11, packet.remaining)
             }
-            assertFailsWith<RequestAlreadyConsumedException> {
-                // a channel can't be received twice
-                call.receiveChannel()
+            call.receiveChannel().readRemaining().use { packet ->
+                assertEquals(11, packet.remaining)
             }
         }
 
@@ -249,7 +227,7 @@ class ApplicationRequestContentTest {
         application.install(DoubleReceive)
 
         application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-            if (it.typeInfo.type == IntList::class) {
+            if (call.receiveType.type == IntList::class) {
                 throw MySpecialException()
             }
         }
@@ -257,10 +235,9 @@ class ApplicationRequestContentTest {
             assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            val cause = assertFailsWith<RequestReceiveAlreadyFailedException> {
+            assertFailsWith<MySpecialException> {
                 call.receive<IntList>()
             }
-            assertTrue { cause.cause is MySpecialException }
         }
 
         handleRequest(HttpMethod.Get, "") {

@@ -13,13 +13,13 @@ import kotlin.coroutines.*
 internal suspend fun HttpClient.executeHttpRequest(
     callContext: CoroutineContext,
     requestData: HttpRequestData
-): HttpResponseData {
+): HttpResponseData? {
     val httpRequest = requestData.convertToHttpRequest(callContext)
     return try {
-        sendAsync(httpRequest, JavaHttpResponseBodyHandler(callContext)).await().body()
+        sendAsync(httpRequest, JavaHttpResponseBodyHandler(callContext, requestData))?.await()?.body()
     } catch (cause: HttpConnectTimeoutException) {
         throw ConnectTimeoutException(requestData, cause)
     } catch (cause: HttpTimeoutException) {
-        throw SocketTimeoutException(requestData, cause)
+        throw HttpRequestTimeoutException(requestData)
     }
 }

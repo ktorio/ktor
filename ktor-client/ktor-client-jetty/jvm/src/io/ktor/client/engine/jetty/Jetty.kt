@@ -6,13 +6,25 @@ package io.ktor.client.engine.jetty
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
- * [HttpClientEngineFactory] using `org.eclipse.jetty.http2:http2-client`
- * with the associated configuration [JettyEngineConfig].
+ * A JVM client engine that uses the Jetty HTTP client.
  *
- * Just supports HTTP/2 requests.
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(Jetty)
+ * ```
+ * To configure the engine, pass settings exposed by [JettyEngineConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(Jetty) {
+ *     engine {
+ *         // this: JettyEngineConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
     override fun create(block: JettyEngineConfig.() -> Unit): HttpClientEngine =

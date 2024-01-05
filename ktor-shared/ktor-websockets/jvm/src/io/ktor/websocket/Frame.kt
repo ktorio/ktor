@@ -129,25 +129,10 @@ public actual sealed class Frame actual constructor(
     /**
      * Creates a frame copy.
      */
-    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf())
+    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf(), rsv1, rsv2, rsv3)
 
     public actual companion object {
         private val Empty: ByteArray = ByteArray(0)
-
-        /**
-         * Create a particular [Frame] instance by frame type.
-         */
-        public actual fun byType(
-            fin: Boolean,
-            frameType: FrameType,
-            data: ByteArray
-        ): Frame = when (frameType) {
-            FrameType.BINARY -> Binary(fin, data)
-            FrameType.TEXT -> Text(fin, data)
-            FrameType.CLOSE -> Close(data)
-            FrameType.PING -> Ping(data)
-            FrameType.PONG -> Pong(data, NonDisposableHandle)
-        }
 
         /**
          * Create a particular [Frame] instance by frame type.
@@ -166,11 +151,5 @@ public actual sealed class Frame actual constructor(
             FrameType.PING -> Ping(data)
             FrameType.PONG -> Pong(data, NonDisposableHandle)
         }
-
-        /**
-         * Create a particular [Frame] instance by frame type
-         */
-        public fun byType(fin: Boolean, frameType: FrameType, buffer: ByteBuffer): Frame =
-            byType(fin, frameType, buffer.moveToByteArray())
     }
 }

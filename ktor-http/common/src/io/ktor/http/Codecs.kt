@@ -5,16 +5,15 @@ package io.ktor.http
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }
-private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
-private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
+private val URL_ALPHABET = ((('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.code.toByte() }).toSet()
+private val URL_ALPHABET_CHARS = ((('a'..'z') + ('A'..'Z') + ('0'..'9'))).toSet()
+private val HEX_ALPHABET = (('a'..'f') + ('A'..'F') + ('0'..'9')).toSet()
 
 /**
  * https://tools.ietf.org/html/rfc3986#section-2
  */
-private val URL_PROTOCOL_PART = listOf(
+private val URL_PROTOCOL_PART = setOf(
     ':', '/', '?', '#', '[', ']', '@', // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // sub-components
     '-', '.', '_', '~', '+' // unreserved
@@ -23,17 +22,24 @@ private val URL_PROTOCOL_PART = listOf(
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
-private val VALID_PATH_PART = listOf(
+private val VALID_PATH_PART = setOf(
     ':', '@',
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
     '-', '.', '_', '~'
 )
 
 /**
- * Oauth specific percent encoding
- * https://tools.ietf.org/html/rfc5849#section-3.6
+ * Characters allowed in attributes according: https://datatracker.ietf.org/doc/html/rfc5987
+ * attr-char     = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
  */
-private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
+internal val ATTRIBUTE_CHARACTERS: Set<Char> = URL_ALPHABET_CHARS + setOf(
+    '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'
+)
+
+/**
+ * Characters allowed in url according to https://tools.ietf.org/html/rfc3986#section-2.3
+ */
+private val SPECIAL_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
 
 /**
  * Encode url part as specified in
@@ -55,21 +61,34 @@ public fun String.encodeURLQueryComponent(
 }
 
 /**
- * Encode URL path or component. It escapes all illegal or ambiguous characters
+ * Encodes URL path segment. It escapes all illegal or ambiguous characters
  */
-public fun String.encodeURLPath(): String = buildString {
+public fun String.encodeURLPathPart(): String = encodeURLPath(encodeSlash = true)
+
+/**
+ * Get the URL-encoding of this string, with options to skip / characters or to prevent
+ * encoding already-encoded characters (%hh items).
+ *
+ * @see [RFC-3986](https://datatracker.ietf.org/doc/html/rfc3986#section-2.1)
+ * @param encodeSlash / characters will be encoded as %2F; defaults to false
+ * @param encodeEncoded %hh will be encoded as %25hh; defaults to true
+ */
+public fun String.encodeURLPath(
+    encodeSlash: Boolean = false,
+    encodeEncoded: Boolean = true,
+): String = buildString {
     val charset = Charsets.UTF_8
 
     var index = 0
     while (index < this@encodeURLPath.length) {
         val current = this@encodeURLPath[index]
-        if (current == '/' || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
+        if ((!encodeSlash && current == '/') || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
             append(current)
             index++
             continue
         }
 
-        if (current == '%' &&
+        if (!encodeEncoded && current == '%' &&
             index + 2 < this@encodeURLPath.length &&
             this@encodeURLPath[index + 1] in HEX_ALPHABET &&
             this@encodeURLPath[index + 2] in HEX_ALPHABET
@@ -106,11 +125,40 @@ public fun String.encodeURLParameter(
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
     content.forEach {
         when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toInt().toChar())
+            it in URL_ALPHABET || it in SPECIAL_SYMBOLS -> append(it.toInt().toChar())
             spaceToPlus && it == ' '.code.toByte() -> append('+')
             else -> append(it.percentEncode())
         }
     }
+}
+
+internal fun String.percentEncode(allowedSet: Set<Char>): String {
+    val encodedCount = count { it !in allowedSet }
+    if (encodedCount == 0) return this
+
+    val content = toByteArray(Charsets.UTF_8)
+
+    val rawCount = length - encodedCount
+    val resultSize = rawCount + (content.size - rawCount) * 3
+    val result = CharArray(resultSize)
+
+    var writeIndex = 0
+
+    content.forEach {
+        val char = it.toInt().toChar()
+
+        if (char in allowedSet) {
+            result[writeIndex++] = char
+        } else {
+            val code = it.toInt() and 0xff
+
+            result[writeIndex++] = '%'
+            result[writeIndex++] = hexDigitToChar(code shr 4)
+            result[writeIndex++] = hexDigitToChar(code and 0xf)
+        }
+    }
+
+    return result.concatToString()
 }
 
 /**
@@ -222,11 +270,13 @@ private fun CharSequence.decodeImpl(
  */
 public class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String = buildString(3) {
+private fun Byte.percentEncode(): String {
     val code = toInt() and 0xff
-    append('%')
-    append(hexDigitToChar(code shr 4))
-    append(hexDigitToChar(code and 0x0f))
+    val array = CharArray(3)
+    array[0] = '%'
+    array[1] = hexDigitToChar(code shr 4)
+    array[2] = hexDigitToChar(code and 0xf)
+    return array.concatToString()
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {

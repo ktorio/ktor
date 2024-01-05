@@ -5,5 +5,14 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 
-internal actual fun HttpClient.platformDefaultTransformers() {}
+internal actual fun platformRequestDefaultTransform(
+    contentType: ContentType?,
+    context: HttpRequestBuilder,
+    body: Any
+): OutgoingContent? = null
+
+internal actual fun HttpClient.platformResponseDefaultTransformers() {}

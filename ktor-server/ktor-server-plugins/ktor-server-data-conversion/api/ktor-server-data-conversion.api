@@ -1,4 +1,4 @@
-public final class io/ktor/server/plugins/dataconversion/DataConversion : io/ktor/server/application/ApplicationPlugin {
+public final class io/ktor/server/plugins/dataconversion/DataConversion : io/ktor/server/application/BaseApplicationPlugin {
 	public static final field INSTANCE Lio/ktor/server/plugins/dataconversion/DataConversion;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/util/converters/DataConversion;

@@ -8,15 +8,23 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * Default user agent to use in ktor client.
  */
 @InternalAPI
 public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
+
+private val DATE_HEADERS = setOf(
+    HttpHeaders.Date,
+    HttpHeaders.Expires,
+    HttpHeaders.LastModified,
+    HttpHeaders.IfModifiedSince,
+    HttpHeaders.IfUnmodifiedSince
+)
 
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
@@ -35,7 +43,14 @@ public fun mergeHeaders(
         if (HttpHeaders.ContentType == key) return@forEach // set later
 
         // https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-        block(key, values.joinToString(","))
+        if (DATE_HEADERS.contains(key)) {
+            values.forEach { value ->
+                block(key, value)
+            }
+        } else {
+            val separator = if (HttpHeaders.Cookie == key) "; " else ","
+            block(key, values.joinToString(separator))
+        }
     }
 
     val missingAgent = requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null
@@ -43,8 +58,13 @@ public fun mergeHeaders(
         block(HttpHeaders.UserAgent, KTOR_DEFAULT_USER_AGENT)
     }
 
-    val type = content.contentType?.toString() ?: content.headers[HttpHeaders.ContentType]
-    val length = content.contentLength?.toString() ?: content.headers[HttpHeaders.ContentLength]
+    val type = content.contentType?.toString()
+        ?: content.headers[HttpHeaders.ContentType]
+        ?: requestHeaders[HttpHeaders.ContentType]
+
+    val length = content.contentLength?.toString()
+        ?: content.headers[HttpHeaders.ContentLength]
+        ?: requestHeaders[HttpHeaders.ContentLength]
 
     type?.let { block(HttpHeaders.ContentType, it) }
     length?.let { block(HttpHeaders.ContentLength, it) }
@@ -76,7 +96,7 @@ internal suspend inline fun attachToUserJob(callJob: Job) {
 
     val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
         cause ?: return@invokeOnCompletion
-        callJob.cancel(CancellationException(cause.message))
+        callJob.cancel(kotlinx.coroutines.CancellationException(cause.message))
     }
 
     callJob.invokeOnCompletion {

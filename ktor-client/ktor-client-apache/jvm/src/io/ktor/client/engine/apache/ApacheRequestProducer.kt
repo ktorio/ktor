@@ -10,7 +10,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.apache.http.*
@@ -28,7 +27,7 @@ import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
 internal class ApacheRequestProducer(
-    private val requestData: HttpRequestData,
+    val requestData: HttpRequestData,
     private val config: ApacheEngineConfig,
     callContext: CoroutineContext
 ) : HttpAsyncRequestProducer, CoroutineScope {
@@ -43,6 +42,7 @@ internal class ApacheRequestProducer(
     private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     private val channel: ByteReadChannel = when (val body = requestData.body) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
@@ -90,6 +90,7 @@ internal class ApacheRequestProducer(
         } while (result > 0)
 
         if (channel.isClosedForRead) {
+            channel.closedCause?.let { throw it }
             encoder.complete()
             return
         }
@@ -130,7 +131,7 @@ internal class ApacheRequestProducer(
         if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
             builder.entity = BasicHttpEntity().apply {
                 val lengthResult = length
-                if (lengthResult == null || lengthResult.isBlank()) {
+                if (lengthResult.isNullOrBlank()) {
                     isChunked = true
                 } else {
                     contentLength = lengthResult.toLong()
@@ -157,7 +158,7 @@ internal class ApacheRequestProducer(
 
 @OptIn(InternalAPI::class)
 private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
-    requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+    requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
         timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
     }

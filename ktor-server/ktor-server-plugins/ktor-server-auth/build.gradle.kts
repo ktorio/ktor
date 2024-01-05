@@ -4,26 +4,30 @@
 
 description = ""
 
+plugins {
+    id("kotlinx-serialization")
+}
+
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
-            }
-        }
-        val jvmMain by getting {
-            dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
-                api("com.googlecode.json-simple:json-simple:1.1.1") {
-                    isTransitive = false
-                }
+                api(libs.kotlinx.serialization.json)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-client:ktor-client-cio"))
                 api(project(":ktor-client:ktor-client-mock"))
                 api(project(":ktor-server:ktor-server-test-host"))
+            }
+        }
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+                api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
             }
         }
     }

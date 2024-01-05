@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -31,7 +30,7 @@ class WebSocketWithContentNegotiationTest {
                     contentType: ContentType,
                     charset: Charset,
                     typeInfo: TypeInfo,
-                    value: Any
+                    value: Any?
                 ): OutgoingContent = fail("convertForSend shouldn't be invoked")
 
                 override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {

@@ -2,7 +2,7 @@ public abstract interface annotation class io/ktor/resources/Resource : java/lan
 	public abstract fun path ()Ljava/lang/String;
 }
 
-public final class io/ktor/resources/Resource$Impl : io/ktor/resources/Resource {
+public synthetic class io/ktor/resources/Resource$Impl : io/ktor/resources/Resource {
 	public fun <init> (Ljava/lang/String;)V
 	public final synthetic fun path ()Ljava/lang/String;
 }
@@ -13,7 +13,7 @@ public final class io/ktor/resources/ResourceSerializationException : java/lang/
 
 public final class io/ktor/resources/Resources {
 	public fun <init> (Lio/ktor/resources/Resources$Configuration;)V
-	public final fun getResourcesFormat ()Lio/ktor/resources/serialisation/ResourcesFormat;
+	public final fun getResourcesFormat ()Lio/ktor/resources/serialization/ResourcesFormat;
 }
 
 public final class io/ktor/resources/Resources$Configuration {
@@ -23,10 +23,10 @@ public final class io/ktor/resources/Resources$Configuration {
 }
 
 public final class io/ktor/resources/UrlBuilderKt {
-	public static final fun href (Lio/ktor/resources/serialisation/ResourcesFormat;Lkotlinx/serialization/KSerializer;Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
+	public static final fun href (Lio/ktor/resources/serialization/ResourcesFormat;Lkotlinx/serialization/KSerializer;Ljava/lang/Object;Lio/ktor/http/URLBuilder;)V
 }
 
-public final class io/ktor/resources/serialisation/ResourcesFormat : kotlinx/serialization/SerialFormat {
+public final class io/ktor/resources/serialization/ResourcesFormat : kotlinx/serialization/SerialFormat {
 	public fun <init> ()V
 	public fun <init> (Lkotlinx/serialization/modules/SerializersModule;)V
 	public synthetic fun <init> (Lkotlinx/serialization/modules/SerializersModule;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -37,12 +37,12 @@ public final class io/ktor/resources/serialisation/ResourcesFormat : kotlinx/ser
 	public fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
 }
 
-public final class io/ktor/resources/serialisation/ResourcesFormat$Parameter {
+public final class io/ktor/resources/serialization/ResourcesFormat$Parameter {
 	public fun <init> (Ljava/lang/String;Z)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Z
-	public final fun copy (Ljava/lang/String;Z)Lio/ktor/resources/serialisation/ResourcesFormat$Parameter;
-	public static synthetic fun copy$default (Lio/ktor/resources/serialisation/ResourcesFormat$Parameter;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/resources/serialisation/ResourcesFormat$Parameter;
+	public final fun copy (Ljava/lang/String;Z)Lio/ktor/resources/serialization/ResourcesFormat$Parameter;
+	public static synthetic fun copy$default (Lio/ktor/resources/serialization/ResourcesFormat$Parameter;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/resources/serialization/ResourcesFormat$Parameter;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
 	public fun hashCode ()I

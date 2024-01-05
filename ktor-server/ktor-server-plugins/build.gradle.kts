@@ -1,20 +1,23 @@
+
 subprojects {
     kotlin {
         sourceSets {
-            val commonMain by getting {
+            commonMain {
                 dependencies {
                     api(project(":ktor-server:ktor-server-core"))
                 }
             }
-            val commonTest by getting {
+            commonTest {
                 dependencies {
                     api(project(":ktor-server:ktor-server-test-host"))
                 }
             }
 
-            val jvmTest by getting {
+            jvmTest {
                 dependencies {
                     api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
+                    api("ch.qos.logback:logback-classic:${Versions.logback}")
                 }
             }
         }

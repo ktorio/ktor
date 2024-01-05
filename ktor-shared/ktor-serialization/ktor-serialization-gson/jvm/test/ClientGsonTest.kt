@@ -5,19 +5,28 @@
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.contentnegotiation.tests.*
 import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.serialization.gson.*
-import org.junit.*
+import kotlin.test.*
 
 class ClientGsonTest : AbstractClientContentNegotiationTest() {
     private val converter = GsonConverter()
 
     override val defaultContentType: ContentType = ContentType.Application.Json
     override val customContentType: ContentType = ContentType.parse("application/x-json")
-    override fun ContentNegotiation.Config.configureContentNegotiation(contentType: ContentType) {
+    override val webSocketsConverter: WebsocketContentConverter = GsonWebsocketContentConverter()
+
+    override fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType) {
         register(contentType, converter)
     }
 
     @Test
     @Ignore
-    override fun testSealed() {}
+    override fun testSealed() {
+    }
+
+    @Test
+    @Ignore
+    override fun testSerializeFailureHasOriginalCauseMessage() {
+    }
 }

@@ -4,20 +4,31 @@
 
 package io.ktor.server.pebble
 
-import com.mitchellbosecke.pebble.*
-import com.mitchellbosecke.pebble.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
-import io.ktor.util.cio.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.request.*
 import io.ktor.utils.io.*
+import io.pebbletemplates.pebble.*
 import java.io.*
 import java.util.*
 
 /**
- * Response content which could be used to respond [ApplicationCalls] like `call.respond(PebbleContent(...))
+ * Configuration for the [Pebble] plugin.
+ */
+@KtorDsl
+public class PebbleConfiguration : PebbleEngine.Builder() {
+
+    /**
+     * Allows you to define currently available language translations
+     * must follow IETF BCP 47 language tag string specification
+     */
+    public var availableLanguages: List<String>? = null
+}
+
+/**
+ * A response content handled by the [Pebble] plugin.
  *
  * @param template name of the template to be resolved by Pebble
  * @param model which is passed into the template
@@ -35,41 +46,31 @@ public class PebbleContent(
 
 /**
  * A plugin that allows you to use Pebble templates as views within your application.
- * Provides the ability to respond with [PebbleContent]
+ * Provides the ability to respond with [PebbleContent].
+ * You can learn more from [Pebble](https://ktor.io/docs/pebble.html).
  */
-public class Pebble private constructor(private val engine: PebbleEngine) {
+public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlugin("Pebble", ::PebbleConfiguration) {
+    val engine = pluginConfig.build()
+    val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
-        override val key: AttributeKey<Pebble> = AttributeKey<Pebble>("pebble")
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(PebbleContent::class)) { call, content ->
+        with(content) {
+            val writer = StringWriter()
+            var locale = locale
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: PebbleEngine.Builder.() -> Unit
-        ): Pebble {
-            val builder = PebbleEngine.Builder().apply {
-                configure(this)
+            if (availableLanguages != null && locale == null) {
+                locale = call.request.acceptLanguageItems()
+                    .firstOrNull { pluginConfig.availableLanguages!!.contains(it.value) }
+                    ?.value?.let { Locale.forLanguageTag(it) }
             }
-            val plugin = Pebble(builder.build())
+            engine.getTemplate(template).evaluate(writer, model, locale)
 
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is PebbleContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
-
-            return plugin
+            result
         }
-    }
-
-    private fun process(content: PebbleContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        engine.getTemplate(content.template).evaluate(writer, model, locale)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
     }
 }

@@ -4,10 +4,7 @@
 
 package io.ktor.util.pipeline
 
-import io.ktor.util.CoroutineStackFrame
-import io.ktor.util.StackTraceElement
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import io.ktor.util.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
@@ -76,7 +73,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     override suspend fun proceed(): TSubject = suspendCoroutineUninterceptedOrReturn { continuation ->
         if (index == blocks.size) return@suspendCoroutineUninterceptedOrReturn subject
 
-        addContinuation(continuation)
+        addContinuation(continuation.intercepted())
 
         if (loop(true)) {
             discardLastRootContinuation()

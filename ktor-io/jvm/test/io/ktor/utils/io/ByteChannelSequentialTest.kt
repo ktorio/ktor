@@ -10,6 +10,7 @@ import kotlin.test.*
 
 class ByteChannelSequentialTest {
 
+    @Suppress("DEPRECATION")
     @Test
     fun testReadAvailable() = runBlocking {
         val channel = ByteChannelSequentialJVM(ChunkBuffer.Empty, true)
@@ -23,6 +24,7 @@ class ByteChannelSequentialTest {
         assertEquals(4, read2)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testAwaitContent() = runBlocking {
         val channel = ByteChannelSequentialJVM(ChunkBuffer.Empty, true)

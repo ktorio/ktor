@@ -43,35 +43,47 @@ public class WebSocketDeflateExtension internal constructor(
     private val inflater = Inflater(true)
     private val deflater = Deflater(config.compressionLevel, true)
 
-    private var outgoingContextTakeover: Boolean = true
-    private var incomingContextTakeover: Boolean = true
+    internal var outgoingNoContextTakeover: Boolean = false
+    internal var incomingNoContextTakeover: Boolean = false
+
+    /**
+     * Deflater state for incoming frames. Specified if frames should be decompressed until fin packet.
+     */
+    private var decompressIncoming: Boolean = false
 
     override fun clientNegotiation(negotiatedProtocols: List<WebSocketExtensionHeader>): Boolean {
         val protocol = negotiatedProtocols.find { it.name == PERMESSAGE_DEFLATE } ?: return false
 
-        incomingContextTakeover = config.serverNoContextTakeOver
-        outgoingContextTakeover = config.clientNoContextTakeOver
+        incomingNoContextTakeover = config.serverNoContextTakeOver
+        outgoingNoContextTakeover = config.clientNoContextTakeOver
 
         for ((key, value) in protocol.parseParameters()) {
             when (key) {
                 SERVER_MAX_WINDOW_BITS -> {
                     // This value is a hint for a client and can be ignored.
                 }
+
                 CLIENT_MAX_WINDOW_BITS -> {
                     if (value.isBlank()) continue
                     check(value.toInt() == MAX_WINDOW_BITS) { "Only $MAX_WINDOW_BITS window size is supported." }
                 }
+
                 SERVER_NO_CONTEXT_TAKEOVER -> {
                     check(value.isBlank()) {
                         "WebSocket $PERMESSAGE_DEFLATE extension parameter $SERVER_NO_CONTEXT_TAKEOVER shouldn't " +
                             "have a value. Current: $value"
                     }
+
+                    incomingNoContextTakeover = true
                 }
+
                 CLIENT_NO_CONTEXT_TAKEOVER -> {
                     check(value.isBlank()) {
                         "WebSocket $PERMESSAGE_DEFLATE extension parameter $CLIENT_NO_CONTEXT_TAKEOVER shouldn't " +
                             "have a value. Current: $value"
                     }
+
+                    outgoingNoContextTakeover = true
                 }
             }
         }
@@ -88,21 +100,25 @@ public class WebSocketDeflateExtension internal constructor(
                 SERVER_MAX_WINDOW_BITS -> {
                     check(value.toInt() == MAX_WINDOW_BITS) { "Only $MAX_WINDOW_BITS window size is supported" }
                 }
+
                 CLIENT_MAX_WINDOW_BITS -> {
                     // This value is a hint for a server and can be ignored.
                 }
+
                 SERVER_NO_CONTEXT_TAKEOVER -> {
                     check(value.isBlank())
 
-                    outgoingContextTakeover = false
+                    outgoingNoContextTakeover = true
                     parameters.add(SERVER_NO_CONTEXT_TAKEOVER)
                 }
+
                 CLIENT_NO_CONTEXT_TAKEOVER -> {
                     check(value.isBlank())
 
-                    incomingContextTakeover = false
+                    incomingNoContextTakeover = true
                     parameters.add(CLIENT_NO_CONTEXT_TAKEOVER)
                 }
+
                 else -> error("Unsupported extension parameter: ($key, $value)")
             }
         }
@@ -116,7 +132,7 @@ public class WebSocketDeflateExtension internal constructor(
 
         val deflated = deflater.deflateFully(frame.data)
 
-        if (!outgoingContextTakeover) {
+        if (outgoingNoContextTakeover) {
             deflater.reset()
         }
 
@@ -124,12 +140,16 @@ public class WebSocketDeflateExtension internal constructor(
     }
 
     override fun processIncomingFrame(frame: Frame): Frame {
-        if (!frame.rsv1 || (frame !is Frame.Text && frame !is Frame.Binary)) return frame
+        if (!frame.isCompressed() && !decompressIncoming) return frame
+        decompressIncoming = true
 
         val inflated = inflater.inflateFully(frame.data)
-
-        if (!incomingContextTakeover) {
+        if (incomingNoContextTakeover) {
             inflater.reset()
+        }
+
+        if (frame.fin) {
+            decompressIncoming = false
         }
 
         return Frame.byType(frame.fin, frame.frameType, inflated, !rsv1, frame.rsv2, frame.rsv3)
@@ -162,8 +182,9 @@ public class WebSocketDeflateExtension internal constructor(
          * Configure which protocols should send the client.
          */
         public fun configureProtocols(block: (protocols: MutableList<WebSocketExtensionHeader>) -> Unit) {
+            val old = manualConfig
             manualConfig = {
-                manualConfig(it)
+                old(it)
                 block(it)
             }
         }
@@ -214,3 +235,5 @@ public class WebSocketDeflateExtension internal constructor(
             WebSocketDeflateExtension(Config().apply(config))
     }
 }
+
+private fun Frame.isCompressed(): Boolean = rsv1 && (this is Frame.Text || this is Frame.Binary)

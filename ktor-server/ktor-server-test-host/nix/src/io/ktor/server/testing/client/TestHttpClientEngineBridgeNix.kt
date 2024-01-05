@@ -6,6 +6,7 @@
 package io.ktor.server.testing.client
 
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.testing.*
@@ -17,13 +18,13 @@ internal actual class TestHttpClientEngineBridge actual constructor(
     app: TestApplicationEngine
 ) {
 
-    actual val supportedCapabilities: Set<HttpClientEngineCapability<*>> = emptySet()
+    actual val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability)
 
     actual suspend fun runWebSocketRequest(
         url: String,
         headers: Headers,
         content: OutgoingContent,
-        coroutineContext: CoroutineContext
+        callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
         throw NotImplementedError("Websockets for native are not supported")
     }

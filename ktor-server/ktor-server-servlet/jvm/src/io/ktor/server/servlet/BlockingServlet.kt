@@ -21,7 +21,7 @@ internal class BlockingServletApplicationCall(
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application), CoroutineScope {
     override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
     override val response: BlockingServletApplicationResponse =
         BlockingServletApplicationResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
@@ -33,7 +33,7 @@ internal class BlockingServletApplicationCall(
 }
 
 private class BlockingServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
@@ -41,15 +41,16 @@ private class BlockingServletApplicationRequest(
         servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool)
     }
 
-    override fun receiveChannel() = inputStreamChannel
+    override val engineReceiveChannel: ByteReadChannel get() = inputStreamChannel
 }
 
 internal class BlockingServletApplicationResponse(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
 ) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
+    @Suppress("DEPRECATION")
     override fun createResponseJob(): ReaderJob =
         reader(UnsafeBlockingTrampoline, autoFlush = false) {
             val buffer = ArrayPool.borrow()
@@ -84,7 +85,6 @@ internal class BlockingServletApplicationResponse(
 /**
  * Never do like this! Very special corner-case.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 

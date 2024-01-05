@@ -13,22 +13,47 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 
 /**
- * Represents a Basic authentication provider
- * @property name is the name of the provider, or `null` for a default provider
+ * A `basic` [Authentication] provider.
+ *
+ * @see [basic]
+ * @property name is the name of the provider, or `null` for a default provider.
  */
 public class BasicAuthenticationProvider internal constructor(
-    configuration: Configuration
-) : AuthenticationProvider(configuration) {
-    internal val realm: String = configuration.realm
+    config: Config
+) : AuthenticationProvider(config) {
+    internal val realm: String = config.realm
 
-    internal val charset: Charset? = configuration.charset
+    internal val charset: Charset? = config.charset
 
-    internal val authenticationFunction = configuration.authenticationFunction
+    internal val authenticationFunction = config.authenticationFunction
+
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val credentials = call.request.basicAuthenticationCredentials(charset)
+        val principal = credentials?.let { authenticationFunction(call, it) }
+
+        val cause = when {
+            credentials == null -> AuthenticationFailedCause.NoCredentials
+            principal == null -> AuthenticationFailedCause.InvalidCredentials
+            else -> null
+        }
+
+        if (cause != null) {
+            @Suppress("NAME_SHADOWING")
+            context.challenge(basicAuthenticationChallengeKey, cause) { challenge, call ->
+                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
+                challenge.complete()
+            }
+        }
+        if (principal != null) {
+            context.principal(name, principal)
+        }
+    }
 
     /**
-     * Basic auth configuration
+     * A configuration for the [basic] authentication provider.
      */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
             throw NotImplementedError(
                 "Basic auth validate function is not specified. Use basic { validate { ... } } to fix."
@@ -36,13 +61,13 @@ public class BasicAuthenticationProvider internal constructor(
         }
 
         /**
-         * Specifies realm to be passed in `WWW-Authenticate` header
+         * Specifies a realm to be passed in the `WWW-Authenticate` header.
          */
         public var realm: String = "Ktor Server"
 
         /**
-         * Specifies the charset to be used. It can be either UTF_8 or null.
-         * Setting `null` turns legacy mode on that actually means that ISO-8859-1 is used.
+         * Specifies the charset to be used. It can be either `UTF_8` or `null`.
+         * Setting `null` turns on a legacy mode (`ISO-8859-1`).
          */
         public var charset: Charset? = Charsets.UTF_8
             set(value) {
@@ -55,8 +80,8 @@ public class BasicAuthenticationProvider internal constructor(
             }
 
         /**
-         * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
-         * or null if credential does not correspond to an authenticated principal
+         * Sets a validation function that checks a specified [UserPasswordCredential] instance and
+         * returns [Principal] in a case of successful authentication or null if authentication fails.
          */
         public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
@@ -65,52 +90,27 @@ public class BasicAuthenticationProvider internal constructor(
 }
 
 /**
- * Installs Basic Authentication mechanism
+ * Installs the basic [Authentication] provider.
+ * You can use basic authentication for logging in users and protecting specific routes.
+ * To learn how to configure it, see [Basic authentication](https://ktor.io/docs/basic.html).
  */
-public fun Authentication.Configuration.basic(
+public fun AuthenticationConfig.basic(
     name: String? = null,
-    configure: BasicAuthenticationProvider.Configuration.() -> Unit
+    configure: BasicAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Configuration(name).apply(configure))
-    val realm = provider.realm
-    val charset = provider.charset
-    val authenticate = provider.authenticationFunction
-
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val credentials = call.request.basicAuthenticationCredentials(charset)
-        val principal = credentials?.let { authenticate(call, it) }
-
-        val cause = when {
-            credentials == null -> AuthenticationFailedCause.NoCredentials
-            principal == null -> AuthenticationFailedCause.InvalidCredentials
-            else -> null
-        }
-
-        if (cause != null) {
-            context.challenge(basicAuthenticationChallengeKey, cause) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
-                it.complete()
-            }
-        }
-        if (principal != null) {
-            context.principal(principal)
-        }
-    }
-
+    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Config(name).apply(configure))
     register(provider)
 }
 
 /**
- * Retrieves Basic authentication credentials for this [ApplicationRequest]
+ * Retrieves [basic] authentication credentials for this [ApplicationRequest].
  */
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
-            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case
-            // sensitive; thus BASIC, or Basic, or basic are all valid.
-            if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) {
-                return null
-            }
+            // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be
+            // case-sensitive; thus BASIC, or Basic, or basic are all valid.
+            if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) return null
 
             val userPass = try {
                 String(authHeader.blob.decodeBase64Bytes(), charset = charset ?: Charsets.ISO_8859_1)
@@ -120,9 +120,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
 
             val colonIndex = userPass.indexOf(':')
 
-            if (colonIndex == -1) {
-                return null
-            }
+            if (colonIndex == -1) return null
 
             return UserPasswordCredential(userPass.substring(0, colonIndex), userPass.substring(colonIndex + 1))
         }

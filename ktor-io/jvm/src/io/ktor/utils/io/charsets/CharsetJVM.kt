@@ -1,15 +1,25 @@
 package io.ktor.utils.io.charsets
 
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
 import java.nio.*
 import java.nio.charset.*
 
 private const val DECODE_CHAR_BUFFER_SIZE = 8192
 
-@Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
+@Suppress("ACTUAL_CLASSIFIER_MUST_HAVE_THE_SAME_MEMBERS_AS_NON_FINAL_EXPECT_CLASSIFIER_WARNING")
 public actual typealias Charset = java.nio.charset.Charset
+
+/**
+ * Find a charset by name.
+ */
+public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
+
+/**
+ * Check if a charset is supported by the current platform.
+ */
+public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 
 public actual val Charset.name: String get() = name()
 
@@ -40,7 +50,13 @@ private fun CharsetEncoder.encodeToByteArraySlow(input: CharSequence, fromIndex:
     return existingArray ?: ByteArray(result.remaining()).also { result.get(it) }
 }
 
-internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
+@Suppress("DEPRECATION")
+internal actual fun CharsetEncoder.encodeImpl(
+    input: CharSequence,
+    fromIndex: Int,
+    toIndex: Int,
+    dst: io.ktor.utils.io.core.Buffer
+): Int {
     val cb = CharBuffer.wrap(input, fromIndex, toIndex)
     val before = cb.remaining()
 
@@ -52,6 +68,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return before - cb.remaining()
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     if (charset === Charsets.UTF_8) {
         dst.writePacket(input)
@@ -78,7 +95,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                     if (cb.hasRemaining()) {
                         cb.put(ch)
                         true
-                    } else false
+                    } else {
+                        false
+                    }
                 }
 
                 input.headPosition = chunk.readPosition
@@ -91,8 +110,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                         view.writeDirect(writeSize) { to ->
                             val cr = encode(cb, to, false)
                             if (cr.isUnmappable || cr.isMalformed) cr.throwExceptionWrapped()
-                            if (cr.isOverflow && to.hasRemaining()) writeSize++
-                            else writeSize = 1
+                            if (cr.isOverflow && to.hasRemaining()) {
+                                writeSize++
+                            } else writeSize = 1
                         }
                         if (cb.hasRemaining()) writeSize else 0
                     }
@@ -112,8 +132,9 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
                 chunk.writeDirect(completeSize) { to ->
                     val cr = encode(cb, to, true)
                     if (cr.isMalformed || cr.isUnmappable) cr.throwExceptionWrapped()
-                    if (cr.isOverflow) completeSize++
-                    else completeSize = 0
+                    if (cr.isOverflow) {
+                        completeSize++
+                    } else completeSize = 0
                 }
 
                 completeSize
@@ -124,7 +145,8 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
     }
 }
 
-internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
+@Suppress("DEPRECATION")
+internal actual fun CharsetEncoder.encodeComplete(dst: io.ktor.utils.io.core.Buffer): Boolean {
     var completed = false
 
     dst.writeDirect(0) { bb ->
@@ -138,8 +160,9 @@ internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean {
     return completed
 }
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetDecoder.decodeBuffer(
-    input: Buffer,
+    input: io.ktor.utils.io.core.Buffer,
     out: Appendable,
     lastBuffer: Boolean,
     max: Int
@@ -147,7 +170,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
     var charactersCopied = 0
     input.readDirect { bb ->
         val tmpBuffer = ChunkBuffer.Pool.borrow()
-        val cb = tmpBuffer.memory.buffer.asCharBuffer()
+        val cb = tmpBuffer.memory.asCharBuffer()
 
         try {
             while (bb.hasRemaining() && charactersCopied < max) {
@@ -170,19 +193,49 @@ internal actual fun CharsetDecoder.decodeBuffer(
     return charactersCopied
 }
 
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
+    input: CharSequence,
+    fromIndex: Int,
+    toIndex: Int
+): ByteArray {
+    var start = fromIndex
+    if (start >= toIndex) return EmptyByteArray
+    @Suppress("DEPRECATION")
+    val single = ChunkBuffer.Pool.borrow()
+
+    try {
+        val rc = encodeImpl(input, start, toIndex, single)
+        start += rc
+        if (start == toIndex) {
+            val result = ByteArray(single.readRemaining)
+            single.readFully(result)
+            return result
+        }
+
+        return buildPacket {
+            appendSingleChunk(single.duplicate())
+            encodeToImpl(this, input, start, toIndex)
+        }.readBytes()
+    } finally {
+        @Suppress("DEPRECATION")
+        single.release(ChunkBuffer.Pool)
+    }
+}
+
 // -----------------------
 
 public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 
 public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     var copied = 0
     val cb = CharBuffer.allocate(DECODE_CHAR_BUFFER_SIZE)
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: Buffer ->
+    input.takeWhileSize { buffer: io.ktor.utils.io.core.Buffer ->
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
@@ -226,6 +279,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
     return copied
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input.headRemaining >= inputLength) {
@@ -254,6 +308,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
     return decodeImplSlow(input, inputLength)
 }
 
+@Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeImplByteBuffer(input: Input, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
     val bb = input.headMemory.slice(input.head.readPosition, inputLength).buffer
@@ -265,6 +320,7 @@ private fun CharsetDecoder.decodeImplByteBuffer(input: Input, inputLength: Int):
     return cb.toString()
 }
 
+@Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): String {
     val cb = CharBuffer.allocate(inputLength)
     var remainingInputBytes = inputLength
@@ -272,7 +328,7 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
 
     var readSize = 1
 
-    input.takeWhileSize { buffer: Buffer ->
+    input.takeWhileSize { buffer: io.ktor.utils.io.core.Buffer ->
         if (!cb.hasRemaining() || remainingInputBytes == 0) return@takeWhileSize 0
 
         buffer.readDirect { bb: ByteBuffer ->

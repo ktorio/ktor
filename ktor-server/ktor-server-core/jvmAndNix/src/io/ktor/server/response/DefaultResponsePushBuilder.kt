@@ -8,10 +8,10 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.util.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
- * HTTP/2 push builder
+ * An HTTP/2 push builder.
  * @property method HTTP method
  * @property url builder
  * @property headers builder
@@ -39,7 +39,7 @@ public class DefaultResponsePushBuilder(
     )
 
     /**
-     * List of version information (for conditional headers)
+     * A list of version information (for conditional headers).
      */
     override var versions: ArrayList<Version> =
         if (versions.isEmpty()) ArrayList() else ArrayList(versions)

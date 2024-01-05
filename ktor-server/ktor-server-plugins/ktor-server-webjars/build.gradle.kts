@@ -2,15 +2,16 @@ description = ""
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
-                api("org.webjars:webjars-locator-core:0.48")
+                api(libs.webjars.locator)
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-                api("org.webjars:jquery:3.3.1")
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-caching-headers"))
+                api(libs.webjars.jquery)
             }
         }
     }

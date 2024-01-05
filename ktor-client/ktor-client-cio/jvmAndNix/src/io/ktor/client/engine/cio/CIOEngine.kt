@@ -6,9 +6,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.util.*
@@ -24,17 +24,18 @@ internal class CIOEngine(
     override val config: CIOEngineConfig
 ) : HttpClientEngineBase("ktor-cio") {
 
-    override val dispatcher by lazy {
-        Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher")
-    }
-
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability, WebSocketExtensionsCapability)
+    override val supportedCapabilities =
+        setOf(HttpTimeoutCapability, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
-    private val selectorManager: SelectorManager by lazy { SelectorManager(dispatcher) }
+    private val selectorManager = SelectorManager(dispatcher)
 
-    private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
+    private val connectionFactory = ConnectionFactory(
+        selectorManager,
+        config.maxConnectionsCount,
+        config.endpoint.maxConnectionsPerRoute
+    )
 
     private val requestsJob: CoroutineContext
 
@@ -43,6 +44,7 @@ internal class CIOEngine(
     private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
         ProxyType.SOCKS,
         null -> null
+
         ProxyType.HTTP -> config.proxy
         else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
@@ -131,11 +133,3 @@ internal class CIOEngine(
         }
     }
 }
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Use ClientEngineClosedException instead",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("ClientEngineClosedException")
-)
-public class ClientClosedException(cause: Throwable? = null) : IllegalStateException("Client already closed", cause)

@@ -5,7 +5,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import libcurl.*
 
@@ -19,7 +19,8 @@ import libcurl.*
 @EagerInitialization
 private val curlGlobalInitReturnCode = curlInitBridge()
 
-internal expect fun curlInitBridge(): Int
+@OptIn(ExperimentalForeignApi::class)
+internal fun curlInitBridge(): Int = curl_global_init(CURL_GLOBAL_ALL.convert()).convert()
 
 @OptIn(ExperimentalStdlibApi::class)
 @Suppress("unused", "DEPRECATION")
@@ -27,8 +28,22 @@ internal expect fun curlInitBridge(): Int
 private val initHook = Curl
 
 /**
- * [HttpClientEngineFactory] using a curl library in implementation
- * with the associated configuration [HttpClientEngineConfig].
+ * A Kotlin/Native client engine that can be used on desktop platforms.
+ *
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(Curl)
+ * ```
+ * To configure the engine, pass settings exposed by [CurlClientEngineConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(Curl) {
+ *     engine {
+ *         // this: CurlClientEngineConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 @OptIn(InternalAPI::class)
 public object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {

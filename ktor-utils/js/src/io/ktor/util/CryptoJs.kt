@@ -8,17 +8,14 @@ import kotlinx.coroutines.*
 import org.khronos.webgl.*
 import kotlin.js.*
 
-private const val NONCE_SIZE_IN_BYTES = 8
-
 /**
  * Generates a nonce string.
  */
 public actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES)
-    if (PlatformUtils.IS_NODE) {
-        _crypto.randomFillSync(buffer)
-    } else {
-        _crypto.getRandomValues(buffer)
+    when (PlatformUtils.platform) {
+        Platform.Node -> _crypto.randomFillSync(buffer)
+        else -> _crypto.getRandomValues(buffer)
     }
     return hex(buffer)
 }
@@ -47,10 +44,9 @@ public actual fun Digest(name: String): Digest = object : Digest {
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
 private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable due to evaluation order
-    if (PlatformUtils.IS_NODE) {
-        js("eval('require')('crypto')")
-    } else {
-        js("(window ? (window.crypto ? window.crypto : window.msCrypto) : self.crypto)")
+    when (PlatformUtils.platform) {
+        Platform.Node -> js("eval('require')('crypto')")
+        else -> js("(window ? (window.crypto ? window.crypto : window.msCrypto) : self.crypto)")
     }
 }
 
@@ -69,4 +65,4 @@ private external class SubtleCrypto {
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-public actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-js")
+public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest(bytes)

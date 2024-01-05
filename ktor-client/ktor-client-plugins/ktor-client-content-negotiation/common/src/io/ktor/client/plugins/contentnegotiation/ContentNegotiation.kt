@@ -4,138 +4,247 @@
 
 package io.ktor.client.plugins.contentnegotiation
 
-import io.ktor.client.*
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlin.reflect.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.contentnegotiation.ContentNegotiation")
+
+internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
+    ByteArray::class,
+    String::class,
+    HttpStatusCode::class,
+    ByteReadChannel::class,
+    OutgoingContent::class
+)
+
+internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
- * [HttpClient] plugin that serializes/de-serializes custom objects
- * to request and from response bodies using a [ContentConverter]
- * to Content-Type and Accept headers.
+ * A [ContentNegotiation] configuration that is used during installation.
  */
-public class ContentNegotiation internal constructor(
-    internal val registrations: List<Config.ConverterRegistration>
-) {
+@KtorDsl
+public class ContentNegotiationConfig : Configuration {
+
+    internal class ConverterRegistration(
+        val converter: ContentConverter,
+        val contentTypeToSend: ContentType,
+        val contentTypeMatcher: ContentTypeMatcher
+    )
+
+    internal val ignoredTypes: MutableSet<KClass<*>> =
+        (DefaultIgnoredTypes + DefaultCommonIgnoredTypes).toMutableSet()
+
+    internal val registrations = mutableListOf<ConverterRegistration>()
 
     /**
-     * [ContentNegotiation] configuration that is used during installation
+     * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
      */
-    public class Config : Configuration {
-
-        internal class ConverterRegistration(
-            val converter: ContentConverter,
-            val contentTypeToSend: ContentType,
-            val contentTypeMatcher: ContentTypeMatcher,
-        )
-
-        internal val registrations = mutableListOf<ConverterRegistration>()
-
-        /**
-         * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
-         */
-        public override fun <T : ContentConverter> register(
-            contentType: ContentType,
-            converter: T,
-            configuration: T.() -> Unit
-        ) {
-            val matcher = when (contentType) {
-                ContentType.Application.Json -> JsonContentTypeMatcher
-                else -> defaultMatcher(contentType)
-            }
-            register(contentType, converter, matcher, configuration)
+    public override fun <T : ContentConverter> register(
+        contentType: ContentType,
+        converter: T,
+        configuration: T.() -> Unit
+    ) {
+        val matcher = when (contentType) {
+            ContentType.Application.Json -> JsonContentTypeMatcher
+            else -> defaultMatcher(contentType)
         }
-
-        /**
-         * Registers a [contentTypeToSend] and [contentTypeMatcher] to a specified [converter] with
-         * an optional [configuration] script for converter
-         */
-        public fun <T : ContentConverter> register(
-            contentTypeToSend: ContentType,
-            converter: T,
-            contentTypeMatcher: ContentTypeMatcher,
-            configuration: T.() -> Unit
-        ) {
-            val registration = ConverterRegistration(
-                converter.apply(configuration),
-                contentTypeToSend,
-                contentTypeMatcher
-            )
-            registrations.add(registration)
-        }
-
-        private fun defaultMatcher(pattern: ContentType): ContentTypeMatcher = object : ContentTypeMatcher {
-            override fun contains(contentType: ContentType): Boolean = contentType.match(pattern)
-        }
+        register(contentType, converter, matcher, configuration)
     }
 
     /**
-     * Companion object for plugin installation
+     * Registers a [contentTypeToSend] and [contentTypeMatcher] to a specified [converter] with
+     * an optional [configuration] script for a converter.
      */
-    public companion object Plugin : HttpClientPlugin<Config, ContentNegotiation> {
-        public override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
+    public fun <T : ContentConverter> register(
+        contentTypeToSend: ContentType,
+        converter: T,
+        contentTypeMatcher: ContentTypeMatcher,
+        configuration: T.() -> Unit
+    ) {
+        val registration = ConverterRegistration(
+            converter.apply(configuration),
+            contentTypeToSend,
+            contentTypeMatcher
+        )
+        registrations.add(registration)
+    }
 
-        override fun prepare(block: Config.() -> Unit): ContentNegotiation {
-            val config = Config().apply(block)
-            return ContentNegotiation(config.registrations)
+    /**
+     * Adds a type to the list of types that should be ignored by [ContentNegotiation].
+     *
+     * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+     */
+    public inline fun <reified T> ignoreType() {
+        ignoreType(T::class)
+    }
+
+    /**
+     * Remove [T] from the list of types that should be ignored by [ContentNegotiation].
+     */
+    public inline fun <reified T> removeIgnoredType() {
+        removeIgnoredType(T::class)
+    }
+
+    /**
+     * Remove [type] from the list of types that should be ignored by [ContentNegotiation].
+     */
+    public fun removeIgnoredType(type: KClass<*>) {
+        ignoredTypes.remove(type)
+    }
+
+    /**
+     * Adds a [type] to the list of types that should be ignored by [ContentNegotiation].
+     *
+     * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+     */
+    public fun ignoreType(type: KClass<*>) {
+        ignoredTypes.add(type)
+    }
+
+    /**
+     * Clear all configured ignored types including defaults.
+     */
+    public fun clearIgnoredTypes() {
+        ignoredTypes.clear()
+    }
+
+    private fun defaultMatcher(pattern: ContentType): ContentTypeMatcher = object : ContentTypeMatcher {
+        override fun contains(contentType: ContentType): Boolean = contentType.match(pattern)
+    }
+}
+
+/**
+ * A plugin that serves two primary purposes:
+ * - Negotiating media types between the client and server. For this, it uses the `Accept` and `Content-Type` headers.
+ * - Serializing/deserializing the content in a specific format when sending requests and receiving responses.
+ *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
+ *
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization-client.html).
+ */
+@OptIn(InternalAPI::class)
+public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createClientPlugin(
+    "ContentNegotiation",
+    ::ContentNegotiationConfig
+) {
+    val registrations: List<ContentNegotiationConfig.ConverterRegistration> = pluginConfig.registrations
+    val ignoredTypes: Set<KClass<*>> = pluginConfig.ignoredTypes
+
+    suspend fun convertRequest(request: HttpRequestBuilder, body: Any): OutgoingContent? {
+        registrations.forEach {
+            LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header for ${request.url}")
+            request.accept(it.contentTypeToSend)
         }
 
-        override fun install(plugin: ContentNegotiation, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
-                val registrations = plugin.registrations
-                registrations.forEach { context.accept(it.contentTypeToSend) }
+        if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
+            LOGGER.trace(
+                "Body type ${body::class} is in ignored types. " +
+                    "Skipping ContentNegotiation for ${request.url}."
+            )
+            return null
+        }
+        val contentType = request.contentType() ?: run {
+            LOGGER.trace("Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}.")
+            return null
+        }
 
-                val contentType = context.contentType() ?: return@intercept
-                context.headers.remove(HttpHeaders.ContentType)
+        if (body is Unit) {
+            LOGGER.trace("Sending empty body for ${request.url}")
+            request.headers.remove(HttpHeaders.ContentType)
+            return EmptyContent
+        }
 
-                if (payload is Unit || payload is EmptyContent) {
-                    proceedWith(EmptyContent)
-                    return@intercept
-                }
+        val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
+            .takeIf { it.isNotEmpty() } ?: run {
+            LOGGER.trace(
+                "None of the registered converters match request Content-Type=$contentType. " +
+                    "Skipping ContentNegotiation for ${request.url}."
+            )
+            return null
+        }
+        if (request.bodyType == null) {
+            LOGGER.trace("Request has unknown body type. Skipping ContentNegotiation for ${request.url}.")
+            return null
+        }
+        request.headers.remove(HttpHeaders.ContentType)
 
-                val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
-                    .takeIf { it.isNotEmpty() } ?: return@intercept
+        // Pick the first one that can convert the subject successfully
+        val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
+            val result = registration.converter.serialize(
+                contentType,
+                contentType.charset() ?: Charsets.UTF_8,
+                request.bodyType!!,
+                body.takeIf { it != NullBody }
+            )
+            if (result != null) {
+                LOGGER.trace("Converted request body using ${registration.converter} for ${request.url}")
+            }
+            result
+        } ?: throw ContentConverterException(
+            "Can't convert $body with contentType $contentType using converters " +
+                matchingRegistrations.joinToString { it.converter.toString() }
+        )
 
-                // Pick the first one that can convert the subject successfully
-                val serializedContent = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter.serialize(
-                        contentType,
-                        contentType.charset() ?: Charsets.UTF_8,
-                        context.bodyType!!,
-                        payload
-                    )
-                } ?: throw ContentConverterException(
-                    "Can't convert $payload with contentType $contentType using converters " +
-                        matchingRegistrations.joinToString { it.converter.toString() }
+        return serializedContent
+    }
+
+    @OptIn(InternalAPI::class)
+    suspend fun convertResponse(
+        requestUrl: Url,
+        info: TypeInfo,
+        body: Any,
+        responseContentType: ContentType,
+        charset: Charset = Charsets.UTF_8
+    ): Any? {
+        if (body !is ByteReadChannel) {
+            LOGGER.trace("Response body is already transformed. Skipping ContentNegotiation for $requestUrl.")
+            return null
+        }
+        if (info.type in ignoredTypes) {
+            LOGGER.trace(
+                "Response body type ${info.type} is in ignored types. " +
+                    "Skipping ContentNegotiation for $requestUrl."
+            )
+            return null
+        }
+
+        val suitableConverters = registrations
+            .filter { it.contentTypeMatcher.contains(responseContentType) }
+            .map { it.converter }
+            .takeIf { it.isNotEmpty() }
+            ?: run {
+                LOGGER.trace(
+                    "None of the registered converters match response with Content-Type=$responseContentType. " +
+                        "Skipping ContentNegotiation for $requestUrl."
                 )
-
-                proceedWith(serializedContent)
+                return null
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
-                if (body !is ByteReadChannel) return@intercept
-
-                val contentType = context.response.contentType() ?: return@intercept
-                val registrations = plugin.registrations
-                val matchingRegistrations = registrations
-                    .filter { it.contentTypeMatcher.contains(contentType) }
-                    .takeIf { it.isNotEmpty() } ?: return@intercept
-
-                // Pick the first one that can convert the subject successfully
-                val parsedBody = matchingRegistrations.firstNotNullOfOrNull { registration ->
-                    registration.converter
-                        .deserialize(context.request.headers.suitableCharset(), info, body)
-                } ?: return@intercept
-                val response = HttpResponseContainer(info, parsedBody)
-                proceedWith(response)
-            }
+        val result = suitableConverters.deserialize(body, info, charset)
+        if (result !is ByteReadChannel) {
+            LOGGER.trace("Response body was converted to ${result::class} for $requestUrl.")
         }
+        return result
+    }
+
+    transformRequestBody { request, body, _ ->
+        convertRequest(request, body)
+    }
+
+    transformResponseBody { response, body, info ->
+        val contentType = response.contentType() ?: return@transformResponseBody null
+        val charset = response.request.headers.suitableCharset()
+
+        convertResponse(response.request.url, info, body, contentType, charset)
     }
 }
 

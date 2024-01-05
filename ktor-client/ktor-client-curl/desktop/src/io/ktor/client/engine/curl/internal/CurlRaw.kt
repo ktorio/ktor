@@ -18,66 +18,77 @@ import kotlinx.coroutines.*
 import libcurl.*
 import kotlin.coroutines.*
 
-private val EMPTY_BYTE_ARRAY = ByteArray(0)
-
+@OptIn(ExperimentalForeignApi::class)
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
     proxy = config.proxy,
-    content = body.toCurlByteArray(),
-    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
-    config.forceProxyTunneling,
-    config.sslVerify
+    content = body.toByteChannel(),
+    contentLength = body.contentLength ?: headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: -1L,
+    connectTimeout = getCapabilityOrNull(HttpTimeoutCapability)?.connectTimeoutMillis,
+    executionContext = executionContext,
+    forceProxyTunneling = config.forceProxyTunneling,
+    sslVerify = config.sslVerify,
+    caInfo = config.caInfo,
+    caPath = config.caPath
 )
 
-internal class CurlRequestData(
+internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor(
     val url: String,
     val method: String,
     val headers: CPointer<curl_slist>,
     val proxy: ProxyConfig?,
-    val content: ByteArray,
+    val content: ByteReadChannel,
+    val contentLength: Long,
     val connectTimeout: Long?,
+    val executionContext: Job,
     val forceProxyTunneling: Boolean,
-    val sslVerify: Boolean
+    val sslVerify: Boolean,
+    val caInfo: String?,
+    val caPath: String?
 ) {
     override fun toString(): String =
-        "CurlRequestData(url='$url', method='$method', content: ${content.size} bytes)"
+        "CurlRequestData(url='$url', method='$method', content: $contentLength bytes)"
 }
 
 internal class CurlResponseBuilder(val request: CurlRequestData) {
     val headersBytes = BytePacketBuilder()
-    val bodyBytes = BytePacketBuilder()
+    val bodyChannel = ByteChannel(true).apply {
+        @Suppress("DEPRECATION")
+        attachJob(request.executionContext)
+    }
 }
 
-internal sealed class CurlResponseData(
-    val request: CurlRequestData
-)
+internal sealed class CurlResponseData
 
 internal class CurlSuccess(
-    request: CurlRequestData,
     val status: Int,
     val version: UInt,
     val headersBytes: ByteArray,
-    val bodyBytes: ByteArray
-) : CurlResponseData(request) {
+    val bodyChannel: ByteReadChannel
+) : CurlResponseData() {
     override fun toString(): String = "CurlSuccess(${HttpStatusCode.fromValue(status)})"
 }
 
 internal class CurlFail(
-    request: CurlRequestData,
     val cause: Throwable
-) : CurlResponseData(request) {
+) : CurlResponseData() {
     override fun toString(): String = "CurlFail($cause)"
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray = when (this@toCurlByteArray) {
-    is OutgoingContent.ByteArrayContent -> bytes()
+internal suspend fun OutgoingContent.toByteChannel(): ByteReadChannel = when (this@toByteChannel) {
+    is OutgoingContent.ByteArrayContent -> {
+        val bytes = bytes()
+        ByteReadChannel(bytes, 0, bytes.size)
+    }
+
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
         writeTo(channel)
-    }.channel.readRemaining().readBytes()
-    is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readBytes()
-    is OutgoingContent.NoContent -> EMPTY_BYTE_ARRAY
-    else -> throw UnsupportedContentTypeException(this@toCurlByteArray)
+    }.channel
+
+    is OutgoingContent.ReadChannelContent -> readFrom()
+    is OutgoingContent.NoContent -> ByteReadChannel.Empty
+    else -> throw UnsupportedContentTypeException(this@toByteChannel)
 }

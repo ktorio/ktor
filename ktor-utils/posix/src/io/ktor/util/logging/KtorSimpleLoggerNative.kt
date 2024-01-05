@@ -4,53 +4,69 @@
 
 package io.ktor.util.logging
 
+import kotlinx.cinterop.*
+import platform.posix.*
+
+private val KTOR_LOG_LEVEL_KEY = "KTOR_LOG_LEVEL"
+
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("FunctionName")
-public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
-    private fun log(level: String, message: String) {
-        println("[$level] ($name): $message")
+public actual fun KtorSimpleLogger(
+    name: String
+): Logger = object : Logger {
+
+    override val level: LogLevel = getenv(KTOR_LOG_LEVEL_KEY)?.let { rawLevel ->
+        val level = rawLevel.toKString()
+        LogLevel.entries.firstOrNull { it.name == level }
+    } ?: LogLevel.INFO
+
+    private fun log(level: LogLevel, message: String) {
+        if (level < this.level) return
+        println("[${level.name}] ($name): $message")
     }
 
-    private fun log(level: String, message: String, cause: Throwable) {
-        println("[$level] ($name): $message. Cause: ${cause.stackTraceToString()}")
+    private fun log(level: LogLevel, message: String, cause: Throwable) {
+        if (level < this.level) return
+        println("[${level.name}] ($name): $message. Cause: ${cause.stackTraceToString()}")
     }
 
     override fun error(message: String) {
-        log("error", message)
+        log(LogLevel.ERROR, message)
     }
 
     override fun error(message: String, cause: Throwable) {
-        log("error", message, cause)
+        log(LogLevel.ERROR, message, cause)
     }
 
     override fun warn(message: String) {
-        log("warn", message)
+        log(LogLevel.WARN, message)
     }
 
     override fun warn(message: String, cause: Throwable) {
-        log("warn", message, cause)
+        log(LogLevel.WARN, message, cause)
     }
 
     override fun info(message: String) {
-        log("info", message)
+        log(LogLevel.INFO, message)
     }
 
     override fun info(message: String, cause: Throwable) {
-        log("info", message, cause)
+        log(LogLevel.INFO, message, cause)
     }
 
     override fun debug(message: String) {
-        log("debug", message)
+        log(LogLevel.DEBUG, message)
     }
 
     override fun debug(message: String, cause: Throwable) {
-        log("debug", message, cause)
+        log(LogLevel.DEBUG, message, cause)
     }
 
     override fun trace(message: String) {
-        log("trace", message)
+        log(LogLevel.TRACE, message)
     }
 
     override fun trace(message: String, cause: Throwable) {
-        log("trace", message, cause)
+        log(LogLevel.TRACE, message, cause)
     }
 }

@@ -4,10 +4,7 @@
 
 package io.ktor.server.cio
 
-import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
-import io.ktor.server.cio.backend.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
@@ -27,30 +24,11 @@ public class HttpServer(
  * @property host to listen to
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
+ * @property reuseAddress allow the server to bind to an address that is already in use
  */
 public data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
-    val connectionIdleTimeoutSeconds: Long = 45
+    val connectionIdleTimeoutSeconds: Long = 45,
+    val reuseAddress: Boolean = false
 )
-
-/**
- * Start an http server with [settings] invoking [handler] for every request
- */
-@Deprecated(
-    "Use handler function with single request parameter from package io.ktor.server.cio.backend.",
-    level = DeprecationLevel.ERROR
-)
-public fun CoroutineScope.httpServer(
-    settings: HttpServerSettings,
-    handler: suspend CoroutineScope.(
-        request: Request,
-        input: ByteReadChannel,
-        output: ByteWriteChannel,
-        upgraded: CompletableDeferred<Boolean>?
-    ) -> Unit
-): HttpServer {
-    return httpServer(settings) { request ->
-        handler(this, request, input, output, upgraded)
-    }
-}

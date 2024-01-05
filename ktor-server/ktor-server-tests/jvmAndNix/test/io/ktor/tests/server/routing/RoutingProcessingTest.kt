@@ -12,6 +12,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
 import kotlin.test.*
 
 private enum class SelectedRoute { Get, Param, Header, None }
@@ -248,6 +249,22 @@ class RoutingProcessingTest {
         }
     }
 
+    private class PluginsWithProceedHook(val phase: PipelinePhase) :
+        Hook<suspend PluginsWithProceedHook.Context.() -> Unit> {
+
+        class Context(private val pipelineContext: PipelineContext<*, *>) {
+            suspend fun proceed() {
+                pipelineContext.proceed()
+            }
+        }
+
+        override fun install(pipeline: ApplicationCallPipeline, handler: suspend Context.() -> Unit) {
+            pipeline.intercept(phase) {
+                Context(this).handler()
+            }
+        }
+    }
+
     @Test
     fun testRoutingOnGETUserUsernameWithInterceptors() = withTestApplication {
         var userIntercepted = false
@@ -257,12 +274,16 @@ class RoutingProcessingTest {
 
         application.routing {
             route("user") {
-                intercept(ApplicationCallPipeline.Call) {
-                    userIntercepted = true
-                    wrappedWithInterceptor = true
-                    proceed()
-                    wrappedWithInterceptor = false
-                }
+                install(
+                    createRouteScopedPlugin("test") {
+                        on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                            userIntercepted = true
+                            wrappedWithInterceptor = true
+                            proceed()
+                            wrappedWithInterceptor = false
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
@@ -315,18 +336,26 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Call) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Call)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCall {
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                 }
@@ -346,45 +375,6 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfPhase() = withTestApplication {
-        var userIntercepted = false
-        var wrappedWithInterceptor = false
-        var rootIntercepted = false
-        var userName = ""
-        var routingInterceptorWrapped = false
-
-        application.routing {
-            intercept(ApplicationCallPipeline.Plugins) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
-
-            route("user") {
-                intercept(ApplicationCallPipeline.Call) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
-                get("{username}") {
-                    userName = call.parameters["username"] ?: ""
-                }
-            }
-        }
-
-        on("handling GET /user/john") {
-            handleRequest {
-                uri = "/user/john"
-                method = HttpMethod.Get
-            }
-            assertTrue(userIntercepted, "should have processed interceptor on /user node")
-            assertTrue(routingInterceptorWrapped, "should have processed nested routing interceptor in an after phase")
-            assertTrue(rootIntercepted, "should have processed root interceptor")
-            assertEquals(userName, "john", "should have processed get handler on /user/username node")
-        }
-    }
-
-    @Test
     fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfOrder() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -393,18 +383,26 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Plugins) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCall {
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                        }
+                    }
+                )
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
                 }
@@ -432,19 +430,27 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                wrappedWithInterceptor = true
-                rootIntercepted = true
-                proceed()
-                wrappedWithInterceptor = false
-            }
+            install(
+                createRouteScopedPlugin("test") {
+                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                        wrappedWithInterceptor = true
+                        rootIntercepted = true
+                        proceed()
+                        wrappedWithInterceptor = false
+                    }
+                }
+            )
 
             route("user") {
-                receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                    userIntercepted = true
-                    routingInterceptorWrapped = wrappedWithInterceptor
-                    proceedWith(ApplicationReceiveRequest(it.typeInfo, Foo()))
-                }
+                install(
+                    createRouteScopedPlugin("test-route") {
+                        onCallReceive { _ ->
+                            userIntercepted = true
+                            routingInterceptorWrapped = wrappedWithInterceptor
+                            transformBody { Foo() }
+                        }
+                    }
+                )
                 get("{username}") {
                     instance = call.receive()
                 }
@@ -464,8 +470,8 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testAcceptHeaderProcessing() = withTestApplication {
-        application.routing {
+    fun testAcceptHeaderProcessing() = testApplication {
+        routing {
             route("/") {
                 accept(ContentType.Text.Plain) {
                     handle {
@@ -477,36 +483,114 @@ class RoutingProcessingTest {
                         call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
                     }
                 }
+                accept(ContentType.Application.Xml, ContentType.Text.CSS) {
+                    handle {
+                        call.respondText("XML or CSS")
+                    }
+                }
             }
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/plain")
-        }.let { call ->
-            assertEquals("OK", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/plain")
+        }.let {
+            assertEquals("OK", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "application/json")
-        }.let { call ->
-            assertEquals("{\"status\": \"OK\"}", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/json")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-        }.let { call ->
-            assertEquals("OK", call.response.content)
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/xml")
+        }.let {
+            assertEquals("XML or CSS", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "text/html")
-        }.let { call ->
-            assertFalse(call.response.status()!!.isSuccess())
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/css")
+        }.let {
+            assertEquals("XML or CSS", it.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/") {
-            addHeader(HttpHeaders.Accept, "...lla..laa..la")
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        client.get("/").let {
+            assertEquals("OK", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "...lla..laa..la")
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.status)
+        }
+    }
+
+    @Test
+    fun testContentTypeHeaderProcessing() = testApplication {
+        routing {
+            route("/") {
+                contentType(ContentType.Text.Plain) {
+                    handle {
+                        call.respond("OK")
+                    }
+                }
+                contentType(ContentType.Application.Any) {
+                    handle {
+                        call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
+                    }
+                }
+            }
+            route("/nested", HttpMethod.Post) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
+                    }
+                }
+            }
+            route("/nested", HttpMethod.Get) {
+                contentType(ContentType.Application.Json) {
+                    handle {
+                        call.respond("ok")
+                    }
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "text/plain")
+        }.let {
+            assertEquals("OK", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/json")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/pdf")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
+        }
+
+        client.get("/nested") {
+            header(HttpHeaders.ContentType, "text/html")
+        }.let {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
         }
     }
 
@@ -718,307 +802,24 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRoutingWithTracing() = withTestApplication {
-        var trace: RoutingResolveTrace? = null
-        application.routing {
-            trace {
-                trace = it
-            }
-            get("/bar") { call.respond("/bar") }
-            get("/baz") { call.respond("/baz") }
-            get("/baz/x") { call.respond("/baz/x") }
-            get("/baz/x/{optional?}") { call.respond("/baz/x/{optional?}") }
-            get("/baz/{y}") { call.respond("/baz/{y}") }
-            get("/baz/{y}/value") { call.respond("/baz/{y}/value") }
-            get("/{param}") { call.respond("/{param}") }
-            get("/{param}/x") { call.respond("/{param}/x") }
-            get("/{param}/x/z") { call.respond("/{param}/x/z") }
-            get("/*/extra") { call.respond("/*/extra") }
-            header("a", "x") { get { call.respond("a") } }
-            header("b", "x") { get { call.respond("b") } }
-        }
-
-        handleRequest {
-            uri = "/bar"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/bar", it.response.content)
-            assertEquals(
-                """Trace for [bar]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:1 -> SUCCESS @ /bar
-    /bar/(method:GET), segment:1 -> SUCCESS @ /bar/(method:GET)
-  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param}
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "bar" -> "(method:GET)"
-Route resolve result:
-  SUCCESS @ /bar/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/bar/x"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/{param}/x", it.response.content)
-            assertEquals(
-                """Trace for [bar, x]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:1 -> SUCCESS @ /bar
-    /bar/(method:GET), segment:1 -> SUCCESS @ /bar/(method:GET)
-      /bar/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /bar/(method:GET)
-  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-  /{param}, segment:1 -> SUCCESS; Parameters [param=[bar]] @ /{param}
-    /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET)
-      /{param}/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /{param}/(method:GET)
-    /{param}/x, segment:2 -> SUCCESS @ /{param}/x
-      /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET)
-      /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "{param}" -> "x" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [param=[bar]] @ /{param}/x/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/baz/x"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/baz/x", it.response.content)
-            assertEquals(
-                """Trace for [baz, x]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:1 -> SUCCESS @ /baz
-    /baz/(method:GET), segment:1 -> SUCCESS @ /baz/(method:GET)
-      /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET)
-    /baz/x, segment:2 -> SUCCESS @ /baz/x
-      /baz/x/(method:GET), segment:2 -> SUCCESS @ /baz/x/(method:GET)
-      /baz/x/{optional?}, segment:2 -> FAILURE "Better match was already found" @ /baz/x/{optional?}
-    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y}
-  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param}
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "baz" -> "x" -> "(method:GET)"
-Route resolve result:
-  SUCCESS @ /baz/x/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/baz/doo"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/baz/{y}", it.response.content)
-            assertEquals(
-                """Trace for [baz, doo]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:1 -> SUCCESS @ /baz
-    /baz/(method:GET), segment:1 -> SUCCESS @ /baz/(method:GET)
-      /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET)
-    /baz/x, segment:1 -> FAILURE "Selector didn't match" @ /baz/x
-    /baz/{y}, segment:2 -> SUCCESS; Parameters [y=[doo]] @ /baz/{y}
-      /baz/{y}/(method:GET), segment:2 -> SUCCESS @ /baz/{y}/(method:GET)
-      /baz/{y}/value, segment:2 -> FAILURE "Selector didn't match" @ /baz/{y}/value
-  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param}
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "baz" -> "{y}" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/baz/x/z"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/baz/x/{optional?}", it.response.content)
-            assertEquals(
-                """Trace for [baz, x, z]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:1 -> SUCCESS @ /baz
-    /baz/(method:GET), segment:1 -> SUCCESS @ /baz/(method:GET)
-      /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET)
-    /baz/x, segment:2 -> SUCCESS @ /baz/x
-      /baz/x/(method:GET), segment:2 -> SUCCESS @ /baz/x/(method:GET)
-        /baz/x/(method:GET), segment:2 -> FAILURE "Not all segments matched" @ /baz/x/(method:GET)
-      /baz/x/{optional?}, segment:3 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}
-        /baz/x/{optional?}/(method:GET), segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET)
-    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y}
-  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param}
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/baz/x/value"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/baz/x/{optional?}", it.response.content)
-            assertEquals(
-                """Trace for [baz, x, value]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:1 -> SUCCESS @ /baz
-    /baz/(method:GET), segment:1 -> SUCCESS @ /baz/(method:GET)
-      /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET)
-    /baz/x, segment:2 -> SUCCESS @ /baz/x
-      /baz/x/(method:GET), segment:2 -> SUCCESS @ /baz/x/(method:GET)
-        /baz/x/(method:GET), segment:2 -> FAILURE "Not all segments matched" @ /baz/x/(method:GET)
-      /baz/x/{optional?}, segment:3 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}
-        /baz/x/{optional?}/(method:GET), segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET)
-    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y}
-  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param}
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/p"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/{param}", it.response.content)
-            assertEquals(
-                """Trace for [p]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-  /{param}, segment:1 -> SUCCESS; Parameters [param=[p]] @ /{param}
-    /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET)
-    /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "{param}" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [param=[p]] @ /{param}/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/p/x"
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("/{param}/x", it.response.content)
-            assertEquals(
-                """Trace for [p, x]
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-  /{param}, segment:1 -> SUCCESS; Parameters [param=[p]] @ /{param}
-    /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET)
-      /{param}/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /{param}/(method:GET)
-    /{param}/x, segment:2 -> SUCCESS @ /{param}/x
-      /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET)
-      /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z
-  /*, segment:0 -> FAILURE "Better match was already found" @ /*
-  /(header:a = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:a = x)
-  /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
-Matched routes:
-  "" -> "{param}" -> "x" -> "(method:GET)"
-Route resolve result:
-  SUCCESS; Parameters [param=[p]] @ /{param}/x/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-
-        handleRequest {
-            uri = "/"
-            addHeader("a", "x")
-            addHeader("b", "x")
-            method = HttpMethod.Get
-        }.let {
-            assertEquals("a", it.response.content)
-            assertEquals(
-                """Trace for []
-/, segment:0 -> SUCCESS @ /
-  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-  /{param}, segment:0 -> FAILURE "Selector didn't match" @ /{param}
-  /*, segment:0 -> FAILURE "Selector didn't match" @ /*
-  /(header:a = x), segment:0 -> SUCCESS @ /(header:a = x)
-    /(header:a = x)/(method:GET), segment:0 -> SUCCESS @ /(header:a = x)/(method:GET)
-  /(header:b = x), segment:0 -> SUCCESS @ /(header:b = x)
-    /(header:b = x)/(method:GET), segment:0 -> SUCCESS @ /(header:b = x)/(method:GET)
-Matched routes:
-  "" -> "(header:a = x)" -> "(method:GET)"
-  "" -> "(header:b = x)" -> "(method:GET)"
-Route resolve result:
-  SUCCESS @ /(header:a = x)/(method:GET)
-""",
-                trace?.buildText()
-            )
-        }
-    }
-
-    @Test
-    fun testRouteWithParameterPrefixAndSuffixHasMorePriority() = withTestApplication {
-        application.routing {
-            get("/foo:{baz}") {
-                call.respondText("foo")
-            }
-            get("/{baz}") {
-                call.respondText("baz")
-            }
-            get("/{baz}:bar") {
-                call.respondText("bar")
+    fun testRouteWithParameterPrefixAndSuffixHasMorePriority() = testApplication {
+        application {
+            routing {
+                get("/foo:{baz}") {
+                    call.respondText("foo")
+                }
+                get("/{baz}") {
+                    call.respondText("baz")
+                }
+                get("/{baz}:bar") {
+                    call.respondText("bar")
+                }
             }
         }
 
-        handleRequest(HttpMethod.Get, "/foo:bar").let { call ->
-            assertEquals(call.response.content, "foo")
-        }
-
-        handleRequest(HttpMethod.Get, "/baz").let { call ->
-            assertEquals(call.response.content, "baz")
-        }
-
-        handleRequest(HttpMethod.Get, "/baz:bar").let { call ->
-            assertEquals(call.response.content, "bar")
-        }
+        assertEquals("foo", client.get("/foo:bar").bodyAsText())
+        assertEquals("baz", client.get("/baz").bodyAsText())
+        assertEquals("bar", client.get("/baz:bar").bodyAsText())
     }
 
     @Test
@@ -1143,6 +944,86 @@ Route resolve result:
 
         handleRequest(HttpMethod.Get, "/non_existing_path").let { call ->
             assertEquals(HttpStatusCode.NotFound, call.response.status())
+        }
+    }
+
+    @Test
+    fun testRoutingSpecificErrorStatusCodeOnlyWhenPathMatched() = testApplication {
+        routing {
+            route("a") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            post {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.get("/notfound").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+        }
+    }
+
+    @Test
+    fun testRoutingSpecificErrorStatusCodeOnlyForConstantQualityPath() = testApplication {
+        routing {
+            route("a") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            route("{param}") {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, response.status)
+        }
+        client.post("/b").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+        }
+    }
+
+    @Test
+    fun testRoutingSpecificErrorStatusNotForTailcard() = testApplication {
+        routing {
+            route("a") {
+                post {
+                    call.respond("a")
+                }
+            }
+            route("{...}") {
+                get {
+                    call.respond("tailcard")
+                }
+            }
+        }
+
+        client.post("/a").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("a", response.bodyAsText())
+        }
+        client.get("/a").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("tailcard", response.bodyAsText())
+        }
+        client.post("/b").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("", response.bodyAsText())
+        }
+        client.post("/").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("", response.bodyAsText())
         }
     }
 

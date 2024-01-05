@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.http.HttpRequest
@@ -40,9 +39,9 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     val builder = HttpRequest.newBuilder(url.toURI())
 
     with(builder) {
-        getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
-            timeoutAttributes.socketTimeoutMillis?.let {
-                timeout(Duration.ofMillis(it))
+        getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
+            timeoutAttributes.requestTimeoutMillis?.let {
+                if (!isTimeoutInfinite(it)) timeout(Duration.ofMillis(it))
             }
         }
 
@@ -58,6 +57,7 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
     return builder.build()
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun OutgoingContent.convertToHttpRequestBody(
     callContext: CoroutineContext

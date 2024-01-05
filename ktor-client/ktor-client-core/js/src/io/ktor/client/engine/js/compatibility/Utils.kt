@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.js.compatibility
 
+import io.ktor.client.engine.js.*
 import io.ktor.client.engine.js.browser.*
 import io.ktor.client.engine.js.node.*
 import io.ktor.client.fetch.*
@@ -14,8 +15,9 @@ import kotlin.js.Promise
 
 internal suspend fun commonFetch(
     input: String,
-    init: RequestInit
-): Response = suspendCancellableCoroutine { continuation ->
+    init: RequestInit,
+    config: JsClientEngineConfig,
+): org.w3c.fetch.Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal
 
@@ -23,10 +25,12 @@ internal suspend fun commonFetch(
         controller.abort()
     }
 
-    val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
-        fetch(input, init)
-    } else {
-        jsRequireNodeFetch()(input, init)
+    val promise: Promise<org.w3c.fetch.Response> = when (PlatformUtils.platform) {
+        Platform.Browser -> fetch(input, init)
+        else -> {
+            val options = js("Object").assign(js("Object").create(null), init, config.nodeOptions)
+            jsRequireNodeFetch()(input, options)
+        }
     }
 
     promise.then(
@@ -40,21 +44,21 @@ internal suspend fun commonFetch(
 }
 
 internal fun AbortController(): AbortController {
-    return if (PlatformUtils.IS_BROWSER) {
-        js("new AbortController()")
-    } else {
-        @Suppress("UNUSED_VARIABLE")
-        val controller = js("eval('require')('abort-controller')")
-        js("new controller()")
+    return when (PlatformUtils.platform) {
+        Platform.Browser -> js("new AbortController()")
+        else -> {
+            @Suppress("UNUSED_VARIABLE")
+            val controller = js("eval('require')('abort-controller')")
+            js("new controller()")
+        }
     }
 }
 
 internal fun CoroutineScope.readBody(
-    response: Response
-): ByteReadChannel = if (PlatformUtils.IS_BROWSER) {
-    readBodyBrowser(response)
-} else {
-    readBodyNode(response)
+    response: org.w3c.fetch.Response
+): ByteReadChannel = when (PlatformUtils.platform) {
+    Platform.Node -> readBodyNode(response)
+    else -> readBodyBrowser(response)
 }
 
 private fun jsRequireNodeFetch(): dynamic = try {

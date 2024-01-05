@@ -1,0 +1,8 @@
+ktor:
+    deployment:
+        port: 2345
+    auth:
+        users:
+            - c
+            - d
+            - e

@@ -8,14 +8,15 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 
 /**
- * Server's response cookies
+ * Server's response cookies.
+ * @see [ApplicationResponse.cookies]
  */
 public class ResponseCookies(
-    private val response: ApplicationResponse,
+    private val response: PipelineResponse,
     private val secureTransport: Boolean
 ) {
     /**
-     * Get cookie from response HTTP headers (from `Set-Cookie` header)
+     * Gets a cookie from a response's `Set-Cookie` header.
      */
     public operator fun get(name: String): Cookie? = response.headers
         .values("Set-Cookie")
@@ -23,7 +24,7 @@ public class ResponseCookies(
         .firstOrNull { it.name == name }
 
     /**
-     * Append cookie [item] using `Set-Cookie` HTTP response header
+     * Appends a cookie [item] using the `Set-Cookie` response header.
      */
     public fun append(item: Cookie) {
         if (item.secure && !secureTransport) {
@@ -33,32 +34,13 @@ public class ResponseCookies(
     }
 
     /**
-     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
-     */
-    @Deprecated("Convert maxAge to Long", level = DeprecationLevel.ERROR)
-    public fun append(
-        name: String,
-        value: String,
-        encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Int,
-        expires: GMTDate? = null,
-        domain: String? = null,
-        path: String? = null,
-        secure: Boolean = false,
-        httpOnly: Boolean = false,
-        extensions: Map<String, String?> = emptyMap()
-    ) {
-        append(name, value, encoding, maxAge.toLong(), expires, domain, path, secure, httpOnly, extensions)
-    }
-
-    /**
-     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
+     * Appends a cookie using the `Set-Cookie` response header from the specified parameters.
      */
     public fun append(
         name: String,
         value: String,
         encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Long = 0,
+        maxAge: Long? = null,
         expires: GMTDate? = null,
         domain: String? = null,
         path: String? = null,
@@ -71,7 +53,7 @@ public class ResponseCookies(
                 name,
                 value,
                 encoding,
-                maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                maxAge?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt(),
                 expires,
                 domain,
                 path,
@@ -83,8 +65,16 @@ public class ResponseCookies(
     }
 
     /**
-     * Append already expired cookie: useful to remove client cookies
+     * Appends an already expired cookie. Useful to remove client cookies.
      */
+    @Deprecated(
+        "This method doesn't bypass all flags and extensions so it will be removed in future " +
+            "major release. Please consider using append with expires parameter instead.",
+        replaceWith = ReplaceWith(
+            "append(name, \"\", CookieEncoding.URI_ENCODING, 0, GMTDate(), domain, path, secure, httpOnly, extensions)"
+        ),
+        level = DeprecationLevel.ERROR
+    )
     public fun appendExpired(name: String, domain: String? = null, path: String? = null) {
         append(name, "", domain = domain, path = path, expires = GMTDate.START)
     }

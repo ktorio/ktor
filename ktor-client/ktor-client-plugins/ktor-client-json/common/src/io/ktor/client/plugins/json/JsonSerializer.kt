@@ -12,7 +12,10 @@ import io.ktor.utils.io.core.*
 /**
  * Client json serializer.
  */
-@Deprecated("Please use ContentNegotiation plugin and its converters")
+@Deprecated(
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client", // ktlint-disable max-line-length
+    level = DeprecationLevel.ERROR
+)
 public interface JsonSerializer {
     /**
      * Convert data object to [OutgoingContent].
@@ -27,5 +30,6 @@ public interface JsonSerializer {
     /**
      * Read content from response using information specified in [type].
      */
+    @Suppress("DEPRECATION")
     public fun read(type: TypeInfo, body: Input): Any
 }

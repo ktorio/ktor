@@ -4,14 +4,14 @@
 
 package io.ktor.events
 
-import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.internal.*
 
 @OptIn(InternalAPI::class)
 public class Events {
-    @OptIn(InternalCoroutinesApi::class)
     private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
@@ -28,7 +28,6 @@ public class Events {
      * Unsubscribe [handler] from an event specified by [definition]
      */
     public fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
-        @OptIn(InternalCoroutinesApi::class)
         handlers[definition]?.forEach<HandlerRegistration> {
             if (it.handler == handler) it.remove()
         }
@@ -58,6 +57,17 @@ public class Events {
         override fun dispose() {
             remove()
         }
+    }
+}
+
+/**
+ * Raises an event the same way as [Events.raise] but catches an exception and logs it if the [logger] is provided
+ */
+public fun <T> Events.raiseCatching(definition: EventDefinition<T>, value: T, logger: Logger? = null) {
+    try {
+        raise(definition, value)
+    } catch (cause: Throwable) {
+        logger?.error("Some handlers have thrown an exception", cause)
     }
 }
 

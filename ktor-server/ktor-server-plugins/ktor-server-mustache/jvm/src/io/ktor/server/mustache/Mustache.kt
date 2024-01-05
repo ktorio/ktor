@@ -8,19 +8,17 @@ import com.github.mustachejava.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
-import io.ktor.util.cio.*
+import io.ktor.server.application.hooks.*
 import io.ktor.utils.io.*
 import java.io.*
 
 /**
- * Response content which could be used to respond [ApplicationCalls] like `call.respond(MustacheContent(...))
+ * A response content handled by the [Mustache] plugin.
  *
- * @param template name of the template to be resolved by Mustache
- * @param model which is passed into the template
- * @param etag value for `E-Tag` header (optional)
- * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
+ * @param template name that is resolved by Mustache
+ * @param model to be passed during template rendering
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class MustacheContent(
     public val template: String,
@@ -29,47 +27,30 @@ public class MustacheContent(
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
+@KtorDsl
+public class MustacheConfig {
+    public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
+}
+
 /**
  * A plugin that allows you to use Mustache templates as views within your application.
- * Provides the ability to respond with [MustacheContent]
+ * Provides the ability to respond with [MustacheContent].
+ * You can learn more from [Mustache](https://ktor.io/docs/mustache.html).
  */
-public class Mustache private constructor(configuration: Configuration) {
+public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
+    val mustacheFactory = pluginConfig.mustacheFactory
 
-    private val mustacheFactory = configuration.mustacheFactory
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(MustacheContent::class)) { _, content ->
+        with(content) {
+            val writer = StringWriter()
+            mustacheFactory.compile(content.template).execute(writer, model)
 
-    public class Configuration {
-        public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
-    }
-
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, Mustache> {
-        override val key: AttributeKey<Mustache> = AttributeKey<Mustache>("mustache")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): Mustache {
-            val configuration = Configuration().apply(configure)
-            val plugin = Mustache(configuration)
-
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is MustacheContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
-
-            return plugin
+            result
         }
-    }
-
-    private fun process(content: MustacheContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        mustacheFactory.compile(content.template).execute(writer, model)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
-        }
-        return result
     }
 }

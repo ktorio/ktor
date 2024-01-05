@@ -11,12 +11,13 @@ import java.security.*
 
 private const val SHA1PRNG = "SHA1PRNG"
 
-private val SECURE_RANDOM_PROVIDER_NAME: String =
-    System.getProperty("io.ktor.random.secure.random.provider") ?: "NativePRNGNonBlocking"
+private val SECURE_RANDOM_PROVIDERS: List<String> = listOf(
+    "NativePRNGNonBlocking",
+    "WINDOWS-PRNG",
+    "DRBG"
+)
 
 private const val SECURE_RESEED_PERIOD = 30_000
-
-private const val NONCE_SIZE_IN_BYTES = 8
 
 private const val SECURE_NONCE_COUNT = 8
 
@@ -93,17 +94,26 @@ internal fun ensureNonceGeneratorRunning() {
 }
 
 private fun lookupSecureRandom(): SecureRandom {
-    val secure = getInstanceOrNull(SECURE_RANDOM_PROVIDER_NAME)
-    if (secure != null) return secure
+    System.getProperty("io.ktor.random.secure.random.provider")?.let { name ->
+        getInstanceOrNull(name)?.let { return it }
+    }
+
+    for (name in SECURE_RANDOM_PROVIDERS) {
+        getInstanceOrNull(name)?.let { return it }
+    }
 
     LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to $SHA1PRNG")
+        .warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString(separator = ", ")} found, fallback to default")
 
-    return getInstanceOrNull(SHA1PRNG) ?: error("No SecureRandom implementation found")
+    return getInstanceOrNull() ?: error("No SecureRandom implementation found")
 }
 
-private fun getInstanceOrNull(name: String) = try {
-    SecureRandom.getInstance(name)
+private fun getInstanceOrNull(name: String? = null) = try {
+    if (name != null) {
+        SecureRandom.getInstance(name)
+    } else {
+        SecureRandom()
+    }
 } catch (notFound: NoSuchAlgorithmException) {
     null
 }

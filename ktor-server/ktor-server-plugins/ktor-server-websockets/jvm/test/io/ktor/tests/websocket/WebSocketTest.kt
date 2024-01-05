@@ -4,11 +4,13 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.client.plugins.websocket.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.server.websocket.WebSockets
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -16,9 +18,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import org.junit.Test
+import kotlinx.coroutines.debug.junit5.*
 import java.nio.*
 import java.nio.charset.*
 import java.time.*
@@ -27,18 +27,15 @@ import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalCoroutinesApi::class)
+@CoroutinesTimeout(30_000)
 class WebSocketTest {
-    @get:Rule
-    val timeout = CoroutinesTimeout.seconds(30)
-
     class Data(val string: String)
 
     private val customContentConverter = object : WebsocketContentConverter {
         override suspend fun serialize(
             charset: Charset,
             typeInfo: TypeInfo,
-            value: Any
+            value: Any?
         ): Frame {
             if (value !is Data) return Frame.Text("")
             return Frame.Text("[${value.string}]")
@@ -108,6 +105,33 @@ class WebSocketTest {
                 assertEquals(FrameType.TEXT, frame.frameType)
                 assertEquals(jsonData, frame.readText())
             }
+        }
+    }
+
+    @Test
+    fun testJsonConverterWithExplicitTypeInfo() = testApplication {
+        install(WebSockets) {
+            contentConverter = customContentConverter
+        }
+
+        routing {
+            webSocket("/echo") {
+                val data = receiveDeserialized<Data>(typeInfo<Data>())
+                sendSerialized(data, typeInfo<Data>())
+                outgoing.send(Frame.Close())
+            }
+        }
+
+        val jsonData = "[hello]"
+
+        createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }.webSocket("/echo") {
+            outgoing.send(Frame.Text(jsonData))
+
+            val frame = incoming.receive() as Frame.Text
+            assertEquals(FrameType.TEXT, frame.frameType)
+            assertEquals(jsonData, frame.readText())
         }
     }
 
@@ -358,7 +382,7 @@ class WebSocketTest {
 
             handleWebSocket("/") {
                 bodyChannel = writer {
-                    channel.writeFully(sendBuffer.array())
+                    channel.writeFully(sendBuffer.moveToByteArray())
                     channel.flush()
                     conversation.join()
                 }.channel
@@ -473,7 +497,7 @@ class WebSocketTest {
                 }
 
                 assertTrue("Expected FrameTooBigException, but found $exception") {
-                    exception is WebSocketReader.FrameTooBigException
+                    exception is FrameTooBigException
                 }
             }
         }
@@ -513,7 +537,7 @@ class WebSocketTest {
                 setBody(sendBuffer.array())
             }.let { call ->
                 validateCloseWithBigFrame(call)
-                assertTrue { exception is WebSocketReader.FrameTooBigException }
+                assertTrue { exception is FrameTooBigException }
             }
         }
     }
@@ -556,7 +580,7 @@ class WebSocketTest {
                 runBlocking {
                     executed.join()
                 }
-                assertTrue { exception is WebSocketReader.FrameTooBigException }
+                assertTrue { exception is FrameTooBigException }
             }
         }
     }

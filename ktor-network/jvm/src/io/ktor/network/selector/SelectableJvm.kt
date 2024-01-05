@@ -1,28 +1,37 @@
 // ktlint-disable filename
 package io.ktor.network.selector
 
+import kotlinx.atomicfu.*
 import java.nio.channels.*
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.*
 
 internal open class SelectableBase(override val channel: SelectableChannel) : Selectable {
+    private val _isClosed = AtomicBoolean(false)
+
     override val suspensions = InterestSuspensionsMap()
 
-    @Volatile
-    override var interestedOps: Int = 0
+    override val isClosed: Boolean
+        get() = _isClosed.get()
+
+    private val _interestedOps = atomic(0)
+
+    override val interestedOps: Int get() = _interestedOps.value
 
     override fun interestOp(interest: SelectInterest, state: Boolean) {
         val flag = interest.flag
 
         while (true) {
-            val before = interestedOps
+            val before = _interestedOps.value
             val after = if (state) before or flag else before and flag.inv()
-            if (InterestedOps.compareAndSet(this, before, after)) break
+            if (_interestedOps.compareAndSet(before, after)) break
         }
     }
 
     override fun close() {
-        interestedOps = 0
+        if (!_isClosed.compareAndSet(false, true)) return
+
+        _interestedOps.value = 0
         suspensions.invokeForEachPresent {
             resumeWithException(ClosedChannelCancellationException())
         }
@@ -30,10 +39,5 @@ internal open class SelectableBase(override val channel: SelectableChannel) : Se
 
     override fun dispose() {
         close()
-    }
-
-    public companion object {
-        val InterestedOps =
-            AtomicIntegerFieldUpdater.newUpdater(SelectableBase::class.java, SelectableBase::interestedOps.name)!!
     }
 }

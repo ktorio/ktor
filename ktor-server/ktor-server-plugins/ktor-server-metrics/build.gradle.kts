@@ -1,10 +1,17 @@
 description = ""
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
-                api("io.dropwizard.metrics:metrics-core:4.2.8")
-                api("io.dropwizard.metrics:metrics-jvm:4.2.8")
+                api(libs.dropwizard.core)
+                api(libs.dropwizard.jvm)
+            }
+        }
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-cors"))
+                api(project(":ktor-shared:ktor-junit"))
             }
         }
     }

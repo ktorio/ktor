@@ -72,6 +72,7 @@ public class ContentType private constructor(
                         else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
                     }
                 }
+
                 else -> {
                     val value = parameter(patternName)
                     when (patternValue) {
@@ -117,9 +118,7 @@ public class ContentType private constructor(
                 val slash = parts.indexOf('/')
 
                 if (slash == -1) {
-                    if (parts.trim() == "*") {
-                        return Any
-                    }
+                    if (parts.trim() == "*") return Any
 
                     throw BadContentTypeFormatException(value)
                 }
@@ -165,7 +164,6 @@ public class ContentType private constructor(
         public val HalJson: ContentType = ContentType("application", "hal+json")
         public val JavaScript: ContentType = ContentType("application", "javascript")
         public val OctetStream: ContentType = ContentType("application", "octet-stream")
-        public val FontWoff: ContentType = ContentType("application", "font-woff")
         public val Rss: ContentType = ContentType("application", "rss+xml")
         public val Xml: ContentType = ContentType("application", "xml")
         public val Xml_Dtd: ContentType = ContentType("application", "xml-dtd")
@@ -269,6 +267,20 @@ public class ContentType private constructor(
         public val OGG: ContentType = ContentType("video", "ogg")
         public val QuickTime: ContentType = ContentType("video", "quicktime")
     }
+
+    /**
+     * Provides a list of standard subtypes of a `font` content type.
+     */
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Font {
+        public val Any: ContentType = ContentType("font", "*")
+        public val Collection: ContentType = ContentType("font", "collection")
+        public val Otf: ContentType = ContentType("font", "otf")
+        public val Sfnt: ContentType = ContentType("font", "sfnt")
+        public val Ttf: ContentType = ContentType("font", "ttf")
+        public val Woff: ContentType = ContentType("font", "woff")
+        public val Woff2: ContentType = ContentType("font", "woff2")
+    }
 }
 
 /**
@@ -279,14 +291,26 @@ public class BadContentTypeFormatException(value: String) : Exception("Bad Conte
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
  */
-public fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
+public fun ContentType.withCharset(charset: Charset): ContentType =
+    withParameter("charset", charset.name)
+
+/**
+ * Creates a copy of `this` type with the added charset parameter with [charset] value
+ * if [ContentType] is not ignored
+ */
+public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
+    if (contentType.lowercase() != "text") {
+        this
+    } else {
+        withParameter("charset", charset.name)
+    }
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
  */
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {
-        Charset.forName(it)
+        Charsets.forName(it)
     } catch (exception: IllegalArgumentException) {
         null
     }

@@ -2,6 +2,7 @@
 
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.EOFException
@@ -13,6 +14,8 @@ import kotlin.contracts.*
  * Concurrent unsafe: the same memory could be shared between different instances of [Buffer] however you can't
  * read/write using the same [Buffer] instance from different threads.
  */
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public open class Buffer(public val memory: Memory) {
 
     /**
@@ -326,7 +329,8 @@ public open class Buffer(public val memory: Memory) {
     }
 
     override fun toString(): String {
-        return "Buffer($readRemaining used, $writeRemaining free, ${startGap + endGap} reserved of $capacity)"
+        return "Buffer[0x${hashCode().toString(16)}]" +
+            "($readRemaining used, $writeRemaining free, ${startGap + endGap} reserved of $capacity)"
     }
 
     public companion object {
@@ -347,11 +351,13 @@ public open class Buffer(public val memory: Memory) {
 /**
  * @return `true` if there are available bytes to be read
  */
+@Suppress("DEPRECATION")
 public inline fun Buffer.canRead(): Boolean = writePosition > readPosition
 
 /**
  * @return `true` if there is free room to for write
  */
+@Suppress("DEPRECATION")
 public inline fun Buffer.canWrite(): Boolean = limit > writePosition
 
 /**
@@ -360,6 +366,7 @@ public inline fun Buffer.canWrite(): Boolean = limit > writePosition
  * No read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
@@ -377,6 +384,7 @@ public inline fun Buffer.read(block: (memory: Memory, start: Int, endExclusive: 
  * o read/write functions on this buffer should be called inside of [block] otherwise an undefined behaviour may occur
  * including data damage.
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun Buffer.write(block: (memory: Memory, start: Int, endExclusive: Int) -> Int): Int {
     contract {
@@ -400,6 +408,7 @@ internal fun rewindFailed(count: Int, rewindRemaining: Int): Nothing {
     throw IllegalArgumentException("Unable to rewind $count bytes: only $rewindRemaining could be rewinded")
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.startGapReservationFailedDueToLimit(startGap: Int): Nothing {
     if (startGap > capacity) {
         throw IllegalArgumentException("Start gap $startGap is bigger than the capacity $capacity")
@@ -410,6 +419,7 @@ internal fun Buffer.startGapReservationFailedDueToLimit(startGap: Int): Nothing 
     )
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.startGapReservationFailed(startGap: Int): Nothing {
     throw IllegalStateException(
         "Unable to reserve $startGap start gap: " +
@@ -417,16 +427,19 @@ internal fun Buffer.startGapReservationFailed(startGap: Int): Nothing {
     )
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.endGapReservationFailedDueToCapacity(endGap: Int) {
     throw IllegalArgumentException("End gap $endGap is too big: capacity is $capacity")
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.endGapReservationFailedDueToStartGap(endGap: Int) {
     throw IllegalArgumentException(
         "End gap $endGap is too big: there are already $startGap bytes reserved in the beginning"
     )
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.endGapReservationFailedDueToContent(endGap: Int) {
     throw IllegalArgumentException(
         "Unable to reserve end gap $endGap:" +
@@ -434,6 +447,7 @@ internal fun Buffer.endGapReservationFailedDueToContent(endGap: Int) {
     )
 }
 
+@Suppress("DEPRECATION")
 internal fun Buffer.restoreStartGap(size: Int) {
     releaseStartGap(readPosition - size)
 }

@@ -20,7 +20,6 @@ tasks.register("generateModuleInfo") {
                 modules.forEach { writer.write("\trequires $it;\n") }
                 writer.write("}")
             }
-
     }
 }
 
@@ -29,6 +28,11 @@ val compileJava = tasks.getByName<JavaCompile>("compileJava") {
     doFirst {
         options.compilerArgs.addAll(listOf("--module-path", classpath.asPath))
         classpath = files()
+    }
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 

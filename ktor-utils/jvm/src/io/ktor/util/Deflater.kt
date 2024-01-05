@@ -54,15 +54,14 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
 }
 
 /**
- * Launch a coroutine on [coroutineContext] that does deflate compression
+ * Does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
-@OptIn(DelicateCoroutinesApi::class)
-public fun ByteReadChannel.deflated(
+private suspend fun ByteReadChannel.deflateTo(
+    destination: ByteWriteChannel,
     gzip: Boolean = true,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-    coroutineContext: CoroutineContext = Dispatchers.Unconfined
-): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+) {
     val crc = CRC32()
     val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, true)
     val input = pool.borrow()
@@ -70,7 +69,7 @@ public fun ByteReadChannel.deflated(
 
     try {
         if (gzip) {
-            channel.putGzipHeader()
+            destination.putGzipHeader()
         }
 
         while (!isClosedForRead) {
@@ -80,24 +79,35 @@ public fun ByteReadChannel.deflated(
 
             crc.updateKeepPosition(input)
             deflater.setInputBuffer(input)
-            channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
+            destination.deflateWhile(deflater, compressed) { !deflater.needsInput() }
         }
 
-        if (this is ByteChannel) {
-            closedCause?.let { throw it }
-        }
+        closedCause?.let { throw it }
 
         deflater.finish()
-        channel.deflateWhile(deflater, compressed) { !deflater.finished() }
+        destination.deflateWhile(deflater, compressed) { !deflater.finished() }
 
         if (gzip) {
-            channel.putGzipTrailer(crc, deflater)
+            destination.putGzipTrailer(crc, deflater)
         }
     } finally {
         deflater.end()
         pool.recycle(input)
         pool.recycle(compressed)
     }
+}
+
+/**
+ * Launch a coroutine on [coroutineContext] that does deflate compression
+ * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
+ */
+@OptIn(DelicateCoroutinesApi::class)
+public fun ByteReadChannel.deflated(
+    gzip: Boolean = true,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
+    this@deflated.deflateTo(channel, gzip, pool)
 }.channel
 
 /**
@@ -110,5 +120,5 @@ public fun ByteWriteChannel.deflated(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
-    channel.deflated(gzip, pool, coroutineContext).copyTo(this@deflated)
+    channel.deflateTo(this@deflated, gzip, pool)
 }.channel

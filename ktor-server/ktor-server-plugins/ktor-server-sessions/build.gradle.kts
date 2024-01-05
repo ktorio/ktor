@@ -4,9 +4,19 @@
 
 description = ""
 
+plugins {
+    id("kotlinx-serialization")
+}
+
 kotlin {
     sourceSets {
-        val jvmTest by getting {
+        jvmAndNixMain {
+            dependencies {
+                api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
+            }
+        }
+        jvmTest {
             dependencies {
                 implementation(project(":ktor-server:ktor-server-netty"))
             }

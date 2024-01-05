@@ -72,7 +72,9 @@ class StreamTest {
             if (th.state === Thread.State.BLOCKED ||
                 th.state === Thread.State.WAITING ||
                 th.state === Thread.State.TIMED_WAITING
-            ) break
+            ) {
+                break
+            }
         }
 
         outputStream.write(byteArrayOf(0x33, 0x44))

@@ -7,42 +7,43 @@ package io.ktor.server.response
 import io.ktor.http.*
 
 /**
- * Server's response headers
+ * Server's response headers.
+ * @see [ApplicationResponse.headers]
  */
 public abstract class ResponseHeaders {
 
     /**
-     * Set of headers that will be managed my the engine and should not be added manually
+     * A set of headers that is managed by an engine and should not be modified manually.
      */
     protected open val managedByEngineHeaders: Set<String> = emptySet()
 
     /**
-     * Check if there is response HTTP header with [name] set
+     * Checks whether a [name] response header is set.
      */
     public operator fun contains(name: String): Boolean = get(name) != null
 
     /**
-     * Find first response HTTP header with [name] or return `null`
+     * Gets a first response header with the specified [name] or returns `null`.
      */
     public open operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
 
     /**
-     * Find all response HTTP header values for [name]
+     * Gets values of a response header with the specified [name].
      */
     public fun values(name: String): List<String> = getEngineHeaderValues(name)
 
     /***
-     * Build a [Headers] instance from response HTTP header values
+     * Builds a [Headers] instance from a response header values.
      */
     public fun allValues(): Headers = Headers.build {
-        getEngineHeaderNames().forEach {
+        getEngineHeaderNames().toSet().forEach {
             appendAll(it, getEngineHeaderValues(it))
         }
     }
 
     /**
-     * Append HTTP response header
-     * @param safeOnly `true` by default, prevents from setting unsafe headers
+     * Appends a response header with the specified [name] and [value].
+     * @param safeOnly prevents from setting unsafe headers; `true` by default
      */
     public fun append(name: String, value: String, safeOnly: Boolean = true) {
         if (managedByEngineHeaders.contains(name)) {
@@ -57,17 +58,26 @@ public abstract class ResponseHeaders {
     }
 
     /**
-     * Engine's header appending implementation
+     * An engine's header appending implementation.
      */
     protected abstract fun engineAppendHeader(name: String, value: String)
 
     /**
-     * Engine's response header names extractor
+     * An engine's response header names extractor.
      */
     protected abstract fun getEngineHeaderNames(): List<String>
 
     /**
-     * Engine's response header values extractor
+     * An engine's response header values extractor.
      */
     protected abstract fun getEngineHeaderValues(name: String): List<String>
+}
+
+/**
+ * Appends a response header with the specified [name] and [value] if this is no header with [name] yet.
+ * @param safeOnly prevents from setting unsafe headers; `true` by default
+ */
+public fun ResponseHeaders.appendIfAbsent(name: String, value: String, safeOnly: Boolean = true) {
+    if (contains(name)) return
+    append(name, value, safeOnly)
 }

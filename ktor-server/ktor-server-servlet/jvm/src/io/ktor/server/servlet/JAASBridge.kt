@@ -5,6 +5,7 @@
 package io.ktor.server.servlet
 
 import io.ktor.server.request.*
+import io.ktor.server.routing.*
 import java.security.*
 
 /**
@@ -12,6 +13,8 @@ import java.security.*
  */
 public val ApplicationRequest.javaSecurityPrincipal: Principal?
     get() = when (this) {
+        is RoutingRequest -> call.pipelineCall.request.javaSecurityPrincipal
         is ServletApplicationRequest -> servletRequest.userPrincipal
+        is RoutingPipelineRequest -> engineRequest.javaSecurityPrincipal
         else -> null
     }

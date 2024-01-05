@@ -4,12 +4,16 @@
 
 package io.ktor.server.cio
 
-import io.ktor.http.cio.*
+import io.ktor.events.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
@@ -17,9 +21,12 @@ import kotlinx.coroutines.*
  * Engine that based on CIO backend
  */
 public class CIOApplicationEngine(
-    environment: ApplicationEngineEnvironment,
-    configure: Configuration.() -> Unit
-) : BaseApplicationEngine(environment) {
+    environment: ApplicationEnvironment,
+    monitor: Events,
+    developmentMode: Boolean,
+    public val configuration: Configuration,
+    private val applicationProvider: () -> Application
+) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**
      * CIO-based server configuration
@@ -30,9 +37,12 @@ public class CIOApplicationEngine(
          * A connection is IDLE if there are no active requests running.
          */
         public var connectionIdleTimeoutSeconds: Int = 45
-    }
 
-    private val configuration: Configuration = Configuration().apply(configure)
+        /**
+         * Allow the server to bind to an address that is already in use
+         */
+        public var reuseAddress: Boolean = false
+    }
 
     private val engineDispatcher = Dispatchers.IOBridge
 
@@ -48,15 +58,19 @@ public class CIOApplicationEngine(
         serverJob.invokeOnCompletion { cause ->
             cause?.let { stopRequest.completeExceptionally(cause) }
             cause?.let { startupJob.completeExceptionally(cause) }
-            environment.stop()
         }
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
+        addShutdownHook(monitor) {
+            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
+        }
+
         serverJob.start()
 
         runBlocking {
             startupJob.await()
+            monitor.raiseCatching(ServerReady, environment, environment.log)
 
             if (wait) {
                 serverJob.join()
@@ -83,13 +97,8 @@ public class CIOApplicationEngine(
                 // timeout
                 serverJob.cancel()
 
-                val forceShutdown = withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
+                withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
                     serverJob.join()
-                    false
-                } ?: true
-
-                if (forceShutdown) {
-                    environment.stop()
                 }
             }
         }
@@ -99,7 +108,8 @@ public class CIOApplicationEngine(
         val settings = HttpServerSettings(
             host = host,
             port = port,
-            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
+            connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
+            reuseAddress = configuration.reuseAddress
         )
 
         return httpServer(settings) { request ->
@@ -107,10 +117,43 @@ public class CIOApplicationEngine(
         }
     }
 
-    private suspend fun ServerRequestScope.handleRequest(request: Request) {
+    private suspend fun addHandlerForExpectedHeader(output: ByteWriteChannel, call: CIOApplicationCall) {
+        val continueResponse = "HTTP/1.1 100 Continue\r\n"
+        val expectHeaderValue = "100-continue"
+
+        val expectedHeaderPhase = PipelinePhase("ExpectedHeaderPhase")
+        call.request.pipeline.insertPhaseBefore(ApplicationReceivePipeline.Before, expectedHeaderPhase)
+        call.request.pipeline.intercept(expectedHeaderPhase) {
+            val request = call.request
+            val version = HttpProtocolVersion.parse(request.httpVersion)
+            val expectHeader = call.request.headers[HttpHeaders.Expect]?.lowercase()
+            val hasBody = hasBody(request)
+
+            if (expectHeader == null || version == HttpProtocolVersion.HTTP_1_0 || !hasBody) {
+                return@intercept
+            }
+
+            if (expectHeader != expectHeaderValue) {
+                call.respond(HttpStatusCode.ExpectationFailed)
+            } else {
+                output.apply {
+                    output.writeStringUtf8(continueResponse)
+                    output.flush()
+                }
+            }
+        }
+    }
+
+    private fun hasBody(request: CIOApplicationRequest): Boolean {
+        val contentLength = request.headers[HttpHeaders.ContentLength]?.toInt()
+        val transferEncoding = request.headers[HttpHeaders.TransferEncoding]
+        return transferEncoding != null || (contentLength != null && contentLength > 0)
+    }
+
+    private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
         withContext(userDispatcher) {
             val call = CIOApplicationCall(
-                application,
+                applicationProvider(),
                 request,
                 input,
                 output,
@@ -119,12 +162,12 @@ public class CIOApplicationEngine(
                 upgraded,
                 remoteAddress,
                 localAddress,
-                this@withContext.coroutineContext
             )
 
             try {
+                addHandlerForExpectedHeader(output, call)
                 pipeline.execute(call)
-            } catch (error: Exception) {
+            } catch (error: Throwable) {
                 handleFailure(call, error)
             } finally {
                 call.release()
@@ -140,12 +183,12 @@ public class CIOApplicationEngine(
         val cioConnectors = resolvedConnectors
 
         return CoroutineScope(
-            environment.parentCoroutineContext + engineDispatcher
+            applicationProvider().parentCoroutineContext + engineDispatcher
         ).launch(start = CoroutineStart.LAZY) {
-            val connectors = ArrayList<HttpServer>(environment.connectors.size)
+            val connectors = ArrayList<HttpServer>(configuration.connectors.size)
 
             try {
-                environment.connectors.forEach { connectorSpec ->
+                configuration.connectors.forEach { connectorSpec ->
                     if (connectorSpec.type == ConnectorType.HTTPS) {
                         throw UnsupportedOperationException(
                             "CIO Engine does not currently support HTTPS. Please " +
@@ -154,11 +197,7 @@ public class CIOApplicationEngine(
                     }
                 }
 
-                withContext(userDispatcher) {
-                    environment.start()
-                }
-
-                val connectorsAndServers = environment.connectors.map { connectorSpec ->
+                val connectorsAndServers = configuration.connectors.map { connectorSpec ->
                     connectorSpec to startConnector(connectorSpec.host, connectorSpec.port)
                 }
                 connectors.addAll(connectorsAndServers.map { it.second })
@@ -181,7 +220,7 @@ public class CIOApplicationEngine(
             connectors.forEach { it.acceptJob.cancel() }
 
             withContext(userDispatcher) {
-                environment.monitor.raise(ApplicationStopPreparing, environment)
+                monitor.raise(ApplicationStopPreparing, environment)
             }
         }
     }

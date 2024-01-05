@@ -1,11 +1,6 @@
-public final class io/ktor/util/AlwaysFailNonceManager : io/ktor/util/NonceManager {
-	public static final field INSTANCE Lio/ktor/util/AlwaysFailNonceManager;
-	public fun newNonce (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun verifyNonce (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/util/AttributeKey {
-	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -128,6 +123,15 @@ public final class io/ktor/util/CollectionsKt {
 	public static final fun caseInsensitiveMap ()Ljava/util/Map;
 }
 
+public abstract interface class io/ktor/util/ContentEncoder : io/ktor/util/Encoder {
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/util/ContentEncoder$DefaultImpls {
+	public static fun predictCompressedLength (Lio/ktor/util/ContentEncoder;J)Ljava/lang/Long;
+}
+
 public final class io/ktor/util/CoroutinesUtilsKt {
 	public static final fun SilentSupervisor (Lkotlinx/coroutines/Job;)Lkotlin/coroutines/CoroutineContext;
 	public static synthetic fun SilentSupervisor$default (Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlin/coroutines/CoroutineContext;
@@ -148,6 +152,15 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun sha1 ([B)[B
 }
 
+public final class io/ktor/util/DeflateEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/DeflateEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
 public final class io/ktor/util/DeflaterKt {
 	public static final fun deflated (Lio/ktor/utils/io/ByteReadChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun deflated (Lio/ktor/utils/io/ByteWriteChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
@@ -162,13 +175,29 @@ public abstract interface class io/ktor/util/Digest {
 }
 
 public abstract interface class io/ktor/util/Encoder {
-	public abstract fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
-	public abstract fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/util/Encoder$DefaultImpls {
+	public static synthetic fun decode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun encode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun encode$default (Lio/ktor/util/Encoder;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public final class io/ktor/util/EncodersJvmKt {
 	public static final fun getDeflate ()Lio/ktor/util/Encoder;
 	public static final fun getGZip ()Lio/ktor/util/Encoder;
+}
+
+public final class io/ktor/util/GZipEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/GZipEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
 }
 
 public final class io/ktor/util/GenerateOnlyNonceManager : io/ktor/util/NonceManager {
@@ -184,18 +213,22 @@ public final class io/ktor/util/Hash {
 
 public final class io/ktor/util/Identity : io/ktor/util/Encoder {
 	public static final field INSTANCE Lio/ktor/util/Identity;
-	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
-	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/util/IdentityEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/IdentityEncoder;
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
 }
 
 public final class io/ktor/util/InputJvmKt {
 	public static final fun asStream (Lio/ktor/utils/io/core/Input;)Ljava/io/InputStream;
-}
-
-public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/annotation/Annotation {
-}
-
-public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/util/NIOKt {
@@ -212,8 +245,7 @@ public final class io/ktor/util/NIOKt {
 
 public final class io/ktor/util/NioPathKt {
 	public static final fun combineSafe (Ljava/io/File;Ljava/nio/file/Path;)Ljava/io/File;
-	public static final fun combineSafe (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/io/File;
-	public static final fun getExtension (Ljava/nio/file/Path;)Ljava/lang/String;
+	public static final fun combineSafe (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/nio/file/Path;
 	public static final fun normalizeAndRelativize (Ljava/nio/file/Path;)Ljava/nio/file/Path;
 }
 
@@ -227,6 +259,16 @@ public final class io/ktor/util/PathKt {
 	public static final fun normalizeAndRelativize (Ljava/io/File;)Ljava/io/File;
 }
 
+public final class io/ktor/util/Platform : java/lang/Enum {
+	public static final field Browser Lio/ktor/util/Platform;
+	public static final field Jvm Lio/ktor/util/Platform;
+	public static final field Native Lio/ktor/util/Platform;
+	public static final field Node Lio/ktor/util/Platform;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/Platform;
+	public static fun values ()[Lio/ktor/util/Platform;
+}
+
 public final class io/ktor/util/PlatformUtils {
 	public static final field INSTANCE Lio/ktor/util/PlatformUtils;
 	public final fun getIS_BROWSER ()Z
@@ -237,13 +279,12 @@ public final class io/ktor/util/PlatformUtils {
 	public final fun getIS_NODE ()Z
 }
 
-public abstract interface annotation class io/ktor/util/PublicAPICandidate : java/lang/annotation/Annotation {
-	public abstract fun version ()Ljava/lang/String;
+public final class io/ktor/util/PlatformUtilsJvmKt {
+	public static final fun getPlatform (Lio/ktor/util/PlatformUtils;)Lio/ktor/util/Platform;
 }
 
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
-	public static final fun getLength (Lkotlin/ranges/LongRange;)J
 }
 
 public final class io/ktor/util/StatelessHmacNonceManager : io/ktor/util/NonceManager {
@@ -405,12 +446,6 @@ public final class io/ktor/util/ThrowableKt {
 	public static final fun getRootCause (Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
-public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
-	public fun <init> ()V
-	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
-	public synthetic fun produceInstance ()Ljava/lang/Object;
-}
-
 public final class io/ktor/util/cio/ByteBufferPoolKt {
 	public static final fun getKtorDefaultPool ()Lio/ktor/utils/io/pool/ObjectPool;
 }
@@ -430,8 +465,8 @@ public final class io/ktor/util/cio/ChannelWriteException : io/ktor/util/cio/Cha
 }
 
 public final class io/ktor/util/cio/FileChannelsAtNioPathKt {
-	public static final fun readChannel (Ljava/nio/file/Path;)Lio/ktor/utils/io/ByteReadChannel;
-	public static final fun readChannel (Ljava/nio/file/Path;JJ)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun readChannel (Ljava/nio/file/Path;JJLkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun readChannel$default (Ljava/nio/file/Path;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/cio/FileChannelsKt {
@@ -449,8 +484,6 @@ public final class io/ktor/util/cio/InputStreamAdaptersKt {
 public final class io/ktor/util/cio/OutputStreamAdaptersKt {
 	public static final fun bufferedWriter (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/BufferedWriter;
 	public static synthetic fun bufferedWriter$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/BufferedWriter;
-	public static final fun write (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun write$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun writer (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/Writer;
 	public static synthetic fun writer$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/Writer;
 }
@@ -463,15 +496,6 @@ public final class io/ktor/util/cio/ReadersKt {
 	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun toByteArray$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun use (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class io/ktor/util/cio/Semaphore {
-	public fun <init> (I)V
-	public final fun acquire (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun enter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getLimit ()I
-	public final fun leave ()V
-	public final fun release ()V
 }
 
 public final class io/ktor/util/collections/CollectionUtilsKt {
@@ -502,6 +526,7 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun putAll (Ljava/util/Map;)V
 	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun remove (Ljava/lang/Object;Ljava/lang/Object;)Z
 	public final fun size ()I
 	public fun toString ()Ljava/lang/String;
 	public final fun values ()Ljava/util/Collection;
@@ -647,6 +672,7 @@ public final class io/ktor/util/date/Month : java/lang/Enum {
 	public static final field NOVEMBER Lio/ktor/util/date/Month;
 	public static final field OCTOBER Lio/ktor/util/date/Month;
 	public static final field SEPTEMBER Lio/ktor/util/date/Month;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/Month;
 	public static fun values ()[Lio/ktor/util/date/Month;
@@ -666,6 +692,7 @@ public final class io/ktor/util/date/WeekDay : java/lang/Enum {
 	public static final field THURSDAY Lio/ktor/util/date/WeekDay;
 	public static final field TUESDAY Lio/ktor/util/date/WeekDay;
 	public static final field WEDNESDAY Lio/ktor/util/date/WeekDay;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/WeekDay;
 	public static fun values ()[Lio/ktor/util/date/WeekDay;
@@ -677,8 +704,24 @@ public final class io/ktor/util/date/WeekDay$Companion {
 }
 
 public final class io/ktor/util/debug/ContextUtilsKt {
-	public static final fun addToContextInDebugMode ([Lkotlin/coroutines/AbstractCoroutineContextElement;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun addToContextInDebugMode (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun initContextInDebugMode (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun useContextElementInDebugMode (Lkotlin/coroutines/CoroutineContext$Key;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/util/debug/plugins/PluginName : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lio/ktor/util/debug/plugins/PluginName$Key;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/ktor/util/debug/plugins/PluginName;
+	public static synthetic fun copy$default (Lio/ktor/util/debug/plugins/PluginName;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/util/debug/plugins/PluginName;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPluginName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/debug/plugins/PluginName$Key : kotlin/coroutines/CoroutineContext$Key {
 }
 
 public final class io/ktor/util/debug/plugins/PluginTraceElement {
@@ -699,6 +742,7 @@ public final class io/ktor/util/debug/plugins/PluginTraceElement {
 public final class io/ktor/util/debug/plugins/PluginTraceElement$PluginEvent : java/lang/Enum {
 	public static final field FINISHED Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 	public static final field STARTED Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 	public static fun values ()[Lio/ktor/util/debug/plugins/PluginTraceElement$PluginEvent;
 }
@@ -748,6 +792,12 @@ public class io/ktor/util/internal/LockFreeLinkedListHead : io/ktor/util/interna
 }
 
 public final class io/ktor/util/internal/LockFreeLinkedListKt {
+	public static final field FAILURE I
+	public static final field SUCCESS I
+	public static final field UNDECIDED I
+	public static final fun getALREADY_REMOVED ()Ljava/lang/Object;
+	public static final fun getCONDITION_FALSE ()Ljava/lang/Object;
+	public static final fun getLIST_EMPTY ()Ljava/lang/Object;
 	public static final fun unwrap (Ljava/lang/Object;)Lio/ktor/util/internal/LockFreeLinkedListNode;
 }
 
@@ -835,17 +885,19 @@ public final class io/ktor/util/logging/KtorSimpleLoggerJvmKt {
 	public static final fun KtorSimpleLogger (Ljava/lang/String;)Lorg/slf4j/Logger;
 }
 
+public final class io/ktor/util/logging/LoggerJvmKt {
+	public static final fun isTraceEnabled (Lorg/slf4j/Logger;)Z
+}
+
 public final class io/ktor/util/logging/LoggerKt {
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 }
 
 public final class io/ktor/util/network/NetworkAddressJvmKt {
 	public static final fun NetworkAddress (Ljava/lang/String;I)Ljava/net/SocketAddress;
+	public static final fun getAddress (Ljava/net/SocketAddress;)Ljava/lang/String;
 	public static final fun getHostname (Ljava/net/SocketAddress;)Ljava/lang/String;
 	public static final fun getPort (Ljava/net/SocketAddress;)I
-}
-
-public abstract interface annotation class io/ktor/util/pipeline/ContextDsl : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/util/pipeline/InvalidPhaseException : java/lang/Throwable {
@@ -868,6 +920,8 @@ public class io/ktor/util/pipeline/Pipeline {
 	public final fun isEmpty ()Z
 	public final fun merge (Lio/ktor/util/pipeline/Pipeline;)V
 	public final fun mergePhases (Lio/ktor/util/pipeline/Pipeline;)V
+	public final fun resetFrom (Lio/ktor/util/pipeline/Pipeline;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class io/ktor/util/pipeline/PipelineContext : kotlinx/coroutines/CoroutineScope {
@@ -888,10 +942,6 @@ public final class io/ktor/util/pipeline/PipelinePhase {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun getName ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
-}
-
-public class io/ktor/util/reflect/TypeBase {
-	public fun <init> ()V
 }
 
 public final class io/ktor/util/reflect/TypeInfo {

@@ -4,7 +4,6 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.pool.*
 
 public expect class EOFException(message: String) : IOException
 
@@ -12,6 +11,7 @@ public expect class EOFException(message: String) : IOException
  * For streaming input it should be [Input.endOfInput] instead.
  */
 @Deprecated("Use endOfInput property instead", ReplaceWith("endOfInput"))
+@Suppress("DEPRECATION")
 public inline val Input.isEmpty: Boolean
     get() = endOfInput
 
@@ -23,6 +23,7 @@ public inline val Input.isEmpty: Boolean
     "This makes no sense for streaming inputs. Some use-cases are covered by endOfInput property",
     ReplaceWith("!endOfInput")
 )
+@Suppress("DEPRECATION")
 public val Input.isNotEmpty: Boolean
     get() {
         if (endOfInput) return false

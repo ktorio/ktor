@@ -7,6 +7,10 @@ package io.ktor.utils.io
 /**
  * Print exception stacktrace.
  */
+@Deprecated(
+    "This function is replaced by the same in the standard library",
+    replaceWith = ReplaceWith("printStackTrace()")
+)
 public expect fun Throwable.printStack()
 
 internal fun Throwable.unwrapCancellationException(): Throwable {

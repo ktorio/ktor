@@ -4,6 +4,7 @@
 
 package io.ktor.network.selector
 
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -16,12 +17,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     public final override val provider: SelectorProvider = SelectorProvider.provider()
 
     /**
-     * Number of pending selectables
+     * Number of pending selectable.
      */
     protected var pending: Int = 0
 
     /**
-     * Number of cancelled keys
+     * Number of cancelled keys.
      */
     protected var cancelled: Int = 0
 
@@ -31,15 +32,19 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     protected abstract fun publishInterest(selectable: Selectable)
 
     public final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
-        require(selectable.interestedOps and interest.flag != 0)
+        val interestedOps = selectable.interestedOps
+        val flag = interest.flag
 
-        suspendCancellableCoroutine<Unit> { c ->
-            c.invokeOnCancellation {
+        if (selectable.isClosed) selectableIsClosed()
+        if (interestedOps and flag == 0) selectableIsInvalid(interestedOps, flag)
+
+        suspendCancellableCoroutine<Unit> { continuation ->
+            continuation.invokeOnCancellation {
                 // TODO: We've got a race here (and exception erasure)!
             }
-            selectable.suspensions.addSuspension(interest, c)
+            selectable.suspensions.addSuspension(interest, continuation)
 
-            if (!c.isCancelled) {
+            if (!continuation.isCancelled) {
                 publishInterest(selectable)
             }
         }
@@ -53,13 +58,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         pending = keys.size - selectedCount
         cancelled = 0
 
-        if (selectedCount > 0) {
-            val iter = selectedKeys.iterator()
-            while (iter.hasNext()) {
-                val k = iter.next()
-                handleSelectedKey(k)
-                iter.remove()
-            }
+        if (selectedCount <= 0) return
+        val iter = selectedKeys.iterator()
+        while (iter.hasNext()) {
+            val k = iter.next()
+            handleSelectedKey(k)
+            iter.remove()
         }
     }
 
@@ -71,13 +75,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
             val readyOps = key.readyOps()
             val interestOps = key.interestOps()
 
-            val subj = key.subject
-            if (subj == null) {
+            val subject = key.subject
+            if (subject == null) {
                 key.cancel()
                 cancelled++
             } else {
-                val unit = Unit
-                subj.suspensions.invokeForEachPresent(readyOps) { resume(unit) }
+                subject.suspensions.invokeForEachPresent(readyOps) { resume(Unit) }
 
                 val newOps = interestOps and readyOps.inv()
                 if (newOps != interestOps) {
@@ -88,12 +91,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
                     pending++
                 }
             }
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             // cancelled or rejected on resume?
             key.cancel()
             cancelled++
-            key.subject?.let { subj ->
-                cancelAllSuspensions(subj, t)
+            key.subject?.let { subject ->
+                cancelAllSuspensions(subject, cause)
                 key.subject = null
             }
         }
@@ -102,15 +105,15 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     /**
      * Applies selectable's current interest (should be invoked in selection thread)
      */
-    protected fun applyInterest(selector: Selector, s: Selectable) {
+    protected fun applyInterest(selector: Selector, selectable: Selectable) {
         try {
-            val channel = s.channel
+            val channel = selectable.channel
             val key = channel.keyFor(selector)
-            val ops = s.interestedOps
+            val ops = selectable.interestedOps
 
             if (key == null) {
                 if (ops != 0) {
-                    channel.register(selector, ops, s)
+                    channel.register(selector, ops, selectable)
                 }
             } else {
                 if (key.interestOps() != ops) {
@@ -121,9 +124,9 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
             if (ops != 0) {
                 pending++
             }
-        } catch (t: Throwable) {
-            s.channel.keyFor(selector)?.cancel()
-            cancelAllSuspensions(s, t)
+        } catch (cause: Throwable) {
+            selectable.channel.keyFor(selector)?.cancel()
+            cancelAllSuspensions(selectable, cause)
         }
     }
 
@@ -140,25 +143,25 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
     /**
      * Cancel all selectable's suspensions with the specified exception
      */
-    protected fun cancelAllSuspensions(attachment: Selectable, t: Throwable) {
+    protected fun cancelAllSuspensions(attachment: Selectable, cause: Throwable) {
         attachment.suspensions.invokeForEachPresent {
-            resumeWithException(t)
+            resumeWithException(cause)
         }
     }
 
     /**
      * Cancel all suspensions with the specified exception, reset all interests
      */
-    protected fun cancelAllSuspensions(selector: Selector, t: Throwable?) {
-        val cause = t ?: ClosedSelectorCancellationException()
+    protected fun cancelAllSuspensions(selector: Selector, cause: Throwable?) {
+        val currentCause = cause ?: ClosedSelectorCancellationException()
 
-        selector.keys().forEach { k ->
+        selector.keys().forEach { key ->
             try {
-                if (k.isValid) k.interestOps(0)
+                if (key.isValid) key.interestOps(0)
             } catch (ignore: CancelledKeyException) {
             }
-            (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, cause) }
-            k.cancel()
+            (key.attachment() as? Selectable)?.let { cancelAllSuspensions(it, currentCause) }
+            key.cancel()
         }
     }
 
@@ -169,4 +172,12 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         }
 
     public class ClosedSelectorCancellationException : CancellationException("Closed selector")
+}
+
+private fun selectableIsClosed(): Nothing {
+    throw IOException("Selectable is already closed")
+}
+
+private fun selectableIsInvalid(interestedOps: Int, flag: Int): Nothing {
+    error("Selectable is invalid state: $interestedOps, $flag")
 }

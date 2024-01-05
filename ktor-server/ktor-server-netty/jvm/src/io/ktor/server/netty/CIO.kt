@@ -28,8 +28,9 @@ public suspend fun <T> Future<T>.suspendAwait(): T {
 
 @Suppress("IMPLICIT_NOTHING_AS_TYPE_PARAMETER")
 private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
-    if (t is IOException) c.resumeWithException(ChannelWriteException("Write operation future failed", t))
-    else c.resumeWithException(t)
+    if (t is IOException) {
+        c.resumeWithException(ChannelWriteException("Write operation future failed", t))
+    } else c.resumeWithException(t)
 }
 
 /**
@@ -68,7 +69,7 @@ internal object NettyDispatcher : CoroutineDispatcher() {
         nettyContext.executor().execute(block)
     }
 
-    public class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
+    class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 

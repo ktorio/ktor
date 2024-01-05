@@ -44,9 +44,12 @@ public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
 }
 
 /**
- * Take URI components from [url]
+ * Take URL components from [url]
  */
-public fun URLBuilder.takeFrom(url: URL): URLBuilder = takeFrom(url.toURI())
+public fun URLBuilder.takeFrom(url: URL): URLBuilder = when {
+    url.host.contains('_') -> takeFrom(url.toString())
+    else -> takeFrom(url.toURI())
+}
 
 /**
  * Convert [Url] to [URI]

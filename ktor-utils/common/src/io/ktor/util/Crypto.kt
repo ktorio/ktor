@@ -7,11 +7,13 @@
 
 package io.ktor.util
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 private val digits = "0123456789abcdef".toCharArray()
+
+internal const val NONCE_SIZE_IN_BYTES = 16
 
 /**
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.

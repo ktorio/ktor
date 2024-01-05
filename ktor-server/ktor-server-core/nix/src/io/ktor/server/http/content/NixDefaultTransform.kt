@@ -8,6 +8,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
-internal actual fun PipelineContext<Any, ApplicationCall>.platformTransformDefaultContent(
+internal actual fun platformTransformDefaultContent(
+    call: ApplicationCall,
     value: Any
 ): OutgoingContent? = null

@@ -31,6 +31,14 @@ class JettyBlockingServletContainerHttpServerJvmTest :
     @Ignore
     override fun testUpgrade() {
     }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
+    }
 }
 
 class JettyBlockingServletContainerSustainabilityTest :

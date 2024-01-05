@@ -23,7 +23,6 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 /**
  * Opens a [DefaultClientWebSocketSession].
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
 ): DefaultClientWebSocketSession {
@@ -43,8 +42,9 @@ public suspend fun HttpClient.webSocketSession(
                 val sessionCompleted = CompletableDeferred<Unit>()
                 sessionDeferred.complete(session)
                 session.outgoing.invokeOnClose {
-                    if (it != null) sessionCompleted.completeExceptionally(it)
-                    else sessionCompleted.complete(Unit)
+                    if (it != null) {
+                        sessionCompleted.completeExceptionally(it)
+                    } else sessionCompleted.complete(Unit)
                 }
                 sessionCompleted.await()
             }
@@ -92,7 +92,6 @@ public suspend fun HttpClient.webSocket(
     val session = prepareRequest {
         url {
             protocol = URLProtocol.WS
-            port = protocol.defaultPort
         }
         request()
     }
@@ -137,9 +136,9 @@ public suspend fun HttpClient.webSocket(
 ) {
     webSocket(
         HttpMethod.Get,
-        "localhost",
-        DEFAULT_PORT,
-        "/",
+        null,
+        null,
+        null,
         {
             url.protocol = URLProtocol.WS
             url.port = port

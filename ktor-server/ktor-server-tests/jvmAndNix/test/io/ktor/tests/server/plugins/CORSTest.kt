@@ -8,7 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -88,7 +88,7 @@ class CORSTest {
     fun testSimpleRequest() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
             }
 
             application.routing {
@@ -115,10 +115,59 @@ class CORSTest {
     }
 
     @Test
+    fun testSimpleRequestSubrouteInstall() = testApplication {
+        routing {
+            route("/1") {
+                install(CORS) {
+                    allowHost("my-host")
+                }
+                get {
+                    call.respond("OK")
+                }
+            }
+            route("/2") {
+                get {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.get("/1") {
+            header(HttpHeaders.Origin, "http://my-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("http://my-host", response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
+        }
+
+        client.get("/1") {
+            header(HttpHeaders.Origin, "http://other-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+        }
+
+        client.get("/2") {
+            header(HttpHeaders.Origin, "http://my-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
+        }
+
+        client.get("/2") {
+            header(HttpHeaders.Origin, "http://other-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testSimpleRequestPort1() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
             }
 
             application.routing {
@@ -149,7 +198,7 @@ class CORSTest {
     fun testSimpleRequestPort2() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host:80")
+                allowHost("my-host:80")
             }
 
             application.routing {
@@ -180,7 +229,7 @@ class CORSTest {
     fun testSimpleRequestExposed() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
                 exposeHeader(HttpHeaders.ETag)
                 exposeHeader(HttpHeaders.Vary)
             }
@@ -209,7 +258,7 @@ class CORSTest {
     fun testSimpleRequestHttps() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host", schemes = listOf("http", "https"))
+                allowHost("my-host")
             }
 
             application.routing {
@@ -247,7 +296,7 @@ class CORSTest {
     fun testSimpleRequestSubDomains() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host", subDomains = listOf("www"))
+                allowHost("my-host", subDomains = listOf("www"))
             }
 
             application.routing {
@@ -509,7 +558,7 @@ class CORSTest {
     fun testPreFlightMultipleHeadersRegression(): Unit = withTestApplication {
         application.install(CORS) {
             anyHost()
-            header(HttpHeaders.Range)
+            allowHeader(HttpHeaders.Range)
         }
 
         application.routing {
@@ -536,7 +585,7 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -611,7 +660,7 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                method(HttpMethod.Delete)
+                allowMethod(HttpMethod.Delete)
             }
 
             application.routing {
@@ -690,7 +739,7 @@ class CORSTest {
     fun testPreflightCustomHost() {
         withTestApplication {
             application.install(CORS) {
-                host("my-host")
+                allowHost("my-host")
                 allowNonSimpleContentTypes = true
             }
 
@@ -765,12 +814,42 @@ class CORSTest {
     }
 
     @Test
+    fun testAnyHeaderWithPrefixRequestIgnoresCase() = testApplication {
+        install(CORS) {
+            anyHost()
+            allowHeadersPrefixed("Сustom1-")
+            allowHeadersPrefixed("custom2-")
+        }
+        routing {
+            post("/") {
+                call.respond("OK")
+            }
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://host")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+            header(HttpHeaders.AccessControlRequestHeaders, "сustom1-header")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://host")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+            header(HttpHeaders.AccessControlRequestHeaders, "Custom2-header")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+    }
+
+    @Test
     fun testAnyHeaderWithPrefixMergesHeadersWithConfiguration() {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -799,7 +878,7 @@ class CORSTest {
             application.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
-                header(HttpHeaders.Range)
+                allowHeader(HttpHeaders.Range)
             }
 
             application.routing {
@@ -900,9 +979,9 @@ class CORSTest {
     fun testEmptyAccessControlRequestHeaders() {
         withTestApplication {
             application.install(CORS) {
-                method(HttpMethod.Options)
-                header(HttpHeaders.XForwardedProto)
-                host("host")
+                allowMethod(HttpMethod.Options)
+                allowHeader(HttpHeaders.XForwardedProto)
+                allowHost("host")
                 allowSameOrigin = false
                 allowCredentials = true
                 allowNonSimpleContentTypes = true
@@ -924,6 +1003,265 @@ class CORSTest {
                     "Content-Type, X-Forwarded-Proto",
                     call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
                 )
+            }
+        }
+    }
+
+    @Test
+    fun originValidation() = testApplication {
+        install(CORS) {
+            allowSameOrigin = false
+            anyHost()
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "hyp-hen://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "plus+://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "do.t://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "digits11://host") }.status
+        )
+
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "a()://host") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "1abc://host") }.status
+        )
+    }
+
+    @Test
+    fun originWithWildcard() = testApplication {
+        install(CORS) {
+            allowSameOrigin = true
+            allowHost("domain.com")
+            allowHost("*.domain.com")
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://www.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.net") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "https://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "https://www.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "https://domain.net") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "sftp://domain.com") }.status
+        )
+    }
+
+    @Test
+    fun originWithWildcardAndSubdomain() = testApplication {
+        install(CORS) {
+            allowSameOrigin = true
+            allowHost("domain.com", subDomains = listOf("foo", "*.bar"))
+        }
+        routing {
+            get("") { call.respond("OK") }
+        }
+
+        val client = createClient { expectSuccess = false }
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://foo.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get { headers.append(HttpHeaders.Origin, "http://anything.bar.domain.com") }.status
+        )
+        assertEquals(
+            HttpStatusCode.Forbidden,
+            client.get { headers.append(HttpHeaders.Origin, "http://invalid.foo.domain.com") }.status
+        )
+    }
+
+    @Test
+    fun invalidOriginWithWildcard() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            ("domain.com*" to messageWildcardInFrontOfDomain),
+            ("domain.com*." to messageWildcardInFrontOfDomain),
+            ("*." to messageWildcardInFrontOfDomain),
+            ("**" to messageWildcardInFrontOfDomain),
+            ("*.*." to messageWildcardInFrontOfDomain),
+            ("*.*.domain.com" to messageWildcardOnlyOnce),
+            ("*.foo*.domain.com" to messageWildcardOnlyOnce),
+        ).forEach { (host, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for this host '$host'"
+            ) {
+                testApplication {
+                    install(CORS) { allowHost(host) }
+                }
+            }
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun originWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("foo*.") to messageWildcardInFrontOfDomain),
+            (listOf("*.foo*.bar") to messageWildcardOnlyOnce),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                testApplication {
+                    install(CORS) { allowHost("domain.com", subDomains = subDomains) }
+                }
+            }
+
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun invalidOriginWithWildcardAndSubDomain() {
+        val messageWildcardInFrontOfDomain = "wildcard must appear in front of the domain, e.g. *.domain.com"
+        val messageWildcardOnlyOnce = "wildcard cannot appear more than once"
+
+        listOf(
+            (listOf("*.foo") to messageWildcardOnlyOnce),
+            (listOf("*") to messageWildcardInFrontOfDomain),
+            (listOf("foo") to messageWildcardInFrontOfDomain),
+        ).forEach { (subDomains, expectedMessage) ->
+            val exception = assertFailsWith<IllegalArgumentException>(
+                "Expected this message '$expectedMessage' for sub domains $subDomains"
+            ) {
+                testApplication {
+                    install(CORS) { allowHost("*.domain.com", subDomains = subDomains) }
+                }
+            }
+            assertEquals(expectedMessage, exception.message)
+        }
+    }
+
+    @Test
+    fun testOriginPredicatesSimpleRequest() {
+        withTestApplication {
+            application.install(CORS) {
+                allowOrigins { it == "https://allowed-host" }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://allowed-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("https://allowed-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://forbidden-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://allowed-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testOriginPredicatesRegex() {
+        withTestApplication {
+            application.install(CORS) {
+                allowOrigins { it.matches(Regex("^https?://host\\.(?:com|org)$")) }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://host.com")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("https://host.com", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://host.org")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://host.org", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "https://host.net")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
             }
         }
     }

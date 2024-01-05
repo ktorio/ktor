@@ -8,13 +8,13 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * Server response send pipeline
+ * Server response send pipeline.
  */
 public open class ApplicationSendPipeline(
     override val developmentMode: Boolean = false
-) : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+) : Pipeline<Any, PipelineCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     /**
-     * Send pipeline phases
+     * Send pipeline phases.
      */
     @Suppress("PublicApiImplicitType")
     public companion object Phases {
@@ -24,34 +24,34 @@ public open class ApplicationSendPipeline(
         public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
-         * Transformation phase that can proceed with any supported data like String
+         * A transformation phase that can proceed with any supported data like String.
          */
         public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
-         * Phase to render any current pipeline subject into [io.ktor.http.content.OutgoingContent]
+         * A phase to render any current pipeline subject into [io.ktor.http.content.OutgoingContent].
          *
-         * Beyond this phase only [io.ktor.http.content.OutgoingContent] should be produced by any interceptor
+         * Beyond this phase, only [io.ktor.http.content.OutgoingContent] should be produced by any interceptor.
          */
         public val Render: PipelinePhase = PipelinePhase("Render")
 
         /**
-         * Phase for processing Content-Encoding, like compression and partial content
+         * A phase for processing `Content-Encoding`, like compression and partial content.
          */
         public val ContentEncoding: PipelinePhase = PipelinePhase("ContentEncoding")
 
         /**
-         * Phase for handling Transfer-Encoding, like if chunked encoding is being done manually and not by engine
+         * A phase for handling `Transfer-Encoding`, like if chunked encoding is being done manually and not by engine.
          */
         public val TransferEncoding: PipelinePhase = PipelinePhase("TransferEncoding")
 
         /**
-         * The latest application phase that happens right before engine will send the response
+         * The latest application phase that happens right before an engine sends a response.
          */
         public val After: PipelinePhase = PipelinePhase("After")
 
         /**
-         * Phase for Engine to send the response out to client.
+         * A phase for Engine to send the response out to the client.
          */
         public val Engine: PipelinePhase = PipelinePhase("Engine")
     }

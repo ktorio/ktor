@@ -1,12 +1,10 @@
-val kotlinx_html_version: String by extra
-
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmAndNixMain {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
+            api(libs.kotlinx.html)
         }
     }
-    val jvmTest by getting {
+    jvmAndNixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
         }

@@ -20,38 +20,66 @@ internal class AuthTokenHolder<T>(
 
     internal suspend fun loadToken(): T? {
         var deferred: CompletableDeferred<T?>?
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = loadTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (loadTokensDeferred.compareAndSet(deferred, newValue)) {
+                newDeferred = newValue
+                break
+            }
         }
 
+        // if there's already a pending loadTokens(), just wait for it to complete
         if (deferred != null) {
             return deferred.await()
         }
 
-        val newTokens = loadTokens()
-        loadTokensDeferred.value!!.complete(newTokens)
-        return newTokens
+        try {
+            val newTokens = loadTokens()
+
+            // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
+            // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+            newDeferred.complete(newTokens)
+
+            return newTokens
+        } catch (cause: Throwable) {
+            newDeferred.completeExceptionally(cause)
+            loadTokensDeferred.compareAndSet(newDeferred, null)
+            throw cause
+        }
     }
 
     internal suspend fun setToken(block: suspend () -> T?): T? {
         var deferred: CompletableDeferred<T?>?
+        lateinit var newDeferred: CompletableDeferred<T?>
         while (true) {
             deferred = refreshTokensDeferred.value
             val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) break
+            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) {
+                newDeferred = newValue
+                break
+            }
         }
 
-        val newToken = if (deferred == null) {
-            val newTokens = block()
-            refreshTokensDeferred.value!!.complete(newTokens)
-            refreshTokensDeferred.value = null
-            newTokens
-        } else {
-            deferred.await()
+        try {
+            val newToken = if (deferred == null) {
+                val newTokens = block()
+
+                // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
+                // suspended), which is why we are using [newDeferred] to complete the suspending callback.
+                newDeferred.complete(newTokens)
+                refreshTokensDeferred.value = null
+                newTokens
+            } else {
+                deferred.await()
+            }
+            loadTokensDeferred.value = CompletableDeferred(newToken)
+            return newToken
+        } catch (cause: Throwable) {
+            newDeferred.completeExceptionally(cause)
+            refreshTokensDeferred.compareAndSet(newDeferred, null)
+            throw cause
         }
-        loadTokensDeferred.value = CompletableDeferred(newToken)
-        return newToken
     }
 }

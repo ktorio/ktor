@@ -7,22 +7,21 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlin.native.concurrent.*
 
 /**
- * Specifies caching properties for an [OutgoingContent] such as Cache-Control or Expires
+ * Specifies caching properties for [OutgoingContent] such as `Cache-Control` or `Expires`.
  * @property cacheControl header
  * @property expires header
  */
 public data class CachingOptions(val cacheControl: CacheControl? = null, val expires: GMTDate? = null)
 
 /**
- * Specifies a key for CacheControl extension property for [OutgoingContent]
+ * Specifies a key for the [CacheControl] extension property for [OutgoingContent].
  */
 public val CachingProperty: AttributeKey<CachingOptions> = AttributeKey("Caching")
 
 /**
- * Gets or sets [CacheControl] instance as an extension property on this content
+ * Gets or sets the [CacheControl] instance as an extension property on this content.
  */
 public var OutgoingContent.caching: CachingOptions?
     get() = getProperty(CachingProperty)

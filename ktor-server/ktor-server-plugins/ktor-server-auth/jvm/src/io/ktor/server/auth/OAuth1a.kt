@@ -14,39 +14,11 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
-import java.io.*
+import io.ktor.utils.io.errors.*
 import java.time.*
 import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.*
-
-internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
-    client: HttpClient,
-    dispatcher: CoroutineDispatcher,
-    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
-) {
-    val provider = call.providerLookup()
-    if (provider is OAuthServerSettings.OAuth1aServerSettings) {
-        val token = call.oauth1aHandleCallback()
-        withContext(dispatcher) {
-            val callbackRedirectUrl = call.urlProvider(provider)
-            if (token == null) {
-                val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)
-                call.redirectAuthenticateOAuth1a(provider, t)
-            } else {
-                try {
-                    val accessToken = requestOAuth1aAccessToken(client, provider, token)
-                    call.authentication.principal(accessToken)
-                } catch (ioe: IOException) {
-                    call.oauthHandleFail(callbackRedirectUrl)
-                }
-            }
-        }
-    }
-}
 
 internal fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
     val token = parameters[HttpAuthHeader.Parameters.OAuthToken]
@@ -194,22 +166,7 @@ private suspend fun requestOAuth1aAccessToken(
 }
 
 /**
- * Create an HTTP auth header for OAuth1a obtain token request
- */
-@Deprecated(
-    "This is going to become internal. Please file a ticket and clarify, why do you need it.",
-    level = DeprecationLevel.ERROR
-)
-@Suppress("unused")
-public fun createObtainRequestTokenHeader(
-    callback: String,
-    consumerKey: String,
-    nonce: String,
-    timestamp: LocalDateTime = LocalDateTime.now()
-): HttpAuthHeader.Parameterized = createObtainRequestTokenHeaderInternal(callback, consumerKey, nonce, timestamp)
-
-/**
- * Create an HTTP auth header for OAuth1a obtain token request
+ * Creates an HTTP auth header for OAuth1a obtain token request.
  */
 private fun createObtainRequestTokenHeaderInternal(
     callback: String,
@@ -229,23 +186,7 @@ private fun createObtainRequestTokenHeaderInternal(
 )
 
 /**
- * Create an HTTP auth header for OAuth1a upgrade token request
- */
-@Deprecated(
-    "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it.",
-    level = DeprecationLevel.ERROR
-)
-@Suppress("unused")
-internal fun createUpgradeRequestTokenHeader(
-    consumerKey: String,
-    token: String,
-    nonce: String,
-    timestamp: LocalDateTime = LocalDateTime.now()
-): HttpAuthHeader.Parameterized = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce, timestamp)
-
-/**
- * Create an HTTP auth header for OAuth1a upgrade token request
+ * Creates an HTTP auth header for OAuth1a upgrade token request.
  */
 private fun createUpgradeRequestTokenHeaderInternal(
     consumerKey: String,
@@ -265,23 +206,7 @@ private fun createUpgradeRequestTokenHeaderInternal(
 )
 
 /**
- * Sign an HTTP auth header
- */
-@Deprecated(
-    "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it.",
-    level = DeprecationLevel.ERROR
-)
-@Suppress("unused")
-public fun HttpAuthHeader.Parameterized.sign(
-    method: HttpMethod,
-    baseUrl: String,
-    key: String,
-    parameters: List<Pair<String, String>>
-): HttpAuthHeader.Parameterized = signInternal(method, baseUrl, key, parameters)
-
-/**
- * Sign an HTTP auth header
+ * Signs an HTTP auth header.
  */
 private fun HttpAuthHeader.Parameterized.signInternal(
     method: HttpMethod,
@@ -294,23 +219,7 @@ private fun HttpAuthHeader.Parameterized.signInternal(
 )
 
 /**
- * Build an OAuth1a signature base string as per RFC
- */
-@Deprecated(
-    "This is going to become internal. " +
-        "Please file a ticket and clarify, why do you need it.",
-    level = DeprecationLevel.ERROR
-)
-@Suppress("unused")
-public fun signatureBaseString(
-    header: HttpAuthHeader.Parameterized,
-    method: HttpMethod,
-    baseUrl: String,
-    parameters: List<HeaderValueParam>
-): String = signatureBaseStringInternal(header, method, baseUrl, parameters)
-
-/**
- * Build an OAuth1a signature base string as per RFC
+ * Builds an OAuth1a signature base string as per RFC.
  */
 internal fun signatureBaseStringInternal(
     header: HttpAuthHeader.Parameterized,
@@ -337,18 +246,12 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
         .joinToString("&") { "${it.first}=${it.second}" }
 
 /**
- * Represents an OAuth1a server error
+ * An OAuth1a server error.
  */
 public sealed class OAuth1aException(message: String) : Exception(message) {
 
     /**
-     * Thrown when an OAuth1a server didn't provide access token
+     * Thrown when an OAuth1a server didn't provide access token.
      */
     public class MissingTokenException : OAuth1aException("The OAuth1a server didn't provide access token")
-
-    /**
-     * Represents any other OAuth1a error
-     */
-    @Deprecated("This is no longer thrown.", level = DeprecationLevel.ERROR)
-    public class UnknownException(message: String) : OAuth1aException(message)
 }

@@ -10,9 +10,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.utils.io.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -489,6 +488,7 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",
@@ -503,7 +503,7 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
         var sendPipelineCallback = sendPipelineCallback
     }
 
-    companion object Plugin : RouteScopedPlugin<Config, TestAllPipelinesPlugin> {
+    companion object Plugin : BaseRouteScopedPlugin<Config, TestAllPipelinesPlugin> {
 
         override val key: AttributeKey<TestAllPipelinesPlugin> = AttributeKey("TestPlugin")
 
@@ -526,6 +526,7 @@ class TestPlugin private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",
@@ -536,7 +537,7 @@ class TestPlugin private constructor(config: Config) {
         var pipelineCallback = pipelineCallback
     }
 
-    companion object Plugin : RouteScopedPlugin<Config, TestPlugin> {
+    companion object Plugin : BaseRouteScopedPlugin<Config, TestPlugin> {
 
         override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
 
@@ -561,6 +562,7 @@ class TestPluginCustomPhase private constructor(config: Config) {
         }
     }
 
+    @KtorDsl
     class Config(
         name: String = "defaultName",
         desc: String = "defaultDesc",
@@ -571,7 +573,7 @@ class TestPluginCustomPhase private constructor(config: Config) {
         var callback = callback
     }
 
-    companion object Plugin : RouteScopedPlugin<Config, TestPluginCustomPhase> {
+    companion object Plugin : BaseRouteScopedPlugin<Config, TestPluginCustomPhase> {
         override val key: AttributeKey<TestPluginCustomPhase> = AttributeKey("TestPlugin")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): TestPluginCustomPhase {

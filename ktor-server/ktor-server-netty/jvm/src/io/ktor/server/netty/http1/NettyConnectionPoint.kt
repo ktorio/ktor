@@ -11,10 +11,13 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import java.net.*
 
+private const val DEFAULT_PORT = 80
+
 internal class NettyConnectionPoint(
-    val request: HttpRequest,
-    val context: ChannelHandlerContext
+    private val request: HttpRequest,
+    private val context: ChannelHandlerContext,
 ) : RequestConnectionPoint {
+
     override val version: String
         get() = request.protocolVersion().text()
 
@@ -26,16 +29,55 @@ internal class NettyConnectionPoint(
 
     override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
 
+    @Deprecated(
+        "Use localHost or serverHost instead",
+        level = DeprecationLevel.ERROR
+    )
     override val host: String
-        get() = request.headers().get(HttpHeaders.Host)?.substringBefore(":")
-            ?: (context.channel().localAddress() as? InetSocketAddress)
-                ?.let { it.hostName ?: it.address.hostAddress } ?: "localhost"
+        get() = request.headers().get(HttpHeaders.Host)?.substringBefore(":") ?: (
+            context.channel()
+                .localAddress() as? InetSocketAddress
+            )?.let { it.hostName ?: it.address.hostAddress } ?: "localhost"
 
+    @Deprecated(
+        "Use localPort or serverPort instead",
+        level = DeprecationLevel.ERROR
+    )
     override val port: Int
-        get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: 80
+        get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: DEFAULT_PORT
+
+    override val localHost: String
+        get() = (context.channel().localAddress() as? InetSocketAddress)?.let { it.hostName ?: it.hostString }
+            ?: "localhost"
+
+    override val serverHost: String
+        get() = request.headers().get(HttpHeaders.Host)?.substringBefore(":") ?: localHost
+
+    override val localAddress: String
+        get() = (context.channel().localAddress() as? InetSocketAddress)?.hostString ?: "localhost"
+
+    private val defaultPort
+        get() = URLProtocol.createOrDefault(scheme).defaultPort
+
+    override val localPort: Int
+        get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: defaultPort
+
+    override val serverPort: Int
+        get() = request.headers().get(HttpHeaders.Host)?.substringAfter(":", defaultPort.toString())?.toInt()
+            ?: localPort
 
     override val remoteHost: String
         get() = (context.channel().remoteAddress() as? InetSocketAddress)?.let {
             it.hostName ?: it.address.hostAddress
         } ?: "unknown"
+
+    override val remotePort: Int
+        get() = (context.channel().remoteAddress() as? InetSocketAddress)?.port ?: 0
+    override val remoteAddress: String
+        get() = (context.channel().remoteAddress() as? InetSocketAddress)?.hostString ?: "unknown"
+
+    override fun toString(): String =
+        "NettyConnectionPoint(" +
+            "uri=$uri, method=$method, version=$version, localAddress=$localAddress, localPort=$localPort, " +
+            "remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }

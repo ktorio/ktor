@@ -8,13 +8,11 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
-import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
 /**
  * Represents request and connection parameters possibly overridden via https headers.
- * By default it fallbacks to [ApplicationRequest.local]
+ * By default, it fallbacks to [ApplicationRequest.local]
  */
 @Suppress("DEPRECATION")
 public val ApplicationRequest.origin: RequestConnectionPoint
@@ -24,16 +22,15 @@ public val ApplicationRequest.origin: RequestConnectionPoint
  * A key to install a mutable [RequestConnectionPoint]
  */
 @Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
-
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 
 /**
  * Represents a [RequestConnectionPoint]. Its every component is mutable so application plugins could modify them.
- * By default all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.host]
- * and [RequestConnectionPoint.port] overridden by [HttpHeaders.Host] header value.
+ * By default, all the properties are equal to [ApplicationRequest.local] with [RequestConnectionPoint.serverHost]
+ * and [RequestConnectionPoint.serverPort] overridden by [HttpHeaders.Host] header value.
  * Users can assign new values parsed from [HttpHeaders.Forwarded], [HttpHeaders.XForwardedHost], etc.
- * See [XForwardedHeaderSupport] and [ForwardedHeaderSupport].
+ * See [XForwardedHeaders] and [ForwardedHeaders].
  */
 public class MutableOriginConnectionPoint internal constructor(
     delegate: RequestConnectionPoint
@@ -43,9 +40,22 @@ public class MutableOriginConnectionPoint internal constructor(
     override var uri: String by AssignableWithDelegate { delegate.uri }
     override var method: HttpMethod by AssignableWithDelegate { delegate.method }
     override var scheme: String by AssignableWithDelegate { delegate.scheme }
+
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Use localHost or serverHost instead", level = DeprecationLevel.ERROR)
     override var host: String by AssignableWithDelegate { delegate.host }
+    override var localHost: String by AssignableWithDelegate { delegate.localHost }
+    override var serverHost: String by AssignableWithDelegate { delegate.serverHost }
+    override var localAddress: String by AssignableWithDelegate { delegate.localAddress }
+
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Use localPort or serverPort instead", level = DeprecationLevel.ERROR)
     override var port: Int by AssignableWithDelegate { delegate.port }
+    override var localPort: Int by AssignableWithDelegate { delegate.localPort }
+    override var serverPort: Int by AssignableWithDelegate { delegate.serverPort }
     override var remoteHost: String by AssignableWithDelegate { delegate.remoteHost }
+    override var remotePort: Int by AssignableWithDelegate { delegate.remotePort }
+    override var remoteAddress: String by AssignableWithDelegate { delegate.remoteAddress }
 }
 
 private class AssignableWithDelegate<T : Any>(val property: () -> T) {
@@ -71,14 +81,29 @@ internal class OriginConnectionPoint(
     override val version: String
         get() = local.version
 
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Use localHost or serverHost instead")
     override val port: Int
         get() = hostHeaderValue?.substringAfter(":", "80")
             ?.toIntOrNull()
             ?: local.port
 
+    override val localPort: Int
+        get() = local.localPort
+    override val serverPort: Int
+        get() = local.serverPort
+
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Use localHost or serverHost instead")
     override val host: String
         get() = hostHeaderValue?.substringBefore(":")
             ?: local.host
+    override val localHost: String
+        get() = local.localHost
+    override val serverHost: String
+        get() = local.serverHost
+    override val localAddress: String
+        get() = local.localAddress
 
     override val uri: String
         get() = local.uri
@@ -88,6 +113,14 @@ internal class OriginConnectionPoint(
 
     override val remoteHost: String
         get() = local.remoteHost
+    override val remotePort: Int
+        get() = local.remotePort
+    override val remoteAddress: String
+        get() = local.remoteAddress
+
+    override fun toString(): String =
+        "OriginConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
+            "localPort=$localPort, remoteAddress=$remoteAddress, remotePort=$remotePort)"
 }
 
 /**
@@ -96,7 +129,5 @@ internal class OriginConnectionPoint(
 @Suppress("DEPRECATION")
 public val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
-        MutableOriginConnectionPoint(
-            OriginConnectionPoint(this)
-        )
+        MutableOriginConnectionPoint(OriginConnectionPoint(this))
     }

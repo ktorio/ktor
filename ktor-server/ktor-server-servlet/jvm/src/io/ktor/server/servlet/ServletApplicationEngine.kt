@@ -4,13 +4,13 @@
 
 package io.ktor.server.servlet
 
-import com.typesafe.config.*
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import org.slf4j.*
-import javax.servlet.*
 import javax.servlet.annotation.*
 import kotlin.coroutines.*
 
@@ -19,46 +19,43 @@ import kotlin.coroutines.*
  */
 @MultipartConfig
 public open class ServletApplicationEngine : KtorServlet() {
-    private val environment: ApplicationEngineEnvironment by lazy {
+
+    private val embeddedServer: EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>? by lazy {
+        servletContext.getAttribute(ApplicationAttributeKey)?.let {
+            return@lazy null
+        }
+
         val servletContext = servletContext
         val servletConfig = servletConfig
-
-        servletContext.getAttribute(ApplicationEngineEnvironmentAttributeKey)?.let {
-            return@lazy it as ApplicationEngineEnvironment
-        }
 
         val parameterNames = (
             servletContext.initParameterNames?.toList().orEmpty() +
                 servletConfig.initParameterNames?.toList().orEmpty()
             ).filter { it.startsWith("io.ktor") }.distinct()
-        val parameters = parameterNames.associateBy(
-            { it.removePrefix("io.ktor.") },
-            { servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it) }
-        )
+        val parameters = parameterNames.map {
+            it.removePrefix("io.ktor.") to
+                (servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it))
+        }
 
-        val hocon = ConfigFactory.parseMap(parameters)
+        val parametersConfig = MapApplicationConfig(parameters)
         val configPath = "ktor.config"
         val applicationIdPath = "ktor.application.id"
 
-        val combinedConfig = if (hocon.hasPath(configPath)) {
-            val configStream = servletContext.classLoader.getResourceAsStream(hocon.getString(configPath))
-                ?: throw ServletException(
-                    "No config ${hocon.getString(configPath)} found for the servlet named $servletName"
-                )
-            val loadedKtorConfig = configStream.bufferedReader().use { ConfigFactory.parseReader(it) }
-            hocon.withFallback(loadedKtorConfig).resolve()
-        } else {
-            hocon.withFallback(ConfigFactory.load())
-        }
+        val combinedConfig = parametersConfig
+            .withFallback(ConfigLoader.load(parametersConfig.tryGetString(configPath)))
 
         val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
 
-        applicationEngineEnvironment {
-            config = HoconApplicationConfig(combinedConfig)
+        val environment = applicationEnvironment {
+            config = combinedConfig
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
+        }
+        val applicationProperties = applicationProperties(environment) {
             rootPath = servletContext.contextPath ?: "/"
-        }.apply {
+        }
+        val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)
+        server.apply {
             monitor.subscribe(ApplicationStarting) {
                 it.receivePipeline.merge(enginePipeline.receivePipeline)
                 it.sendPipeline.merge(enginePipeline.sendPipeline)
@@ -68,48 +65,57 @@ public open class ServletApplicationEngine : KtorServlet() {
         }
     }
 
-    override val application: Application get() = environment.application
+    public val environment: ApplicationEnvironment
+        get() = servletContext.getAttribute(EnvironmentAttributeKey)?.let { it as ApplicationEnvironment }
+            ?: embeddedServer!!.environment
+
+    @Suppress("UNCHECKED_CAST")
+    override val application: Application
+        get() = servletContext.getAttribute(ApplicationAttributeKey)?.let { it as () -> Application }?.invoke()
+            ?: embeddedServer!!.application
 
     override val logger: Logger get() = environment.log
 
     override val enginePipeline: EnginePipeline by lazy {
         servletContext.getAttribute(ApplicationEnginePipelineAttributeKey)?.let { return@lazy it as EnginePipeline }
 
-        defaultEnginePipeline(environment).also {
+        defaultEnginePipeline(environment.config, application.developmentMode).also {
             BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
         }
     }
 
     override val upgrade: ServletUpgrade by lazy {
-        if ("jetty" in servletContext.serverInfo?.toLowerCasePreservingASCIIRules() ?: "") {
+        if ("jetty" in (servletContext.serverInfo?.toLowerCasePreservingASCIIRules() ?: "")) {
             jettyUpgrade ?: DefaultServletUpgrade
-        } else DefaultServletUpgrade
+        } else {
+            DefaultServletUpgrade
+        }
     }
 
     override val coroutineContext: CoroutineContext
-        get() = super.coroutineContext + environment.parentCoroutineContext
+        get() = super.coroutineContext + application.parentCoroutineContext
 
     /**
      * Called by the servlet container when loading the servlet (on load)
      */
     override fun init() {
-        environment.start()
+        embeddedServer?.start()
         super.init()
     }
 
     override fun destroy() {
-        environment.monitor.raise(ApplicationStopPreparing, environment)
+        application.monitor.raise(ApplicationStopPreparing, environment)
         super.destroy()
-        environment.stop()
+        embeddedServer?.stop()
     }
 
     public companion object {
         /**
-         * An application engine environment instance key. It is not recommended to use unless you are writing
+         * An embedded server instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
-        public const val ApplicationEngineEnvironmentAttributeKey: String =
-            "_ktor_application_engine_environment_instance"
+        public const val EnvironmentAttributeKey: String = "_ktor_environment_instance"
+        public const val ApplicationAttributeKey: String = "_ktor_application_instance"
 
         /**
          * An application engine pipeline instance key. It is not recommended to use unless you are writing
@@ -123,6 +129,29 @@ public open class ServletApplicationEngine : KtorServlet() {
             } catch (t: Throwable) {
                 null
             }
+        }
+    }
+}
+
+private object EmptyEngineFactory : ApplicationEngineFactory<ApplicationEngine, ApplicationEngine.Configuration> {
+    override fun configuration(
+        configure: ApplicationEngine.Configuration.() -> Unit
+    ): ApplicationEngine.Configuration {
+        return ApplicationEngine.Configuration()
+    }
+
+    override fun create(
+        environment: ApplicationEnvironment,
+        monitor: Events,
+        developmentMode: Boolean,
+        configuration: ApplicationEngine.Configuration,
+        applicationProvider: () -> Application
+    ): ApplicationEngine {
+        return object : ApplicationEngine {
+            override val environment: ApplicationEnvironment = environment
+            override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = emptyList()
+            override fun start(wait: Boolean): ApplicationEngine = this
+            override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = Unit
         }
     }
 }

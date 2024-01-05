@@ -1,5 +1,3 @@
-val serialization_version: String by project.extra
-
 description = "Ktor JSON Content Negotiation via kotlinx.serialization support"
 
 plugins {
@@ -10,7 +8,12 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version")
+            api(libs.kotlinx.serialization.json)
+        }
+    }
+    jvmTest {
+        dependencies {
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")) // ktlint-disable max-line-length
         }
     }
     commonTest {

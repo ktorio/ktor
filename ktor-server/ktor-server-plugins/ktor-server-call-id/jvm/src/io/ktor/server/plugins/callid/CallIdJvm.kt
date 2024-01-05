@@ -9,6 +9,6 @@ import io.ktor.server.plugins.callloging.*
 /**
  * Put call id into MDC (diagnostic context value) with [name]
  */
-public fun CallLogging.Configuration.callIdMdc(name: String = "CallId") {
+public fun CallLoggingConfig.callIdMdc(name: String = "CallId") {
     mdc(name) { it.callId }
 }

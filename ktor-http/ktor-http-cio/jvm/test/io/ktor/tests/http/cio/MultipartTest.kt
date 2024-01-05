@@ -200,7 +200,6 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         val parts = allEvents.filterIsInstance<MultipartEvent.MultipartPart>()
@@ -259,7 +258,6 @@ class MultipartTest {
         val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)

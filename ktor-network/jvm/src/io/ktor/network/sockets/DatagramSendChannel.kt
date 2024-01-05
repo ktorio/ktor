@@ -13,7 +13,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
-import java.net.*
 import java.nio.*
 import java.nio.channels.*
 
@@ -29,7 +28,7 @@ internal class DatagramSendChannel(
     private val closedCause = atomic<Throwable?>(null)
     private val lock = Mutex()
 
-    @ExperimentalCoroutinesApi
+    @DelicateCoroutinesApi
     override val isClosedForSend: Boolean
         get() = socket.isClosed
 

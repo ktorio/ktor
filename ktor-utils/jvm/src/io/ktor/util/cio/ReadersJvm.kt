@@ -4,7 +4,6 @@
 
 package io.ktor.util.cio
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import java.nio.*
 
@@ -21,7 +20,5 @@ public suspend inline fun ByteReadChannel.pass(buffer: ByteBuffer, block: (ByteB
         block(buffer)
     }
 
-    if (this is ByteChannel) {
-        closedCause?.let { throw it }
-    }
+    closedCause?.let { throw it }
 }

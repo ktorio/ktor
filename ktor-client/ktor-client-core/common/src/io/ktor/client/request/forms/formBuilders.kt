@@ -11,12 +11,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 
 /**
- * Submit [formParameters] request.
+ * Makes a request containing form parameters encoded using the `x-www-form-urlencoded` format.
  *
- * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
+ * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
+ * Otherwise, form parameters are sent in a POST request body.
  *
- * [formParameters] encoded using application/x-www-form-urlencoded format.
+ * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
  */
 public suspend inline fun HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
@@ -35,13 +35,12 @@ public suspend inline fun HttpClient.submitForm(
 }
 
 /**
- * Submit [formParameters] request.
+ * Makes a request containing form parameters encoded using the `x-www-form-urlencoded` format.
  *
- * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
+ * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
+ * Otherwise, form parameters are sent in a POST request body.
  *
- * [url] destination
- * [formParameters] encoded using application/x-www-form-urlencoded format.
+ * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
  */
 public suspend fun HttpClient.submitForm(
     url: String,
@@ -54,9 +53,9 @@ public suspend fun HttpClient.submitForm(
 }
 
 /**
- * Send [HttpMethod.Post] request with [formData] encoded in body.
- * [formData] encoded using multipart/form-data format.
- * https://tools.ietf.org/html/rfc2045
+ * Makes a POST request containing form parameters encoded using the `multipart/form-data` format.
+ *
+ * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  */
 public suspend inline fun HttpClient.submitFormWithBinaryData(
     formData: List<PartData>,
@@ -68,11 +67,9 @@ public suspend inline fun HttpClient.submitFormWithBinaryData(
 }
 
 /**
- * Send [HttpMethod.Post] request with [formData] encoded in body.
- * [url] destination
- * [formData] encoded using multipart/form-data format.
+ * Makes a POST request containing form parameters encoded using the `multipart/form-data` format.
  *
- * https://tools.ietf.org/html/rfc2045
+ * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  */
 public suspend inline fun HttpClient.submitFormWithBinaryData(
     url: String,
@@ -84,12 +81,10 @@ public suspend inline fun HttpClient.submitFormWithBinaryData(
 }
 
 /**
- * Prepare [formParameters] request.
+ * Prepares a request containing form parameters encoded using the `x-www-form-urlencoded` format.
  *
- * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
- *
- * [formParameters] encoded using application/x-www-form-urlencoded format.
+ * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
+ * Otherwise, form parameters are sent in a POST request body.
  */
 public suspend inline fun HttpClient.prepareForm(
     formParameters: Parameters = Parameters.Empty,
@@ -108,13 +103,10 @@ public suspend inline fun HttpClient.prepareForm(
 }
 
 /**
- * Prepare [formParameters] request.
+ * Prepares a request containing form parameters encoded using the `x-www-form-urlencoded` format.
  *
- * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
- *
- * [url] destination
- * [formParameters] encoded using application/x-www-form-urlencoded format.
+ * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
+ * Otherwise, form parameters are sent in a POST request body.
  */
 public suspend fun HttpClient.prepareForm(
     url: String,
@@ -127,9 +119,7 @@ public suspend fun HttpClient.prepareForm(
 }
 
 /**
- * Prepare [HttpMethod.Post] request with [formData] encoded in body.
- * [formData] encoded using multipart/form-data format.
- * https://tools.ietf.org/html/rfc2045
+ * Prepares a POST request containing form parameters encoded using the `multipart/form-data` format.
  */
 public suspend inline fun HttpClient.prepareFormWithBinaryData(
     formData: List<PartData>,
@@ -141,11 +131,7 @@ public suspend inline fun HttpClient.prepareFormWithBinaryData(
 }
 
 /**
- * Prepare [HttpMethod.Post] request with [formData] encoded in body.
- * [url] destination
- * [formData] encoded using multipart/form-data format.
- *
- * https://tools.ietf.org/html/rfc2045
+ * Prepares a POST request containing form parameters encoded using the `multipart/form-data` format.
  */
 public suspend inline fun HttpClient.prepareFormWithBinaryData(
     url: String,

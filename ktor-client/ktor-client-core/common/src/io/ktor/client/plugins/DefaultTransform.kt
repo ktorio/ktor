@@ -10,10 +10,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
 
 /**
  * Install default transformers.
@@ -27,30 +30,30 @@ public fun HttpClient.defaultTransformers() {
             context.headers.append(HttpHeaders.Accept, "*/*")
         }
 
-        val contentType = context.headers[HttpHeaders.ContentType]?.let {
-            ContentType.parse(it)
-        }
-        val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
-
+        val contentType = context.contentType()
         val content = when (body) {
             is String -> {
                 TextContent(body, contentType ?: ContentType.Text.Plain)
             }
+
             is ByteArray -> object : OutgoingContent.ByteArrayContent() {
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
             }
+
             is ByteReadChannel -> object : OutgoingContent.ReadChannelContent() {
-                override val contentLength = contentLength
+                override val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
                 override fun readFrom(): ByteReadChannel = body
             }
-            else -> null
-        }
 
-        if (content != null) {
+            is OutgoingContent -> body
+            else -> platformRequestDefaultTransform(contentType, context, body)
+        }
+        if (content?.contentType != null) {
             context.headers.remove(HttpHeaders.ContentType)
+            LOGGER.trace("Transformed with default transformers request body for ${context.url} from ${body::class}")
             proceedWith(content)
         }
     }
@@ -58,33 +61,31 @@ public fun HttpClient.defaultTransformers() {
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
         if (body !is ByteReadChannel) return@intercept
         val response = context.response
-        val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong() ?: Long.MAX_VALUE
 
-        when (info.type) {
+        val result = when (info.type) {
             Unit::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
+
             Int::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
             }
+
             ByteReadPacket::class,
+            @Suppress("DEPRECATION")
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
-            ByteArray::class -> {
-                val readRemaining = body.readRemaining(contentLength)
-                if (contentLength < Long.MAX_VALUE) {
-                    check(readRemaining.remaining == contentLength) {
-                        "Expected $contentLength, actual ${readRemaining.remaining}"
-                    }
-                }
 
-                proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+            ByteArray::class -> {
+                val bytes = body.toByteArray()
+                proceedWith(HttpResponseContainer(info, bytes))
             }
+
             ByteReadChannel::class -> {
-                // the response job could be already completed so the job holder
-                // could be cancelled immediately, but it doesn't matter
+                // the response job could be already completed, so the job holder
+                // could be canceled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext[Job])
                 val channel: ByteReadChannel = writer(response.coroutineContext) {
@@ -107,14 +108,29 @@ public fun HttpClient.defaultTransformers() {
 
                 proceedWith(HttpResponseContainer(info, channel))
             }
+
             HttpStatusCode::class -> {
                 body.cancel()
                 proceedWith(HttpResponseContainer(info, response.status))
             }
+
+            else -> null
+        }
+        if (result != null) {
+            LOGGER.trace(
+                "Transformed with default transformers response body " +
+                    "for ${context.request.url} to ${info.type}"
+            )
         }
     }
 
-    platformDefaultTransformers()
+    platformResponseDefaultTransformers()
 }
 
-internal expect fun HttpClient.platformDefaultTransformers()
+internal expect fun platformRequestDefaultTransform(
+    contentType: ContentType?,
+    context: HttpRequestBuilder,
+    body: Any
+): OutgoingContent?
+
+internal expect fun HttpClient.platformResponseDefaultTransformers()

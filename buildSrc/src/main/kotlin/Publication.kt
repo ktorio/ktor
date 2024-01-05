@@ -9,6 +9,7 @@ import org.gradle.api.publish.maven.tasks.*
 import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
+import java.util.concurrent.locks.*
 
 fun isAvailableForPublication(publication: Publication): Boolean {
     val name = publication.name
@@ -20,20 +21,17 @@ fun isAvailableForPublication(publication: Publication): Boolean {
         "androidRelease",
         "androidDebug",
         "js",
-        "jsLegacy",
         "metadata",
         "kotlinMultiplatform"
     )
     result = result || name in jvmAndCommon
-    result = result || (HOST_NAME == "linux" && name == "linuxX64")
+    result = result || (HOST_NAME == "linux" && (name == "linuxX64" || name == "linuxArm64"))
     result = result || (HOST_NAME == "windows" && name == "mingwX64")
     val macPublications = setOf(
         "iosX64",
         "iosArm64",
-        "iosArm32",
         "iosSimulatorArm64",
 
-        "watchosX86",
         "watchosX64",
         "watchosArm32",
         "watchosArm64",
@@ -53,6 +51,8 @@ fun isAvailableForPublication(publication: Publication): Boolean {
 }
 
 fun Project.configurePublication() {
+    if (COMMON_JVM_ONLY) return
+
     apply(plugin = "maven-publish")
 
     tasks.withType<AbstractPublishToMaven>().all {
@@ -61,7 +61,14 @@ fun Project.configurePublication() {
 
     val publishingUser: String? = System.getenv("PUBLISHING_USER")
     val publishingPassword: String? = System.getenv("PUBLISHING_PASSWORD")
-    val publishingUrl: String? = System.getenv("PUBLISHING_URL")
+
+    val repositoryId: String? = System.getenv("REPOSITORY_ID")
+    val publishingUrl: String? = if (repositoryId?.isNotBlank() == true) {
+        println("Set publishing to repository $repositoryId")
+        "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
+    } else {
+        System.getenv("PUBLISHING_URL")
+    }
 
     val publishLocal: Boolean by rootProject.extra
     val globalM2: String by rootProject.extra
@@ -165,5 +172,30 @@ fun Project.configurePublication() {
 
             sign(the<PublishingExtension>().publications)
         }
+
+        val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
+
+        tasks.withType<Sign> {
+            doFirst {
+                gpgAgentLock.lock()
+            }
+
+            doLast {
+                gpgAgentLock.unlock()
+            }
+        }
+    }
+
+    val publishLinuxX64PublicationToMavenRepository = tasks.findByName("publishLinuxX64PublicationToMavenRepository")
+    val signLinuxArm64Publication = tasks.findByName("signLinuxArm64Publication")
+    if (publishLinuxX64PublicationToMavenRepository != null && signLinuxArm64Publication != null) {
+        publishLinuxX64PublicationToMavenRepository.dependsOn(signLinuxArm64Publication)
+    }
+
+    val publishLinuxArm64PublicationToMavenRepository =
+        tasks.findByName("publishLinuxArm64PublicationToMavenRepository")
+    val signLinuxX64Publication = tasks.findByName("signLinuxX64Publication")
+    if (publishLinuxArm64PublicationToMavenRepository != null && signLinuxX64Publication != null) {
+        publishLinuxArm64PublicationToMavenRepository.dependsOn(signLinuxX64Publication)
     }
 }

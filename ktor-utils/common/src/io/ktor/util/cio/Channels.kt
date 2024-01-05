@@ -23,5 +23,7 @@ public class ChannelWriteException(message: String = "Cannot write to a channel"
  * An exception that is thrown when an IO error occurred during reading from the request channel.
  * Usually it happens when a remote client closed the connection.
  */
-public class ChannelReadException(message: String = "Cannot read from a channel", exception: Throwable) :
-    ChannelIOException(message, exception)
+public class ChannelReadException(
+    message: String = "Cannot read from a channel",
+    exception: Throwable
+) : ChannelIOException(message, exception)

@@ -4,40 +4,50 @@
 
 description = ""
 
-val typesafe_config_version: String by extra
-val kotlin_version: String by extra
-val mockk_version: String by extra
-val jansi_version: String by project.extra
-
-kotlin.sourceSets {
-    val jvmAndNixMain by getting {
-        dependencies {
-            api(project(":ktor-utils"))
-            api(project(":ktor-http"))
-            api(project(":ktor-shared:ktor-serialization"))
-            api(project(":ktor-shared:ktor-events"))
-
-            api("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-        }
+kotlin {
+    createCInterop("host_common", nixTargets()) {
+        defFile = projectDir.resolve("nix/interop/host_common.def")
     }
 
-    val jvmMain by getting {
-        dependencies {
-            api("com.typesafe:config:$typesafe_config_version")
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
+    sourceSets {
+        jvmAndNixMain {
+            dependencies {
+                api(project(":ktor-utils"))
+                api(project(":ktor-http"))
+                api(project(":ktor-shared:ktor-serialization"))
+                api(project(":ktor-shared:ktor-events"))
+                api(project(":ktor-http:ktor-http-cio"))
+                api(project(":ktor-shared:ktor-websockets"))
+                
+                api(libs.kotlin.reflect)
+            }
         }
-    }
 
-    val jvmAndNixTest by getting {
-        dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-network"))
+        jvmMain {
+            dependencies {
+                api(libs.typesafe.config)
+                implementation(libs.jansi)
+            }
         }
-    }
 
-    val jvmTest by getting {
-        dependencies {
-            implementation("io.mockk:mockk:$mockk_version")
+        jvmAndNixTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-test-host"))
+                api(libs.logback.classic)
+                api(project(":ktor-network"))
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(project(":ktor-server:ktor-server-config-yaml"))
+                implementation(project(":ktor-server:ktor-server-test-host"))
+                implementation(project(":ktor-server:ktor-server-test-suites"))
+                implementation(project(":ktor-server:ktor-server-config-yaml"))
+                
+                api(libs.logback.classic)
+                implementation(libs.mockk)
+            }
         }
     }
 }

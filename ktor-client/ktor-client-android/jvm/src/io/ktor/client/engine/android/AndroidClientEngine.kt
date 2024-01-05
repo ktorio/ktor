@@ -7,11 +7,10 @@ package io.ktor.client.engine.android
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -25,26 +24,19 @@ import kotlin.coroutines.*
 private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 
 /**
- * Android client engine
+ * An Android client engine.
  */
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
-    override val dispatcher: CoroutineDispatcher by lazy {
-        Dispatchers.clientDispatcher(
-            config.threadsCount,
-            "ktor-android-dispatcher"
-        )
-    }
-
-    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
         val requestTime = GMTDate()
 
-        val url: String = URLBuilder().takeFrom(data.url).buildString()
+        val url: String = data.url.toString()
         val outgoingContent: OutgoingContent = data.body
         val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong()
             ?: outgoingContent.contentLength
@@ -81,7 +73,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
                 addRequestProperty(HttpHeaders.TransferEncoding, "chunked")
             }
 
-            contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
+            contentLength?.let { setFixedLengthStreamingMode(it) } ?: setChunkedStreamingMode(0)
             doOutput = true
 
             outgoingContent.writeTo(outputStream, callContext)
@@ -101,7 +93,17 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
             val responseHeaders = HeadersImpl(headerFields)
 
-            HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
+            val responseBody: Any = if (needToProcessSSE(data, statusCode, responseHeaders)) {
+                DefaultClientSSESession(
+                    data.body as SSEClientContent,
+                    content,
+                    callContext
+                )
+            } else {
+                content
+            }
+
+            HttpResponseData(statusCode, requestTime, responseHeaders, version, responseBody, callContext)
         }
     }
 
@@ -113,7 +115,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-@Suppress("BlockingMethodInNonBlockingContext")
+@Suppress("BlockingMethodInNonBlockingContext", "DEPRECATION")
 internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream,
     callContext: CoroutineContext
@@ -123,6 +125,7 @@ internal suspend fun OutgoingContent.writeTo(
         is OutgoingContent.ReadChannelContent -> run {
             readFrom().copyTo(blockingOutput)
         }
+
         is OutgoingContent.WriteChannelContent -> {
             val channel = GlobalScope.writer(callContext) {
                 writeTo(channel)
@@ -130,8 +133,10 @@ internal suspend fun OutgoingContent.writeTo(
 
             channel.copyTo(blockingOutput)
         }
+
         is OutgoingContent.NoContent -> {
         }
+
         else -> throw UnsupportedContentTypeException(this)
     }
 }

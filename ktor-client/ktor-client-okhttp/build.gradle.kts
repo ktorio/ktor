@@ -1,12 +1,15 @@
-val okhttp_version: String by project.extra
+apply<test.server.TestServerPlugin>()
+
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
-            api("com.squareup.okhttp3:okhttp:$okhttp_version")
+            api(libs.okhttp)
+            api(libs.okhttp.sse)
+            api(libs.okio)
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }

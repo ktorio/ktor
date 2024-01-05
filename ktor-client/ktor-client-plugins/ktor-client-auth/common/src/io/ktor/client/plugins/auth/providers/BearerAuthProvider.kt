@@ -10,13 +10,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.utils.io.*
 
 /**
- * Adds [BearerAuthProvider] to the client's [Auth] providers.
+ * Installs the client's [BearerAuthProvider].
  */
-public fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
+public fun AuthConfig.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
+        this@bearer.providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
     }
 }
 
@@ -26,17 +27,26 @@ public class BearerTokens(
 )
 
 /**
- * Parameters that will be passed to [BearerAuthConfig.refreshTokens] lambda
+ * Parameters to be passed to [BearerAuthConfig.refreshTokens] lambda.
  */
 public class RefreshTokensParams(
     public val client: HttpClient,
     public val response: HttpResponse,
     public val oldTokens: BearerTokens?
-)
+) {
+
+    /**
+     * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
+     */
+    public fun HttpRequestBuilder.markAsRefreshTokenRequest() {
+        attributes.put(AuthCircuitBreaker, Unit)
+    }
+}
 
 /**
- * [BearerAuthProvider] configuration.
+ * A configuration for [BearerAuthProvider].
  */
+@KtorDsl
 public class BearerAuthConfig {
     internal var _refreshTokens: suspend RefreshTokensParams.() -> BearerTokens? = { null }
     internal var _loadTokens: suspend () -> BearerTokens? = { null }
@@ -60,7 +70,7 @@ public class BearerAuthConfig {
     }
 
     /**
-     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
+     * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
      */
     public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
         _sendWithoutRequest = block
@@ -68,7 +78,12 @@ public class BearerAuthConfig {
 }
 
 /**
- * Client bearer [AuthProvider].
+ * An authentication provider for the Bearer HTTP authentication scheme.
+ * Bearer authentication involves security tokens called bearer tokens.
+ * As an example, these tokens can be used as a part of OAuth flow to authorize users of your application
+ * by using external providers, such as Google, Facebook, Twitter, and so on.
+ *
+ * You can learn more from [Bearer authentication](https://ktor.io/docs/bearer-client.html).
  */
 public class BearerAuthProvider(
     private val refreshTokens: suspend RefreshTokensParams.() -> BearerTokens?,
@@ -78,7 +93,7 @@ public class BearerAuthProvider(
 ) : AuthProvider {
 
     @Suppress("OverridingDeprecatedMember")
-    @Deprecated("Please use sendWithoutRequest function instead")
+    @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 
@@ -87,20 +102,28 @@ public class BearerAuthProvider(
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
     /**
-     * Check if current provider is applicable to the request.
+     * Checks if current provider is applicable to the request.
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
-        if (auth.authScheme != AuthScheme.Bearer) return false
-        if (realm == null) return true
-        if (auth !is HttpAuthHeader.Parameterized) return false
-
-        return auth.parameter("realm") == realm
+        if (auth.authScheme != AuthScheme.Bearer) {
+            LOGGER.trace("Bearer Auth Provider is not applicable for $auth")
+            return false
+        }
+        val isSameRealm = when {
+            realm == null -> true
+            auth !is HttpAuthHeader.Parameterized -> false
+            else -> auth.parameter("realm") == realm
+        }
+        if (!isSameRealm) {
+            LOGGER.trace("Bearer Auth Provider is not applicable for this realm")
+        }
+        return isSameRealm
     }
 
     /**
-     * Add authentication method headers and creds.
+     * Adds an authentication method headers and credentials.
      */
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {

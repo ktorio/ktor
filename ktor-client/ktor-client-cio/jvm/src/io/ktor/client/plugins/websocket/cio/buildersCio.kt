@@ -5,11 +5,11 @@
 package io.ktor.client.plugins.websocket.cio
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
@@ -20,11 +20,34 @@ public suspend fun HttpClient.webSocketRawSession(
     port: Int? = null,
     path: String? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientWebSocketSession = request {
-    this.method = method
-    url("ws", host, port, path)
-    block()
-}.body()
+): ClientWebSocketSession {
+    val request = prepareRequest {
+        this.method = method
+        url("ws", host, port, path)
+        block()
+    }
+
+    val result = CompletableDeferred<ClientWebSocketSession>()
+
+    launch {
+        try {
+            request.body<ClientWebSocketSession, Unit> { session ->
+                val sessionCompleted = CompletableDeferred<Unit>()
+                result.complete(session)
+                session.outgoing.invokeOnClose {
+                    if (it != null) {
+                        sessionCompleted.completeExceptionally(it)
+                    } else sessionCompleted.complete(Unit)
+                }
+                sessionCompleted.await()
+            }
+        } catch (cause: Throwable) {
+            result.completeExceptionally(cause)
+        }
+    }
+
+    return result.await()
+}
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
@@ -36,7 +59,7 @@ public suspend fun HttpClient.webSocketRaw(
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
-): Unit { // ktlint-disable filename no-unit-return
+) {
     val session = webSocketRawSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
         if (port != null) url.port = port
@@ -63,7 +86,9 @@ public suspend fun HttpClient.wsRaw(
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
-): Unit = webSocketRaw(method, host, port, path, request, block)
+) {
+    webSocketRaw(method, host, port, path, request, block)
+}
 
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
@@ -75,16 +100,18 @@ public suspend fun HttpClient.wssRaw(
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
-): Unit = webSocketRaw(
-    method,
-    host,
-    port,
-    path,
-    request = {
-        url.protocol = URLProtocol.WSS
-        if (port != null) url.port = port
+) {
+    webSocketRaw(
+        method,
+        host,
+        port,
+        path,
+        request = {
+            url.protocol = URLProtocol.WSS
+            if (port != null) url.port = port
 
-        request()
-    },
-    block = block
-)
+            request()
+        },
+        block = block
+    )
+}

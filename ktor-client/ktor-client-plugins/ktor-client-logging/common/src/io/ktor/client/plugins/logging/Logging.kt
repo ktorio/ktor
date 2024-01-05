@@ -5,232 +5,293 @@
 package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
-import io.ktor.client.plugins.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
+
+private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
+private val DisableLogging = AttributeKey<Unit>("DisableLogging")
 
 /**
- * A client's logging plugin.
+ * A configuration for the [Logging] plugin.
  */
-public class Logging private constructor(
-    public val logger: Logger,
-    public var level: LogLevel,
-    public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
-) {
+@KtorDsl
+public class LoggingConfig {
+    internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
+    internal val sanitizedHeaders = mutableListOf<SanitizedHeader>()
 
-    private val mutex = Mutex()
+    private var _logger: Logger? = null
 
     /**
-     * [Logging] plugin configuration
+     * Specifies a [Logger] instance.
      */
-    public class Config {
-        /**
-         * filters
-         */
-        internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
-
-        /**
-         * [Logger] instance to use
-         */
-        public var logger: Logger = Logger.DEFAULT
-
-        /**
-         * log [LogLevel]
-         */
-        public var level: LogLevel = LogLevel.HEADERS
-
-        /**
-         * Log messages for calls matching a [predicate]
-         */
-        public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
-            filters.add(predicate)
-        }
-    }
-
-    private suspend fun beginLogging() {
-        mutex.lock()
-    }
-
-    private fun doneLogging() {
-        mutex.unlock()
-    }
-
-    private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
-        if (level.info) {
-            logger.log("REQUEST: ${Url(request.url)}")
-            logger.log("METHOD: ${request.method}")
+    public var logger: Logger
+        get() = _logger ?: Logger.DEFAULT
+        set(value) {
+            _logger = value
         }
 
-        val content = request.body as OutgoingContent
+    /**
+     * Specifies the logging level.
+     */
+    public var level: LogLevel = LogLevel.HEADERS
 
-        if (level.headers) {
-            logger.log("COMMON HEADERS")
-            logHeaders(request.headers.entries())
-
-            logger.log("CONTENT HEADERS")
-            content.contentLength?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
-            content.contentType?.let { logger.logHeader(HttpHeaders.ContentType, it.toString()) }
-            logHeaders(content.headers.entries())
-        }
-
-        return if (level.body) {
-            logRequestBody(content)
-        } else null
+    /**
+     * Allows you to filter log messages for calls matching a [predicate].
+     */
+    public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
+        filters.add(predicate)
     }
 
-    private fun logResponse(response: HttpResponse) {
-        if (level.info) {
-            logger.log("RESPONSE: ${response.status}")
-            logger.log("METHOD: ${response.call.request.method}")
-            logger.log("FROM: ${response.call.request.url}")
-        }
-
-        if (level.headers) {
-            logger.log("COMMON HEADERS")
-            logHeaders(response.headers.entries())
-        }
+    /**
+     * Allows you to sanitize sensitive headers to avoid their values appearing in the logs.
+     * In the example below, Authorization header value will be replaced with '***' when logging:
+     * ```kotlin
+     * sanitizeHeader { header -> header == HttpHeaders.Authorization }
+     * ```
+     */
+    public fun sanitizeHeader(placeholder: String = "***", predicate: (String) -> Boolean) {
+        sanitizedHeaders.add(SanitizedHeader(placeholder, predicate))
     }
+}
 
-    private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel): Unit = with(logger) {
-        log("BODY Content-Type: $contentType")
-        log("BODY START")
-        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
-        log(message)
-        log("BODY END")
-    }
+/**
+ * A client's plugin that provides the capability to log HTTP calls.
+ *
+ * You can learn more from [Logging](https://ktor.io/docs/client-logging.html).
+ */
+public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", ::LoggingConfig) {
+    val logger: Logger = pluginConfig.logger
+    val level: LogLevel = pluginConfig.level
+    val filters: List<(HttpRequestBuilder) -> Boolean> = pluginConfig.filters
+    val sanitizedHeaders: List<SanitizedHeader> = pluginConfig.sanitizedHeaders
 
-    private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
-        if (level.info) {
-            logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
-        }
-    }
-
-    private fun logResponseException(request: HttpRequest, cause: Throwable) {
-        if (level.info) {
-            logger.log("RESPONSE ${request.url} failed with exception: $cause")
-        }
-    }
-
-    private fun logHeaders(headers: Set<Map.Entry<String, List<String>>>) {
-        val sortedHeaders = headers.toList().sortedBy { it.key }
-
-        sortedHeaders.forEach { (key, values) ->
-            logger.logHeader(key, values.joinToString("; "))
-        }
-    }
-
-    private fun Logger.logHeader(key: String, value: String) {
-        log("-> $key: $value")
-    }
+    fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
-        logger.log("BODY Content-Type: ${content.contentType}")
+    suspend fun logRequestBody(
+        content: OutgoingContent,
+        logger: HttpClientCallLogger
+    ): OutgoingContent {
+        val requestLog = StringBuilder()
+        requestLog.appendLine("BODY Content-Type: ${content.contentType}")
 
         val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
             val text = channel.tryReadText(charset) ?: "[request body omitted]"
-            logger.log("BODY START")
-            logger.log(text)
-            logger.log("BODY END")
+            requestLog.appendLine("BODY START")
+            requestLog.appendLine(text)
+            requestLog.append("BODY END")
+        }.invokeOnCompletion {
+            logger.logRequest(requestLog.toString())
+            logger.closeRequestLog()
         }
 
         return content.observe(channel)
     }
 
-    public companion object : HttpClientPlugin<Config, Logging> {
-        override val key: AttributeKey<Logging> = AttributeKey("ClientLogging")
+    fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
+        if (level.info) {
+            logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+        }
+    }
 
-        override fun prepare(block: Config.() -> Unit): Logging {
-            val config = Config().apply(block)
-            return Logging(config.logger, config.level, config.filters)
+    suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
+        val content = request.body as OutgoingContent
+        val callLogger = HttpClientCallLogger(logger)
+        request.attributes.put(ClientCallLogger, callLogger)
+
+        val message = buildString {
+            if (level.info) {
+                appendLine("REQUEST: ${Url(request.url)}")
+                appendLine("METHOD: ${request.method}")
+            }
+
+            if (level.headers) {
+                appendLine("COMMON HEADERS")
+                logHeaders(request.headers.entries(), sanitizedHeaders)
+
+                appendLine("CONTENT HEADERS")
+                val contentLengthPlaceholder = sanitizedHeaders
+                    .firstOrNull { it.predicate(HttpHeaders.ContentLength) }
+                    ?.placeholder
+                val contentTypePlaceholder = sanitizedHeaders
+                    .firstOrNull { it.predicate(HttpHeaders.ContentType) }
+                    ?.placeholder
+                content.contentLength?.let {
+                    logHeader(HttpHeaders.ContentLength, contentLengthPlaceholder ?: it.toString())
+                }
+                content.contentType?.let {
+                    logHeader(HttpHeaders.ContentType, contentTypePlaceholder ?: it.toString())
+                }
+                logHeaders(content.headers.entries(), sanitizedHeaders)
+            }
         }
 
-        @OptIn(InternalAPI::class)
-        override fun install(plugin: Logging, scope: HttpClient) {
-            scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
-                val response = if (plugin.filters.isEmpty() || plugin.filters.any { it(context) }) {
-                    try {
-                        plugin.beginLogging()
-                        plugin.logRequest(context)
-                    } catch (_: Throwable) {
-                        null
-                    } finally {
-                        plugin.doneLogging()
-                    }
-                } else null
+        if (message.isNotEmpty()) {
+            callLogger.logRequest(message)
+        }
 
-                try {
-                    proceedWith(response ?: subject)
-                } catch (cause: Throwable) {
-                    plugin.logRequestException(context, cause)
-                    throw cause
-                } finally {
-                }
-            }
+        if (message.isEmpty() || !level.body) {
+            callLogger.closeRequestLog()
+            return null
+        }
 
-            scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                try {
-                    plugin.beginLogging()
-                    plugin.logResponse(response.call.response)
-                    proceedWith(subject)
-                } catch (cause: Throwable) {
-                    plugin.logResponseException(response.call.request, cause)
-                    throw cause
-                } finally {
-                    if (!plugin.level.body) {
-                        plugin.doneLogging()
-                    }
-                }
-            }
+        return logRequestBody(content, callLogger)
+    }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
-                try {
-                    proceed()
-                } catch (cause: Throwable) {
-                    plugin.logResponseException(context.request, cause)
-                    throw cause
-                }
-            }
+    fun logResponseException(log: StringBuilder, request: HttpRequest, cause: Throwable) {
+        if (!level.info) return
+        log.append("RESPONSE ${request.url} failed with exception: $cause")
+    }
 
-            if (!plugin.level.body) {
-                return
-            }
+    on(SendHook) { request ->
+        if (!shouldBeLogged(request)) {
+            request.attributes.put(DisableLogging, Unit)
+            return@on
+        }
 
-            val observer: ResponseHandler = {
-                try {
-                    plugin.logResponseBody(it.contentType(), it.content)
-                } catch (_: Throwable) {
-                } finally {
-                    plugin.doneLogging()
-                }
-            }
+        val loggedRequest = try {
+            logRequest(request)
+        } catch (_: Throwable) {
+            null
+        }
 
-            ResponseObserver.install(ResponseObserver(observer), scope)
+        try {
+            proceedWith(loggedRequest ?: request.body)
+        } catch (cause: Throwable) {
+            logRequestException(request, cause)
+            throw cause
+        } finally {
+        }
+    }
+
+    on(ResponseHook) { response ->
+        if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) return@on
+
+        val callLogger = response.call.attributes[ClientCallLogger]
+        val header = StringBuilder()
+
+        var failed = false
+        try {
+            logResponseHeader(header, response.call.response, level, sanitizedHeaders)
+            proceed()
+        } catch (cause: Throwable) {
+            logResponseException(header, response.call.request, cause)
+            failed = true
+            throw cause
+        } finally {
+            callLogger.logResponseHeader(header.toString())
+            if (failed || !level.body) callLogger.closeResponseLog()
+        }
+    }
+
+    on(ReceiveHook) { call ->
+        if (level == LogLevel.NONE || call.attributes.contains(DisableLogging)) {
+            return@on
+        }
+
+        try {
+            proceed()
+        } catch (cause: Throwable) {
+            val log = StringBuilder()
+            val callLogger = call.attributes[ClientCallLogger]
+            logResponseException(log, call.request, cause)
+            callLogger.logResponseException(log.toString())
+            callLogger.closeResponseLog()
+            throw cause
+        }
+    }
+
+    if (!level.body) return@createClientPlugin
+
+    @OptIn(InternalAPI::class)
+    val observer: ResponseHandler = observer@{
+        if (level == LogLevel.NONE || it.call.attributes.contains(DisableLogging)) {
+            return@observer
+        }
+
+        val callLogger = it.call.attributes[ClientCallLogger]
+        val log = StringBuilder()
+        try {
+            logResponseBody(log, it.contentType(), it.content)
+        } catch (_: Throwable) {
+        } finally {
+            callLogger.logResponseBody(log.toString().trim())
+            callLogger.closeResponseLog()
+        }
+    }
+
+    ResponseObserver.install(ResponseObserver.prepare { onResponse(observer) }, client)
+}
+
+/**
+ * Configures and installs [Logging] in [HttpClient].
+ */
+public fun HttpClientConfig<*>.Logging(block: LoggingConfig.() -> Unit = {}) {
+    install(Logging, block)
+}
+
+internal class SanitizedHeader(
+    val placeholder: String,
+    val predicate: (String) -> Boolean
+)
+
+private object ResponseHook : ClientHook<suspend ResponseHook.Context.(response: HttpResponse) -> Unit> {
+
+    class Context(private val context: PipelineContext<HttpResponse, Unit>) {
+        suspend fun proceed() = context.proceed()
+    }
+
+    override fun install(
+        client: HttpClient,
+        handler: suspend Context.(response: HttpResponse) -> Unit
+    ) {
+        client.receivePipeline.intercept(HttpReceivePipeline.State) {
+            handler(Context(this), subject)
         }
     }
 }
 
-/**
- * Configure and install [Logging] in [HttpClient].
- */
-public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
-    install(Logging, block)
+private object SendHook : ClientHook<suspend SendHook.Context.(response: HttpRequestBuilder) -> Unit> {
+
+    class Context(private val context: PipelineContext<Any, HttpRequestBuilder>) {
+        suspend fun proceedWith(content: Any) = context.proceedWith(content)
+    }
+
+    override fun install(
+        client: HttpClient,
+        handler: suspend Context.(request: HttpRequestBuilder) -> Unit
+    ) {
+        client.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
+            handler(Context(this), context)
+        }
+    }
 }
 
-internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
-    readRemaining().readText(charset = charset)
-} catch (cause: Throwable) {
-    null
+private object ReceiveHook : ClientHook<suspend ReceiveHook.Context.(call: HttpClientCall) -> Unit> {
+
+    class Context(private val context: PipelineContext<HttpResponseContainer, HttpClientCall>) {
+        suspend fun proceed() = context.proceed()
+    }
+
+    override fun install(
+        client: HttpClient,
+        handler: suspend Context.(call: HttpClientCall) -> Unit
+    ) {
+        client.responsePipeline.intercept(HttpResponsePipeline.Receive) {
+            handler(Context(this), context)
+        }
+    }
 }

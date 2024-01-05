@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType", "MayBeConstant")
 public object HttpHeaders {
     // Permanently registered standard HTTP headers
@@ -131,9 +129,13 @@ public object HttpHeaders {
      */
     public fun isUnsafe(header: String): Boolean = UnsafeHeadersArray.any { it.equals(header, ignoreCase = true) }
 
-    private val UnsafeHeadersArray: Array<String> = arrayOf(ContentLength, ContentType, TransferEncoding, Upgrade)
+    private val UnsafeHeadersArray: Array<String> = arrayOf(TransferEncoding, Upgrade)
 
-    @Deprecated("Use UnsafeHeadersList instead.", replaceWith = ReplaceWith("HttpHeaders.UnsafeHeadersList"))
+    @Deprecated(
+        "Use UnsafeHeadersList instead.",
+        replaceWith = ReplaceWith("HttpHeaders.UnsafeHeadersList"),
+        level = DeprecationLevel.ERROR
+    )
     public val UnsafeHeaders: Array<String>
         get() = UnsafeHeadersArray.copyOf()
 
@@ -158,8 +160,7 @@ public object HttpHeaders {
      */
     public fun checkHeaderValue(value: String) {
         value.forEachIndexed { index, ch ->
-            if (ch == ' ' || ch == '\u0009') return@forEachIndexed
-            if (ch < ' ') {
+            if (ch < ' ' && ch != '\u0009') {
                 throw IllegalHeaderValueException(value, index)
             }
         }

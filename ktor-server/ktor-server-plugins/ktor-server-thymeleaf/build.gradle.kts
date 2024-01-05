@@ -1,14 +1,15 @@
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
-            api("org.thymeleaf:thymeleaf:[3.0.11.RELEASE, 3.1)")
+            api(libs.thymeleaf)
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
         }
     }
 }

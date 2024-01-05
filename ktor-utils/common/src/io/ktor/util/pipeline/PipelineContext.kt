@@ -4,16 +4,18 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
+
+internal expect val DISABLE_SFG: Boolean
 
 /**
  * Represents running execution of a pipeline
  *
  * @param context: object representing context in which pipeline executes
  */
-@ContextDsl
+@KtorDsl
 public abstract class PipelineContext<TSubject : Any, TContext : Any>(
     public val context: TContext
 ) : CoroutineScope {
@@ -50,7 +52,7 @@ internal fun <TSubject : Any, TContext : Any> pipelineContextFor(
     subject: TSubject,
     coroutineContext: CoroutineContext,
     debugMode: Boolean = false
-): PipelineContext<TSubject, TContext> = if (debugMode) {
+): PipelineContext<TSubject, TContext> = if (DISABLE_SFG || debugMode) {
     DebugPipelineContext(context, interceptors, subject, coroutineContext)
 } else {
     SuspendFunctionGun(subject, context, interceptors)

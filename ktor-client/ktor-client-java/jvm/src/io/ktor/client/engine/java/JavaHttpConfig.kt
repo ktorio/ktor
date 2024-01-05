@@ -8,9 +8,14 @@ import io.ktor.client.engine.*
 import java.net.http.*
 
 /**
- * Configuration for [Java] client engine.
+ * A configuration for the [Java] client engine.
  */
 public class JavaHttpConfig : HttpClientEngineConfig() {
+
+    /**
+     * An HTTP version to use.
+     */
+    public var protocolVersion: HttpClient.Version = HttpClient.Version.HTTP_1_1
 
     internal var config: HttpClient.Builder.() -> Unit = {
         followRedirects(HttpClient.Redirect.NEVER)

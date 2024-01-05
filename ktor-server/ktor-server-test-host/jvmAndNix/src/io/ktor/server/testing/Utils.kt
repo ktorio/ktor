@@ -23,13 +23,13 @@ object It
 fun on(comment: String, body: On.() -> Unit) = On.body()
 
 /**
- * DSL function for test test case assertions
+ * DSL function for a test case assertions
  */
 @Suppress("UNUSED_PARAMETER")
 inline fun On.it(description: String, body: It.() -> Unit) = It.body()
 
 /**
- * Return parsed content type from the test response
+ * Returns a parsed content type from a test response.
  */
 fun TestApplicationResponse.contentType(): ContentType {
     val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])

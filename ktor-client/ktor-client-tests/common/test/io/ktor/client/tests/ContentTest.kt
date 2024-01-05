@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -21,20 +22,29 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
+private val testSize = listOf(
+    0,
+    1, // small edge cases
+    4 * 1024 - 1,
+    4 * 1024,
+    4 * 1024 + 1, // ByteChannel edge cases
+    10 * 4 * 1024, // 4 chunks
+    10 * 4 * (1024 + 8), // 4 chunks
+    8 * 1024 * 1024 // big
+)
+
+val testStrings = testSize.map {
+    makeString(it)
+}
+
+val testArrays = testSize.map {
+    makeArray(it)
+}
+
 class ContentTest : ClientLoader(5 * 60) {
-    private val testSize = listOf(
-        0,
-        1, // small edge cases
-        4 * 1024 - 1,
-        4 * 1024,
-        4 * 1024 + 1, // ByteChannel edge cases
-        10 * 4 * 1024, // 4 chunks
-        10 * 4 * (1024 + 8), // 4 chunks
-        8 * 1024 * 1024 // big
-    )
 
     @Test
-    fun testGetFormData() = clientTests(listOf("Js")) {
+    fun testGetFormData() = clientTests {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -52,31 +62,33 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testByteArray() = clientTests(listOf("Js")) {
+    fun testByteArray() = clientTests {
         test { client ->
-            testSize.forEach { size ->
-                val content = makeArray(size)
+            testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
 
-                assertArrayEquals("Test fail with size: $size. Actual size: ${response.size}", content, response)
+                assertArrayEquals(
+                    "Test fail with size: ${content.size}. Actual size: ${response.size}",
+                    content,
+                    response
+                )
             }
         }
     }
 
     @Test
-    fun testByteReadChannel() = clientTests(listOf("Js")) {
+    fun testByteReadChannel() = clientTests {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
             }
         }
         test { client ->
-            testSize.forEach { size ->
-                val content = makeArray(size)
+            testArrays.forEach { content ->
                 val responseData = client.echo<ByteReadChannel>(content)
                 val data = responseData.readRemaining().readBytes()
                 assertArrayEquals(
-                    "Test fail with size: $size, actual size: ${data.size}",
+                    "Test fail with size: ${content.size}, actual size: ${data.size}",
                     content,
                     data
                 )
@@ -85,13 +97,59 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "Darwin", "Curl", "CIO")) {
+    fun testSendByteReadChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
         test { client ->
-            testSize.forEach { size ->
-                val content = makeString(size)
+            testArrays.forEach { content ->
+                val data = client.post("$TEST_SERVER/content/echo") {
+                    setBody(ByteReadChannel(content))
+                }.body<ByteArray>()
+                assertArrayEquals(
+                    "Test fail with size: ${content.size}, actual size: ${data.size}",
+                    content,
+                    data
+                )
+            }
+        }
+    }
+
+    @Test
+    fun testSendByteWriteChannel() = clientTests(listOf("Js")) {
+        config {
+            install(HttpTimeout) {
+                socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+            }
+        }
+        test { client ->
+            testArrays.forEach { content ->
+                val data = client.post("$TEST_SERVER/content/echo") {
+                    setBody(
+                        ChannelWriterContent(
+                            body = { writeFully(content) },
+                            contentType = ContentType.Application.OctetStream,
+                        )
+                    )
+                }.body<ByteArray>()
+                assertArrayEquals(
+                    "Test fail with size: ${content.size}, actual size: ${data.size}",
+                    content,
+                    data
+                )
+            }
+        }
+    }
+
+    @Test
+    fun testString() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
+        test { client ->
+            testStrings.forEach { content ->
                 val requestWithBody = client.echo<String>(content)
                 assertArrayEquals(
-                    "Test fail with size: $size",
+                    "Test fail with size: ${content.length}",
                     content.toByteArray(),
                     requestWithBody.toByteArray()
                 )
@@ -100,7 +158,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testEmptyContent() = clientTests(listOf("js")) {
+    fun testEmptyContent() = clientTests {
         val size = 0
         val content = makeString(size)
         repeatCount = 200
@@ -116,31 +174,33 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "Darwin", "Curl", "CIO")) {
+    fun testTextContent() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
-            testSize.forEach { size ->
-                val content = makeString(size)
+            testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
 
-                assertArrayEquals("Test fail with size: $size", content.toByteArray(), response.toByteArray())
+                assertArrayEquals(
+                    "Test fail with size: ${content.length}",
+                    content.toByteArray(),
+                    response.toByteArray()
+                )
             }
         }
     }
 
     @Test
-    fun testByteArrayContent() = clientTests(listOf("Js")) {
+    fun testByteArrayContent() = clientTests {
         test { client ->
-            testSize.forEach { size ->
-                val content = makeArray(size)
+            testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(ByteArrayContent(content))
 
-                assertArrayEquals("Test fail with size: $size", content, response)
+                assertArrayEquals("Test fail with size: ${content.size}", content, response)
             }
         }
     }
 
     @Test
-    fun testPostFormData() = clientTests(listOf("Js")) {
+    fun testPostFormData() = clientTests {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -154,7 +214,7 @@ class ContentTest : ClientLoader(5 * 60) {
 
     @Test
     @Ignore
-    fun testMultipartFormData() = clientTests(listOf("Js")) {
+    fun testMultipartFormData() = clientTests {
         val data = {
             formData {
                 append("name", "hello")
@@ -172,6 +232,8 @@ class ContentTest : ClientLoader(5 * 60) {
                     }
                 }
                 append("hello", 5)
+                append("world", true)
+                append("engines[]", listOf("Jvm", "Native"))
             }
         }
 
@@ -186,7 +248,42 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testFormDataWithContentLength() = clientTests(listOf("Js")) {
+    fun testLargeFormWithBinaryData() = clientTests {
+        val formData = {
+            formData {
+                append(
+                    key = "image",
+                    value = ByteArray(100 * 1024) { 0 },
+                    headers = Headers.build {
+                        append(HttpHeaders.ContentType, "image/jpeg")
+                        append(HttpHeaders.ContentDisposition, "filename=image.jpeg")
+                    },
+                )
+            }
+        }
+
+        test { client ->
+            client.submitFormWithBinaryData("$TEST_SERVER/content/upload", formData()).body<ByteArray>()
+        }
+    }
+
+    @Test
+    fun testMultipartWithByteReadChannel() = clientTests {
+        test { client ->
+            val response = client.submitFormWithBinaryData(
+                "$TEST_SERVER/echo",
+                formData = formData {
+                    append("channel", ChannelProvider { ByteReadChannel("from channel") })
+                }
+            ).body<String>()
+
+            assertContains(response, "Content-Disposition: form-data; name=channel")
+            assertContains(response, "from channel")
+        }
+    }
+
+    @Test
+    fun testFormDataWithContentLength() = clientTests {
         test { client ->
             client.submitForm {
                 url("$TEST_SERVER/content/file-upload")
@@ -241,7 +338,7 @@ class ContentTest : ClientLoader(5 * 60) {
 
     @Test
     @Ignore
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Curl")) {
+    fun testDownloadStreamChannelWithCancel() = clientTests {
         test { client ->
             val content = client.get("$TEST_SERVER/content/stream").body<ByteReadChannel>()
             content.cancel()
@@ -249,15 +346,30 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl", "CIO")) {
+    fun testDownloadStreamResponseWithClose() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
             }
         }
     }
 
+    // NSUrlSession buffers first 512 bytes
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js", "Curl")) {
+    fun testDownloadStream() = clientTests(listOf("Darwin", "DarwinLegacy")) {
+        test { client ->
+            client.prepareGet("$TEST_SERVER/content/stream?delay=100").execute {
+                val channel = it.bodyAsChannel()
+                var count = 0
+                while (count < 5) {
+                    channel.readInt()
+                    count++
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDownloadStreamResponseWithCancel() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
                 it.cancel()
@@ -266,7 +378,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "Curl", "CIO")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get("$TEST_SERVER/content/stream").body<ByteArray>()

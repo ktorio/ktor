@@ -5,30 +5,29 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.http.content.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-public abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
+abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+    override val server: EmbeddedServer<*, *> = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
                 call.respondText("")
@@ -40,11 +39,65 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
                 val text = call.receiveText()
                 call.respondText(text)
             }
+
+            route("/sse") {
+                val messages = Channel<String>()
+                get("/stream") {
+                    val body = object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.EventStream
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            for (message in messages) {
+                                channel.writeStringUtf8(message)
+                                channel.flush()
+                            }
+                        }
+                    }
+
+                    call.respond(body)
+                }
+                post("/next") {
+                    val message = call.receiveText()
+                    messages.send(message)
+                    call.respond("OK")
+                }
+                get("/done") {
+                    messages.close()
+                    call.respond("OK")
+                }
+            }
         }
     }
 
     @Test
-    public fun testWithNoParentJob() {
+    fun testClientSSE() = runBlocking {
+        val client = HttpClient(factory) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                socketTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                connectTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+            }
+        }
+
+        client.prepareGet("http://localhost:$serverPort/sse/stream").execute {
+            val body = it.bodyAsChannel()
+
+            repeat(10) {
+                client.post("http://localhost:$serverPort/sse/next") {
+                    setBody(TextContent("hello\n", ContentType.Text.Plain))
+                }
+
+                assertEquals("hello", body.readUTF8Line())
+            }
+
+            client.get("http://localhost:$serverPort/sse/done")
+            assertEquals(null, body.readUTF8Line())
+        }
+    }
+
+    @Test
+    fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.prepareGet("http://localhost:$serverPort/hello")
@@ -61,14 +114,14 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
                 override fun resumeWith(result: Result<Unit>) {
                     latch.put(result)
                 }
-            }
+            },
         )
 
         latch.take().exceptionOrNull()?.let { throw it }
     }
 
     @Test
-    public fun configCopiesOldPluginsAndInterceptors() {
+    fun configCopiesOldPluginsAndInterceptors() {
         val customPluginKey = AttributeKey<Boolean>("customPlugin")
         val anotherCustomPluginKey = AttributeKey<Boolean>("anotherCustomPlugin")
 
@@ -116,19 +169,6 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
 
         // check the new custom plugin is there too
         assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
-    }
-
-    @Test
-    fun testErrorInWritingPropagates() = testSuspend {
-        val client = HttpClient(factory)
-        val channel = ByteChannel(true)
-        channel.writeAvailable("text".toByteArray())
-        channel.close(SendException())
-        assertFailsWith<SendException>("Error on write") {
-            client.post("http://localhost:$serverPort/echo") {
-                setBody(channel)
-            }.body<String>()
-        }
     }
 
     private class SendException : RuntimeException("Error on write")

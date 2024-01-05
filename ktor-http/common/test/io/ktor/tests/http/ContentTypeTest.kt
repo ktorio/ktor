@@ -5,6 +5,7 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
+import io.ktor.utils.io.charsets.Charsets
 import kotlin.test.*
 
 class ContentTypeTest {
@@ -132,5 +133,26 @@ class ContentTypeTest {
             "text/html",
             ContentType.parse("text/html;charset=utf-8").withoutParameters().toString()
         )
+    }
+
+    @Test
+    fun testOnlyLastContentTypeIsProcessed() {
+        val contentType = "text/plain; charset=UTF-8, text/html; charset=UTF-8"
+        val content = ContentType.parse(contentType)
+        assertEquals("text/html; charset=UTF-8", content.toString())
+    }
+
+    @Test
+    fun testNoCharsetForNonText() {
+        assertNull(ContentType.Audio.MP4.withCharsetIfNeeded(Charsets.UTF_8).charset())
+        assertNull(ContentType.Application.Json.withCharsetIfNeeded(Charsets.UTF_8).charset())
+        assertNull(ContentType("application", "json-patch+json").withCharsetIfNeeded(Charsets.UTF_8).charset())
+    }
+
+    @Test
+    fun testCharsetForText() {
+        assertEquals(Charsets.UTF_8, ContentType.Text.Any.withCharsetIfNeeded(Charsets.UTF_8).charset())
+        assertEquals(Charsets.UTF_8, ContentType.Text.Html.withCharsetIfNeeded(Charsets.UTF_8).charset())
+        assertEquals(Charsets.UTF_8, ContentType("Text", "custom").withCharsetIfNeeded(Charsets.UTF_8).charset())
     }
 }

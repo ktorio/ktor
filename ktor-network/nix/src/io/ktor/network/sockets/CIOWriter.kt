@@ -12,13 +12,14 @@ import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.math.*
 
-@OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): ReaderJob = reader(Dispatchers.Unconfined, userChannel) {
+): ReaderJob = reader(Dispatchers.IO, userChannel) {
     val source = channel
     var sockedClosed = false
     var needSelect = false
@@ -29,7 +30,9 @@ internal fun CoroutineScope.attachForWritingImpl(
             val remaining = stop - start
             val bytesWritten = if (remaining > 0) {
                 send(descriptor, bufferStart, remaining.convert(), 0).toInt()
-            } else 0
+            } else {
+                0
+            }
 
             when (bytesWritten) {
                 0 -> sockedClosed = true
@@ -57,9 +60,7 @@ internal fun CoroutineScope.attachForWritingImpl(
         val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
         source.cancel(cause)
     } else {
-        if (source is ByteChannel) {
-            source.closedCause?.let { throw it }
-        }
+        source.closedCause?.let { throw it }
     }
 }.apply {
     invokeOnCompletion {

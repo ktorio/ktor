@@ -10,6 +10,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -56,6 +58,31 @@ class StatusPagesTest {
             assertEquals(HttpStatusCode.NotFound, response.status)
             assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
             assertEquals(textPlainUtf8, response.contentType())
+        }
+    }
+
+    @Test
+    fun testStatusWithContent() = testApplication {
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { _ ->
+                    call.respondText(content::class.toString())
+                }
+            }
+
+            routing {
+                get("/notFound") {
+                    call.respond(HttpStatusCode.NotFound, "Not found")
+                }
+            }
+        }
+
+        client.get("/missing").let { response ->
+            assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response.bodyAsText())
+        }
+
+        client.get("/notFound").let { response ->
+            assertEquals("class io.ktor.http.content.TextContent", response.bodyAsText())
         }
     }
 
@@ -446,5 +473,97 @@ class StatusPagesTest {
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertTrue(routingHandled)
         assertTrue(exceptionHandled)
+    }
+
+    open class MyException : IllegalStateException()
+    class SuperException : MyException()
+
+    @Test
+    fun testHandleMoreSpecificException() = testApplication {
+        application {
+            install(StatusPages) {
+                exception<IllegalStateException> { call, _ ->
+                    call.respondText("Illegal State")
+                }
+                exception<MyException> { call, _ ->
+                    call.respondText("MyException")
+                }
+            }
+
+            routing {
+                get("/my") {
+                    throw MyException()
+                }
+                get("/illegal-state") {
+                    throw IllegalStateException()
+                }
+                get("/super") {
+                    throw SuperException()
+                }
+            }
+        }
+
+        assertEquals("Illegal State", client.get("/illegal-state").bodyAsText())
+        assertEquals("MyException", client.get("/my").bodyAsText())
+        assertEquals("MyException", client.get("/super").bodyAsText())
+    }
+
+    class CustomException : Exception()
+
+    @Test
+    fun testCallIdOnFailed() = testApplication {
+        val brokenPlugin = createRouteScopedPlugin("x") {
+            onCallReceive { _ ->
+                throw CustomException()
+            }
+        }
+
+        application {
+            install(brokenPlugin)
+            install(StatusPages) {
+                exception<CustomException> { call, _ ->
+                    call.respond(HttpStatusCode.InternalServerError, "Handled")
+                }
+            }
+
+            install(CallId)
+
+            routing {
+                get("/") {
+                    call.respondText(call.receive())
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertEquals("Handled", response.bodyAsText())
+    }
+
+    @Test
+    fun testUnhandled() = testApplication {
+        install(StatusPages) {
+            unhandled { call -> call.respond(HttpStatusCode.InternalServerError, "body") }
+        }
+        routing {
+            get("route") {
+                call.response.headers.append("Custom-Header", "Custom-Value")
+            }
+            get("handled") {
+                call.respond("OK")
+            }
+        }
+
+        val responseHandled = client.get("handled")
+        assertEquals("OK", responseHandled.bodyAsText())
+
+        val responseNoRoute = client.get("/no-route")
+        assertEquals(HttpStatusCode.InternalServerError, responseNoRoute.status)
+        assertEquals("body", responseNoRoute.bodyAsText())
+
+        val responseWithRoute = client.get("/route")
+        assertEquals(HttpStatusCode.InternalServerError, responseWithRoute.status)
+        assertEquals("Custom-Value", responseWithRoute.headers["Custom-Header"])
+        assertEquals("body", responseWithRoute.bodyAsText())
     }
 }

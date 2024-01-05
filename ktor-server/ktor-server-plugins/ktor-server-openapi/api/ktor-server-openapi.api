@@ -1,0 +1,19 @@
+public final class io/ktor/server/plugins/openapi/OpenAPIConfig {
+	public fun <init> ()V
+	public final fun getCodegen ()Lio/swagger/codegen/v3/CodegenConfig;
+	public final fun getGenerator ()Lio/swagger/codegen/v3/Generator;
+	public final fun getOptions ()Lio/swagger/v3/parser/core/models/ParseOptions;
+	public final fun getOpts ()Lio/swagger/codegen/v3/ClientOptInput;
+	public final fun getParser ()Lio/swagger/parser/OpenAPIParser;
+	public final fun setCodegen (Lio/swagger/codegen/v3/CodegenConfig;)V
+	public final fun setGenerator (Lio/swagger/codegen/v3/Generator;)V
+	public final fun setOptions (Lio/swagger/v3/parser/core/models/ParseOptions;)V
+	public final fun setOpts (Lio/swagger/codegen/v3/ClientOptInput;)V
+	public final fun setParser (Lio/swagger/parser/OpenAPIParser;)V
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPIKt {
+	public static final fun openAPI (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun openAPI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+

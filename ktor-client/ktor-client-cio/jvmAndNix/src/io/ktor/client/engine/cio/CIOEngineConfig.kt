@@ -9,93 +9,83 @@ import io.ktor.client.plugins.*
 import io.ktor.network.tls.*
 
 /**
- * Configuration for [CIO] client engine.
+ * A configuration for the [CIO] client engine.
  */
 public class CIOEngineConfig : HttpClientEngineConfig() {
     /**
-     * [Endpoint] settings.
+     * Provides access to [Endpoint] settings.
      */
     public val endpoint: EndpointConfig = EndpointConfig()
 
     /**
-     * [https] settings.
+     * Allows you to configure [HTTPS](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public val https: TLSConfigBuilder = TLSConfigBuilder()
 
     /**
-     * Maximum allowed connections count.
+     * Specifies the maximum number of connections used to make [requests](https://ktor.io/docs/request.html).
      */
     public var maxConnectionsCount: Int = 1000
 
     /**
-     * Timeout to get send request headers and get first response bytes(in millis).
+     * Specifies a request timeout in milliseconds.
+     * The request timeout is the time period required to process an HTTP call:
+     * from sending a request to receiving a response.
      *
-     * Use 0 to disable.
+     * To disable this timeout, set its value to `0`.
      */
     public var requestTimeout: Long = 15000
 
     /**
-     * [https] settings.
+     * Allows you to configure [HTTPS](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public fun https(block: TLSConfigBuilder.() -> Unit): TLSConfigBuilder = https.apply(block)
 }
 
 /**
- * Configure [endpoint] settings.
+ * Provides access to [Endpoint] settings.
  */
 public fun CIOEngineConfig.endpoint(block: EndpointConfig.() -> Unit): EndpointConfig = endpoint.apply(block)
 
 /**
- * [Endpoint] settings.
+ * Contains [Endpoint] settings.
  */
 public class EndpointConfig {
     /**
-     * Maximum connections  per single route.
+     * Specifies the maximum number of connections for each host.
+     *
+     * @see [CIOEngineConfig.maxConnectionsCount]
      */
     public var maxConnectionsPerRoute: Int = 100
 
     /**
-     * Connection keep-alive time in millis.
+     * Specifies a connection keep-alive time (in milliseconds).
      */
     public var keepAliveTime: Long = 5000
 
     /**
-     * Maximum number of requests per single pipeline.
+     * Specifies a maximum number of requests to be sent over a single connection without waiting for the corresponding responses (HTTP pipelining).
      */
     public var pipelineMaxSize: Int = 20
 
     /**
-     * Connect timeout in millis.
+     * Specifies a time period (in milliseconds) in which a client should establish a connection with a server.
      */
     public var connectTimeout: Long = 5000
 
     /**
-     * Socket timeout in millis.
+     * Specifies a maximum time (in milliseconds) of inactivity between two data packets when exchanging data with a server.
      */
-    public var socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+    public var socketTimeout: Long = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
 
     /**
-     * Maximum number of connection attempts.
-     */
-    @Deprecated(
-        "This is deprecated due to the misleading name. Use connectAttempts instead.",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("connectAttempts")
-    )
-    public var connectRetryAttempts: Int
-        get() = connectAttempts
-        set(value) {
-            connectAttempts = value
-        }
-
-    /**
-     * Maximum number of connection attempts.
-     * Note: this property affects only connection retries, but not request retries
+     * Specifies a maximum number of connection attempts.
+     * Note: this property affects only connection retries, but not request retries.
      */
     public var connectAttempts: Int = 1
 
     /**
-     * Allow socket to close output channel immediately on writing completion (TCP connection half close).
+     * Allows a socket to close an output channel immediately on writing completion (half-closed TCP connection).
      */
     public var allowHalfClose: Boolean = false
         @Deprecated("Half closed TCP connection is not supported by all servers, use it at your own risk.")

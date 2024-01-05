@@ -10,6 +10,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.nio.*
 import java.util.zip.*
+import kotlin.coroutines.*
 
 private const val GZIP_HEADER_SIZE: Int = 10
 
@@ -38,27 +39,36 @@ private infix fun Int.has(flag: Int) = this and flag != 0
  * Implementation of Deflate [Encoder].
  */
 public val Deflate: Encoder = object : Encoder {
-    override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel =
-        source.deflated(gzip = true, coroutineContext = coroutineContext)
+    override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        source.deflated(gzip = false, coroutineContext = coroutineContext)
 
-    override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel =
-        inflate(source, gzip = false)
+    override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        source.deflated(gzip = false, coroutineContext = coroutineContext)
+
+    override fun decode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        inflate(source, gzip = false, coroutineContext = coroutineContext)
 }
 
 /**
  * Implementation of GZip [Encoder].
  */
 public val GZip: Encoder = object : Encoder {
-    override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel =
+    override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         source.deflated(gzip = true, coroutineContext = coroutineContext)
 
-    override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel = inflate(source)
+    override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        source.deflated(gzip = true, coroutineContext = coroutineContext)
+
+    override fun decode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        inflate(source, coroutineContext = coroutineContext)
 }
 
-private fun CoroutineScope.inflate(
+@OptIn(DelicateCoroutinesApi::class)
+private fun inflate(
     source: ByteReadChannel,
-    gzip: Boolean = true
-): ByteReadChannel = writer {
+    gzip: Boolean = true,
+    coroutineContext: CoroutineContext
+): ByteReadChannel = GlobalScope.writer(coroutineContext) {
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
     val inflater = Inflater(true)
@@ -113,9 +123,7 @@ private fun CoroutineScope.inflate(
             readBuffer.compact()
         }
 
-        if (source is ByteChannel) {
-            source.closedCause?.let { throw it }
-        }
+        source.closedCause?.let { throw it }
 
         readBuffer.flip()
 

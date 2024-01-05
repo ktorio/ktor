@@ -1,0 +1,76 @@
+public final class io/ktor/server/plugins/ratelimit/RateLimitConfig {
+	public fun <init> ()V
+	public final fun global (Lkotlin/jvm/functions/Function1;)V
+	public final fun register-zVFXGRI (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun register-zVFXGRI$default (Lio/ktor/server/plugins/ratelimit/RateLimitConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimitKt {
+	public static final fun getRateLimit ()Lio/ktor/server/application/ApplicationPlugin;
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimitName {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/server/plugins/ratelimit/RateLimitName;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimitProviderConfig {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun modifyResponse (Lkotlin/jvm/functions/Function2;)V
+	public final fun rateLimiter (Lkotlin/jvm/functions/Function2;)V
+	public final fun rateLimiter-dWUq8MI (IJILkotlin/jvm/functions/Function0;)V
+	public static synthetic fun rateLimiter-dWUq8MI$default (Lio/ktor/server/plugins/ratelimit/RateLimitProviderConfig;IJILkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun requestKey (Lkotlin/jvm/functions/Function2;)V
+	public final fun requestWeight (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimitRouteSelector : io/ktor/server/routing/RouteSelector {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
+	public final fun getName-_QBa2po ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/plugins/ratelimit/RateLimiter {
+	public static final field Companion Lio/ktor/server/plugins/ratelimit/RateLimiter$Companion;
+	public abstract fun tryConsume (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimiter$Companion {
+	public final fun default-dWUq8MI (IJILkotlin/jvm/functions/Function0;)Lio/ktor/server/plugins/ratelimit/RateLimiter;
+	public static synthetic fun default-dWUq8MI$default (Lio/ktor/server/plugins/ratelimit/RateLimiter$Companion;IJILkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lio/ktor/server/plugins/ratelimit/RateLimiter;
+	public final fun getUnlimited ()Lio/ktor/server/plugins/ratelimit/RateLimiter;
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimiter$DefaultImpls {
+	public static synthetic fun tryConsume$default (Lio/ktor/server/plugins/ratelimit/RateLimiter;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract class io/ktor/server/plugins/ratelimit/RateLimiter$State {
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimiter$State$Available : io/ktor/server/plugins/ratelimit/RateLimiter$State {
+	public fun <init> (IIJ)V
+	public final fun getLimit ()I
+	public final fun getRefillAtTimeMillis ()J
+	public final fun getRemainingTokens ()I
+}
+
+public final class io/ktor/server/plugins/ratelimit/RateLimiter$State$Exhausted : io/ktor/server/plugins/ratelimit/RateLimiter$State {
+	public synthetic fun <init> (JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getToWait-UwyO8pc ()J
+}
+
+public final class io/ktor/server/plugins/ratelimit/RoutingKt {
+	public static final fun rateLimit-TBT8wpQ (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun rateLimit-TBT8wpQ$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+}
+

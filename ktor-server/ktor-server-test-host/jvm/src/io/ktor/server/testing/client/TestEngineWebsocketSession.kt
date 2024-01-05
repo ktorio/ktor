@@ -29,11 +29,11 @@ internal class TestEngineWebsocketSession(
 
     override suspend fun flush() {}
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun run() {
         outgoing.invokeOnClose {
-            if (it != null) socketJob.completeExceptionally(it)
-            else socketJob.complete()
+            if (it != null) {
+                socketJob.completeExceptionally(it)
+            } else socketJob.complete()
         }
         socketJob.join()
     }

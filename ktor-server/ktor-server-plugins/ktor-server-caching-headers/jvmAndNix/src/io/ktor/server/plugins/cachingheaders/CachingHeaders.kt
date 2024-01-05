@@ -7,59 +7,86 @@ package io.ktor.server.plugins.cachingheaders
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.utils.io.*
 
 /**
- * A configuration for the [CachingHeaders] plugin
+ * A configuration for the [CachingHeaders] plugin.
  */
+@KtorDsl
 public class CachingHeadersConfig {
-    internal val optionsProviders = mutableListOf<(OutgoingContent) -> CachingOptions?>()
+    internal val optionsProviders = mutableListOf<(ApplicationCall, OutgoingContent) -> CachingOptions?>()
 
     init {
-        optionsProviders.add { content -> content.caching }
+        optionsProviders.add { call, _ -> call.caching }
+        optionsProviders.add { _, content -> content.caching }
     }
 
     /**
-     * Registers a function that can provide caching options for a given [OutgoingContent]
+     * Provides caching options for a given [ApplicationCall] and [OutgoingContent].
+     *
+     * @see [CachingHeaders]
      */
-    public fun options(provider: (OutgoingContent) -> CachingOptions?) {
+    public fun options(provider: (ApplicationCall, OutgoingContent) -> CachingOptions?) {
         optionsProviders.add(provider)
     }
 }
 
 /**
- * A plugin that adds the capability to configure the Cache-Control and Expires headers using [CachingOptions].
- * It invokes [CachingHeadersConfig.optionsProviders] for every response and use first non-null [CachingOptions]
+ * A plugin that adds the capability to configure the `Cache-Control` and `Expires` headers used for HTTP caching.
+ * The example below shows how to add the `Cache-Control` header with the `max-age` option for CSS and JSON:
+ * ```kotlin
+ * install(CachingHeaders) {
+ *     options { call, outgoingContent ->
+ *         when (outgoingContent.contentType?.withoutParameters()) {
+ *             ContentType.Text.CSS -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
+ *             ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 60))
+ *             else -> null
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more from [Caching headers](https://ktor.io/docs/caching.html).
  */
-public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig, PluginInstance> = createRouteScopedPlugin(
+public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRouteScopedPlugin(
     "Caching Headers",
     ::CachingHeadersConfig
 ) {
-
     val optionsProviders = pluginConfig.optionsProviders.toList()
 
-    fun optionsFor(content: OutgoingContent): List<CachingOptions> {
-        return optionsProviders.mapNotNullTo(ArrayList(optionsProviders.size)) { it(content) }
+    fun optionsFor(call: ApplicationCall, content: OutgoingContent): List<CachingOptions> {
+        return optionsProviders.mapNotNullTo(ArrayList(optionsProviders.size)) { it(call, content) }
     }
 
-    onCallRespond.afterTransform { call, message ->
-        val options = if (message is OutgoingContent) optionsFor(message) else emptyList()
+    on(ResponseBodyReadyForSend) { call, content ->
+        val options = optionsFor(call, content)
+        if (options.isEmpty()) return@on
 
-        if (options.isNotEmpty()) {
-            val headers = Headers.build {
-                options.mapNotNull { it.cacheControl }
-                    .mergeCacheControlDirectives()
-                    .ifEmpty { null }?.let { directives ->
-                        append(HttpHeaders.CacheControl, directives.joinToString(separator = ", "))
-                    }
-                options.firstOrNull { it.expires != null }?.expires?.let { expires ->
-                    append(HttpHeaders.Expires, expires.toHttpDate())
+        val headers = Headers.build {
+            options.mapNotNull { it.cacheControl }
+                .mergeCacheControlDirectives()
+                .ifEmpty { null }?.let { directives ->
+                    append(HttpHeaders.CacheControl, directives.joinToString(separator = ", "))
                 }
+            options.firstOrNull { it.expires != null }?.expires?.let { expires ->
+                append(HttpHeaders.Expires, expires.toHttpDate())
             }
+        }
 
-            val responseHeaders = call.response.headers
-            headers.forEach { name, values ->
-                values.forEach { responseHeaders.append(name, it) }
-            }
+        val responseHeaders = call.response.headers
+        headers.forEach { name, values ->
+            values.forEach { responseHeaders.append(name, it) }
         }
     }
 }
+
+/**
+ * Gets or sets the [CacheControl] for this call.
+ */
+public var ApplicationCall.caching: CachingOptions?
+    get() = attributes.getOrNull(CachingProperty)
+    set(value) = when (value) {
+        null -> attributes.remove(CachingProperty)
+        else -> attributes.put(CachingProperty, value)
+    }

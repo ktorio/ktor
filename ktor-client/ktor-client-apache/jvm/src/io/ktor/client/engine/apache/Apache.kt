@@ -8,10 +8,22 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 
 /**
- * [HttpClientEngineFactory] using `org.apache.httpcomponents.httpasyncclient`
- * with the associated configuration [ApacheEngineConfig].
+ * A JVM client engine that uses the Apache HTTP client.
  *
- * Supports HTTP/2 and HTTP/1.x requests.
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(Apache)
+ * ```
+ * To configure the engine, pass settings exposed by [ApacheEngineConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(Apache) {
+ *     engine {
+ *         // this: ApacheEngineConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     override fun create(block: ApacheEngineConfig.() -> Unit): HttpClientEngine {

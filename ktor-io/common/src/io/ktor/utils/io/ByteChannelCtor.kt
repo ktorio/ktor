@@ -28,13 +28,17 @@ import kotlinx.coroutines.*
  * cannot be invoked concurrently with themselves. Exceptions are [close] and [flush] which can be invoked
  * concurrently with any other operations and between themselves at any time.
  */
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public interface ByteChannel : ByteReadChannel, ByteWriteChannel {
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     public fun attachJob(job: Job)
 }
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
 
 /**

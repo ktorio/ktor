@@ -1,29 +1,30 @@
 description = "Ktor http client"
 
-val coroutines_version: String by project
-
-val node_fetch_version: String by project
-val abort_controller_version: String by project
-val ws_version: String by project
-
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-shared:ktor-events"))
             api(project(":ktor-shared:ktor-websocket-serialization"))
+            api(project(":ktor-shared:ktor-sse"))
         }
     }
 
-    val jsMain by getting {
+    jvmMain {
         dependencies {
-            api(npm("node-fetch", node_fetch_version))
-            api(npm("abort-controller", abort_controller_version))
-            api(npm("ws", ws_version))
+            implementation(libs.kotlinx.coroutines.slf4j)
         }
     }
 
-    val commonTest by getting {
+    jsMain {
+        dependencies {
+            api(npm("node-fetch", libs.versions.node.fetch.version.get()))
+            api(npm("abort-controller", libs.versions.abort.controller.version.get()))
+            api(npm("ws", libs.versions.ws.version.get()))
+        }
+    }
+
+    commonTest {
         dependencies {
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-mock"))

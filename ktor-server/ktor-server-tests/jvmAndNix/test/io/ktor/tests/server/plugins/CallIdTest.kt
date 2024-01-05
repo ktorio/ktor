@@ -4,6 +4,9 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.callid.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.callid.*
@@ -220,13 +223,38 @@ class CallIdTest {
                     call.respond(call.callId.toString())
                 }
             }
-            get("2") {
+            route("2") {
+                install(CallId) {
+                    generate { "2222" }
+                }
+                get {
+                    call.respond(call.callId.toString())
+                }
+            }
+            get("3") {
                 call.respond(call.callId.toString())
             }
         }
 
         assertEquals("test-id", handleRequest(HttpMethod.Get, "/1").response.content)
-        assertEquals("null", handleRequest(HttpMethod.Get, "/2").response.content)
+        assertEquals("2222", handleRequest(HttpMethod.Get, "/2").response.content)
+        assertEquals("null", handleRequest(HttpMethod.Get, "/3").response.content)
+    }
+
+    @Test
+    fun testCoroutineContextElement(): Unit = testApplication {
+        install(CallId) {
+            generate { "test-id" }
+        }
+        routing {
+            route("1") {
+                get {
+                    call.respond(coroutineContext[KtorCallIdContextElement]?.callId ?: "not found")
+                }
+            }
+        }
+
+        assertEquals("test-id", client.get("/1").bodyAsText())
     }
 
     @Test
@@ -255,7 +283,7 @@ class CallIdTest {
         }
     }
 
-    private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, ApplicationCall>) {
+    private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, PipelineCall>) {
         application.intercept(ApplicationCallPipeline.Call, block)
     }
 }

@@ -4,7 +4,6 @@
 
 package io.ktor.network.selector
 
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
@@ -25,7 +24,7 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
      */
-    public actual fun notifyClosed(s: Selectable)
+    public actual fun notifyClosed(selectable: Selectable)
 
     /**
      * Suspends until [interest] is selected for [selectable]

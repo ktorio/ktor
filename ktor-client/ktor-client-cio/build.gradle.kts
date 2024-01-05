@@ -1,10 +1,10 @@
 description = "CIO backend for ktor http client"
 
-val logback_version: String by project.extra
+apply<test.server.TestServerPlugin>()
 
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
                 api(project(":ktor-http:ktor-http-cio"))
@@ -12,12 +12,12 @@ kotlin {
                 api(project(":ktor-network:ktor-network-tls"))
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-client:ktor-client-tests"))
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             }

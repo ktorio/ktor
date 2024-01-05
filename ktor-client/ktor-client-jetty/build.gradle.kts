@@ -1,18 +1,16 @@
 description = "Jetty based client engine"
 
-val jetty_version: String by project.extra
-
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
 
-            api("org.eclipse.jetty.http2:http2-client:$jetty_version")
-            api("org.eclipse.jetty:jetty-alpn-openjdk8-client:$jetty_version")
-            api("org.eclipse.jetty:jetty-alpn-java-client:$jetty_version")
+            api(libs.jetty.http2.client)
+            api(libs.jetty.alpn.openjdk8.client)
+            api(libs.jetty.alpn.java.client)
         }
     }
-    val commonTest by getting {
+    commonTest {
         dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }

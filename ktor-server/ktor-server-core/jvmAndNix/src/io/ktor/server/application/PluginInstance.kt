@@ -5,6 +5,6 @@
 package io.ktor.server.application
 
 /**
- * An instance of the plugin installed to your application
+ * An instance of the plugin installed to your application.
  * */
-public class PluginInstance internal constructor(internal val builder: ApplicationPluginBuilder<*>)
+public class PluginInstance internal constructor(internal val builder: PluginBuilder<*>)

@@ -8,16 +8,19 @@ import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.timeout.*
 import io.netty.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 internal class RequestBodyHandler(
-    val context: ChannelHandlerContext,
-    private val requestQueue: NettyRequestQueue
+    val context: ChannelHandlerContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
+    private val buffersInProcessingCount = atomic(0)
 
     private val queue = Channel<Any>(Channel.UNLIMITED)
 
@@ -31,27 +34,40 @@ internal class RequestBodyHandler(
 
         try {
             while (true) {
-                @OptIn(ExperimentalCoroutinesApi::class)
-                val event = queue.tryReceive().getOrNull()
-                    ?: run { current?.flush(); queue.receiveCatching().getOrNull() }
-                    ?: break
+                var event = queue.tryReceive().getOrNull()
+                if (event == null) {
+                    current?.flush()
+                    event = queue.receiveCatching().getOrNull()
+                }
 
-                if (event is ByteBufHolder) {
-                    val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
-                    processContent(channel, event)
+                event ?: break
 
-                    if (!upgraded && event is LastHttpContent) {
-                        current.close()
-                        current = null
+                when (event) {
+                    is ByteBufHolder -> {
+                        val channel = current ?: error("No current channel but received a byte buf")
+                        processContent(channel, event)
+
+                        if (!upgraded && event is LastHttpContent) {
+                            current.close()
+                            current = null
+                        }
+                        requestMoreEvents()
                     }
-                } else if (event is ByteBuf) {
-                    val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
-                    processContent(channel, event)
-                } else if (event is ByteWriteChannel) {
-                    current?.close()
-                    current = event
-                } else if (event is Upgrade) {
-                    upgraded = true
+
+                    is ByteBuf -> {
+                        val channel = current ?: error("No current channel but received a byte buf")
+                        processContent(channel, event)
+                        requestMoreEvents()
+                    }
+
+                    is ByteWriteChannel -> {
+                        current?.close()
+                        current = event
+                    }
+
+                    is Upgrade -> {
+                        upgraded = true
+                    }
                 }
             }
         } catch (t: Throwable) {
@@ -61,22 +77,31 @@ internal class RequestBodyHandler(
             current?.close()
             queue.close()
             consumeAndReleaseQueue()
-            requestQueue.cancel()
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun upgrade(): ByteReadChannel {
-        tryOfferChannelOrToken(Upgrade)
-        return newChannel()
+        val result = queue.trySend(Upgrade)
+        if (result.isSuccess) return newChannel()
+
+        if (queue.isClosedForSend) {
+            throw CancellationException("HTTP pipeline has been terminated.", result.exceptionOrNull())
+        }
+        throw IllegalStateException(
+            "Unable to start request processing: failed to offer " +
+                "$Upgrade to the HTTP pipeline queue. " +
+                "Queue closed: ${queue.isClosedForSend}"
+        )
     }
 
     fun newChannel(): ByteReadChannel {
-        val bc = ByteChannel()
-        tryOfferChannelOrToken(bc)
-        return bc
+        val result = ByteChannel()
+        tryOfferChannelOrToken(result)
+        return result
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     private fun tryOfferChannelOrToken(token: Any) {
         val result = queue.trySend(token)
         if (result.isSuccess) return
@@ -96,17 +121,16 @@ internal class RequestBodyHandler(
         queue.close()
     }
 
-    override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
+    override fun channelRead(context: ChannelHandlerContext, msg: Any?) {
         when (msg) {
             is ByteBufHolder -> handleBytesRead(msg)
             is ByteBuf -> handleBytesRead(msg)
-            else -> ctx.fireChannelRead(msg)
+            else -> context.fireChannelRead(msg)
         }
     }
 
     private suspend fun processContent(current: ByteWriteChannel, event: ByteBufHolder) {
         try {
-            requestMoreEvents()
             val buf = event.content()
             copy(buf, current)
         } finally {
@@ -116,7 +140,6 @@ internal class RequestBodyHandler(
 
     private suspend fun processContent(current: ByteWriteChannel, buf: ByteBuf) {
         try {
-            requestMoreEvents()
             copy(buf, current)
         } finally {
             buf.release()
@@ -124,7 +147,7 @@ internal class RequestBodyHandler(
     }
 
     private fun requestMoreEvents() {
-        if (requestQueue.canRequestMoreEvents()) {
+        if (buffersInProcessingCount.decrementAndGet() == 0) {
             context.read()
         }
     }
@@ -156,6 +179,7 @@ internal class RequestBodyHandler(
     }
 
     private fun handleBytesRead(content: ReferenceCounted) {
+        buffersInProcessingCount.incrementAndGet()
         if (!queue.trySend(content).isSuccess) {
             content.release()
             throw IllegalStateException("Unable to process received buffer: queue offer failed")
@@ -164,8 +188,16 @@ internal class RequestBodyHandler(
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable) {
-        handlerJob.completeExceptionally(cause)
-        queue.close(cause)
+        when (cause) {
+            is ReadTimeoutException -> {
+                ctx?.fireExceptionCaught(cause)
+            }
+
+            else -> {
+                handlerJob.completeExceptionally(cause)
+                queue.close(cause)
+            }
+        }
     }
 
     override fun handlerRemoved(ctx: ChannelHandlerContext?) {

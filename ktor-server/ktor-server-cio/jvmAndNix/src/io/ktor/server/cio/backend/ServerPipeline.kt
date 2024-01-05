@@ -9,13 +9,14 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
 import io.ktor.server.cio.internal.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlin.time.*
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -27,11 +28,11 @@ import kotlinx.coroutines.channels.*
  *
  * @return pipeline job
  */
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "DEPRECATION")
 @InternalAPI
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val actorChannel = Channel<ByteReadChannel>(capacity = 3)
@@ -55,18 +56,15 @@ public fun CoroutineScope.startServerConnectionPipeline(
         while (true) { // parse requests loop
             val request = try {
                 parseRequest(connection.input) ?: break
+            } catch (cause: TooLongLineException) {
+                respondBadRequest(actorChannel)
+                break // end pipeline loop
             } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (parseFailed: Throwable) { // try to write 400 Bad Request
-                // TODO log parseFailed?
-                val bc = ByteChannel()
-                if (actorChannel.trySend(bc).isSuccess) {
-                    bc.writePacket(BadRequestPacket.copy())
-                    bc.close()
-                }
-                actorChannel.close()
+                respondBadRequest(actorChannel)
                 break // end pipeline loop
             }
 
@@ -75,7 +73,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             val transferEncoding = request.headers["Transfer-Encoding"]
             val upgrade = request.headers["Upgrade"]
             val contentType = request.headers["Content-Type"]
-            val http11 = request.version == "HTTP/1.1"
+            val version = HttpProtocolVersion.parse(request.version)
 
             val connectionOptions: ConnectionOptions?
             val contentLength: Long
@@ -150,7 +148,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     actorChannel.close()
                     connection.input.copyAndClose(requestBody as ByteChannel)
                     break
-                } else if (!expectedHttpBody && requestBody is ByteChannel) { // not upgraded, for example 404
+                } else if (requestBody is ByteChannel) { // not upgraded, for example 404
                     requestBody.close()
                 }
             }
@@ -158,6 +156,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             if (expectedHttpBody && requestBody is ByteWriteChannel) {
                 try {
                     parseHttpBody(
+                        version,
                         contentLength,
                         transferEncoding,
                         connectionOptions,
@@ -174,7 +173,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 }
             }
 
-            if (isLastHttpRequest(http11, connectionOptions)) break
+            if (isLastHttpRequest(version, connectionOptions)) break
         }
     } catch (cause: IOException) { // already handled
         coroutineContext.cancel()
@@ -183,20 +182,27 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
+private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
+    val bc = ByteChannel()
+    if (actorChannel.trySend(bc).isSuccess) {
+        bc.writePacket(BadRequestPacket.copy())
+        bc.close()
+    }
+    actorChannel.close()
+}
+
 @OptIn(InternalAPI::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
-    timeout: WeakTimeoutQueue,
+    timeout: Duration,
     connection: ServerIncomingConnection
 ) {
-    val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> {
-        channel.receiveCatching().getOrNull()
-    }
-
     while (true) {
-        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        val child = withTimeoutOrNull(timeout) {
+            channel.receiveCatching().getOrNull()
+        } ?: break
         try {
-            child.joinTo(connection.output, false)
+            child.copyTo(connection.output)
             connection.output.flush()
         } catch (cause: Throwable) {
             if (child is ByteWriteChannel) {
@@ -212,14 +218,12 @@ private val BadRequestPacket = RequestResponseBuilder().apply {
     emptyLine()
 }.build()
 
-internal fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+internal fun isLastHttpRequest(version: HttpProtocolVersion, connectionOptions: ConnectionOptions?): Boolean {
     return when {
-        connectionOptions == null -> !http11
+        connectionOptions == null && version == HttpProtocolVersion.HTTP_1_0 -> true
+        connectionOptions == null -> version != HttpProtocolVersion.HTTP_1_1
         connectionOptions.keepAlive -> false
         connectionOptions.close -> true
         else -> false
     }
 }
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

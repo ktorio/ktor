@@ -10,12 +10,13 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
+import org.junit.jupiter.api.*
 import kotlin.test.*
+import kotlin.test.Test
 
 /**
  * This tests uses a CA, which creates server and client certificates.
@@ -59,12 +60,12 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
                         }
                     }
                 }
-                server.start()
+                server.start(wait = false)
 
-                val port = server.resolvedConnectors().first().port
+                val port = server.engine.resolvedConnectors().first().port
 
-                assertEquals("Hello World", client.get("https://0.0.0.0:$port").body())
-                server.stop(1000, 1000)
+                assertEquals("Hello World", client.get("https://localhost:$port").body())
+                server.stop(50, 1000)
             }
         }
     }

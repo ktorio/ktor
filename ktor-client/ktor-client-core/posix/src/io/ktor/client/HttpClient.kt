@@ -5,16 +5,16 @@
 package io.ktor.client
 
 import io.ktor.client.engine.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
  * The [HttpClientEngine] is selected from the dependencies.
- * https://ktor.io/clients/http-client/engines.html
+ * https://ktor.io/docs/http-client-engines.html
  */
 @OptIn(InternalAPI::class)
-@HttpClientDsl
+@KtorDsl
 public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) } ?: error(

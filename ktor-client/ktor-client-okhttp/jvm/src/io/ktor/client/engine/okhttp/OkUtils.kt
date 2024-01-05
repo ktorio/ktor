@@ -71,20 +71,16 @@ internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
 private fun mapOkHttpException(
     requestData: HttpRequestData,
     origin: IOException
-): Throwable = when (val cause = origin.unwrapSuppressed()) {
+): Throwable = when (origin) {
+    is StreamAdapterIOException -> origin.cause ?: origin
     is SocketTimeoutException ->
-        if (cause.isConnectException()) {
-            ConnectTimeoutException(requestData, cause)
+        if (origin.isConnectException()) {
+            ConnectTimeoutException(requestData, origin)
         } else {
-            SocketTimeoutException(requestData, cause)
+            SocketTimeoutException(requestData, origin)
         }
-    else -> cause
+    else -> origin
 }
 
 private fun IOException.isConnectException() =
     message?.contains("connect", ignoreCase = true) == true
-
-private fun IOException.unwrapSuppressed(): Throwable {
-    if (suppressed.isNotEmpty()) return suppressed[0]
-    return this
-}

@@ -16,6 +16,7 @@ public class ByteChannelSequentialJVM(
     private var attachedJob: Job? = null
 
     @OptIn(InternalCoroutinesApi::class)
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job
@@ -28,9 +29,9 @@ public class ByteChannelSequentialJVM(
     }
 
     override suspend fun writeAvailable(src: ByteBuffer): Int {
-        val rc = tryWriteAvailable(src)
+        val count = tryWriteAvailable(src)
         return when {
-            rc > 0 -> rc
+            count > 0 -> count
             !src.hasRemaining() -> 0
             else -> writeAvailableSuspend(src)
         }
@@ -60,7 +61,7 @@ public class ByteChannelSequentialJVM(
         val srcRemaining = src.remaining()
         val availableForWrite = availableForWrite
 
-        return when {
+        val count = when {
             closed -> throw closedCause ?: ClosedSendChannelException("Channel closed for write")
             srcRemaining == 0 -> 0
             srcRemaining <= availableForWrite -> {
@@ -76,6 +77,9 @@ public class ByteChannelSequentialJVM(
                 availableForWrite
             }
         }
+
+        afterWrite(count)
+        return count
     }
 
     override suspend fun readAvailable(dst: ByteBuffer): Int {
@@ -86,9 +90,7 @@ public class ByteChannelSequentialJVM(
     }
 
     override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
-        if (closed) {
-            throw closedCause ?: ClosedSendChannelException("Channel closed for read")
-        }
+        closedCause?.let { throw it }
 
         if (availableForRead < min) {
             return -1
@@ -181,7 +183,7 @@ public class ByteChannelSequentialJVM(
             val head = channel.readable.head
             if (head.readRemaining < skip + atLeast) return null
 
-            val buffer = head.memory.buffer.slice()
+            val buffer = head.memory.slice()
             buffer.position(head.readPosition + skip)
             buffer.limit(head.writePosition)
             return buffer
@@ -198,6 +200,9 @@ public class ByteChannelSequentialJVM(
         }
     }
 
+    /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
     override suspend fun awaitContent() {
         await(1)
     }

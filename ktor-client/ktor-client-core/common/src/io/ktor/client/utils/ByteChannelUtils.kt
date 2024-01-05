@@ -17,18 +17,17 @@ internal fun ByteReadChannel.observable(
     listener: ProgressListener
 ) = GlobalScope.writer(context, autoFlush = true) {
     ByteArrayPool.useInstance { byteArray ->
-        val total = contentLength ?: -1
         var bytesSend = 0L
         while (!this@observable.isClosedForRead) {
             val read = this@observable.readAvailable(byteArray)
             channel.writeFully(byteArray, offset = 0, length = read)
             bytesSend += read
-            listener(bytesSend, total)
+            listener.onProgress(bytesSend, contentLength)
         }
         val closedCause = this@observable.closedCause
         channel.close(closedCause)
         if (closedCause == null && bytesSend == 0L) {
-            listener(bytesSend, total)
+            listener.onProgress(bytesSend, contentLength)
         }
     }
 }.channel

@@ -10,12 +10,13 @@ import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import javax.servlet.*
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
-    return reader(Dispatchers.Unconfined, writer.channel) {
+    return reader(Dispatchers.IO, writer.channel) {
         writer.run()
     }
 }
@@ -38,7 +39,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     private val events = Channel<Unit>(2)
 
-    public suspend fun run() {
+    suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             output.setWriteListener(this)
@@ -48,7 +49,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
             finish()
 
             // we shouldn't recycle it in finally
-            // because in case of error the buffer could be still hold by servlet container
+            // because in case of error, the buffer could be still hold by servlet container,
             // so we simply drop it as buffer leak has only limited performance impact
             // (buffer will be collected by GC and pool will produce another one)
             ArrayPool.recycle(buffer)
@@ -121,6 +122,8 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     private fun wrapException(cause: Throwable): Throwable {
         return if (cause is IOException || cause is TimeoutException) {
             ChannelWriteException("Failed to write to servlet async stream", exception = cause)
-        } else cause
+        } else {
+            cause
+        }
     }
 }

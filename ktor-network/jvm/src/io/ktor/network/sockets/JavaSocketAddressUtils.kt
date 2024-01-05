@@ -4,32 +4,15 @@
 
 package io.ktor.network.sockets
 
-private const val UNIX_DOMAIN_SOCKET_ADDRESS_CLASS = "java.net.UnixDomainSocketAddress"
-
 public fun SocketAddress.toJavaAddress(): java.net.SocketAddress {
-    return when (this) {
-        is InetSocketAddress -> java.net.InetSocketAddress(hostname, port)
-        is UnixSocketAddress -> {
-            checkSupportForUnixDomainSockets()
-            val ofMethod = Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS).getMethod("of", String::class.java)
-            ofMethod.invoke(null, path) as java.net.SocketAddress
-        }
-    }
+    // Do not read the hostname here because that may trigger a name service reverse lookup.
+    return address
 }
 
 internal fun java.net.SocketAddress.toSocketAddress(): SocketAddress {
     return when {
-        this is java.net.InetSocketAddress -> InetSocketAddress(hostName, port)
-        this.javaClass.name == UNIX_DOMAIN_SOCKET_ADDRESS_CLASS -> {
-            val getPath = Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS).getMethod("getPath")
-            UnixSocketAddress(getPath.invoke(this).toString())
-        }
+        this is java.net.InetSocketAddress -> InetSocketAddress(this)
+        this.javaClass.name == UNIX_DOMAIN_SOCKET_ADDRESS_CLASS -> UnixSocketAddress(this)
         else -> error("Unknown socket address type")
     }
-}
-
-internal fun Any.checkSupportForUnixDomainSockets() = try {
-    Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS, false, javaClass.classLoader)
-} catch (e: ClassNotFoundException) {
-    error("Unix domain sockets are unsupported before Java 16.")
 }

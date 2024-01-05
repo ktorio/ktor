@@ -5,10 +5,7 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.util.debug.*
-import io.ktor.util.debug.plugins.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
 
@@ -237,6 +234,23 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         mergeInterceptors(from)
     }
 
+    /**
+     * Reset current pipeline from other.
+     */
+    public fun resetFrom(from: Pipeline<TSubject, TContext>) {
+        phasesRaw.clear()
+        check(interceptorsQuantity == 0)
+
+        fastPathMerge(from)
+    }
+
+    override fun toString(): String {
+        val interceptors = interceptorsForTests()
+            .joinToString("\n") { "    " + it::class.toString() }
+
+        return "${this::class}(0x${hashCode().toString(16)}) [\n$interceptors\n]"
+    }
+
     internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptorFunction<TSubject, TContext>> =
         findPhase(phase)?.sharedInterceptors() ?: emptyList()
 
@@ -442,10 +456,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         when {
             fromPhaseRelation is PipelinePhaseRelation.Last ->
                 addPhase(fromPhase)
+
             fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
                 insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
+
             fromPhaseRelation is PipelinePhaseRelation.After ->
                 insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+
             else -> return false
         }
         return true
@@ -461,7 +478,7 @@ public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
 ) {
     // A list of executed plugins with their handlers must be attached to the call's coroutine context
     // in order to be available from the IntelliJ debugger any time inside the call.
-    addToContextInDebugMode(PluginsTrace()) {
+    initContextInDebugMode {
         execute(context, Unit)
     }
 }

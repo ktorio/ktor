@@ -8,12 +8,12 @@ import io.ktor.server.application.*
 
 /**
  * Represents a single entry in the [RoutingResolveTrace].
- * @param route specifies instance of [Route] for this entry.
+ * @param route specifies instance of [RouteNode] for this entry.
  * @param segmentIndex specifies index in [RoutingResolveTrace.segments] for this entry.
  * @param result specifies resolution result for this entry.
  */
 public open class RoutingResolveTraceEntry(
-    public val route: Route,
+    public val route: RouteNode,
     public val segmentIndex: Int,
     public var result: RoutingResolveResult? = null
 ) {
@@ -43,14 +43,14 @@ public open class RoutingResolveTraceEntry(
 
 /**
  * Represents the trace of routing resolution process for diagnostics.
- * @param call instance of [ApplicationCall] for which this trace was created.
+ * @param call instance of [PipelineCall] for which this trace was created.
  * @param segments list of [String]s for each path segment supplied for the routing resolution.
  */
-public class RoutingResolveTrace(public val call: ApplicationCall, public val segments: List<String>) {
+public class RoutingResolveTrace(public val call: PipelineCall, public val segments: List<String>) {
     private val stack = Stack<RoutingResolveTraceEntry>()
     private var routing: RoutingResolveTraceEntry? = null
-    private lateinit var successResults: List<List<RoutingResolveResult>>
     private lateinit var finalResult: RoutingResolveResult
+    private val resolveCandidates: MutableList<List<RoutingResolveResult.Success>> = mutableListOf()
 
     private fun register(entry: RoutingResolveTraceEntry) {
         if (stack.empty()) {
@@ -63,14 +63,14 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
     /**
      * Begins processing a [route] at segment with [segmentIndex] in [segments].
      */
-    public fun begin(route: Route, segmentIndex: Int) {
+    public fun begin(route: RouteNode, segmentIndex: Int) {
         stack.push(RoutingResolveTraceEntry(route, segmentIndex))
     }
 
     /**
      * Finishes processing a [route] at segment with [segmentIndex] in [segments] with the given [result].
      */
-    public fun finish(route: Route, segmentIndex: Int, result: RoutingResolveResult) {
+    public fun finish(route: RouteNode, segmentIndex: Int, result: RoutingResolveResult) {
         val entry = stack.pop()
         require(entry.route == route) { "end should be called for the same route as begin" }
         require(entry.segmentIndex == segmentIndex) { "end should be called for the same segmentIndex as begin" }
@@ -81,12 +81,8 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
     /**
      * Begins and finishes processing a [route] at segment with [segmentIndex] in [segments] with the given [result].
      */
-    public fun skip(route: Route, segmentIndex: Int, result: RoutingResolveResult) {
+    public fun skip(route: RouteNode, segmentIndex: Int, result: RoutingResolveResult) {
         register(RoutingResolveTraceEntry(route, segmentIndex, result))
-    }
-
-    public fun registerSuccessResults(successResults: List<List<RoutingResolveResult>>) {
-        this.successResults = successResults
     }
 
     public fun registerFinalResult(result: RoutingResolveResult) {
@@ -101,15 +97,15 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
     public fun buildText(): String = buildString {
         appendLine(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
-        if (!this@RoutingResolveTrace::successResults.isInitialized) {
+        if (!this@RoutingResolveTrace::finalResult.isInitialized) {
             return@buildString
         }
         appendLine("Matched routes:")
-        if (successResults.isEmpty()) {
+        if (resolveCandidates.isEmpty()) {
             appendLine("  No results")
         } else {
             appendLine(
-                successResults.joinToString("\n") { path ->
+                resolveCandidates.joinToString("\n") { path ->
                     path.joinToString(" -> ", prefix = "  ") {
                         """"${it.route.selector}""""
                     }
@@ -117,7 +113,15 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
             )
         }
         appendLine("Route resolve result:")
-        appendLine("  $finalResult")
+        append("  $finalResult")
+    }
+
+    /**
+     * Add candidate for resolving.
+     */
+    public fun addCandidate(trait: List<RoutingResolveResult.Success>) {
+        val candidate = List(trait.size) { trait[it] }
+        resolveCandidates.add(candidate)
     }
 }
 

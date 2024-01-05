@@ -7,14 +7,16 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.sockets.*
-import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import java.time.*
@@ -29,28 +31,50 @@ class RequestTests : TestWithKtor() {
                 delay(delay)
                 call.respondText("OK")
             }
+            post("/echo") {
+                call.respondText(call.receiveText())
+            }
         }
     }
 
-    class LoggingInterceptor : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
+    class LoggingInterceptor(private val oneShot: Boolean) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val request = chain.request()
-            val response = chain.proceed(request)
-            return response
+            assertEquals(oneShot, request.body!!.isOneShot())
+            return chain.proceed(request)
         }
     }
 
     @Test
-    fun testPlugins() = testWithEngine(OkHttp) {
+    fun testOneShotBodyStream() = testWithEngine(OkHttp) {
         config {
             engine {
-                addInterceptor(LoggingInterceptor())
-                addNetworkInterceptor(LoggingInterceptor())
+                addInterceptor(LoggingInterceptor(true))
             }
         }
 
         test { client ->
-            client.get("https://google.com").body<String>()
+            val response = client.post("$testUrl/echo") {
+                val channel = ByteReadChannel("test".toByteArray())
+                setBody(channel)
+            }.body<String>()
+            assertEquals("test", response)
+        }
+    }
+
+    @Test
+    fun testOneShotBodyArray() = testWithEngine(OkHttp) {
+        config {
+            engine {
+                addInterceptor(LoggingInterceptor(false))
+            }
+        }
+
+        test { client ->
+            val response = client.post("$testUrl/echo") {
+                setBody("test")
+            }.body<String>()
+            assertEquals("test", response)
         }
     }
 
@@ -79,6 +103,29 @@ class RequestTests : TestWithKtor() {
 
             val response = clientSuccess.get(requestBuilder).body<String>()
             assertEquals("OK", response)
+        }
+    }
+
+    class CustomException : IllegalStateException()
+
+    @Test
+    fun testFormContentType() = testWithEngine(OkHttp) {
+        config {
+            engine {
+                addInterceptor { chain ->
+                    val request = chain.request()
+                    val contentType = request.body?.contentType()
+                    assertEquals(ContentType.Application.FormUrlEncoded.contentType, contentType?.type)
+                    assertEquals(ContentType.Application.FormUrlEncoded.contentSubtype, contentType?.subtype)
+                    chain.proceed(request)
+                }
+            }
+        }
+
+        test { client ->
+            client.post("$testUrl/echo") {
+                setBody(FormDataContent(formData = Parameters.build {}))
+            }
         }
     }
 }

@@ -6,8 +6,11 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import kotlin.experimental.*
 
 private class TestFailure(val name: String, val cause: Throwable) {
+    @OptIn(ExperimentalNativeApi::class)
     override fun toString(): String = buildString {
         appendLine("Test failed with engine: $name")
         appendLine(cause)
@@ -27,6 +30,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     @OptIn(InternalAPI::class)
     actual fun clientTests(
         skipEngines: List<String>,
+        onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         if (skipEngines.any { it.startsWith("native") }) return
@@ -39,6 +43,8 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
 
         val failures = mutableListOf<TestFailure>()
         for (engine in filteredEngines) {
+            if (onlyWithEngine != null && onlyWithEngine != engine.toString()) continue
+
             val result = runCatching {
                 testWithEngine(engine, timeoutMillis = timeoutSeconds.toLong() * 1000L) {
                     block()

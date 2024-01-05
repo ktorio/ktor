@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.events.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -14,50 +15,65 @@ import io.ktor.server.testing.client.*
 import io.ktor.server.testing.internal.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
+@PublicAPICandidate("2.2.0")
+internal const val CONFIG_KEY_THROW_ON_EXCEPTION = "ktor.test.throwOnException"
+
 /**
- * ktor test engine that provides way to simulate application calls to existing application module(s)
- * without actual HTTP connection
+ * A test engine that provides a way to simulate application calls to the existing application module(s)
+ * without actual HTTP connection.
  */
 class TestApplicationEngine(
-    environment: ApplicationEngineEnvironment = createTestEnvironment(),
-    configure: Configuration.() -> Unit = {}
-) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
-    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
-    private var cancellationDeferred: CompletableJob? = null
-    private val isStarted = atomic(false)
+    environment: ApplicationEnvironment = createTestEnvironment(),
+    monitor: Events,
+    developmentMode: Boolean = true,
+    private val applicationProvider: () -> Application,
+    internal val configuration: Configuration
+) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
-    override val coroutineContext: CoroutineContext = testEngineJob
+    private val testEngineJob = Job(applicationProvider().parentCoroutineContext[Job])
+    private var cancellationDeferred: CompletableJob? = null
+
+    override val coroutineContext: CoroutineContext =
+        applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
+
+    val application: Application
+        get() = applicationProvider()
 
     /**
-     * An engine configuration for a test application
+     * An engine configuration for a test application.
      * @property dispatcher to run handlers and interceptors on
      */
     class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = Dispatchers.IOBridge
+
+        init {
+            shutdownGracePeriod = 0
+            shutdownGracePeriod = 0
+        }
     }
 
-    internal val configuration = Configuration().apply(configure)
-
     /**
-     * interceptor for engine calls. can be modified to emulate certain engine behaviour (e.g. error handling)
+     * An interceptor for engine calls.
+     * Can be modified to emulate behaviour of a specific engine (e.g. error handling).
      */
-    private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, ApplicationCall>.(Unit) -> Unit)?> =
+    private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit)?> =
         atomic(null)
 
-    var callInterceptor: PipelineInterceptor<Unit, ApplicationCall>
+    var callInterceptor: PipelineInterceptor<Unit, PipelineCall>
         get() = _callInterceptor.value!!
         set(value) {
             _callInterceptor.value = value
         }
 
     /**
-     * An instance of client engine user to be used in [client].
+     * An instance of a client engine to be used in [client].
      */
     val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
 
@@ -88,52 +104,68 @@ class TestApplicationEngine(
         }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
-        tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
+    private suspend fun PipelineContext<Unit, PipelineCall>.handleTestFailure(cause: Throwable) {
+        logError(call, cause)
+
+        val throwOnException = environment.config
+            .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
+            ?.getString()?.toBoolean() ?: true
+        tryRespondError(
+            defaultExceptionStatusCode(cause)
+                ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
+        )
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+    private suspend fun PipelineContext<Unit, PipelineCall>.tryRespondError(statusCode: HttpStatusCode) {
         try {
-            if (call.response.status() == null) {
-                call.respond(statusCode)
-            }
+            call.respond(statusCode)
         } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
-        return listOf(object : EngineConnectorConfig {
-            override val type: ConnectorType = ConnectorType.HTTP
-            override val host: String = environment.connectors.firstOrNull()?.host ?: "localhost"
-            override val port: Int = environment.connectors.firstOrNull()?.port ?: 80
-        })
+        if (configuration.connectors.isNotEmpty()) {
+            return configuration.connectors
+        }
+        return listOf(
+            object : EngineConnectorConfig {
+                override val type: ConnectorType = ConnectorType.HTTP
+                override val host: String = "localhost"
+                override val port: Int = 80
+            },
+            object : EngineConnectorConfig {
+                override val type: ConnectorType = ConnectorType.HTTPS
+                override val host: String = "localhost"
+                override val port: Int = 443
+            }
+        )
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (isStarted.getAndSet(true)) {
-            return this
-        }
         check(testEngineJob.isActive) { "Test engine is already completed" }
-        environment.start()
-        cancellationDeferred = stopServerOnCancellation()
+        cancellationDeferred = stopServerOnCancellation(
+            applicationProvider(),
+            configuration.shutdownGracePeriod,
+            configuration.shutdownTimeout
+        )
+        resolvedConnectors.complete(runBlocking { resolvedConnectors() })
+
         return this
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
-            isStarted.value = false
             cancellationDeferred?.complete()
             client.close()
             engine.close()
-            environment.monitor.raise(ApplicationStopPreparing, environment)
-            environment.stop()
+            monitor.raise(ApplicationStopPreparing, environment)
         } finally {
             testEngineJob.cancel()
         }
     }
 
     /**
-     * Install a hook for test requests
+     * Installs a hook for test requests.
      */
     fun hookRequests(
         processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
@@ -160,14 +192,25 @@ class TestApplicationEngine(
     }
 
     /**
-     * Make a test request
+     * Makes a test request.
      */
-    @OptIn(InternalAPI::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     fun handleRequest(
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
-        val job = Job()
+        val callJob = GlobalScope.async(coroutineContext) {
+            handleRequestNonBlocking(closeRequest, setup)
+        }
+
+        return runBlocking { callJob.await() }
+    }
+
+    internal suspend fun handleRequestNonBlocking(
+        closeRequest: Boolean = true,
+        setup: TestApplicationRequest.() -> Unit
+    ): TestApplicationCall {
+        val job = Job(testEngineJob)
         val call = createCall(
             readResponse = true,
             closeRequest = closeRequest,
@@ -175,16 +218,12 @@ class TestApplicationEngine(
             context = Dispatchers.IOBridge + job
         )
 
-        val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request") + job
-        val pipelineJob = GlobalScope.async(context) {
+        val context = SupervisorJob(job) + CoroutineName("request")
+        withContext(coroutineContext + context) {
             pipeline.execute(call)
-        }
-
-        runBlocking(coroutineContext) {
-            pipelineJob.await()
             call.response.awaitForResponseCompletion()
-            context.cancel()
         }
+        context.cancel()
         processResponse(call)
 
         return call
@@ -201,7 +240,7 @@ class TestApplicationEngine(
         }
 
     /**
-     * Make a test request that setup a websocket session and wait for completion
+     * Makes a test request that sets up a websocket session and waits for completion.
      */
     fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createWebSocketCall(uri, setup)
@@ -227,20 +266,20 @@ class TestApplicationEngine(
     }
 
     /**
-     * Creates an instance of test call but doesn't start request processing
+     * Creates an instance of a test call but doesn't start request processing.
      */
     fun createCall(
         readResponse: Boolean = false,
         closeRequest: Boolean = true,
         context: CoroutineContext = Dispatchers.IOBridge,
         setup: TestApplicationRequest.() -> Unit
-    ): TestApplicationCall = TestApplicationCall(application, readResponse, closeRequest, context).apply {
+    ): TestApplicationCall = TestApplicationCall(applicationProvider(), readResponse, closeRequest, context).apply {
         setup(request)
     }
 }
 
 /**
- * Keep cookies between requests inside the [callback].
+ * Keeps cookies between requests inside the [callback].
  *
  * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
  */

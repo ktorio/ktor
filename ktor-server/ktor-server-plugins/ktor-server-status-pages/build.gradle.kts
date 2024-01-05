@@ -6,9 +6,9 @@ description = ""
 
 kotlin {
     sourceSets {
-        val jvmAndNixTest by getting {
+        jvmAndNixTest {
             dependencies {
-                api(project(":ktor-server:ktor-server-test-host"))
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
             }
         }
     }

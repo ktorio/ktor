@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class BlockingAdaptersOnProhibitedThreadTest {
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("BlockingAdaptersOnProhibitedThreadTest")
 
     @AfterTest
@@ -25,12 +25,10 @@ class BlockingAdaptersOnProhibitedThreadTest {
     }
 
     @Test
-    fun testInputStreamProhibited() {
+    fun testInputStreamProhibitedNotFails() {
         runBlocking(dispatcher) {
             prohibitParking()
-            assertFailsWith<IllegalStateException> {
-                ByteChannel().toInputStream()
-            }
+            ByteChannel().toInputStream()
         }
     }
 
@@ -42,12 +40,10 @@ class BlockingAdaptersOnProhibitedThreadTest {
     }
 
     @Test
-    fun testOutputStreamProhibited() {
+    fun testOutputStreamCreatedOnNetworkThread() {
         runBlocking(dispatcher) {
             prohibitParking()
-            assertFailsWith<IllegalStateException> {
-                ByteChannel().toOutputStream()
-            }
+            ByteChannel().toOutputStream()
         }
     }
 }

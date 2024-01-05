@@ -10,11 +10,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.collections.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
-import org.junit.*
-import org.junit.Assert.*
+import org.junit.jupiter.api.*
+import kotlin.test.*
+import kotlin.test.Test
 
 @Suppress("DEPRECATION")
 abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -59,67 +59,23 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     val plugin = createApplicationPlugin("F") {
-        onCall { call ->
+        onCall {
             sendEvent("onCall")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
-        onCallReceive { call ->
+        onCallReceive { _ ->
             sendEvent("onCallReceive")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
-        onCallRespond { call, _ ->
+        onCallRespond { _ ->
             sendEvent("onCallRespond")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
-        }
-        onCallRespond.afterTransform { call, _ ->
-            sendEvent("onCallRespond.afterTransform")
-
-            call.afterFinish {
-                sendEvent("afterFinish")
-            }
         }
     }
 
-    val expectedEventsForCall = listOf(
-        "onCall",
-        "onCallReceive",
-        "onCallRespond",
-        "onCallRespond.afterTransform",
-        "afterFinish",
-        "afterFinish",
-        "afterFinish",
-        "afterFinish"
-    )
+    val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
 
-    override fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
-        super.plugins(application, routingConfigurer)
+    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
+        super.plugins(application, routingConfig)
 
         application.install(plugin)
-    }
-
-    @Test
-    fun testAfterFinishOrder() {
-        createAndStartServer {
-            get("/request") {
-                val data = call.receive<String>()
-                call.respondText("response: $data")
-            }
-        }
-
-        setNumberOfEvents(expectedEventsForCall.size)
-
-        assertEvents(expectedEventsForCall, 20000) { checker ->
-            withUrl("/request") { checker() }
-        }
     }
 
     @Test

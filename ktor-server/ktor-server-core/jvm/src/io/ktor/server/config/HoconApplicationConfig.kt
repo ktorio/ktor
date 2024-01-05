@@ -5,6 +5,38 @@
 package io.ktor.server.config
 
 import com.typesafe.config.*
+import io.ktor.server.config.ConfigLoader.Companion.load
+import java.io.*
+
+/**
+ * Loads a [Config] from a hocon file.
+ */
+public class HoconConfigLoader : ConfigLoader {
+
+    /**
+     * Tries loading an application configuration from the specified [path].
+     *
+     * @return configuration or null if the path is not found or configuration format is not supported.
+     */
+    override fun load(path: String?): ApplicationConfig? {
+        val resolvedPath = when {
+            path == null -> "application.conf"
+            path.endsWith(".conf") || path.endsWith(".json") || path.endsWith(".properties") -> path
+            else -> return null
+        }
+
+        val resource = Thread.currentThread().contextClassLoader.getResource(resolvedPath)
+        val config = when {
+            resource != null -> ConfigFactory.load(resolvedPath)
+            else -> {
+                val file = File(resolvedPath)
+                if (file.exists()) ConfigFactory.parseFile(file) else null
+            }
+        }?.resolve() ?: return null
+
+        return HoconApplicationConfig(config)
+    }
+}
 
 /**
  * Implements [ApplicationConfig] by loading configuration from HOCON data structures
@@ -34,6 +66,10 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
         return config.entrySet().map { it.key }.toSet()
     }
 
+    override fun toMap(): Map<String, Any?> {
+        return config.root().unwrapped()
+    }
+
     private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
         override fun getString(): String = config.getString(path)
         override fun getList(): List<String> = config.getStringList(path)
@@ -55,4 +91,4 @@ public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(pa
  * or a default resource if [configPath] is `null`
  */
 public fun ApplicationConfig(configPath: String?): ApplicationConfig =
-    HoconApplicationConfig(if (configPath != null) ConfigFactory.load(configPath) else ConfigFactory.load())
+    ConfigLoader.load(configPath)

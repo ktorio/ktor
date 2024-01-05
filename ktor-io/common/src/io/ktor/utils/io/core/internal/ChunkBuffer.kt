@@ -1,11 +1,13 @@
 package io.ktor.utils.io.core.internal
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public open class ChunkBuffer(
     memory: Memory,
     origin: ChunkBuffer?,
@@ -125,22 +127,7 @@ public open class ChunkBuffer(
     }
 
     public companion object {
-        public val Pool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
-            override val capacity: Int
-                get() = DefaultChunkedBufferPool.capacity
-
-            override fun borrow(): ChunkBuffer {
-                return DefaultChunkedBufferPool.borrow()
-            }
-
-            override fun recycle(instance: ChunkBuffer) {
-                DefaultChunkedBufferPool.recycle(instance)
-            }
-
-            override fun dispose() {
-                DefaultChunkedBufferPool.dispose()
-            }
-        }
+        public val Pool: ObjectPool<ChunkBuffer> get() = DefaultChunkedBufferPool
 
         /**
          * A pool that always returns [ChunkBuffer.Empty]
@@ -158,7 +145,7 @@ public open class ChunkBuffer(
             }
         }
 
-        public val Empty: ChunkBuffer = ChunkBuffer(Memory.Empty, null, EmptyPool)
+        public val Empty: ChunkBuffer = ChunkBuffer(MEMORY_EMPTY, null, EmptyPool)
 
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {
@@ -188,4 +175,5 @@ public open class ChunkBuffer(
  * One can instantiate multiple buffers with the same buffer and this function will return `true` in spite of
  * the fact that the buffer is actually shared.
  */
+@Suppress("DEPRECATION")
 internal fun ChunkBuffer.isExclusivelyOwned(): Boolean = referenceCount == 1

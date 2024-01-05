@@ -5,11 +5,12 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.darwin.internal.*
 import kotlinx.cinterop.*
 import platform.Foundation.*
 
 /**
- * Challenge handler type for [NSURLSession].
+ * A challenge handler type for [NSURLSession].
  */
 @OptIn(UnsafeNumber::class)
 public typealias ChallengeHandler = (
@@ -20,28 +21,30 @@ public typealias ChallengeHandler = (
 ) -> Unit
 
 /**
- * Custom [DarwinClientEngine] config.
+ * A configuration for the [Darwin] client engine.
  */
 public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     /**
-     * Request configuration.
+     * A request configuration.
      */
     public var requestConfig: NSMutableURLRequest.() -> Unit = {}
         @Deprecated(
             "[requestConfig] property is deprecated. Consider using [configureRequest] instead",
-            replaceWith = ReplaceWith("this.configureRequest(value)")
+            replaceWith = ReplaceWith("this.configureRequest(value)"),
+            level = DeprecationLevel.ERROR
         )
         set(value) {
             field = value
         }
 
     /**
-     * Session configuration.
+     * A session configuration.
      */
     public var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
         @Deprecated(
             "[sessionConfig] property is deprecated. Consider using [configureSession] instead",
-            replaceWith = ReplaceWith("this.configureSession(value)")
+            replaceWith = ReplaceWith("this.configureSession(value)"),
+            level = DeprecationLevel.ERROR
         )
         set(value) {
             field = value
@@ -55,12 +58,23 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
         private set
 
     /**
-     * Appends block with [NSMutableURLRequest] configuration to [requestConfig].
+     * Specifies a session to use for making HTTP requests.
+     */
+    public var preconfiguredSession: NSURLSession? = null
+        private set
+
+    /**
+     * Specifies a session to use for making HTTP requests.
+     */
+    internal var sessionAndDelegate: Pair<NSURLSession, KtorNSURLSessionDelegate>? = null
+
+    /**
+     * Appends a block with the [NSMutableURLRequest] configuration to [requestConfig].
      */
     public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
         val old = requestConfig
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         requestConfig = {
             old()
             block()
@@ -68,16 +82,36 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Appends block with [NSURLSessionConfiguration] configuration to [sessionConfig].
+     * Appends a block with the [NSURLSessionConfiguration] configuration to [sessionConfig].
      */
     public fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
         val old = sessionConfig
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         sessionConfig = {
             old()
             block()
         }
+    }
+
+    /**
+     * Set a [session] to be used to make HTTP requests, [null] to create default session.
+     * If the preconfigured session is set, [configureSession] block will be ignored.
+     */
+    @Deprecated("Please use method with delegate parameter", level = DeprecationLevel.ERROR)
+    public fun usePreconfiguredSession(session: NSURLSession?) {
+        preconfiguredSession = session
+    }
+
+    /**
+     * Set a [session] to be used to make HTTP requests.
+     * If the preconfigured session is set, [configureSession] and [handleChallenge] blocks will be ignored.
+     *
+     * The [session] must be created with [KtorNSURLSessionDelegate] as a delegate.
+     * @see [KtorNSURLSessionDelegate] for details.
+     */
+    public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorNSURLSessionDelegate) {
+        sessionAndDelegate = session to delegate
     }
 
     /**

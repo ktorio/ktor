@@ -6,8 +6,6 @@ package io.ktor.server.velocity
 
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
 import org.apache.velocity.app.*
 import org.apache.velocity.tools.*
 import org.apache.velocity.tools.config.*
@@ -19,49 +17,38 @@ public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit)
 }
 
 /**
- * VelocityTools ktor plugin. Populates model with standard Velocity tools.
+ * A plugin that allows you to add standard and custom Velocity tools.
+ * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
 @Suppress("UNCHECKED_CAST")
-public class VelocityTools private constructor(private val toolManager: ToolManager) {
+public val VelocityTools: ApplicationPlugin<EasyFactoryConfiguration> = createApplicationPlugin(
+    "VelocityTools",
+    ::EasyFactoryConfiguration
+) {
+    val engineConfig = pluginConfig.getData(ENGINE_CONFIG_KEY)
+        ?.also { pluginConfig.removeData(it) }
+        ?.value as (VelocityEngine.() -> Unit)? ?: {}
 
-    /**
-     * A companion object for installing plugin
-     */
-    public companion object Plugin :
-        ApplicationPlugin<ApplicationCallPipeline, EasyFactoryConfiguration, VelocityTools> {
-
-        override val key: AttributeKey<VelocityTools> = AttributeKey<VelocityTools>("velocityTools")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: EasyFactoryConfiguration.() -> Unit
-        ): VelocityTools {
-            val factoryConfig = EasyFactoryConfiguration().apply(configure)
-            val engineConfig = factoryConfig.getData(ENGINE_CONFIG_KEY)
-                ?.also { factoryConfig.removeData(it) }
-                ?.value as (VelocityEngine.() -> Unit)? ?: {}
-            val engine = VelocityEngine().apply(engineConfig)
-            val toolManager = ToolManager().apply {
-                this.configure(factoryConfig)
-                velocityEngine = engine
-            }
-            val plugin = VelocityTools(toolManager)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is VelocityContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
-            }
-            return plugin
-        }
+    val engine = VelocityEngine().apply(engineConfig)
+    val toolManager = ToolManager().apply {
+        this.configure(pluginConfig)
+        velocityEngine = engine
     }
 
-    internal fun process(content: VelocityContent): OutgoingContent {
+    fun process(content: VelocityContent): OutgoingContent {
         return velocityOutgoingContent(
             toolManager.velocityEngine.getTemplate(content.template),
             toolManager.createContext().also { it.putAll(content.model) },
             content.etag,
             content.contentType
         )
+    }
+
+    onCallRespond { _, value ->
+        if (value is VelocityContent) {
+            transformBody {
+                process(value)
+            }
+        }
     }
 }

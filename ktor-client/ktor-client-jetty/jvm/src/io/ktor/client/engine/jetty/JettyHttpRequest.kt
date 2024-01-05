@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
@@ -88,6 +87,7 @@ private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     return HeadersFrame(meta, null, body is OutgoingContent.NoContent)
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent, callContext: CoroutineContext) {
     when (content) {

@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -147,9 +148,9 @@ class OAuth1aFlowTest {
                         throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
                     }
                     // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
-                    //            if (nonce !in knownNonceSet) {
-                    //                throw IllegalArgumentException("Bad nonce specified: $nonce")
-                    //            }
+                    // if (nonce !in knownNonceSet) {
+                    //     throw IllegalArgumentException("Bad nonce specified: $nonce")
+                    // }
                     if (token != "token1") {
                         throw IllegalArgumentException("Wrong token specified: $token")
                     }
@@ -230,8 +231,7 @@ class OAuth1aFlowTest {
 
             waitExecutor()
 
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, null", result.response.content)
+            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
         }
     }
 
@@ -244,8 +244,7 @@ class OAuth1aFlowTest {
 
             waitExecutor()
 
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, null", result.response.content)
+            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
         }
     }
 
@@ -288,87 +287,6 @@ class OAuth1aFlowTest {
         }
     }
 
-    @Test
-    fun testRequestTokenLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthRespondRedirect(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true")
-                }
-            }
-
-            val result = handleRequest(HttpMethod.Get, "/login")
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-            assertEquals(
-                "https://login-server-com/oauth/authorize?oauth_token=token1",
-                result.response.headers[HttpHeaders.Location],
-                "Redirect target location is not valid"
-            )
-        }
-    }
-
-    @Test
-    fun testAccessTokenLowLevel() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient!!,
-                        dispatcher,
-                        settings,
-                        "http://localhost/login?redirected=true",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1"
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertFalse { result.response.content!!.contains("null") }
-        }
-    }
-
-    @Test
-    fun testAccessTokenLowLevelErrorRedirect() {
-        withTestApplication {
-            application.routing {
-                get("/login") {
-                    @Suppress("DEPRECATION_ERROR")
-                    oauthHandleCallback(
-                        testClient!!,
-                        dispatcher,
-                        settings,
-                        "http://localhost/login?redirected=true",
-                        "/"
-                    ) { token ->
-                        call.respondText("Ho, $token")
-                    }
-                }
-            }
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&error_description=failed"
-            )
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-        }
-    }
-
     private fun Application.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
@@ -385,6 +303,7 @@ class OAuth1aFlowTest {
         routing {
             authenticate {
                 get("/login") {
+                    @Suppress("DEPRECATION_ERROR")
                     call.respondText("Ho, ${call.authentication.principal}")
                 }
             }
@@ -429,7 +348,8 @@ private interface TestingOAuthServer {
 }
 
 private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
-    val environment = createTestEnvironment {
+    val environment = createTestEnvironment {}
+    val props = applicationProperties(environment) {
         module {
             routing {
                 post("/oauth/request_token") {
@@ -543,11 +463,10 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
             }
         }
     }
-    with(TestApplicationEngine(environment)) {
-        start()
-        return client.config {
-            expectSuccess = false
-        }
+    val embeddedServer = EmbeddedServer(props, TestEngine)
+    embeddedServer.start()
+    return embeddedServer.engine.client.config {
+        expectSuccess = false
     }
 }
 

@@ -1,12 +1,9 @@
 description = ""
 
-val netty_version: String by extra
 val jetty_alpn_api_version: String by extra
-val netty_tcnative_version: String by extra
-val mockk_version: String by extra
 
 val enableAlpnProp = project.hasProperty("enableAlpn")
-val osName = System.getProperty("os.name").toLowerCase()
+val osName = System.getProperty("os.name").lowercase()
 val nativeClassifier: String? = if (enableAlpnProp) {
     when {
         osName.contains("win") -> "windows-x86_64"
@@ -14,33 +11,42 @@ val nativeClassifier: String? = if (enableAlpnProp) {
         osName.contains("mac") -> "osx-x86_64"
         else -> throw InvalidUserDataException("Unsupported os family $osName")
     }
-} else null
+} else {
+    null
+}
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
-            api(project(":ktor-server:ktor-server-host-common"))
+            api(project(":ktor-server:ktor-server-core"))
 
-            api("io.netty:netty-codec-http2:$netty_version")
-            api("org.eclipse.jetty.alpn:alpn-api:$jetty_alpn_api_version")
+            api(libs.netty.codec.http2)
+            api(libs.jetty.alpn.api)
 
-            api("io.netty:netty-transport-native-kqueue:$netty_version")
-            api("io.netty:netty-transport-native-epoll:$netty_version")
+            api(libs.netty.transport.native.kqueue)
+            api(libs.netty.transport.native.epoll)
             if (nativeClassifier != null) {
-                api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
+                api(libs.netty.tcnative.boringssl.static)
             }
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-core"))
 
-            api("io.netty:netty-tcnative:$netty_tcnative_version")
-            api("io.netty:netty-tcnative-boringssl-static:$netty_tcnative_version")
-            implementation("io.mockk:mockk:$mockk_version")
+            api(libs.netty.tcnative)
+            api(libs.netty.tcnative.boringssl.static)
+            api(libs.mockk)
+            api(libs.logback.classic)
+
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }
+}
+
+val jvmTest: org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest by tasks
+jvmTest.apply {
+    systemProperty("enable.http2", "true")
 }

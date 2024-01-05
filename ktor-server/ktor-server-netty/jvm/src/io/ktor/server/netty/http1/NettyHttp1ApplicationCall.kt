@@ -5,9 +5,9 @@
 package io.ktor.server.netty.http1
 
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.utils.io.*
+import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlin.coroutines.*
@@ -16,7 +16,7 @@ internal class NettyHttp1ApplicationCall(
     application: Application,
     context: ChannelHandlerContext,
     httpRequest: HttpRequest,
-    requestBodyChannel: ByteReadChannel,
+    requestBodyChannel: ByteReadChannel?,
     engineContext: CoroutineContext,
     userContext: CoroutineContext
 ) : NettyApplicationCall(application, context, httpRequest) {
@@ -26,7 +26,7 @@ internal class NettyHttp1ApplicationCall(
         engineContext,
         context,
         httpRequest,
-        requestBodyChannel
+        requestBodyChannel ?: ByteReadChannel.Empty
     )
 
     override val response = NettyHttp1ApplicationResponse(
@@ -40,4 +40,29 @@ internal class NettyHttp1ApplicationCall(
     init {
         putResponseAttribute()
     }
+
+    override fun prepareMessage(buf: ByteBuf, isLastContent: Boolean): Any {
+        if (isByteBufferContent) {
+            return super.prepareMessage(buf, isLastContent)
+        }
+        return DefaultHttpContent(buf)
+    }
+
+    override fun prepareEndOfStreamMessage(lastTransformed: Boolean): Any? {
+        if (isByteBufferContent) {
+            return super.prepareEndOfStreamMessage(lastTransformed)
+        }
+        return LastHttpContent.EMPTY_LAST_CONTENT
+    }
+
+    override fun upgrade(dst: ChannelHandlerContext) {
+        if (isByteBufferContent) {
+            return super.upgrade(dst)
+        }
+        dst.pipeline().apply {
+            replace(HttpServerCodec::class.java, "direct-encoder", NettyDirectEncoder())
+        }
+    }
+
+    override fun isContextCloseRequired(): Boolean = !isByteBufferContent
 }

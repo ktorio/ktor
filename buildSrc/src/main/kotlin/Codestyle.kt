@@ -2,7 +2,9 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 import org.gradle.api.*
+import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
+import org.jmailen.gradle.kotlinter.tasks.*
 
 fun Project.configureCodestyle() {
     apply(plugin = "org.jmailen.kotlinter")
@@ -10,11 +12,10 @@ fun Project.configureCodestyle() {
     kotlinter.apply {
         ignoreFailures = true
         reporters = arrayOf("checkstyle", "plain")
-        experimentalRules = true
-        disabledRules = arrayOf(
-            "no-wildcard-imports",
-            "experimental:spacing-between-declarations-with-annotations",
-            "experimental:enum-entry-name-case"
-        )
+    }
+
+    val editorconfigFile = rootProject.file(".editorconfig")
+    tasks.withType<LintTask> {
+        inputs.file(editorconfigFile).withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }

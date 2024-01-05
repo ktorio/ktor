@@ -111,6 +111,14 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
     }
 
     @Test
+    fun testShortBX() {
+        runTest {
+            assertEquals(0, ch.availableForRead)
+            ch.writeShort(-1)
+        }
+    }
+
+    @Test
     fun testShortL() {
         runTest {
             assertEquals(0, ch.availableForRead)
@@ -631,29 +639,6 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         channel.readRemaining().use { rem ->
             rem.discardExact(2)
         }
-    }
-
-    @Test
-    fun testReadSuspendSessionAwait() = runTest {
-        launch {
-            expect(2)
-            ch.writeInt(1)
-            ch.flush()
-            expect(3)
-            ch.close()
-        }
-
-        var result: Boolean? = null
-        ch.readSuspendableSession {
-            expect(1)
-            result = await(4000)
-        }
-
-        expect(4)
-        assertEquals(false, result)
-        assertEquals(4, ch.availableForRead)
-        ch.discard(4)
-        finish(5)
     }
 
     @Test

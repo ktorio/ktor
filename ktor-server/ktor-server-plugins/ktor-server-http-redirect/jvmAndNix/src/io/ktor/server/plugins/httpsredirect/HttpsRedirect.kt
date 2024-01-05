@@ -9,94 +9,80 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.util.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
- * A plugin that redirects non-secure HTTP calls to HTTPS
+ * A configuration for the [HttpsRedirect] plugin.
  */
-public class HttpsRedirect private constructor(config: Configuration) {
+@KtorDsl
+public class HttpsRedirectConfig {
     /**
-     * HTTPS port to redirect to
+     * Specifies an HTTPS port (443 by default) used to redirect HTTP requests.
      */
-    public val redirectPort: Int = config.sslPort
-
-    /**
-     * If it does permanent redirect
-     */
-    public val permanent: Boolean = config.permanentRedirect
+    public var sslPort: Int = URLProtocol.HTTPS.defaultPort
 
     /**
-     * The list of call predicates for redirect exclusion.
-     * Any call matching any of the predicates will not be redirected by this plugin.
+     * Specifies whether to use permanent or temporary redirect.
      */
-    public val excludePredicates: List<(ApplicationCall) -> Boolean> = config.excludePredicates.toList()
+    public var permanentRedirect: Boolean = true
 
     /**
-     * Redirect plugin configuration
+     * Allows you to disable redirection for calls matching specified conditions.
      */
-    public class Configuration {
-        /**
-         * HTTPS port (443 by default) to redirect to
-         */
-        public var sslPort: Int = URLProtocol.HTTPS.defaultPort
+    public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
 
-        /**
-         * Use permanent redirect or temporary
-         */
-        public var permanentRedirect: Boolean = true
-
-        /**
-         * The list of call predicates for redirect exclusion.
-         * Any call matching any of the predicates will not be redirected by this plugin.
-         */
-        public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
-
-        /**
-         * Exclude calls with paths matching the [pathPrefix] from being redirected to https by this plugin.
-         */
-        public fun excludePrefix(pathPrefix: String) {
-            exclude { call ->
-                call.request.origin.uri.startsWith(pathPrefix)
-            }
-        }
-
-        /**
-         * Exclude calls with paths matching the [pathSuffix] from being redirected to https by this plugin.
-         */
-        public fun excludeSuffix(pathSuffix: String) {
-            exclude { call ->
-                call.request.origin.uri.endsWith(pathSuffix)
-            }
-        }
-
-        /**
-         * Exclude calls matching the [predicate] from being redirected to https by this plugin.
-         */
-        public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
-            excludePredicates.add(predicate)
+    /**
+     * Allows you to disable redirection for calls with a path matching [pathPrefix].
+     */
+    public fun excludePrefix(pathPrefix: String) {
+        exclude { call ->
+            call.request.origin.uri.startsWith(pathPrefix)
         }
     }
 
     /**
-     * Plugin installation object
+     * Allows you to disable redirection for calls with a path matching [pathSuffix].
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, HttpsRedirect> {
-        override val key: AttributeKey<HttpsRedirect> = AttributeKey("HttpsRedirect")
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): HttpsRedirect {
-            val plugin = HttpsRedirect(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
-                if (call.request.origin.scheme == "http" &&
-                    plugin.excludePredicates.none { predicate -> predicate(call) }
-                ) {
-                    val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = plugin.redirectPort }
-                    call.respondRedirect(redirectUrl, plugin.permanent)
-                    finish()
-                }
+    public fun excludeSuffix(pathSuffix: String) {
+        exclude { call ->
+            call.request.origin.uri.endsWith(pathSuffix)
+        }
+    }
+
+    /**
+     * Allows you to disable redirection for calls matching the specified [predicate].
+     */
+    public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
+        excludePredicates.add(predicate)
+    }
+}
+
+/**
+ * A plugin that redirects all HTTP requests to the HTTPS counterpart before processing the call.
+ *
+ * The code snippet below shows how to configure the desired HTTPS port and
+ * return `301 Moved Permanently` for the requested resource:
+ * ```kotlin
+ * install(HttpsRedirect) {
+ *     sslPort = 8443
+ *     permanentRedirect = true
+ * }
+ * ```
+ *
+ * You can learn more from [HttpsRedirect](https://ktor.io/docs/https-redirect.html).
+ */
+public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplicationPlugin(
+    "HttpsRedirect",
+    ::HttpsRedirectConfig
+) {
+    onCall { call ->
+        if (call.request.origin.scheme == "http" &&
+            pluginConfig.excludePredicates.none { predicate -> predicate(call) }
+        ) {
+            val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = pluginConfig.sslPort }
+            if (!call.response.isCommitted) {
+                call.respondRedirect(redirectUrl, pluginConfig.permanentRedirect)
             }
-            return plugin
         }
     }
 }

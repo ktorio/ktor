@@ -25,7 +25,7 @@ actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     // factory
     protected actual abstract fun produceInstance(): T
 
-    // optional cleaning of poped items
+    // optional cleaning of popped items
     protected actual open fun clearInstance(instance: T): T = instance
 
     // optional validation for recycled items

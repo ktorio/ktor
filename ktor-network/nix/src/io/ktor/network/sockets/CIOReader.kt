@@ -11,46 +11,54 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForReadingImpl(
     userChannel: ByteChannel,
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
-    while (!channel.isClosedForWrite) {
-        val count = channel.write { memory, startIndex, endIndex ->
-            val bufferStart = memory.pointer + startIndex
-            val size = endIndex - startIndex
-            val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
+): WriterJob = writer(Dispatchers.IO, userChannel) {
+    try {
+        while (!channel.isClosedForWrite) {
+            var close = false
+            val count = channel.write { memory, startIndex, endIndex ->
+                val bufferStart = memory.pointer + startIndex
+                val size = endIndex - startIndex
+                val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
-            when (bytesRead) {
-                0 -> channel.close()
-                -1 -> {
-                    if (errno == EAGAIN) {
-                        return@write 0
+                when (bytesRead) {
+                    0 -> close = true
+                    -1 -> {
+                        if (errno == EAGAIN) return@write 0
+                        throw PosixException.forErrno()
                     }
-                    throw PosixException.forErrno()
                 }
+
+                bytesRead
             }
 
-            bytesRead
-        }
-
-        if (count == 0 && !channel.isClosedForWrite) {
-            try {
-                selector.select(selectable, SelectInterest.READ)
-            } catch (_: IOException) {
+            channel.flush()
+            if (close) {
+                channel.close()
                 break
             }
+
+            if (count == 0) {
+                try {
+                    selector.select(selectable, SelectInterest.READ)
+                } catch (_: IOException) {
+                    break
+                }
+            }
         }
 
-        channel.flush()
-    }
-
-    channel.closedCause?.let { throw it }
-}.apply {
-    invokeOnCompletion {
+        channel.closedCause?.let { throw it }
+    } catch (cause: Throwable) {
+        channel.close(cause)
+        throw cause
+    } finally {
         shutdown(descriptor, SHUT_RD)
+        channel.close()
     }
 }

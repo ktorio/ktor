@@ -9,7 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -43,7 +43,7 @@ class PluginsTest : ClientLoader() {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBodyObserver() = clientTests(listOf("CIO", "Curl")) {
+    fun testBodyObserver() = clientTests(listOf("CIO")) {
         val body = "Hello, world"
         val task = Job()
         config {

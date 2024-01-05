@@ -7,7 +7,7 @@ package io.ktor.tests.server.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.forwardedsupport.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.methodoverride.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -39,7 +39,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodDelete() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(HttpMethod.Delete, call.request.origin.method)
@@ -60,7 +60,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodDeleteRouting() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.routing {
                 delete("/") {
@@ -88,7 +88,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureMethodPatch() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(HttpMethod.Patch, call.request.origin.method)
@@ -109,7 +109,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testWithFeatureCustomHeaderName() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport) {
+            application.install(XHttpMethodOverride) {
                 headerName = "X-My-Header"
             }
 
@@ -133,7 +133,7 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithNoExistingMethod() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
             application.routing {
                 get("/") {
@@ -152,12 +152,13 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedFor() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
+                    @Suppress("DEPRECATION_ERROR")
                     with(call.request.origin) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
@@ -182,12 +183,13 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedPort() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
+                    @Suppress("DEPRECATION_ERROR")
                     with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(90, port)
@@ -212,12 +214,13 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwardedNoPort() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
 
             application.routing {
                 get("/") {
+                    @Suppress("DEPRECATION_ERROR")
                     with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(80, port)
@@ -242,12 +245,13 @@ class XHttpMethodOverrideTest {
     @Test
     fun testMethodOverrideWithForwarded() {
         withTestApplication {
-            application.install(XHttpMethodOverrideSupport)
+            application.install(XHttpMethodOverride)
 
-            application.install(ForwardedHeaderSupport)
+            application.install(ForwardedHeaders)
 
             application.routing {
                 get("/") {
+                    @Suppress("DEPRECATION_ERROR")
                     with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(443, port)

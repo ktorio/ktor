@@ -5,21 +5,32 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlinx.browser.*
-import org.w3c.dom.*
-import org.w3c.workers.*
 
 /**
  * Hostname of current origin.
  *
  * It uses "localhost" for all platforms except js.
+ *
+ * Note that not all platforms have location set. React Native platofrms expose window without a location.
  */
 public actual val URLBuilder.Companion.origin: String
-    get() = when {
-        PlatformUtils.IS_BROWSER -> if (window !== undefined) {
-            window.location.origin
-        } else {
-            js("self.location.origin") as String
+    get() = when (PlatformUtils.platform) {
+        Platform.Browser -> {
+            js(
+                """
+                var tmpLocation = null
+                if (typeof window !== 'undefined') {
+                  tmpLocation = window.location
+                } else if (typeof self !== 'undefined') {
+                  tmpLocation = self.location
+                }
+                var origin = ""
+                if (tmpLocation) {
+                  origin = tmpLocation.origin
+                }
+                origin && origin != "null" ? origin : "http://localhost"
+                """
+            ) as String
         }
         else -> "http://localhost"
     }

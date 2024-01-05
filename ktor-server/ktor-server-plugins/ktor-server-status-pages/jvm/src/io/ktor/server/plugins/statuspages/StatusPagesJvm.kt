@@ -33,7 +33,7 @@ public fun StatusPagesConfig.statusFile(vararg code: HttpStatusCode, filePattern
  */
 public fun <T : Throwable> StatusPagesConfig.exception(
     klass: Class<T>,
-    handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+    handler: suspend PipelineContext<Unit, PipelineCall>.(T) -> Unit
 ) {
     @Suppress("UNCHECKED_CAST")
     val cast = handler as suspend (ApplicationCall, Throwable) -> Unit

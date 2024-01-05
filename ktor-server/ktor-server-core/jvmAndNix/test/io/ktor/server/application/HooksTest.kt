@@ -5,7 +5,9 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
@@ -21,10 +23,10 @@ class HooksTest {
         val currentHandler = HookHandler()
 
         val myHook = object : Hook<HookHandler.() -> Unit> {
-            override fun install(application: Application, handler: HookHandler.() -> Unit) {
+            override fun install(pipeline: ApplicationCallPipeline, handler: HookHandler.() -> Unit) {
                 currentHandler.apply(handler)
 
-                application.intercept(ApplicationCallPipeline.Call) {
+                pipeline.intercept(ApplicationCallPipeline.Call) {
                     currentHandler.executed = true
                 }
             }
@@ -57,15 +59,19 @@ class HooksTest {
     }
 
     @Test
-    fun testShutdownHook() {
+    fun testMonitoringEventHook() {
         class State {
+            var startCalled = false
             var shutdownCalled = false
         }
 
         val state = State()
         val shutdownHandler = createApplicationPlugin("ShutdownHandler") {
-            on(Shutdown) {
+            on(MonitoringEvent(ApplicationStopped)) {
                 state.shutdownCalled = true
+            }
+            on(MonitoringEvent(ApplicationStarted)) {
+                state.startCalled = true
             }
         }
 
@@ -79,7 +85,7 @@ class HooksTest {
             }
 
             client.get("/")
-
+            assertTrue(state.startCalled)
             assertFalse(state.shutdownCalled)
         }
 
@@ -117,6 +123,69 @@ class HooksTest {
 
             assertNotNull(state.fail)
             assertEquals("Failure", state.fail?.message)
+        }
+    }
+
+    @Test
+    fun testHookWithRoutingPlugin() {
+        val OnCallHook = object : Hook<() -> Unit> {
+            override fun install(pipeline: ApplicationCallPipeline, handler: () -> Unit) {
+                pipeline.intercept(ApplicationCallPipeline.Call) {
+                    handler()
+                }
+            }
+        }
+
+        val myOutput = mutableListOf<Int>()
+        fun myPrintln(value: Int) {
+            myOutput += value
+        }
+
+        class MyConfig {
+            var myValue: Int = 0
+        }
+
+        val MyRoutePlugin = createRouteScopedPlugin("MyRoutePlugin", ::MyConfig) {
+            on(OnCallHook) {
+                myPrintln(pluginConfig.myValue)
+            }
+        }
+
+        testApplication {
+            routing {
+                route("/1") {
+                    install(MyRoutePlugin) {
+                        myValue = 1
+                    }
+                    get {
+                        call.respond("Hello-1")
+                    }
+                }
+                route("/2") {
+                    install(MyRoutePlugin) {
+                        myValue = 2
+                    }
+                    get {
+                        call.respond("Hello-2")
+                    }
+                }
+                get("/3") {
+                    call.respond("Hello-3")
+                }
+            }
+
+            suspend fun ApplicationTestBuilder.assertOutput(requestPath: String, expectedOutput: List<Int>) {
+                myOutput.clear()
+                runCatching {
+                    client.get(requestPath)
+                }
+
+                assertContentEquals(expectedOutput.toTypedArray(), myOutput.toTypedArray())
+            }
+
+            assertOutput("/1", listOf(1))
+            assertOutput("/2", listOf(2))
+            assertOutput("/3", emptyList())
         }
     }
 }

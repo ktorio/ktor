@@ -9,23 +9,23 @@ import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.util.ssl.*
 
 /**
- * Configuration for [Jetty] implementation of [HttpClientEngineFactory].
+ * A configuration for the [Jetty] client engine.
  */
 public class JettyEngineConfig : HttpClientEngineConfig() {
     internal var config: (HTTP2Client) -> Unit = {}
 
     /**
-     * A Jetty's [SslContextFactory]. By default, it trusts all the certificates.
+     * Allows you to configure [SSL](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public var sslContextFactory: SslContextFactory = SslContextFactory.Client()
 
     /**
-     * Size of the cache that keeps least recently used [JettyHttp2Engine] instances.
+     * Specifies the size of cache that keeps recently used [JettyHttp2Engine] instances.
      */
     public var clientCacheSize: Int = 10
 
     /**
-     * Configure raw Jetty client.
+     * Configures a raw Jetty client.
      */
     public fun configureClient(block: (HTTP2Client) -> Unit) {
         val current = config

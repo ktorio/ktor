@@ -1,6 +1,5 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import java.nio.*
 
 @Deprecated("Use read { } instead.")

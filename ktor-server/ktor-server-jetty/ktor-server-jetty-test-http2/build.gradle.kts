@@ -1,14 +1,15 @@
-val jetty_version: String by extra
 
 kotlin.sourceSets {
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
             api(project(":ktor-server:ktor-server-test-suites"))
-            api("org.eclipse.jetty:jetty-servlet:$jetty_version")
+            api(libs.jetty.servlet)
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
+            api(libs.logback.classic)
         }
     }
 }
@@ -16,13 +17,13 @@ kotlin.sourceSets {
 val jetty_alpn_boot_version: String? by extra
 dependencies {
     if (jetty_alpn_boot_version != null) {
-        add("boot", "org.mortbay.jetty.alpn:alpn-boot:$jetty_alpn_boot_version")
+        add("boot", libs.jetty.alpn.boot)
     }
 }
 
 val jvmTest: org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest by tasks
 jvmTest.apply {
-    useJUnit()
+    useJUnitPlatform()
 
     systemProperty("enable.http2", "true")
     exclude("**/*StressTest*")

@@ -4,18 +4,27 @@
 
 package io.ktor.tests.velocity
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.velocity.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import org.apache.velocity.runtime.resource.loader.*
 import org.apache.velocity.runtime.resource.util.*
 import java.util.zip.*
 import kotlin.test.*
+import kotlin.text.Charsets
 
 @Suppress("DEPRECATION")
 class VelocityTest {
@@ -129,6 +138,29 @@ class VelocityTest {
         }
     }
 
+    @Test
+    fun testContentNegotiationInvokedAfter() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, alwaysFailingConverter)
+            }
+            setUpTestTemplates()
+            install(ConditionalHeaders)
+
+            routing {
+                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+
+                get("/") {
+                    call.respondTemplate("test.vl", model)
+                }
+            }
+        }
+
+        val lines = client.get("/").bodyAsText().lines()
+        assertEquals("<p>Hello, 1</p>", lines[0])
+        assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+    }
+
     private fun Application.setUpTestTemplates() {
         val bax = "$"
 
@@ -146,6 +178,27 @@ class VelocityTest {
                     """.trimIndent()
                 )
                 StringResourceLoader.setRepository("myRepo", this)
+            }
+        }
+    }
+
+    companion object {
+        private val alwaysFailingConverter = object : ContentConverter {
+            override suspend fun serialize(
+                contentType: ContentType,
+                charset: Charset,
+                typeInfo: TypeInfo,
+                value: Any?
+            ): OutgoingContent? {
+                fail("This converter should be never started for send")
+            }
+
+            override suspend fun deserialize(
+                charset: Charset,
+                typeInfo: TypeInfo,
+                content: ByteReadChannel
+            ): Any? {
+                fail("This converter should be never started for receive")
             }
         }
     }

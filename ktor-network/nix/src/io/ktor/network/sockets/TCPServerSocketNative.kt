@@ -10,8 +10,8 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.coroutines.*
-import kotlin.native.concurrent.*
 
+@OptIn(ExperimentalForeignApi::class)
 internal class TCPServerSocketNative(
     private val descriptor: Int,
     private val selectorManager: SelectorManager,
@@ -25,6 +25,10 @@ internal class TCPServerSocketNative(
 
     override val socketContext: Job
         get() = _socketContext
+
+    init {
+        signal(SIGPIPE, SIG_IGN)
+    }
 
     @Suppress("DUPLICATE_LABEL_IN_WHEN")
     override suspend fun accept(): Socket = memScoped {

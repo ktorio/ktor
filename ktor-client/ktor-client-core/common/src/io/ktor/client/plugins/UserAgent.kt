@@ -5,34 +5,35 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.UserAgent")
+
+@KtorDsl
+public class UserAgentConfig(public var agent: String = "Ktor http-client")
 
 /**
- * Default user-agent plugin for [HttpClient].
+ * A plugin that adds a `User-Agent` header to all requests.
  *
- * @property agent: value of the `User-Agent` header to set.
+ * @property agent a `User-Agent` header value.
  */
-public class UserAgent private constructor(public val agent: String) {
+public val UserAgent: ClientPlugin<UserAgentConfig> = createClientPlugin("UserAgent", ::UserAgentConfig) {
 
-    public class Config(public var agent: String = "Ktor http-client")
+    val agent = pluginConfig.agent
 
-    public companion object Plugin : HttpClientPlugin<Config, UserAgent> {
-        override val key: AttributeKey<UserAgent> = AttributeKey("UserAgent")
-
-        override fun prepare(block: Config.() -> Unit): UserAgent = UserAgent(Config().apply(block).agent)
-
-        override fun install(plugin: UserAgent, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
-                context.header(HttpHeaders.UserAgent, plugin.agent)
-            }
-        }
+    onRequest { request, _ ->
+        LOGGER.trace("Adding User-Agent header: agent for ${request.url}")
+        request.header(HttpHeaders.UserAgent, agent)
     }
 }
 
 /**
- * Install [UserAgent] plugin with browser-like user agent.
+ * Installs the [UserAgent] plugin with a browser-like user agent.
  */
 public fun HttpClientConfig<*>.BrowserUserAgent() {
     install(UserAgent) {
@@ -42,7 +43,7 @@ public fun HttpClientConfig<*>.BrowserUserAgent() {
 }
 
 /**
- * Install [UserAgent] plugin with browser-like user agent.
+ * Installs the [UserAgent] plugin with a CURL user agent.
  */
 public fun HttpClientConfig<*>.CurlUserAgent() {
     install(UserAgent) {

@@ -9,18 +9,19 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import javax.servlet.*
 
-internal fun CoroutineScope.servletReader(input: ServletInputStream): WriterJob {
-    val reader = ServletReader(input)
+@Suppress("DEPRECATION")
+internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
+    val reader = ServletReader(input, contentLength)
 
-    return writer(Dispatchers.Unconfined, reader.channel) {
+    return writer(Dispatchers.IO, reader.channel) {
         reader.run()
     }
 }
 
-private class ServletReader(val input: ServletInputStream) : ReadListener {
+private class ServletReader(val input: ServletInputStream, val contentLength: Int) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
@@ -30,9 +31,10 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
             input.setReadListener(this)
             if (input.isFinished) {
                 // setting read listener on already completed stream could cause it to hang
-                // it is not by Servlet API spec but it actually works like this
+                // it is not by Servlet API spec, but it actually works like this
                 // it is relatively dangerous to touch isFinished due to async processing
-                // if the servlet container call us onAllDataRead then it we will close events again that is safe
+                // if the servlet container calls us onAllDataRead,
+                // then we will close events again that is safe
                 events.close()
                 return
             }
@@ -41,8 +43,8 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
 
             events.close()
             channel.close()
-        } catch (t: Throwable) {
-            onError(t)
+        } catch (cause: Throwable) {
+            onError(cause)
         } finally {
             @Suppress("BlockingMethodInNonBlockingContext")
             input.close() // ServletInputStream is in non-blocking mode
@@ -52,18 +54,39 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun loop(buffer: ByteArray) {
+        var bodySize = 0
         while (true) {
-            if (input.isReady) {
-                val rc = input.read(buffer)
-                if (rc == -1) {
-                    events.close()
-                    break
-                }
-
-                channel.writeFully(buffer, 0, rc)
-            } else {
+            if (!input.isReady) {
                 channel.flush()
                 events.receiveCatching().getOrNull() ?: break
+                continue
+            }
+
+            val readCount = input.read(buffer)
+            if (readCount == -1) {
+                events.close()
+                break
+            }
+
+            bodySize += readCount
+
+            channel.writeFully(buffer, 0, readCount)
+
+            if (contentLength < 0) continue
+
+            if (bodySize == contentLength) {
+                channel.close()
+                events.close()
+                break
+            }
+
+            if (bodySize > contentLength) {
+                val cause = IOException(
+                    "Client provided more bytes than content length. Expected $contentLength but got $bodySize."
+                )
+                channel.close(cause)
+                events.close()
+                break
             }
         }
     }
@@ -88,15 +111,14 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
         }
     }
 
-    private fun wrapException(t: Throwable): Throwable? {
-        return when (t) {
+    private fun wrapException(cause: Throwable): Throwable? {
+        return when (cause) {
             is EOFException -> null
-            is TimeoutException,
-            is IOException -> ChannelReadException(
+            is TimeoutException -> ChannelReadException(
                 "Cannot read from a servlet input stream",
-                exception = t as Exception
+                exception = cause as Exception
             )
-            else -> t
+            else -> cause
         }
     }
 }

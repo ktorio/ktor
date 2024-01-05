@@ -6,11 +6,12 @@
 package io.ktor.server.testing
 
 import io.ktor.client.*
+import io.ktor.client.engine.apache.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -18,26 +19,28 @@ import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.eclipse.jetty.util.ssl.*
-import org.junit.*
-import org.junit.rules.*
-import org.junit.runners.model.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assumptions.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
+import java.security.cert.*
 import java.util.concurrent.*
 import javax.net.ssl.*
-import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration> actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : CoroutineScope {
+    TConfiguration : ApplicationEngine.Configuration
+    > actual constructor(
+    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,17 +52,16 @@ actual abstract class EngineTestBase<
 
     protected actual var port: Int = findFreePort()
     protected actual var sslPort: Int = findFreePort()
-    protected actual var server: TEngine? = null
+    protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
     protected var callGroupSize: Int = -1
         private set
-    protected val exceptions: ArrayList<Throwable> = ArrayList()
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
     protected actual var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    val testLog: Logger = LoggerFactory.getLogger("io.ktor.test.EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -72,45 +74,32 @@ actual abstract class EngineTestBase<
     actual override val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
 
-    @get:Rule
-    val test: TestName = TestName()
-
-    open val timeout: Long = if (isUnderDebugger) {
-        1000000
+    override val timeout: Duration = if (isUnderDebugger) {
+        1_000_000.milliseconds
     } else {
-        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(4))
+        System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
     }
 
-    @get:Rule
-    val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
-
-    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
-
-    @Before
+    @BeforeEach
     fun setUpBase() {
-        val method = this.javaClass.getMethod(test.methodName)
-            ?: throw AssertionError("Method ${test.methodName} not found")
+        val method = testMethod.orElseThrow { AssertionError("Method $testName not found") }
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
-            Assume.assumeTrue("http2 is not enabled", enableHttp2)
+            assumeTrue(enableHttp2, "http2 is not enabled")
         }
         if (method.isAnnotationPresent(NoHttp2::class.java)) {
             enableHttp2 = false
         }
 
         testLog.trace("Starting server on port $port (SSL $sslPort)")
-        exceptions.clear()
     }
 
-    @After
+    @AfterEach
     fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
-            if (exceptions.isNotEmpty()) {
-                throw AssertionError("Server exceptions logged, consult log output for more information")
-            }
+            server?.stop(0, 200, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
@@ -122,15 +111,15 @@ actual abstract class EngineTestBase<
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
-    ): TEngine {
+    ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
-        val environment = applicationEngineEnvironment {
-            this.parentCoroutineContext = parent
-            val delegate = LoggerFactory.getLogger("ktor.test")
+        val environment = applicationEnvironment {
+            val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
+                    if (t is ExpectedTestException) return
                     t?.let {
-                        exceptions.add(it)
+                        collectUnhandledException(it)
                         println("Critical test exception: $it")
                         it.printStackTrace()
                         println("From origin:")
@@ -139,6 +128,15 @@ actual abstract class EngineTestBase<
                     delegate.error(msg, t)
                 }
             }
+        }
+        val properties = applicationProperties(environment) {
+            this.parentCoroutineContext = parent
+            module(module)
+        }
+
+        return embeddedServer(applicationEngineFactory, properties) {
+            shutdownGracePeriod = 1000
+            shutdownTimeout = 1000
 
             connector { port = _port }
             if (enableSsl) {
@@ -151,11 +149,6 @@ actual abstract class EngineTestBase<
                     }
                 }
             }
-
-            module(module)
-        }
-
-        return embeddedServer(applicationEngineFactory, environment) {
             configure(this)
             this@EngineTestBase.callGroupSize = callGroupSize
         }
@@ -165,16 +158,16 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected open fun plugins(application: Application, routingConfigurer: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         application.install(CallLogging)
-        application.install(Routing, routingConfigurer)
+        application.install(Routing, routingConfig)
     }
 
     protected actual fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
-        routingConfigurer: Routing.() -> Unit
-    ): TEngine {
+        routingConfigurer: Route.() -> Unit
+    ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
             val server = createServer(log, parent) {
@@ -190,11 +183,12 @@ actual abstract class EngineTestBase<
 
                     port = findFreePort()
                     sslPort = findFreePort()
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop()
                     lastFailures = failures
                 }
+
                 else -> {
-                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    server.stop()
                     throw MultipleFailureException(failures)
                 }
             }
@@ -204,7 +198,7 @@ actual abstract class EngineTestBase<
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected fun startServer(server: TEngine): List<Throwable> {
+    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -212,8 +206,8 @@ actual abstract class EngineTestBase<
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout))) {
-                server.environment.connectors.forEach { connector ->
+            withTimeout(minOf(10.seconds, timeout)) {
+                server.engineConfig.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
             }
@@ -271,7 +265,7 @@ actual abstract class EngineTestBase<
     protected inline fun socket(block: Socket.() -> Unit) {
         Socket().use { socket ->
             socket.tcpNoDelay = true
-            socket.soTimeout = socketReadTimeout
+            socket.soTimeout = timeout.inWholeMilliseconds.toInt()
             socket.connect(InetSocketAddress("localhost", port))
 
             block(socket)
@@ -284,20 +278,19 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
-            HttpClient(CIO) {
-                engine {
-                    https.trustManager = trustManager
-                }
-                followRedirects = false
-                expectSuccess = false
-            }.use { client ->
-                client.prepareRequest {
-                    url.takeFrom(urlString)
-                    builder()
-                }.execute { response ->
-                    block(response, port)
-                }
+        HttpClient(CIO) {
+            engine {
+                https.trustManager = trustManager
+                requestTimeout = 0
+            }
+            followRedirects = false
+            expectSuccess = false
+        }.use { client ->
+            client.prepareRequest {
+                url.takeFrom(urlString)
+                builder()
+            }.execute { response ->
+                block(response, port)
             }
         }
     }
@@ -308,20 +301,20 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
-            HttpClient(Jetty) {
-                followRedirects = false
-                expectSuccess = false
-                engine {
-                    pipelining = true
-                    sslContextFactory = SslContextFactory.Client(true)
+        HttpClient(Apache) {
+            followRedirects = false
+            expectSuccess = false
+            engine {
+                pipelining = true
+                sslContext = SSLContext.getInstance("SSL").apply {
+                    init(null, trustAllCertificates, SecureRandom())
                 }
-            }.use { client ->
-                client.prepareRequest(url) {
-                    builder()
-                }.execute { response ->
-                    block(response, port)
-                }
+            }
+        }.use { client ->
+            client.prepareRequest(url) {
+                builder()
+            }.execute { response ->
+                block(response, port)
             }
         }
     }
@@ -332,7 +325,7 @@ actual abstract class EngineTestBase<
         lateinit var sslContext: SSLContext
         lateinit var trustManager: X509TrustManager
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupAll() {
             keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
@@ -355,4 +348,12 @@ actual abstract class EngineTestBase<
             } while (true)
         }
     }
+
+    private val trustAllCertificates = arrayOf<X509TrustManager>(
+        object : X509TrustManager {
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
+        }
+    )
 }

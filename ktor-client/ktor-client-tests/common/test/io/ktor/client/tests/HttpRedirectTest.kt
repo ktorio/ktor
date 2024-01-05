@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlin.test.*
 
 @Suppress("PublicApiImplicitType")
@@ -23,7 +24,7 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.prepareGet("$TEST_URL_BASE").execute {
+            client.prepareGet(TEST_URL_BASE).execute {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.bodyAsText())
             }
@@ -75,7 +76,7 @@ class HttpRedirectTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testCustomUrls() = clientTests(listOf("Darwin")) {
+    fun testCustomUrls() = clientTests(listOf("Darwin", "DarwinLegacy")) {
         val urls = listOf(
             "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
             "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
@@ -130,6 +131,20 @@ class HttpRedirectTest : ClientLoader() {
                 assertEquals("OK", it.bodyAsText())
                 assertEquals("$TEST_URL_BASE/get", it.call.request.url.toString())
             }
+        }
+    }
+
+    @Test
+    fun testRedirectDisabled() = clientTests {
+        config {
+            followRedirects = false
+        }
+
+        test { client ->
+            if (PlatformUtils.IS_BROWSER) return@test
+
+            val response = client.get(TEST_URL_BASE)
+            assertEquals(HttpStatusCode.Found, response.status)
         }
     }
 }

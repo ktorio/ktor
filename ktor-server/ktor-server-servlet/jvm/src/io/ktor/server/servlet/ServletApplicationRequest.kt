@@ -11,9 +11,10 @@ import io.ktor.server.request.*
 import javax.servlet.http.*
 
 public abstract class ServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
+
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
@@ -23,7 +24,7 @@ public abstract class ServletApplicationRequest(
         parseQueryString(uri, decode = false)
     }
 
-    override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)
+    override val engineHeaders: Headers = ServletApplicationRequestHeaders(servletRequest)
 
     @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)

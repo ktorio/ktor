@@ -8,14 +8,21 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
+import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class TestApplicationTest {
@@ -126,7 +133,7 @@ class TestApplicationTest {
 
         val TestPlugin = createApplicationPlugin("test", ::TestPluginConfig) {
             onCall {
-                val externalValue = client.get("https://test.com").bodyAsText()
+                val externalValue = pluginConfig.pluginClient.get("https://test.com").bodyAsText()
                 it.response.headers.append("test", externalValue)
             }
         }
@@ -158,6 +165,240 @@ class TestApplicationTest {
         }
 
         assertEquals("http", client.get("/echo").bodyAsText())
-        assertEquals("https", client.get("https://localhost:80/echo").bodyAsText())
+        assertEquals("https", client.get("https://localhost/echo").bodyAsText())
+    }
+
+    @Test
+    fun testManualStart() = testApplication {
+        var externalServicesRoutingCalled = false
+        var routingCalled = false
+        var applicationCalled = false
+        var applicationStarted = false
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    externalServicesRoutingCalled = true
+                }
+            }
+        }
+        routing {
+            routingCalled = true
+        }
+        application {
+            applicationCalled = true
+            monitor.subscribe(ApplicationStarted) {
+                applicationStarted = true
+            }
+        }
+
+        startApplication()
+
+        assertEquals(true, routingCalled)
+        assertEquals(true, applicationCalled)
+        assertEquals(true, applicationStarted)
+        assertEquals(true, externalServicesRoutingCalled)
+    }
+
+    @Test
+    fun testManualStartAndClientCallAfter() = testApplication {
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    get {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+        routing {
+            get {
+                call.respond(this@testApplication.client.get("https://test.com").bodyAsText())
+            }
+        }
+
+        startApplication()
+
+        assertEquals("OK", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testClientWithTimeout() = testApplication {
+        val client = createClient {
+            install(HttpTimeout)
+        }
+        externalServices {
+            hosts("http://fake.site.io") {
+                routing {
+                    get("/toto") {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+        routing {
+            get("/") {
+                val response = client.get("http://fake.site.io/toto") {
+                    timeout {
+                        requestTimeoutMillis = 100
+                    }
+                }.bodyAsText()
+                call.respondText(response)
+            }
+        }
+
+        assertEquals("OK", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testMultipleParallelRequests() = testApplication {
+        routing {
+            get("/") {
+                call.respondText("OK")
+            }
+        }
+
+        coroutineScope {
+            val jobs = (1..100).map {
+                async {
+                    client.get("/").apply {
+                        assertEquals("OK", bodyAsText())
+                    }
+                }
+            }
+            jobs.awaitAll()
+        }
+    }
+
+    @Test
+    fun testRequestRunningInParallel() = testApplication {
+        routing {
+            post("/") {
+                val text = call.receiveText()
+                call.respondText(text)
+            }
+        }
+
+        coroutineScope {
+            val secondRequestStarted = CompletableDeferred<Unit>()
+            val request1 = async {
+                client.post("/") {
+                    setBody(object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("OK")
+                            secondRequestStarted.await()
+                            channel.flush()
+                        }
+                    })
+                }.apply {
+                    assertEquals("OK", bodyAsText())
+                }
+            }
+            val request2 = async {
+                client.preparePost("/") {
+                    setBody("OK")
+                }.execute {
+                    secondRequestStarted.complete(Unit)
+                    assertEquals("OK", it.bodyAsText())
+                }
+            }
+            request1.await()
+            request2.await()
+        }
+    }
+
+    @Test
+    fun testExceptionThrowsByDefault() = testApplication {
+        routing {
+            get("/boom") {
+                throw IllegalStateException("error")
+            }
+        }
+
+        val error = assertFailsWith<IllegalStateException> {
+            client.get("/boom")
+        }
+        assertEquals("error", error.message)
+    }
+
+    @Test
+    fun testExceptionRespondsWith500IfFlagSet() = testApplication {
+        environment {
+            config = MapApplicationConfig(CONFIG_KEY_THROW_ON_EXCEPTION to "false")
+        }
+        routing {
+            get("/boom") {
+                throw IllegalStateException("error")
+            }
+        }
+
+        val response = client.get("/boom")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+    }
+
+    @Test
+    fun testConnectors(): Unit = testApplication {
+        engine {
+            connector {
+                port = 8080
+            }
+            connector {
+                port = 8081
+            }
+        }
+        routing {
+            port(8080) {
+                get {
+                    call.respond("8080")
+                }
+            }
+            port(8081) {
+                get {
+                    call.respond("8081")
+                }
+            }
+        }
+
+        val response8080 = client.get {
+            host = "0.0.0.0"
+            port = 8080
+        }
+        assertEquals("8080", response8080.bodyAsText())
+
+        val response8081 = client.get {
+            host = "0.0.0.0"
+            port = 8081
+        }
+        assertEquals("8081", response8081.bodyAsText())
+    }
+
+    @Test
+    fun testStartupJobsCompletion() = testApplication {
+        startApplication()
+        withTimeoutOrNull(1000) {
+            engine.application.coroutineContext.job.children.forEach { scope -> scope.join() }
+        } ?: fail("Timed out waiting for child coroutines to finish")
+    }
+
+    @Test
+    fun testCanPassCoroutineContextFromOutside() = runBlocking(MyElement("test")) {
+        testApplication(coroutineContext) {
+            assertEquals("test", coroutineContext[MyElement]!!.data)
+            withContext(Dispatchers.Unconfined) {
+                assertEquals("test", coroutineContext[MyElement]!!.data)
+            }
+            routing {
+                get {
+                    call.respond(coroutineContext[MyElement]!!.data)
+                }
+            }
+            assertEquals("test", client.get("/").bodyAsText())
+        }
+    }
+
+    class MyElement(val data: String) : CoroutineContext.Element {
+        override val key: CoroutineContext.Key<*>
+            get() = MyElement
+
+        companion object : CoroutineContext.Key<MyElement>
     }
 }

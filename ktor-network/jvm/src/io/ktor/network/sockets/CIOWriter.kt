@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.attachForWritingImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,
@@ -73,6 +74,7 @@ internal fun CoroutineScope.attachForWritingImpl(
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.attachForWritingDirectImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,
@@ -95,7 +97,6 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
             while (true) {
                 val buffer = request(0, 1)
                 if (buffer == null) {
-//                        if (channel.isClosedForRead) break
                     if (!awaitAtLeast(1)) break
                     continue
                 }

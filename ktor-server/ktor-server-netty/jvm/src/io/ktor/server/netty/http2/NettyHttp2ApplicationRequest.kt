@@ -8,21 +8,18 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpMethod
-import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.net.*
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal class NettyHttp2ApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     coroutineContext: CoroutineContext,
     context: ChannelHandlerContext,
     val nettyHeaders: Http2Headers,
@@ -36,7 +33,7 @@ internal class NettyHttp2ApplicationRequest(
     keepAlive = true
 ) {
 
-    override val headers: Headers by lazy {
+    override val engineHeaders: Headers by lazy {
         Headers.build {
             nettyHeaders.forEach { (name, value) ->
                 if (name.isNotEmpty() && name[0] != ':') {
@@ -60,18 +57,8 @@ internal class NettyHttp2ApplicationRequest(
     override val local = Http2LocalConnectionPoint(
         nettyHeaders,
         context.channel().localAddress() as? InetSocketAddress,
-        context.channel().remoteAddress() as? InetSocketAddress
+        context.channel().remoteAddress() as? InetSocketAddress,
     )
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
-
-    override fun newDecoder(): HttpPostMultipartRequestDecoder {
-        val hh = DefaultHttpHeaders(false)
-        for ((name, value) in nettyHeaders) {
-            hh.add(name, value)
-        }
-
-        val request = DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, uri, hh)
-        return HttpPostMultipartRequestDecoder(request)
-    }
 }

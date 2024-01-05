@@ -6,7 +6,6 @@ package io.ktor.server.netty.http2
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -14,8 +13,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
-internal class NettyHttp2ApplicationResponse constructor(
+internal class NettyHttp2ApplicationResponse(
     call: NettyApplicationCall,
     val handler: NettyHttp2Handler,
     context: ChannelHandlerContext,
@@ -38,14 +36,14 @@ internal class NettyHttp2ApplicationResponse constructor(
     }
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
-        // transfer encoding should be never set for HTTP/2
+        // transfer encoding should never be set for HTTP/2,
         // so we simply remove header
-        // it should be lower case
+        // it should be a lower case
         responseHeaders.remove("transfer-encoding")
         return DefaultHttp2HeadersFrame(responseHeaders, last)
     }
 
-    fun trailerMessage(): Any? {
+    override fun prepareTrailerMessage(): Any? {
         return if (responseTrailers.isEmpty) null else DefaultHttp2HeadersFrame(responseTrailers, true)
     }
 
@@ -77,13 +75,17 @@ internal class NettyHttp2ApplicationResponse constructor(
         }
     }
 
-    private class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
+    internal class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
             underlying.add(name.toLowerCasePreservingASCIIRules(), value)
         }
 
-        override fun get(name: String): String? = underlying[name]?.toString()
-        override fun getEngineHeaderNames(): List<String> = underlying.names().map { it.toString() }
-        override fun getEngineHeaderValues(name: String): List<String> = underlying.getAll(name).map { it.toString() }
+        override fun get(name: String): String? = if (name.startsWith(':')) null else underlying[name]?.toString()
+
+        override fun getEngineHeaderNames(): List<String> = underlying.names()
+            .filter { !it.startsWith(':') }.map { it.toString() }
+
+        override fun getEngineHeaderValues(name: String): List<String> =
+            if (name.startsWith(':')) emptyList() else underlying.getAll(name).map { it.toString() }
     }
 }

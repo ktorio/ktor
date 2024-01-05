@@ -1,8 +1,19 @@
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.js.*
 import org.khronos.webgl.*
+
+/**
+ * Find a charset by name.
+ */
+public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
+
+/**
+ * Check if a charset is supported by the current platform.
+ */
+public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 
 public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
@@ -27,9 +38,9 @@ public actual abstract class Charset(internal val _name: String) {
         return _name
     }
 
-    public actual companion object {
+    public companion object {
         @Suppress("LocalVariableName")
-        public actual fun forName(name: String): Charset {
+        public fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
             if (name == "ISO-8859-1" || name == "iso-8859-1" ||
                 name.replace('_', '-').let { it == "iso-8859-1" || it.lowercase() == "iso-8859-1" } ||
@@ -40,7 +51,7 @@ public actual abstract class Charset(internal val _name: String) {
             throw IllegalArgumentException("Charset $name is not supported")
         }
 
-        public actual fun isSupported(charset: String): Boolean = when {
+        public fun isSupported(charset: String): Boolean = when {
             charset == "UTF-8" || charset == "utf-8" || charset == "UTF8" || charset == "utf8" -> true
             charset == "ISO-8859-1" || charset == "iso-8859-1" || charset.replace('_', '-').let {
                 it == "iso-8859-1" || it.lowercase() == "iso-8859-1"
@@ -60,8 +71,9 @@ private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEnc
 public actual val CharsetEncoder.charset: Charset get() = _charset
 
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
-    encodeToByteArrayImpl1(input, fromIndex, toIndex)
+    encodeToByteArrayImpl(input, fromIndex, toIndex)
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
     require(fromIndex <= toIndex)
     if (charset == Charsets.ISO_8859_1) {
@@ -93,12 +105,14 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return start - fromIndex
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     require(charset === Charsets.UTF_8)
     // we only support UTF-8 so as far as input is UTF-8 encoded string then we simply copy bytes
     dst.writePacket(input)
 }
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
 // ----------------------------------------------------------------------
@@ -109,6 +123,7 @@ private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDec
 
 public actual val CharsetDecoder.charset: Charset get() = _charset
 
+@Suppress("DEPRECATION")
 internal actual fun CharsetDecoder.decodeBuffer(
     input: Buffer,
     out: Appendable,
@@ -131,6 +146,35 @@ internal actual fun CharsetDecoder.decodeBuffer(
     return copied
 }
 
+@Suppress("DEPRECATION")
+internal actual fun CharsetEncoder.encodeToByteArrayImpl(
+    input: CharSequence,
+    fromIndex: Int,
+    toIndex: Int
+): ByteArray {
+    var start = fromIndex
+    if (start >= toIndex) return EmptyByteArray
+    val single = ChunkBuffer.Pool.borrow()
+
+    try {
+        val rc = encodeImpl(input, start, toIndex, single)
+        start += rc
+        if (start == toIndex) {
+            val result = ByteArray(single.readRemaining)
+            single.readFully(result)
+            return result
+        }
+
+        return buildPacket {
+            appendSingleChunk(single.duplicate())
+            encodeToImpl(this, input, start, toIndex)
+        }.readBytes()
+    } finally {
+        single.release(ChunkBuffer.Pool)
+    }
+}
+
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     val decoder = Decoder(charset.name, true)
     var charactersCopied = 0
@@ -193,6 +237,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
     return charactersCopied
 }
 
+@Suppress("DEPRECATION")
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input.headRemaining >= inputLength) {
@@ -231,6 +276,7 @@ private data class CharsetImpl(val name: String) : Charset(name) {
 
 public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
+@Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
     val decoder = Decoder(charset.name, true)
     var inputRemaining = inputLength

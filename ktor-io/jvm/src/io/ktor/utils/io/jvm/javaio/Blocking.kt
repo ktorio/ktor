@@ -8,10 +8,12 @@ import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import org.slf4j.LoggerFactory
 import java.io.*
-import java.util.concurrent.locks.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
+
+private val ADAPTER_LOGGER by lazy { LoggerFactory.getLogger(BlockingAdapter::class.java) }
 
 /**
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
@@ -26,24 +28,20 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = Inp
 public fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
 
 private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) : InputStream() {
-    init {
-        ensureParkingAllowed()
-    }
-
     private val context = Job(parent)
 
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
-            var rc = 0
+            var readCount = 0
             while (true) {
-                val buffer = rendezvous(rc) as ByteArray
-                rc = channel.readAvailable(buffer, offset, length)
-                if (rc == -1) {
+                val buffer = rendezvous(readCount) as ByteArray
+                readCount = channel.readAvailable(buffer, offset, length)
+                if (readCount == -1) {
                     context.complete()
                     break
                 }
             }
-            finish(rc)
+            finish(readCount)
         }
     }
 
@@ -58,7 +56,7 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
         val buffer = single ?: ByteArray(1).also { single = it }
         val rc = loop.submitAndAwait(buffer, 0, 1)
         if (rc == -1) return -1
-        if (rc != 1) error("rc should be 1 or -1 but got $rc")
+        if (rc != 1) error("Expected a single byte or EOF. Got $rc bytes.")
         return buffer[0].toInt() and 0xff
     }
 
@@ -82,9 +80,6 @@ private val CloseToken = Any()
 private val FlushToken = Any()
 
 private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel) : OutputStream() {
-    init {
-        ensureParkingAllowed()
-    }
 
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
@@ -218,12 +213,15 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
                     cont = value as Continuation<Any>
                     thread
                 }
+
                 is Unit -> {
                     return result.value
                 }
+
                 is Throwable -> {
                     throw value
                 }
+
                 is Thread -> throw IllegalStateException("There is already thread owning adapter")
                 this -> throw IllegalStateException("Not yet started")
                 else -> NoWhenBranchMatchedException()
@@ -246,6 +244,21 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     @OptIn(InternalCoroutinesApi::class)
     private fun parkingLoop(thread: Thread) {
         if (state.value !== thread) return
+        if (!isParkingAllowed()) {
+            ADAPTER_LOGGER.warn(
+                """
+                Blocking network thread detected. 
+                It can possible lead to a performance decline or even a deadlock.
+                Please make sure you're using blocking IO primitives like InputStream and OutputStream only in 
+                the context of Dispatchers.IO:
+                ```
+                withContext(Dispatchers.IO) {
+                    myInputStream.read()
+                }
+                ```
+                """.trimIndent()
+            )
+        }
 
         do {
             val nextEventTimeNanos = processNextEventInCurrentThread()
@@ -275,6 +288,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
                     thread = value
                     ucont.intercepted()
                 }
+
                 this -> ucont.intercepted()
                 else -> throw IllegalStateException("Already suspended or in finished state")
             }
@@ -293,20 +307,9 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 }
 
 private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         block.run()
-    }
-}
-
-private fun ensureParkingAllowed() {
-    if (!isParkingAllowed()) {
-        error(
-            "Using blocking primitives on this dispatcher is not allowed. " +
-                "Consider using async channel instead or " +
-                "use blocking primitives in withContext(Dispatchers.IO) instead."
-        )
     }
 }

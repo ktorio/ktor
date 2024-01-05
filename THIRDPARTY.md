@@ -5,7 +5,6 @@ library-specific functionality (via plugins) that Ktor provides.
 
 
 * [MockK](https://mockk.io/). Apache 2.0 License.
-* [Mockito](https://site.mockito.org/). MIT License.
 * [Moowork](https://github.com/srs/gradle-node-plugin). Apache 2.0 License.
 * [Apache HTTP Components](https://hc.apache.org/). Apache 2.0 License.
 * [Kotlin](https://kotlinlang.org). Apache 2.0 License.
@@ -16,7 +15,7 @@ library-specific functionality (via plugins) that Ktor provides.
 * [Micrometer](https://micrometer.io/). Apache 2.0 License.
 * [PebbleTemplates](https://pebbletemplates.io/). [BSD Modified License](https://github.com/PebbleTemplates/pebble#license).
 * Javax Server. Apache 2.0 License.
-* [SL4J](http://www.slf4j.org/). MIT License.
+* [SLF4J](http://www.slf4j.org/). MIT License.
 * [AtomicFu](https://github.com/Kotlin/kotlinx.atomicfu). Apache 2.0 License.
 * [Kotlinx HTML](https://github.com/Kotlin/kotlinx.html). Apache 2.0 License.
 * [Netty](https://netty.io/). Apache 2.0 License.

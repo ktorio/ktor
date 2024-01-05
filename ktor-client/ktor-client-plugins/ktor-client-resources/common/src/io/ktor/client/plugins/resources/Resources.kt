@@ -16,16 +16,13 @@ import io.ktor.resources.Resources as ResourcesCore
  *
  * Example:
  * ```kotlin
- * @Serializable
  * @Resource("/users")
- * data class Users {
- *   @Serializable
+ * class Users {
  *   @Resource("/{id}")
- *   data class ById(val parent: Users = Users(), val id: Long)
+ *   class ById(val parent: Users = Users(), val id: Long)
  *
- *   @Serializable
  *   @Resource("/add")
- *   data class Add(val parent: Users = Users(), val name: String)
+ *   class Add(val parent: Users = Users(), val name: String)
  * }
  *
  * // client-side

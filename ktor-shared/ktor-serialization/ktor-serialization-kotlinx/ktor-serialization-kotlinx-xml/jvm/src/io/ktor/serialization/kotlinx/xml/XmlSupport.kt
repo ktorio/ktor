@@ -33,8 +33,10 @@ public val DefaultXml: XML = XML {
  * Registers the `application/xml` (or another specified [contentType]) content type
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
- * @param format instance. [DefaultXml] is used by default.
- * @param contentType for which the [format] should be used. `application/xml` is used by default.
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ * @param format instance. [DefaultXml] is used by default
+ * @param contentType to register with, `application/xml` by default
  */
 public fun Configuration.xml(
     format: XML = DefaultXml,

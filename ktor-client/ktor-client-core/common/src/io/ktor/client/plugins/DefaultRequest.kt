@@ -8,6 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
 
 /**
  * Sets default request parameters. Used to add common headers and URL for a request.
@@ -41,7 +45,7 @@ import io.ktor.util.*
  * val client = HttpClient {
  *   defaultRequest {
  *     url("https://base.url/dir/")
- *     headers.appendIfNameMissing(HttpHeaders.ContentType, ContentType.Application.Json)
+ *     headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json)
  *   }
  * }
  * client.get("file")
@@ -64,36 +68,73 @@ public class DefaultRequest private constructor(private val block: DefaultReques
 
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
+                val originalUrlString = context.url.toString()
                 val defaultRequest = DefaultRequestBuilder().apply {
-                    headers.appendAll(context.headers)
+                    headers.appendAll(this@intercept.context.headers)
                     plugin.block(this)
                 }
                 val defaultUrl = defaultRequest.url.build()
-                if (context.url.host.isEmpty()) {
-                    mergeUrls(defaultUrl, context.url)
-                }
+                mergeUrls(defaultUrl, context.url)
                 defaultRequest.attributes.allKeys.forEach {
                     if (!context.attributes.contains(it)) {
                         @Suppress("UNCHECKED_CAST")
                         context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
                     }
                 }
-                context.headers.appendMissing(defaultRequest.headers.build())
+
+                context.headers.clear()
+                context.headers.appendAll(defaultRequest.headers.build())
+
+                LOGGER.trace("Applied DefaultRequest to $originalUrlString. New url: ${context.url}")
             }
         }
 
         private fun mergeUrls(baseUrl: Url, requestUrl: URLBuilder) {
-            val url = URLBuilder(baseUrl)
+            if (requestUrl.protocolOrNull == null) {
+                requestUrl.protocolOrNull = baseUrl.protocolOrNull
+            }
+            if (requestUrl.host.isNotEmpty()) return
+
+            val resultUrl = URLBuilder(baseUrl)
             with(requestUrl) {
-                if (encodedPathSegments.size > 1 && encodedPathSegments.first().isEmpty()) {
-                    // path starts from "/"
-                    url.encodedPathSegments = encodedPathSegments
-                } else if (encodedPathSegments.size != 1 || encodedPathSegments.first().isNotEmpty()) {
-                    url.encodedPathSegments = url.encodedPathSegments.dropLast(1) + encodedPathSegments
+                resultUrl.protocolOrNull = requestUrl.protocolOrNull
+                if (port != DEFAULT_PORT) {
+                    resultUrl.port = port
                 }
-                url.encodedFragment = encodedFragment
-                url.encodedParameters = encodedParameters
-                takeFrom(url)
+
+                resultUrl.encodedPathSegments = concatenatePath(resultUrl.encodedPathSegments, encodedPathSegments)
+
+                if (encodedFragment.isNotEmpty()) {
+                    resultUrl.encodedFragment = encodedFragment
+                }
+
+                val defaultParameters = ParametersBuilder().apply {
+                    appendAll(resultUrl.encodedParameters)
+                }
+
+                resultUrl.encodedParameters = encodedParameters
+                defaultParameters.entries().forEach { (key, values) ->
+                    if (!resultUrl.encodedParameters.contains(key)) {
+                        resultUrl.encodedParameters.appendAll(key, values)
+                    }
+                }
+                takeFrom(resultUrl)
+            }
+        }
+
+        private fun concatenatePath(parent: List<String>, child: List<String>): List<String> {
+            if (child.isEmpty()) return parent
+            if (parent.isEmpty()) return child
+
+            // Path starts from "/"
+            if (child.first().isEmpty()) return child
+
+            return buildList(parent.size + child.size - 1) {
+                for (index in 0 until parent.size - 1) {
+                    add(parent[index])
+                }
+
+                addAll(child)
             }
         }
     }
@@ -101,6 +142,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
     /**
      * Configuration object for [DefaultRequestBuilder] plugin
      */
+    @KtorDsl
     public class DefaultRequestBuilder internal constructor() : HttpMessageBuilder {
 
         override val headers: HeadersBuilder = HeadersBuilder()

@@ -13,7 +13,7 @@ import io.ktor.utils.io.*
 import javax.servlet.http.*
 
 public abstract class ServletApplicationResponse(
-    call: ApplicationCall,
+    call: PipelineCall,
     protected val servletResponse: HttpServletResponse,
     private val managedByEngineHeaders: Set<String>
 ) : BaseApplicationResponse(call) {
@@ -32,6 +32,7 @@ public abstract class ServletApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
+    @Suppress("DEPRECATION")
     protected abstract fun createResponseJob(): ReaderJob
 
     @Volatile

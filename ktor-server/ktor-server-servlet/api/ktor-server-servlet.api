@@ -1,20 +1,20 @@
-public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, io/ktor/server/application/ApplicationCallWithContext {
+public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
 	public fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
 	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun afterFinish (Lkotlin/jvm/functions/Function1;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public fun getRequest ()Lio/ktor/server/servlet/AsyncServletApplicationRequest;
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/PipelineResponse;
 	public fun getResponse ()Lio/ktor/server/servlet/ServletApplicationResponse;
 }
 
 public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/ktor/server/servlet/ServletApplicationRequest, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
@@ -63,14 +63,16 @@ public final class io/ktor/server/servlet/KtorServletKt {
 }
 
 public class io/ktor/server/servlet/ServletApplicationEngine : io/ktor/server/servlet/KtorServlet {
-	public static final field ApplicationEngineEnvironmentAttributeKey Ljava/lang/String;
+	public static final field ApplicationAttributeKey Ljava/lang/String;
 	public static final field ApplicationEnginePipelineAttributeKey Ljava/lang/String;
 	public static final field Companion Lio/ktor/server/servlet/ServletApplicationEngine$Companion;
+	public static final field EnvironmentAttributeKey Ljava/lang/String;
 	public fun <init> ()V
 	public fun destroy ()V
 	protected fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	protected fun getLogger ()Lorg/slf4j/Logger;
 	protected fun getUpgrade ()Lio/ktor/server/servlet/ServletUpgrade;
 	public fun init ()V
@@ -80,9 +82,9 @@ public final class io/ktor/server/servlet/ServletApplicationEngine$Companion {
 }
 
 public abstract class io/ktor/server/servlet/ServletApplicationRequest : io/ktor/server/engine/BaseApplicationRequest {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletRequest;)V
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletRequest;)V
 	public fun getCookies ()Lio/ktor/server/request/RequestCookies;
-	public fun getHeaders ()Lio/ktor/http/Headers;
+	protected fun getEngineHeaders ()Lio/ktor/http/Headers;
 	public fun getLocal ()Lio/ktor/http/RequestConnectionPoint;
 	public fun getQueryParameters ()Lio/ktor/http/Parameters;
 	public fun getRawQueryParameters ()Lio/ktor/http/Parameters;
@@ -90,7 +92,7 @@ public abstract class io/ktor/server/servlet/ServletApplicationRequest : io/ktor
 }
 
 public final class io/ktor/server/servlet/ServletApplicationRequestCookies : io/ktor/server/request/RequestCookies {
-	public fun <init> (Ljavax/servlet/http/HttpServletRequest;Lio/ktor/server/request/ApplicationRequest;)V
+	public fun <init> (Ljavax/servlet/http/HttpServletRequest;Lio/ktor/server/request/PipelineRequest;)V
 }
 
 public final class io/ktor/server/servlet/ServletApplicationRequestHeaders : io/ktor/http/Headers {
@@ -107,7 +109,7 @@ public final class io/ktor/server/servlet/ServletApplicationRequestHeaders : io/
 }
 
 public abstract class io/ktor/server/servlet/ServletApplicationResponse : io/ktor/server/engine/BaseApplicationResponse {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;Ljavax/servlet/http/HttpServletResponse;Ljava/util/Set;)V
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletResponse;Ljava/util/Set;)V
 	protected abstract fun createResponseJob ()Lio/ktor/utils/io/ReaderJob;
 	protected final fun getCompleted ()Z
 	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
@@ -144,7 +146,6 @@ public final class io/ktor/server/servlet/UpgradeRequest {
 }
 
 public final class io/ktor/server/servlet/WebResourcesConfig {
-	public fun <init> ()V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun getExcludes ()Ljava/util/List;
 	public final fun getIncludes ()Ljava/util/List;

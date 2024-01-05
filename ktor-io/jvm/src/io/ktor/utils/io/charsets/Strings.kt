@@ -10,13 +10,17 @@ internal inline fun ByteBuffer.decodeASCII(
 ): Int {
     return if (hasArray()) {
         decodeASCII3_array(out, offset, length, predicate)
-    } else decodeASCII3_buffer(out, offset, length, predicate)
+    } else {
+        decodeASCII3_buffer(out, offset, length, predicate)
+    }
 }
 
 internal fun ByteBuffer.decodeASCII(out: CharArray, offset: Int = 0, length: Int = out.size): Int {
     return if (hasArray()) {
         decodeASCII3_array(out, offset, length)
-    } else decodeASCII3_buffer(out, offset, length)
+    } else {
+        decodeASCII3_buffer(out, offset, length)
+    }
 }
 
 @Suppress("FunctionName")

@@ -19,10 +19,11 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     @OptIn(DelicateCoroutinesApi::class)
     actual fun clientTests(
         skipEngines: List<String>,
+        onlyWithEngine: String?,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): dynamic {
         val skipEnginesLowerCase = skipEngines.map { it.lowercase() }
-        return if (skipEnginesLowerCase.contains("js")) {
+        return if ((onlyWithEngine != null && onlyWithEngine != "js") || skipEnginesLowerCase.contains("js")) {
             GlobalScope.async {}.asPromise()
         } else {
             testWithEngine(Js) {

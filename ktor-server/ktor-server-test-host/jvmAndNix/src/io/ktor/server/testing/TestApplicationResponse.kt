@@ -12,14 +12,13 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Represents test call response received from server
+ * A test call response received from a server.
  * @property readResponse if response channel need to be consumed into byteContent
  */
 public class TestApplicationResponse(
@@ -28,7 +27,7 @@ public class TestApplicationResponse(
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
     /**
-     * Response body text content. Could be blocking. Remains `null` until response appears.
+     * Gets a response body text content. Could be blocking. Remains `null` until response appears.
      */
     val content: String?
         get() {
@@ -75,6 +74,7 @@ public class TestApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = builder.getAll(name).orEmpty()
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
@@ -109,7 +109,7 @@ public class TestApplicationResponse(
     }
 
     /**
-     * Response body content channel
+     * Gets a response body content channel.
      */
     public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
@@ -120,19 +120,22 @@ public class TestApplicationResponse(
     // Websockets & upgrade
     private val webSocketCompleted: CompletableJob = Job()
 
+    internal val webSocketEstablished: CompletableJob = Job()
+
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgrade.upgrade(
             call.receiveChannel(),
             responseChannel(),
-            Dispatchers.Default,
+            call.application.coroutineContext,
             Dispatchers.Default
         ).invokeOnCompletion {
             webSocketCompleted.complete()
         }
+        webSocketEstablished.complete()
     }
 
     /**
-     * Wait for websocket session completion
+     * Waits for a websocket session completion.
      */
     public fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
         withTimeout(durationMillis) {
@@ -145,7 +148,7 @@ public class TestApplicationResponse(
     }
 
     /**
-     * Websocket session's channel
+     * A websocket session's channel.
      */
     public fun websocketChannel(): ByteReadChannel? = responseChannel
 }

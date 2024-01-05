@@ -6,37 +6,22 @@ package io.ktor.server.testing
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * Represents a test application call that is used in [withTestApplication] and [handleRequest]
+ * A test application call that is used in [withTestApplication] and [handleRequest].
  */
 class TestApplicationCall(
     application: Application,
     readResponse: Boolean = false,
     closeRequest: Boolean = true,
     override val coroutineContext: CoroutineContext
-) : BaseApplicationCall(application), ApplicationCallWithContext {
-
-    /**
-     * Set to `true` when the request has been handled and a response has been produced
-     */
-    @Suppress("DeprecatedCallableAddReplaceWith", "unused")
-    @Deprecated(
-        "This property may have unpredictable behaviour. " +
-            "Please use asserts on response status, headers or content",
-        level = DeprecationLevel.ERROR
-    )
-    val requestHandled: Boolean
-        get() = error(
-            "This property may have unpredictable behaviour. " +
-                "Please use asserts on response status, headers or content"
-        )
+) : BaseApplicationCall(application), CoroutineScope {
 
     override val request: TestApplicationRequest = TestApplicationRequest(this, closeRequest)
     override val response: TestApplicationResponse = TestApplicationResponse(this, readResponse)
 
-    @Suppress("DEPRECATION")
     override fun toString(): String = "TestApplicationCall(uri=${request.uri})"
 
     init {

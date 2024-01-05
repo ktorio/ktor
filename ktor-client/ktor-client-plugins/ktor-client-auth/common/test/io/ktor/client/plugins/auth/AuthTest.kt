@@ -6,14 +6,16 @@ package io.ktor.client.plugins.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.http.auth.*
+import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -80,7 +82,23 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Test
+    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native")) {
+        config {
+            install(Auth) {
+                digest {
+                    algorithmName = "SHA-256"
+                    credentials { DigestAuthCredentials("MyName", "Circle Of Life") }
+                    realm = "testrealm@host.com"
+                }
+            }
+        }
+        test { client ->
+            assertTrue(client.get("$TEST_SERVER/auth/digest-SHA256").status.isSuccess())
+        }
+    }
+
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {
@@ -109,6 +127,40 @@ class AuthTest : ClientLoader() {
 
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed")
+        }
+    }
+
+    @Test
+    fun testAuthDoesntRefreshBeforeSend() = testWithEngine(MockEngine) {
+        var refreshCount = 0
+        config {
+            install(Auth) {
+                providers += object : AuthProvider {
+                    @Deprecated("Please use sendWithoutRequest function instead")
+                    override val sendWithoutRequest: Boolean = false
+                    override fun isApplicable(auth: HttpAuthHeader): Boolean = true
+
+                    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+                        request.headers.append(HttpHeaders.Authorization, "Auth1")
+                    }
+
+                    override suspend fun refreshToken(response: HttpResponse): Boolean {
+                        refreshCount++
+                        return true
+                    }
+                }
+            }
+            engine {
+                addHandler { respond("ERROR", HttpStatusCode.Unauthorized) }
+                addHandler { respond("OK", HttpStatusCode.OK) }
+            }
+        }
+
+        test { client ->
+            refreshCount = 0
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(0, refreshCount)
         }
     }
 
@@ -147,7 +199,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     @Test
     fun testUnauthorizedBasicAuthLegacy() = clientTests(listOf("Js")) {
         config {
@@ -184,7 +236,6 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testBasicAuthMultiple() = clientTests(listOf("Js")) {
         config {
@@ -271,6 +322,67 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testUsesFreshTokenIfAvailable() = testSuspend {
+        val request1FinishMonitor = Job()
+        val request2StartMonitor = Job()
+        var refreshCount = 0
+        val client = HttpClient(MockEngine) {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        BearerTokens("initial", "initial")
+                    }
+
+                    refreshTokens {
+                        val tokens = BearerTokens("new$refreshCount", "new$refreshCount")
+                        refreshCount++
+                        tokens
+                    }
+                }
+            }
+
+            engine {
+                addHandler { request ->
+                    fun respond(): HttpResponseData {
+                        return if (request.headers[HttpHeaders.Authorization] != "Bearer initial") {
+                            respond("OK")
+                        } else {
+                            respond("Error", HttpStatusCode.Unauthorized, headersOf("WWW-Authenticate", "Bearer"))
+                        }
+                    }
+
+                    when (request.url.encodedPath) {
+                        "/url1" -> {
+                            request2StartMonitor.join()
+                            respond()
+                        }
+
+                        "/url2" -> {
+                            request1FinishMonitor.join()
+                            respond()
+                        }
+
+                        else -> throw IllegalStateException()
+                    }
+                }
+            }
+        }
+
+        val request1 = launch {
+            client.get("/url1")
+            request1FinishMonitor.complete()
+        }
+        val request2 = launch {
+            request2StartMonitor.complete()
+            client.get("/url2")
+        }
+
+        request1.join()
+        request2.join()
+        assertEquals(1, refreshCount)
+    }
+
+    @Test
     fun testUnauthorizedBearerAuthWithInvalidAccessAndRefreshTokens() = clientTests {
         config {
             install(Auth) {
@@ -284,7 +396,6 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-
             client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
@@ -330,6 +441,47 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testUnauthorizedRefreshTokenWithoutWWWAuthenticateHeaderIfOneProviderIsInstalled() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh-no-www-authenticate-header").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
+    @Test
+    fun testUnauthorizedDoesNotRefreshTokenWithoutWWWAuthenticateHeaderIfMultipleProvidersAreInstalled() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+                basic {
+                    credentials { BasicAuthCredentials("name", "password") }
+                }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh-no-www-authenticate-header").execute {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+        }
+    }
+
+    @Test
     fun testRefreshOnBackgroundThread() = clientTests {
         config {
             install(Auth) {
@@ -349,12 +501,10 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var clientWithAuth: HttpClient? = null
-
     @Suppress("JoinDeclarationAndAssignment")
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testRefreshWithSameClient() = clientTests {
+        lateinit var clientWithAuth: HttpClient
         test { client ->
             clientWithAuth = client.config {
                 developmentMode = true
@@ -364,18 +514,45 @@ class AuthTest : ClientLoader() {
                         loadTokens { BearerTokens("first", "first") }
 
                         refreshTokens {
-                            val token = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/second").bodyAsText()
                             BearerTokens(token, token)
                         }
                     }
                 }
             }
 
-            val first = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
-            val second = clientWithAuth!!.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+            val first = clientWithAuth.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            val second = clientWithAuth.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
 
             assertEquals("OK", first)
             assertEquals("OK", second)
+        }
+    }
+
+    @Suppress("JoinDeclarationAndAssignment")
+    @Test
+    fun testRefreshReplies401() = clientTests {
+        lateinit var clientWithAuth: HttpClient
+        test { client ->
+            clientWithAuth = client.config {
+                developmentMode = true
+
+                install(Auth) {
+                    bearer {
+                        loadTokens { BearerTokens("first", "first") }
+
+                        refreshTokens {
+                            val token = clientWithAuth.get("$TEST_SERVER/auth/bearer/token/refresh-401") {
+                                markAsRefreshTokenRequest()
+                            }.bodyAsText()
+                            BearerTokens(token, token)
+                        }
+                    }
+                }
+            }
+
+            val result = clientWithAuth.get("$TEST_SERVER/auth/bearer/second")
+            assertEquals(HttpStatusCode.Unauthorized, result.status)
         }
     }
 
@@ -402,12 +579,10 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    private var refreshRequestsCount = 0
-
     @Test
     @OptIn(DelicateCoroutinesApi::class)
     fun testMultipleRefreshShouldMakeSingleCall() = clientTests {
-        refreshRequestsCount = 0
+        var refreshRequestsCount = 0
         config {
             install(Auth) {
                 bearer {
@@ -422,6 +597,7 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
+            refreshRequestsCount = 0
             client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
 
             val jobs = mutableListOf<Job>()
@@ -439,6 +615,40 @@ class AuthTest : ClientLoader() {
             }
             jobs.joinAll()
             assertEquals(1, refreshRequestsCount)
+        }
+    }
+
+    @Test
+    fun testRefreshAfterException() = clientTests {
+        var firstCall = true
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("first", "first") }
+
+                    refreshTokens {
+                        if (firstCall) {
+                            firstCall = false
+                            throw IOException("Refresh failed")
+                        }
+                        val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
+                        BearerTokens(token, token)
+                    }
+                }
+            }
+        }
+        test { client ->
+            firstCall = true
+            val first = client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
+            assertEquals("OK", first)
+
+            val error = kotlin.test.assertFailsWith<IOException> {
+                client.get("$TEST_SERVER/auth/bearer/second")
+            }
+            assertEquals("Refresh failed", error.message)
+
+            val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+            assertEquals("OK", second)
         }
     }
 
@@ -462,11 +672,80 @@ class AuthTest : ClientLoader() {
             loadCount = 0
             client.get("$TEST_SERVER/auth/bearer/test-refresh")
                 .bodyAsText()
-            client.plugin(Auth).providers.filterIsInstance<BearerAuthProvider>().first().clearToken()
+            client.authProviders.filterIsInstance<BearerAuthProvider>().first().clearToken()
             client.get("$TEST_SERVER/auth/bearer/test-refresh")
                 .bodyAsText()
 
             assertEquals(2, loadCount)
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInHeader() = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("Invalid", "Invalid") }
+                }
+                bearer {
+                    loadTokens { BearerTokens("test", "test") }
+                }
+            }
+        }
+        test { client ->
+            val responseOneHeader = client.get("$TEST_SERVER/auth/multiple/header").bodyAsText()
+            assertEquals("OK", responseOneHeader)
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInHeaders() = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    credentials { BasicAuthCredentials("Invalid", "Invalid") }
+                }
+                bearer {
+                    loadTokens { BearerTokens("test", "test") }
+                }
+            }
+        }
+        test { client ->
+            val responseMultipleHeaders = client.get("$TEST_SERVER/auth/multiple/headers").bodyAsText()
+            assertEquals("OK", responseMultipleHeaders)
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInHeaderUnauthorized() = clientTests {
+        test { client ->
+            val response = client.get("$TEST_SERVER/auth/multiple/header")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            response.headers[HttpHeaders.WWWAuthenticate]?.also {
+                assertTrue { it.contains("Bearer") }
+                assertTrue { it.contains("Basic") }
+                assertTrue { it.contains("Digest") }
+            } ?: run {
+                fail("Expected WWWAuthenticate header")
+            }
+        }
+    }
+
+    @Test
+    fun testMultipleChallengesInMultipleHeadersUnauthorized() = clientTests(listOf("Js")) {
+        test { client ->
+            val response = client.get("$TEST_SERVER/auth/multiple/headers")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            response.headers.getAll(HttpHeaders.WWWAuthenticate)?.let {
+                assertEquals(2, it.size)
+                it.joinToString().let { header ->
+                    assertTrue { header.contains("Basic") }
+                    assertTrue { header.contains("Digest") }
+                    assertTrue { header.contains("Bearer") }
+                }
+            } ?: run {
+                fail("Expected WWWAuthenticate header")
+            }
         }
     }
 }

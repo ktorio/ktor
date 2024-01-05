@@ -17,12 +17,12 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
-        val applicationEnvironment = commandLineEnvironment(args)
-        val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
-        engine.addShutdownHook {
-            engine.stop(3000, 5000)
+        val config = CommandLineConfig(args)
+        val server = EmbeddedServer(config.applicationProperties, CIO) {
+            takeFrom(config.engineConfig)
+            loadConfiguration(config.applicationProperties.environment.config)
         }
-        engine.start(true)
+        server.start(true)
     }
 
     private fun CIOApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {

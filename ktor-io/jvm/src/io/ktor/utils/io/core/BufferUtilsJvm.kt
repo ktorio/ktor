@@ -7,14 +7,16 @@ import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.contracts.*
 
+@Suppress("DEPRECATION")
 public fun ChunkBuffer(buffer: ByteBuffer, pool: ObjectPool<ChunkBuffer>? = null): ChunkBuffer =
-    ChunkBuffer(Memory.of(buffer), null, pool)
+    ChunkBuffer(Memory(buffer), null, pool)
 
 /**
  * Apply [block] function on a [ByteBuffer] of readable bytes.
  * The [block] function should return number of consumed bytes.
  * @return number of bytes consumed
  */
+@Suppress("DEPRECATION")
 public inline fun ChunkBuffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     val readPosition = readPosition
     val writePosition = writePosition
@@ -37,10 +39,14 @@ public inline fun ChunkBuffer.readDirect(block: (ByteBuffer) -> Unit): Int {
  * The [block] function should return number of written bytes.
  * @return number of bytes written
  */
+@Suppress("DEPRECATION")
 public inline fun ChunkBuffer.writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
     val rem = writeRemaining
     require(size <= rem) { "size $size is greater than buffer's remaining capacity $rem" }
-    val buffer = memory.buffer.duplicate()!!
+    val buffer = memory.buffer
+    val oldPosition = buffer.position()
+    val oldLimit = buffer.limit()
+
     val writePosition = writePosition
     val limit = limit
     buffer.limit(limit)
@@ -49,6 +55,8 @@ public inline fun ChunkBuffer.writeDirect(size: Int, block: (ByteBuffer) -> Unit
     block(buffer)
 
     val delta = buffer.position() - writePosition
+    buffer.position(oldPosition)
+    buffer.limit(oldLimit)
     if (delta < 0 || delta > rem) wrongBufferPositionChangeError(delta, size)
 
     commitWritten(delta)
@@ -59,11 +67,13 @@ public inline fun ChunkBuffer.writeDirect(size: Int, block: (ByteBuffer) -> Unit
 /**
  * Reset read/write position to original's content pos/limit. May not work due to slicing.
  */
+@Suppress("DEPRECATION")
 internal fun ChunkBuffer.resetFromContentToWrite(child: ByteBuffer) {
     resetForWrite(child.limit())
     commitWrittenUntilIndex(child.position())
 }
 
+@Suppress("DEPRECATION")
 public fun Buffer.readFully(dst: ByteBuffer, length: Int) {
     readExact(length, "buffer content") { memory, offset ->
         val limit = dst.limit()
@@ -76,6 +86,7 @@ public fun Buffer.readFully(dst: ByteBuffer, length: Int) {
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     if (!canRead()) return -1
     val size = minOf(readRemaining, length)
@@ -83,6 +94,7 @@ public fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()):
     return size
 }
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
@@ -98,7 +110,7 @@ public inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     }
 }
 
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER", "DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {

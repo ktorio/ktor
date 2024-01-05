@@ -6,7 +6,6 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -15,23 +14,23 @@ val Project.hasJvmAndNix: Boolean get() = hasCommon || files.any { it.name == "j
 val Project.hasPosix: Boolean get() = hasCommon || files.any { it.name == "posix" }
 val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
 val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
+val Project.hasLinux: Boolean get() = hasNix || files.any { it.name == "linux" }
 val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
+val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" }
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
-val Project.hasNative: Boolean get() = hasCommon || hasNix || hasPosix || hasDarwin || hasDesktop
+val Project.hasNative: Boolean get() =
+    hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
-    val coroutines_version: String by extra
-    val kotlin_version: String by extra
+    configureCommon()
+    if (hasJvm) configureJvm()
+
+    if (COMMON_JVM_ONLY) return
 
     kotlin {
-        if (hasJvm) {
-            jvm()
-            configureJvm()
-        }
-
         if (hasJs) {
-            js {
+            js(IR) {
                 nodejs()
                 browser()
             }
@@ -39,7 +38,7 @@ fun Project.configureTargets() {
             configureJs()
         }
 
-        if (hasPosix || hasDarwin) extra.set("hasNative", true)
+        if (hasPosix || hasLinux || hasDarwin || hasWindows) extra.set("hasNative", true)
 
         sourceSets {
             if (hasPosix) {
@@ -50,17 +49,15 @@ fun Project.configureTargets() {
             if (hasNix) {
                 val nixMain by creating
                 val nixTest by creating
-
-                val nix32Main by creating
-                val nix32Test by creating
-
-                val nix64Main by creating
-                val nix64Test by creating
             }
 
             if (hasDarwin) {
                 val darwinMain by creating
-                val darwinTest by creating
+                val darwinTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
 
                 val macosMain by creating
                 val macosTest by creating
@@ -77,23 +74,21 @@ fun Project.configureTargets() {
 
             if (hasDesktop) {
                 val desktopMain by creating
-                val desktopTest by creating
+                val desktopTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
             }
 
-            if (hasCommon) {
-                val commonMain by getting {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-stdlib-common")
-                        api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-                    }
-                }
+            if (hasLinux) {
+                val linuxMain by creating
+                val linuxTest by creating
+            }
 
-                val commonTest by getting {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-test-common:$kotlin_version")
-                        api("org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version")
-                    }
-                }
+            if (hasWindows) {
+                val windowsMain by creating
+                val windowsTest by creating
             }
 
             if (hasJvmAndNix) {
@@ -102,10 +97,7 @@ fun Project.configureTargets() {
                 }
 
                 val jvmAndNixTest by creating {
-                    dependencies {
-                        api("org.jetbrains.kotlin:kotlin-test-common:$kotlin_version")
-                        api("org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version")
-                    }
+                    findByName("commonTest")?.let { dependsOn(it) }
                 }
             }
 
@@ -126,11 +118,15 @@ fun Project.configureTargets() {
 
                 val posixTest by getting {
                     findByName("commonTest")?.let { dependsOn(it) }
+
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
                 }
 
                 posixTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(posixMain)
-                    getByName("${it.name}Test").dependsOn(posixTest)
+                    getByName("${it}Main").dependsOn(posixMain)
+                    getByName("${it}Test").dependsOn(posixTest)
                 }
             }
 
@@ -141,35 +137,16 @@ fun Project.configureTargets() {
                 }
 
                 val nixTest by getting {
+                    findByName("posixTest")?.let { dependsOn(it) }
                     findByName("jvmAndNixTest")?.let { dependsOn(it) }
                 }
 
-                val nix32Main by getting {
-                    dependsOn(nixMain)
-                }
-
-                val nix64Main by getting {
-                    dependsOn(nixMain)
-                }
-
-                val nix32Test by getting
-                val nix64Test by getting
-
                 nixTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(nixMain)
-                    getByName("${it.name}Test").dependsOn(nixTest)
-                }
-
-                nix32Targets().forEach {
-                    getByName("${it.name}Main").dependsOn(nix32Main)
-                    getByName("${it.name}Test").dependsOn(nix32Test)
-                }
-
-                nix64Targets().forEach {
-                    getByName("${it.name}Main").dependsOn(nix64Main)
-                    getByName("${it.name}Test").dependsOn(nix64Test)
+                    getByName("${it}Main").dependsOn(nixMain)
+                    getByName("${it}Test").dependsOn(nixTest)
                 }
             }
+
             if (hasDarwin) {
                 val nixMain: KotlinSourceSet? = findByName("nixMain")
                 val darwinMain by getting
@@ -190,28 +167,47 @@ fun Project.configureTargets() {
                 watchosMain.dependsOn(darwinMain)
 
                 macosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(macosMain)
-                    getByName("${it.name}Test").dependsOn(macosTest)
+                    getByName("${it}Main").dependsOn(macosMain)
+                    getByName("${it}Test").dependsOn(macosTest)
                 }
 
                 iosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(iosMain)
-                    getByName("${it.name}Test").dependsOn(iosTest)
+                    getByName("${it}Main").dependsOn(iosMain)
+                    getByName("${it}Test").dependsOn(iosTest)
                 }
 
                 watchosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(watchosMain)
-                    getByName("${it.name}Test").dependsOn(watchosTest)
+                    getByName("${it}Main").dependsOn(watchosMain)
+                    getByName("${it}Test").dependsOn(watchosTest)
                 }
 
                 tvosTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(tvosMain)
-                    getByName("${it.name}Test").dependsOn(tvosTest)
+                    getByName("${it}Main").dependsOn(tvosMain)
+                    getByName("${it}Test").dependsOn(tvosTest)
                 }
 
                 darwinTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(darwinMain)
-                    getByName("${it.name}Test").dependsOn(darwinTest)
+                    getByName("${it}Main").dependsOn(darwinMain)
+                    getByName("${it}Test").dependsOn(darwinTest)
+                }
+            }
+
+            if (hasLinux) {
+                val linuxMain by getting {
+                    findByName("nixMain")?.let { dependsOn(it) }
+                }
+
+                val linuxTest by getting {
+                    findByName("nixTest")?.let { dependsOn(it) }
+
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                linuxTargets().forEach {
+                    getByName("${it}Main").dependsOn(linuxMain)
+                    getByName("${it}Test").dependsOn(linuxTest)
                 }
             }
 
@@ -223,20 +219,33 @@ fun Project.configureTargets() {
                 val desktopTest by getting
 
                 desktopTargets().forEach {
-                    getByName("${it.name}Main").dependsOn(desktopMain)
-                    getByName("${it.name}Test").dependsOn(desktopTest)
+                    getByName("${it}Main").dependsOn(desktopMain)
+                    getByName("${it}Test").dependsOn(desktopTest)
+                }
+            }
+
+            if (hasWindows) {
+                val windowsMain by getting {
+                    findByName("posixMain")?.let { dependsOn(it) }
+                }
+
+                val windowsTest by getting {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                windowsTargets().forEach {
+                    getByName("${it}Main").dependsOn(windowsMain)
+                    getByName("${it}Test").dependsOn(windowsTest)
                 }
             }
 
             if (hasNative) {
                 tasks.findByName("linkDebugTestLinuxX64")?.onlyIf { HOST_NAME == "linux" }
+                tasks.findByName("linkDebugTestLinuxArm64")?.onlyIf { HOST_NAME == "linux" }
                 tasks.findByName("linkDebugTestMingwX64")?.onlyIf { HOST_NAME == "windows" }
             }
         }
-    }
-
-    tasks.findByName("mingwX64Test")?.apply {
-        if (this !is KotlinNativeTest) return@apply
-        environment("PATH", "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin")
     }
 }

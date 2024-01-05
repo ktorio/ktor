@@ -53,7 +53,7 @@ class DigestProviderTest {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
         runIsApplicable(authAllFields)
-        val authHeader = addRequestHeaders()
+        val authHeader = addRequestHeaders(authAllFields)
 
         assertTrue(authHeader.contains("qop=qop"))
         assertTrue(authHeader.contains("opaque=opaque"))
@@ -64,13 +64,12 @@ class DigestProviderTest {
     fun addRequestHeadersMissingRealm() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
         val authHeader = parseAuthorizationHeader(authAllFields)!!
-        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
 
         assertTrue(providerWithoutRealm.isApplicable(authHeader))
-        providerWithoutRealm.addRequestHeaders(requestBuilder)
+        providerWithoutRealm.addRequestHeaders(requestBuilder, authHeader)
 
         val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
         checkStandardFields(resultAuthHeader)
@@ -80,10 +79,9 @@ class DigestProviderTest {
     fun addRequestHeadersChangedRealm() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", "wrong!")
         val authHeader = parseAuthorizationHeader(authAllFields)!!
-        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
 
         assertFalse(providerWithoutRealm.isApplicable(authHeader))
     }
@@ -93,18 +91,35 @@ class DigestProviderTest {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
         runIsApplicable(authMissingQopAndOpaque)
-        val authHeader = addRequestHeaders()
+        val authHeader = addRequestHeaders(authMissingQopAndOpaque)
 
         assertFalse(authHeader.contains("opaque="))
         assertFalse(authHeader.contains("qop="))
         checkStandardFields(authHeader)
     }
 
+    @Test
+    fun testTokenWhenMissingRealmAndQop() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        @Suppress("DEPRECATION_ERROR")
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
+        val authHeader = parseAuthorizationHeader(authMissingQopAndOpaque)!!
+
+        assertTrue(providerWithoutRealm.isApplicable(authHeader))
+        providerWithoutRealm.addRequestHeaders(requestBuilder, authHeader)
+
+        val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
+        val response = (parseAuthorizationHeader(resultAuthHeader) as HttpAuthHeader.Parameterized)
+            .parameter("response")!!
+        assertEquals("d51dd4b72db592e321b80d006d24c34c", response)
+    }
+
     private fun runIsApplicable(headerValue: String) =
         digestAuthProvider.isApplicable(parseAuthorizationHeader(headerValue)!!)
 
-    private suspend fun addRequestHeaders(): String {
-        digestAuthProvider.addRequestHeaders(requestBuilder)
+    private suspend fun addRequestHeaders(headerValue: String): String {
+        digestAuthProvider.addRequestHeaders(requestBuilder, parseAuthorizationHeader(headerValue)!!)
         return requestBuilder.headers[HttpHeaders.Authorization]!!
     }
 

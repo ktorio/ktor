@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
@@ -7,34 +7,32 @@ package io.ktor.client.tests.utils
 import ch.qos.logback.classic.*
 import ch.qos.logback.classic.Logger
 import io.ktor.server.engine.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
+import kotlinx.coroutines.debug.junit5.*
+import org.junit.jupiter.api.*
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
 
 @Suppress("KDocMissingDocumentation")
-public abstract class TestWithKtor {
+@CoroutinesTimeout(5 * 60 * 1000)
+abstract class TestWithKtor {
     protected val serverPort: Int = ServerSocket(0).use { it.localPort }
     protected val testUrl: String = "http://localhost:$serverPort"
 
-    @get:Rule
-    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(5 * 60)
-
-    public abstract val server: ApplicationEngine
+    abstract val server: EmbeddedServer<*, *>
 
     init {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as? Logger)?.level = Level.ERROR
     }
 
-    @Before
-    public fun startServer() {
+    @BeforeEach
+    fun startServer() {
         var attempt = 0
 
         do {
             attempt++
             try {
-                server.start()
+                server.start(wait = false)
                 break
             } catch (cause: Throwable) {
                 if (attempt >= 10) throw cause
@@ -45,8 +43,8 @@ public abstract class TestWithKtor {
         ensureServerRunning()
     }
 
-    @After
-    public fun stopServer() {
+    @AfterEach
+    fun stopServer() {
         server.stop(0, 0, TimeUnit.SECONDS)
     }
 

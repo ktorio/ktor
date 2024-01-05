@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.compression.*
@@ -17,13 +16,11 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import org.junit.*
-import org.junit.Assert.*
 import java.io.*
 import java.util.zip.*
+import kotlin.test.*
 
 abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -36,7 +33,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -56,7 +53,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
             handle {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
@@ -81,8 +78,8 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(Compression)
-            application.install(PartialContent)
+            install(Compression)
+            install(PartialContent)
 
             handle {
                 call.respond(LocalFileContent(file))
@@ -101,9 +98,9 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(
-                "It should be no compression if range requested",
                 file.reader().use { it.read().toChar().toString() },
-                bodyAsText()
+                bodyAsText(),
+                "It should be no compression if range requested",
             )
         }
     }
@@ -118,7 +115,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
 
             get("/") {
                 call.respondTextWriter(contentType = ContentType.Text.Plain) {

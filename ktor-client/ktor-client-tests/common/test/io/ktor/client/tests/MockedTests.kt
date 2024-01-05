@@ -6,7 +6,6 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -57,9 +56,11 @@ class MockedTests {
                 val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Application.Json.toString()))
 
                 addHandler { request ->
-                    if (request.url.host == "localhost") when (request.url.encodedPath) {
-                        "/long.json" -> return@addHandler respond(longJSONString, headers = responseHeaders)
-                        "/longer.json" -> return@addHandler respond(longerJSONString, headers = responseHeaders)
+                    if (request.url.host == "localhost") {
+                        when (request.url.encodedPath) {
+                            "/long.json" -> return@addHandler respond(longJSONString, headers = responseHeaders)
+                            "/longer.json" -> return@addHandler respond(longerJSONString, headers = responseHeaders)
+                        }
                     }
                     error("${request.url} should not be requested")
                 }

@@ -13,11 +13,10 @@ import kotlinx.serialization.modules.*
 import kotlin.native.concurrent.*
 
 /**
- * The default json configuration used in [KotlinxSerializationConverter]. The settings are:
+ * The default JSON configuration used in [KotlinxSerializationConverter]. The settings are:
  * - defaults are serialized
- * - mode is not strict so extra json fields are ignored
  * - pretty printing is disabled
- * - array polymorphism is enabled
+ * - array polymorphism is disabled
  * - keys and values are quoted, non-quoted are not allowed
  *
  * See [Json] for more details.
@@ -33,13 +32,24 @@ public val DefaultJson: Json = Json {
 }
 
 /**
- * Register `application/json` (or another specified [contentType]) content type
- * to [ContentNegotiation] plugin using kotlinx.serialization.
+ * Registers the `application/json` (or another specified [contentType]) content type
+ * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
- * @param json format instance (optional)
- * @param contentType to register with, application/json by default
+ * The example below shows how to register the JSON serializer with
+ * customized serialization settings provided by JsonBuilder:
+ * ```kotlin
+ * install(ContentNegotiation) {
+ *     json(Json {
+ *         prettyPrint = true
+ *         isLenient = true
+ *     })
+ * }
+ * ```
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ * @param json a format instance (optional)
+ * @param contentType to register with, `application/json` by default
  */
-@OptIn(ExperimentalSerializationApi::class)
 public fun Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json

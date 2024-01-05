@@ -1,135 +1,121 @@
-/*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
-
 package io.ktor.server.webjars
 
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import org.webjars.*
-import java.io.*
-import java.time.*
+import org.webjars.WebJarAssetLocator.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.days
 
 /**
- * This plugin listens to requests starting with the specified path prefix and responding with static content
- * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
+ * A configuration for the [Webjars] plugin.
  */
-public class Webjars internal constructor(private val webjarsPrefix: String) {
-    init {
-        require(webjarsPrefix.startsWith("/"))
-        require(webjarsPrefix.endsWith("/"))
-    }
-
-    @Deprecated("Use install(Webjars), there is no need to instantiate it directly.", level = DeprecationLevel.ERROR)
-    public constructor(configuration: Configuration) : this(configuration.path)
-
-    private val locator = WebJarAssetLocator()
-    private val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
-    private val lastModified = GMTDate()
-
-    private fun extractWebJar(path: String): String {
-        val firstDelimiter = if (path.startsWith("/")) 1 else 0
-        val nextDelimiter = path.indexOf("/", 1)
-        val webjar = if (nextDelimiter > -1) path.substring(firstDelimiter, nextDelimiter) else ""
-        val partialPath = path.substring(nextDelimiter + 1)
-        if (webjar !in knownWebJars) {
-            throw IllegalArgumentException("jar $webjar not found")
-        }
-        return locator.getFullPath(webjar, partialPath)
-    }
+@KtorDsl
+public class WebjarsConfig {
+    private val installDate = GMTDate()
+    internal var lastModifiedExtractor: (WebJarInfo) -> GMTDate? = { installDate }
+    internal var etagExtractor: (WebJarInfo) -> String? = { it.version }
+    internal var maxAgeExtractor: (WebJarInfo) -> Duration? = { 90.days }
 
     /**
-     * Plugin configuration.
+     * Specifies a prefix for the path used to serve WebJars assets.
      */
-    public class Configuration {
-        /**
-         * Path prefix at which the installed plugin responds.
-         */
-        public var path: String = "/webjars/"
-            set(value) {
-                field = buildString(value.length + 2) {
-                    if (!value.startsWith('/')) {
-                        append('/')
-                    }
-                    append(value)
-                    if (!endsWith('/')) {
-                        append('/')
-                    }
+    public var path: String = "/webjars/"
+        set(value) {
+            field = buildString(value.length + 2) {
+                if (!value.startsWith('/')) {
+                    append('/')
+                }
+                append(value)
+                if (!endsWith('/')) {
+                    append('/')
                 }
             }
-
-        /**
-         * Makes no effect. Will be dropped in future releases.
-         */
-        @Suppress("unused")
-        @Deprecated("This is no longer used and will be dropped in future releases.", level = DeprecationLevel.ERROR)
-        public var zone: ZoneId = ZoneId.systemDefault()
-    }
-
-    private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
-        val fullPath = context.call.request.path()
-        if (fullPath.startsWith(webjarsPrefix) &&
-            context.call.request.httpMethod == HttpMethod.Get &&
-            fullPath.last() != '/'
-        ) {
-            val resourcePath = fullPath.removePrefix(webjarsPrefix)
-            try {
-                val location = extractWebJar(resourcePath)
-                val stream = Webjars::class.java.classLoader.getResourceAsStream(location) ?: return
-                context.call.respond(
-                    InputStreamContent(
-                        stream,
-                        ContentType.defaultForFilePath(fullPath),
-                        lastModified
-                    )
-                )
-            } catch (multipleFiles: MultipleMatchesException) {
-                context.call.respond(HttpStatusCode.InternalServerError)
-            } catch (notFound: IllegalArgumentException) {
-            }
         }
+
+    /**
+     * Specifies a value for [HttpHeaders.LastModified] to be used in the response.
+     * By default, it is the time when this [Application] instance started.
+     * Return `null` from this block to omit the header.
+     *
+     * Note: for this property to work, you need to install the [ConditionalHeaders] plugin.
+     */
+    public fun lastModified(block: (WebJarInfo) -> GMTDate?) {
+        lastModifiedExtractor = block
     }
 
     /**
-     * Plugin installation companion.
+     * Specifies a value for [HttpHeaders.ETag] to be used in the response.
+     * By default, it is the WebJar version.
+     * Return `null` from this block to omit the header.
+     *
+     * Note: for this property to work, you need to install the [ConditionalHeaders] plugin.
      */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, Webjars> {
+    public fun etag(block: (WebJarInfo) -> String?) {
+        etagExtractor = block
+    }
 
-        override val key: AttributeKey<Webjars> = AttributeKey("Webjars")
-
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): Webjars {
-            val configuration = Configuration().apply(configure)
-
-            val plugin = Webjars(configuration.path)
-
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
-                plugin.intercept(this)
-            }
-            return plugin
-        }
+    /**
+     * Specifies a value for [HttpHeaders.CacheControl] to be used in the response.
+     * By default, it is 90 days.
+     * Return `null` from this block to omit the header.
+     *
+     * Note: for this property to work, you need to install the [CachingHeaders] plugin.
+     */
+    public fun maxAge(block: (WebJarInfo) -> Duration?) {
+        maxAgeExtractor = block
     }
 }
 
-private class InputStreamContent(
-    val input: InputStream,
-    override val contentType: ContentType,
-    lastModified: GMTDate
-) : OutgoingContent.ReadChannelContent() {
-    init {
-        versions += LastModifiedVersion(lastModified)
-    }
+/**
+ * A plugin that enables serving the client-side libraries provided by WebJars.
+ * It allows you to package your assets such as JavaScript and CSS libraries as part of your fat JAR.
+ *
+ * To learn more, see [Webjars](https://ktor.io/docs/webjars.html).
+ */
+public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("Webjars", ::WebjarsConfig) {
+    val webjarsPrefix = pluginConfig.path
+    require(webjarsPrefix.startsWith("/"))
+    require(webjarsPrefix.endsWith("/"))
+    val lastModifiedExtractor = pluginConfig.lastModifiedExtractor
+    val etagExtractor = pluginConfig.etagExtractor
+    val maxAgeExtractor = pluginConfig.maxAgeExtractor
 
-    override fun readFrom(): ByteReadChannel = input.toByteReadChannel(pool = KtorDefaultPool)
+    val locator = WebJarAssetLocator()
+    val knownWebJars = locator.webJars.keys.toSet()
+
+    onCall { call ->
+        if (call.response.isCommitted) return@onCall
+
+        val fullPath = call.request.path()
+        if (!fullPath.startsWith(webjarsPrefix) ||
+            call.request.httpMethod != HttpMethod.Get ||
+            fullPath.last() == '/'
+        ) {
+            return@onCall
+        }
+
+        val resourcePath = fullPath.removePrefix(webjarsPrefix)
+        try {
+            call.attributes.put(StaticFileLocationProperty, resourcePath)
+            val (location, info) = extractWebJar(resourcePath, knownWebJars, locator)
+            val stream = WebjarsConfig::class.java.classLoader.getResourceAsStream(location) ?: return@onCall
+            val content = InputStreamContent(stream, ContentType.defaultForFilePath(fullPath)).apply {
+                lastModifiedExtractor(info)?.let { versions += LastModifiedVersion(it) }
+                etagExtractor(info)?.let { versions += EntityTagVersion(it) }
+                maxAgeExtractor(info)?.let { caching = CachingOptions(CacheControl.MaxAge(it.inWholeSeconds.toInt())) }
+            }
+            call.respond(content)
+        } catch (multipleFiles: MultipleMatchesException) {
+            call.respond(HttpStatusCode.InternalServerError)
+        } catch (_: IllegalArgumentException) {
+        }
+    }
 }

@@ -6,7 +6,6 @@ package io.ktor.server.netty
 
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Netty engine
@@ -18,20 +17,17 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
-        val applicationEnvironment = commandLineEnvironment(args)
-        val engine = NettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
-        engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+        val config = CommandLineConfig(args)
+        val server = EmbeddedServer(config.applicationProperties, Netty) {
+            takeFrom(config.engineConfig)
+            loadConfiguration(config.applicationProperties.environment.config)
         }
-        engine.start(true)
+        server.start(true)
     }
 
-    private fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+    internal fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
-        deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
-            requestQueueLimit = it
-        }
         deploymentConfig.propertyOrNull("runningLimit")?.getString()?.toInt()?.let {
             runningLimit = it
         }
@@ -46,6 +42,15 @@ public object EngineMain {
         }
         deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
             tcpKeepAlive = it
+        }
+        deploymentConfig.propertyOrNull("maxInitialLineLength")?.getString()?.toInt()?.let {
+            maxInitialLineLength = it
+        }
+        deploymentConfig.propertyOrNull("maxHeaderSize")?.getString()?.toInt()?.let {
+            maxHeaderSize = it
+        }
+        deploymentConfig.propertyOrNull("maxChunkSize")?.getString()?.toInt()?.let {
+            maxChunkSize = it
         }
     }
 }

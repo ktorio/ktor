@@ -1,18 +1,7 @@
-public final class io/ktor/server/mustache/Mustache {
-	public static final field Plugin Lio/ktor/server/mustache/Mustache$Plugin;
-	public synthetic fun <init> (Lio/ktor/server/mustache/Mustache$Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/mustache/Mustache$Configuration {
+public final class io/ktor/server/mustache/MustacheConfig {
 	public fun <init> ()V
 	public final fun getMustacheFactory ()Lcom/github/mustachejava/MustacheFactory;
 	public final fun setMustacheFactory (Lcom/github/mustachejava/MustacheFactory;)V
-}
-
-public final class io/ktor/server/mustache/Mustache$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/mustache/Mustache;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/mustache/MustacheContent {
@@ -22,6 +11,10 @@ public final class io/ktor/server/mustache/MustacheContent {
 	public final fun getEtag ()Ljava/lang/String;
 	public final fun getModel ()Ljava/lang/Object;
 	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/mustache/MustacheKt {
+	public static final fun getMustache ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
 public final class io/ktor/server/mustache/RespondTemplateKt {

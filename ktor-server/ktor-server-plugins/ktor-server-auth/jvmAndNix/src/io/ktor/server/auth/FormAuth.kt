@@ -8,25 +8,53 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
 
 /**
- * Represents a form-based authentication provider
+ * A form-based authentication provider.
+ *
+ * @see [form]
  */
-public class FormAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
-    internal val userParamName: String = config.userParamName
+public class FormAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
+    private val userParamName: String = config.userParamName
 
-    internal val passwordParamName: String = config.passwordParamName
+    private val passwordParamName: String = config.passwordParamName
 
-    internal val challenge: FormAuthChallengeFunction = config.challengeFunction
+    private val challengeFunction: FormAuthChallengeFunction = config.challengeFunction
 
-    internal val authenticationFunction: AuthenticationFunction<UserPasswordCredential> =
+    private val authenticationFunction: AuthenticationFunction<UserPasswordCredential> =
         config.authenticationFunction
 
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
+        val postParameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
+        val username = postParameters?.get(userParamName)
+        val password = postParameters?.get(passwordParamName)
+
+        val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
+        val principal = credentials?.let { (authenticationFunction)(call, it) }
+
+        if (principal != null) {
+            context.principal(name, principal)
+            return
+        }
+        val cause = when (credentials) {
+            null -> AuthenticationFailedCause.NoCredentials
+            else -> AuthenticationFailedCause.InvalidCredentials
+        }
+
+        @Suppress("NAME_SHADOWING")
+        context.challenge(formAuthenticationChallengeKey, cause) { challenge, call ->
+            challengeFunction(FormAuthChallengeContext(call), credentials)
+            if (!challenge.completed && call.response.status() != null) {
+                challenge.complete()
+            }
+        }
+    }
+
     /**
-     * Form auth provider configuration
+     * A configuration for the [form]-based authentication provider.
      */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         internal var challengeFunction: FormAuthChallengeFunction = {
@@ -34,24 +62,24 @@ public class FormAuthenticationProvider internal constructor(config: Configurati
         }
 
         /**
-         * POST parameter to fetch for a user name
+         * Specifies a POST parameter name used to fetch a username.
          */
         public var userParamName: String = "user"
 
         /**
-         * POST parameter to fetch for a user password
+         * Specifies a POST parameter name used to fetch a password.
          */
         public var passwordParamName: String = "password"
 
         /**
-         * Configure challenge (response to send back) if authentication failed.
+         * Specifies a response sent to the client if authentication fails.
          */
         public fun challenge(function: FormAuthChallengeFunction) {
             challengeFunction = function
         }
 
         /**
-         * Configure redirect challenge if authentication failed
+         * Specifies a redirect URL in a case of failed authentication.
          */
         public fun challenge(redirectUrl: String) {
             challenge {
@@ -60,15 +88,15 @@ public class FormAuthenticationProvider internal constructor(config: Configurati
         }
 
         /**
-         * Configure redirect challenge if authentication failed
+         * Specifies a redirect URL in a case of failed authentication.
          */
         public fun challenge(redirect: Url) {
             challenge(redirect.toString())
         }
 
         /**
-         * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
-         * or null if credential does not correspond to an authenticated principal
+         * Sets a validation function that checks a specified [UserPasswordCredential] instance and
+         * returns [Principal] in a case of successful authentication or null if authentication fails.
          */
         public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
@@ -79,45 +107,26 @@ public class FormAuthenticationProvider internal constructor(config: Configurati
 }
 
 /**
- * Installs Form Authentication mechanism
+ * Installs the form-based [Authentication] provider.
+ * Form-based authentication uses a web form to collect credential information and authenticate a user.
+ * To learn how to configure it, see [Form-based authentication](https://ktor.io/docs/form.html).
  */
-public fun Authentication.Configuration.form(
+public fun AuthenticationConfig.form(
     name: String? = null,
-    configure: FormAuthenticationProvider.Configuration.() -> Unit
+    configure: FormAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = FormAuthenticationProvider.Configuration(name).apply(configure).build()
-
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val postParameters = call.receiveOrNull<Parameters>()
-        val username = postParameters?.get(provider.userParamName)
-        val password = postParameters?.get(provider.passwordParamName)
-
-        val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
-        val principal = credentials?.let { (provider.authenticationFunction)(call, it) }
-
-        if (principal != null) {
-            context.principal(principal)
-        } else {
-            val cause =
-                if (credentials == null) AuthenticationFailedCause.NoCredentials
-                else AuthenticationFailedCause.InvalidCredentials
-
-            context.challenge(formAuthenticationChallengeKey, cause) {
-                provider.challenge(this, credentials)
-                if (!it.completed && call.response.status() != null) {
-                    it.complete()
-                }
-            }
-        }
-    }
-
+    val provider = FormAuthenticationProvider.Config(name).apply(configure).build()
     register(provider)
 }
 
 /**
- * Specifies what to send back if form authentication fails.
+ * A context for [FormAuthChallengeFunction].
  */
-public typealias FormAuthChallengeFunction =
-    suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
+public class FormAuthChallengeContext(public val call: ApplicationCall)
+
+/**
+ * Specifies what to send back if form-based authentication fails.
+ */
+public typealias FormAuthChallengeFunction = suspend FormAuthChallengeContext.(UserPasswordCredential?) -> Unit
 
 private val formAuthenticationChallengeKey: Any = "FormAuth"

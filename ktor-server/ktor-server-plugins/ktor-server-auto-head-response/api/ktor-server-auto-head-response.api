@@ -1,7 +1,4 @@
-public final class io/ktor/server/plugins/autohead/AutoHeadResponse : io/ktor/server/application/ApplicationPlugin {
-	public static final field INSTANCE Lio/ktor/server/plugins/autohead/AutoHeadResponse;
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/plugins/autohead/AutoHeadResponseKt {
+	public static final fun getAutoHeadResponse ()Lio/ktor/server/application/ApplicationPlugin;
 }
 

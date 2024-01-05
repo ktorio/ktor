@@ -1,12 +1,7 @@
-public final class io/ktor/server/pebble/Pebble {
-	public static final field Plugin Lio/ktor/server/pebble/Pebble$Plugin;
-	public synthetic fun <init> (Lcom/mitchellbosecke/pebble/PebbleEngine;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/pebble/Pebble$Plugin : io/ktor/server/application/ApplicationPlugin {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/pebble/Pebble;
-	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+public final class io/ktor/server/pebble/PebbleConfiguration : io/pebbletemplates/pebble/PebbleEngine$Builder {
+	public fun <init> ()V
+	public final fun getAvailableLanguages ()Ljava/util/List;
+	public final fun setAvailableLanguages (Ljava/util/List;)V
 }
 
 public final class io/ktor/server/pebble/PebbleContent {
@@ -17,6 +12,10 @@ public final class io/ktor/server/pebble/PebbleContent {
 	public final fun getLocale ()Ljava/util/Locale;
 	public final fun getModel ()Ljava/util/Map;
 	public final fun getTemplate ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/pebble/PebbleKt {
+	public static final fun getPebble ()Lio/ktor/server/application/ApplicationPlugin;
 }
 
 public final class io/ktor/server/pebble/RespondTemplateKt {

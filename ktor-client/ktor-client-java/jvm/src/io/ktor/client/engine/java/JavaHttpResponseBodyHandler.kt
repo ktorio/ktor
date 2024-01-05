@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.java
 
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -19,15 +20,19 @@ import kotlin.coroutines.*
 
 internal class JavaHttpResponseBodyHandler(
     private val coroutineContext: CoroutineContext,
+    private val requestData: HttpRequestData,
     private val requestTime: GMTDate = GMTDate()
 ) : HttpResponse.BodyHandler<HttpResponseData> {
 
     override fun apply(responseInfo: HttpResponse.ResponseInfo): HttpResponse.BodySubscriber<HttpResponseData> {
-        return JavaHttpResponseBodySubscriber(coroutineContext, responseInfo, requestTime)
+        return JavaHttpResponseBodySubscriber(coroutineContext, requestData, responseInfo, requestTime)
     }
 
+    @OptIn(InternalAPI::class)
+    @Suppress("DEPRECATION")
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
+        requestData: HttpRequestData,
         response: HttpResponse.ResponseInfo,
         requestTime: GMTDate
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
@@ -37,17 +42,24 @@ internal class JavaHttpResponseBodyHandler(
         private val responseChannel = ByteChannel().apply {
             attachJob(consumerJob)
         }
+        val status = HttpStatusCode.fromValue(response.statusCode())
+        val headers = HeadersImpl(response.headers().map())
 
+        val body: Any = if (needToProcessSSE(requestData, status, headers)) {
+            DefaultClientSSESession(requestData.body as SSEClientContent, responseChannel, callContext)
+        } else {
+            responseChannel
+        }
         private val httpResponse = HttpResponseData(
-            HttpStatusCode.fromValue(response.statusCode()),
+            status,
             requestTime,
-            HeadersImpl(response.headers().map()),
+            headers,
             when (val version = response.version()) {
                 HttpClient.Version.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
                 HttpClient.Version.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
-            responseChannel,
+            body,
             callContext
         )
 
@@ -68,6 +80,7 @@ internal class JavaHttpResponseBodyHandler(
                             }
 
                             responseChannel.writeFully(buffer)
+                            responseChannel.flush()
                         }
                     }
                 } catch (_: ClosedReceiveChannelException) {

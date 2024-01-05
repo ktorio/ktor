@@ -6,18 +6,21 @@ package io.ktor.serialization
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.reflect.*
+import kotlinx.coroutines.flow.*
 
 /**
  * A custom content converter that could be registered in [ContentNegotiation] plugin for any particular content type
  * Could provide bi-directional conversion implementation.
  * One of the most typical examples of content converter is a JSON content converter that provides both
  * serialization and deserialization
+ *
+ * Implementations must override at least one of [serialize] or [serialize] methods.
  */
 public interface ContentConverter {
 
@@ -25,7 +28,7 @@ public interface ContentConverter {
      * Serializes a [value] to the specified [contentType] to a [OutgoingContent].
      * This function could ignore value if it is not suitable for conversion and return `null` so in this case
      * other registered converters could be tried or this function could be invoked with other content types
-     * it the converted has been registered multiple times with different content types
+     * it the converted has been registered multiple times with different content types.
      *
      * @param charset response charset
      * @param typeInfo response body typeInfo
@@ -38,7 +41,7 @@ public interface ContentConverter {
         contentType: ContentType,
         charset: Charset,
         typeInfo: TypeInfo,
-        value: Any
+        value: Any?
     ): OutgoingContent?
 
     /**
@@ -52,12 +55,18 @@ public interface ContentConverter {
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
  */
-public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset =
+    suitableCharsetOrNull(defaultCharset) ?: defaultCharset
+
+/**
+ * Detect suitable charset for an application call by `Accept` header or fallback to null
+ */
+public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_8): Charset? {
     for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) when {
         charset == "*" -> return defaultCharset
-        Charset.isSupported(charset) -> return Charset.forName(charset)
+        Charsets.isSupported(charset) -> return Charsets.forName(charset)
     }
-    return defaultCharset
+    return null
 }
 
 /**
@@ -70,4 +79,27 @@ public interface Configuration {
         converter: T,
         configuration: T.() -> Unit = {}
     )
+}
+
+@InternalAPI
+public suspend fun List<ContentConverter>.deserialize(
+    body: ByteReadChannel,
+    typeInfo: TypeInfo,
+    charset: Charset
+): Any {
+    // Pick the first one that can convert the subject successfully.
+    // The result can be null if
+    // 1. there is no suitable converter
+    // 2. result of deserialization is null
+    // We can differentiate these cases by checking if body was consumed or not
+    val result = asFlow()
+        .map { converter -> converter.deserialize(charset = charset, typeInfo = typeInfo, content = body) }
+        .firstOrNull { it != null || body.isClosedForRead }
+
+    return when {
+        result != null -> result
+        !body.isClosedForRead -> body
+        typeInfo.kotlinType?.isMarkedNullable == true -> NullBody
+        else -> throw ContentConvertException("No suitable converter found for $typeInfo")
+    }
 }

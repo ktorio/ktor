@@ -44,6 +44,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
 
+    @Suppress("DEPRECATION")
     public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     public suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
@@ -54,6 +55,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
 
+    @Suppress("DEPRECATION")
     public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     public suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
@@ -167,6 +169,11 @@ public actual interface ByteReadChannel {
     public actual suspend fun discard(max: Long): Long
 
     /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
+
+    /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
      * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
      * bytes then it will trigger the underlying source reading first and after that will
@@ -194,6 +201,7 @@ public actual interface ByteReadChannel {
     ): Long
 
     public actual companion object {
+        @Suppress("DEPRECATION")
         public actual val Empty: ByteReadChannel by lazy {
             ByteChannelJS(ChunkBuffer.Empty, false).apply {
                 close(null)

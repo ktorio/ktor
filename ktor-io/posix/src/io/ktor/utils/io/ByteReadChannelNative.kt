@@ -3,7 +3,6 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.ChunkBuffer
 import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 
@@ -44,6 +43,23 @@ public actual interface ByteReadChannel {
     public actual val totalBytesRead: Long
 
     /**
+     * Invokes [block] if it is possible to read at least [min] byte
+     * providing buffer to it so lambda can read from the buffer
+     * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+     *
+     * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
+     * in this case you have to invoke read again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for read, should be positive
+     * @param block to be invoked when at least [min] bytes available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    @Suppress("DEPRECATION")
+    public fun readAvailable(min: Int, block: (Buffer) -> Unit): Int
+
+    /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
@@ -53,18 +69,21 @@ public actual interface ByteReadChannel {
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
+    @Suppress("DEPRECATION")
     public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readAvailable(dst: CPointer<ByteVar>, offset: Long, length: Long): Int
 
     /**
@@ -77,18 +96,21 @@ public actual interface ByteReadChannel {
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
+    @Suppress("DEPRECATION")
     public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readFully(dst: CPointer<ByteVar>, offset: Int, length: Int)
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun readFully(dst: CPointer<ByteVar>, offset: Long, length: Long)
 
     /**
@@ -200,6 +222,11 @@ public actual interface ByteReadChannel {
     public actual suspend fun discard(max: Long): Long
 
     /**
+     * Suspend until the channel has bytes to read or gets closed. Throws exception if the channel was closed with an error.
+     */
+    public actual suspend fun awaitContent()
+
+    /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
      * skipping [offset] bytes. If there are not enough bytes available to provide [min] bytes after skipping [offset]
      * bytes then it will trigger the underlying source reading first and after that will
@@ -230,6 +257,7 @@ public actual interface ByteReadChannel {
         /**
          * Empty closed [ByteReadChannel].
          */
+        @Suppress("DEPRECATION")
         public actual val Empty: ByteReadChannel = ByteChannelNative(
             ChunkBuffer.Empty,
             false,

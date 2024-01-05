@@ -5,44 +5,47 @@
 package io.ktor.server.auth
 
 import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
-import kotlin.jvm.*
+import kotlinx.atomicfu.*
+
+public typealias ChallengeFunction = suspend (AuthenticationProcedureChallenge, ApplicationCall) -> Unit
 
 /**
- * Represents authentication challenging procedure requested by authentication mechanism
+ * Represents an authentication challenging procedure requested by authentication mechanism.
  */
 public class AuthenticationProcedureChallenge {
-    internal val register = mutableListOf<
-        Pair<AuthenticationFailedCause,
-            PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>>()
+    internal val register = mutableListOf<Pair<AuthenticationFailedCause, ChallengeFunction>>()
 
     /**
-     * List of currently installed challenges except errors
+     * List of currently installed challenges except errors.
      */
-    public val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
+    internal val challenges: List<ChallengeFunction>
         get() = register.filter { it.first !is AuthenticationFailedCause.Error }.sortedBy {
             when (it.first) {
                 AuthenticationFailedCause.InvalidCredentials -> 1
                 AuthenticationFailedCause.NoCredentials -> 2
-                else -> throw IllegalArgumentException("Unknow auth fauled cause: ${it.first}")
+                else -> throw IllegalArgumentException("Unknown Auth fail: ${it.first}")
             }
         }.map { it.second }
 
     /**
-     * List of currently installed challenges for errors
+     * List of currently installed challenges for errors.
      */
-    public val errorChallenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
+    internal val errorChallenges: List<ChallengeFunction>
         get() = register.filter { it.first is AuthenticationFailedCause.Error }.map { it.second }
 
-    /**
-     * Represents if a challenge was successfully sent to the client and challenging should be stopped
-     */
-    @Volatile
-    public var completed: Boolean = false
-        private set
+    private val _completed = atomic(false)
 
     /**
-     * Completes a challenging procedure
+     * Represents whether a challenge is successfully sent to the client and challenging should be stopped.
+     */
+    public var completed: Boolean
+        get() = _completed.value
+        private set(value) {
+            _completed.value = value
+        }
+
+    /**
+     * Completes a challenging procedure.
      */
     public fun complete() {
         completed = true

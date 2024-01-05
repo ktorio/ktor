@@ -40,6 +40,12 @@ public interface ApplicationConfig {
      * config and creating an entry for each leaf value.
      */
     public fun keys(): Set<String>
+
+    /**
+     * Returns map representation of this config.
+     * Values can be `String`, `Map<String, Any>`, `List<String>` and `List<Map<String, Any>>`
+     */
+    public fun toMap(): Map<String, Any?>
 }
 
 /**
@@ -60,10 +66,22 @@ public interface ApplicationConfigValue {
 /**
  * Thrown when an application is misconfigured
  */
-public class ApplicationConfigurationException(message: String) : Exception(message)
+public class ApplicationConfigurationException(message: String, cause: Throwable?) : Exception(message, cause) {
+    public constructor(message: String) : this(message, null)
+}
 
+/**
+ * Try read String value from [ApplicationConfig].
+ *
+ * @return null if key is missing
+ */
 public fun ApplicationConfig.tryGetString(key: String): String? =
     propertyOrNull(key)?.getString()
 
+/**
+ * Try read String value from [ApplicationConfig].
+ *
+ * @return null if key is missing
+ */
 public fun ApplicationConfig.tryGetStringList(key: String): List<String>? =
     propertyOrNull(key)?.getList()

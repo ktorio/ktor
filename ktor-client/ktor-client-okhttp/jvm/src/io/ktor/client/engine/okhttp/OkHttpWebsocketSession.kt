@@ -5,7 +5,8 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.plugins.websocket.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -33,15 +34,15 @@ internal class OkHttpWebsocketSession(
 
     override var timeoutMillis: Long
         get() = engine.readTimeoutMillis.toLong()
-        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttpEngine.")
+        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttp engine.")
 
     override var masking: Boolean
         get() = true
         set(_) = throw WebSocketException("Masking switch is not supported in OkHttp engine.")
 
     override var maxFrameSize: Long
-        get() = throw WebSocketException("OkHttp websocket doesn't support max frame size.")
-        set(_) = throw WebSocketException("Websocket timeout should be configured in OkHttpEngine.")
+        get() = Long.MAX_VALUE
+        set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
 
     private val _incoming = Channel<Frame>()
     private val _closeReason = CompletableDeferred<CloseReason?>()

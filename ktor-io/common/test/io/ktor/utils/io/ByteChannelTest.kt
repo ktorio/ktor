@@ -9,6 +9,7 @@ import io.ktor.utils.io.bits.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class ByteChannelTest {
 
     @Test
@@ -193,5 +194,77 @@ class ByteChannelTest {
             channel.peekTo(it, destinationOffset = 1, offset = 1, min = 1, max = Long.MAX_VALUE)
         }
         assertEquals(channel.totalBytesRead, 0)
+    }
+
+    @Test
+    fun testReadByteWithTimeout() = testSuspend {
+        val channel = ByteChannel()
+
+        launch {
+            channel.writeByte(1)
+            delay(1000)
+            channel.writeByte(0)
+            channel.flush()
+        }
+
+        var timedOut = false
+        try {
+            withTimeout(500) {
+                channel.readByte()
+            }
+        } catch (_: TimeoutCancellationException) {
+            timedOut = true
+        }
+
+        assertTrue(timedOut)
+        assertEquals(1, channel.readByte())
+    }
+
+    @Test
+    fun testReadIntWithTimeout() = testSuspend {
+        val channel = ByteChannel()
+
+        launch {
+            channel.writeInt(1)
+            delay(1000)
+            channel.writeInt(0)
+            channel.flush()
+        }
+
+        var timedOut = false
+        try {
+            withTimeout(500) {
+                channel.readInt()
+            }
+        } catch (_: TimeoutCancellationException) {
+            timedOut = true
+        }
+
+        assertTrue(timedOut)
+        assertEquals(1, channel.readInt())
+    }
+
+    @Test
+    fun testWriteByteWithTimeout() = testSuspend {
+        val channel = ByteChannel()
+
+        var timedOut = false
+        try {
+            withTimeout(500) {
+                channel.writeFully(ByteArray(4088))
+                channel.writeByte(1)
+            }
+        } catch (_: TimeoutCancellationException) {
+            timedOut = true
+        }
+
+        assertTrue(timedOut)
+
+        channel.readByte()
+        channel.writeByte(42)
+
+        channel.readFully(ByteArray(4087))
+        channel.flush()
+        assertEquals(42, channel.readByte())
     }
 }

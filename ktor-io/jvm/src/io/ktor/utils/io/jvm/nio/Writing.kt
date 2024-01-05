@@ -5,8 +5,9 @@ import java.nio.*
 import java.nio.channels.*
 
 /**
- * Copy up to [limit] bytes to blocking NIO [channel]. Copying to non-blocking channel requires selection and
- * not supported. It does suspend if no data available in byte channel but may block if destination NIO channel blocks.
+ * Copy up to [limit] bytes to blocking NIO [channel].
+ * Copying to a non-blocking channel requires selection and not supported.
+ * It is suspended if no data are available in a byte channel but may block if destination NIO channel blocks.
  *
  * @return number of bytes copied
  */
@@ -16,7 +17,10 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         throw IllegalArgumentException("Non-blocking channels are not supported")
     }
 
-    if (isClosedForRead) return 0
+    if (isClosedForRead) {
+        closedCause?.let { throw it }
+        return 0
+    }
 
     var copied = 0L
     val copy = { bb: ByteBuffer ->
@@ -46,6 +50,8 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         read(min = 0, consumer = copy)
         if (isClosedForRead) break
     }
+
+    closedCause?.let { throw it }
 
     return copied
 }

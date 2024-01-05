@@ -2,7 +2,7 @@ description = "Shared functionality for client and server"
 
 subprojects {
     kotlin.sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-http"))
             }

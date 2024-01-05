@@ -17,7 +17,7 @@ class UrlTest {
         assertEquals(443, url.port)
         assertEquals(443, url.protocol.defaultPort)
         assertEquals("ktor.io", url.host)
-        assertEquals(listOf("quickstart", ""), url.pathSegments)
+        assertEquals(listOf("", "quickstart", ""), url.pathSegments)
         assertEquals(parametersOf("query" to listOf("string"), "param" to listOf("value", "value2")), url.parameters)
         assertEquals("fragment", url.fragment)
         assertEquals(null, url.user)
@@ -33,7 +33,7 @@ class UrlTest {
 
         assertEquals("http", url.protocol.name)
         assertEquals("google.com", url.host)
-        assertEquals("/", url.fullPath)
+        assertEquals("", url.fullPath)
     }
 
     @Test
@@ -66,7 +66,7 @@ class UrlTest {
         assertEquals("https", url.protocol.name)
         assertEquals(8080, url.port)
         assertEquals("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]", url.host)
-        assertEquals(listOf("hello"), url.pathSegments)
+        assertEquals(listOf("", "hello"), url.pathSegments)
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
@@ -80,7 +80,7 @@ class UrlTest {
 
         assertEquals("http", url.protocol.name)
         assertEquals("127.0.0.1", url.host)
-        assertEquals(listOf("hello"), url.pathSegments)
+        assertEquals(listOf("", "hello"), url.pathSegments)
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
@@ -99,7 +99,7 @@ class UrlTest {
             assertEquals("http", url.protocol.name)
             assertNull(url.user)
             assertNull(url.password)
-            assertEquals(listOf("foo${case}bar"), url.pathSegments)
+            assertEquals(listOf("", "foo${case}bar"), url.pathSegments)
 
             assertEquals("http://localhost/foo${case}bar", url.toString())
         }
@@ -117,7 +117,7 @@ class UrlTest {
 
         assertEquals("http://httpbin.org/response-headers?message=foo%25bar", urlBuilder().buildString())
         assertEquals("http://httpbin.org/response-headers?message=foo%25bar", url.toString())
-        assertEquals(listOf("response-headers"), url.pathSegments)
+        assertEquals(listOf("", "response-headers"), url.pathSegments)
         assertEquals("/response-headers?message=foo%25bar", url.fullPath)
     }
 
@@ -167,15 +167,15 @@ class UrlTest {
         with(url) {
             assertEquals(URLProtocol.HTTPS, protocol)
             assertEquals("www.test.com", host)
-            assertEquals(listOf(""), pathSegments)
-            assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
+            assertEquals(emptyList(), pathSegments)
+            assertEquals("https://www.test.com?test=ok&authtoken=testToken", url.toString())
         }
     }
 
     @Test
     fun testTrailingSlash() {
         val url1 = Url("http://www.test.com").toString()
-        assertEquals("http://www.test.com/", url1)
+        assertEquals("http://www.test.com", url1)
         val url2 = Url("http://www.test.com/").toString()
         assertEquals("http://www.test.com/", url2)
     }
@@ -230,7 +230,7 @@ class UrlTest {
         val result = Url(expectedUrl)
         assertEquals("file", result.protocol.name)
         assertEquals("", result.host)
-        assertEquals(listOf("var", "www"), result.pathSegments)
+        assertEquals(listOf("", "var", "www"), result.pathSegments)
         assertEquals(expectedUrl, result.toString())
     }
 
@@ -240,7 +240,7 @@ class UrlTest {
         val result = Url(expectedUrl)
         assertEquals("file", result.protocol.name)
         assertEquals("localhost", result.host)
-        assertEquals(listOf("var", "www"), result.pathSegments)
+        assertEquals(listOf("", "var", "www"), result.pathSegments)
         assertEquals(expectedUrl, result.toString())
     }
 
@@ -267,15 +267,53 @@ class UrlTest {
     }
 
     @Test
-    fun testEncodedParts() {
-        val urlString = "https://user:password@ktor.io/quickstart/?query=string&param=value&param=value2#fragment"
+    fun testEncodedCredentials() {
+        val urlString = "https://use%25r:passwor%25d@ktor.io"
         val url = Url(urlString)
-        assertEquals("user", url.encodedUser)
-        assertEquals("password", url.encodedPassword)
-        assertEquals("/quickstart/", url.encodedPath)
-        assertEquals("query=string&param=value&param=value2", url.encodedQuery)
-        assertEquals("/quickstart/?query=string&param=value&param=value2", url.encodedPathAndQuery)
-        assertEquals("fragment", url.encodedFragment)
+        assertEquals("use%25r", url.encodedUser)
+        assertEquals("use%r", url.user)
+        assertEquals("passwor%25d", url.encodedPassword)
+        assertEquals("passwor%d", url.password)
+    }
+
+    @Test
+    fun testEncodedPathAndQuery() {
+        val urlString = "https://ktor.io/quickstar%25t?query=strin%25g"
+        val url = Url(urlString)
+        assertEquals("/quickstar%25t", url.encodedPath)
+        assertEquals("quickstar%t", url.pathSegments[1])
+        assertEquals("query=strin%25g", url.encodedQuery)
+        assertEquals("strin%g", url.parameters["query"])
+        assertEquals("/quickstar%25t?query=strin%25g", url.encodedPathAndQuery)
+    }
+
+    @Test
+    fun testEncodedFragment() {
+        val urlString = "https://ktor.io/#fragmen%25t"
+        val url = Url(urlString)
+        assertEquals("fragmen%25t", url.encodedFragment)
+        assertEquals("fragmen%t", url.fragment)
+    }
+
+    @Test
+    fun testUrlToStringKeepsEncoding() {
+        val urlString = "https://use%25r:passwor%25d@ktor.io/quickstar%25t/" +
+            "?query=strin%25g&param=value&param=value2#fragmen%25t"
+        val url = Url(urlString)
         assertEquals(urlString, "$url")
+    }
+
+    @Test
+    fun testIsAbsolute() {
+        assertTrue(Url("https://ktor.io/").isAbsolutePath)
+        assertTrue(Url("/").isAbsolutePath)
+        assertTrue(Url("/hello").isAbsolutePath)
+    }
+
+    @Test
+    fun testIsRelative() {
+        assertTrue(Url("hello").isRelativePath)
+        assertTrue(Url("").isRelativePath)
+        assertTrue(Url("hello/world").isRelativePath)
     }
 }

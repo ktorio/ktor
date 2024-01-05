@@ -6,20 +6,22 @@ package io.ktor.client.plugins.cookies
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.cookies.HttpCookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCookies")
+
 /**
- * [HttpClient] plugin that handles sent `Cookie`, and received `Set-Cookie` headers,
- * using a specific [storage] for storing and retrieving cookies.
+ * A plugin that allows you to keep cookies between calls in a storage.
+ * By default, it uses an in-memory storage, but you can also implement a persistent storage using [CookiesStorage].
  *
- * You can configure the [Config.storage] and to provide [Config.default] blocks to set
- * cookies when installing.
+ * You can learn more from [Cookies](https://ktor.io/docs/http-cookies.html).
  */
 public class HttpCookies internal constructor(
     private val storage: CookiesStorage,
@@ -31,7 +33,7 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * Find all cookies by [requestUrl].
+     * Gets all the cookies associated with a specific [requestUrl].
      */
     public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
@@ -39,13 +41,14 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * Add cookies in request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
-     * so to manage their life cycle properly.
+     * Adds cookies in a request header (presumably added through [HttpRequestBuilder.cookie]) into storage,
+     * so to manage their lifecycle properly.
      */
     internal suspend fun captureHeaderCookies(builder: HttpRequestBuilder) {
         with(builder) {
             val url = builder.url.clone().build()
             val cookies = headers[HttpHeaders.Cookie]?.let { cookieHeader ->
+                LOGGER.trace("Saving cookie $cookieHeader for ${builder.url}")
                 parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) -> Cookie(name, encodedValue) }
             }
             cookies?.forEach { storage.addCookie(url, it) }
@@ -57,7 +60,9 @@ public class HttpCookies internal constructor(
 
         with(builder) {
             if (cookies.isNotEmpty()) {
-                headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+                val cookieHeader = renderClientCookies(cookies)
+                headers[HttpHeaders.Cookie] = cookieHeader
+                LOGGER.trace("Sending cookie $cookieHeader for ${builder.url}")
             } else {
                 headers.remove(HttpHeaders.Cookie)
             }
@@ -66,6 +71,9 @@ public class HttpCookies internal constructor(
 
     internal suspend fun saveCookiesFrom(response: HttpResponse) {
         val url = response.request.url
+        response.headers.getAll(HttpHeaders.SetCookie)?.forEach {
+            LOGGER.trace("Received cookie $it in response for ${response.call.request.url}")
+        }
         response.setCookie().forEach {
             storage.addCookie(url, it)
         }
@@ -76,14 +84,15 @@ public class HttpCookies internal constructor(
     }
 
     /**
-     * [HttpCookies] configuration.
+     * A configuration for the [HttpCookies] plugin.
      */
+    @KtorDsl
     public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
-         * [CookiesStorage] that will be used at this plugin.
-         * By default it just uses an initially empty in-memory [AcceptAllCookiesStorage].
+         * Specifies a storage used to keep cookies between calls.
+         * By default, it uses an initially empty in-memory [AcceptAllCookiesStorage].
          */
         public var storage: CookiesStorage = AcceptAllCookiesStorage()
 
@@ -119,7 +128,7 @@ public class HttpCookies internal constructor(
 }
 
 private fun renderClientCookies(cookies: List<Cookie>): String =
-    cookies.joinToString(";", transform = ::renderCookieHeader)
+    cookies.joinToString("; ", transform = ::renderCookieHeader)
 
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
@@ -133,6 +142,6 @@ public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
     pluginOrNull(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
- * Find the [Cookie] by [name]
+ * Gets the specified [Cookie] by its [name].
  */
 public operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }

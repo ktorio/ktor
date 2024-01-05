@@ -24,7 +24,7 @@ public enum class PointFormat(public val code: Byte) {
     /**
      * Point is compressed according to ANSI X9.62
      */
-    ANSIX962_COMPRESSED_CHAR2(2);
+    ANSIX962_COMPRESSED_CHAR2(2)
 }
 
 /**

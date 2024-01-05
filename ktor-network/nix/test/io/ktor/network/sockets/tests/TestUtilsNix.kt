@@ -6,8 +6,6 @@ package io.ktor.network.sockets.tests
 
 import platform.posix.*
 
-internal actual fun Any.supportsUnixDomainSockets(): Boolean = true
-
 internal actual fun createTempFilePath(basename: String): String = "/tmp/$basename"
 
 internal actual fun removeFile(path: String) {

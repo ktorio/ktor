@@ -33,7 +33,7 @@ internal class JavaHttpRequestBodyPublisher(
                 subscriber
             )
             synchronized(subscription) { subscriber.onSubscribe(subscription) }
-        } catch (cause: Exception) {
+        } catch (cause: Throwable) {
             // subscribe() must return normally, so we need to signal the
             // failure to open via onError() once onSubscribe() is signaled.
             subscriber.onSubscribe(NullSubscription())
@@ -77,7 +77,7 @@ internal class JavaHttpRequestBodyPublisher(
                 if (writeInProgress.compareAndSet(expect = false, update = true)) {
                     readData()
                 }
-            } catch (cause: Exception) {
+            } catch (cause: Throwable) {
                 signalOnError(cause)
             }
         }
@@ -96,6 +96,7 @@ internal class JavaHttpRequestBodyPublisher(
             // It's possible to have another request for data come in after we've closed the channel.
             if (inputChannel.isClosedForRead) {
                 tryToSignalOnErrorFromChannel()
+                signalOnComplete()
                 return
             }
 
@@ -128,7 +129,7 @@ internal class JavaHttpRequestBodyPublisher(
         private fun closeChannel() {
             try {
                 inputChannel.cancel()
-            } catch (cause: Exception) {
+            } catch (cause: Throwable) {
                 signalOnError(cause)
             }
         }
@@ -152,7 +153,7 @@ internal class JavaHttpRequestBodyPublisher(
         }
 
         private fun tryToSignalOnErrorFromChannel() {
-            (inputChannel as? ByteWriteChannel)?.closedCause?.let { cause ->
+            inputChannel.closedCause?.let { cause ->
                 signalOnError(cause)
             }
         }

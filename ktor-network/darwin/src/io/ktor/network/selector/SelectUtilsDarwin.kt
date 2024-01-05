@@ -6,16 +6,9 @@ package io.ktor.network.selector
 
 import kotlinx.cinterop.*
 import platform.darwin.*
-import platform.posix.*
 import kotlin.Byte
 
-internal actual fun pselectBridge(
-    descriptor: Int,
-    readSet: CPointer<fd_set>,
-    writeSet: CPointer<fd_set>,
-    errorSet: CPointer<fd_set>
-): Int = pselect(descriptor, readSet, writeSet, errorSet, null, null)
-
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun inetNtopBridge(
     type: Int,
     address: CPointer<*>,

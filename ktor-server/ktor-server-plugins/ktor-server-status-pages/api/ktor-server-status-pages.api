@@ -4,6 +4,14 @@ public final class io/ktor/server/plugins/statuspages/StatusPagesConfig {
 	public final fun getExceptions ()Ljava/util/Map;
 	public final fun getStatuses ()Ljava/util/Map;
 	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
+	public final fun statusWithContext ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
+	public final fun unhandled (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/plugins/statuspages/StatusPagesConfig$StatusContext {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/content/OutgoingContent;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+	public final fun getContent ()Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/server/plugins/statuspages/StatusPagesJvmKt {

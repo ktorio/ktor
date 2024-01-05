@@ -5,13 +5,13 @@
 package io.ktor.tests.resources
 
 import io.ktor.http.*
-import io.ktor.resources.serialisation.*
+import io.ktor.resources.serialization.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
 class ParametersSerializationTest {
 
-    private val locationsFormat = ResourcesFormat()
+    private val resourcesFormat = ResourcesFormat()
 
     @Serializable
     data class PrimitivesLocations(
@@ -25,8 +25,8 @@ class ParametersSerializationTest {
     @Test
     fun testSimpleSerialization() {
         val primitivesLocation = PrimitivesLocations(1, 2.0F, 'a', "value")
-        val encoded = locationsFormat.encodeToParameters(PrimitivesLocations.serializer(), primitivesLocation)
-        val decoded = locationsFormat.decodeFromParameters(PrimitivesLocations.serializer(), encoded)
+        val encoded = resourcesFormat.encodeToParameters(PrimitivesLocations.serializer(), primitivesLocation)
+        val decoded = resourcesFormat.decodeFromParameters(PrimitivesLocations.serializer(), encoded)
 
         assertEquals(primitivesLocation, decoded)
         assertEquals("1", encoded["intValue"])
@@ -45,8 +45,8 @@ class ParametersSerializationTest {
     fun testNestedSerialization() {
         val primitivesLocation = PrimitivesLocations(1, 2.0F, 'a', "value")
         val nestedLocations = NestedLocations(2, primitivesLocation)
-        val encoded = locationsFormat.encodeToParameters(NestedLocations.serializer(), nestedLocations)
-        val decoded = locationsFormat.decodeFromParameters(NestedLocations.serializer(), encoded)
+        val encoded = resourcesFormat.encodeToParameters(NestedLocations.serializer(), nestedLocations)
+        val decoded = resourcesFormat.decodeFromParameters(NestedLocations.serializer(), encoded)
 
         assertEquals(nestedLocations, decoded)
         assertEquals("2", encoded["someValue"])
@@ -69,8 +69,8 @@ class ParametersSerializationTest {
         val primitivesLocation = PrimitivesLocations(1, 2.0F, 'a', "value1")
         val collectionLocations =
             CollectionLocations(listOf(3.1, 5.1), primitivesLocation, listOf(3, 5, 7, 9), emptyList())
-        val encoded = locationsFormat.encodeToParameters(CollectionLocations.serializer(), collectionLocations)
-        val decoded = locationsFormat.decodeFromParameters(CollectionLocations.serializer(), encoded)
+        val encoded = resourcesFormat.encodeToParameters(CollectionLocations.serializer(), collectionLocations)
+        val decoded = resourcesFormat.decodeFromParameters(CollectionLocations.serializer(), encoded)
 
         assertEquals(collectionLocations, decoded)
 
@@ -95,14 +95,14 @@ class ParametersSerializationTest {
     @Test
     fun testNullableAndDefaultValueSerialization() {
         val nullableLocation = NullableAndDefaultValueLocations(null)
-        val encoded = locationsFormat
+        val encoded = resourcesFormat
             .encodeToParameters(NullableAndDefaultValueLocations.serializer(), nullableLocation)
-        val decoded = locationsFormat.decodeFromParameters(NullableAndDefaultValueLocations.serializer(), encoded)
+        val decoded = resourcesFormat.decodeFromParameters(NullableAndDefaultValueLocations.serializer(), encoded)
 
         assertEquals(nullableLocation, decoded)
 
-        val parameters = parametersOf("someValue" to listOf("value"))
-        val decodedFromParameters = locationsFormat
+        val parameters = parametersOf("someValue", "value")
+        val decodedFromParameters = resourcesFormat
             .decodeFromParameters(NullableAndDefaultValueLocations.serializer(), parameters)
         assertEquals(decodedFromParameters, NullableAndDefaultValueLocations("value", false, true, 3, null))
     }
@@ -119,11 +119,15 @@ class ParametersSerializationTest {
     @Test
     fun testEnumValueSerialization() {
         val enumLocation = EnumValueLocations(TestEnum.Ab)
-        val encoded = locationsFormat
+        val encoded = resourcesFormat
             .encodeToParameters(EnumValueLocations.serializer(), enumLocation)
-        val decoded = locationsFormat.decodeFromParameters(EnumValueLocations.serializer(), encoded)
+        val decoded = resourcesFormat.decodeFromParameters(EnumValueLocations.serializer(), encoded)
+
+        val parameters = parametersOf("enum", "Ab")
+        val decodedFromParameters = resourcesFormat.decodeFromParameters(EnumValueLocations.serializer(), parameters)
 
         assertEquals(enumLocation, decoded)
+        assertEquals(enumLocation, decodedFromParameters)
         assertEquals("Ab", encoded["enum"])
         assertEquals("Cd", encoded["enumDefault"])
         assertEquals(null, encoded["enumNullable"])
@@ -139,9 +143,9 @@ class ParametersSerializationTest {
     @Test
     fun testNestedDefaultValueSerialization() {
         val nestedDefaultValueLocations = NestedDefaultValueLocations("2")
-        val encoded = locationsFormat
+        val encoded = resourcesFormat
             .encodeToParameters(NestedDefaultValueLocations.serializer(), nestedDefaultValueLocations)
-        val decoded = locationsFormat.decodeFromParameters(NestedDefaultValueLocations.serializer(), encoded)
+        val decoded = resourcesFormat.decodeFromParameters(NestedDefaultValueLocations.serializer(), encoded)
 
         assertEquals(nestedDefaultValueLocations, decoded)
         assertEquals("2", encoded["someValue"])
@@ -160,8 +164,8 @@ class ParametersSerializationTest {
     @Test
     fun testNestedDefaultSerialization() {
         val nestedLocations = NestedDefaultLocations(2)
-        val encoded = locationsFormat.encodeToParameters(NestedDefaultLocations.serializer(), nestedLocations)
-        val decoded = locationsFormat.decodeFromParameters(NestedDefaultLocations.serializer(), encoded)
+        val encoded = resourcesFormat.encodeToParameters(NestedDefaultLocations.serializer(), nestedLocations)
+        val decoded = resourcesFormat.decodeFromParameters(NestedDefaultLocations.serializer(), encoded)
 
         assertEquals(nestedLocations, decoded)
         assertEquals("2", encoded["someValue"])

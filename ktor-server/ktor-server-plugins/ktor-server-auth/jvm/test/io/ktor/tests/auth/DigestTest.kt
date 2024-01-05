@@ -4,10 +4,12 @@
 
 package io.ktor.tests.auth
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.Principal
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -55,8 +57,8 @@ class DigestTest {
 
             application.install(Authentication) {
                 provider {
-                    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) {
-                        call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
+                    authenticate { context ->
+                        context.call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
                     }
                 }
             }
@@ -121,6 +123,60 @@ class DigestTest {
             hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword)))
         )
         assertTrue(digest.verifier(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
+    }
+
+    @Test
+    fun testValidateFunction() = testApplication {
+        class TestPrincipal(val name: String) : Principal
+        install(Authentication) {
+            digest {
+                val p = "Circle Of Life"
+                realm = "testrealm@host.com"
+                this.nonceManager = GenerateOnlyNonceManager
+                digestProvider { userName, realm -> digest(MessageDigest.getInstance("MD5"), "$userName:$realm:$p") }
+                validate {
+                    if (it.userName == "admin") TestPrincipal(it.userName) else null
+                }
+            }
+        }
+        routing {
+            authenticate {
+                get("/") {
+                    call.respondText("OK")
+                }
+            }
+        }
+        val responseWrongAuth = client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                """Digest username="Mufasa",
+                 realm="testrealm@host.com",
+                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                 uri="/dir/index.html",
+                 qop=auth,
+                 nc=00000001,
+                 cnonce="0a4f113b",
+                 response="6629fae49393a05397450978507c4ef1",
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+            )
+        }
+        assertEquals(HttpStatusCode.Unauthorized, responseWrongAuth.status)
+
+        val responseCorrectAuth = client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                """Digest username="admin",
+                 realm="testrealm@host.com",
+                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                 uri="/dir/index.html",
+                 qop=auth,
+                 nc=00000001,
+                 cnonce="0a4f113b",
+                 response="b9b12c2f6abe2d166e5743ed1e687ed6",
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+            )
+        }
+        assertEquals(HttpStatusCode.OK, responseCorrectAuth.status)
     }
 
     private fun Application.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {

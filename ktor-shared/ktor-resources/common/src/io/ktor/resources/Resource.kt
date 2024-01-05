@@ -7,13 +7,13 @@ package io.ktor.resources
 import kotlinx.serialization.*
 
 /**
- * An annotation for classes that act as typed routes. All annotated types should be [Serializable].
+ * An annotation for classes that act as [typed routes](https://ktor.io/docs/type-safe-routing.html).
+ * All annotated types should be [Serializable].
  *
  * Every property that has a corresponding placeholder inside [path] is used as a value for this placeholder.
  * Other properties are put into the URL query.
  * Example:
  * ```
- * @Serializable
  * @Resource("/users/{id}")
  * data class UserById(val id: Long, val properties: List<String>)
  *
@@ -26,14 +26,11 @@ import kotlinx.serialization.*
  * You can nest class for better organization, but all nested classes should have a property with an outer class type.
  * Example:
  * ```kotlin
- * @Serializable
  * @Resource("/users")
  * data class Users {
- *   @Serializable
  *   @Resource("/{id}")
  *   data class ById(val parent: Users = Users(), val id: Long)
  *
- *   @Serializable
  *   @Resource("/add")
  *   data class Add(val parent: Users = Users(), val name: String)
  * }
@@ -46,4 +43,5 @@ import kotlinx.serialization.*
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
+@MetaSerializable
 public annotation class Resource(val path: String)

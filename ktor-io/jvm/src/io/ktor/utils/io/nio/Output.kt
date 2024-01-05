@@ -1,12 +1,12 @@
 package io.ktor.utils.io.nio
 
-import io.ktor.utils.io.bits.Memory
-import io.ktor.utils.io.bits.sliceSafe
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import java.nio.channels.*
 
+@Suppress("DEPRECATION")
 private class ChannelAsOutput(
     pool: ObjectPool<ChunkBuffer>,
     val channel: WritableByteChannel
@@ -23,6 +23,7 @@ private class ChannelAsOutput(
     }
 }
 
+@Suppress("DEPRECATION")
 public fun WritableByteChannel.asOutput(
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ): Output = ChannelAsOutput(pool, this)

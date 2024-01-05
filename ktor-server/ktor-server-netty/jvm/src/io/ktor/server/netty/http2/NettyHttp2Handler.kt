@@ -10,10 +10,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.AttributeKey
+import io.netty.util.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import java.lang.reflect.*
@@ -25,16 +24,22 @@ internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
     private val callEventGroup: EventExecutorGroup,
-    private val userCoroutineContext: CoroutineContext
+    private val userCoroutineContext: CoroutineContext,
+    runningLimit: Int
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = SupervisorJob(userCoroutineContext[Job])
+
+    private val state = NettyHttpHandlerState(runningLimit)
+    private lateinit var responseWriter: NettyHttpResponsePipeline
 
     override val coroutineContext: CoroutineContext
         get() = handlerJob
 
-    override fun channelRead(context: ChannelHandlerContext, message: Any?) {
+    override fun channelRead(context: ChannelHandlerContext, message: Any) {
         when (message) {
             is Http2HeadersFrame -> {
+                state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
+                state.activeRequests.incrementAndGet()
                 startHttp2(context, message.headers())
             }
             is Http2DataFrame -> {
@@ -43,6 +48,9 @@ internal class NettyHttp2Handler(
                     contentActor.trySend(message).isSuccess
                     if (eof) {
                         contentActor.close()
+                        state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+                    } else {
+                        state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
                     }
                 } ?: message.release()
             }
@@ -56,12 +64,23 @@ internal class NettyHttp2Handler(
         }
     }
 
-    override fun channelRegistered(ctx: ChannelHandlerContext?) {
-        super.channelRegistered(ctx)
+    override fun channelActive(context: ChannelHandlerContext) {
+        responseWriter = NettyHttpResponsePipeline(
+            context,
+            state,
+            coroutineContext
+        )
 
-        ctx?.pipeline()?.apply {
-            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline, application.log))
+        context.pipeline()?.apply {
+            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline))
         }
+        context.fireChannelActive()
+    }
+
+    override fun channelReadComplete(context: ChannelHandlerContext) {
+        state.isChannelReadCompleted.compareAndSet(expect = false, update = true)
+        responseWriter.flushIfNeeded()
+        context.fireChannelReadComplete()
     }
 
     @Suppress("OverridingDeprecatedMember")
@@ -69,11 +88,7 @@ internal class NettyHttp2Handler(
         ctx.close()
     }
 
-    @OptIn(InternalAPI::class)
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val requestQueue = NettyRequestQueue(1, 1)
-        val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue, handlerJob)
-
         val call = NettyHttp2ApplicationCall(
             application,
             context,
@@ -84,10 +99,8 @@ internal class NettyHttp2Handler(
         )
         context.applicationCall = call
 
-        requestQueue.schedule(call)
-        requestQueue.close()
-
-        responseWriter.ensureRunning()
+        context.fireChannelRead(call)
+        responseWriter.processResponse(call)
     }
 
     @Suppress("DEPRECATION")

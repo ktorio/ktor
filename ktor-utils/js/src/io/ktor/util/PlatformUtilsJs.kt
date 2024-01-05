@@ -5,17 +5,24 @@
 
 package io.ktor.util
 
-public actual object PlatformUtils {
-    public actual val IS_BROWSER: Boolean = js(
-        "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'" // ktlint-disable max-line-length
-    ) as Boolean
+internal actual val PlatformUtils.isDevelopmentMode: Boolean
+    get() = false
 
-    public actual val IS_NODE: Boolean = js(
-        "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
-    ) as Boolean
+internal actual val PlatformUtils.isNewMemoryModel: Boolean
+    get() = true
 
-    public actual val IS_JVM: Boolean = false
-    public actual val IS_NATIVE: Boolean = false
-    public actual val IS_DEVELOPMENT_MODE: Boolean = false
-    public actual val IS_NEW_MM_ENABLED: Boolean = true
-}
+public actual val PlatformUtils.platform: Platform
+    get() {
+        val hasNodeApi = js(
+            """
+                (typeof process !== 'undefined' 
+                    && process.versions != null 
+                    && process.versions.node != null) ||
+                (typeof window !== 'undefined' 
+                    && typeof window.process !== 'undefined' 
+                    && window.process.versions != null 
+                    && window.process.versions.node != null)
+                """
+        ) as Boolean
+        return if (hasNodeApi) Platform.Node else Platform.Browser
+    }

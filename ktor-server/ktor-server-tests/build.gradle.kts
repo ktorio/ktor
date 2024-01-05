@@ -1,18 +1,23 @@
 description = ""
 
-val jansi_version: String by project.extra
+plugins {
+    id("kotlinx-serialization")
+}
 
 kotlin.sourceSets {
-    val commonMain by getting {
+    commonMain {
         dependencies {
             api(project(":ktor-server"))
+            api(project(":ktor-server:ktor-server-plugins:ktor-server-rate-limit"))
             api(project(":ktor-server:ktor-server-test-host"))
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
-            implementation("org.fusesource.jansi:jansi:$jansi_version")
+            implementation(libs.jansi)
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+            api(libs.logback.classic)
+            api(project(":ktor-server:ktor-server-plugins:ktor-server-sse"))
         }
     }
 }

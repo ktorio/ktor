@@ -6,6 +6,7 @@ package io.ktor.util.converters
 
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import kotlin.reflect.*
 
 /**
@@ -31,6 +32,7 @@ public class DataConversion(configuration: Configuration) : ConversionService {
     /**
      * Data conversion service configuration
      */
+    @KtorDsl
     public class Configuration {
         internal val converters = mutableMapOf<KClass<*>, ConversionService>()
 
@@ -60,7 +62,6 @@ public class DataConversion(configuration: Configuration) : ConversionService {
         /**
          * Register and [configure] convertor for reified type [T]
          */
-        @OptIn(ExperimentalStdlibApi::class)
         public inline fun <reified T : Any> convert(
             noinline configure: DelegatingConversionService.Configuration<T>.() -> Unit
         ): Unit = convert(typeOf<T>(), configure)

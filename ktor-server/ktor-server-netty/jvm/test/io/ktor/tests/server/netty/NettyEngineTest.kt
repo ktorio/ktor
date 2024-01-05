@@ -4,8 +4,22 @@
 
 package io.ktor.tests.server.netty
 
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.websocket.cio.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlin.test.*
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -57,6 +71,35 @@ class NettyHttp2ServerJvmTest :
     }
 }
 
+class NettyDisabledHttp2Test :
+    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableHttp2 = false
+    }
+
+    @Test
+    fun testRequestWithDisabledHttp2() {
+        createAndStartServer {
+            application.routing {
+                get("/") {
+                    call.respondText("Hello, world")
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_1_1, version)
+        }
+    }
+}
+
 class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
     Netty
 ) {
@@ -66,6 +109,32 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
 
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
+    }
+
+    @Test
+    fun testRawWebSocketFreeze() {
+        createAndStartServer {
+            application.install(WebSockets)
+            webSocket("/ws") {
+                repeat(10) {
+                    send(Frame.Text("hi"))
+                }
+            }
+        }
+
+        val client = HttpClient(CIO) {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }
+
+        var count = 0
+
+        runBlocking {
+            client.wsRaw(path = "/ws", port = port) {
+                incoming.consumeAsFlow().collect { count++ }
+            }
+        }
+
+        assertEquals(11, count)
     }
 }
 

@@ -5,7 +5,6 @@
 package io.ktor.tests.server.jetty
 
 import io.ktor.client.statement.*
-import io.ktor.server.application.*
 import io.ktor.server.jetty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -56,7 +55,7 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 
     private fun Server.addAttributesHandler() {
         addLifeCycleListener(
-            object : AbstractLifeCycle.AbstractLifeCycleListener() {
+            object : LifeCycle.Listener {
                 override fun lifeCycleStarting(event: LifeCycle?) {
                     super.lifeCycleStarting(event)
                     val delegate = handler
@@ -74,6 +73,14 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
                 }
             }
         )
+    }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
     }
 }
 

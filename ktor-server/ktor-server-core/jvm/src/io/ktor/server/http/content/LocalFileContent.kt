@@ -11,6 +11,7 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import java.io.*
 import java.nio.file.*
+import kotlin.io.path.*
 
 /**
  * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [caching]
@@ -25,10 +26,10 @@ public class LocalFileContent(
     override val contentLength: Long get() = file.length()
 
     init {
-        val lastModifiedVersion = file.lastModified()
-        if (lastModifiedVersion == 0L) {
+        if (!file.exists()) {
             throw IOException("No such file ${file.absolutePath}")
         } else {
+            val lastModifiedVersion = file.lastModified()
             versions += LastModifiedVersion(lastModifiedVersion)
         }
     }
@@ -37,7 +38,7 @@ public class LocalFileContent(
     // Or even make it dual-content so engine implementation can choose
     override fun readFrom(): ByteReadChannel = file.readChannel()
 
-    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.start, range.endInclusive)
+    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.first, range.last)
 }
 
 /**
@@ -47,15 +48,47 @@ public fun LocalFileContent(
     baseDir: File,
     relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
-): LocalFileContent =
-    LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)
 
 /**
- * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
+ * Creates an instance of [LocalPathContent] for a path designated by [relativePath] in a [baseDir]
  */
+@Deprecated(
+    "Use LocalPathContent instead",
+    ReplaceWith("LocalPathContent(baseDir, relativePath, contentType)", "io.ktor.server.http.content.LocalPathContent")
+)
 public fun LocalFileContent(
     baseDir: Path,
     relativePath: Path,
-    contentType: ContentType = ContentType.defaultForFile(relativePath)
-): LocalFileContent =
-    LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+    contentType: ContentType = ContentType.defaultForPath(relativePath)
+): LocalPathContent = LocalPathContent(baseDir.combineSafe(relativePath), contentType)
+
+/**
+ * Creates an instance of [LocalPathContent] for a path designated by [relativePath] in a [baseDir]
+ */
+public fun LocalPathContent(
+    baseDir: Path,
+    relativePath: Path,
+    contentType: ContentType = ContentType.defaultForPath(relativePath)
+): LocalPathContent = LocalPathContent(baseDir.combineSafe(relativePath), contentType)
+
+public class LocalPathContent(
+    public val path: Path,
+    override val contentType: ContentType = ContentType.defaultForFileExtension(path.extension)
+) : OutgoingContent.ReadChannelContent() {
+
+    override val contentLength: Long get() = Files.size(path)
+
+    init {
+        if (!Files.exists(path)) {
+            throw IOException("No such path $path")
+        } else {
+            val lastModifiedVersion = Files.getLastModifiedTime(path)
+            versions += LastModifiedVersion(lastModifiedVersion)
+        }
+    }
+
+    override fun readFrom(): ByteReadChannel = path.readChannel()
+
+    override fun readFrom(range: LongRange): ByteReadChannel = path.readChannel(range.first, range.last)
+}

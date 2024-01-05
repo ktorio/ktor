@@ -24,6 +24,7 @@ public fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
 
 private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: Int): Int {
     if (!bb.hasRemaining()) return copied
+    @Suppress("DEPRECATION")
     val current: ChunkBuffer = prepareRead(1) ?: return copied
 
     val destinationCapacity = bb.remaining()
@@ -96,6 +97,7 @@ public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Un
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 @Deprecated("Use read {} instead.")
 public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
@@ -110,4 +112,5 @@ public inline fun Input.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     }
 }
 
-internal fun Buffer.hasArray(): Boolean = memory.buffer.let { it.hasArray() && !it.isReadOnly }
+@Suppress("DEPRECATION")
+internal fun Buffer.hasArray(): Boolean = memory.let { it.hasArray() && !it.isReadOnly }

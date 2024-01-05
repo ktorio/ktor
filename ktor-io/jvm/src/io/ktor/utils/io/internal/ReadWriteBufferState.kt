@@ -16,8 +16,12 @@ internal sealed class ReadWriteBufferState(
     open val readBuffer: ByteBuffer get() = error("read buffer is not available in state $this")
     open val writeBuffer: ByteBuffer get() = error("write buffer is not available in state $this")
 
-    internal open fun startReading(): ReadWriteBufferState = error("Reading is not available in state $this")
-    internal open fun startWriting(): ReadWriteBufferState = error("Writing is not available in state $this")
+    internal open fun startReading(): ReadWriteBufferState =
+        error("ByteChannel[state: $this] Concurrent reading is not supported")
+
+    internal open fun startWriting(): ReadWriteBufferState =
+        error("ByteChannel[state: $this] Concurrent writing is not supported")
+
     internal open fun stopReading(): ReadWriteBufferState = error("Unable to stop reading in state $this")
     internal open fun stopWriting(): ReadWriteBufferState = error("Unable to stop writing in state $this")
 

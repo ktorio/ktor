@@ -7,6 +7,7 @@ package io.ktor.client.engine.curl
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -20,15 +21,9 @@ internal class CurlClientEngine(
 ) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
-
-    init {
-        coroutineContext[Job]!!.invokeOnCompletion {
-            curlProcessor.close()
-        }
-    }
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
@@ -37,7 +32,7 @@ internal class CurlClientEngine(
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest(config)
-        val responseData = curlProcessor.executeRequest(curlRequest, callContext)
+        val responseData = curlProcessor.executeRequest(curlRequest)
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {
@@ -45,24 +40,31 @@ internal class CurlClientEngine(
             }
             val rawHeaders = parseHeaders(headerBytes)
 
-            val body = writer(coroutineContext) {
-                channel.writeFully(bodyBytes)
-            }.channel
-
             val status = HttpStatusCode.fromValue(status)
 
             val headers = HeadersImpl(rawHeaders.toMap())
             rawHeaders.release()
+
+            val responseBody: Any = if (needToProcessSSE(data, status, headers)) {
+                DefaultClientSSESession(data.body as SSEClientContent, bodyChannel, callContext)
+            } else {
+                bodyChannel
+            }
 
             HttpResponseData(
                 status,
                 requestTime,
                 headers,
                 version.fromCurl(),
-                body,
+                responseBody,
                 callContext
             )
         }
+    }
+
+    override fun close() {
+        super.close()
+        curlProcessor.close()
     }
 }
 

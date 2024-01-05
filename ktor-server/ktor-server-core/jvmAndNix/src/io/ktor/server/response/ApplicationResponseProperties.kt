@@ -9,38 +9,38 @@ package io.ktor.server.response
 import io.ktor.http.*
 
 /**
- * Append HTTP response header with string [value]
+ * Appends a header with the specified [name] and [value] to a response.
  */
 public fun ApplicationResponse.header(name: String, value: String): Unit = headers.append(name, value)
 
 /**
- * Append HTTP response header with integer numeric [value]
+ * Appends a header with the specified [name] and [value] to a response.
  */
 public fun ApplicationResponse.header(name: String, value: Int): Unit = headers.append(name, value.toString())
 
 /**
- * Append HTTP response header with long integer numeric [value]
+ * Appends a header with the specified [name] and [value] to a response.
  */
 public fun ApplicationResponse.header(name: String, value: Long): Unit = headers.append(name, value.toString())
 
 /**
- * Append response `E-Tag` HTTP header [value]
+ * Appends the `E-Tag` header with the specified [value] to a response.
  */
 public fun ApplicationResponse.etag(value: String): Unit = header(HttpHeaders.ETag, value)
 
 /**
- * Append response `Cache-Control` HTTP header [value]
+ * Appends the `Cache-Control` header with the specified [value] to a response.
  */
 public fun ApplicationResponse.cacheControl(value: CacheControl): Unit =
     header(HttpHeaders.CacheControl, value.toString())
 
 /**
- * Append `Cache-Control` HTTP header [value]
+ * Appends the `Cache-Control` header with the specified [value] to a response.
  */
 public fun HeadersBuilder.cacheControl(value: CacheControl): Unit = set(HttpHeaders.CacheControl, value.toString())
 
 /**
- * Append 'Content-Range` header with specified [range] and [fullLength]
+ * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
  */
 public fun HeadersBuilder.contentRange(
     range: LongRange?,
@@ -51,7 +51,7 @@ public fun HeadersBuilder.contentRange(
 }
 
 /**
- * Append response `Content-Range` header with specified [range] and [fullLength]
+ * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
  */
 public fun ApplicationResponse.contentRange(
     range: LongRange?,
@@ -62,7 +62,7 @@ public fun ApplicationResponse.contentRange(
 }
 
 /**
- * Append response `Content-Range` header with specified [range] and [fullLength]
+ * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
  */
 public fun ApplicationResponse.contentRange(
     range: LongRange?,

@@ -118,7 +118,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLeadingDot() = clientTests(listOf("Js", "Darwin", "native:CIO")) {
+    fun testWithLeadingDot() = clientTests(listOf("Js", "Darwin", "DarwinLegacy", "native:CIO")) {
         config {
             install(HttpCookies)
         }
@@ -135,7 +135,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun caseSensitive() = clientTests(listOf("Js", "Darwin")) {
+    fun caseSensitive() = clientTests(listOf("Js", "Darwin", "DarwinLegacy")) {
         config {
             install(HttpCookies)
         }
@@ -192,7 +192,7 @@ class CookiesTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_HOST/encoded").execute { httpResponse ->
                 val response = httpResponse.bodyAsText()
-                val cookieStrings = response.split(";").filter { it.isNotBlank() }
+                val cookieStrings = response.split("; ").filter { it.isNotBlank() }
                 assertEquals(4, cookieStrings.size)
                 assertEquals("uri=first%2C+cookie", cookieStrings[0])
                 assertEquals("raw=first%2C+cookie", cookieStrings[1])
@@ -203,7 +203,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testCookiesWithWrongValue() = clientTests(listOf("js", "Darwin")) {
+    fun testCookiesWithWrongValue() = clientTests(listOf("js", "Darwin", "DarwinLegacy", "WinHttp")) {
         config {
             install(HttpCookies)
         }
@@ -222,6 +222,39 @@ class CookiesTest : ClientLoader() {
 
             assertEquals(1, cookies.size)
             assertEquals(expected, cookies.first())
+        }
+    }
+
+    @Test
+    fun testRequestBuilderSingleCookie() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get("$TEST_HOST/respond-single-cookie") {
+                cookie("single", value = "abacaba")
+            }.body<String>()
+            assertEquals("abacaba", result)
+        }
+    }
+
+    @Test
+    fun testRequestBuilderMultipleCookies() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get("$TEST_HOST/respond-a-minus-b") {
+                cookie("a", value = "10")
+                cookie("b", value = "4")
+            }.body<String>()
+            assertEquals("6", result)
+        }
+    }
+
+    @Test
+    fun testSeparatedBySemicolon() = clientTests(listOf("Js")) {
+        test { client ->
+            client.get("$TEST_HOST/encoded") {
+                cookie("firstCookie", "first")
+                header("Cookie", "secondCookie=second")
+            }.bodyAsText().also {
+                assertEquals("firstCookie=first; secondCookie=second", it)
+            }
         }
     }
 

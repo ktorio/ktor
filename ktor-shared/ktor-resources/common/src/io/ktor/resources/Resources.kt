@@ -4,8 +4,8 @@
 
 package io.ktor.resources
 
-import io.ktor.resources.serialisation.*
-import kotlinx.serialization.*
+import io.ktor.resources.serialization.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.modules.*
 
 /**
@@ -21,12 +21,12 @@ public class Resources(configuration: Configuration) {
     /**
      * Configuration for the Resources plugin instance.
      */
-    @OptIn(ExperimentalSerializationApi::class)
+    @KtorDsl
     public class Configuration {
 
         /**
          * [SerializersModule] used to (de)serialize the Resource instances.
          */
-        public var serializersModule: SerializersModule = EmptySerializersModule
+        public var serializersModule: SerializersModule = EmptySerializersModule()
     }
 }

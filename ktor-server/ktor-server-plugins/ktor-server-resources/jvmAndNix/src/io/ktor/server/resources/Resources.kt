@@ -15,16 +15,13 @@ import io.ktor.resources.Resources as ResourcesCore
  *
  * Example:
  * ```kotlin
- * @Serializable
  * @Resource("/users")
- * data class Users {
- *   @Serializable
+ * class Users {
  *   @Resource("/{id}")
- *   data class ById(val parent: Users = Users(), val id: Long)
+ *   class ById(val parent: Users = Users(), val id: Long)
  *
- *   @Serializable
  *   @Resource("/add")
- *   data class Add(val parent: Users = Users(), val name: String)
+ *   class Add(val parent: Users = Users(), val name: String)
  * }
  *
  * routing {
@@ -41,9 +38,13 @@ import io.ktor.resources.Resources as ResourcesCore
  * val addedUser = client.get(Users.ById(newUserId))
  * ```
  *
+ * Server: [Type-safe routing](https://ktor.io/docs/type-safe-routing.html)
+ *
+ * Client: [Type-safe requests](https://ktor.io/docs/type-safe-request.html)
+ *
  * @see Resource
  */
-public object Resources : ApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
+public object Resources : BaseApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
 
     override val key: AttributeKey<ResourcesCore> = AttributeKey("Resources")
 

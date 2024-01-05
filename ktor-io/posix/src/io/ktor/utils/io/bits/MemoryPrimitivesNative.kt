@@ -5,89 +5,130 @@ package io.ktor.utils.io.bits
 import kotlinx.cinterop.*
 import kotlin.experimental.*
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadShortAt(offset: Int): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
-    else loadShortSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    } else {
+        loadShortSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadShortAt(offset: Long): Short {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
-    else loadShortSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<ShortVar>().pointed.value.toBigEndian()
+    } else {
+        loadShortSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadIntAt(offset: Int): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
-    else loadIntSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    } else {
+        loadIntSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadIntAt(offset: Long): Int {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
-    else loadIntSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<IntVar>().pointed.value.toBigEndian()
+    } else {
+        loadIntSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadLongAt(offset: Int): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
-    else loadLongSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    } else {
+        loadLongSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadLongAt(offset: Long): Long {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
-    else loadLongSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<LongVar>().pointed.value.toBigEndian()
+    } else {
+        loadLongSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadFloatAt(offset: Int): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
-    else loadFloatSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    } else {
+        loadFloatSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadFloatAt(offset: Long): Float {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
-    else loadFloatSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<FloatVar>().pointed.value.toBigEndian()
+    } else {
+        loadFloatSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadDoubleAt(offset: Int): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
-    else loadDoubleSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    } else {
+        loadDoubleSlowAt(pointer)
+    }
 }
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.loadDoubleAt(offset: Long): Double {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
 
-    return if (Platform.canAccessUnaligned) pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
-    else loadDoubleSlowAt(pointer)
+    return if (Platform.canAccessUnaligned) {
+        pointer.reinterpret<DoubleVar>().pointed.value.toBigEndian()
+    } else {
+        loadDoubleSlowAt(pointer)
+    }
 }
 
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -102,6 +143,7 @@ public actual inline fun Memory.storeIntAt(offset: Int, value: Int) {
 /**
  * Write regular signed 32bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -116,6 +158,7 @@ public actual inline fun Memory.storeIntAt(offset: Long, value: Int) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -130,6 +173,7 @@ public actual inline fun Memory.storeShortAt(offset: Int, value: Short) {
 /**
  * Write short signed 16bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
     assertIndex(offset, 2)
     val pointer = pointer.plus(offset)!!
@@ -144,6 +188,7 @@ public actual inline fun Memory.storeShortAt(offset: Long, value: Short) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -158,6 +203,7 @@ public actual inline fun Memory.storeLongAt(offset: Int, value: Long) {
 /**
  * Write short signed 64bit integer in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -172,6 +218,7 @@ public actual inline fun Memory.storeLongAt(offset: Long, value: Long) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -186,6 +233,7 @@ public actual inline fun Memory.storeFloatAt(offset: Int, value: Float) {
 /**
  * Write short signed 32bit floating point number in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
     assertIndex(offset, 4)
     val pointer = pointer.plus(offset)!!
@@ -200,6 +248,7 @@ public actual inline fun Memory.storeFloatAt(offset: Long, value: Float) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -214,6 +263,7 @@ public actual inline fun Memory.storeDoubleAt(offset: Int, value: Double) {
 /**
  * Write short signed 64bit floating point number in the network byte order (Big Endian)
  */
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 public actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     assertIndex(offset, 8)
     val pointer = pointer.plus(offset)!!
@@ -225,12 +275,14 @@ public actual inline fun Memory.storeDoubleAt(offset: Long, value: Double) {
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun storeShortSlowAt(pointer: CPointer<ByteVar>, value: Short) {
     pointer[0] = (value.toInt() ushr 8).toByte()
     pointer[1] = (value and 0xff).toByte()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun storeIntSlowAt(pointer: CPointer<ByteVar>, value: Int) {
     pointer[0] = (value ushr 24).toByte()
@@ -239,6 +291,7 @@ internal inline fun storeIntSlowAt(pointer: CPointer<ByteVar>, value: Int) {
     pointer[3] = (value and 0xff).toByte()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun storeLongSlowAt(pointer: CPointer<ByteVar>, value: Long) {
     pointer[0] = (value ushr 56).toByte()
@@ -251,21 +304,25 @@ internal inline fun storeLongSlowAt(pointer: CPointer<ByteVar>, value: Long) {
     pointer[7] = (value and 0xff).toByte()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun storeFloatSlowAt(pointer: CPointer<ByteVar>, value: Float) {
     storeIntSlowAt(pointer, value.toRawBits())
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun storeDoubleSlowAt(pointer: CPointer<ByteVar>, value: Double) {
     storeLongSlowAt(pointer, value.toRawBits())
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun loadShortSlowAt(pointer: CPointer<ByteVar>): Short {
     return ((pointer[0].toInt() shl 8) or (pointer[1].toInt() and 0xff)).toShort()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun loadIntSlowAt(pointer: CPointer<ByteVar>): Int {
     return (
@@ -276,6 +333,7 @@ internal inline fun loadIntSlowAt(pointer: CPointer<ByteVar>): Int {
         )
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun loadLongSlowAt(pointer: CPointer<ByteVar>): Long {
     return (
@@ -290,11 +348,13 @@ internal inline fun loadLongSlowAt(pointer: CPointer<ByteVar>): Long {
         )
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun loadFloatSlowAt(pointer: CPointer<ByteVar>): Float {
     return Float.fromBits(loadIntSlowAt(pointer))
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @PublishedApi
 internal inline fun loadDoubleSlowAt(pointer: CPointer<ByteVar>): Double {
     return Double.fromBits(loadLongSlowAt(pointer))

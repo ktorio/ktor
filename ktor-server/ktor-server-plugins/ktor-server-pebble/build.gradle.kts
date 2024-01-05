@@ -3,15 +3,16 @@
  */
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
-            api("io.pebbletemplates:pebble:3.1.5")
+            api(libs.pebble)
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
         }
     }
 }

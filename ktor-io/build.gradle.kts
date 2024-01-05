@@ -1,6 +1,10 @@
 kotlin {
+    createCInterop("mutex", posixTargets()) {
+        defFile = File(projectDir, "posix/interop/mutex.def")
+    }
+
     sourceSets {
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }

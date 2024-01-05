@@ -112,7 +112,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests(listOf("Curl")) {
+    fun testGetWithCancellation() = clientTests {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 5000
@@ -127,8 +127,9 @@ class HttpTimeoutTest : ClientLoader() {
 
                 client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                delay(5000) // Channel is closing asynchronously.
-                assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
+                waitForCondition("all children to be cancelled") {
+                    requestBuilder.executionContext.getActiveChildren().none()
+                }
             }
         }
     }
@@ -202,7 +203,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Curl", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -220,7 +221,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Curl", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout)
         }
@@ -300,7 +301,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
                 client.get("$TEST_URL/with-stream") {
-                    parameter("delay", 400)
+                    parameter("delay", 4000)
                 }.body<ByteArray>()
             }
         }
@@ -427,19 +428,6 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "Darwin", "CIO")) {
-        config {
-            install(HttpTimeout) { connectTimeoutMillis = 1000 }
-        }
-
-        test { client ->
-            assertFailsWith<ConnectTimeoutException> {
-                client.get("http://www.google.com:81").body<String>()
-            }
-        }
-    }
-
-    @Test
     fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
@@ -457,22 +445,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "Darwin", "CIO")) {
-        config {
-            install(HttpTimeout)
-        }
-
-        test { client ->
-            assertFailsWith<ConnectTimeoutException> {
-                client.get("http://www.google.com:81") {
-                    timeout { connectTimeoutMillis = 1000 }
-                }.body<String>()
-            }
-        }
-    }
-
-    @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -487,7 +460,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "native:CIO", "Java", "Apache5")) {
         config {
             install(HttpTimeout)
         }
@@ -504,7 +477,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Curl", "Android", "native:CIO")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
@@ -518,7 +491,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        listOf("Js", "Curl", "Android", "native:CIO")
+        listOf("Js", "Android", "Apache5", "native:CIO", "Java")
     ) {
         config {
             install(HttpTimeout)
@@ -537,47 +510,36 @@ class HttpTimeoutTest : ClientLoader() {
     @Test
     fun testNonPositiveTimeout() {
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 requestTimeoutMillis = -1
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 requestTimeoutMillis = 0
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 socketTimeoutMillis = -1
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 socketTimeoutMillis = 0
             )
         }
 
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 connectTimeoutMillis = -1
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            HttpTimeout.HttpTimeoutCapabilityConfiguration(
+            HttpTimeoutConfig(
                 connectTimeoutMillis = 0
             )
-        }
-    }
-
-    @Test
-    fun testNotInstalledPlugins() = clientTests {
-        test { client ->
-            assertFailsWith<IllegalArgumentException> {
-                client.get("https://www.google.com") {
-                    timeout { requestTimeoutMillis = 1000 }
-                }.body<String>()
-            }
         }
     }
 }

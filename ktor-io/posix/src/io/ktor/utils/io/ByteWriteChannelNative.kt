@@ -43,6 +43,23 @@ public actual interface ByteWriteChannel {
     public actual val closedCause: Throwable?
 
     /**
+     * Invokes [block] if it is possible to write at least [min] byte
+     * providing buffer to it so lambda can write to the buffer
+     * up to [Buffer.writeRemaining] bytes. If there are no [min] bytes spaces available then the invocation returns -1.
+     *
+     * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for write but the provided byte buffer could have only 2 remaining bytes:
+     * in this case you have to invoke write again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for write, should be positive
+     * @param block to be invoked when at least [min] bytes free capacity available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    @Suppress("DEPRECATION")
+    public fun writeAvailable(min: Int, block: (Buffer) -> Unit): Int
+
+    /**
      * Writes as much as possible and only suspends if buffer is full
      */
     public actual suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
@@ -50,16 +67,19 @@ public actual interface ByteWriteChannel {
     /**
      * Writes as much as possible and only suspends if buffer is full
      */
+    @Suppress("DEPRECATION")
     public actual suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes as much as possible and only suspends if buffer is full
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Int, length: Int): Int
 
     /**
      * Writes as much as possible and only suspends if buffer is full
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int
 
     /**
@@ -72,12 +92,14 @@ public actual interface ByteWriteChannel {
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
      * Crashes if channel get closed while writing.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun writeFully(src: CPointer<ByteVar>, offset: Int, length: Int)
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
      * Crashes if channel get closed while writing.
      */
+    @OptIn(ExperimentalForeignApi::class)
     public suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
 
     @Suppress("DEPRECATION")
@@ -155,6 +177,7 @@ public actual interface ByteWriteChannel {
      */
     public actual fun flush()
 
+    @Suppress("DEPRECATION")
     public actual suspend fun writeFully(src: Buffer)
 
     public actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)

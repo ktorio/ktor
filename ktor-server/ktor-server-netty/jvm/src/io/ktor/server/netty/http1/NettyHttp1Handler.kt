@@ -8,120 +8,166 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
-import io.ktor.util.*
-import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import java.io.*
 import kotlin.coroutines.*
 
-@ChannelHandler.Sharable
 internal class NettyHttp1Handler(
+    private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
-    private val environment: ApplicationEngineEnvironment,
+    private val environment: ApplicationEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
-    private val requestQueue: NettyRequestQueue
+    private val runningLimit: Int
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
 
-    private var configured = false
-    private var skipEmpty = false
-
     override val coroutineContext: CoroutineContext get() = handlerJob
 
-    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        if (msg is HttpRequest) {
-            handleRequest(ctx, msg)
-        } else if (msg is LastHttpContent && !msg.content().isReadable && skipEmpty) {
-            skipEmpty = false
-            msg.release()
-        } else {
-            ctx.fireChannelRead(msg)
+    private var skipEmpty = false
+
+    private lateinit var responseWriter: NettyHttpResponsePipeline
+
+    private val state = NettyHttpHandlerState(runningLimit)
+
+    override fun channelActive(context: ChannelHandlerContext) {
+        responseWriter = NettyHttpResponsePipeline(
+            context,
+            state,
+            coroutineContext
+        )
+
+        context.channel().config().isAutoRead = false
+        context.channel().read()
+        context.pipeline().apply {
+            addLast(RequestBodyHandler(context))
+            addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
+        }
+        context.fireChannelActive()
+    }
+
+    override fun channelRead(context: ChannelHandlerContext, message: Any) {
+        if (message is LastHttpContent) {
+            state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+        }
+
+        when {
+            message is HttpRequest -> {
+                if (message !is LastHttpContent) {
+                    state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
+                }
+                state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
+                state.activeRequests.incrementAndGet()
+
+                handleRequest(context, message)
+                callReadIfNeeded(context)
+            }
+
+            message is LastHttpContent && !message.content().isReadable && skipEmpty -> {
+                skipEmpty = false
+                message.release()
+                callReadIfNeeded(context)
+            }
+
+            else -> {
+                context.fireChannelRead(message)
+            }
         }
     }
 
-    private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        context.channel().config().isAutoRead = false
+    override fun channelInactive(context: ChannelHandlerContext) {
+        context.pipeline().remove(NettyApplicationCallHandler::class.java)
+        context.fireChannelInactive()
+    }
 
+    @Suppress("OverridingDeprecatedMember")
+    override fun exceptionCaught(context: ChannelHandlerContext, cause: Throwable) {
+        when (cause) {
+            is IOException -> {
+                environment.log.debug("I/O operation failed", cause)
+                handlerJob.cancel()
+                context.close()
+            }
+
+            is ReadTimeoutException -> {
+                context.fireExceptionCaught(cause)
+            }
+
+            else -> {
+                handlerJob.completeExceptionally(cause)
+                context.close()
+            }
+        }
+    }
+
+    override fun channelReadComplete(context: ChannelHandlerContext?) {
+        state.isChannelReadCompleted.compareAndSet(expect = false, update = true)
+        responseWriter.flushIfNeeded()
+        super.channelReadComplete(context)
+    }
+
+    private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
+        val call = prepareCallFromRequest(context, message)
+
+        context.fireChannelRead(call)
+        responseWriter.processResponse(call)
+    }
+
+    /**
+     * Returns netty application call with [message] as a request
+     * and channel for request body
+     */
+    private fun prepareCallFromRequest(
+        context: ChannelHandlerContext,
+        message: HttpRequest
+    ): NettyHttp1ApplicationCall {
         val requestBodyChannel = when {
-            message is LastHttpContent && !message.content().isReadable -> ByteReadChannel.Empty
+            message is LastHttpContent && !message.content().isReadable -> null
             message.method() === HttpMethod.GET &&
                 !HttpUtil.isContentLengthSet(message) && !HttpUtil.isTransferEncodingChunked(message) -> {
                 skipEmpty = true
-                ByteReadChannel.Empty
+                null
             }
-            else -> content(context, message)
+
+            else -> prepareRequestContentChannel(context, message)
         }
 
-        val call = NettyHttp1ApplicationCall(
-            environment.application,
+        return NettyHttp1ApplicationCall(
+            applicationProvider(),
             context,
             message,
             requestBodyChannel,
             engineContext,
             userContext
         )
-
-        requestQueue.schedule(call)
     }
 
-    private fun content(context: ChannelHandlerContext, message: HttpRequest): ByteReadChannel {
-        return when (message) {
-            is HttpContent -> {
-                val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-                bodyHandler.newChannel().also { bodyHandler.channelRead(context, message) }
-            }
-            else -> {
-                val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-                bodyHandler.newChannel()
-            }
-        }
-    }
+    private fun prepareRequestContentChannel(
+        context: ChannelHandlerContext,
+        message: HttpRequest
+    ): ByteReadChannel {
+        val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
+        val result = bodyHandler.newChannel()
 
-    @OptIn(InternalAPI::class)
-    override fun channelActive(ctx: ChannelHandlerContext) {
-        if (!configured) {
-            configured = true
-            val requestBodyHandler = RequestBodyHandler(ctx, requestQueue)
-            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1, requestQueue, coroutineContext)
-
-            ctx.pipeline().apply {
-                addLast(requestBodyHandler)
-                addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline, environment.log))
-            }
-
-            responseWriter.ensureRunning()
+        if (message is HttpContent) {
+            bodyHandler.channelRead(context, message)
         }
 
-        super.channelActive(ctx)
+        return result
     }
 
-    override fun channelInactive(ctx: ChannelHandlerContext) {
-        if (configured) {
-            configured = false
-            ctx.pipeline().apply {
-                remove(NettyApplicationCallHandler::class.java)
-            }
-
-            requestQueue.cancel()
-        }
-        super.channelInactive(ctx)
-    }
-
-    @Suppress("OverridingDeprecatedMember")
-    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        if (cause is IOException || cause is ChannelIOException) {
-            environment.application.log.debug("I/O operation failed", cause)
-            handlerJob.cancel()
+    private fun callReadIfNeeded(context: ChannelHandlerContext) {
+        if (state.activeRequests.value < runningLimit) {
+            context.read()
+            state.skippedRead.value = false
         } else {
-            handlerJob.completeExceptionally(cause)
+            state.skippedRead.value = true
         }
-        requestQueue.cancel()
-        ctx.close()
     }
 }

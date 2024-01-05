@@ -4,11 +4,11 @@
 
 package io.ktor.websocket
 
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlin.jvm.*
 
 /**
- * Websocket close reason
+ * A WebSocket close reason.
  * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
  * @property message - a close reason message, could be empty
  */
@@ -56,7 +56,8 @@ public data class CloseReason(val code: Short, val message: String) {
                 ReplaceWith(
                     "INTERNAL_ERROR",
                     "io.ktor.websocket.CloseReason.Codes.INTERNAL_ERROR"
-                )
+                ),
+                level = DeprecationLevel.ERROR
             )
             @JvmField
             @Suppress("UNUSED")

@@ -7,8 +7,8 @@ package io.ktor.http.auth
 import io.ktor.http.*
 import io.ktor.http.parsing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlin.native.concurrent.*
 
 private val TOKEN_EXTRA = setOf('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~')
 private val TOKEN68_EXTRA = setOf('-', '.', '_', '~', '+', '/')
@@ -19,12 +19,14 @@ private val escapeRegex: Regex = "\\\\.".toRegex()
  * Parses an authorization header [headerValue] into a [HttpAuthHeader].
  * @return [HttpAuthHeader] or `null` if argument string is blank.
  * @throws [ParseException] on invalid header
+ *
+ * @see [parseAuthorizationHeaders]
  */
 public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     var index = 0
     index = headerValue.skipSpaces(index)
 
-    var tokenStartIndex = index
+    val tokenStartIndex = index
     while (index < headerValue.length && headerValue[index].isToken()) {
         index++
     }
@@ -32,7 +34,6 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     // Auth scheme
     val authScheme = headerValue.substring(tokenStartIndex until index)
     index = headerValue.skipSpaces(index)
-    tokenStartIndex = index
 
     if (authScheme.isBlank()) {
         return null
@@ -42,28 +43,117 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
         return HttpAuthHeader.Parameterized(authScheme, emptyList())
     }
 
-    val token68 = matchToken68(headerValue, index)
-    if (token68 != null) {
-        return HttpAuthHeader.Single(authScheme, token68)
+    val token68EndIndex = matchToken68(headerValue, index)
+    val token68 = headerValue.substring(index until token68EndIndex).trim()
+    if (token68.isNotEmpty()) {
+        if (token68EndIndex == headerValue.length) {
+            return HttpAuthHeader.Single(authScheme, token68)
+        }
     }
 
-    val parameters = matchParameters(headerValue, tokenStartIndex)
-    return HttpAuthHeader.Parameterized(authScheme, parameters)
+    val parameters = mutableMapOf<String, String>()
+    val endIndex = matchParameters(headerValue, index, parameters)
+    return if (endIndex == -1) {
+        HttpAuthHeader.Parameterized(authScheme, parameters)
+    } else {
+        throw ParseException("Function parseAuthorizationHeader can parse only one header")
+    }
 }
 
-private fun matchParameters(headerValue: String, startIndex: Int): Map<String, String> {
-    val result = mutableMapOf<String, String>()
+/**
+ * Parses an authorization header [headerValue] into a list of [HttpAuthHeader].
+ * @return a list of [HttpAuthHeader]
+ * @throws [ParseException] on invalid header
+ */
+@InternalAPI
+public fun parseAuthorizationHeaders(headerValue: String): List<HttpAuthHeader> {
+    var index = 0
+    val headers = mutableListOf<HttpAuthHeader>()
+    while (index != -1) {
+        index = parseAuthorizationHeader(headerValue, index, headers)
+    }
+    return headers
+}
 
+private fun parseAuthorizationHeader(
+    headerValue: String,
+    startIndex: Int,
+    headers: MutableList<HttpAuthHeader>
+): Int {
+    var index = headerValue.skipSpaces(startIndex)
+
+    // Auth scheme
+    val schemeStartIndex = index
+    while (index < headerValue.length && headerValue[index].isToken()) {
+        index++
+    }
+    val authScheme = headerValue.substring(schemeStartIndex until index)
+
+    if (authScheme.isBlank()) {
+        throw ParseException("Invalid authScheme value: it should be token, can't be blank")
+    }
+    index = headerValue.skipSpaces(index)
+
+    nextChallengeIndex(headers, HttpAuthHeader.Parameterized(authScheme, emptyList()), index, headerValue)?.let {
+        return it
+    }
+
+    val token68EndIndex = matchToken68(headerValue, index)
+    val token68 = headerValue.substring(index until token68EndIndex).trim()
+    if (token68.isNotEmpty()) {
+        nextChallengeIndex(headers, HttpAuthHeader.Single(authScheme, token68), token68EndIndex, headerValue)?.let {
+            return it
+        }
+    }
+
+    val parameters = mutableMapOf<String, String>()
+    val nextIndexChallenge = matchParameters(headerValue, index, parameters)
+    headers.add(HttpAuthHeader.Parameterized(authScheme, parameters))
+    return nextIndexChallenge
+}
+
+/**
+ * Check for the ending of the current challenge in a header
+ * @return -1 if at the end of the header
+ * @return null if the challenge is not ended
+ * @return a positive number - the index of the beginning of the next challenge
+ */
+private fun nextChallengeIndex(
+    headers: MutableList<HttpAuthHeader>,
+    header: HttpAuthHeader,
+    index: Int,
+    headerValue: String
+): Int? {
+    if (index == headerValue.length || headerValue[index] == ',') {
+        headers.add(header)
+        return when {
+            index == headerValue.length -> -1
+            headerValue[index] == ',' -> index + 1
+            else -> error("") // unreachable code
+        }
+    }
+    return null
+}
+
+private fun matchParameters(headerValue: String, startIndex: Int, parameters: MutableMap<String, String>): Int {
     var index = startIndex
     while (index > 0 && index < headerValue.length) {
-        index = matchParameter(headerValue, index, result)
-        index = headerValue.skipDelimiter(index, ',')
+        val nextIndex = matchParameter(headerValue, index, parameters)
+        if (nextIndex == index) {
+            return index
+        } else {
+            index = headerValue.skipDelimiter(nextIndex, ',')
+        }
     }
 
-    return result
+    return index
 }
 
-private fun matchParameter(headerValue: String, startIndex: Int, parameters: MutableMap<String, String>): Int {
+private fun matchParameter(
+    headerValue: String,
+    startIndex: Int,
+    parameters: MutableMap<String, String>
+): Int {
     val keyStart = headerValue.skipSpaces(startIndex)
     var index = keyStart
 
@@ -71,15 +161,15 @@ private fun matchParameter(headerValue: String, startIndex: Int, parameters: Mut
     while (index < headerValue.length && headerValue[index].isToken()) {
         index++
     }
-
     val key = headerValue.substring(keyStart until index)
 
-    // Take '='
+    // Check if new challenge
     index = headerValue.skipSpaces(index)
-    if (index >= headerValue.length || headerValue[index] != '=') {
-        throw ParseException("Expected `=` after parameter key '$key': $headerValue")
+    if (index == headerValue.length || headerValue[index] != '=') {
+        return startIndex
     }
 
+    // Take '='
     index++
     index = headerValue.skipSpaces(index)
 
@@ -101,7 +191,7 @@ private fun matchParameter(headerValue: String, startIndex: Int, parameters: Mut
         }
 
         if (index == headerValue.length) {
-            throw ParseException("Expected closing quote'\"' in parameter: $headerValue ")
+            throw ParseException("Expected closing quote'\"' in parameter")
         }
     } else {
         while (index < headerValue.length && headerValue[index] != ' ' && headerValue[index] != ',') {
@@ -116,8 +206,8 @@ private fun matchParameter(headerValue: String, startIndex: Int, parameters: Mut
     return index
 }
 
-private fun matchToken68(headerValue: String, startIndex: Int): String? {
-    var index = startIndex
+private fun matchToken68(headerValue: String, startIndex: Int): Int {
+    var index = headerValue.skipSpaces(startIndex)
 
     while (index < headerValue.length && headerValue[index].isToken68()) {
         index++
@@ -127,12 +217,7 @@ private fun matchToken68(headerValue: String, startIndex: Int): String? {
         index++
     }
 
-    val onlySpaceRemaining = (index until headerValue.length).all { headerValue[it] == ' ' }
-    if (onlySpaceRemaining) {
-        return headerValue.substring(startIndex until index)
-    }
-
-    return null
+    return headerValue.skipSpaces(index)
 }
 
 /**
@@ -156,7 +241,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
     public class Single(authScheme: String, public val blob: String) : HttpAuthHeader(authScheme) {
         init {
             if (!blob.matches(token68Pattern)) {
-                throw ParseException("Invalid blob value: it should be token68, but instead it is $blob")
+                throw ParseException("Invalid blob value: it should be token68")
             }
         }
 
@@ -193,7 +278,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         init {
             parameters.forEach {
                 if (!it.name.matches(token68Pattern)) {
-                    throw ParseException("parameter name should be a token but it is ${it.name}")
+                    throw ParseException("Parameter name should be a token")
                 }
             }
         }
@@ -229,8 +314,11 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             return Parameterized(authScheme, newParameters, encoding)
         }
 
-        override fun render(encoding: HeaderValueEncoding): String =
+        override fun render(encoding: HeaderValueEncoding): String = if (parameters.isEmpty()) {
+            authScheme
+        } else {
             parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
+        }
 
         /**
          * Tries to extract the first value of a parameter [name]. Returns null when not found.
@@ -285,6 +373,14 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
                     put(Parameters.Charset, charset.name)
                 }
             }
+        )
+
+        /**
+         * Generates an [AuthScheme.Bearer] challenge as a [HttpAuthHeader].
+         */
+        public fun bearerAuthChallenge(scheme: String, realm: String? = null): HttpAuthHeader = Parameterized(
+            authScheme = scheme,
+            parameters = if (realm == null) emptyMap() else mapOf(Parameters.Realm to realm)
         )
 
         /**
@@ -344,13 +440,12 @@ private fun String.unescaped() = replace(escapeRegex) { it.value.takeLast(1) }
 private fun String.skipDelimiter(startIndex: Int, delimiter: Char): Int {
     var index = skipSpaces(startIndex)
 
-    while (index < length && this[index] != delimiter) {
-        index++
+    if (index == length) return -1
+    if (this[index] != delimiter) {
+        throw ParseException("Expected delimiter $delimiter at position $index")
     }
 
-    if (index == length) return -1
     index++
-
     return skipSpaces(index)
 }
 

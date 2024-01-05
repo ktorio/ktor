@@ -5,7 +5,7 @@
 package io.ktor.server.testing
 
 import io.ktor.http.*
-import io.ktor.http.cio.RequestResponseBuilder
+import io.ktor.http.cio.*
 import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
@@ -209,13 +209,6 @@ public class HighLoadHttpGenerator(
             }
         }
 
-//        private fun findEol0(bb: ByteBuffer) {
-//            if (scan(bb) { it == N }) {
-//                parseState = ParseState.HTTP
-//                tokenSize = 0
-//            }
-//        }
-
         private fun findEol(bb: ByteBuffer) {
             val position = bb.position()
             val limit = bb.limit()
@@ -408,7 +401,7 @@ public class HighLoadHttpGenerator(
 
             return false
         }
-        */
+         */
     }
 
     public fun shutdown() {

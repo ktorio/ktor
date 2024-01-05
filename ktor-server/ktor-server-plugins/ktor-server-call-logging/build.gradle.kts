@@ -3,13 +3,20 @@
  */
 
 description = ""
-val jansi_version: String by project.extra
 
 kotlin {
     sourceSets {
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
-                implementation("org.fusesource.jansi:jansi:$jansi_version")
+                implementation(libs.jansi)
+                implementation(libs.kotlinx.coroutines.slf4j)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
             }
         }
     }

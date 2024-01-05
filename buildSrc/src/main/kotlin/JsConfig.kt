@@ -11,73 +11,53 @@ fun Project.configureJs() {
     configureJsTasks()
 
     kotlin {
-        val kotlin_version: String by extra
         sourceSets {
-            val jsMain by getting {
-                dependencies {
-                    api("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
-                }
-            }
-
             val jsTest by getting {
                 dependencies {
-                    api("org.jetbrains.kotlin:kotlin-test-js:$kotlin_version")
-                    api(npm("puppeteer", "*"))
+                    implementation(npm("puppeteer", "*"))
                 }
             }
         }
     }
 
-    configureTestTask()
+    configureJsTestTasks()
 }
 
 private fun Project.configureJsTasks() {
     kotlin {
-        js {
+        js(IR) {
             nodejs {
-                testTask {
-                    useMocha {
-                        timeout = "10000"
+                testTask(
+                    Action {
+                        useMocha {
+                            timeout = "10000"
+                        }
                     }
-                }
+                )
             }
 
             browser {
-                testTask {
-                    useKarma {
-                        useChromeHeadless()
-                        useConfigDirectory(File(project.rootProject.projectDir, "karma"))
+                testTask(
+                    Action {
+                        useKarma {
+                            useChromeHeadless()
+                            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
+                        }
                     }
-                }
+                )
             }
 
-            val main by compilations.getting
-            main.kotlinOptions.apply {
-                metaInfo = true
-                sourceMap = true
-                moduleKind = "umd"
-                this.main = "noCall"
-                sourceMapEmbedSources = "always"
-            }
-
-            val test by compilations.getting
-            test.kotlinOptions.apply {
-                metaInfo = true
-                sourceMap = true
-                moduleKind = "umd"
-                this.main = "call"
-                sourceMapEmbedSources = "always"
-            }
+            binaries.library()
         }
     }
 }
 
-private fun Project.configureTestTask() {
+private fun Project.configureJsTestTasks() {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
+    if (shouldRunJsBrowserTest) return
 
-    val jsLegacyBrowserTest by tasks.getting
-    jsLegacyBrowserTest.onlyIf { shouldRunJsBrowserTest }
-
-    val jsIrBrowserTest by tasks.getting
-    jsIrBrowserTest.onlyIf { shouldRunJsBrowserTest }
+    val cleanJsBrowserTest by tasks.getting
+    val jsBrowserTest by tasks.getting
+    cleanJsBrowserTest.onlyIf { false }
+    jsBrowserTest.onlyIf { false }
 }

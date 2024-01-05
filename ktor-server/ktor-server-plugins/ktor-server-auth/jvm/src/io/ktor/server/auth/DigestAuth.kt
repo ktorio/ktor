@@ -12,76 +12,26 @@ import io.ktor.util.*
 import java.security.*
 
 /**
- * Represents a Digest authentication provider
- * @property realm specifies value to be passed in `WWW-Authenticate` header
- * @property algorithmName Message digest algorithm to be used. Usually only `MD5` is supported by clients.
+ * A `digest` [Authentication] provider.
+ * @property realm specifies the value to be passed in the `WWW-Authenticate` header.
+ * @property algorithmName a message digest algorithm to be used. Usually only `MD5` is supported by clients.
  */
 public class DigestAuthenticationProvider internal constructor(
-    config: Configuration
+    config: Config
 ) : AuthenticationProvider(config) {
 
-    public val realm: String = config.realm
+    private val realm: String = config.realm
 
-    public val algorithmName: String = config.algorithmName
+    private val algorithmName: String = config.algorithmName
 
-    internal val nonceManager: NonceManager = config.nonceManager
+    private val nonceManager: NonceManager = config.nonceManager
 
-    internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
+    private val userNameRealmPasswordDigestProvider: DigestProviderFunction = config.digestProvider
 
-    /**
-     * Digest auth configuration
-     */
-    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var digestProvider: DigestProviderFunction = { userName, realm ->
-            MessageDigest.getInstance(algorithmName).let { digester ->
-                digester.reset()
-                digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
-                digester.digest()
-            }
-        }
+    private val authenticationFunction: AuthenticationFunction<DigestCredential> = config.authenticationFunction
 
-        /**
-         * Specifies realm to be passed in `WWW-Authenticate` header
-         */
-        public var realm: String = "Ktor Server"
-
-        /**
-         * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
-         */
-        public var algorithmName: String = "MD5"
-
-        /**
-         * [NonceManager] to be used to generate nonce values
-         */
-        public var nonceManager: NonceManager = GenerateOnlyNonceManager
-
-        /**
-         * Configures digest provider function that should fetch or compute message digest for the specified
-         * `userName` and `realm`. A message digest is usually computed based on user name (login), realm and password
-         * concatenated with colon character ':'. For example `"$userName:$realm:$password"`.
-         */
-        public fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
-            digestProvider = digest
-        }
-    }
-}
-
-/**
- * Provides message digest for the specified username and realm or returns `null` if the user is missing.
- * This function could fetch digest from a database or compute it instead.
- */
-public typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
-
-/**
- * Installs Digest Authentication mechanism
- */
-public fun Authentication.Configuration.digest(
-    name: String? = null,
-    configure: DigestAuthenticationProvider.Configuration.() -> Unit
-) {
-    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Configuration(name).apply(configure))
-
-    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        val call = context.call
         val authorizationHeader = call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
@@ -94,17 +44,17 @@ public fun Authentication.Configuration.digest(
         val verify: suspend (DigestCredential) -> Boolean = {
             it.verifier(
                 call.request.local.method,
-                MessageDigest.getInstance(provider.algorithmName),
-                provider.userNameRealmPasswordDigestProvider
+                MessageDigest.getInstance(algorithmName),
+                userNameRealmPasswordDigestProvider
             )
         }
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == provider.algorithmName &&
-                it.realm == provider.realm &&
-                provider.nonceManager.verifyNonce(it.nonce) &&
+            if ((it.algorithm ?: "MD5") == algorithmName &&
+                it.realm == realm &&
+                nonceManager.verifyNonce(it.nonce) &&
                 verify(it)
             ) {
-                UserIdPrincipal(it.userName)
+                call.authenticationFunction(it)
             } else {
                 null
             }
@@ -117,41 +67,104 @@ public fun Authentication.Configuration.digest(
                     else -> AuthenticationFailedCause.InvalidCredentials
                 }
 
-                context.challenge(digestAuthenticationChallengeKey, cause) {
+                @Suppress("NAME_SHADOWING")
+                context.challenge(digestAuthenticationChallengeKey, cause) { challenge, call ->
                     call.respond(
                         UnauthorizedResponse(
                             HttpAuthHeader.digestAuthChallenge(
-                                provider.realm,
-                                algorithm = provider.algorithmName,
-                                nonce = provider.nonceManager.newNonce()
+                                realm,
+                                algorithm = algorithmName,
+                                nonce = nonceManager.newNonce()
                             )
                         )
                     )
-                    it.complete()
+                    challenge.complete()
                 }
             }
-            else -> context.principal(principal)
+            else -> context.principal(name, principal)
         }
     }
 
+    /**
+     * A configuration for the [digest] authentication provider.
+     */
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+        internal var digestProvider: DigestProviderFunction = { userName, realm ->
+            MessageDigest.getInstance(algorithmName).let { digester ->
+                digester.reset()
+                digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
+                digester.digest()
+            }
+        }
+
+        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdPrincipal(it.userName) }
+
+        /**
+         * Specifies a realm to be passed in the `WWW-Authenticate` header.
+         */
+        public var realm: String = "Ktor Server"
+
+        /**
+         * A message digest algorithm to be used. Usually only `MD5` is supported by clients.
+         */
+        public var algorithmName: String = "MD5"
+
+        /**
+         * [NonceManager] to be used to generate nonce values.
+         */
+        public var nonceManager: NonceManager = GenerateOnlyNonceManager
+
+        /**
+         * Sets a validation function that checks a specified [DigestCredential] instance and
+         * returns [Principal] in a case of successful authentication or null if authentication fails.
+         */
+        public fun validate(body: AuthenticationFunction<DigestCredential>) {
+            authenticationFunction = body
+        }
+
+        /**
+         * Configures a digest provider function that should fetch or compute message digest for the specified
+         * `userName` and `realm`. A message digest is usually computed based on username, realm and password
+         * concatenated with the colon character ':'. For example, `"$userName:$realm:$password"`.
+         */
+        public fun digestProvider(digest: DigestProviderFunction) {
+            digestProvider = digest
+        }
+    }
+}
+
+/**
+ * Provides a message digest for the specified username and realm or returns `null` if a user is missing.
+ * This function could fetch digest from a database or compute it instead.
+ */
+public typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
+
+/**
+ * Installs the digest [Authentication] provider.
+ * To learn how to configure it, see [Digest authentication](https://ktor.io/docs/digest.html).
+ */
+public fun AuthenticationConfig.digest(
+    name: String? = null,
+    configure: DigestAuthenticationProvider.Config.() -> Unit
+) {
+    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Config(name).apply(configure))
     register(provider)
 }
 
 /**
- * Represents Digest credentials
+ * Digest credentials.
+ * @see [digest]
  *
- * For details see [RFC2617](http://www.faqs.org/rfcs/rfc2617.html)
- *
- * @property realm digest auth realm
+ * @property realm a digest authentication realm
  * @property userName
  * @property digestUri may be an absolute URI or `*`
  * @property nonce
- * @property opaque a string of data that is passed through unchanged
+ * @property opaque a string of data which should be returned by the client unchanged
  * @property nonceCount must be sent if [qop] is specified and must be `null` otherwise
- * @property algorithm digest algorithm name
+ * @property algorithm a digest algorithm name
  * @property response consist of 32 hex digits (digested password and other fields as per RFC)
  * @property cnonce must be sent if [qop] is specified and must be `null` otherwise. Should be passed through unchanged.
- * @property qop quality of protection sign
+ * @property qop a quality of protection sign
  */
 public data class DigestCredential(
     val realm: String,
@@ -167,7 +180,7 @@ public data class DigestCredential(
 ) : Credential
 
 /**
- * Retrieves [DigestCredential] from this call
+ * Retrieves [DigestCredential] for this call.
  */
 public fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? {
     return request.parseAuthorizationHeader()?.let { authHeader ->
@@ -182,7 +195,7 @@ public fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? 
 private val digestAuthenticationChallengeKey: Any = "DigestAuth"
 
 /**
- * Converts [HttpAuthHeader] to [DigestCredential]
+ * Converts [HttpAuthHeader] to [DigestCredential].
  */
 public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
     parameter("realm")!!,
@@ -198,7 +211,7 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential =
 )
 
 /**
- * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
+ * Verifies that credentials are valid for a given [method], [digester], and [userNameRealmPasswordDigest].
  */
 public suspend fun DigestCredential.verifier(
     method: HttpMethod,
@@ -219,7 +232,7 @@ public suspend fun DigestCredential.verifier(
 }
 
 /**
- * Calculates expected digest bytes for this [DigestCredential]
+ * Calculates the expected digest bytes for this [DigestCredential].
  */
 public fun DigestCredential.expectedDigest(
     method: HttpMethod,

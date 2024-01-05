@@ -45,6 +45,9 @@ public class WebSocketReader(
         } catch (cause: FrameTooBigException) {
             // Bypass exception via queue to prevent cancellation and handle it on the top level.
             queue.close(cause)
+        } catch (cause: ProtocolViolationException) {
+            // same as above
+            queue.close(cause)
         } catch (cause: Throwable) {
             throw cause
         } finally {
@@ -61,9 +64,9 @@ public class WebSocketReader(
     private suspend fun readLoop(buffer: ByteBuffer) {
         buffer.clear()
 
-        while (true) {
+        while (state != State.CLOSED) {
             if (byteChannel.readAvailable(buffer) == -1) {
-                state = State.END
+                state = State.CLOSED
                 break
             }
 
@@ -96,14 +99,15 @@ public class WebSocketReader(
 
                     handleFrameIfProduced()
                 }
-                State.END -> return
+                State.CLOSED -> return
             }
         }
     }
 
     private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
-            state = State.HEADER
+            state = if (frameParser.frameType == FrameType.CLOSE) State.CLOSED else State.HEADER
+
             val frame = with(frameParser) {
                 Frame.byType(fin, frameType, collector.take(maskKey).moveToByteArray(), rsv1, rsv2, rsv3)
             }
@@ -113,26 +117,9 @@ public class WebSocketReader(
         }
     }
 
-    /**
-     * Raised when the frame is bigger than allowed in a current websocket session
-     * @param frameSize size of received or posted frame that is too big
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    public class FrameTooBigException(
-        public val frameSize: Long
-    ) : Exception(), CopyableThrowable<FrameTooBigException> {
-
-        override val message: String
-            get() = "Frame is too big: $frameSize"
-
-        override fun createCopy(): FrameTooBigException = FrameTooBigException(frameSize).also {
-            it.initCause(this)
-        }
-    }
-
     private enum class State {
         HEADER,
         BODY,
-        END
+        CLOSED
     }
 }

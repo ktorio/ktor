@@ -7,49 +7,84 @@ package io.ktor.server.plugins.hsts
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
- * HSTS plugin that appends `Strict-Transport-Security` HTTP header to every response.
- * See http://ktor.io/servers/features/hsts.html for details
- * See RFC 6797 https://tools.ietf.org/html/rfc6797
+ *  A configuration for the [HSTS] settings for a host.
  */
-public class HSTS private constructor(config: Configuration) {
+@KtorDsl
+public open class HSTSHostConfig {
     /**
-     * HSTS configuration
+     * Specifies the `preload` HSTS directive, which allows you to include your domain name
+     * in the HSTS preload list.
      */
-    public class Configuration {
-        /**
-         * Consents that the policy allows including the domain into web browser preloading list
-         */
-        public var preload: Boolean = false
+    public var preload: Boolean = false
 
-        /**
-         * Adds includeSubDomains directive, which applies this policy to this domain and any subdomains
-         */
-        public var includeSubDomains: Boolean = true
+    /**
+     * Specifies the `includeSubDomains` directive, which applies this policy to any subdomains as well.
+     */
+    public var includeSubDomains: Boolean = true
 
-        /**
-         * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
-         */
-        public var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE
-            set(newMaxAge) {
-                check(newMaxAge >= 0L) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
-                field = newMaxAge
-            }
+    /**
+     * Specifies how long (in seconds) the client should keep the host in a list of known HSTS hosts:
+     */
+    public var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE
+        set(newMaxAge) {
+            check(newMaxAge >= 0L) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+            field = newMaxAge
+        }
 
-        /**
-         * Any custom directives supported by specific user-agent
-         */
-        public val customDirectives: MutableMap<String, String?> = HashMap()
+    /**
+     * Allows you to add custom directives supported by a specific user agent.
+     */
+    public val customDirectives: MutableMap<String, String?> = HashMap()
+}
+
+/**
+ *  A configuration for the [HSTS] plugin.
+ */
+@KtorDsl
+public class HSTSConfig : HSTSHostConfig() {
+    /**
+     * @see [withHost]
+     */
+    internal val hostSpecific: MutableMap<String, HSTSHostConfig> = HashMap()
+
+    internal var filter: ((ApplicationCall) -> Boolean)? = null
+
+    /**
+     * Set specific configuration for a [host].
+     */
+    public fun withHost(host: String, configure: HSTSHostConfig.() -> Unit) {
+        this.hostSpecific[host] = HSTSHostConfig().apply(configure)
     }
 
     /**
-     * Constructed `Strict-Transport-Security` header value
+     * Sets a filter that determines whether the plugin should be applied to a specific call.
      */
-    @Suppress("MemberVisibilityCanBePrivate")
-    public val headerValue: String = buildString {
+    public fun filter(block: (ApplicationCall) -> Boolean) {
+        this.filter = block
+    }
+}
+
+internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
+
+/**
+ * A plugin that appends the `Strict-Transport-Security` HTTP header to every response.
+ *
+ * The [HSTS] configuration below specifies how long the client
+ * should keep the host in a list of known HSTS hosts:
+ * ```kotlin
+ * install(HSTS) {
+ *     maxAgeInSeconds = 10
+ * }
+ * ```
+ * You can learn more from [HSTS](https://ktor.io/docs/hsts.html).
+ */
+public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS", ::HSTSConfig) {
+    fun constructHeaderValue(config: HSTSHostConfig) = buildString {
         append("max-age=")
         append(config.maxAgeInSeconds)
 
@@ -72,28 +107,22 @@ public class HSTS private constructor(config: Configuration) {
     }
 
     /**
-     * Plugin's main interceptor, usually installed by the plugin itself
+     * A constructed default `Strict-Transport-Security` header value.
      */
-    public fun intercept(call: ApplicationCall) {
-        if (call.request.origin.run { scheme == "https" && port == 443 }) {
-            call.response.header(HttpHeaders.StrictTransportSecurity, headerValue)
-        }
+    val headerValue: String = constructHeaderValue(pluginConfig)
+
+    val hostHeaderValues: Map<String, String> = pluginConfig.hostSpecific.mapValues { constructHeaderValue(it.value) }
+
+    val filter = pluginConfig.filter ?: { call ->
+        call.request.origin.run { scheme == "https" && serverPort == 443 }
     }
 
-    /**
-     * A plugin installation object
-     */
-    public companion object Plugin : RouteScopedPlugin<Configuration, HSTS> {
-        public const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
-
-        override val key: AttributeKey<HSTS> = AttributeKey("HSTS")
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): HSTS {
-            val plugin = HSTS(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Plugins) { plugin.intercept(call) }
-            return plugin
+    onCallRespond { call ->
+        if (filter(call)) {
+            call.response.header(
+                HttpHeaders.StrictTransportSecurity,
+                hostHeaderValues[call.request.host()] ?: headerValue
+            )
         }
     }
 }

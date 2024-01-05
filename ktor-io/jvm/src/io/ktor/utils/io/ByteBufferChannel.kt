@@ -3,22 +3,23 @@ package io.ktor.utils.io
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.io.EOFException
 import java.lang.Double.*
 import java.lang.Float.*
 import java.nio.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
+import kotlin.math.*
 
 internal const val DEFAULT_CLOSE_MESSAGE: String = "Byte channel was closed"
 private const val BYTE_BUFFER_CAPACITY: Int = 4088
+private val DEFAULT_CLOSE_CAUSE = ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE)
+private val DEFAULT_CANCELLATION_EXCEPTION: CancellationException = CancellationException("Channel has been cancelled")
 
 // implementation for ByteChannel
 @Suppress("DEPRECATION", "OverridingDeprecatedMember")
@@ -43,6 +44,7 @@ internal open class ByteBufferChannel(
         get() = _state.value
 
     private val _closed: AtomicRef<ClosedElement?> = atomic(null)
+
     private var closed: ClosedElement?
         get() = _closed.value
         set(value) {
@@ -53,6 +55,7 @@ internal open class ByteBufferChannel(
     private var joining: JoiningState? = null
 
     private val _readOp: AtomicRef<Continuation<Boolean>?> = atomic(null)
+
     private var readOp: Continuation<Boolean>?
         get() = _readOp.value
         set(value) {
@@ -77,6 +80,7 @@ internal open class ByteBufferChannel(
 
     internal fun getJoining(): JoiningState? = joining
 
+    @Deprecated(IO_DEPRECATION_MESSAGE)
     @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         // TODO actually it looks like one-direction attachChild API
@@ -151,7 +155,7 @@ internal open class ByteBufferChannel(
 
         // any further attempt to suspend should be resumed immediately
         // with exception for write
-        writeSuspendContinuationCache.close(ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE))
+        writeSuspendContinuationCache.close(DEFAULT_CLOSE_CAUSE)
 
         // and with computed result for read
         readSuspendContinuationCache.close(state.capacity.flush())
@@ -159,7 +163,7 @@ internal open class ByteBufferChannel(
     }
 
     override fun cancel(cause: Throwable?): Boolean {
-        return close(cause ?: CancellationException("Channel has been cancelled"))
+        return close(cause ?: DEFAULT_CANCELLATION_EXCEPTION)
     }
 
     private fun flushImpl(minWriteSize: Int) {
@@ -226,19 +230,23 @@ internal open class ByteBufferChannel(
                     allocatedState?.let { releaseBuffer(it) }
                     return null
                 }
+
                 closed != null -> {
                     allocatedState?.let { releaseBuffer(it) }
                     rethrowClosed(closed!!.sendException)
                 }
+
                 state === ReadWriteBufferState.IdleEmpty -> {
                     val allocated = allocatedState ?: newBuffer().also { allocatedState = it }
                     allocated.startWriting()
                 }
+
                 state === ReadWriteBufferState.Terminated -> {
                     allocatedState?.let { releaseBuffer(it) }
                     if (joining != null) return null
                     rethrowClosed(closed!!.sendException)
                 }
+
                 else -> {
                     state.startWriting()
                 }
@@ -290,6 +298,7 @@ internal open class ByteBufferChannel(
                     val cause = closed?.cause ?: return null
                     rethrowClosed(cause)
                 }
+
                 else -> {
                     closed?.cause?.let { rethrowClosed(it) }
                     if (state.capacity.availableForRead == 0) return null
@@ -406,11 +415,13 @@ internal open class ByteBufferChannel(
                     toRelease = state.initial
                     ReadWriteBufferState.Terminated
                 }
+
                 forceTermination && state is ReadWriteBufferState.IdleNonEmpty &&
                     state.capacity.tryLockForRelease() -> {
                     toRelease = state.initial
                     ReadWriteBufferState.Terminated
                 }
+
                 else -> return false
             }
         }
@@ -490,7 +501,11 @@ internal open class ByteBufferChannel(
         return consumed
     }
 
-    private fun readAsMuchAsPossible(dst: Buffer, consumed: Int = 0, max: Int = dst.writeRemaining): Int {
+    private fun readAsMuchAsPossible(
+        dst: io.ktor.utils.io.core.Buffer,
+        consumed: Int = 0,
+        max: Int = dst.writeRemaining
+    ): Int {
         var currentConsumed = consumed
         var currentMax = max
 
@@ -672,6 +687,7 @@ internal open class ByteBufferChannel(
                     -1
                 }
             }
+
             consumed > 0 || length == 0 -> consumed
             else -> readAvailableSuspend(dst, offset, length)
         }
@@ -688,6 +704,7 @@ internal open class ByteBufferChannel(
                     -1
                 }
             }
+
             consumed > 0 || !dst.hasRemaining() -> consumed
             else -> readAvailableSuspend(dst)
         }
@@ -704,6 +721,7 @@ internal open class ByteBufferChannel(
                     -1
                 }
             }
+
             consumed > 0 || !dst.canWrite() -> consumed
             else -> readAvailableSuspend(dst)
         }
@@ -1077,7 +1095,7 @@ internal open class ByteBufferChannel(
         return writeFullySuspend(src)
     }
 
-    override suspend fun writeFully(src: Buffer) {
+    override suspend fun writeFully(src: io.ktor.utils.io.core.Buffer) {
         writeAsMuchAsPossible(src)
 
         if (!src.canRead()) {
@@ -1102,7 +1120,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private suspend fun writeFullySuspend(src: Buffer) {
+    private suspend fun writeFullySuspend(src: io.ktor.utils.io.core.Buffer) {
         while (src.canRead()) {
             tryWriteSuspend(1)
 
@@ -1155,17 +1173,19 @@ internal open class ByteBufferChannel(
         src.awaitClose()
     }
 
+    // prevent from boxing
+    private var partSize = 0
+    private var copied: Long = 0L
+
     internal suspend fun copyDirect(src: ByteBufferChannel, limit: Long, joined: JoiningState?): Long {
         assert(limit > 0)
-
-        if (src.closedCause != null) {
-            close(src.closedCause)
-            return 0L
-        }
 
         if (src.isClosedForRead) {
             if (joined != null) {
                 check(src.tryCompleteJoining(joined))
+            }
+            if (src.closedCause != null) {
+                close(src.closedCause)
             }
             return 0L
         }
@@ -1177,7 +1197,7 @@ internal open class ByteBufferChannel(
         val autoFlush = autoFlush
 
         try {
-            var copied = 0L
+            copied = 0
             while (copied < limit) {
                 writing { dstBuffer, state ->
                     while (copied < limit) {
@@ -1190,7 +1210,7 @@ internal open class ByteBufferChannel(
 
                         dstBuffer.prepareBuffer(writePosition, avWBefore)
 
-                        var partSize = 0
+                        partSize = 0
 
                         src.reading { srcState ->
                             val srcBuffer = this
@@ -1334,7 +1354,7 @@ internal open class ByteBufferChannel(
         return 0
     }
 
-    private fun writeAsMuchAsPossible(src: Buffer): Int {
+    private fun writeAsMuchAsPossible(src: io.ktor.utils.io.core.Buffer): Int {
         writing { dst, state ->
             var written = 0
 
@@ -1645,8 +1665,8 @@ internal open class ByteBufferChannel(
         }
 
         if (!read) {
-            if (isClosedForRead) {
-                return
+            if (isClosedForRead && min > 0) {
+                throw EOFException("Got EOF but at least $min bytes were expected")
             }
 
             readBlockSuspend(min, consumer)
@@ -1907,18 +1927,6 @@ internal open class ByteBufferChannel(
         return rc
     }
 
-    private suspend fun consumeEachBufferRangeSuspend(visitor: (buffer: ByteBuffer, last: Boolean) -> Boolean) {
-        var last = false
-
-        do {
-            if (consumeEachBufferRangeFast(last, visitor)) return
-            if (last) return
-            if (!readSuspend(1)) {
-                last = true
-            }
-        } while (true)
-    }
-
     private fun afterBufferVisited(buffer: ByteBuffer, capacity: RingBufferCapacity): Int {
         val consumed = buffer.position() - readPosition
         if (consumed > 0) {
@@ -1934,134 +1942,115 @@ internal open class ByteBufferChannel(
     private suspend fun readUTF8LineToAscii(out: Appendable, limit: Int): Boolean {
         if (state === ReadWriteBufferState.Terminated) {
             val cause = closedCause
-            if (cause != null) {
-                throw cause
-            }
-
+            if (cause != null) throw cause
             return false
         }
 
-        var consumed = 0
-
-        val array = CharArray(8192)
-        val buffer = CharBuffer.wrap(array)
-        var eol = false
-
-        lookAhead {
-            eol = readLineLoop(
-                out,
-                array,
-                buffer,
-                await = { expected -> availableForRead >= expected },
-                addConsumed = { consumed += it },
-                decode = {
-                    it.decodeASCIILine(array, 0, minOf(array.size, limit - consumed))
-                }
-            )
-        }
-
-        if (eol) return true
-        if (consumed == 0 && isClosedForRead) return false
-
-        return readUTF8LineToUtf8Suspend(out, limit - consumed, array, buffer, consumed)
-    }
-
-    private inline fun LookAheadSession.readLineLoop(
-        out: Appendable,
-        ca: CharArray,
-        cb: CharBuffer,
-        await: (Int) -> Boolean,
-        addConsumed: (Int) -> Unit,
-        decode: (ByteBuffer) -> Long
-    ): Boolean {
-        // number of bytes required for the next character, <= 0 when no characters required anymore (exit loop)
-        var required = 1
-
-        do {
-            if (!await(required)) break
-            val buffer = request(0, 1) ?: break
-
-            val before = buffer.position()
-            if (buffer.remaining() < required) {
-                buffer.rollBytes(required)
-            }
-
-            val rc = decode(buffer)
-
-            val after = buffer.position()
-            consumed(after - before)
-
-            val decoded = (rc shr 32).toInt()
-            val rcRequired = (rc and 0xffffffffL).toInt()
-
-            required = when {
-                // EOL
-                rcRequired == -1 -> 0
-                // no EOL, no demands but untouched bytes
-                // for ascii decoder that could mean that there was non-ASCII character encountered
-                rcRequired == 0 && buffer.hasRemaining() -> -1
-                else -> maxOf(1, rcRequired)
-            }
-
-            addConsumed(decoded)
-
-            if (out is StringBuilder) {
-                out.append(ca, 0, decoded)
-            } else {
-                out.append(cb, 0, decoded)
-            }
-        } while (required > 0)
-
-        return when (required) {
-            0 -> true
-            else -> false
-        }
+        return readUTF8LineToUtf8Suspend(out, limit)
     }
 
     private suspend fun readUTF8LineToUtf8Suspend(
         out: Appendable,
-        limit: Int,
-        ca: CharArray,
-        cb: CharBuffer,
-        consumed0: Int
+        limit: Int
     ): Boolean {
-        var consumed1 = 0
-        var result = true
+        var consumed = 0
+        var required = 1
+        var caret = false
+        var newLine = false
 
-        lookAheadSuspend {
-            val rc = readLineLoop(
-                out,
-                ca,
-                cb,
-                await = { awaitAtLeast(it) },
-                addConsumed = { consumed1 += it },
-                decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1)) }
-            )
+        val output = CharArray(8 * 1024)
+        var transferBuffer: ByteBuffer? = null
+        var transferredRemaining = 0
+        while (!isClosedForRead && !newLine && !caret && (limit == Int.MAX_VALUE || consumed <= limit)) {
+            try {
+                read(required) { buffer ->
+                    val oldPosition = buffer.position()
+                    val bufferToDecode = transferBuffer?.also {
+                        val oldLimit = buffer.limit()
+                        buffer.limit(min(buffer.limit(), buffer.position() + it.remaining()))
+                        it.put(buffer)
+                        it.flip()
+                        buffer.limit(oldLimit)
+                    } ?: buffer
 
-            if (rc || !isClosedForWrite) {
-                return@lookAheadSuspend
-            }
-            val buffer = request(0, 1)
-            when {
-                buffer != null -> {
-                    if (buffer.get() != '\r'.code.toByte()) {
-                        buffer.position(buffer.position() - 1)
+                    val readLimit = if (limit == Int.MAX_VALUE) output.size else minOf(output.size, limit - consumed)
+                    val decodeResult = bufferToDecode.decodeUTF8Line(output, 0, readLimit)
+
+                    transferBuffer?.let {
+                        buffer.position(oldPosition + it.position() - transferredRemaining)
+                        BufferPool.recycle(it)
+                        transferBuffer = null
+                        transferredRemaining = 0
+                    }
+
+                    val decoded = (decodeResult shr 32).toInt()
+                    val requiredBytes = (decodeResult and 0xffffffffL).toInt()
+
+                    required = max(1, requiredBytes)
+
+                    if (requiredBytes == -1) {
+                        newLine = true
+                    }
+
+                    if (requiredBytes != -1 &&
+                        buffer.hasRemaining() &&
+                        buffer[buffer.position()] == '\r'.code.toByte()
+                    ) {
+                        buffer.position(buffer.position() + 1)
+                        caret = true
+                    }
+
+                    if (requiredBytes != -1 &&
+                        buffer.hasRemaining() &&
+                        buffer[buffer.position()] == '\n'.code.toByte()
+                    ) {
+                        buffer.position(buffer.position() + 1)
+                        newLine = true
+                    }
+
+                    if (out is StringBuilder) {
+                        out.append(output, 0, decoded)
+                    } else {
+                        val charBuffer = CharBuffer.wrap(output, 0, decoded)
+                        out.append(charBuffer, 0, decoded)
+                    }
+
+                    consumed += decoded
+
+                    if (decoded == 0 && buffer.remaining() < requiredBytes) {
+                        transferBuffer = BufferPool.borrow().also {
+                            transferredRemaining = buffer.remaining()
+                            it.put(buffer)
+                        }
+                    }
+
+                    if (limit != Int.MAX_VALUE && consumed >= limit && !newLine) {
                         throw TooLongLineException("Line is longer than limit")
                     }
-
-                    consumed(1)
-
-                    if (buffer.hasRemaining()) {
-                        throw MalformedInputException("Illegal trailing bytes: ${buffer.remaining()}")
-                    }
                 }
-                consumed1 == 0 && consumed0 == 0 -> {
-                    result = false
-                }
+            } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
             }
         }
 
-        return result
+        if (transferBuffer != null) {
+            BufferPool.recycle(transferBuffer!!)
+        }
+
+        if (!isClosedForRead && caret && !newLine) {
+            try {
+                read(1) {
+                    if (it[it.position()] == '\n'.code.toByte()) {
+                        it.position(it.position() + 1)
+                        newLine = true
+                    }
+                }
+            } catch (_: EOFException) {
+                // Ignored by the contract of [ByteReadChannel.readUTF8LineTo] method
+            }
+        }
+
+        return (isClosedForRead && consumed > 0) || (newLine || caret)
     }
 
     override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean =
@@ -2162,6 +2151,10 @@ internal open class ByteBufferChannel(
         )
     }
 
+    /**
+     * Suspend until the channel has bytes to read or gets closed.
+     * Throws exception if the channel was closed with an error.
+     */
     override suspend fun awaitContent() {
         readSuspend(1)
     }
@@ -2245,10 +2238,16 @@ internal open class ByteBufferChannel(
             return true
         }
 
-        return suspendCoroutineUninterceptedOrReturn { ucont ->
-            val cache = readSuspendContinuationCache
-            suspensionForSize(size, cache)
-            cache.completeSuspendBlock(ucont.intercepted())
+        try {
+            return suspendCoroutineUninterceptedOrReturn { ucont ->
+                val cache = readSuspendContinuationCache
+                suspensionForSize(size, cache)
+                cache.completeSuspendBlock(ucont.intercepted())
+            }
+        } catch (cause: Throwable) {
+            readOp = null
+            // restore state
+            throw cause
         }
     }
 
@@ -2274,6 +2273,7 @@ internal open class ByteBufferChannel(
 
     @Volatile
     private var writeSuspensionSize: Int = 0
+
     private val writeSuspension = { ucont: Continuation<Unit> ->
         val size = writeSuspensionSize
 
@@ -2376,19 +2376,23 @@ internal open class ByteBufferChannel(
         var bytesCopied = 0
         val desiredSize = (min + offset).coerceAtMost(4088L).toInt()
 
-        read(desiredSize) { nioBuffer ->
-            if (nioBuffer.remaining() > offset) {
-                val view = nioBuffer.duplicate()!!
-                view.position(view.position() + offset.toInt())
+        try {
+            read(desiredSize) { nioBuffer ->
+                if (nioBuffer.remaining() > offset) {
+                    val view = nioBuffer.duplicate()!!
+                    view.position(view.position() + offset.toInt())
 
-                val oldLimit = view.limit()
-                val canCopyToDestination = minOf(max, destination.size - destinationOffset)
-                val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
-                view.limit(newLimit.toInt())
-                bytesCopied = view.remaining()
-                view.copyTo(destination, destinationOffset.toInt())
-                view.limit(oldLimit)
+                    val oldLimit = view.limit()
+                    val canCopyToDestination = minOf(max, destination.size - destinationOffset)
+                    val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
+                    view.limit(newLimit.toInt())
+                    bytesCopied = view.remaining()
+                    view.moveTo(destination, destinationOffset.toInt())
+                    view.limit(oldLimit)
+                }
             }
+        } catch (_: EOFException) {
+            // ignored by the contract of peekTo method
         }
 
         return bytesCopied.toLong()
@@ -2402,5 +2406,11 @@ internal open class ByteBufferChannel(
 }
 
 private fun rethrowClosed(cause: Throwable): Nothing {
-    throw tryCopyException(cause, cause) ?: cause
+    val clone = try {
+        tryCopyException(cause, cause)
+    } catch (_: Throwable) {
+        null
+    }
+
+    throw clone ?: cause
 }

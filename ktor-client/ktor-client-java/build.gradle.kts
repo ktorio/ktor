@@ -1,13 +1,13 @@
-val coroutines_version: String by project.extra
+apply<test.server.TestServerPlugin>()
 
 kotlin.sourceSets {
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutines_version")
+            implementation(libs.kotlinx.coroutines.jdk8)
         }
     }
-    val jvmTest by getting {
+    jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }

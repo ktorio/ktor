@@ -5,41 +5,39 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
-import io.ktor.util.*
-import io.ktor.utils.io.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRequestLifecycle")
 
 /**
  * A client's HTTP plugin that sets up [HttpRequestBuilder.executionContext] and completes it when the pipeline is fully
  * processed.
  */
-internal class HttpRequestLifecycle private constructor() {
-    /**
-     * A companion object for a plugin installation.
-     */
-    companion object Plugin : HttpClientPlugin<Unit, HttpRequestLifecycle> {
+public val HttpRequestLifecycle: ClientPlugin<Unit> = createClientPlugin("RequestLifecycle") {
+    on(SetupRequestContext) { request, proceed ->
+        val executionContext = SupervisorJob(request.executionContext)
 
-        override val key: AttributeKey<HttpRequestLifecycle> = AttributeKey("RequestLifecycle")
+        attachToClientEngineJob(executionContext, client.coroutineContext[Job]!!)
 
-        override fun prepare(block: Unit.() -> Unit): HttpRequestLifecycle = HttpRequestLifecycle()
+        try {
+            request.executionContext = executionContext
+            proceed()
+        } catch (cause: Throwable) {
+            executionContext.completeExceptionally(cause)
+            throw cause
+        } finally {
+            executionContext.complete()
+        }
+    }
+}
 
-        override fun install(plugin: HttpRequestLifecycle, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                val executionContext = Job(context.executionContext)
-
-                attachToClientEngineJob(executionContext, scope.coroutineContext[Job]!!)
-
-                try {
-                    context.executionContext = executionContext
-                    proceed()
-                } catch (cause: Throwable) {
-                    executionContext.completeExceptionally(cause)
-                    throw cause
-                } finally {
-                    executionContext.complete()
-                }
-            }
+public object SetupRequestContext : ClientHook<suspend (HttpRequestBuilder, suspend () -> Unit) -> Unit> {
+    override fun install(client: HttpClient, handler: suspend (HttpRequestBuilder, suspend () -> Unit) -> Unit) {
+        client.requestPipeline.intercept(HttpRequestPipeline.Before) {
+            handler(context, ::proceed)
         }
     }
 }
@@ -53,8 +51,10 @@ private fun attachToClientEngineJob(
 ) {
     val handler = clientEngineJob.invokeOnCompletion { cause ->
         if (cause != null) {
+            LOGGER.trace("Cancelling request because engine Job failed with error: $cause")
             requestJob.cancel("Engine failed", cause)
         } else {
+            LOGGER.trace("Cancelling request because engine Job completed")
             requestJob.complete()
         }
     }

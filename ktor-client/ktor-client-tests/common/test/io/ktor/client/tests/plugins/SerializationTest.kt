@@ -4,7 +4,6 @@
 
 package io.ktor.client.tests.plugins
 
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -39,6 +38,26 @@ class SerializationTest : ClientLoader() {
     fun testSendStringWithSerialization() = clientTests(listOf("native:CIO")) {
         config {
             install(ContentNegotiation) { json() }
+        }
+
+        test { client ->
+            client.post {
+                url("$TEST_SERVER/echo")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody("Hello, world")
+            }.let {
+                assertEquals("Hello, world", it.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun testSendStringWithSerializationIgnoring() = clientTests(listOf("native:CIO")) {
+        config {
+            install(ContentNegotiation) {
+                clearIgnoredTypes()
+                json()
+            }
         }
 
         test { client ->

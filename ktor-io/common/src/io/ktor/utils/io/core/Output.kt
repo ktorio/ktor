@@ -1,5 +1,6 @@
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
@@ -8,6 +9,8 @@ import io.ktor.utils.io.pool.*
 /**
  * This shouldn't be implemented directly. Inherit [Output] instead.
  */
+@Suppress("DEPRECATION")
+@Deprecated(IO_DEPRECATION_MESSAGE)
 public abstract class Output public constructor(
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Closeable {
@@ -36,7 +39,7 @@ public abstract class Output public constructor(
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
 
-    internal var tailMemory: Memory = Memory.Empty
+    internal var tailMemory: Memory = MEMORY_EMPTY
 
     internal var tailPosition: Int = 0
 
@@ -82,7 +85,7 @@ public abstract class Output public constructor(
         tailEndExclusive = 0
         tailInitialPosition = 0
         chainedSize = 0
-        tailMemory = Memory.Empty
+        tailMemory = MEMORY_EMPTY
 
         return head
     }
@@ -238,12 +241,16 @@ public abstract class Output public constructor(
         val maxCopySize = PACKET_MAX_COPY_SIZE
         val appendSize = if (nextSize < maxCopySize && nextSize <= (tail.endGap + tail.writeRemaining)) {
             nextSize
-        } else -1
+        } else {
+            -1
+        }
 
         val prependSize =
             if (lastSize < maxCopySize && lastSize <= foreignStolen.startGap && foreignStolen.isExclusivelyOwned()) {
                 lastSize
-            } else -1
+            } else {
+                -1
+            }
 
         if (appendSize == -1 && prependSize == -1) {
             // simply enqueue if there is no reason to merge
@@ -389,68 +396,78 @@ public abstract class Output public constructor(
     }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 public fun Output.append(csq: CharSequence, start: Int = 0, end: Int = csq.length): Appendable {
     return append(csq, start, end)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 public fun Output.append(csq: CharArray, start: Int = 0, end: Int = csq.size): Appendable {
     return append(csq, start, end)
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: ByteArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyBytesTemplate(offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: ShortArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyTemplate(2, offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: IntArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyTemplate(4, offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: LongArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyTemplate(8, offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: FloatArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyTemplate(4, offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: DoubleArray, offset: Int = 0, length: Int = src.size - offset) {
     writeFullyTemplate(8, offset, length) { buffer, currentOffset, count ->
         buffer.writeFully(src, currentOffset, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: Buffer, length: Int = src.readRemaining) {
     writeFullyBytesTemplate(0, length) { buffer, _, count ->
         buffer.writeFully(src, count)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: Memory, offset: Int, length: Int) {
     writeFully(src, offset.toLong(), length.toLong())
 }
 
+@Suppress("DEPRECATION")
 public fun Output.writeFully(src: Memory, offset: Long, length: Long) {
     writeFullyBytesTemplate(offset, length) { memory, destinationOffset, sourceOffset, count ->
         src.copyTo(memory, sourceOffset, count, destinationOffset)
     }
 }
 
+@Suppress("DEPRECATION")
 public fun Output.fill(times: Long, value: Byte = 0) {
     var written = 0L
     writeWhile { buffer ->
@@ -466,6 +483,7 @@ public fun Output.fill(times: Long, value: Byte = 0) {
  * Depending on the output underlying implementation it could invoke [block] function with the same buffer several times
  * however it is guaranteed that it is always non-empty.
  */
+@Suppress("DEPRECATION")
 internal inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
     var tail: ChunkBuffer = prepareWriteHead(1, null)
     try {
@@ -484,6 +502,7 @@ internal inline fun Output.writeWhile(block: (Buffer) -> Boolean) {
  * bytes space (could be the same buffer as before if it complies to the restriction).
  * @param initialSize for the first buffer passed to [block] function
  */
+@Suppress("DEPRECATION")
 internal inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) -> Int) {
     var tail = prepareWriteHead(initialSize, null)
 
@@ -499,6 +518,7 @@ internal inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) 
     }
 }
 
+@Suppress("DEPRECATION")
 private inline fun Output.writeFullyBytesTemplate(
     offset: Int,
     length: Int,
@@ -516,6 +536,7 @@ private inline fun Output.writeFullyBytesTemplate(
     }
 }
 
+@Suppress("DEPRECATION")
 private inline fun Output.writeFullyBytesTemplate(
     initialOffset: Long,
     length: Long,
@@ -534,6 +555,7 @@ private inline fun Output.writeFullyBytesTemplate(
     }
 }
 
+@Suppress("DEPRECATION")
 private inline fun Output.writeFullyTemplate(
     componentSize: Int,
     offset: Int,

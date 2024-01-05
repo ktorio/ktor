@@ -5,38 +5,25 @@
 package io.ktor.client.call
 
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
-@InternalAPI
-internal fun HttpClientCall(
-    client: HttpClient,
-    requestData: HttpRequestData,
-    responseData: HttpResponseData
-): HttpClientCall = HttpClientCall(client).apply {
-    request = DefaultHttpRequest(this, requestData)
-    response = DefaultHttpResponse(this, responseData)
-
-    if (responseData.body !is ByteReadChannel) {
-        @Suppress("DEPRECATION_ERROR")
-        attributes.put(HttpClientCall.CustomResponse, responseData.body)
-    }
-}
-
 /**
- * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
+ * A pair of a [request] and [response] for a specific [HttpClient].
  *
- * @property client: client that executed the call.
+ * @property client the client that executed the call.
  */
-public open class HttpClientCall internal constructor(
+public open class HttpClientCall(
     public val client: HttpClient
 ) : CoroutineScope {
     private val received: AtomicBoolean = atomic(false)
@@ -49,16 +36,30 @@ public open class HttpClientCall internal constructor(
     public val attributes: Attributes get() = request.attributes
 
     /**
-     * Represents the [request] sent by the client
+     * The [request] sent by the client.
      */
     public lateinit var request: HttpRequest
-        internal set
+        protected set
 
     /**
-     * Represents the [response] sent by the server.
+     * The [response] sent by the server.
      */
     public lateinit var response: HttpResponse
-        internal set
+        protected set
+
+    @InternalAPI
+    public constructor(
+        client: HttpClient,
+        requestData: HttpRequestData,
+        responseData: HttpResponseData
+    ) : this(client) {
+        this.request = DefaultHttpRequest(this, requestData)
+        this.response = DefaultHttpResponse(this, responseData)
+
+        if (responseData.body !is ByteReadChannel) {
+            attributes.put(CustomResponse, responseData.body)
+        }
+    }
 
     protected open val allowDoubleReceive: Boolean = false
 
@@ -73,20 +74,19 @@ public open class HttpClientCall internal constructor(
      * @throws DoubleReceiveException If already called [body].
      */
     @OptIn(InternalAPI::class)
-    public suspend fun body(info: TypeInfo): Any {
+    public suspend fun bodyNullable(info: TypeInfo): Any? {
         try {
             if (response.instanceOf(info.type)) return response
-            if (!allowDoubleReceive && !received.compareAndSet(false, true)) {
+            if (!allowDoubleReceive && !response.isSaved && !received.compareAndSet(false, true)) {
                 throw DoubleReceiveException(this)
             }
 
-            @Suppress("DEPRECATION_ERROR")
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
-            val result = client.responsePipeline.execute(this, subject).response
+            val result = client.responsePipeline.execute(this, subject).response.takeIf { it != NullBody }
 
-            if (!result.instanceOf(info.type)) {
+            if (result != null && !result.instanceOf(info.type)) {
                 val from = result::class
                 val to = info.type
                 throw NoTransformationFoundException(response, from, to)
@@ -101,20 +101,29 @@ public open class HttpClientCall internal constructor(
         }
     }
 
+    /**
+     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
+     * Returns [response] if [info] corresponds to [HttpResponse].
+     *
+     * @throws NoTransformationFoundException If no transformation is found for the type [info].
+     * @throws DoubleReceiveException If already called [body].
+     * @throws NullPointerException If content is `null`.
+     */
+    @OptIn(InternalAPI::class)
+    public suspend fun body(info: TypeInfo): Any = bodyNullable(info)!!
+
     override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
 
+    internal fun setResponse(response: HttpResponse) {
+        this.response = response
+    }
+
+    internal fun setRequest(request: HttpRequest) {
+        this.request = request
+    }
+
     public companion object {
-        /**
-         * [CustomResponse] key used to process the response of custom type in case of [HttpClientEngine] can't return body bytes directly.
-         * If present, attribute value will be an initial value for [HttpResponseContainer] in [HttpClient.responsePipeline].
-         *
-         * Example: [WebSocketSession]
-         */
-        @Deprecated(
-            "This is going to be removed. Please file a ticket with clarification why and what for do you need it.",
-            level = DeprecationLevel.ERROR
-        )
-        public val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
+        private val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
 }
 
@@ -124,7 +133,7 @@ public open class HttpClientCall internal constructor(
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpClientCall.body(): T = bodyNullable(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
@@ -132,7 +141,7 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpResponse.body(): T = call.bodyNullable(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
@@ -141,7 +150,7 @@ public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInf
  * @throws DoubleReceiveException If already called [body].
  */
 @Suppress("UNCHECKED_CAST")
-public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.body(typeInfo) as T
+public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.bodyNullable(typeInfo) as T
 
 /**
  * Exception representing that the response payload has already been received.
@@ -163,19 +172,24 @@ public class ReceivePipelineException(
 ) : IllegalStateException("Fail to run receive pipeline: $cause")
 
 /**
- * Exception representing the no transformation was found.
- * It includes the received type and the expected type as part of the message.
+ * Exception represents the inability to find a suitable transformation for the received body from
+ * the resulted type to the expected by the client type.
+ *
+ * You can read how to resolve NoTransformationFoundException at [FAQ](https://ktor.io/docs/faq.html#no-transformation-found-exception)
  */
-@Suppress("KDocMissingDocumentation")
 public class NoTransformationFoundException(
     response: HttpResponse,
     from: KClass<*>,
     to: KClass<*>
 ) : UnsupportedOperationException() {
-    override val message: String? = """No transformation found: $from -> $to
-        |with response from ${response.request.url}:
-        |status: ${response.status}
-        |response headers: 
-        |${response.headers.flattenEntries().joinToString { (key, value) -> "$key: $value\n" }}
-    """.trimMargin()
+    override val message: String? = """
+        Expected response body of the type '$to' but was '$from'
+        In response from `${response.request.url}`
+        Response status `${response.status}`
+        Response header `ContentType: ${response.headers[HttpHeaders.ContentType]}` 
+        Request header `Accept: ${response.request.headers[HttpHeaders.Accept]}`
+        
+        You can read how to resolve NoTransformationFoundException at FAQ: 
+        https://ktor.io/docs/faq.html#no-transformation-found-exception
+    """.trimIndent()
 }

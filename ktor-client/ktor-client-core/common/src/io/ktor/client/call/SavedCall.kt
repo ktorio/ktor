@@ -8,14 +8,23 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-internal class SavedHttpCall(client: HttpClient, private val responseBody: ByteArray) : HttpClientCall(client) {
+internal class SavedHttpCall(
+    client: HttpClient,
+    request: HttpRequest,
+    response: HttpResponse,
+    private val responseBody: ByteArray
+) : HttpClientCall(client) {
+
+    init {
+        this.request = SavedHttpRequest(this, request)
+        this.response = SavedHttpResponse(this, responseBody, response)
+    }
 
     /**
      * Returns a channel with [responseBody] data.
@@ -34,7 +43,7 @@ internal class SavedHttpRequest(
 
 internal class SavedHttpResponse(
     override val call: SavedHttpCall,
-    body: ByteArray,
+    private val body: ByteArray,
     origin: HttpResponse
 ) : HttpResponse() {
     private val context = Job()
@@ -52,7 +61,7 @@ internal class SavedHttpResponse(
     override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
     @OptIn(InternalAPI::class)
-    override val content: ByteReadChannel = ByteReadChannel(body)
+    override val content: ByteReadChannel get() = ByteReadChannel(body)
 }
 
 /**
@@ -62,8 +71,5 @@ internal class SavedHttpResponse(
 public suspend fun HttpClientCall.save(): HttpClientCall {
     val responseBody = response.content.readRemaining().readBytes()
 
-    return SavedHttpCall(client, responseBody).also { result ->
-        result.request = SavedHttpRequest(result, request)
-        result.response = SavedHttpResponse(result, responseBody, response)
-    }
+    return SavedHttpCall(client, request, response, responseBody)
 }

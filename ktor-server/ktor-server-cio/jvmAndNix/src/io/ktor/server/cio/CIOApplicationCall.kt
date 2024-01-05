@@ -22,8 +22,7 @@ internal class CIOApplicationCall(
     upgraded: CompletableDeferred<Boolean>?,
     remoteAddress: NetworkAddress?,
     localAddress: NetworkAddress?,
-    override val coroutineContext: CoroutineContext
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application) {
 
     override val request = CIOApplicationRequest(
         this,

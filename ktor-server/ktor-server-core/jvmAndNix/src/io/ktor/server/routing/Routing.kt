@@ -10,48 +10,69 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 
 @InternalAPI
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
+
 /**
- * Root routing node for an [Application]
- * @param application is an instance of [Application] for this routing
+ * A root routing node of an [Application].
+ * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
+ *
+ * @param application is an instance of [Application] for this routing node.
  */
-@OptIn(InternalAPI::class)
+@KtorDsl
 public class Routing(
     public val application: Application
-) : Route(
+) : RouteNode(
     parent = null,
-    selector = RootRouteSelector(application.environment.rootPath),
-    application.environment.developmentMode,
+    selector = RootRouteSelector(application.rootPath),
+    application.developmentMode,
     application.environment
-) {
+),
+    RootRoute {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
+    init {
+        addDefaultTracing()
+    }
+
+    private fun addDefaultTracing() {
+        if (!LOGGER.isTraceEnabled) return
+
+        tracers.add {
+            LOGGER.trace(it.buildText())
+        }
+    }
+
     /**
-     * Register a route resolution trace function.
-     * See https://ktor.io/servers/plugins/routing.html#tracing for details
+     * Registers a function used to trace route resolution.
+     * Might be useful if you need to understand why a route isn't executed.
+     * To learn more, see [Tracing routes](https://ktor.io/docs/tracing-routes.html).
      */
-    public fun trace(block: (RoutingResolveTrace) -> Unit) {
+    public override fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)
     }
 
-    public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
+    @OptIn(InternalAPI::class)
+    public suspend fun interceptor(context: PipelineContext<Unit, PipelineCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
-        val resolveResult = resolveContext.resolve()
-        when (resolveResult) {
+        when (val resolveResult = resolveContext.resolve()) {
             is RoutingResolveResult.Success ->
                 executeResult(context, resolveResult.route, resolveResult.parameters)
+
             is RoutingResolveResult.Failure ->
                 context.call.attributes.put(RoutingFailureStatusCode, resolveResult.errorStatusCode)
         }
     }
 
     private suspend fun executeResult(
-        context: PipelineContext<Unit, ApplicationCall>,
-        route: Route,
+        context: PipelineContext<Unit, PipelineCall>,
+        route: RouteNode,
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
@@ -65,7 +86,7 @@ public class Routing(
             routingCallPipeline.sendPipeline
         ) { ApplicationSendPipeline(developmentMode) }
 
-        val routingCall = RoutingApplicationCall(
+        val routingApplicationCall = RoutingPipelineCall(
             context.call,
             route,
             context.coroutineContext,
@@ -73,11 +94,12 @@ public class Routing(
             responsePipeline,
             parameters
         )
-        application.environment.monitor.raise(RoutingCallStarted, routingCall)
+        val routingCall = RoutingCall(routingApplicationCall)
+        application.monitor.raise(RoutingCallStarted, routingCall)
         try {
-            routingCallPipeline.execute(routingCall)
+            routingCallPipeline.execute(routingApplicationCall)
         } finally {
-            application.environment.monitor.raise(RoutingCallFinished, routingCall)
+            application.monitor.raise(RoutingCallFinished, routingCall)
         }
     }
 
@@ -99,24 +121,24 @@ public class Routing(
     }
 
     /**
-     * Installable plugin for [Routing]
+     * An installation object of the [Routing] plugin.
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : ApplicationPlugin<Application, Routing, Routing> {
+    public companion object Plugin : BaseApplicationPlugin<Application, RootRoute, Routing> {
 
         /**
-         * Event definition for when a routing-based call processing starts
+         * A definition for an event that is fired when routing-based call processing starts.
          */
-        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> = EventDefinition()
+        public val RoutingCallStarted: EventDefinition<RoutingCall> = EventDefinition()
 
         /**
-         * Event definition for when a routing-based call processing finished
+         * A definition for an event that is fired when routing-based call processing is finished.
          */
-        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> = EventDefinition()
+        public val RoutingCallFinished: EventDefinition<RoutingCall> = EventDefinition()
 
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: Routing.() -> Unit): Routing {
+        override fun install(pipeline: Application, configure: RootRoute.() -> Unit): Routing {
             val routing = Routing(pipeline).apply(configure)
             pipeline.intercept(Call) { routing.interceptor(this) }
             return routing
@@ -125,7 +147,7 @@ public class Routing(
 }
 
 /**
- * Gets an [Application] for this [Route] by scanning the hierarchy to the root
+ * Gets an [Application] for this [RouteNode] by scanning the hierarchy to the root.
  */
 public val Route.application: Application
     get() = when (this) {
@@ -136,8 +158,9 @@ public val Route.application: Application
     }
 
 /**
- * Gets or installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it
+ * Installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it.
+ * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
-@ContextDsl
-public fun Application.routing(configuration: Routing.() -> Unit): Routing =
+@KtorDsl
+public fun Application.routing(configuration: RootRoute.() -> Unit): Routing =
     pluginOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)

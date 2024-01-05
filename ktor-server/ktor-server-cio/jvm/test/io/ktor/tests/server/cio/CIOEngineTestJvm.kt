@@ -5,8 +5,8 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.*
-import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
+import kotlin.test.*
 
 class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
@@ -26,6 +26,14 @@ class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApp
     init {
         enableHttp2 = false
         enableSsl = false
+    }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
     }
 }
 

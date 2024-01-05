@@ -7,7 +7,6 @@ package io.ktor.network.selector
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.*
 
-@Suppress("KDocMissingDocumentation")
 public class InterestSuspensionsMap {
     @Volatile
     @Suppress("unused")
@@ -37,7 +36,7 @@ public class InterestSuspensionsMap {
     public inline fun invokeForEachPresent(readyOps: Int, block: CancellableContinuation<Unit>.() -> Unit) {
         val flags = SelectInterest.flags
 
-        for (ordinal in 0 until flags.size) {
+        for (ordinal in flags.indices) {
             if (flags[ordinal] and readyOps != 0) {
                 removeSuspension(ordinal)?.block()
             }

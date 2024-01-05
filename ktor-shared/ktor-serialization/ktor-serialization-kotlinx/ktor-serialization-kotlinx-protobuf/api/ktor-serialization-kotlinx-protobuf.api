@@ -1,0 +1,6 @@
+public final class io/ktor/serialization/kotlinx/protobuf/ProtoBufSupportKt {
+	public static final fun getDefaultProtoBuf ()Lkotlinx/serialization/protobuf/ProtoBuf;
+	public static final fun protobuf (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/protobuf/ProtoBuf;Lio/ktor/http/ContentType;)V
+	public static synthetic fun protobuf$default (Lio/ktor/serialization/Configuration;Lkotlinx/serialization/protobuf/ProtoBuf;Lio/ktor/http/ContentType;ILjava/lang/Object;)V
+}
+

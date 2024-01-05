@@ -4,7 +4,7 @@
 
 package io.ktor.client.plugins.websocket
 
-import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -30,9 +30,21 @@ internal class JsWebSocketSession(
 
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
+    override var pingIntervalMillis: Long
+        get() = throw WebSocketException("Websocket ping-pong is not supported in JS engine.")
+        set(_) = throw WebSocketException("Websocket ping-pong is not supported in JS engine.")
+
+    override var timeoutMillis: Long
+        get() = throw WebSocketException("Websocket timeout is not supported in JS engine.")
+        set(_) = throw WebSocketException("Websocket timeout is not supported in JS engine.")
+
+    override var masking: Boolean
+        get() = true
+        set(_) = throw WebSocketException("Masking switch is not supported in JS engine.")
+
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(_) {}
+        set(_) = throw WebSocketException("Max frame size switch is not supported in Js engine.")
 
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
@@ -42,21 +54,17 @@ internal class JsWebSocketSession(
             callback = {
                 val event = it.unsafeCast<MessageEvent>()
 
-                launch {
-                    val data = event.data
-
-                    val frame: Frame = when (data) {
-                        is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
-                        is String -> Frame.Text(data)
-                        else -> {
-                            val error = IllegalStateException("Unknown frame type: ${event.type}")
-                            _closeReason.completeExceptionally(error)
-                            throw error
-                        }
+                val frame: Frame = when (val data = event.data) {
+                    is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
+                    is String -> Frame.Text(data)
+                    else -> {
+                        val error = IllegalStateException("Unknown frame type: ${event.type}")
+                        _closeReason.completeExceptionally(error)
+                        throw error
                     }
-
-                    _incoming.trySend(frame).isSuccess
                 }
+
+                _incoming.trySend(frame)
             }
         )
 
@@ -73,19 +81,15 @@ internal class JsWebSocketSession(
         websocket.addEventListener(
             "close",
             callback = { event: dynamic ->
-                launch {
-                    val reason = CloseReason(event.code as Short, event.reason as String)
-                    _closeReason.complete(reason)
-                    _incoming.send(Frame.Close(reason))
-                    _incoming.close()
-
-                    _outgoing.cancel()
-                }
+                val reason = CloseReason(event.code as Short, event.reason as String)
+                _closeReason.complete(reason)
+                _incoming.trySend(Frame.Close(reason))
+                _incoming.close()
+                _outgoing.cancel()
             }
         )
 
         launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
             _outgoing.consumeEach {
                 when (it.frameType) {
                     FrameType.TEXT -> {
@@ -123,7 +127,9 @@ internal class JsWebSocketSession(
             if (cause == null) {
                 websocket.close()
             } else {
-                websocket.close(CloseReason.Codes.INTERNAL_ERROR.code, "Client failed")
+                // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
+                // as sending it is not supported by browsers.
+                websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
             }
         }
     }
@@ -138,7 +144,8 @@ internal class JsWebSocketSession(
 
     @Deprecated(
         "Use cancel() instead.",
-        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel"),
+        level = DeprecationLevel.ERROR
     )
     override fun terminate() {
         _incoming.cancel()

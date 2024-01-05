@@ -6,13 +6,24 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
-import io.ktor.util.*
 
 /**
- * [HttpClientEngineFactory] using a Coroutine based I/O implementation without additional dependencies
- * with the associated configuration [CIOEngineConfig].
+ * An asynchronous coroutine-based engine that can be used on JVM, Android, and Kotlin/Native.
  *
- * Just supports HTTP/1.x and HTTPS requests.
+ * To create the client with this engine, pass it to the `HttpClient` constructor:
+ * ```kotlin
+ * val client = HttpClient(CIO)
+ * ```
+ * To configure the engine, pass settings exposed by [CIOEngineConfig] to the `engine` method:
+ * ```kotlin
+ * val client = HttpClient(CIO) {
+ *     engine {
+ *         // this: CIOEngineConfig
+ *     }
+ * }
+ * ```
+ *
+ * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public object CIO : HttpClientEngineFactory<CIOEngineConfig> {
     init {

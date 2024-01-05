@@ -7,39 +7,38 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlin.native.concurrent.*
 
 /**
- * Specifies a key for VersionList extension property for [OutgoingContent]
+ * Specifies a key for the VersionList extension property for [OutgoingContent].
  */
 public val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**
- * Gets or sets list of [Version] instances as an extension property on this content
+ * Gets or sets a list of [Version] instances as an extension property on this content.
  */
 public var OutgoingContent.versions: List<Version>
     get() = getProperty(VersionListProperty) ?: emptyList()
     set(value) = setProperty(VersionListProperty, value)
 
 /**
- * Represents content version
+ * A content version.
  *
- * An example of version is [EntityTagVersion] or [LastModifiedVersion]
+ * An example of version is [EntityTagVersion] or [LastModifiedVersion].
  */
 public interface Version {
     /**
-     * Checks [requestHeaders] against this version and returns [VersionCheckResult]
+     * Checks [requestHeaders] against this version and returns [VersionCheckResult].
      */
     public fun check(requestHeaders: Headers): VersionCheckResult
 
     /**
-     * Appends relevant headers to the builder
+     * Appends relevant headers to the builder.
      */
     public fun appendHeadersTo(builder: HeadersBuilder)
 }
 
 /**
- * Represent result of the version comparison between content being sent and HTTP request.
+ * Represent the result of the version comparison between content being sent and HTTP request.
  *
  * @param statusCode represents [HttpStatusCode] associated with the result.
  */
@@ -50,7 +49,7 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
     OK(HttpStatusCode.OK),
 
     /**
-     * Indicates that content has not modified according to headers sent by client.
+     * Indicates that content has not been modified according to headers sent by the client.
      */
     NOT_MODIFIED(HttpStatusCode.NotModified),
 
@@ -61,37 +60,30 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
 }
 
 /**
- * This version passes the given [lastModified] date through the client provided
- * http conditional headers If-Modified-Since and If-Unmodified-Since.
+ * Creates an instance of [LastModifiedVersion] that passes the given [lastModified] date through the
+ * `If-Modified-Since` and `If-Unmodified-Since` conditional headers provided by the client.
  *
- * Notice the second precision so it may work wrong if there were few changes during the same second.
+ * For better accuracy, use ETag instead.
  *
- * For better behaviour use etag instead
- *
- * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
- *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
- *
- *  @param lastModified of the current content, for example file's last modified date
+ *  @param lastModified of the current content, for example the file's last modified date
  */
 public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 
     /**
-     *  @return [VersionCheckResult.OK] if all header pass or there are no headers in the request,
-     *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
-     *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
+     *  @return [VersionCheckResult.OK] if all headers pass or there are no headers in the request,
+     *  [VersionCheckResult.NOT_MODIFIED] for `If-Modified-Since`,
+     *  [VersionCheckResult.PRECONDITION_FAILED] for `If-Unmodified-Since`
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()?.let { dates ->
-            if (!ifModifiedSince(dates)) {
-                return VersionCheckResult.NOT_MODIFIED
-            }
+        val modifiedSince = requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()
+        if (modifiedSince != null && !ifModifiedSince(modifiedSince)) {
+            return VersionCheckResult.NOT_MODIFIED
         }
 
-        requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()?.let { dates ->
-            if (!ifUnmodifiedSince(dates)) {
-                return VersionCheckResult.PRECONDITION_FAILED
-            }
+        val unmodifiedSince = requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()
+        if (unmodifiedSince != null && !ifUnmodifiedSince(unmodifiedSince)) {
+            return VersionCheckResult.PRECONDITION_FAILED
         }
 
         return VersionCheckResult.OK
@@ -137,11 +129,10 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
 }
 
 /**
- * This version checks [etag] value and pass it through conditions supplied by the remote client. Depending on conditions it
- * produces return value of enum type [VersionCheckResult]
+ * This version checks the [etag] value and pass it through conditions supplied by the remote client.
+ * Depending on the conditions, it produces the return value of enum type [VersionCheckResult].
  *
- * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
- * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
+ * It never handles `If-None-Match: *`  as it is related to non-etag logic (for example, Last modified checks).
  *
  * @param etag - entity tag, for example file's content hash
  * @param weak - whether strong or weak validation should be applied
@@ -182,7 +173,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     }
 
     /**
-     * Examine two entity-tags for match (strong).
+     * Checks whether two entity-tags match (strong).
      */
     public fun match(other: EntityTagVersion): Boolean {
         if (this == STAR || other == STAR) return true
@@ -190,7 +181,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     }
 
     /**
-     * `If-None-Match` logic using [match] function.
+     * Specifies `If-None-Match` logic using the [match] function.
      */
     public fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
@@ -203,7 +194,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     }
 
     /**
-     * `If-Match` logic using [match] function.
+     * Specifies `If-Match` logic using the [match] function.
      */
     public fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (givenMatchEtags.isEmpty()) return VersionCheckResult.OK
@@ -229,7 +220,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
         public val STAR: EntityTagVersion = EntityTagVersion("*", false)
 
         /**
-         * Parse headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
+         * Parses headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
          */
         public fun parse(headerValue: String): List<EntityTagVersion> {
             val rawEntries = parseHeaderValue(headerValue)
@@ -242,7 +233,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
         }
 
         /**
-         * Parse single entity-tag or pattern specification.
+         * Parses a single entity-tag or pattern specification.
          */
         public fun parseSingle(value: String): EntityTagVersion {
             if (value == "*") return STAR

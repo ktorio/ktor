@@ -4,15 +4,13 @@
 
 package io.ktor.http
 
-import kotlin.native.concurrent.*
-
 /**
  * Represents an HTTP status code and description.
  * @param value is a numeric code.
  * @param description is free form description of a status.
  */
 @Suppress("unused")
-public data class HttpStatusCode(val value: Int, val description: String) {
+public data class HttpStatusCode(val value: Int, val description: String) : Comparable<HttpStatusCode> {
     override fun toString(): String = "$value $description"
 
     override fun equals(other: Any?): Boolean = other is HttpStatusCode && other.value == value
@@ -23,6 +21,8 @@ public data class HttpStatusCode(val value: Int, val description: String) {
      * Returns a copy of `this` code with a description changed to [value].
      */
     public fun description(value: String): HttpStatusCode = copy(description = value)
+
+    override fun compareTo(other: HttpStatusCode): Int = value - other.value
 
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     public companion object {
@@ -85,6 +85,7 @@ public data class HttpStatusCode(val value: Int, val description: String) {
         public val UnprocessableEntity: HttpStatusCode = HttpStatusCode(422, "Unprocessable Entity")
         public val Locked: HttpStatusCode = HttpStatusCode(423, "Locked")
         public val FailedDependency: HttpStatusCode = HttpStatusCode(424, "Failed Dependency")
+        public val TooEarly: HttpStatusCode = HttpStatusCode(425, "Too Early")
         public val UpgradeRequired: HttpStatusCode = HttpStatusCode(426, "Upgrade Required")
         public val TooManyRequests: HttpStatusCode = HttpStatusCode(429, "Too Many Requests")
 
@@ -108,28 +109,16 @@ public data class HttpStatusCode(val value: Int, val description: String) {
          */
         public val allStatusCodes: List<HttpStatusCode> = allStatusCodes()
 
-        private val byValue: Array<HttpStatusCode?> = Array(1000) { idx ->
-            allStatusCodes.firstOrNull { it.value == idx }
-        }
+        private val statusCodesMap: Map<Int, HttpStatusCode> = allStatusCodes.associateBy { it.value }
 
         /**
          * Creates an instance of [HttpStatusCode] with the given numeric value.
          */
         public fun fromValue(value: Int): HttpStatusCode {
-            val knownStatus = if (value in 1 until 1000) byValue[value] else null
-            return knownStatus ?: HttpStatusCode(value, "Unknown Status Code")
+            return statusCodesMap[value] ?: HttpStatusCode(value, "Unknown Status Code")
         }
     }
 }
-
-@Suppress("UNUSED", "KDocMissingDocumentation")
-@Deprecated(
-    "Use ExpectationFailed instead",
-    ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed"),
-    level = DeprecationLevel.ERROR
-)
-public inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode
-    get() = ExpectationFailed
 
 internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.Continue,
@@ -173,6 +162,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.UnprocessableEntity,
     HttpStatusCode.Locked,
     HttpStatusCode.FailedDependency,
+    HttpStatusCode.TooEarly,
     HttpStatusCode.UpgradeRequired,
     HttpStatusCode.TooManyRequests,
     HttpStatusCode.RequestHeaderFieldTooLarge,

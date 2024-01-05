@@ -4,15 +4,24 @@
 
 package io.ktor.server.mustache
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import java.util.zip.*
 import kotlin.test.*
+import kotlin.text.Charsets
 
 @Suppress("DEPRECATION")
 class MustacheTest {
@@ -139,6 +148,43 @@ class MustacheTest {
 
             assertEquals(null, handleRequest(HttpMethod.Get, "/").response.headers[HttpHeaders.ETag])
         }
+    }
+
+    @Test
+    fun `Content Negotiation invoked after`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                val alwaysFailingConverter = object : ContentConverter {
+                    override suspend fun serialize(
+                        contentType: ContentType,
+                        charset: Charset,
+                        typeInfo: TypeInfo,
+                        value: Any?
+                    ): OutgoingContent? {
+                        fail("This converter should be never started for send")
+                    }
+
+                    override suspend fun deserialize(
+                        charset: Charset,
+                        typeInfo: TypeInfo,
+                        content: ByteReadChannel
+                    ): Any? {
+                        fail("This converter should be never started for receive")
+                    }
+                }
+                register(ContentType.Application.Json, alwaysFailingConverter)
+            }
+            setupMustache()
+
+            routing {
+                get("/") {
+                    call.respond(MustacheContent("index.hbs", mapOf<String, String>()))
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("Template", response.bodyAsText().trim())
     }
 
     private fun Application.setupMustache() {

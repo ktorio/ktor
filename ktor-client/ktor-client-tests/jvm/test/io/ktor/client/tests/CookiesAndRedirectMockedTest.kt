@@ -76,7 +76,7 @@ class CookiesAndRedirectMockedTest {
         val storage = AcceptAllCookiesStorage()
         config {
             server { request ->
-                val cookies = request.headers[HttpHeaders.Cookie]!!.split(";")
+                val cookies = request.headers[HttpHeaders.Cookie]!!.split("; ")
                 assertContains(cookies, "test=value")
                 assertContains(cookies, "other=abc")
                 respondOk()

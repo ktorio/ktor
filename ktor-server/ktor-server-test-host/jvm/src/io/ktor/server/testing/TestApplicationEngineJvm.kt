@@ -22,6 +22,18 @@ fun TestApplicationEngine.handleWebSocketConversation(
     awaitCallback: Boolean = true,
     callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
 ): TestApplicationCall {
+    return runBlocking {
+        handleWebSocketConversationNonBlocking(uri, setup, awaitCallback, callback)
+    }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+internal suspend fun TestApplicationEngine.handleWebSocketConversationNonBlocking(
+    uri: String,
+    setup: TestApplicationRequest.() -> Unit = {},
+    awaitCallback: Boolean = true,
+    callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+): TestApplicationCall {
     val websocketChannel = ByteChannel(true)
     val call = createWebSocketCall(uri) {
         setup()
@@ -38,13 +50,12 @@ fun TestApplicationEngine.handleWebSocketConversation(
         }
     }
 
-    launch(configuration.dispatcher) {
+    this.launch(configuration.dispatcher) {
         try {
             // execute server-side
             pipeline.execute(call)
         } catch (t: Throwable) {
             responseSent.completeExceptionally(t)
-            throw t
         }
     }
 
@@ -53,12 +64,20 @@ fun TestApplicationEngine.handleWebSocketConversation(
     val job = Job()
     val webSocketContext = engineContext + job
 
-    runBlocking(configuration.dispatcher) {
+    withContext(configuration.dispatcher) {
         responseSent.join()
         processResponse(call)
+        val connectionEstablished = withTimeoutOrNull(1000) {
+            call.response.webSocketEstablished.join()
+        }
+        if (connectionEstablished == null) {
+            job.cancel()
+            throw IllegalStateException("WebSocket connection failed")
+        }
 
         val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-        val responseChannel = call.response.websocketChannel()!!
+        val responseChannel = call.response.websocketChannel()
+            ?: error("Expected websocket channel in the established connection")
         val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
         val scope = if (awaitCallback) this else GlobalScope

@@ -6,7 +6,6 @@ package io.ktor.server.jetty
 
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Jetty engine
@@ -18,12 +17,12 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
-        val applicationEnvironment = commandLineEnvironment(args)
-        val engine = JettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
-        engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+        val config = CommandLineConfig(args)
+        val server = EmbeddedServer(config.applicationProperties, Jetty) {
+            takeFrom(config.engineConfig)
+            loadConfiguration(config.applicationProperties.environment.config)
         }
-        engine.start(true)
+        server.start(true)
     }
 
     private fun JettyApplicationEngineBase.Configuration.loadConfiguration(config: ApplicationConfig) {

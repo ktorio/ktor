@@ -6,13 +6,9 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.io.*
-import java.nio.*
 import kotlin.coroutines.*
 
 /**
@@ -25,7 +21,6 @@ public class CIOMultipartDataBase(
     contentType: CharSequence,
     contentLength: Long?,
     private val formFieldLimit: Int = 65536,
-    private val inMemoryFileUploadLimit: Int = formFieldLimit
 ) : MultiPartData, CoroutineScope {
     private val events: ReceiveChannel<MultipartEvent> = parseMultipart(channel, contentType, contentLength)
 
@@ -49,18 +44,18 @@ public class CIOMultipartDataBase(
         }
     }
 
-    private suspend fun eventToData(evt: MultipartEvent): PartData? {
+    private suspend fun eventToData(event: MultipartEvent): PartData? {
         return try {
-            when (evt) {
-                is MultipartEvent.MultipartPart -> partToData(evt)
+            when (event) {
+                is MultipartEvent.MultipartPart -> partToData(event)
                 else -> {
-                    evt.release()
+                    event.release()
                     null
                 }
             }
-        } catch (t: Throwable) {
-            evt.release()
-            throw t
+        } catch (cause: Throwable) {
+            event.release()
+            throw cause
         }
     }
 
@@ -80,55 +75,6 @@ public class CIOMultipartDataBase(
             }
         }
 
-        // file upload
-        val buffer = ByteBuffer.allocate(inMemoryFileUploadLimit)
-        part.body.readAvailable(buffer)
-
-        val completeRead = if (buffer.remaining() > 0) {
-            part.body.readAvailable(buffer) == -1
-        } else false
-
-        buffer.flip()
-
-        if (completeRead) {
-            val input = ByteArrayInputStream(buffer.array(), buffer.arrayOffset(), buffer.remaining()).asInput()
-            return PartData.FileItem({ input }, { part.release() }, CIOHeaders(headers))
-        }
-
-        @Suppress("BlockingMethodInNonBlockingContext")
-        val tmp = File.createTempFile("file-upload", ".tmp")
-
-        FileOutputStream(tmp).use { stream ->
-            stream.channel.use { out ->
-                out.truncate(0L)
-
-                while (true) {
-                    while (buffer.hasRemaining()) {
-                        out.write(buffer)
-                    }
-                    buffer.clear()
-
-                    if (part.body.readAvailable(buffer) == -1) break
-                    buffer.flip()
-                }
-            }
-        }
-
-        var closed = false
-        val lazyInput = lazy {
-            if (closed) throw IllegalStateException("Already disposed")
-            FileInputStream(tmp).asInput()
-        }
-
-        return PartData.FileItem(
-            { lazyInput.value },
-            {
-                closed = true
-                if (lazyInput.isInitialized()) lazyInput.value.close()
-                part.release()
-                tmp.delete()
-            },
-            CIOHeaders(headers)
-        )
+        return PartData.FileItem({ part.body }, { part.release() }, CIOHeaders(headers))
     }
 }

@@ -17,42 +17,41 @@ import kotlin.coroutines.*
 /**
  * Wrap existing [HttpClientCall] with new [content].
  */
-@Deprecated(
-    "Parameter [shouldCloseOrigin] is deprecated",
-    ReplaceWith("wrapWithContent(content)"),
-    level = DeprecationLevel.ERROR
-)
-@Suppress("UNUSED_PARAMETER")
-public fun HttpClientCall.wrapWithContent(
-    content: ByteReadChannel,
-    shouldCloseOrigin: Boolean
-): HttpClientCall = wrapWithContent(content)
-
-/**
- * Wrap existing [HttpClientCall] with new [content].
- */
 public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall {
     return DelegatedCall(client, content, this)
 }
 
 /**
- * Wrap existing [HttpResponse] with new [content].
+ * Wrap existing [HttpClientCall] with new [content].
  */
-@OptIn(InternalAPI::class)
-internal fun HttpResponse.wrapWithContent(content: ByteReadChannel): HttpResponse {
-    return DelegatedResponse(call, content, this)
+public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpClientCall {
+    return DelegatedCall(client, block, this)
 }
 
-@OptIn(InternalAPI::class)
+/**
+ * Wrap existing [HttpClientCall] with new response [content] and [headers].
+ */
+public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
+    return DelegatedCall(client, content, this, headers)
+}
+
 internal class DelegatedCall(
     client: HttpClient,
-    content: ByteReadChannel,
-    originCall: HttpClientCall
+    block: () -> ByteReadChannel,
+    originCall: HttpClientCall,
+    responseHeaders: Headers = originCall.response.headers
 ) : HttpClientCall(client) {
+
+    constructor(
+        client: HttpClient,
+        content: ByteReadChannel,
+        originCall: HttpClientCall,
+        responseHeaders: Headers = originCall.response.headers
+    ) : this(client, { content }, originCall, responseHeaders)
 
     init {
         request = DelegatedRequest(this, originCall.request)
-        response = DelegatedResponse(this, content, originCall.response)
+        response = DelegatedResponse(this, block, originCall.response, responseHeaders)
     }
 }
 
@@ -61,12 +60,23 @@ internal class DelegatedRequest(
     origin: HttpRequest
 ) : HttpRequest by origin
 
-@InternalAPI
-internal class DelegatedResponse constructor(
+@OptIn(InternalAPI::class)
+internal class DelegatedResponse(
     override val call: HttpClientCall,
-    override val content: ByteReadChannel,
-    private val origin: HttpResponse
+    private val block: () -> ByteReadChannel,
+    private val origin: HttpResponse,
+    override val headers: Headers = origin.headers
 ) : HttpResponse() {
+
+    constructor(
+        call: HttpClientCall,
+        content: ByteReadChannel,
+        origin: HttpResponse,
+        headers: Headers = origin.headers
+    ) : this(call, { content }, origin, headers)
+
+    override val content: ByteReadChannel get() = block()
+
     override val coroutineContext: CoroutineContext = origin.coroutineContext
 
     override val status: HttpStatusCode get() = origin.status
@@ -76,6 +86,4 @@ internal class DelegatedResponse constructor(
     override val requestTime: GMTDate get() = origin.requestTime
 
     override val responseTime: GMTDate get() = origin.responseTime
-
-    override val headers: Headers get() = origin.headers
 }

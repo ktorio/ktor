@@ -16,11 +16,11 @@ import kotlinx.coroutines.*
  * GSON converter for the [WebSockets] plugin
  */
 public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : WebsocketContentConverter {
-    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any): Frame {
+    override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         return Frame.Text(gson.toJson(value))
     }
 
-    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any {
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: Frame): Any? {
         if (!isApplicable(content)) {
             throw WebsocketConverterNotFoundException("Unsupported frame ${content.frameType.name}")
         }
@@ -33,8 +33,8 @@ public class GsonWebsocketContentConverter(private val gson: Gson = Gson()) : We
                 val reader = content.readBytes().inputStream().reader(charset)
                 gson.fromJson(reader, typeInfo.reifiedType)
             }
-        } catch (deserializeFailure: JsonSyntaxException) {
-            throw JsonConvertException("Illegal json parameter found", deserializeFailure)
+        } catch (cause: JsonSyntaxException) {
+            throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
         }
     }
 

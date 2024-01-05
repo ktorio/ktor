@@ -1,0 +1,42 @@
+public final class io/ktor/server/plugins/requestvalidation/RequestValidationConfig {
+	public fun <init> ()V
+	public final fun validate (Lio/ktor/server/plugins/requestvalidation/Validator;)V
+	public final fun validate (Lkotlin/jvm/functions/Function1;)V
+	public final fun validate (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;)V
+	public final fun validateContentLength ()V
+}
+
+public final class io/ktor/server/plugins/requestvalidation/RequestValidationConfig$ValidatorBuilder {
+	public fun <init> ()V
+	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun validation (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/plugins/requestvalidation/RequestValidationException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/Object;Ljava/util/List;)V
+	public final fun getReasons ()Ljava/util/List;
+	public final fun getValue ()Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/requestvalidation/RequestValidationKt {
+	public static final fun getRequestValidation ()Lio/ktor/server/application/RouteScopedPlugin;
+}
+
+public abstract class io/ktor/server/plugins/requestvalidation/ValidationResult {
+}
+
+public final class io/ktor/server/plugins/requestvalidation/ValidationResult$Invalid : io/ktor/server/plugins/requestvalidation/ValidationResult {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/util/List;)V
+	public final fun getReasons ()Ljava/util/List;
+}
+
+public final class io/ktor/server/plugins/requestvalidation/ValidationResult$Valid : io/ktor/server/plugins/requestvalidation/ValidationResult {
+	public static final field INSTANCE Lio/ktor/server/plugins/requestvalidation/ValidationResult$Valid;
+}
+
+public abstract interface class io/ktor/server/plugins/requestvalidation/Validator {
+	public abstract fun filter (Ljava/lang/Object;)Z
+	public abstract fun validate (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

@@ -5,39 +5,39 @@
 package io.ktor.util
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 
 private const val CHUNK_BUFFER_SIZE = 4096L
 
 /**
- * Split source [ByteReadChannel] into 2 new one.
- * Cancel of one channel in split(input or both outputs) cancels other channels.
+ * Split source [ByteReadChannel] into 2 new ones.
+ * Cancel of one channel in split (input or both outputs) cancels other channels.
  */
+@Suppress("DEPRECATION")
 public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)
 
     coroutineScope.launch {
+        val buffer = ByteArrayPool.borrow()
         try {
             while (!isClosedForRead) {
-                this@split.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
-                    listOf(
-                        async { first.writePacket(chunk.copy()) },
-                        async { second.writePacket(chunk.copy()) }
-                    ).awaitAll()
-                }
+                val read = this@split.readAvailable(buffer)
+                listOf(
+                    async { first.writeFully(buffer, 0, read) },
+                    async { second.writeFully(buffer, 0, read) }
+                ).awaitAll()
             }
 
-            if (this is ByteChannel) {
-                closedCause?.let { throw it }
-            }
+            closedCause?.let { throw it }
         } catch (cause: Throwable) {
             this@split.cancel(cause)
             first.cancel(cause)
             second.cancel(cause)
         } finally {
+            ByteArrayPool.recycle(buffer)
             first.close()
             second.close()
         }
@@ -51,7 +51,7 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
 }
 
 /**
- * Copy source channel to both output channels chunk by chunk.
+ * Copy a source channel to both output channels chunk by chunk.
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {
@@ -70,9 +70,7 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
                 }
             }
 
-            if (this is ByteChannel) {
-                closedCause?.let { throw it }
-            }
+            closedCause?.let { throw it }
         } catch (cause: Throwable) {
             first.close(cause)
             second.close(cause)
@@ -88,6 +86,6 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
 }
 
 /**
- * Read channel to byte array.
+ * Read a channel to byte array.
  */
 public suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()

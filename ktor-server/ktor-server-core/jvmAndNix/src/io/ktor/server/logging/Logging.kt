@@ -6,6 +6,7 @@ package io.ktor.server.logging
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
@@ -33,6 +34,6 @@ private object EmptyMDCProvider : MDCProvider {
  */
 public val Application.mdcProvider: MDCProvider
     @Suppress("UNCHECKED_CAST")
-    get() = attributes[pluginRegistryKey].allKeys
-        .firstNotNullOfOrNull { attributes.getOrNull(it as AttributeKey<Any>) as? MDCProvider }
+    get() = pluginRegistry.allKeys
+        .firstNotNullOfOrNull { pluginRegistry.getOrNull(it as AttributeKey<Any>) as? MDCProvider }
         ?: EmptyMDCProvider

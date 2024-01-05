@@ -5,7 +5,6 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import java.io.EOFException
 import java.nio.channels.*
-import kotlin.require
 
 /**
  * Builds packet and write it to a NIO channel. May block if the channel is configured as blocking or
@@ -32,6 +31,7 @@ public fun WritableByteChannel.writePacket(p: ByteReadPacket): Boolean {
         while (true) {
             var rc: Int
 
+            @Suppress("DEPRECATION")
             p.read { node: Buffer ->
                 node.readDirect {
                     rc = write(it)
@@ -64,6 +64,7 @@ public fun ReadableByteChannel.readPacketAtLeast(n: Long): ByteReadPacket = read
  */
 public fun ReadableByteChannel.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
 
+@Suppress("DEPRECATION")
 private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPacket {
     require(min >= 0L) { "min shouldn't be negative: $min" }
     require(min <= max) { "min shouldn't be greater than max: $min > $max" }
@@ -116,6 +117,7 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
  * Does the same as [ReadableByteChannel.read] but to a [Buffer] instance
  */
 @Deprecated("Use read(Memory) instead.")
+@Suppress("DEPRECATION")
 public fun ReadableByteChannel.read(buffer: Buffer): Int {
     if (buffer.writeRemaining == 0) return 0
     // TODO writeDirect?
@@ -142,6 +144,7 @@ public fun ReadableByteChannel.read(
  * Does the same as [WritableByteChannel.write] but from a [Buffer] instance
  */
 @Deprecated("Use write(Memory) instead.")
+@Suppress("DEPRECATION")
 public fun WritableByteChannel.write(buffer: Buffer): Int {
     return buffer.read { memory, start, endExclusive ->
         write(memory.buffer.sliceSafe(start, endExclusive - start))

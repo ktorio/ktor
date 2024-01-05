@@ -13,7 +13,6 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
-import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -27,7 +26,7 @@ public open class AsyncServletApplicationCall(
     upgrade: ServletUpgrade,
     parentCoroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), ApplicationCallWithContext {
+) : BaseApplicationCall(application), CoroutineScope {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 
@@ -56,23 +55,28 @@ public open class AsyncServletApplicationCall(
 
 @Suppress("KDocMissingDocumentation")
 public class AsyncServletApplicationRequest(
-    call: ApplicationCall,
+    call: PipelineCall,
     servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 
     private var upgraded = false
+
     private val inputStreamChannel by lazy {
-        if (!upgraded) servletReader(servletRequest.inputStream).channel else ByteReadChannel.Empty
+        if (!upgraded) {
+            val contentLength = servletRequest.contentLength
+            servletReader(servletRequest.inputStream, contentLength).channel
+        } else ByteReadChannel.Empty
     }
 
-    override fun receiveChannel(): ByteReadChannel = inputStreamChannel
+    override val engineReceiveChannel: ByteReadChannel get() = inputStreamChannel
 
     internal fun upgraded() {
         upgraded = true
     }
 }
 
+@Suppress("DEPRECATION")
 public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,

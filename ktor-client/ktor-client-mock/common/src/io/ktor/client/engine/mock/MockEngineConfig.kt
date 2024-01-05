@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -35,6 +36,16 @@ public class MockEngineConfig : HttpClientEngineConfig() {
      * Should engine reuse handlers.
      */
     public var reuseHandlers: Boolean = true
+
+    /**
+     * Dispatcher to use with [MockEngine].
+     */
+    @Deprecated(
+        "The [dispatcher] is no longer configurable, Dispatchers.IO is used by default",
+        level = DeprecationLevel.ERROR
+    )
+    public var dispatcher: CoroutineDispatcher get() = error("The [dispatcher] is no longer configurable")
+        set(_) = error("The [dispatcher] is no longer configurable")
 
     /**
      * Add request handler to [MockEngine]

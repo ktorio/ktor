@@ -3,6 +3,10 @@
  */
 
 import org.jetbrains.dokka.gradle.*
+import org.jetbrains.kotlin.buildtools.api.*
+import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.targets.js.*
+import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -14,14 +18,15 @@ buildscript {
      * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
      * DO NOT change the name of these properties without adapting kotlinx.train build chain.
      */
-    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"].let { it != null && it != "" }
-    val build_snapshot_train: Boolean by extra
-    if (build_snapshot_train) {
+    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
+    val build_snapshot_train: String? by extra
+
+    if (build_snapshot_train?.toBoolean() == true) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
         if (kotlin_version == null) {
             throw IllegalArgumentException(
-                "'kotlin_snapshot_version' should be defined when building with snapshot compiler"
+                "'kotlin_snapshot_version' should be defined when building with snapshot compiler",
             )
         }
         repositories {
@@ -37,8 +42,7 @@ buildscript {
             }
         }
     }
-    // These three flags are enabled in train builds for JVM IR compiler testing
-    extra["jvm_ir_api_check_enabled"] = rootProject.properties["enable_jvm_ir_api_check"] != null
+
     // This flag is also used in settings.gradle to exclude native-only projects
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
@@ -49,27 +53,12 @@ buildscript {
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
-
-    val kotlin_version: String by extra
-    val atomicfu_version: String by extra
-    val validator_version: String by extra
-    val android_gradle_version: String by extra
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:$kotlin_version")
-        classpath("org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version")
-        classpath("com.android.tools.build:gradle:$android_gradle_version")
-    }
-
-    CacheRedirector.configureBuildScript(rootProject, this)
 }
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
 val native_targets_enabled: Boolean by extra
-val version = (project.version as String).dropLast("-SNAPSHOT".length)
+val version = (project.version as String).let { if (it.endsWith("-SNAPSHOT")) it.dropLast("-SNAPSHOT".length) else it }
 
 extra["configuredVersion"] = when {
     releaseVersion != null -> releaseVersion
@@ -86,25 +75,34 @@ val configuredVersion: String by extra
 
 apply(from = "gradle/verifier.gradle")
 
-extra["skipPublish"] = mutableListOf<String>()
+extra["skipPublish"] = mutableListOf(
+    "ktor-junit"
+)
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
-    "ktor-java-modules-test"
+    "ktor-java-modules-test",
 )
 
 val disabledExplicitApiModeProjects = listOf(
     "ktor-client-tests",
-    "ktor-client-json-tests",
     "ktor-server-test-host",
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-client-content-negotiation-tests",
+    "ktor-junit"
 )
 
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.6.10"
+    id("org.jetbrains.dokka") version "1.9.10" apply false
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.13.2"
+    id("kotlinx-atomicfu") version "0.22.0" apply false
+    id("com.osacky.doctor") version "0.9.0"
+}
+
+doctor {
+    enableTestCaching = false
 }
 
 allprojects {
@@ -121,8 +119,6 @@ allprojects {
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 
-    CacheRedirector.configure(this)
-
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
@@ -136,46 +132,11 @@ allprojects {
     }
 
     kotlin {
-        targets.all {
+        if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
 
-            if (this is org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget) {
-                irTarget?.compilations?.all {
-                    configureCompilation()
-                }
-            }
-            compilations.all {
-                configureCompilation()
-            }
-        }
-
-        if (!disabledExplicitApiModeProjects.contains(project.name)) {
-            explicitApi()
-        }
-
-        sourceSets
-            .matching { it.name !in listOf("main", "test") }
-            .all {
-                val srcDir = if (name.endsWith("Main")) "src" else "test"
-                val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
-                val platform = name.dropLast(4)
-
-                kotlin.srcDir("$platform/$srcDir")
-                resources.srcDir("$platform/${resourcesPrefix}resources")
-
-                languageSettings.apply {
-                    progressiveMode = true
-                }
-            }
-
-        val jdk = when (name) {
-            in jdk11Modules -> 11
-            else -> 8
-        }
-
-        jvmToolchain {
-            check(this is JavaToolchainSpec)
-            languageVersion.set(JavaLanguageVersion.of(jdk))
-        }
+        setCompilationOptions()
+        configureSourceSets()
+        setupJvmToolchain()
     }
 
     val skipPublish: List<String> by rootProject.extra
@@ -191,31 +152,85 @@ subprojects {
 println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 
-if (project.hasProperty("enable-coverage")) {
-    apply(from = "gradle/jacoco.gradle")
-}
+fun configureDokka() {
+    if (COMMON_JVM_ONLY) return
 
-subprojects {
-    plugins.apply("org.jetbrains.dokka")
-}
+    allprojects {
+        plugins.apply("org.jetbrains.dokka")
 
-val docs: String? by extra
-if (docs != null) {
+        val dokkaPlugin by configurations
+        dependencies {
+            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.9.10")
+        }
+    }
+
+    val dokkaOutputDir = "../versions"
+
     tasks.withType<DokkaMultiModuleTask> {
-        val mapOf = mapOf(
-            "org.jetbrains.dokka.versioning.VersioningPlugin" to
-                """{ "version": "$configuredVersion", "olderVersionsDir":"$docs" }"""
-        )
+        val id = "org.jetbrains.dokka.versioning.VersioningPlugin"
+        val config = """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
+        val mapOf = mapOf(id to config)
+
+        outputDirectory.set(file(projectDir.toPath().resolve(dokkaOutputDir).resolve(configuredVersion)))
         pluginsMapConfiguration.set(mapOf)
+    }
+
+    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
     }
 }
 
-// https://youtrack.jetbrains.com/issue/KT-49109
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-    val nodeM1Version = "16.13.1"
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = nodeM1Version
+configureDokka()
+
+fun Project.setupJvmToolchain() {
+    val jdk = when (project.name) {
+        in jdk11Modules -> 11
+        else -> 8
+    }
+
+    kotlin {
+        jvmToolchain {
+            check(this is JavaToolchainSpec)
+            languageVersion = JavaLanguageVersion.of(jdk)
+        }
+    }
 }
 
-rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
+fun KotlinMultiplatformExtension.setCompilationOptions() {
+    targets.all {
+        if (this is KotlinJsTarget) {
+            irTarget?.compilations?.all {
+                configureCompilation()
+            }
+        }
+        compilations.all {
+            configureCompilation()
+        }
+    }
+}
+
+fun KotlinMultiplatformExtension.configureSourceSets() {
+    sourceSets
+        .matching { it.name !in listOf("main", "test") }
+        .all {
+            val srcDir = if (name.endsWith("Main")) "src" else "test"
+            val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
+            val platform = name.dropLast(4)
+
+            kotlin.srcDir("$platform/$srcDir")
+            resources.srcDir("$platform/${resourcesPrefix}resources")
+
+            languageSettings.apply {
+                progressiveMode = true
+            }
+        }
+
+    if (!COMMON_JVM_ONLY) return
+
+    sourceSets {
+        findByName("jvmMain")?.kotlin?.srcDirs("jvmAndNix/src")
+        findByName("jvmTest")?.kotlin?.srcDirs("jvmAndNix/test")
+        findByName("jvmMain")?.resources?.srcDirs("jvmAndNix/resources")
+        findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
+    }
 }

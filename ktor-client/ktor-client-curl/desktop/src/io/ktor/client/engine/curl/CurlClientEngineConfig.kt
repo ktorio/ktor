@@ -6,21 +6,31 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
 
+/**
+ * A configuration for the [Curl] client engine.
+ */
 public class CurlClientEngineConfig : HttpClientEngineConfig() {
     /**
-     * Forces proxy tunneling by setting CURLOPT_HTTPPROXYTUNNEL
+     * Forces proxy tunneling by setting `CURLOPT_HTTPPROXYTUNNEL`.
      */
     internal var forceProxyTunneling: Boolean = false
 
     /**
-     * Enable TLS host and certificate verification by setting options
-     * CURLOPT_SSL_VERIFYPEER and CURLOPT_SSL_VERIFYHOST.
+     * Sets path to Certificate Authority (CA) bundle using `CURLOPT_CAINFO`.
+     */
+    public var caInfo: String? = null
+
+    /**
+     * Sets directory that holds Certificate Authority (CA) certificates using `CURLOPT_CAPATH`.
+     */
+    public var caPath: String? = null
+
+    /**
+     * Enables TLS host and certificate verification by setting the
+     * `CURLOPT_SSL_VERIFYPEER` and `CURLOPT_SSL_VERIFYHOST` options.
      * Similar to `-k/--insecure` curl option.
      *
-     * Setting this to `false` disables TLS verification so all connections will be insecure.
-     *
-     * While this is generally suitable for testing purpose,
-     * we do not recommend using this in production.
+     * Setting this property to `false` is recommended only for testing purposes.
      */
     public var sslVerify: Boolean = true
 }

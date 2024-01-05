@@ -15,6 +15,7 @@ expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
      */
     fun clientTests(
         skipEngines: List<String> = emptyList(),
+        onlyWithEngine: String? = null,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     )
 

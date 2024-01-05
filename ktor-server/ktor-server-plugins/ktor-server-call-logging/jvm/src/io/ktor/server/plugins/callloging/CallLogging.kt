@@ -5,228 +5,41 @@
 package io.ktor.server.plugins.callloging
 
 import io.ktor.events.*
-import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.logging.*
-import io.ktor.server.request.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
-import org.fusesource.jansi.*
-import org.slf4j.*
+import io.ktor.util.date.*
 import org.slf4j.event.*
-import kotlin.coroutines.*
+
+internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
 
 /**
- * Logs application lifecycle and call events.
+ * Returns time in millis from the moment the call was received until now
  */
-public class CallLogging private constructor(
-    private val log: Logger,
-    private val monitor: Events,
-    private val level: Level,
-    private val filters: List<(ApplicationCall) -> Boolean>,
-    private val mdcEntries: List<MDCEntry>,
-    private val formatCall: (ApplicationCall) -> String
-) : MDCProvider {
+public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
+    val startTime = attributes[CALL_START_TIME]
+    return clock() - startTime
+}
 
-    internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
+/**
+ * A plugin that allows you to log incoming client requests.
+ * You can configure [CallLogging] in multiple ways: specify a logging level,
+ * filter requests based on a specified condition, customize log messages, and so on.
+ *
+ * You can learn more from [Call logging](https://ktor.io/docs/call-logging.html).
+ */
+public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplicationPlugin(
+    "CallLogging",
+    ::CallLoggingConfig
+) {
+    val log = pluginConfig.logger ?: application.log
+    val filters = pluginConfig.filters
+    val formatCall = pluginConfig.formatCall
+    val clock = pluginConfig.clock
+    val ignoreStaticContent = pluginConfig.ignoreStaticContent
 
-    /**
-     * Configuration for [CallLogging] plugin
-     */
-    public class Configuration {
-        internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
-        internal val mdcEntries = mutableListOf<MDCEntry>()
-        internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
-        internal var isColorsEnabled: Boolean = true
-
-        /**
-         * Logging level for [CallLogging], default is [Level.INFO]
-         */
-        public var level: Level = Level.INFO
-
-        /**
-         * Customize [Logger], will default to [ApplicationEnvironment.log]
-         */
-        public var logger: Logger? = null
-
-        /**
-         * Log messages for calls matching a [predicate]
-         */
-        public fun filter(predicate: (ApplicationCall) -> Boolean) {
-            filters.add(predicate)
-        }
-
-        /**
-         * Put a diagnostic context value to [MDC] with the specified [name] and computed using [provider] function.
-         * A value will be available in MDC only during [ApplicationCall] lifetime and will be removed after call
-         * processing.
-         */
-        public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
-            mdcEntries.add(MDCEntry(name, provider))
-        }
-
-        /**
-         * Configure application call log message.
-         */
-        public fun format(formatter: (ApplicationCall) -> String) {
-            formatCall = formatter
-        }
-
-        /**
-         * Disables colors in log message in case the default formatter was used.
-         * */
-        public fun disableDefaultColors() {
-            isColorsEnabled = false
-        }
-
-        private fun defaultFormat(call: ApplicationCall): String =
-            when (val status = call.response.status() ?: "Unhandled") {
-                HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: " +
-                    "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
-                "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
-                else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
-            }
-
-        internal fun ApplicationRequest.toLogStringWithColors(): String =
-            "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()}"
-
-        private fun colored(status: HttpStatusCode): String {
-            try {
-                if (!AnsiConsole.isInstalled()) {
-                    AnsiConsole.systemInstall()
-                }
-            } catch (cause: Throwable) {
-                isColorsEnabled = false // ignore colors if console was not installed
-            }
-
-            return when (status) {
-                HttpStatusCode.Found, HttpStatusCode.OK, HttpStatusCode.Accepted, HttpStatusCode.Created -> colored(
-                    status,
-                    Ansi.Color.GREEN
-                )
-                HttpStatusCode.Continue, HttpStatusCode.Processing, HttpStatusCode.PartialContent,
-                HttpStatusCode.NotModified, HttpStatusCode.UseProxy, HttpStatusCode.UpgradeRequired,
-                HttpStatusCode.NoContent -> colored(
-                    status,
-                    Ansi.Color.YELLOW
-                )
-                else -> colored(status, Ansi.Color.RED)
-            }
-        }
-
-        private fun colored(value: Any, color: Ansi.Color): String =
-            if (isColorsEnabled) Ansi.ansi().fg(color).a(value).reset().toString()
-            else value.toString() // ignore color
-    }
-
-    private val starting: (Application) -> Unit = { log("Application starting: $it") }
-    private val started: (Application) -> Unit = { log("Application started: $it") }
-    private val stopping: (Application) -> Unit = { log("Application stopping: $it") }
-    private var stopped: (Application) -> Unit = {}
-
-    init {
-        stopped = {
-            log("Application stopped: $it")
-            monitor.unsubscribe(ApplicationStarting, starting)
-            monitor.unsubscribe(ApplicationStarted, started)
-            monitor.unsubscribe(ApplicationStopping, stopping)
-            monitor.unsubscribe(ApplicationStopped, stopped)
-        }
-
-        monitor.subscribe(ApplicationStarting, starting)
-        monitor.subscribe(ApplicationStarted, started)
-        monitor.subscribe(ApplicationStopping, stopping)
-        monitor.subscribe(ApplicationStopped, stopped)
-    }
-
-    internal fun setupMdc(call: ApplicationCall): Map<String, String> {
-        val result = HashMap<String, String>()
-
-        mdcEntries.forEach { entry ->
-            entry.provider(call)?.let { mdcValue ->
-                result[entry.name] = mdcValue
-            }
-        }
-
-        return result
-    }
-
-    internal fun cleanupMdc() {
-        mdcEntries.forEach {
-            MDC.remove(it.name)
-        }
-    }
-
-    /**
-     * Installable plugin for [CallLogging].
-     */
-    public companion object Plugin : ApplicationPlugin<Application, Configuration, CallLogging> {
-        override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
-            val loggingMonitoringPhase = PipelinePhase("LoggingMonitoringCall")
-            val loggingBeforeCallPhase = PipelinePhase("LoggingBeforeCall")
-            val loggingAfterCallPhase = PipelinePhase("LoggingAfterCall")
-            val configuration = Configuration().apply(configure)
-            val plugin = CallLogging(
-                configuration.logger ?: pipeline.log,
-                pipeline.environment.monitor,
-                configuration.level,
-                configuration.filters.toList(),
-                configuration.mdcEntries.toList(),
-                configuration.formatCall
-            )
-
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingMonitoringPhase)
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Call, loggingBeforeCallPhase)
-            pipeline.insertPhaseAfter(ApplicationCallPipeline.Fallback, loggingAfterCallPhase)
-
-            if (plugin.mdcEntries.isNotEmpty()) {
-                pipeline.intercept(loggingMonitoringPhase) {
-                    plugin.withMDC(call) {
-                        proceed()
-                    }
-                }
-                pipeline.intercept(loggingBeforeCallPhase) {
-                    plugin.withMDC(call) {
-                        proceed()
-                    }
-                }
-                pipeline.intercept(loggingAfterCallPhase) {
-                    plugin.withMDC(call) {
-                        proceed()
-                        plugin.logSuccess(call)
-                    }
-                }
-            } else {
-                pipeline.intercept(loggingMonitoringPhase) {
-                    proceed()
-                    plugin.logSuccess(call)
-                }
-            }
-
-            return plugin
-        }
-    }
-
-    public override suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
-        withMDC(call, block)
-    }
-
-    /**
-     * Invoke suspend [block] with a context having MDC configured.
-     */
-    private suspend inline fun withMDC(call: ApplicationCall, crossinline block: suspend () -> Unit) {
-        withContext(MDCSurvivalElement(setupMdc(call))) {
-            try {
-                block()
-            } finally {
-                cleanupMdc()
-            }
-        }
-    }
-
-    private fun log(message: String) = when (level) {
+    fun log(message: String) = when (pluginConfig.level) {
         Level.ERROR -> log.error(message)
         Level.WARN -> log.warn(message)
         Level.INFO -> log.info(message)
@@ -234,36 +47,68 @@ public class CallLogging private constructor(
         Level.TRACE -> log.trace(message)
     }
 
-    private fun logSuccess(call: ApplicationCall) {
-        if (filters.isEmpty() || filters.any { it(call) }) {
-            log(formatCall(call))
+    fun logSuccess(call: ApplicationCall) {
+        if ((ignoreStaticContent && call.isStaticContent()) || (filters.isNotEmpty() && filters.none { it(call) })) {
+            return
+        }
+        log(formatCall(call))
+    }
+
+    setupMDCProvider()
+    setupLogging(application.monitor, ::log)
+
+    on(CallSetup) { call ->
+        call.attributes.put(CALL_START_TIME, clock())
+    }
+
+    if (pluginConfig.mdcEntries.isEmpty()) {
+        logCompletedCalls(::logSuccess)
+        return@createApplicationPlugin
+    }
+
+    logCallsWithMDC(::logSuccess)
+}
+
+private fun PluginBuilder<CallLoggingConfig>.logCompletedCalls(logSuccess: (ApplicationCall) -> Unit) {
+    on(ResponseSent) { call ->
+        logSuccess(call)
+    }
+}
+
+private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (ApplicationCall) -> Unit) {
+    val entries = pluginConfig.mdcEntries
+
+    on(MDCHook(ApplicationCallPipeline.Monitoring)) { call, proceed ->
+        withMDC(entries, call, proceed)
+    }
+
+    on(MDCHook(ApplicationCallPipeline.Call)) { call, proceed ->
+        withMDC(entries, call, proceed)
+    }
+
+    on(ResponseSent) { call ->
+        withMDC(entries, call) {
+            logSuccess(call)
         }
     }
 }
 
-private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
-    override val key: CoroutineContext.Key<*> get() = Key
+private fun setupLogging(events: Events, log: (String) -> Unit) {
+    val starting: (Application) -> Unit = { log("Application starting: $it") }
+    val started: (Application) -> Unit = { log("Application started: $it") }
+    val stopping: (Application) -> Unit = { log("Application stopping: $it") }
+    var stopped: (Application) -> Unit = {}
 
-    private val snapshot = copyMDC() + mdc
-
-    override fun restoreThreadContext(context: CoroutineContext, oldState: Map<String, String>) {
-        putMDC(oldState)
+    stopped = {
+        log("Application stopped: $it")
+        events.unsubscribe(ApplicationStarting, starting)
+        events.unsubscribe(ApplicationStarted, started)
+        events.unsubscribe(ApplicationStopping, stopping)
+        events.unsubscribe(ApplicationStopped, stopped)
     }
 
-    override fun updateThreadContext(context: CoroutineContext): Map<String, String> {
-        val mdcCopy = copyMDC()
-        putMDC(snapshot)
-        return mdcCopy
-    }
-
-    private fun copyMDC() = MDC.getCopyOfContextMap()?.toMap() ?: emptyMap()
-
-    private fun putMDC(oldState: Map<String, String>) {
-        MDC.clear()
-        oldState.entries.forEach { (k, v) ->
-            MDC.put(k, v)
-        }
-    }
-
-    private object Key : CoroutineContext.Key<MDCSurvivalElement>
+    events.subscribe(ApplicationStarting, starting)
+    events.subscribe(ApplicationStarted, started)
+    events.subscribe(ApplicationStopping, stopping)
+    events.subscribe(ApplicationStopped, stopped)
 }

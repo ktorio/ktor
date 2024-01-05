@@ -4,19 +4,21 @@
 
 package io.ktor.server.application
 
+import io.ktor.utils.io.*
+
 /**
- * Represents a hook that can be registered in [ApplicationPluginBuilder].
+ * A hook that can be registered in [PluginBuilder].
  */
-@PluginsDslMarker
+@KtorDsl
 public interface Hook<HookHandler> {
     /**
-     * Specifies how to install a hook in the [application].
+     * Specifies how to install a hook in the [pipeline].
      */
-    public fun install(application: Application, handler: HookHandler)
+    public fun install(pipeline: ApplicationCallPipeline, handler: HookHandler)
 }
 
 internal class HookHandler<T>(private val hook: Hook<T>, private val handler: T) {
-    fun install(application: Application) {
-        hook.install(application, handler)
+    fun install(pipeline: ApplicationCallPipeline) {
+        hook.install(pipeline, handler)
     }
 }

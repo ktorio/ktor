@@ -4,22 +4,53 @@
 
 package io.ktor.tests.routing
 
+import io.ktor.http.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import kotlin.test.*
 
 class RouteTest {
 
     @Test
     fun testToStringSimple() {
-        val root = Route(parent = null, selector = PathSegmentConstantRouteSelector("root"))
-        val simpleChild = Route(parent = root, selector = PathSegmentConstantRouteSelector("simpleChild"))
+        val root = RouteNode(
+            parent = null,
+            selector = PathSegmentConstantRouteSelector("root"),
+            environment = createTestEnvironment()
+        )
+        val simpleChild = RouteNode(
+            parent = root,
+            selector = PathSegmentConstantRouteSelector("simpleChild"),
+            environment = createTestEnvironment()
+        )
         val simpleGrandChild =
-            Route(parent = simpleChild, selector = PathSegmentConstantRouteSelector("simpleGrandChild"))
+            RouteNode(
+                parent = simpleChild,
+                selector = PathSegmentConstantRouteSelector("simpleGrandChild"),
+                environment = createTestEnvironment()
+            )
 
-        val slashChild = Route(parent = root, selector = TrailingSlashRouteSelector)
-        val slashGrandChild = Route(parent = slashChild, selector = TrailingSlashRouteSelector)
-        val simpleChildInSlash = Route(parent = slashGrandChild, PathSegmentConstantRouteSelector("simpleChildInSlash"))
-        val slashChildInSimpleChild = Route(parent = simpleChildInSlash, TrailingSlashRouteSelector)
+        val slashChild = RouteNode(
+            parent = root,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
+        val slashGrandChild = RouteNode(
+            parent = slashChild,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
+        val simpleChildInSlash = RouteNode(
+            parent = slashGrandChild,
+            selector = PathSegmentConstantRouteSelector("simpleChildInSlash"),
+            environment = createTestEnvironment()
+        )
+        val slashChildInSimpleChild = RouteNode(
+            parent = simpleChildInSlash,
+            selector = TrailingSlashRouteSelector,
+            environment = createTestEnvironment()
+        )
 
         assertEquals("/root", root.toString())
         assertEquals("/root/simpleChild", simpleChild.toString())
@@ -32,9 +63,63 @@ class RouteTest {
 
     @Test
     fun testCreateChildKeepsDevelopmentMode() {
-        val root = Route(parent = null, selector = PathSegmentConstantRouteSelector("root"), developmentMode = true)
+        val root = RouteNode(
+            parent = null,
+            selector = PathSegmentConstantRouteSelector("root"),
+            developmentMode = true,
+            environment = createTestEnvironment()
+        )
         val simpleChild = root.createChild(PathSegmentConstantRouteSelector("simpleChild"))
         assertTrue(root.developmentMode)
         assertTrue(simpleChild.developmentMode)
+    }
+
+    @Test
+    fun testGetAllRoutes() = testApplication {
+        application {
+            val root = routing {
+                route("/shop") {
+                    route("/customer") {
+                        get("/{id}") {
+                            call.respondText("OK")
+                        }
+                        post("/new") { }
+                    }
+
+                    route("/order") {
+                        route("/shipment") {
+                            get { }
+                            post {
+                                call.respondText("OK")
+                            }
+                            put {
+                                call.respondText("OK")
+                            }
+                        }
+                    }
+                }
+
+                route("/info", HttpMethod.Get) {
+                    post("new") {}
+
+                    handle {
+                        call.respondText("OK")
+                    }
+                }
+            }
+
+            val endpoints = root.getAllRoutes()
+            assertTrue { endpoints.size == 7 }
+            val expected = setOf(
+                "/shop/customer/{id}/(method:GET)",
+                "/shop/customer/new/(method:POST)",
+                "/shop/order/shipment/(method:GET)",
+                "/shop/order/shipment/(method:PUT)",
+                "/shop/order/shipment/(method:POST)",
+                "/info/(method:GET)",
+                "/info/(method:GET)/new/(method:POST)"
+            )
+            assertEquals(expected, endpoints.map { it.toString() }.toSet())
+        }
     }
 }

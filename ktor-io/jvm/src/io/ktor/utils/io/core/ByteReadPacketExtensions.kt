@@ -21,10 +21,12 @@ public fun ByteReadPacket(bb: ByteBuffer, release: (ByteBuffer) -> Unit = {}): B
     return ByteReadPacket(view, pool)
 }
 
+@Suppress("DEPRECATION")
 private fun poolFor(bb: ByteBuffer, release: (ByteBuffer) -> Unit): ObjectPool<ChunkBuffer> {
     return SingleByteBufferPool(bb, release)
 }
 
+@Suppress("DEPRECATION")
 private class SingleByteBufferPool(
     val instance: ByteBuffer,
     val release: (ByteBuffer) -> Unit

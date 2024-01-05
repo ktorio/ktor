@@ -38,7 +38,7 @@ internal class NettyHttp1ApplicationResponse constructor(
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
             if (responseMessageSent) {
-                if (responseMessage.isCancelled) throw CancellationException("Call execution has been cancelled")
+                if (responseReady.isCancelled) throw CancellationException("Call execution has been cancelled")
                 throw UnsupportedOperationException(
                     "Headers can no longer be set because response was already completed"
                 )
@@ -82,6 +82,7 @@ internal class NettyHttp1ApplicationResponse constructor(
         val upgradedReadChannel = bodyHandler.upgrade()
 
         val upgradedWriteChannel = ByteChannel()
+
         sendResponse(chunked = false, content = upgradedWriteChannel)
 
         with(nettyChannel.pipeline()) {
@@ -92,7 +93,6 @@ internal class NettyHttp1ApplicationResponse constructor(
                 cancel()
                 val cause = CancellationException("HTTP upgrade has been cancelled")
                 upgradedWriteChannel.cancel(cause)
-                bodyHandler.close()
                 throw cause
             }
         }

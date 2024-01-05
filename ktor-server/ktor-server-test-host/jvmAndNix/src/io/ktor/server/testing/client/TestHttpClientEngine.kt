@@ -10,8 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.testing.*
-import io.ktor.server.testing.internal.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
@@ -25,26 +23,23 @@ internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, a
         url: String,
         headers: Headers,
         content: OutgoingContent,
-        coroutineContext: CoroutineContext
+        callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession>
 }
 
-public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
     private val app: TestApplicationEngine = config.app
 
     private val bridge = TestHttpClientEngineBridge(this, app)
 
     override val supportedCapabilities = bridge.supportedCapabilities
 
-    override val dispatcher = Dispatchers.IOBridge
-
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = dispatcher + clientJob
+    override val coroutineContext: CoroutineContext = clientJob + dispatcher
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        app.start()
         if (data.isUpgradeRequest()) {
             val (testServerCall, session) = with(data) {
                 bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
@@ -55,7 +50,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
 
         val testServerCall = with(data) {
-            runRequest(method, url.fullPath, headers, body, url.protocol)
+            runRequest(method, url, headers, body, url.protocol)
         }
 
         return with(testServerCall.response) {
@@ -63,14 +58,17 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private fun runRequest(
+    private suspend fun runRequest(
         method: HttpMethod,
-        url: String,
+        url: Url,
         headers: Headers,
         content: OutgoingContent,
         protocol: URLProtocol
     ): TestApplicationCall {
-        return app.handleRequest(method, url) {
+        return app.handleRequestNonBlocking {
+            this.uri = url.fullPath
+            this.port = url.port
+            this.method = method
             appendRequestHeaders(headers, content)
             this.protocol = protocol.name
 
@@ -91,27 +89,14 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         callContext()
     )
 
+    @OptIn(InternalAPI::class)
     internal fun TestApplicationRequest.appendRequestHeaders(
         headers: Headers,
         content: OutgoingContent
     ) {
-        headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
-            if (HttpHeaders.ContentType == name) return@flattenForEach // set later
+        mergeHeaders(headers, content) { name, value ->
             addHeader(name, value)
         }
-
-        content.headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
-            if (HttpHeaders.ContentType == name) return@flattenForEach
-            addHeader(name, value)
-        }
-
-        val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
-        val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
-
-        contentLength?.let { addHeader(HttpHeaders.ContentLength, it) }
-        contentType?.let { addHeader(HttpHeaders.ContentType, it) }
     }
 
     override fun close() {
@@ -129,9 +114,10 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         is OutgoingContent.NoContent -> ByteReadChannel.Empty
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
         is OutgoingContent.ReadChannelContent -> readFrom()
-        is OutgoingContent.WriteChannelContent -> runBlocking {
-            writer(coroutineContext) { writeTo(channel) }.channel
-        }
+        is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
+            writeTo(channel)
+        }.channel
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 }

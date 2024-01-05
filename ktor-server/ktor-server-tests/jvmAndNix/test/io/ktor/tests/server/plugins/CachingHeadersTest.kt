@@ -38,7 +38,7 @@ class CachingHeadersTest {
     fun addNoStore(): Unit = test(
         configure = {
             install(CachingHeaders) {
-                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
             }
         },
         test = { response ->
@@ -50,8 +50,8 @@ class CachingHeadersTest {
     fun testAddMaxAgeAndNoStore(): Unit = test(
         configure = {
             install(CachingHeaders) {
-                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-                options { CachingOptions(CacheControl.MaxAge(15)) }
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(CacheControl.MaxAge(15)) }
             }
         },
         test = { response ->
@@ -62,14 +62,64 @@ class CachingHeadersTest {
         }
     )
 
+    object Immutable : CacheControl(null) {
+        override fun toString(): String = "immutable"
+    }
+
+    @Test
+    fun testCustomCacheControl(): Unit = test(
+        configure = {
+            install(CachingHeaders) {
+                options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { _, _ -> CachingOptions(Immutable) }
+            }
+        },
+        test = { response ->
+            assertEquals(
+                "no-cache, private, no-store, immutable",
+                response.headers[HttpHeaders.CacheControl]
+            )
+        }
+    )
+
+    @Test
+    fun testSetInCall() = testApplication {
+        install(CachingHeaders)
+        routing {
+            get("/") {
+                call.caching = CachingOptions(CacheControl.NoCache(null))
+                call.respondText("test")
+            }
+        }
+        client.get("/").let { response ->
+            assertEquals("no-cache", response.headers[HttpHeaders.CacheControl])
+        }
+    }
+
+    @Test
+    fun testSetInCallAndContent() = testApplication {
+        install(CachingHeaders)
+        routing {
+            get("/") {
+                call.caching = CachingOptions(CacheControl.NoCache(null))
+                call.respondText("test") {
+                    caching = CachingOptions(CacheControl.MaxAge(15))
+                }
+            }
+        }
+        client.get("/").let { response ->
+            assertEquals("no-cache, max-age=15", response.headers[HttpHeaders.CacheControl])
+        }
+    }
+
     @Test
     fun testSubrouteInstall() = testApplication {
         application {
             routing {
                 route("/1") {
                     install(CachingHeaders) {
-                        options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-                        options { CachingOptions(CacheControl.MaxAge(15)) }
+                        options { _, _ -> CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                        options { _, _ -> CachingOptions(CacheControl.MaxAge(15)) }
                     }
                     get {
                         call.respondText("test") {

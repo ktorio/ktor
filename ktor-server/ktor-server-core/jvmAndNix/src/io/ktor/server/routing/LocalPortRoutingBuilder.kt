@@ -4,17 +4,17 @@
 
 package io.ktor.server.routing
 
-import io.ktor.http.parametersOf
-import io.ktor.util.*
+import io.ktor.http.*
+import io.ktor.server.application.*
 
 /**
- * Create a route to match the port on which the call was received.
+ * Creates a route to match a port on which a call was received.
  *
- * The selector checks the [io.ktor.request.ApplicationRequest.local] request port,
- * _ignoring_ HTTP headers such as "Host" or "X-Forwarded-Host".
+ * The selector checks the [io.ktor.server.request.ApplicationRequest.local] request port,
+ * _ignoring_ HTTP headers such as `Host` or `X-Forwarded-Host`.
  * This is useful for securing routes under separate ports.
  *
- * For multi-tenant applications, you may want to use [io.ktor.routing.port],
+ * For multi-tenant applications, you may want to use [io.ktor.server.routing.port],
  * which takes HTTP headers into consideration.
  *
  * @param port the port to match against
@@ -29,14 +29,14 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
 }
 
 /**
- * Evaluate a route against the port on which the call was received.
+ * Evaluates a route against the port on which a call is received.
  *
  * @param port the port to match against
  */
 public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
-        if (context.call.request.local.port == port) {
+        if (context.call.request.local.localPort == port) {
             val parameters = parametersOf(LocalPortParameter, port.toString())
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, parameters)
         } else {
@@ -45,7 +45,7 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     public companion object {
         /**
-         * Parameter name for [RoutingApplicationCall.parameters] for request host
+         * A parameter name for [ApplicationCall.parameters] for a request host.
          */
         public const val LocalPortParameter: String = "\$LocalPort"
     }

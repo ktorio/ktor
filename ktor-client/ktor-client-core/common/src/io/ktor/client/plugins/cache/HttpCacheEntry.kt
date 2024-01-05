@@ -5,18 +5,19 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlin.collections.*
 
 @OptIn(InternalAPI::class)
-internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
+internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
     val body = response.content.readRemaining().readBytes()
     response.complete()
-    return HttpCacheEntry(response.cacheExpires(), response.varyKeys(), response, body)
+    return HttpCacheEntry(response.cacheExpires(isShared), response.varyKeys(), response, body)
 }
 
 /**
@@ -34,10 +35,7 @@ public class HttpCacheEntry internal constructor(
 
     internal fun produceResponse(): HttpResponse {
         val currentClient = response.call.client
-        val call = SavedHttpCall(currentClient, body)
-        call.response = SavedHttpResponse(call, body, response)
-        call.request = SavedHttpRequest(call, response.call.request)
-
+        val call = SavedHttpCall(currentClient, response.call.request, response, body)
         return call.response
     }
 
@@ -65,19 +63,17 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
+internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDate = { GMTDate() }): GMTDate {
     val cacheControl = cacheControl()
 
-    val isPrivate = CacheControl.PRIVATE in cacheControl
-
-    val maxAgeKey = if (isPrivate) "s-max-age" else "max-age"
+    val maxAgeKey = if (isShared && cacheControl.any { it.value.startsWith("s-maxage") }) "s-maxage" else "max-age"
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
-        ?.get(1)?.toInt()
+        ?.get(1)?.toLongOrNull()
 
     if (maxAge != null) {
-        return call.response.requestTime + maxAge * 1000L
+        return requestTime + maxAge * 1000L
     }
 
     val expires = headers[HttpHeaders.Expires]
@@ -93,15 +89,54 @@ internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }):
     } ?: fallback()
 }
 
-internal fun HttpCacheEntry.shouldValidate(): Boolean {
-    val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
-    val isStale = GMTDate() > expires
-    // must-revalidate; re-validate once STALE, and MUST NOT return a cached response once stale.
-    //  This is how majority of clients implement the RFC
-    //  OkHttp Implements this the same: https://github.com/square/okhttp/issues/4043#issuecomment-403679369
-    // Disabled for now, as we don't currently return a cached object when there's a network failure; must-revalidate
-    // works the same as being stale on the request side. On response side, must-revalidate would not return a cached
-    // object if we are stale and couldn't refresh.
-    // isStale = isStale && CacheControl.MUST_REVALIDATE in cacheControl
-    return isStale || CacheControl.NO_CACHE in cacheControl
+internal fun shouldValidate(
+    cacheExpires: GMTDate,
+    responseHeaders: Headers,
+    request: HttpRequestBuilder
+): ValidateStatus {
+    val requestHeaders = request.headers
+    val responseCacheControl = parseHeaderValue(responseHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
+    val requestCacheControl = parseHeaderValue(requestHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
+
+    if (CacheControl.NO_CACHE in requestCacheControl) {
+        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
+
+    val requestMaxAge = requestCacheControl.firstOrNull { it.value.startsWith("max-age=") }
+        ?.value?.split("=")
+        ?.get(1)?.let { it.toIntOrNull() ?: 0 }
+    if (requestMaxAge == 0) {
+        LOGGER.trace("\"max-age\" is not set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
+
+    if (CacheControl.NO_CACHE in responseCacheControl) {
+        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
+    val validMillis = cacheExpires.timestamp - getTimeMillis()
+    if (validMillis > 0) {
+        LOGGER.trace("Cached response is valid for ${request.url}, should not validate")
+        return ValidateStatus.ShouldNotValidate
+    }
+    if (CacheControl.MUST_REVALIDATE in responseCacheControl) {
+        LOGGER.trace("\"must-revalidate\" is set for ${request.url}, should validate cached response")
+        return ValidateStatus.ShouldValidate
+    }
+
+    val maxStale = requestCacheControl.firstOrNull { it.value.startsWith("max-stale=") }
+        ?.value?.substring("max-stale=".length)
+        ?.toIntOrNull() ?: 0
+    val maxStaleMillis = maxStale * 1000L
+    if (validMillis + maxStaleMillis > 0) {
+        LOGGER.trace("Cached response is stale for ${request.url} but less than max-stale, should warn")
+        return ValidateStatus.ShouldWarn
+    }
+    LOGGER.trace("Cached response is stale for ${request.url}, should validate cached response")
+    return ValidateStatus.ShouldValidate
+}
+
+internal enum class ValidateStatus {
+    ShouldValidate, ShouldNotValidate, ShouldWarn
 }

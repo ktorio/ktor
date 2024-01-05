@@ -2,8 +2,6 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("DEPRECATION")
-
 package io.ktor.server.application
 
 import io.ktor.server.application.debug.*
@@ -13,164 +11,210 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.debug.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
+import io.ktor.utils.io.*
 import kotlin.random.*
 
 /**
- * A builder that is available inside a plugin creation block. You can use this builder to hook in various steps of request processing.
+ * A utility class to build an [ApplicationPlugin] instance.
  **/
-@PluginsDslMarker
-public sealed interface PluginBuilder<PluginConfig : Any> {
+@KtorDsl
+@Suppress("UNUSED_PARAMETER", "DEPRECATION")
+public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
+    internal val key: AttributeKey<PluginInstance>
+) {
 
     /**
      * A reference to the [Application] where the plugin is installed.
      */
-    public val application: Application
+    public abstract val application: Application
 
     /**
-     * Specifies the [block] handler for every incoming [ApplicationCall].
+     * A configuration of the current plugin.
+     */
+    public abstract val pluginConfig: PluginConfig
+
+    /**
+     * A pipeline [PluginConfig] for the current plugin.
+     * See [Pipelines](https://ktor.io/docs/pipelines.html) for more information.
+     **/
+    internal abstract val pipeline: ApplicationCallPipeline
+
+    /**
+     * Allows you to access the environment of the currently running application where the plugin is installed.
+     **/
+    public val environment: ApplicationEnvironment? get() = pipeline.environment
+
+    /**
+     * A configuration of your current application (incl. host, port and anything else you can define in application.conf).
+     **/
+    public val applicationConfig: ApplicationConfig? get() = environment?.config
+
+    internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
+
+    internal val onReceiveInterceptions: MutableList<ReceiveInterception> = mutableListOf()
+
+    internal val onResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
+
+    internal val afterResponseInterceptions: MutableList<ResponseInterception> = mutableListOf()
+
+    internal val hooks: MutableList<HookHandler<*>> = mutableListOf()
+
+    /**
+     * Specifies the [block] handler for every incoming [PipelineCall].
      *
-     * This block is invoked for every incoming call even if the call is already handled by some different handler.
+     * This block is invoked for every incoming call even if the call is already handled by other handler.
      * There you can handle the call in a way you want: add headers, change the response status, etc. You can also
      * access the external state to calculate stats.
      *
-     * Example:
+     * This example demonstrates how to create a plugin that appends a custom header to each response:
      * ```kotlin
-     *
-     * val plugin = createApplicationPlugin("CallCounterHeader") {
-     *     var counter = 0
-     *
+     * val CustomHeaderPlugin = createApplicationPlugin(name = "CustomHeaderPlugin") {
      *     onCall { call ->
-     *         counter++
-     *         call.response.header("X-Call-Count", "$counter")
+     *         call.response.headers.append("X-Custom-Header", "Hello, world!")
      *     }
      * }
-     *
      * ```
+     *
+     * @see [createApplicationPlugin]
+     *
+     * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
-    public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: ApplicationCall) -> Unit)
+    public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
+        onDefaultPhase(
+            callInterceptions,
+            ApplicationCallPipeline.Plugins,
+            PHASE_ON_CALL,
+            ::OnCallContext
+        ) { call, _ ->
+            block(call)
+        }
+    }
 
     /**
-     * Specifies the [block] handler for every [call.receive()] statement.
-     *
+     * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
-     * You can observe the [receiveRequest] of the body. You can also modify the body using the [transformBody] block.
+     * @see [createApplicationPlugin]
      *
-     * Example:
-     * ```kotlin
-     *
-     * val ReceiveTypeLogger = createApplicationPlugin("ReceiveTypeLogger") {
-     *     onCallReceive { call, receiveRequest ->
-     *         println("Requested ${receiveRequest.typeInfo} type")
-     *     }
-     * }
-     *
-     * ```
-     *
-     * @param body lets you monitor the body content.
+     * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(
-            call: ApplicationCall,
-            receiveRequest: ApplicationReceiveRequest
-        ) -> Unit
-    )
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: PipelineCall, body: Any) -> Unit
+    ) {
+        onDefaultPhase(
+            onReceiveInterceptions,
+            ApplicationReceivePipeline.Transform,
+            PHASE_ON_CALL_RECEIVE,
+            ::OnCallReceiveContext,
+        ) { call, body: Any -> block(call, body) }
+    }
 
     /**
-     * Specifies the [block] handler for every [call.respond()] statement.
+     * Specifies the [block] handler that allows you to transform data before sending it to the client.
+     * This handler is executed when the `call.respond` function is invoked in a route handler.
+     * @see [createApplicationPlugin]
      *
-     * This [block] is invoked for every attempt to send the response.
-     *
-     * @param body lets you monitor the body content.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val BodyLimiter = createApplicationPlugin("BodyLimiter") {
-     *     onCallRespond { _: ApplicationCall, body: Any ->
-     *         if (body is ByteArray) {
-     *             check(body.size < 4 * 1024 * 1024) { "Body size is too big: ${body.size} bytes" }
-     *         }
-     *     }
-     *  }
-     *
-     * ```
+     * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
     public fun onCallRespond(
-        block: suspend OnCallRespondContext<PluginConfig>.(call: ApplicationCall, body: Any) -> Unit
-    )
+        block: suspend OnCallRespondContext<PluginConfig>.(call: PipelineCall, body: Any) -> Unit
+    ) {
+        onDefaultPhase(
+            onResponseInterceptions,
+            ApplicationSendPipeline.Transform,
+            PHASE_ON_CALL_RESPOND,
+            ::OnCallRespondContext,
+            block
+        )
+    }
 
     /**
-     * Specifies the [block] handler for every [call.respond()] statement.
-     *
-     * This [block] is be invoked for every attempt to send the response.
-     *
-     * @param body lets you monitor the body content.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val BodyLimiter = createApplicationPlugin("BodyLimiter") {
-     *     onCallRespond { _: ApplicationCall, body: Any ->
-     *         if (body is ByteArray) {
-     *             check(body.size < 4 * 1024 * 1024) { "Body size is too big: ${body.size} bytes" }
-     *         }
-     *     }
-     *  }
-     *
-     * ```
-     **/
-    public val onCallRespond: OnCallRespond<PluginConfig>
-
-    /**
-     * Specifies the [block] handler for every [call.receive()] statement.
-     *
-     * This [block] will be invoked for every attempt to receive the request body.
-     * You can observe the [receiveRequest] of the body. You can also modify the body using the [transformBody] block.
+     * Specifies a [handler] for a specific [hook].
+     * A [hook] can be a specific place in time or event during the request
+     * processing like application shutdown, an exception during call processing, etc.
+     * @see [createApplicationPlugin]
      *
      * Example:
      * ```kotlin
+     * val ResourceManager = createApplicationPlugin("ResourceManager") {
+     *     val resources: List<Closeable> = TODO()
      *
-     * val ContentType = createApplicationPlugin("ReceiveTypeLogger") {
-     *     onCallReceive { call ->
-     *         println("Received ${call.request.headers(HttpHeaders.ContentType)} type")
+     *     on(MonitoringEvent(ApplicationStopped)) {
+     *         resources.forEach { it.close() }
      *     }
      * }
-     *
      * ```
+     */
+    public fun <HookHandler> on(
+        hook: Hook<HookHandler>,
+        handler: HookHandler
+    ) {
+        hooks.add(HookHandler(hook, handler))
+    }
+
+    /**
+     * Specifies the [block] handler that allows you to obtain and transform data received from the client.
+     * This [block] is invoked for every attempt to receive the request body.
+     * @see [createApplicationPlugin]
      *
-     * @param body lets you monitor the body content.
+     * @param block An action that needs to be executed when your application receives data from a client.
      **/
     public fun onCallReceive(
-        block: suspend OnCallReceiveContext<PluginConfig>.(call: ApplicationCall) -> Unit
+        block: suspend OnCallReceiveContext<PluginConfig>.(call: PipelineCall) -> Unit
     ) {
         onCallReceive { call, _ -> block(call) }
     }
 
     /**
-     * Specifies the [block] handler for every [call.respond()] statement.
+     * Specifies the [block] handler that allows you to transform data before sending it to the client.
+     * This handler is executed when the `call.respond` function is invoked in a route handler.
+     * @see [createApplicationPlugin]
      *
-     * This [block] is invoked for every attempt to send the response.
-     *
-     * @param body lets you monitor the body content.
-     *
-     * Example:
-     *
-     * ```kotlin
-     *
-     * val NoKeepAlive = createApplicationPlugin("NoKeepAlive") {
-     *     onCallRespond { call: ApplicationCall ->
-     *         call.respond.header("Connection", "close")
-     *     }
-     *  }
-     *
-     * ```
+     * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
     public fun onCallRespond(
-        block: suspend OnCallRespondContext<PluginConfig>.(call: ApplicationCall) -> Unit
+        block: suspend OnCallRespondContext<PluginConfig>.(call: PipelineCall) -> Unit
     ) {
         onCallRespond { call, _ -> block(call) }
     }
+
+    private fun <T : Any, ContextT : CallContext<PluginConfig>> onDefaultPhaseWithMessage(
+        interceptions: MutableList<Interception<T>>,
+        phase: PipelinePhase,
+        handlerName: String,
+        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, PipelineCall>) -> ContextT,
+        block: suspend ContextT.(PipelineCall, T) -> Unit
+    ) {
+        interceptions.add(
+            Interception(
+                phase,
+                action = { pipeline ->
+                    pipeline.intercept(phase) {
+                        // Information about the plugin name is needed for the Intellij Idea debugger.
+                        val key = this@PluginBuilder.key
+                        val pluginConfig = this@PluginBuilder.pluginConfig
+                        addToContextInDebugMode(key.name) {
+                            ijDebugReportHandlerStarted(pluginName = key.name, handler = handlerName)
+
+                            // Perform current plugin's handler
+                            contextInit(pluginConfig, this@intercept).block(call, subject)
+
+                            ijDebugReportHandlerFinished(pluginName = key.name, handler = handlerName)
+                        }
+                    }
+                }
+            )
+        )
+    }
+
+    private fun <T : Any, ContextT : CallContext<PluginConfig>> onDefaultPhase(
+        interceptions: MutableList<Interception<T>>,
+        phase: PipelinePhase,
+        handlerName: String,
+        contextInit: (pluginConfig: PluginConfig, PipelineContext<T, PipelineCall>) -> ContextT,
+        block: suspend ContextT.(call: PipelineCall, body: T) -> Unit
+    ) {
+        onDefaultPhaseWithMessage(interceptions, phase, handlerName, contextInit) { call, body -> block(call, body) }
+    }
+
+    internal fun newPhase(): PipelinePhase = PipelinePhase("${key.name}Phase${Random.nextInt()}")
 }

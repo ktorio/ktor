@@ -5,8 +5,6 @@
 package io.ktor.server.servlet
 
 import io.ktor.http.content.*
-import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -97,12 +95,11 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
                 context = up.userContext + upgradeJob,
                 pool = KtorDefaultPool
             )
-            else -> servletReader(webConnection.inputStream).channel
+            else -> servletReader(webConnection.inputStream, Int.MAX_VALUE).channel
         }
 
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(
                 inputChannel,

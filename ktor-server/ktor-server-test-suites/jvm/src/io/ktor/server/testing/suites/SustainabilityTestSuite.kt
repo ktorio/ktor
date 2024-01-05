@@ -8,28 +8,23 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
-import org.junit.*
-import org.junit.Assert.*
-import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
@@ -37,6 +32,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.test.*
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -47,7 +43,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val message = "expected, ${Random().nextLong()}"
         val collected = LinkedBlockingQueue<Throwable>()
 
-        val log = object : Logger by LoggerFactory.getLogger("ktor.test") {
+        val log = object : Logger by LoggerFactory.getLogger("io.ktor.test") {
             override fun error(message: String, exception: Throwable?) {
                 if (exception != null) {
                     collected.add(exception)
@@ -67,10 +63,10 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/") {
-            assertEquals(InternalServerError.value, status.value)
+            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
 
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -81,7 +77,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         withUrl("/respondWrite") {
             assertEquals(HttpStatusCode.OK.value, status.value)
             while (true) {
-                val exception = collected.poll(timeout, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -134,7 +130,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                                 val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
                                 channel.discardExact(contentLength)
                                 response.release()
-                            } ?: fail("No response found for request #$requestNumber")
+                            } ?: kotlin.test.fail("No response found for request #$requestNumber")
                         }
                     }
                 }
@@ -286,7 +282,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             // ensure that the server is not running anymore
             withUrl("/") {
                 call.body<String>()
-                fail("Shouldn't happen")
+                kotlin.test.fail("Shouldn't happen")
             }
         }
     }
@@ -294,7 +290,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     @Test
     fun testGetWithBody() {
         createAndStartServer {
-            application.install(Compression)
+            install(Compression)
 
             get("/") {
                 call.respondText(call.receive())
@@ -373,9 +369,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         latch.await()
 
         if (errors.isNotEmpty()) {
-            throw MultipleFailureException(errors)
+            throw RuntimeException("Exceptions thrown: ${errors.joinToString { it::class.simpleName ?: "<no name>" }}")
         }
-
         var multiplier = 1
         if (enableHttp2) multiplier++
         if (enableSsl) multiplier++
@@ -513,6 +508,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         } finally {
             e.shutdownNow()
         }
+        TimeUnit.SECONDS.sleep(10)
     }
 
     @Test
@@ -535,7 +531,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             "3\r\n",
             "a=1\r\n",
             "0\r\n",
-            "\r\n",
+            "\r\n"
         )
 
         socket {
@@ -550,7 +546,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 "HTTP/1.0 400"
             )
 
-            assertTrue("Invalid response: $result", expected.any { result.startsWith(it) })
+            assert(expected.any { result.startsWith(it) }) {
+                "Invalid response: $result"
+            }
         }
     }
 
@@ -562,7 +560,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
             post("/") {
                 call.receiveParameters()
-                fail("We should NOT receive any content")
+                kotlin.test.fail("We should NOT receive any content")
             }
         }
 
@@ -593,7 +591,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 "HTTP/1.0 400"
             )
 
-            assertTrue("Invalid response: $result", expected.any { result.startsWith(it) })
+            assert(expected.any { result.startsWith(it) }) {
+                "Invalid response: $result"
+            }
         }
     }
 
@@ -625,10 +625,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             getInputStream().bufferedReader().apply {
                 // we are expecting either 400 BadRequest or 200 OK Hello, World
                 val status = readLine().trim().split(" ")[1].toInt()
-                assertTrue(
-                    "status should be either 200 or 400 or 431 but it's $status",
-                    status in listOf(200, 400, 431)
-                )
+                assert(status in listOf(200, 400, 431)) {
+                    "status should be either 200 or 400 or 431 but it's $status"
+                }
 
                 val contentLength = parseHeadersAndGetContentLength()
 
@@ -641,20 +640,23 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    class CustomFail(message: String) : Throwable(message)
+
     @Test
     public fun testErrorInApplicationCallPipelineInterceptor() {
-        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val exceptions = mutableListOf<Throwable>()
+        val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
                 exceptions.add(cause!!)
             }
         }
-        ApplicationCallPipeline().items
+        ApplicationCallPipeline(environment = createTestEnvironment()).items
             .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback } // fallback will reply with 404 and not 500
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {
-                        throw IllegalStateException("Failed in phase $phase")
+                        throw CustomFail("Failed in phase $phase")
                     }
 
                     routing {
@@ -666,19 +668,20 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/") {
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
     @Test
     public fun testErrorInApplicationReceivePipelineInterceptor() {
-        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val exceptions = mutableListOf<Throwable>()
+        val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
                 exceptions.add(cause!!)
@@ -704,18 +707,19 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                     "/",
                     { method = HttpMethod.Post; setBody("body") }
                 ) {
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
-                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
+                    assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
     @Test
     public fun testErrorInApplicationSendPipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -745,18 +749,19 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl("/", { intercepted = false }) {
                     body<String>()
-                    assertEquals("Failed in phase $phase", InternalServerError, status)
-                    assertEquals("Failed in phase $phase", exceptions.size, 1)
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
                     exceptions.clear()
                 }
 
-                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+                server.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
     }
 
     @Test
     public open fun testErrorInEnginePipelineInterceptor() {
+        val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -772,19 +777,19 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
             }
         }
-        (server as BaseApplicationEngine).pipeline.intercept(phase) {
+        (server.engine as BaseApplicationEngine).pipeline.intercept(phase) {
             throw IllegalStateException("Failed in engine pipeline")
         }
         startServer(server)
 
         withUrl("/req") {
-            assertEquals("Failed in engine pipeline", InternalServerError, status)
-            assertEquals("Failed in phase $phase", exceptions.size, 1)
-            assertEquals(exceptions[0].message, "Failed in engine pipeline")
+            assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
+            assertEquals(exceptions.size, 1, "Failed in phase $phase")
+            assertEquals("Failed in engine pipeline", exceptions[0].message)
             exceptions.clear()
         }
 
-        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+        server.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
     @OptIn(InternalAPI::class)
@@ -839,6 +844,53 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertTrue(status.startsWith("HTTP/1.1 400"))
             outputStream.close()
         }
+    }
+
+    @Test
+    fun testBodySmallerThanContentLength() {
+        var failCause: Throwable? = null
+        val result = Job()
+
+        createAndStartServer {
+            install(RequestValidation) {
+                validateContentLength()
+            }
+
+            post("/") {
+                try {
+                    call.receive<ByteArray>().size
+                } catch (cause: Throwable) {
+                    failCause = cause
+                } finally {
+                    result.complete()
+                }
+
+                call.respond("OK")
+            }
+        }
+
+        socket {
+            val request = buildString {
+                append("POST / HTTP/1.1\r\n")
+                append("Content-Length: 4\r\n")
+                append("Content-Type: text/plain\r\n")
+                append("Connection: close\r\n")
+                append("Host: localhost\r\n")
+                append("\r\n")
+                append("ABC")
+            }
+
+            outputStream.writer().use {
+                it.write(request)
+            }
+        }
+
+        runBlocking {
+            result.join()
+        }
+
+        assertTrue(failCause != null)
+        assertIs<IOException>(failCause)
     }
 }
 

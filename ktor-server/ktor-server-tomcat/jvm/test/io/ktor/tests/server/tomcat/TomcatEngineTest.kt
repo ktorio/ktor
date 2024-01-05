@@ -6,12 +6,10 @@ package io.ktor.tests.server.tomcat
 
 import io.ktor.client.statement.*
 import io.ktor.network.tls.certificates.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
-import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
 import org.apache.catalina.core.*
@@ -33,14 +31,24 @@ class TomcatCompressionTest :
     }
 }
 
-class TomcatContentTest :
-    ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
             Logger.getLogger(it).apply { level = Level.WARNING }
         }
         enableHttp2 = false
+    }
+
+    /**
+     * Tomcat 9.0.56 issue
+     */
+    @Ignore
+    override fun testMultipartFileUpload() {
+    }
+
+    @Ignore
+    override fun testMultipartFileUploadLarge() {
     }
 }
 
@@ -53,12 +61,8 @@ class TomcatHttpServerCommonTest :
         }
     }
 
-    internal class AttributeFilter : Filter {
-        override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-            request.setAttribute("ktor.test.attribute", "135")
-            chain.doFilter(request, response)
-        }
-    }
+    @Ignore // KTOR-6480
+    override fun testErrorInBodyClosesConnectionWithContentLength() {}
 }
 
 class TomcatHttpServerJvmTest :
@@ -128,6 +132,14 @@ class TomcatHttpServerJvmTest :
             request.setAttribute("ktor.test.attribute", "135")
             chain.doFilter(request, response)
         }
+    }
+
+    @Ignore
+    override fun testPipelining() {
+    }
+
+    @Ignore
+    override fun testPipeliningWithFlushingHeaders() {
     }
 }
 

@@ -6,8 +6,8 @@ import org.gradle.api.tasks.testing.*
 import org.gradle.kotlin.dsl.*
 
 fun Project.filterSnapshotTests() {
-    val build_snapshot_train: Boolean by extra
-    if (!build_snapshot_train) return
+    val build_snapshot_train: String? by extra
+    if (build_snapshot_train?.toBoolean() != true) return
 
     println("Hacking test tasks, removing stress and flaky tests")
     subprojects {
@@ -46,8 +46,11 @@ fun Project.filterSnapshotTests() {
 }
 
 fun Project.setupTrainForSubproject() {
-    val build_snapshot_train: Boolean? by extra
-    if (build_snapshot_train != true) return
+    if (COMMON_JVM_ONLY) return
+    val build_snapshot_train: String? by extra
+    if (build_snapshot_train?.toBoolean() != true) {
+        return
+    }
 
     val atomicfu_version: String by extra
     val coroutines_version: String by extra

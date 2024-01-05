@@ -7,19 +7,25 @@ package io.ktor.server.thymeleaf
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.cio.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import org.thymeleaf.templateresolver.*
 import java.util.*
 import java.util.zip.*
 import kotlin.test.*
+import kotlin.text.Charsets
 
 class ThymeleafTest {
     @Test
@@ -241,6 +247,31 @@ class ThymeleafTest {
         assertEquals("<div><div><p>Hello, first fragment</p></div></div>", lines[0])
     }
 
+    @Test
+    fun testContentNegotiationInvokedAfter() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, alwaysFailingConverter)
+            }
+            install(Thymeleaf) {
+                val resolver = ClassLoaderTemplateResolver()
+                resolver.setTemplateMode("HTML")
+                resolver.prefix = "templates/"
+                resolver.suffix = ".html"
+                setTemplateResolver(resolver)
+            }
+            install(ConditionalHeaders)
+            routing {
+                get("/") {
+                    call.respond(ThymeleafContent("fragments", mapOf(), fragments = setOf("firstFragment")))
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("<div><p>Hello, first fragment</p></div>", response.bodyAsText())
+    }
+
     private fun Application.setUpThymeleafStringTemplate() {
         install(Thymeleaf) {
             setTemplateResolver(StringTemplateResolver())
@@ -253,5 +284,24 @@ class ThymeleafTest {
             <p>Hello, [[$bax{id}]]</p>
             <h1 th:text="$bax{title}"></h1>
         """.trimIndent()
+
+        private val alwaysFailingConverter = object : ContentConverter {
+            override suspend fun serialize(
+                contentType: ContentType,
+                charset: Charset,
+                typeInfo: TypeInfo,
+                value: Any?
+            ): OutgoingContent? {
+                fail("This converter should be never started for send")
+            }
+
+            override suspend fun deserialize(
+                charset: Charset,
+                typeInfo: TypeInfo,
+                content: ByteReadChannel
+            ): Any? {
+                fail("This converter should be never started for receive")
+            }
+        }
     }
 }

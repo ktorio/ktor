@@ -8,17 +8,17 @@ import freemarker.template.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
+import io.ktor.server.application.hooks.*
+import io.ktor.utils.io.*
 import java.io.*
 
 /**
- * Represents a content handled by [FreeMarker] plugin.
+ * A response content handled by the [FreeMarker] plugin.
  *
- * @param template name that is resolved by freemarker
+ * @param template name that is resolved by FreeMarker
  * @param model to be passed during template rendering
- * @param etag value for `E-Tag` header (optional)
- * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class FreeMarkerContent(
     public val template: String,
@@ -29,39 +29,25 @@ public class FreeMarkerContent(
 
 /**
  * A plugin that allows you to use FreeMarker templates as views within your application.
- * Provides the ability to respond with [FreeMarkerContent]
+ * Provides the ability to respond with [FreeMarkerContent].
+ * You can learn more from [FreeMarker](https://ktor.io/docs/freemarker.html).
  */
-public class FreeMarker private constructor(private val config: Configuration) {
-    /**
-     * A plugin installing companion object
-     */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, Configuration, FreeMarker> {
-        override val key: AttributeKey<FreeMarker> = AttributeKey("freemarker")
+public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugin(
+    "FreeMarker",
+    { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
+) {
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(FreeMarkerContent::class)) { _, content ->
+        with(content) {
+            val writer = StringWriter()
+            pluginConfig.getTemplate(template).process(model, writer)
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Configuration.() -> Unit
-        ): FreeMarker {
-            val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
-            val plugin = FreeMarker(config)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is FreeMarkerContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
+            val result = TextContent(text = writer.toString(), contentType)
+            if (etag != null) {
+                result.versions += EntityTagVersion(etag)
             }
-            return plugin
-        }
-    }
 
-    private fun process(content: FreeMarkerContent): OutgoingContent = with(content) {
-        val writer = StringWriter()
-        config.getTemplate(content.template).process(model, writer)
-
-        val result = TextContent(text = writer.toString(), contentType)
-        if (etag != null) {
-            result.versions += EntityTagVersion(etag)
+            result
         }
-        return result
     }
 }

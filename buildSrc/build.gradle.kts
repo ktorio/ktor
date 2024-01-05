@@ -2,48 +2,56 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-import org.jetbrains.kotlin.utils.addToStdlib.*
-import java.util.*
-
 plugins {
-    `kotlin-dsl`
+    kotlin("plugin.serialization") version "1.9.20"
+    id("org.gradle.kotlin.kotlin-dsl") version "4.2.1"
 }
 
-val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_ENABLED")?.toBoolean() == true
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
 repositories {
-    if (cacheRedirectorEnabled) {
-        maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
-    }
-
     maven("https://plugins.gradle.org/m2")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
 
     if (buildSnapshotTrain) {
         mavenLocal()
     }
 }
 
-val props = Properties().apply {
-    file("../gradle.properties").inputStream().use { load(it) }
-}
-
-fun version(target: String): String {
-    // Intercept reading from properties file
-    if (target == "kotlin") {
-        val snapshotVersion = properties["kotlin_snapshot_version"]
-        if (snapshotVersion != null) return snapshotVersion.toString()
-    }
-    return properties["${target}_version"].safeAs<String>() ?: props.getProperty("${target}_version")
-}
-
 sourceSets.main {
 }
 
+val ktor_version = "3.0.0-eap-852"
+
 dependencies {
-    println("Used kotlin version in buildSrc: " + version("kotlin"))
-    implementation(kotlin("gradle-plugin", version("kotlin")))
-    implementation("com.moowork.gradle:gradle-node-plugin:1.3.1")
-    implementation("org.jmailen.gradle:kotlinter-gradle:${version("ktlint")}")
+    implementation(kotlin("gradle-plugin", "1.9.20"))
+    implementation(kotlin("serialization", "1.9.20"))
+
+    val ktlint_version = libs.versions.ktlint.version.get()
+    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
+
+    implementation("io.ktor:ktor-server-default-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_version")
+    implementation("io.ktor:ktor-server-cio:$ktor_version")
+    implementation("io.ktor:ktor-server-jetty:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
+    implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("io.ktor:ktor-server-caching-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-conditional-headers:$ktor_version")
+    implementation("io.ktor:ktor-server-compression:$ktor_version")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx:$ktor_version")
+    implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
+    implementation("io.ktor:ktor-utils:$ktor_version")
+
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.logback.classic)
+}
+
+kotlin {
+    jvmToolchain {
+        check(this is JavaToolchainSpec)
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }

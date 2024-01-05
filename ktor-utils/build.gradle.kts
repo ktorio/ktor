@@ -1,11 +1,15 @@
 kotlin {
+    createCInterop("threadUtils", nixTargets()) {
+        defFile = File(projectDir, "nix/interop/threadUtils.def")
+    }
+
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":ktor-io"))
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }

@@ -14,7 +14,7 @@ class CodecTest {
     private val urlPath = "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana\u2013Champaign_logo.svg"
     private val surrogateSymbolUrlPath = "/path/🐕"
 
-    @Test/*(timeout = 1000L)*/
+    @Test /*(timeout = 1000L)*/
     @Ignore
     fun testDecodeRandom() {
         val chars = "+%0123abc"
@@ -63,7 +63,8 @@ class CodecTest {
     @Test
     fun testEncodeURLPathPreservesPercentEncoding() {
         val test = "/a/path/with/a%20space/"
-        assertEquals(test, test.encodeURLPath())
+        assertEquals(test, test.encodeURLPath(encodeEncoded = false))
+        assertEquals(test.replace("%", "%25"), test.encodeURLPath())
     }
 
     @Test
@@ -141,7 +142,7 @@ class CodecTest {
         mapOf(
             "a" to listOf("b", "c", "d"),
             "1" to listOf("2"),
-            "x" to listOf("y", "z"),
+            "x" to listOf("y", "z")
         ).entries.formUrlEncodeTo(result)
 
         assertEquals("a=b&a=c&a=d&1=2&x=y&x=z", result.toString())

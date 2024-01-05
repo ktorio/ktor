@@ -18,7 +18,7 @@ public fun XMLHttpRequest.sendPacket(packet: ByteReadPacket) {
 public fun XMLHttpRequest.responsePacket(): ByteReadPacket = when (responseType) {
     XMLHttpRequestResponseType.ARRAYBUFFER -> ByteReadPacket(
         ChunkBuffer(
-            Memory.of(response.asDynamic() as DataView),
+            Memory(response.asDynamic() as DataView),
             null,
             ChunkBuffer.NoPool
         ),

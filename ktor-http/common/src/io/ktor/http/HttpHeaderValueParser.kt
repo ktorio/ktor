@@ -8,14 +8,17 @@ package io.ktor.http
  * Represents a single value parameter
  * @property name of parameter
  * @property value of parameter
+ * @property escapeValue specifies if the value should be escaped
  */
-public data class HeaderValueParam(val name: String, val value: String) {
+public data class HeaderValueParam(val name: String, val value: String, val escapeValue: Boolean) {
+
+    public constructor(name: String, value: String) : this(name, value, false)
+
     override fun equals(other: Any?): Boolean {
         return other is HeaderValueParam &&
             other.name.equals(name, ignoreCase = true) &&
             other.value.equals(value, ignoreCase = true)
     }
-
     override fun hashCode(): Int {
         var result = name.lowercase().hashCode()
         result += 31 * result + value.lowercase().hashCode()
@@ -28,12 +31,15 @@ public data class HeaderValueParam(val name: String, val value: String) {
  * @property value
  * @property params for this value (could be empty)
  */
-public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
+public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = emptyList()) {
     /**
      * Value's quality according to `q` parameter or `1.0` if missing or invalid
      */
-    val quality: Double =
-        params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull()?.takeIf { it in 0.0..1.0 } ?: 1.0
+    val quality: Double = params.firstOrNull { it.name == "q" }
+        ?.value
+        ?.toDoubleOrNull()
+        ?.takeIf { it in 0.0..1.0 }
+        ?: 1.0
 }
 
 /**
@@ -110,10 +116,12 @@ private fun parseHeaderValueItem(
                 items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: position), parameters.valueOrEmpty()))
                 return position + 1
             }
+
             ';' -> {
                 if (valueEnd == null) valueEnd = position
                 position = parseHeaderValueParameter(text, position + 1, parameters)
             }
+
             else -> {
                 position = if (parametersOnly) {
                     parseHeaderValueParameter(text, position, parameters)
@@ -146,10 +154,12 @@ private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy
                 addParam(text, start, position, paramValue)
                 return paramEnd
             }
+
             ';', ',' -> {
                 addParam(text, start, position, "")
                 return position
             }
+
             else -> position++
         }
     }
@@ -187,6 +197,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
             currentChar == '"' && value.nextIsSemicolonOrEnd(position) -> {
                 return position + 1 to builder.toString()
             }
+
             currentChar == '\\' && position < value.lastIndex - 2 -> {
                 builder.append(value[position + 1])
                 position += 2

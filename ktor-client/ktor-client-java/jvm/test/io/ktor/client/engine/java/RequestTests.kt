@@ -12,7 +12,6 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
@@ -59,12 +58,12 @@ class RequestTests : TestWithKtor() {
 
         val clientSuccess = HttpClient(Java) {
             install(HttpTimeout) {
-                socketTimeoutMillis = 1000
+                requestTimeoutMillis = 1000
             }
         }
-        val clientWithSocketTimeout = HttpClient(Java) {
+        val clientWithRequestTimeout = HttpClient(Java) {
             install(HttpTimeout) {
-                socketTimeoutMillis = 100
+                requestTimeoutMillis = 100
             }
         }
         val clientWithConnectTimeout = HttpClient(Java) {
@@ -77,8 +76,8 @@ class RequestTests : TestWithKtor() {
             val response = clientSuccess.get(requestBuilder).body<String>()
             assertEquals("OK", response)
 
-            assertFailsWith<SocketTimeoutException> {
-                clientWithSocketTimeout.get(requestBuilder).body<HttpResponseData>()
+            assertFailsWith<HttpRequestTimeoutException> {
+                clientWithRequestTimeout.get(requestBuilder).body<String>()
             }
 
             assertFailsWith<ConnectTimeoutException> {
@@ -88,7 +87,7 @@ class RequestTests : TestWithKtor() {
                             takeFrom("https://google.com")
                         }
                     }
-                ).body<HttpResponseData>()
+                ).body<String>()
             }
         }
     }

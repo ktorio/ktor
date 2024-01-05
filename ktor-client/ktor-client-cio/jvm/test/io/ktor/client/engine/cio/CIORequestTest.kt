@@ -5,32 +5,35 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import org.junit.Ignore
+import kotlinx.coroutines.debug.junit5.*
 import java.nio.channels.*
 import kotlin.test.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 
+@CoroutinesTimeout(60_000)
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
 
-    @get:Rule
-    override val timeout = CoroutinesTimeout.seconds(10)
-
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
+    override val server: EmbeddedServer<*, *> = embeddedServer(Netty, serverPort) {
         routing {
+            param("param") {
+                get {
+                    call.respond(call.parameters["param"]!!)
+                }
+            }
             get("/") {
                 val longHeader = call.request.headers["LongHeader"]!!
                 call.respond(
@@ -42,7 +45,6 @@ class CIORequestTest : TestWithKtor() {
             get("/echo") {
                 call.respond("OK")
             }
-
             get("/delay") {
                 delay(1000)
                 call.respond("OK")
@@ -60,7 +62,7 @@ class CIORequestTest : TestWithKtor() {
             }
 
             test { client ->
-                assertFailsWith<TimeoutCancellationException> {
+                assertFailsWith<HttpRequestTimeoutException> {
                     client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
                 }
             }
@@ -120,6 +122,18 @@ class CIORequestTest : TestWithKtor() {
     }
 
     @Test
+    fun testParameterWithoutPath() = testWithEngine(CIO) {
+        test { client ->
+            client.prepareGet {
+                url(port = serverPort)
+                parameter("param", "value")
+            }.execute { response ->
+                assertEquals("value", response.bodyAsText())
+            }
+        }
+    }
+
+    @Test
     fun testHangingTimeoutWithWrongUrl() = testWithEngine(CIO) {
         config {
             engine {
@@ -130,12 +144,18 @@ class CIORequestTest : TestWithKtor() {
         }
 
         test { client ->
+            var fail: Throwable? = null
             for (i in 0..1000) {
                 try {
                     client.get("http://something.wrong").body<String>()
-                } catch (cause: UnresolvedAddressException) {
-                    // ignore
+                } catch (cause: Throwable) {
+                    fail = cause
                 }
+            }
+
+            assertNotNull(fail)
+            if (fail !is ConnectTimeoutException && fail !is UnresolvedAddressException) {
+                fail("Expected ConnectTimeoutException or UnresolvedAddressException, got $fail", fail)
             }
         }
     }

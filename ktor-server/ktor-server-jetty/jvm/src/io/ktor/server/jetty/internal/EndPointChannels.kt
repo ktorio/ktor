@@ -6,7 +6,6 @@ package io.ktor.server.jetty.internal
 
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import kotlinx.coroutines.*
@@ -102,6 +101,7 @@ internal class EndPointReader(
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.endPointWriter(
     endPoint: EndPoint,
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
@@ -118,9 +118,7 @@ internal fun CoroutineScope.endPointWriter(
         }
         endPoint.flush()
 
-        if (source is ByteChannel) {
-            source.closedCause?.let { throw it }
-        }
+        source.closedCause?.let { throw it }
     }
 }
 

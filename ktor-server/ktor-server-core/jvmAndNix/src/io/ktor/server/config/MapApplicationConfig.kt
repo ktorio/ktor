@@ -23,6 +23,12 @@ public open class MapApplicationConfig : ApplicationConfig {
         this.path = path
     }
 
+    public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
+        val listElements = mutableMapOf<String, Int>()
+        values.forEach { findListElements(it.first, listElements) }
+        listElements.forEach { (listProperty, size) -> this.map["$listProperty.size"] = "$size" }
+    }
+
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
     public constructor() : this(mutableMapOf<String, String>(), "")
 
@@ -30,7 +36,7 @@ public open class MapApplicationConfig : ApplicationConfig {
      * Set property value
      */
     public fun put(path: String, value: String) {
-        map[path] = value
+        map[combine(this.path, path)] = value
     }
 
     /**
@@ -89,6 +95,23 @@ public open class MapApplicationConfig : ApplicationConfig {
         }.toSet()
     }
 
+    override fun toMap(): Map<String, Any?> {
+        val keys = map.keys.filter { it.startsWith(path) }
+            .map { it.drop(if (path.isEmpty()) 0 else path.length + 1).split('.').first() }
+            .distinct()
+        return keys.associate { key ->
+            val path = combine(path, key)
+            when {
+                map.containsKey(path) -> key to map[path]
+                map.containsKey(combine(path, "size")) -> when {
+                    map.containsKey(combine(path, "0")) -> key to property(path).getList()
+                    else -> key to configList(path).map { it.toMap() }
+                }
+                else -> key to config(key).toMap()
+            }
+        }
+    }
+
     /**
      * A config value implementation backed by this config's map
      * @property map is usually owner's backing map
@@ -108,3 +131,17 @@ public open class MapApplicationConfig : ApplicationConfig {
 }
 
 private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
+
+private fun findListElements(input: String, listElements: MutableMap<String, Int>) {
+    var pointBegin = input.indexOf('.')
+    while (pointBegin != input.length) {
+        val pointEnd = input.indexOf('.', pointBegin + 1).let { if (it == -1) input.length else it }
+
+        input.substring(pointBegin + 1, pointEnd).toIntOrNull()?.let { pos ->
+            val element = input.substring(0, pointBegin)
+            val newSize = pos + 1
+            listElements[element] = listElements[element]?.let { maxOf(it, newSize) } ?: newSize
+        }
+        pointBegin = pointEnd
+    }
+}

@@ -4,19 +4,27 @@ public final class io/ktor/network/tls/certificates/BuildersKt {
 }
 
 public final class io/ktor/network/tls/certificates/CertificateBuilder {
-	public field hash Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public field password Ljava/lang/String;
-	public field sign Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public final fun getDaysValid ()J
+	public final fun getDomains ()Ljava/util/List;
 	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
+	public final fun getIpAddresses ()Ljava/util/List;
 	public final fun getKeySizeInBits ()I
+	public final fun getKeyType ()Lio/ktor/network/tls/certificates/KeyType;
 	public final fun getPassword ()Ljava/lang/String;
 	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public final fun getSubject ()Ljavax/security/auth/x500/X500Principal;
 	public final fun setDaysValid (J)V
+	public final fun setDomains (Ljava/util/List;)V
 	public final fun setHash (Lio/ktor/network/tls/extensions/HashAlgorithm;)V
+	public final fun setIpAddresses (Ljava/util/List;)V
 	public final fun setKeySizeInBits (I)V
+	public final fun setKeyType (Lio/ktor/network/tls/certificates/KeyType;)V
 	public final fun setPassword (Ljava/lang/String;)V
 	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
+	public final fun setSubject (Ljavax/security/auth/x500/X500Principal;)V
+	public final fun signWith (Ljava/security/KeyPair;Ljava/security/cert/Certificate;Ljavax/security/auth/x500/X500Principal;)V
+	public final fun signWith (Ljava/security/KeyPair;Ljava/security/cert/X509Certificate;)V
 }
 
 public final class io/ktor/network/tls/certificates/CertificatesKt {
@@ -25,8 +33,8 @@ public final class io/ktor/network/tls/certificates/CertificatesKt {
 	public static synthetic fun generateCertificate$default (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILio/ktor/network/tls/certificates/KeyType;ILjava/lang/Object;)Ljava/security/KeyStore;
 	public static synthetic fun generateCertificate$default (Ljava/security/KeyStore;Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/certificates/KeyType;ILjava/lang/Object;)Ljava/security/KeyStore;
 	public static final fun getTrustManagers (Ljava/security/KeyStore;)Ljava/util/List;
-	public static final fun trustStore (Ljava/security/KeyStore;Ljava/io/File;[C)Ljava/security/KeyStore;
-	public static synthetic fun trustStore$default (Ljava/security/KeyStore;Ljava/io/File;[CILjava/lang/Object;)Ljava/security/KeyStore;
+	public static final fun trustStore (Ljava/security/KeyStore;Ljava/io/File;[CLjava/lang/String;)Ljava/security/KeyStore;
+	public static synthetic fun trustStore$default (Ljava/security/KeyStore;Ljava/io/File;[CLjava/lang/String;ILjava/lang/Object;)Ljava/security/KeyStore;
 }
 
 public final class io/ktor/network/tls/certificates/KeyStoreBuilder {
@@ -37,6 +45,7 @@ public final class io/ktor/network/tls/certificates/KeyType : java/lang/Enum {
 	public static final field CA Lio/ktor/network/tls/certificates/KeyType;
 	public static final field Client Lio/ktor/network/tls/certificates/KeyType;
 	public static final field Server Lio/ktor/network/tls/certificates/KeyType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/certificates/KeyType;
 	public static fun values ()[Lio/ktor/network/tls/certificates/KeyType;
 }

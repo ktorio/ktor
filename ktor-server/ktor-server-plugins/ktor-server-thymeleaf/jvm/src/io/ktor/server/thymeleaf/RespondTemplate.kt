@@ -10,7 +10,7 @@ import io.ktor.server.response.*
 import java.util.*
 
 /**
- * Respond with [template] applying [model]
+ * Respond with a [template] applying a data [model].
  */
 public suspend fun ApplicationCall.respondTemplate(
     template: String,

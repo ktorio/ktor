@@ -29,6 +29,7 @@ public final class io/ktor/network/selector/SelectInterest : java/lang/Enum {
 	public static final field Companion Lio/ktor/network/selector/SelectInterest$Companion;
 	public static final field READ Lio/ktor/network/selector/SelectInterest;
 	public static final field WRITE Lio/ktor/network/selector/SelectInterest;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getFlag ()I
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/selector/SelectInterest;
 	public static fun values ()[Lio/ktor/network/selector/SelectInterest;
@@ -45,6 +46,7 @@ public abstract interface class io/ktor/network/selector/Selectable : java/io/Cl
 	public abstract fun getInterestedOps ()I
 	public abstract fun getSuspensions ()Lio/ktor/network/selector/InterestSuspensionsMap;
 	public abstract fun interestOp (Lio/ktor/network/selector/SelectInterest;Z)V
+	public abstract fun isClosed ()Z
 }
 
 public abstract interface class io/ktor/network/selector/SelectorManager : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
@@ -195,6 +197,7 @@ public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/s
 	public final fun copy (Ljava/lang/String;I)Lio/ktor/network/sockets/InetSocketAddress;
 	public static synthetic fun copy$default (Lio/ktor/network/sockets/InetSocketAddress;Ljava/lang/String;IILjava/lang/Object;)Lio/ktor/network/sockets/InetSocketAddress;
 	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun getAddress$ktor_network ()Ljava/net/SocketAddress;
 	public final fun getHostname ()Ljava/lang/String;
 	public final fun getPort ()I
 	public fun hashCode ()I
@@ -219,7 +222,7 @@ public final class io/ktor/network/sockets/ServerSocket$DefaultImpls {
 	public static fun dispose (Lio/ktor/network/sockets/ServerSocket;)V
 }
 
-public abstract interface class io/ktor/network/sockets/Socket : io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AConnectedSocket, io/ktor/network/sockets/ReadWriteSocket {
+public abstract interface class io/ktor/network/sockets/Socket : io/ktor/network/sockets/ABoundSocket, io/ktor/network/sockets/AConnectedSocket, io/ktor/network/sockets/ReadWriteSocket, kotlinx/coroutines/CoroutineScope {
 }
 
 public final class io/ktor/network/sockets/Socket$DefaultImpls {

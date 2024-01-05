@@ -18,6 +18,7 @@ import kotlin.coroutines.*
 internal class DatagramSocketNative(
     private val descriptor: Int,
     val selector: SelectorManager,
+    private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : BoundDatagramSocket, ConnectedDatagramSocket, Socket, CoroutineScope {
     private val _context: CompletableJob = Job(parent[Job])
@@ -34,7 +35,7 @@ internal class DatagramSocketNative(
     override val remoteAddress: SocketAddress
         get() = getRemoteAddress(descriptor).toSocketAddress()
 
-    private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this)
+    private val sender: SendChannel<Datagram> = DatagramSendChannel(descriptor, this, remote)
 
     override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
 
@@ -67,9 +68,11 @@ internal class DatagramSocketNative(
         sender.close()
     }
 
+    @Suppress("DEPRECATION")
     override fun attachForReading(channel: ByteChannel): WriterJob =
         attachForReadingImpl(channel, descriptor, selectable, selector)
 
+    @Suppress("DEPRECATION")
     override fun attachForWriting(channel: ByteChannel): ReaderJob =
         attachForWritingImpl(channel, descriptor, selectable, selector)
 
@@ -81,7 +84,7 @@ internal class DatagramSocketNative(
         }
     }
 
-    @OptIn(UnsafeNumber::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
     private fun tryReadDatagram(): Datagram? = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()

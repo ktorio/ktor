@@ -1,9 +1,7 @@
 description = ""
 
-val coroutines_version: String by extra
-
 kotlin.sourceSets {
-    val jvmAndNixMain by getting {
+    jvmAndNixMain {
         dependencies {
             api(kotlin("test"))
 
@@ -11,28 +9,30 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
             implementation(project(":ktor-server:ktor-server-test-host"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
         }
     }
 
-    val jvmMain by getting {
+    jvmMain {
         dependencies {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-partial-content"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-request-validation"))
 
-            implementation(kotlin("test-junit"))
+            implementation(kotlin("test-junit5"))
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
-
-            // https://github.com/Kotlin/kotlinx.coroutines/issues/3001
-            val jna_version = "5.9.0"
-            api("net.java.dev.jna:jna:$jna_version")
-            api("net.java.dev.jna:jna-platform:$jna_version")
+            implementation(libs.kotlinx.coroutines.debug)
         }
     }
-    val jvmTest by getting {
+
+    jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
+
+            api(libs.logback.classic)
         }
     }
 }

@@ -5,7 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
@@ -14,7 +14,6 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
@@ -100,23 +99,23 @@ class LoggingTest : ClientLoader() {
 
     @Test
     fun testLogLevelHeaders() = clientTests {
-        val logger = TestLogger(
-            "REQUEST: http://localhost:8080/logging",
-            "METHOD: HttpMethod(value=GET)",
-            "COMMON HEADERS",
-            "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
-            "CONTENT HEADERS",
-            "-> Content-Length: 0",
-            "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost:8080/logging",
-            "COMMON HEADERS",
-            "???-> Connection: close",
-            "???-> Connection: keep-alive",
-            "-> Content-Length: 9",
-            "-> Content-Type: text/plain; charset=UTF-8"
-        )
+        val logger = TestLogger {
+            line("REQUEST: http://localhost:8080/logging")
+            line("METHOD: HttpMethod(value=GET)")
+            line("COMMON HEADERS")
+            line("-> Accept: */*")
+            line("-> Accept-Charset: UTF-8")
+            line("CONTENT HEADERS")
+            line("-> Content-Length: 0")
+            line("RESPONSE: 200 OK")
+            line("METHOD: HttpMethod(value=GET)")
+            line("FROM: http://localhost:8080/logging")
+            line("COMMON HEADERS")
+            optional("-> Connection: close")
+            optional("-> Connection: keep-alive")
+            line("-> Content-Length: 9")
+            line("-> Content-Type: text/plain; charset=UTF-8")
+        }
         checkLog(logger, HttpMethod.Get, "", null, LogLevel.HEADERS)
     }
 
@@ -175,7 +174,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.prepareRequest {
+            client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -186,10 +185,7 @@ class LoggingTest : ClientLoader() {
                 setBody(content)
             }.execute {
                 it.bodyAsText()
-                it
             }
-
-            response.coroutineContext[Job]!!.join()
         }
 
         after {
@@ -234,7 +230,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.prepareRequest {
+            client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -245,86 +241,7 @@ class LoggingTest : ClientLoader() {
                 setBody(byteArrayOf(-77, 111))
             }.execute {
                 it.readBytes()
-                it
             }
-
-            response.coroutineContext[Job]!!.join()
-        }
-
-        after {
-            testLogger.verify()
-        }
-    }
-
-    @Test
-    fun testLogRedirect() = clientTests(listOf("js", "Curl", "CIO")) {
-        val testLogger = TestLogger(
-            "REQUEST: http://127.0.0.1:8080/logging/301",
-            "METHOD: HttpMethod(value=GET)",
-            "COMMON HEADERS",
-            "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
-            "CONTENT HEADERS",
-            "-> Content-Length: 0",
-            "BODY Content-Type: null",
-            "BODY START",
-            "",
-            "BODY END",
-            "RESPONSE: 302 Found",
-            "METHOD: HttpMethod(value=GET)",
-            "FROM: http://127.0.0.1:8080/logging/301",
-            "COMMON HEADERS",
-            "???-> Connection: keep-alive",
-            "???-> Connection: close",
-            "-> Content-Length: 0",
-            "-> Location: /logging",
-            "BODY Content-Type: null",
-            "BODY START",
-            "!!! body can be cancelled or printed",
-            "BODY END",
-            "REQUEST: http://127.0.0.1:8080/logging",
-            "METHOD: HttpMethod(value=GET)",
-            "COMMON HEADERS",
-            "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
-            "CONTENT HEADERS",
-            "-> Content-Length: 0",
-            "BODY Content-Type: null",
-            "BODY START",
-            "",
-            "BODY END",
-            "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
-            "FROM: http://127.0.0.1:8080/logging",
-            "COMMON HEADERS",
-            "???-> Connection: keep-alive",
-            "-> Content-Length: 9",
-            "-> Content-Type: text/plain; charset=UTF-8",
-            "BODY Content-Type: text/plain; charset=UTF-8",
-            "BODY START",
-            "home page",
-            "BODY END"
-        )
-
-        config {
-            install(Logging) {
-                logger = testLogger
-                level = LogLevel.ALL
-            }
-        }
-
-        test { client ->
-            testLogger.reset()
-
-            val response = client.prepareRequest {
-                method = HttpMethod.Get
-                url.takeFrom("$TEST_SERVER/logging/301")
-            }.execute {
-                it.bodyAsText()
-                it
-            }
-
-            response.coroutineContext[Job]!!.join()
         }
 
         after {
@@ -383,7 +300,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(listOf("Darwin", "native:CIO")) {
+    fun testRequestContentTypeInLog() = clientTests(listOf("Darwin", "native:CIO", "DarwinLegacy")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: HttpMethod(value=POST)",
@@ -435,13 +352,14 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingWithCompression() = clientTests {
+    fun testLoggingWithCompression() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/compression/deflate",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
+            "-> Accept-Encoding: gzip,deflate,identity",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -454,14 +372,16 @@ class LoggingTest : ClientLoader() {
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
             "???-> connection: close",
-            "-> Content-Length: 20",
             "-> Content-Type: text/plain; charset=UTF-8",
+            "-> Transfer-Encoding: chunked",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
-            "Compressed response!",
+            "???[response body omitted]",
+            "???Compressed response!", // Curl engine
             "BODY END"
         )
         config {
+            ContentEncoding()
             Logging {
                 logger = testLogger
                 level = LogLevel.ALL
@@ -472,8 +392,8 @@ class LoggingTest : ClientLoader() {
             val response = client.prepareGet {
                 method = HttpMethod.Get
                 url("$TEST_SERVER/compression/deflate")
-            }.body<String>()
-            assertEquals("Compressed response!", response)
+            }.execute()
+            assertEquals("Compressed response!", response.body<String>())
         }
         after {
             testLogger.verify()
@@ -585,8 +505,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 15",
-            "-> Content-Type: application/json; charset=utf-8",
-            "BODY Content-Type: application/json; charset=utf-8",
+            "-> Content-Type: application/json",
+            "BODY Content-Type: application/json",
             "BODY START",
             "{\"name\":\"Ktor\"}",
             "BODY END",

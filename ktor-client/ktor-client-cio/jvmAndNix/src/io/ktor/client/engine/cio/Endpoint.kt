@@ -9,9 +9,9 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -30,7 +30,7 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val lastActivity = atomic(GMTDate())
+    private val lastActivity = atomic(getTimeMillis())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
@@ -38,30 +38,17 @@ internal class Endpoint(
     private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
             while (true) {
-                val remaining = (lastActivity.value + maxEndpointIdleTime).timestamp - GMTDate().timestamp
+                val remaining = (lastActivity.value + maxEndpointIdleTime) - getTimeMillis()
                 if (remaining <= 0) {
                     break
                 }
 
                 delay(remaining)
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         } finally {
             deliveryPoint.close()
             onDone()
-        }
-    }
-
-    private suspend fun processTask(task: RequestTask) {
-        try {
-            if (!config.pipelining || task.request.requiresDedicatedConnection()) {
-                makeDedicatedRequest(task)
-            } else {
-                makePipelineRequest(task)
-            }
-        } catch (cause: Throwable) {
-            task.response.completeExceptionally(cause)
-            throw cause
         }
     }
 
@@ -69,11 +56,21 @@ internal class Endpoint(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        lastActivity.value = GMTDate()
+        lastActivity.value = getTimeMillis()
+
+        if (!config.pipelining || request.requiresDedicatedConnection()) {
+            return makeDedicatedRequest(request, callContext)
+        }
+
         val response = CompletableDeferred<HttpResponseData>()
         val task = RequestTask(request, response, callContext)
-        processTask(task)
-        return response.await()
+        try {
+            makePipelineRequest(task)
+            return response.await()
+        } catch (cause: Throwable) {
+            task.response.completeExceptionally(cause)
+            throw cause
+        }
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
@@ -93,10 +90,10 @@ internal class Endpoint(
     }
 
     @OptIn(InternalAPI::class)
-    private fun makeDedicatedRequest(
-        task: RequestTask
-    ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
-        val (request, response, callContext) = task
+    private suspend fun makeDedicatedRequest(
+        request: HttpRequestData,
+        callContext: CoroutineContext
+    ): HttpResponseData {
         try {
             val connection = connect(request)
             val input = this@Endpoint.mapEngineExceptions(connection.input, request)
@@ -118,37 +115,63 @@ internal class Endpoint(
                 }
             }
 
-            val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout))
+            val timeout = getRequestTimeout(request, config)
+            setupTimeout(callContext, request, timeout)
 
-            val responseData = handleTimeout(timeout) {
-                writeRequestAndReadResponse(request, output, callContext, input, originOutput)
+            val requestTime = GMTDate()
+            val overProxy = proxy != null
+
+            return if (expectContinue(request.headers[HttpHeaders.Expect], request.body)) {
+                processExpectContinue(request, input, output, originOutput, callContext, requestTime, overProxy)
+            } else {
+                writeRequest(request, output, callContext, overProxy)
+                readResponse(requestTime, request, input, originOutput, callContext)
             }
-
-            response.complete(responseData)
         } catch (cause: Throwable) {
-            response.completeExceptionally(cause.mapToKtor(request))
+            throw cause.mapToKtor(request)
         }
     }
 
-    private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
-        return if (configuration?.requestTimeoutMillis != null) {
-            Long.MAX_VALUE
-        } else {
-            config.requestTimeout
-        }
-    }
-
-    private suspend fun writeRequestAndReadResponse(
+    private suspend fun processExpectContinue(
         request: HttpRequestData,
-        output: ByteWriteChannel,
-        callContext: CoroutineContext,
         input: ByteReadChannel,
-        originOutput: ByteWriteChannel
-    ): HttpResponseData {
-        val requestTime = GMTDate()
-        request.write(output, callContext, proxy != null)
+        output: ByteWriteChannel,
+        originOutput: ByteWriteChannel,
+        callContext: CoroutineContext,
+        requestTime: GMTDate,
+        overProxy: Boolean,
+    ) = withContext(callContext) {
+        writeHeaders(request, output, overProxy)
 
-        return readResponse(requestTime, request, input, originOutput, callContext)
+        val responseReady = withTimeoutOrNull(CONTINUE_RESPONSE_TIMEOUT_MILLIS) {
+            input.awaitContent()
+        }
+
+        if (responseReady != null) {
+            val response = readResponse(requestTime, request, input, originOutput, callContext)
+            when (response.statusCode) {
+                HttpStatusCode.ExpectationFailed -> {
+                    val newRequest = HttpRequestBuilder().apply {
+                        takeFrom(request)
+                        headers.remove(HttpHeaders.Expect)
+                    }.build()
+                    writeRequest(newRequest, output, callContext, overProxy)
+                }
+
+                HttpStatusCode.Continue -> {
+                    writeBody(request, output, callContext)
+                }
+
+                else -> {
+                    output.close()
+                    return@withContext response
+                }
+            }
+        } else {
+            writeBody(request, output, callContext)
+        }
+
+        return@withContext readResponse(requestTime, request, input, originOutput, callContext)
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
@@ -166,6 +189,7 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
+    @Suppress("UNUSED_EXPRESSION")
     private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
@@ -184,7 +208,7 @@ internal class Endpoint(
                 }
 
                 val socket = when (connectTimeout) {
-                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
+                    HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> connect()
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
                         if (connection == null) {
@@ -196,17 +220,19 @@ internal class Endpoint(
                 }
 
                 val connection = socket.connection()
-                if (!secure) {
-                    return@connect connection
-                }
+                if (!secure) return@connect connection
 
                 try {
                     if (proxy?.type == ProxyType.HTTP) {
                         startTunnel(requestData, connection.output, connection.input)
                     }
+                    val realAddress = when (proxy) {
+                        null -> address
+                        else -> InetSocketAddress(requestData.url.host, requestData.url.port)
+                    }
                     val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)
-                        serverName = serverName ?: address.hostname
+                        serverName = serverName ?: realAddress.hostname
                     }
                     return tlsSocket.connection()
                 } catch (cause: Throwable) {
@@ -215,7 +241,7 @@ internal class Endpoint(
                     } catch (_: Throwable) {
                     }
 
-                    connectionFactory.release()
+                    connectionFactory.release(address)
                     throw cause
                 }
             }
@@ -230,21 +256,24 @@ internal class Endpoint(
     }
 
     /**
-     * Defines exact type of exception based on [connectAttempts] and [timeoutFails].
+     * Defines the exact type of exception based on [connectAttempts] and [timeoutFails].
      */
-    private fun getTimeoutException(connectAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
-        when (timeoutFails) {
-            connectAttempts -> ConnectTimeoutException(request)
-            else -> FailToConnectException()
-        }
+    private fun getTimeoutException(
+        connectAttempts: Int,
+        timeoutFails: Int,
+        request: HttpRequestData
+    ): Exception = when (timeoutFails) {
+        connectAttempts -> ConnectTimeoutException(request)
+        else -> FailToConnectException()
+    }
 
     /**
-     * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
-     * connect timeout and socket timeout to be applied.
+     * Takes timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns a pair of
+     * connection timeout and socket timeout to be applied.
      */
     private fun retrieveTimeouts(requestData: HttpRequestData): Pair<Long, Long> {
         val default = config.endpoint.connectTimeout to config.endpoint.socketTimeout
-        val timeoutAttributes = requestData.getCapabilityOrNull(HttpTimeout)
+        val timeoutAttributes = requestData.getCapabilityOrNull(HttpTimeoutCapability)
             ?: return default
 
         val socketTimeout = timeoutAttributes.socketTimeoutMillis ?: config.endpoint.socketTimeout
@@ -253,25 +282,55 @@ internal class Endpoint(
     }
 
     private fun releaseConnection() {
-        connectionFactory.release()
+        val address = InetSocketAddress(host, port)
+        connectionFactory.release(address)
         connections.decrementAndGet()
     }
 
     override fun close() {
         timeout.cancel()
     }
+
+    companion object {
+        const val CONTINUE_RESPONSE_TIMEOUT_MILLIS = 1000L
+    }
 }
 
-private suspend fun <T> CoroutineScope.handleTimeout(
-    timeout: Long,
-    block: suspend CoroutineScope.() -> T
-): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS) {
-    block()
-} else {
-    withTimeout(timeout, block)
+@OptIn(DelicateCoroutinesApi::class)
+private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData, timeout: Long) {
+    if (timeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS || timeout == 0L) return
+
+    val timeoutJob = GlobalScope.launch {
+        delay(timeout)
+        callContext.job.cancel("Request is timed out", HttpRequestTimeoutException(request))
+    }
+
+    callContext.job.invokeOnCompletion {
+        timeoutJob.cancel()
+    }
 }
 
 @Suppress("KDocMissingDocumentation")
 public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable
+
+@OptIn(InternalAPI::class)
+internal fun getRequestTimeout(
+    request: HttpRequestData,
+    engineConfig: CIOEngineConfig
+): Long {
+    /**
+     * The request timeout is handled by the plugin and disabled for the WebSockets and SSE.
+     */
+    val isWebSocket = request.url.protocol.isWebsocket()
+    if (request.getCapabilityOrNull(HttpTimeoutCapability) != null ||
+        isWebSocket ||
+        request.isUpgradeRequest() ||
+        request.isSseRequest()
+    ) {
+        return HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+    }
+
+    return engineConfig.requestTimeout
+}

@@ -11,10 +11,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.autohead.*
-import io.ktor.server.plugins.forwardedsupport.*
+import io.ktor.server.plugins.forwardedheaders.*
+import io.ktor.server.plugins.hsts.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -26,6 +29,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.Test
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -35,7 +39,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     fun testRedirect() {
         createAndStartServer {
             handle {
-                call.respondRedirect("http://localhost:${call.request.port()}/page", true)
+                call.respondRedirect(Url("http://localhost:${call.request.port()}/page"), true)
             }
         }
 
@@ -73,6 +77,25 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             assertEquals("test-etag", headers[HttpHeaders.ETag])
             assertNull(headers[HttpHeaders.TransferEncoding])
             assertEquals("5", headers[HttpHeaders.ContentLength])
+        }
+    }
+
+    @Test
+    fun testAllHeaders() {
+        createAndStartServer {
+            handle {
+                call.response.headers.append("Name-1", "value-1")
+                call.response.headers.append("Name-1", "value-2")
+                call.response.headers.append("Name-2", "value")
+                call.respondText(call.response.headers.allValues().toString())
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            val body = call.response.bodyAsText()
+            assertTrue(body.contains("Name-1=[value-1, value-2]"))
+            assertTrue(body.contains("Name-2=[value]"))
         }
     }
 
@@ -310,7 +333,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            application.install(XForwardedHeaderSupport)
+            application.install(XForwardedHeaders)
             get("/") {
                 call.respond(call.url { })
             }
@@ -551,7 +574,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 post {
                     val byteStream = ByteChannel(autoFlush = true)
                     launch(Dispatchers.Unconfined) {
-                        byteStream.writePacket(call.request.receiveChannel().readRemaining())
+                        byteStream.writePacket(call.receiveChannel().readRemaining())
                         byteStream.close(null)
                     }
                     call.respond(object : OutgoingContent.ReadChannelContent() {
@@ -585,6 +608,189 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 assertContentEquals(channel.readRemaining().readBytes(), content)
             }
             client.close()
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    open fun testCanModifyRequestHeaders() {
+        createAndStartServer {
+            install(
+                createRouteScopedPlugin("plugin") {
+                    onCall { call ->
+                        call.request.setHeader("deleted", null)
+                        call.request.setHeader("changed", listOf("new-value1", "new-value-2"))
+                    }
+                }
+            )
+            route("/") {
+                post {
+                    assertEquals(listOf("new-value1", "new-value-2"), call.request.headers.getAll("changed"))
+                    assertNull(call.request.headers.getAll("deleted"))
+                    assertEquals(listOf("old"), call.request.headers.getAll("original"))
+                    call.respond(call.receiveText())
+                }
+            }
+        }
+
+        runBlocking {
+            HttpClient().use { client ->
+                val requestBody = ByteChannel(true)
+                requestBody.writeStringUtf8("test")
+
+                val response = client.post("http://127.0.0.1:$port/") {
+                    headers.append("original", "old")
+                    headers.append("deleted", "old")
+                    headers.append("changed", "old")
+                    setBody("test")
+                }
+
+                assertEquals("test", response.bodyAsText())
+            }
+        }
+    }
+
+    @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+    @Test
+    open fun testCanModifyRequestBody() {
+        createAndStartServer {
+            install(
+                createRouteScopedPlugin("plugin") {
+                    onCall { call ->
+                        val oldChannel = call.request.receiveChannel()
+                        val newChannel = GlobalScope.writer {
+                            channel.writeStringUtf8("start")
+                            oldChannel.copyTo(channel)
+                            channel.writeStringUtf8("finish")
+                        }.channel
+                        call.request.setReceiveChannel(newChannel)
+                    }
+                }
+            )
+            route("/") {
+                post {
+                    call.respond(call.receiveText())
+                }
+            }
+        }
+
+        runBlocking {
+            HttpClient().use { client ->
+                val requestBody = ByteChannel(true)
+                requestBody.writeStringUtf8("test")
+                requestBody.close()
+
+                val response = client.post("http://127.0.0.1:$port/") {
+                    setBody(requestBody)
+                }
+
+                assertEquals("starttestfinish", response.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun testHSTSWithCustomPlugin() {
+        createAndStartServer {
+            val plugin = createApplicationPlugin("plugin") {
+                on(CallSetup) { call ->
+                    call.mutableOriginConnectionPoint.scheme = "https"
+                    call.mutableOriginConnectionPoint.serverPort = 443
+                }
+
+                onCall { call ->
+                    call.respondText { "From plugin" }
+                }
+            }
+            check(this is RouteNode)
+            application.install(plugin)
+            application.install(HSTS)
+
+            get("/") {
+                call.respondText { "OK" }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("From plugin", bodyAsText())
+        }
+    }
+
+    @Test
+    fun testErrorInBodyAndStatusIsSet() {
+        var throwError = false
+        createAndStartServer {
+            val plugin = createApplicationPlugin("plugin") {
+                onCallRespond { _ ->
+                    throwError = !throwError
+                    if (throwError) {
+                        throw ExpectedTestException("Test exception")
+                    }
+                }
+            }
+            application.install(plugin)
+
+            get("/") {
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.InternalServerError, status)
+            assertTrue(bodyAsText().isEmpty())
+        }
+    }
+
+    @Test
+    fun testErrorInBodyClosesConnection() {
+        createAndStartServer {
+            get("/") {
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("first\n")
+                            channel.writeStringUtf8("second\n")
+                            throw ExpectedTestException("error")
+                        }
+                    }
+                )
+            }
+        }
+
+        try {
+            withUrl("/") {
+                body<ByteArray>()
+            }
+        } catch (cause: Throwable) {
+            // expected
+        }
+    }
+
+    @Test
+    open fun testErrorInBodyClosesConnectionWithContentLength() {
+        createAndStartServer {
+            get("/") {
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override val contentLength: Long = 100
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("first\n")
+                            channel.writeStringUtf8("second\n")
+                            throw ExpectedTestException("error")
+                        }
+                    }
+                )
+            }
+        }
+
+        try {
+            withUrl("/") {
+                body<ByteArray>()
+            }
+        } catch (cause: Throwable) {
+            // expected
         }
     }
 

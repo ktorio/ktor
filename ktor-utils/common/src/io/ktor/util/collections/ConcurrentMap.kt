@@ -17,4 +17,33 @@ public expect class ConcurrentMap<Key, Value>(
      * Computes [block] and inserts result in map. The [block] will be evaluated at most once.
      */
     public fun computeIfAbsent(key: Key, block: () -> Value): Value
+
+    /**
+     * Removes [key] from map if it is mapped to [value].
+     */
+    public fun remove(key: Key, value: Value): Boolean
+
+    override fun remove(key: Key): Value?
+
+    override fun clear()
+
+    override fun put(key: Key, value: Value): Value?
+
+    override fun putAll(from: Map<out Key, Value>)
+
+    override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
+
+    override val keys: MutableSet<Key>
+
+    override val values: MutableCollection<Value>
+
+    override fun containsKey(key: Key): Boolean
+
+    override fun containsValue(value: Value): Boolean
+
+    override fun get(key: Key): Value?
+
+    override fun isEmpty(): Boolean
+
+    override val size: Int
 }

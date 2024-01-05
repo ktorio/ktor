@@ -7,6 +7,7 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -53,9 +54,10 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
 }
 
 /**
- * Class for building [HttpRequestData].
+ * Contains parameters used to make an HTTP request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
-@Suppress("DEPRECATION")
 public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
@@ -83,6 +85,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      */
     public var bodyType: TypeInfo?
         get() = attributes.getOrNull(BodyTypeAttributeKey)
+
         @InternalAPI set(value) {
             if (value != null) {
                 attributes.put(BodyTypeAttributeKey, value)
@@ -98,7 +101,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         internal set
 
     /**
-     * Call specific attributes.
+     * Provides access to attributes specific for this request.
      */
     public val attributes: Attributes = Attributes(concurrent = true)
 
@@ -108,7 +111,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
 
     /**
-     * Create immutable [HttpRequestData]
+     * Creates immutable [HttpRequestData].
      */
     @OptIn(InternalAPI::class)
     public fun build(): HttpRequestData = HttpRequestData(
@@ -121,14 +124,14 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     )
 
     /**
-     * Set request specific attributes specified by [block].
+     * Sets request-specific attributes specified by [block].
      */
     public fun setAttributes(block: Attributes.() -> Unit) {
         attributes.apply(block)
     }
 
     /**
-     * Mutates [this] copying all the data from another [builder] using it as base.
+     * Mutates [this] copying all the data from another [builder] using it as the base.
      */
     @InternalAPI
     public fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
@@ -137,7 +140,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     }
 
     /**
-     * Mutates [this] copying all the data but execution context from another [builder] using it as base.
+     * Mutates [this] by copying all the data but execution context from another [builder] using it as the base.
      */
     @OptIn(InternalAPI::class)
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
@@ -153,16 +156,15 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     }
 
     /**
-     * Set capability configuration.
+     * Sets capability configuration.
      */
-    @OptIn(InternalAPI::class)
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
         val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
         capabilities[key] = capability
     }
 
     /**
-     * Retrieve capability by key.
+     * Retrieves capability by the key.
      */
     public fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
@@ -257,14 +259,14 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
 }
 
 /**
- * Executes a [block] that configures the [URLBuilder] associated to thisrequest.
+ * Executes a [block] that configures the [URLBuilder] associated to this request.
  */
 public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
     HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
- * Pass `null` to keep existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [URLBuilder].
  */
 public fun HttpRequestBuilder.url(
     scheme: String? = null,
@@ -279,7 +281,7 @@ public fun HttpRequestBuilder.url(
 /**
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
- * Pass `null` to keep existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [URLBuilder].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
     scheme: String? = null,
@@ -292,7 +294,7 @@ public operator fun HttpRequestBuilder.Companion.invoke(
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable filename no-unit-return
+public fun HttpRequestBuilder.url(urlString: String) { // ktlint-disable filename
     url.takeFrom(urlString)
 }
 
@@ -300,4 +302,19 @@ public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable f
 @Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun HttpRequestData.isSseRequest(): Boolean {
+    return body is SSEClientContent
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode, headers: Headers): Boolean {
+    val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+    return data.isSseRequest() &&
+        status == HttpStatusCode.OK &&
+        contentType?.withoutParameters() == ContentType.Text.EventStream
 }

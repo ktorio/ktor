@@ -42,6 +42,7 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
          * Creates an instance of [HttpProtocolVersion] from the given parameters.
          */
         public fun fromValue(name: String, major: Int, minor: Int): HttpProtocolVersion = when {
+            name == "HTTP" && major == 1 && minor == 0 -> HTTP_1_0
             name == "HTTP" && major == 1 && minor == 1 -> HTTP_1_1
             name == "HTTP" && major == 2 && minor == 0 -> HTTP_2_0
             else -> HttpProtocolVersion(name, major, minor)
@@ -54,7 +55,7 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             /**
              * Format: protocol/major.minor
              */
-            val (protocol, major, minor) = value.split("/", ".").also {
+                val (protocol, major, minor) = value.split("/", ".").also {
                 check(it.size == 3) {
                     "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
                 }

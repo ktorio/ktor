@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -35,8 +36,8 @@ class TestEngineMultipartTest {
         val bytes = ByteArray(256) { it.toByte() }
         testMultiPartsFileItemBase(
             filename = "file.bin",
-            provider = { buildPacket { writeFully(bytes) } },
-            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readBytes())) }
+            provider = { ByteReadChannel(bytes) },
+            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes())) }
         )
     }
 
@@ -45,8 +46,8 @@ class TestEngineMultipartTest {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         testMultiPartsFileItemBase(
             filename = "file.txt",
-            provider = { buildPacket { writeFully(string.toByteArray()) } },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readText()) }
+            provider = { ByteReadChannel(string.toByteArray()) },
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
         )
     }
 
@@ -57,6 +58,7 @@ class TestEngineMultipartTest {
         testMultiParts(
             {
                 assertNotNull(it, "it should be multipart data")
+                @Suppress("DEPRECATION")
                 val parts = it.readAllParts()
 
                 assertEquals(1, parts.size)
@@ -64,17 +66,17 @@ class TestEngineMultipartTest {
 
                 assertEquals("fileField", file.name)
                 assertEquals("file.bin", file.originalFileName)
-                assertEquals(hex(bytes), hex(file.provider().readBytes()))
+                assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
 
                 file.dispose()
             },
             setup = {
                 addHeader(HttpHeaders.ContentType, contentType.toString())
-                setBody(
+                bodyChannel = buildMultipart(
                     boundary,
                     listOf(
                         PartData.FileItem(
-                            provider = { runBlocking { ByteReadChannel(bytes).readRemaining() } },
+                            provider = { ByteReadChannel(bytes) },
                             dispose = {},
                             partHeaders = headersOf(
                                 HttpHeaders.ContentDisposition,
@@ -95,6 +97,7 @@ class TestEngineMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 try {
+                    @Suppress("DEPRECATION")
                     call.receiveMultipart().readAllParts()
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
@@ -123,12 +126,13 @@ class TestEngineMultipartTest {
 
     private fun testMultiPartsFileItemBase(
         filename: String,
-        provider: () -> Input,
-        extraFileAssertions: (file: PartData.FileItem) -> Unit
+        provider: () -> ByteReadChannel,
+        extraFileAssertions: suspend (file: PartData.FileItem) -> Unit
     ) {
         testMultiParts(
             {
                 assertNotNull(it, "it should be multipart data")
+                @Suppress("DEPRECATION")
                 val parts = it.readAllParts()
 
                 assertEquals(1, parts.size)
@@ -142,7 +146,7 @@ class TestEngineMultipartTest {
             },
             setup = {
                 addHeader(HttpHeaders.ContentType, contentType.toString())
-                setBody(
+                bodyChannel = buildMultipart(
                     boundary,
                     listOf(
                         PartData.FileItem(
@@ -161,4 +165,52 @@ class TestEngineMultipartTest {
             }
         )
     }
+}
+
+@Suppress("DEPRECATION")
+@OptIn(DelicateCoroutinesApi::class)
+internal fun buildMultipart(
+    boundary: String,
+    parts: List<PartData>
+): ByteReadChannel = GlobalScope.writer {
+    if (parts.isEmpty()) return@writer
+
+    try {
+        append("\r\n\r\n")
+        parts.forEach {
+            append("--$boundary\r\n")
+            for ((key, values) in it.headers.entries()) {
+                append("$key: ${values.joinToString(";")}\r\n")
+            }
+            append("\r\n")
+            append(
+                when (it) {
+                    is PartData.FileItem -> {
+                        channel.writeFully(it.provider().readRemaining().readBytes())
+                        ""
+                    }
+
+                    is PartData.BinaryItem -> {
+                        channel.writeFully(it.provider().readBytes())
+                        ""
+                    }
+
+                    is PartData.FormItem -> it.value
+                    is PartData.BinaryChannelItem -> {
+                        it.provider().copyTo(channel)
+                        ""
+                    }
+                }
+            )
+            append("\r\n")
+        }
+
+        append("--$boundary--\r\n")
+    } finally {
+        parts.forEach { it.dispose() }
+    }
+}.channel
+
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
 }

@@ -20,9 +20,9 @@ public actual sealed class Frame actual constructor(
     public actual val frameType: FrameType,
     public actual val data: ByteArray,
     public actual val disposableHandle: DisposableHandle,
-    public actual open val rsv1: Boolean,
-    public actual open val rsv2: Boolean,
-    public actual open val rsv3: Boolean
+    public actual val rsv1: Boolean,
+    public actual val rsv2: Boolean,
+    public actual val rsv3: Boolean
 ) {
     /**
      * Represents an application level binary frame.
@@ -106,25 +106,10 @@ public actual sealed class Frame actual constructor(
     /**
      * Creates a frame copy.
      */
-    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf())
+    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf(), rsv1, rsv2, rsv3)
 
     public actual companion object {
         private val Empty: ByteArray = ByteArray(0)
-
-        /**
-         * Create a particular [Frame] instance by frame type.
-         */
-        public actual fun byType(
-            fin: Boolean,
-            frameType: FrameType,
-            data: ByteArray
-        ): Frame = when (frameType) {
-            FrameType.BINARY -> Binary(fin, data)
-            FrameType.TEXT -> Text(fin, data)
-            FrameType.CLOSE -> Close(data)
-            FrameType.PING -> Ping(data)
-            FrameType.PONG -> Pong(data, NonDisposableHandle)
-        }
 
         /**
          * Create a particular [Frame] instance by frame type.

@@ -6,39 +6,56 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.errors.EOFException
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
-internal suspend fun HttpRequestData.write(
+internal suspend fun writeRequest(
+    request: HttpRequestData,
     output: ByteWriteChannel,
     callContext: CoroutineContext,
+    overProxy: Boolean,
+    closeChannel: Boolean = true
+) = withContext(callContext) {
+    writeHeaders(request, output, overProxy, closeChannel)
+    writeBody(request, output, callContext)
+}
+
+@OptIn(InternalAPI::class)
+internal suspend fun writeHeaders(
+    request: HttpRequestData,
+    output: ByteWriteChannel,
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) {
     val builder = RequestResponseBuilder()
 
+    val method = request.method
+    val url = request.url
+    val headers = request.headers
+    val body = request.body
+
     val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
     val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
-    val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+    val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
+    val expected = headers[HttpHeaders.Expect]
 
     try {
-        val urlString = if (overProxy) {
-            url.toString()
-        } else {
-            url.fullPath
-        }
+        val normalizedUrl = if (url.pathSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
+        val urlString = if (overProxy) normalizedUrl.toString() else normalizedUrl.fullPath
 
         builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
         // this will only add the port to the host header if the port is non-standard for the protocol
@@ -58,13 +75,17 @@ internal suspend fun HttpRequestData.write(
         }
 
         mergeHeaders(headers, body) { key, value ->
-            if (key == HttpHeaders.ContentLength) return@mergeHeaders
+            if (key == HttpHeaders.ContentLength || key == HttpHeaders.Expect) return@mergeHeaders
 
             builder.headerLine(key, value)
         }
 
         if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
+        }
+
+        if (expectContinue(expected, body)) {
+            builder.headerLine(HttpHeaders.Expect, expected!!)
         }
 
         builder.emptyLine()
@@ -78,34 +99,49 @@ internal suspend fun HttpRequestData.write(
     } finally {
         builder.release()
     }
+}
 
-    val content = body
-    if (content is OutgoingContent.NoContent) {
-        if (closeChannel) {
-            output.close()
-        }
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+internal suspend fun writeBody(
+    request: HttpRequestData,
+    output: ByteWriteChannel,
+    callContext: CoroutineContext,
+    closeChannel: Boolean = true
+) {
+    if (request.body is OutgoingContent.NoContent) {
+        if (closeChannel) output.close()
         return
     }
 
+    val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
+    val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = request.body.headers[HttpHeaders.TransferEncoding]
+    val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
+
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
-    CoroutineScope(callContext).launch {
+
+    val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
+    scope.launch {
         try {
-            when (content) {
+            when (val body = request.body) {
                 is OutgoingContent.NoContent -> return@launch
-                is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
-                is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
-                is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
-                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+                is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
+                is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
+                is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
+                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
             }
         } catch (cause: Throwable) {
             channel.close(cause)
+            throw cause
         } finally {
             channel.flush()
             chunkedJob?.channel?.close()
             chunkedJob?.join()
 
-            output.closedCause?.let { throw it }
+            output.closedCause?.unwrapCancellationException()?.takeIf { it !is CancellationException }?.let {
+                throw it
+            }
             if (closeChannel) {
                 output.close()
             }
@@ -113,14 +149,15 @@ internal suspend fun HttpRequestData.write(
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
+@Suppress("DEPRECATION")
+@OptIn(InternalAPI::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
     request: HttpRequestData,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     callContext: CoroutineContext
-): HttpResponseData {
+): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
@@ -135,7 +172,8 @@ internal suspend fun readResponse(
         val version = HttpProtocolVersion.parse(rawResponse.version)
 
         if (status == HttpStatusCode.SwitchingProtocols) {
-            return startWebSocketSession(status, requestTime, headers, version, callContext, input, output)
+            val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
+            return@withContext HttpResponseData(status, requestTime, headers, version, session, callContext)
         }
 
         val body = when {
@@ -144,16 +182,23 @@ internal suspend fun readResponse(
                 status.isInformational() -> {
                 ByteReadChannel.Empty
             }
-            else -> {
-                val httpBodyParser = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
-                    parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-                }
 
+            else -> {
+                val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
+                val httpBodyParser = coroutineScope.writer(autoFlush = true) {
+                    parseHttpBody(version, contentLength, transferEncoding, connectionType, input, channel)
+                }
                 httpBodyParser.channel
             }
         }
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        val responseBody: Any = if (needToProcessSSE(request, status, headers)) {
+            DefaultClientSSESession(request.body as SSEClientContent, body, callContext)
+        } else {
+            body
+        }
+
+        return@withContext HttpResponseData(status, requestTime, headers, version, responseBody, callContext)
     }
 }
 
@@ -165,15 +210,9 @@ internal suspend fun startTunnel(
     val builder = RequestResponseBuilder()
 
     try {
-        builder.requestLine(HttpMethod("CONNECT"), request.url.hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
-        // this will only add the port to the host header if the port is non-standard for the protocol
-        val host = if (request.url.protocol.defaultPort == request.url.port) {
-            request.url.host
-        } else {
-            request.url.hostWithPort
-        }
-
-        builder.headerLine(HttpHeaders.Host, host)
+        val hostWithPort = request.url.hostWithPort
+        builder.requestLine(HttpMethod("CONNECT"), hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
+        builder.headerLine(HttpHeaders.Host, hostWithPort)
         builder.headerLine("Proxy-Connection", "Keep-Alive") // For HTTP/1.0 proxies like Squid.
         request.headers[HttpHeaders.UserAgent]?.let {
             builder.headerLine(HttpHeaders.UserAgent, it)
@@ -224,6 +263,7 @@ internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
 /**
  * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
  */
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun ByteWriteChannel.withoutClosePropagation(
     coroutineContext: CoroutineContext,
@@ -232,8 +272,8 @@ internal fun ByteWriteChannel.withoutClosePropagation(
     if (closeOnCoroutineCompletion) {
         // Pure output represents a socket output channel that is closed when request fully processed or after
         // request sent in case TCP half-close is allowed.
-        coroutineContext[Job]!!.invokeOnCompletion {
-            close()
+        coroutineContext.job.invokeOnCompletion {
+            close(it)
         }
     }
 
@@ -250,3 +290,12 @@ internal fun ByteWriteChannel.handleHalfClosed(
     coroutineContext: CoroutineContext,
     propagateClose: Boolean
 ): ByteWriteChannel = if (propagateClose) this else withoutClosePropagation(coroutineContext)
+
+internal fun isChunked(
+    contentLength: String?,
+    responseEncoding: String?,
+    contentEncoding: String?
+) = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+
+internal fun expectContinue(expectHeader: String?, body: OutgoingContent) =
+    expectHeader != null && body !is OutgoingContent.NoContent

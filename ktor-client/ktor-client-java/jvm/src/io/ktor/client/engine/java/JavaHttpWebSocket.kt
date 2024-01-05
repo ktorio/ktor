@@ -10,8 +10,8 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
-import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -87,7 +87,6 @@ internal class JavaHttpWebSocket(
 
     init {
         launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
             _outgoing.consumeEach { frame ->
                 when (frame.frameType) {
                     FrameType.TEXT -> {
@@ -118,7 +117,7 @@ internal class JavaHttpWebSocket(
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
-            } catch (cause: Exception) {
+            } catch (cause: Throwable) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.toInt()
                 webSocket.sendClose(code, "Client failed")
             } finally {
@@ -133,7 +132,7 @@ internal class JavaHttpWebSocket(
         val builder = httpClient.newWebSocketBuilder()
 
         with(builder) {
-            requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+            requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
                 timeoutAttributes.connectTimeoutMillis?.let {
                     connectTimeout(Duration.ofMillis(it))
                 }
@@ -144,12 +143,20 @@ internal class JavaHttpWebSocket(
                     header(key, value)
                 }
             }
+
+            requestData.headers.getAll(HttpHeaders.SecWebSocketProtocol)?.toTypedArray()?.let {
+                if (it.isNotEmpty()) {
+                    val mostPreferred = it.first()
+                    val leastPreferred = it.sliceArray(1..<it.size)
+                    subprotocols(mostPreferred, *leastPreferred)
+                }
+            }
         }
 
         webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
 
         return HttpResponseData(
-            HttpStatusCode.OK,
+            HttpStatusCode.SwitchingProtocols,
             requestTime,
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
@@ -172,18 +179,13 @@ internal class JavaHttpWebSocket(
         webSocket.request(1)
     }.asCompletableFuture()
 
-    override fun onPing(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.trySend(Frame.Ping(message)).isSuccess
-        webSocket.request(1)
-    }.asCompletableFuture()
-
     override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
         _incoming.trySend(Frame.Pong(message)).isSuccess
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onError(webSocket: WebSocket, error: Throwable) {
-        val cause = WebSocketException("${error.message}")
+        val cause = WebSocketException(error.message ?: "web socket failed", error)
         _incoming.close(cause)
         _outgoing.cancel()
         socketJob.complete()

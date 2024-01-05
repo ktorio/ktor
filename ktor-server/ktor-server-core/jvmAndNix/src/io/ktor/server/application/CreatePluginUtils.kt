@@ -4,80 +4,123 @@
 
 package io.ktor.server.application
 
+import io.ktor.server.config.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
- * Creates an [ApplicationPlugin] that can be installed into [Application].
+ * Creates an [ApplicationPlugin] that can be installed into an [Application].
  *
- * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
- * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
- * note that it may be modified later when a user of your plugin calls [Application.install].
- * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
- * can modify the behaviour of an [Application] where your plugin is installed.
- *
- * Usage example:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val MyPlugin = createApplicationPlugin("MyPlugin") {
- *      // This block will be executed when you call install(MyPlugin)
- *
+ * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
- *          // Prints requested URL each time your application receives a call:
  *          println(call.request.uri)
  *      }
  * }
  *
- * application.install(MyPlugin)
+ * application.install(RequestLoggingPlugin)
  * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get its instance.
+ * @param configurationPath is path in configuration file to configuration of this plugin.
+ * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
+ * Note that it may be modified later when a user of your plugin calls [Application.install].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
+ **/
+public fun <PluginConfigT : Any> createApplicationPlugin(
+    name: String,
+    configurationPath: String,
+    createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
+    body: PluginBuilder<PluginConfigT>.() -> Unit
+): ApplicationPlugin<PluginConfigT> = object : ApplicationPlugin<PluginConfigT> {
+    override val key: AttributeKey<PluginInstance> = AttributeKey(name)
+
+    override fun install(
+        pipeline: Application,
+        configure: PluginConfigT.() -> Unit
+    ): PluginInstance {
+        val config = try {
+            pipeline.environment.config.config(configurationPath)
+        } catch (_: Throwable) {
+            MapApplicationConfig()
+        }
+        return createPluginInstance(pipeline, pipeline, body, { createConfiguration(config) }, configure)
+    }
+}
+
+/**
+ * Creates an [ApplicationPlugin] that can be installed into an [Application].
+ *
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
+ * ```
+ * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
+ *      onCall { call ->
+ *          println(call.request.uri)
+ *      }
+ * }
+ *
+ * application.install(RequestLoggingPlugin)
+ * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get its instance.
+ * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
+ * Note that it may be modified later when a user of your plugin calls [Application.install].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
+ *
  **/
 public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
-    body: ApplicationPluginBuilder<PluginConfigT>.() -> Unit
-): ApplicationPlugin<Application, PluginConfigT, PluginInstance> =
-    object : ApplicationPlugin<Application, PluginConfigT, PluginInstance> {
-        override val key: AttributeKey<PluginInstance> = AttributeKey(name)
+    body: PluginBuilder<PluginConfigT>.() -> Unit
+): ApplicationPlugin<PluginConfigT> = object : ApplicationPlugin<PluginConfigT> {
+    override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
-        override fun install(
-            pipeline: Application,
-            configure: PluginConfigT.() -> Unit
-        ): PluginInstance {
-            return createPluginInstance(pipeline, pipeline, body, createConfiguration, configure)
-        }
+    override fun install(
+        pipeline: Application,
+        configure: PluginConfigT.() -> Unit
+    ): PluginInstance {
+        return createPluginInstance(pipeline, pipeline, body, createConfiguration, configure)
     }
+}
 
 /**
- * Creates a [RouteScopedPlugin] that can be installed into [io.ktor.server.routing.Route].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
  *
- * @param name A name of your new plugin that is used if you need find an instance of
- * your plugin when it is installed to an [io.ktor.server.routing.Routing].
- * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
- * note that it may be modified later when a user of your plugin calls [install].
- * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
- * can modify the behaviour of an [Application] where your plugin is installed.
- *
- * Usage example:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val MyPlugin = createRouteScopedPlugin("MyPlugin") {
- *      // This block will be executed when you call install(MyPlugin)
- *
+ * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
- *          // Prints requested URL each time your application receives a call:
  *          println(call.request.uri)
  *      }
  * }
  *
- * route("a") {
- *   install(MyPlugin)
+ * route("index") {
+ *   install(RequestLoggingPlugin)
  * }
  * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get its instance
+ * when it is installed to [io.ktor.server.routing.Routing].
+ * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
+ * note that it may be modified later when a user of your plugin calls [install].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
  **/
 public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
-    body: ApplicationPluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT, PluginInstance> = object : RouteScopedPlugin<PluginConfigT, PluginInstance> {
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
+): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
 
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
@@ -86,69 +129,123 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
         configure: PluginConfigT.() -> Unit
     ): PluginInstance {
         val application = when (pipeline) {
-            is Route -> pipeline.application
+            is RouteNode -> pipeline.application
             is Application -> pipeline
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
 
-        return createPluginInstance(application, pipeline, body, createConfiguration, configure)
+        return createRouteScopedPluginInstance(application, pipeline, body, createConfiguration, configure)
     }
 }
 
 /**
- * Creates a [ApplicationPlugin] that can be installed into [Application].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
  *
- * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
- * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
- * can modify the behaviour of an [Application] where your plugin is installed.
- *
- * Usage example:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val MyPlugin = createApplicationPlugin("MyPlugin") {
- *      // This block will be executed when you call install(MyPlugin)
- *
+ * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
- *          // Prints requested URL each time your application receives a call:
  *          println(call.request.uri)
  *      }
  * }
  *
- * application.install(MyPlugin)
+ * route("index") {
+ *   install(RequestLoggingPlugin)
+ * }
  * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get its instance
+ * when it is installed to [io.ktor.server.routing.Routing].
+ * @param configurationPath is path in configuration file to configuration of this plugin.
+ * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
+ * note that it may be modified later when a user of your plugin calls [install].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
+ **/
+public fun <PluginConfigT : Any> createRouteScopedPlugin(
+    name: String,
+    configurationPath: String,
+    createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
+): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
+
+    override val key: AttributeKey<PluginInstance> = AttributeKey(name)
+
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        configure: PluginConfigT.() -> Unit
+    ): PluginInstance {
+        val environment = pipeline.environment
+
+        val config = try {
+            environment.config.config(configurationPath)
+        } catch (_: Throwable) {
+            MapApplicationConfig()
+        }
+
+        val application = when (pipeline) {
+            is RouteNode -> pipeline.application
+            is Application -> pipeline
+            else -> error("Unsupported pipeline type: ${pipeline::class}")
+        }
+
+        return createRouteScopedPluginInstance(application, pipeline, body, { createConfiguration(config) }, configure)
+    }
+}
+
+/**
+ * Creates an [ApplicationPlugin] that can be installed into an [Application].
+ *
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
+ * ```
+ * val RequestLoggingPlugin = createApplicationPlugin("RequestLoggingPlugin") {
+ *      onCall { call ->
+ *          println(call.request.uri)
+ *      }
+ * }
+ *
+ * application.install(RequestLoggingPlugin)
+ * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
  **/
 public fun createApplicationPlugin(
     name: String,
-    body: ApplicationPluginBuilder<Unit>.() -> Unit
-): ApplicationPlugin<Application, Unit, PluginInstance> =
-    createApplicationPlugin(name, {}, body)
+    body: PluginBuilder<Unit>.() -> Unit
+): ApplicationPlugin<Unit> = createApplicationPlugin(name, {}, body)
 
 /**
- * Creates a [RouteScopedPlugin] that can be installed into [Application].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
  *
- * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
- * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
- * can modify the behaviour of an [Application] where your plugin is installed.
- *
- * Usage example:
+ * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
- * val MyPlugin = createRouteScopedPlugin("MyPlugin") {
- *      // This block will be executed when you call install(MyPlugin)
- *
+ * val RequestLoggingPlugin = createRouteScopedPlugin("RequestLoggingPlugin") {
  *      onCall { call ->
- *          // Prints requested URL each time your application receives a call:
  *          println(call.request.uri)
  *      }
  * }
  *
- * route("a") {
- *   install(MyPlugin)
+ * route("index") {
+ *   install(RequestLoggingPlugin)
  * }
  * ```
+ *
+ * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [io.ktor.server.routing.RouteNode].
+ * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
+ * can modify the behaviour of an [Application] where your plugin is installed.
  **/
 public fun createRouteScopedPlugin(
     name: String,
-    body: ApplicationPluginBuilder<Unit>.() -> Unit
-): RouteScopedPlugin<Unit, PluginInstance> = createRouteScopedPlugin(name, {}, body)
+    body: RouteScopedPluginBuilder<Unit>.() -> Unit
+): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name, {}, body)
 
 private fun <
     PipelineT : ApplicationCallPipeline,
@@ -156,14 +253,14 @@ private fun <
     > Plugin<PipelineT, PluginConfigT, PluginInstance>.createPluginInstance(
     application: Application,
     pipeline: ApplicationCallPipeline,
-    body: ApplicationPluginBuilder<PluginConfigT>.() -> Unit,
+    body: PluginBuilder<PluginConfigT>.() -> Unit,
     createConfiguration: () -> PluginConfigT,
     configure: PluginConfigT.() -> Unit
 ): PluginInstance {
     val config = createConfiguration().apply(configure)
 
     val currentPlugin = this
-    val pluginBuilder = object : ApplicationPluginBuilder<PluginConfigT>(currentPlugin.key) {
+    val pluginBuilder = object : PluginBuilder<PluginConfigT>(currentPlugin.key) {
         override val application: Application = application
         override val pipeline: ApplicationCallPipeline = pipeline
         override val pluginConfig: PluginConfigT = config
@@ -173,14 +270,34 @@ private fun <
     return PluginInstance(pluginBuilder)
 }
 
-private fun <Configuration : Any, Plugin : ApplicationPluginBuilder<Configuration>> Plugin.setupPlugin(
-    body: Plugin.() -> Unit
+private fun <
+    PipelineT : ApplicationCallPipeline,
+    PluginConfigT : Any
+    > Plugin<PipelineT, PluginConfigT, PluginInstance>.createRouteScopedPluginInstance(
+    application: Application,
+    pipeline: ApplicationCallPipeline,
+    body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit,
+    createConfiguration: () -> PluginConfigT,
+    configure: PluginConfigT.() -> Unit
+): PluginInstance {
+    val config = createConfiguration().apply(configure)
+
+    val currentPlugin = this
+    val pluginBuilder = object : RouteScopedPluginBuilder<PluginConfigT>(currentPlugin.key) {
+        override val application: Application = application
+        override val pipeline: ApplicationCallPipeline = pipeline
+        override val pluginConfig: PluginConfigT = config
+        override val route: RouteNode? = pipeline as? RouteNode
+    }
+
+    pluginBuilder.setupPlugin(body)
+    return PluginInstance(pluginBuilder)
+}
+
+private fun <Configuration : Any, Builder : PluginBuilder<Configuration>> Builder.setupPlugin(
+    body: Builder.() -> Unit
 ) {
     apply(body)
-
-    pipelineHandlers.forEach { handle ->
-        handle(pipeline)
-    }
 
     callInterceptions.forEach {
         it.action(pipeline)
@@ -198,5 +315,5 @@ private fun <Configuration : Any, Plugin : ApplicationPluginBuilder<Configuratio
         it.action(pipeline.sendPipeline)
     }
 
-    hooks.forEach { it.install(application) }
+    hooks.forEach { it.install(pipeline) }
 }

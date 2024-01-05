@@ -8,11 +8,13 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
-import io.ktor.utils.io.concurrent.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.charsets.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultResponseValidation")
 
 /**
  * Default response validation.
@@ -26,6 +28,7 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
         validateResponse { response ->
             val expectSuccess = response.call.attributes[ExpectSuccessAttributeKey]
             if (!expectSuccess) {
+                LOGGER.trace("Skipping default response validation for ${response.call.request.url}")
                 return@validateResponse
             }
 
@@ -40,19 +43,26 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             }
 
             val exceptionResponse = exceptionCall.response
-            val exceptionResponseText = exceptionResponse.bodyAsText()
-            when (statusCode) {
-                in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
-                in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
-                in 500..599 -> throw ServerResponseException(exceptionResponse, exceptionResponseText)
-                else -> throw ResponseException(exceptionResponse, exceptionResponseText)
+            val exceptionResponseText = try {
+                exceptionResponse.bodyAsText()
+            } catch (_: MalformedInputException) {
+                BODY_FAILED_DECODING
             }
+            val exception = when (statusCode) {
+                in 300..399 -> RedirectResponseException(exceptionResponse, exceptionResponseText)
+                in 400..499 -> ClientRequestException(exceptionResponse, exceptionResponseText)
+                in 500..599 -> ServerResponseException(exceptionResponse, exceptionResponseText)
+                else -> ResponseException(exceptionResponse, exceptionResponseText)
+            }
+            LOGGER.trace("Default response validation for ${response.call.request.url} failed with $exception")
+            throw exception
         }
     }
 }
 
-internal const val NO_RESPONSE_TEXT: String = "<no response text provided>"
-internal const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
+private const val NO_RESPONSE_TEXT: String = "<no response text provided>"
+private const val BODY_FAILED_DECODING: String = "<body failed decoding>"
+private const val DEPRECATED_EXCEPTION_CTOR: String = "Please, provide response text in constructor"
 
 /**
  * Base for default response exceptions.
@@ -62,8 +72,6 @@ public open class ResponseException(
     response: HttpResponse,
     cachedResponseText: String
 ) : IllegalStateException("Bad response: $response. Text: \"$cachedResponseText\"") {
-    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
-    public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     @Transient
     public val response: HttpResponse = response
@@ -75,8 +83,6 @@ public open class ResponseException(
 @Suppress("KDocMissingDocumentation")
 public class RedirectResponseException(response: HttpResponse, cachedResponseText: String) :
     ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
-    public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String =
         "Unhandled redirect: ${response.call.request.method.value} ${response.call.request.url}. " +
@@ -91,8 +97,6 @@ public class ServerResponseException(
     response: HttpResponse,
     cachedResponseText: String
 ) : ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
-    public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String = "Server error(${response.call.request.method.value} ${response.call.request.url}: " +
         "${response.status}. Text: \"$cachedResponseText\""
@@ -106,8 +110,6 @@ public class ClientRequestException(
     response: HttpResponse,
     cachedResponseText: String
 ) : ResponseException(response, cachedResponseText) {
-    @Deprecated(level = DeprecationLevel.ERROR, message = DEPRECATED_EXCEPTION_CTOR)
-    public constructor(response: HttpResponse) : this(response, NO_RESPONSE_TEXT)
 
     override val message: String =
         "Client request(${response.call.request.method.value} ${response.call.request.url}) " +

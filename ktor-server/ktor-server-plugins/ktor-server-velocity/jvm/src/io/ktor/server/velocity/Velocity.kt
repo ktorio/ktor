@@ -7,20 +7,20 @@ package io.ktor.server.velocity
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.util.*
+import io.ktor.server.application.hooks.*
+import io.ktor.utils.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 import org.apache.velocity.context.*
 import java.io.*
 
 /**
- * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
+ * A response content handled by the [io.ktor.server.velocity.Velocity] plugin.
  *
- * @param template name to be resolved by velocity
- * @param model to be passed to the template
- * @param etag header value (optional)
- * @param contentType (optional, `text/html` with UTF-8 character encoding by default)
+ * @param template name to be resolved by Velocity
+ * @param model to be passed during template rendering
+ * @param etag value for the `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with the UTF-8 character encoding by default)
  */
 public class VelocityContent(
     public val template: String,
@@ -48,37 +48,16 @@ internal fun velocityOutgoingContent(
 /**
  * A plugin that allows you to use Velocity templates as views within your application.
  * Provides the ability to respond with [VelocityContent].
+ * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
-public class Velocity private constructor(private val engine: VelocityEngine) {
-    init {
-        engine.init()
-    }
+public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin("Velocity", ::VelocityEngine) {
 
-    /**
-     * A companion object for installing plugin
-     */
-    public companion object Plugin : ApplicationPlugin<ApplicationCallPipeline, VelocityEngine, Velocity> {
-        override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("velocity")
+    pluginConfig.init()
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: VelocityEngine.() -> Unit
-        ): Velocity {
-            val config = VelocityEngine().apply(configure)
-            val plugin = Velocity(config)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
-                if (value is VelocityContent) {
-                    val response = plugin.process(value)
-                    proceedWith(response)
-                }
-            }
-            return plugin
-        }
-    }
-
-    private fun process(content: VelocityContent): OutgoingContent {
-        return velocityOutgoingContent(
-            engine.getTemplate(content.template),
+    @OptIn(InternalAPI::class)
+    on(BeforeResponseTransform(VelocityContent::class)) { _, content ->
+        velocityOutgoingContent(
+            pluginConfig.getTemplate(content.template),
             VelocityContext(content.model),
             content.etag,
             content.contentType

@@ -11,31 +11,41 @@ import io.ktor.utils.io.core.*
 import java.io.*
 import java.net.*
 import java.security.*
-import java.security.cert.*
 import java.security.cert.Certificate
-import java.time.*
-import java.util.*
+import java.security.cert.X509Certificate
+import javax.security.auth.x500.X500Principal
+import kotlin.time.Duration.Companion.days
 
-internal data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
+internal data class CertificateInfo(
+    val certificate: Certificate,
+    val keys: KeyPair,
+    val password: String,
+    val issuerCertificate: Certificate?,
+)
 
 /**
  * Builder for certificate
  */
 public class CertificateBuilder internal constructor() {
     /**
-     * Certificate hash algorithm (required)
+     * Certificate hash algorithm
      */
-    public lateinit var hash: HashAlgorithm
+    public var hash: HashAlgorithm = HashAlgorithm.SHA1
 
     /**
-     * Certificate signature algorithm (required)
+     * Certificate signature algorithm
      */
-    public lateinit var sign: SignatureAlgorithm
+    public var sign: SignatureAlgorithm = SignatureAlgorithm.RSA
 
     /**
-     * Certificate password
+     * Certificate password (required)
      */
     public lateinit var password: String
+
+    /**
+     * The subject of the certificate, owner of the generated public key that we certify.
+     */
+    public var subject: X500Principal = DEFAULT_PRINCIPAL
 
     /**
      * Number of days the certificate is valid
@@ -47,38 +57,88 @@ public class CertificateBuilder internal constructor() {
      */
     public var keySizeInBits: Int = 1024
 
+    /**
+     * The usage for the generated key.
+     *
+     * This determines the extensions that should be written in the certificate, such as [OID.ExtKeyUsage] (server or
+     * client authentication), or [OID.BasicConstraints] to use the key as CA.
+     */
+    public var keyType: KeyType = KeyType.Server
+
+    /**
+     * Domains for which this certificate is valid (only relevant for [KeyType.Server], ignored for other key types).
+     */
+    public var domains: List<String> = listOf("localhost")
+
+    /**
+     * IP addresses for which this certificate is valid (only relevant for [KeyType.Server], ignored for other key types).
+     */
+    public var ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1"))
+
+    private var issuer: CertificateIssuer? = null
+
+    private data class CertificateIssuer(
+        val name: X500Principal,
+        val keyPair: KeyPair,
+        val keyCertificate: Certificate,
+    )
+
+    /**
+     * Defines an issuer for this certificate, so it is not self-signed.
+     *
+     * The certificate will be signed with the given [issuerKeyPair], certified by the given [issuerKeyCertificate].
+     * The issuer's name is taken from the provided certificate.
+     *
+     * If this method is not called, this certificate will be self-signed by the subject (with the same generated key
+     * as the one being certified).
+     */
+    public fun signWith(
+        issuerKeyPair: KeyPair,
+        issuerKeyCertificate: X509Certificate,
+    ) {
+        issuer = CertificateIssuer(
+            // the subject of the given certificate is the issuer of the certificate we're creating
+            name = issuerKeyCertificate.subjectX500Principal,
+            keyPair = issuerKeyPair,
+            keyCertificate = issuerKeyCertificate,
+        )
+    }
+
+    /**
+     * Defines an issuer for this certificate, so it is not self-signed.
+     *
+     * The certificate will be signed with the given [issuerKeyPair] in the name of [issuerName], certified by the
+     * given [issuerKeyCertificate].
+     *
+     * If this method is not called, this certificate will be self-signed by the subject (with the same generated key
+     * as the one being certified).
+     */
+    public fun signWith(
+        issuerKeyPair: KeyPair,
+        issuerKeyCertificate: Certificate,
+        issuerName: X500Principal,
+    ) {
+        issuer = CertificateIssuer(name = issuerName, keyPair = issuerKeyPair, keyCertificate = issuerKeyCertificate)
+    }
+
     internal fun build(): CertificateInfo {
         val algorithm = HashAndSign(hash, sign)
-        val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name))!!.apply {
+        val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name)).apply {
             initialize(keySizeInBits)
         }.genKeyPair()!!
 
-        val id = Counterparty(
-            country = "RU",
-            organization = "JetBrains",
-            organizationUnit = "Kotlin",
-            commonName = "localhost"
+        val cert = generateX509Certificate(
+            issuer = issuer?.name ?: subject,
+            subject = subject,
+            publicKey = keys.public,
+            signerKeyPair = issuer?.keyPair ?: keys,
+            algorithm = algorithm.name,
+            validityDuration = daysValid.days,
+            keyType = keyType,
+            domains = domains,
+            ipAddresses = ipAddresses,
         )
-
-        val from = Date()
-        val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
-
-        val certificateBytes = buildPacket {
-            writeCertificate(
-                issuer = id,
-                subject = id,
-                keyPair = keys,
-                algorithm = algorithm.name,
-                from = from,
-                to = to,
-                domains = listOf("localhost"),
-                ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
-            )
-        }.readBytes()
-
-        val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
-        cert.verify(keys.public)
-        return CertificateInfo(cert, keys, password)
+        return CertificateInfo(cert, keys, password, issuer?.keyCertificate)
     }
 }
 
@@ -97,13 +157,13 @@ public class KeyStoreBuilder internal constructor() {
     }
 
     internal fun build(): KeyStore {
-        val store = KeyStore.getInstance("JKS")!!
+        val store = KeyStore.getInstance(KeyStore.getDefaultType())!!
         store.load(null, null)
 
         certificates.forEach { (alias, info) ->
-            val (certificate, keys, password) = info
-            store.setCertificateEntry(alias, certificate)
-            store.setKeyEntry(alias, keys.private, password.toCharArray(), arrayOf(certificate))
+            val (certificate, keys, password, issuerCertificate) = info
+            val certChain = listOfNotNull(certificate, issuerCertificate).toTypedArray()
+            store.setKeyEntry(alias, keys.private, password.toCharArray(), certChain)
         }
 
         return store

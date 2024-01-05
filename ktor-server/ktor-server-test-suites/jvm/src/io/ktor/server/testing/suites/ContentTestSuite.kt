@@ -8,10 +8,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -21,9 +19,9 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Assert.*
 import java.io.*
+import kotlin.test.*
+import kotlin.test.Test
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -49,7 +47,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             val contentType = fields.getAll(HttpHeaders.ContentType)?.single()
             fields.remove(HttpHeaders.ContentType)
             assertNotNull(contentType) // Content-Type should be present
-            val parsedContentType = ContentType.parse(contentType!!) // It should parse
+            val parsedContentType = ContentType.parse(contentType) // It should parse
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
             assertEquals("4", headers[HttpHeaders.ContentLength])
@@ -141,7 +139,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(PartialContent)
+            install(PartialContent)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -225,8 +223,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testURIContentLocalFile() {
-        val buildDir = "ktor-server/ktor-server/build/classes/kotlin/jvm/test"
-        val file = listOf(File("build/classes/kotlin/jvm/test"), File(buildDir)).first { it.exists() }.walkBottomUp()
+        val file = File("build/classes/").walkBottomUp()
             .filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
@@ -254,7 +251,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                val parameters = call.receiveOrNull<Parameters>()
+                val parameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
                 if (parameters != null) {
                     call.respond(parameters.formUrlEncode())
                 } else {
@@ -342,40 +339,40 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/array") {
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/array-chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/fixed-read-channel") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/pseudo-chunked") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
 
         withUrl("/read-channel") {
             assertNull(headers[HttpHeaders.ContentLength])
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertArrayEquals(data, call.response.readBytes())
+            assertEquals(data.toList(), call.response.readBytes().toList())
         }
     }
 
@@ -417,9 +414,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     @Test
     fun testStaticServe() {
         createAndStartServer {
-            static("/files/") {
-                resources("io/ktor/server/testing/suites")
-            }
+            staticResources("/files/", "io/ktor/server/testing/suites")
         }
 
         withUrl("/files/${ContentTestSuite::class.simpleName}.class") {
@@ -447,11 +442,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File(classesDir), File(coreClassesDir))
-            .filter { it.exists() }
+        val targetClasses = File(classesDir)
 
-        val file = targetClasses
-            .flatMap { it.walkBottomUp().asIterable() }
+        val file = targetClasses.walkBottomUp()
             .first { it.extension == "class" && !it.name.contains('$') }
 
         val location = file.parentFile!!
@@ -459,9 +452,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            static("/files") {
-                files(location.path)
-            }
+            staticFiles("/files", location)
         }
 
         withUrl("/files/${file.toRelativeString(location).urlPath()}") {
@@ -565,19 +556,20 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUpload() {
+    open fun testMultipartFileUpload() {
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
-
+                @Suppress("DEPRECATION")
                 call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${part.provider().readText()}\n"
+                            "file:${part.name},${part.originalFileName},${part.provider().readRemaining().readText()}\n"
                         )
-                        is PartData.BinaryItem -> {
-                        }
+
+                        is PartData.BinaryItem -> {}
+                        is PartData.BinaryChannelItem -> {}
                     }
 
                     part.dispose()
@@ -629,7 +621,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUploadLarge() {
+    open fun testMultipartFileUploadLarge() {
         val numberOfLines = 10000
 
         createAndStartServer {
@@ -639,12 +631,16 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName}," +
-                                "${part.streamProvider().bufferedReader().lineSequence().count()}\n"
-                        )
+                        is PartData.FileItem -> {
+                            @Suppress("DEPRECATION")
+                            val lineSequence = part.streamProvider().bufferedReader().lineSequence()
+                            response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
+                        }
+
                         is PartData.BinaryItem -> {
                         }
+
+                        is PartData.BinaryChannelItem -> {}
                     }
 
                     part.dispose()
@@ -739,7 +735,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     companion object {
-        const val classesDir: String = "build/classes/kotlin/jvm"
-        const val coreClassesDir: String = "ktor-server/ktor-server/$classesDir"
+        const val classesDir: String = "build/classes/"
     }
 }
