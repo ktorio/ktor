@@ -23,7 +23,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCallValidator"
  * [HttpCallValidator] configuration.
  */
 @KtorDsl
-public class HttpCalValidatorConfig {
+public class HttpCallValidatorConfig {
     internal val responseValidators: MutableList<ResponseValidator> = mutableListOf()
     internal val responseExceptionHandlers: MutableList<HandlerWrapper> = mutableListOf()
 
@@ -96,9 +96,9 @@ public typealias CallRequestExceptionHandler = suspend (cause: Throwable, reques
  *
  * See also [Config] for additional details.
  */
-public val HttpCallValidator: ClientPlugin<HttpCalValidatorConfig> = createClientPlugin(
+public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClientPlugin(
     "HttpResponseValidator",
-    ::HttpCalValidatorConfig
+    ::HttpCallValidatorConfig
 ) {
 
     val responseValidators: List<ResponseValidator> = pluginConfig.responseValidators.reversed()
@@ -186,7 +186,7 @@ private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
 /**
  * Install [HttpCallValidator] with [block] configuration.
  */
-public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCalValidatorConfig.() -> Unit) {
+public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidatorConfig.() -> Unit) {
     install(HttpCallValidator, block)
 }
 
