@@ -65,7 +65,7 @@ public final class io/ktor/server/cio/backend/ServerIncomingConnection {
 }
 
 public final class io/ktor/server/cio/backend/ServerPipelineKt {
-	public static final fun startServerConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;Lio/ktor/server/cio/internal/WeakTimeoutQueue;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public static final fun startServerConnectionPipeline-exY8QGI (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;JLkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
