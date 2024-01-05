@@ -72,7 +72,7 @@ public final class io/ktor/server/cio/backend/ServerIncomingConnection {
 }
 
 public final class io/ktor/server/cio/backend/ServerPipelineKt {
-	public static final fun startServerConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;Lio/ktor/server/cio/internal/WeakTimeoutQueue;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public static final fun startServerConnectionPipeline-exY8QGI (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/backend/ServerIncomingConnection;JLkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
@@ -83,14 +83,5 @@ public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/corou
 	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
 	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
 	public final fun withContext (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/server/cio/backend/ServerRequestScope;
-}
-
-public final class io/ktor/server/cio/internal/WeakTimeoutQueue {
-	public fun <init> (JLkotlin/jvm/functions/Function0;)V
-	public synthetic fun <init> (JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun cancel ()V
-	public final fun getTimeoutMillis ()J
-	public final fun process ()V
-	public final fun withTimeout (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

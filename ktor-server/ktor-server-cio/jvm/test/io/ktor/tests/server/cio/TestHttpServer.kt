@@ -8,7 +8,6 @@ import io.ktor.http.cio.*
 import io.ktor.network.util.*
 import io.ktor.server.cio.*
 import io.ktor.server.cio.backend.*
-import io.ktor.server.cio.internal.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -16,6 +15,7 @@ import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 // this is only suitable for tests, do not use in production
 @Suppress("BlockingMethodInNonBlockingContext")
@@ -118,8 +118,6 @@ private suspend fun client(
         }
     }
 
-    val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
-
     CoroutineScope(ioCoroutineContext + Dispatchers.Unconfined).startServerConnectionPipeline(
         ServerIncomingConnection(
             incoming,
@@ -127,7 +125,7 @@ private suspend fun client(
             socket.remoteAddress,
             socket.localAddress
         ),
-        timeouts
+        timeout = Duration.INFINITE
     ) { request: Request ->
         val requestScope = this
 
