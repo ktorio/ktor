@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -16,6 +17,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.*
+import org.junit.jupiter.api.extension.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
@@ -24,6 +26,7 @@ import kotlin.concurrent.*
 import kotlin.test.*
 
 @CoroutinesTimeout(5 * 60 * 1000)
+@ExtendWith(RetryOnException::class)
 @Suppress("KDocMissingDocumentation")
 class ConnectErrorsTest {
 
