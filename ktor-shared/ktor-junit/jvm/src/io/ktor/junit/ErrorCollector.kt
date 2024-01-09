@@ -35,14 +35,18 @@ class ErrorCollector : TestExecutionExceptionHandler, ParameterResolver, AfterEa
         return this
     }
 
-    fun throwErrorIfPresent(): Unit = when {
-        errors.isEmpty() -> {}
-        errors.size == 1 -> throw errors.single()
-        else -> {
-            for (e in errors)
-                e.printStackTrace()
+    fun throwErrorIfPresent() {
+        val currentErrors = errors.toList()
+        errors.clear()
+        when {
+            currentErrors.isEmpty() -> {}
+            currentErrors.size == 1 -> throw currentErrors.single()
+            else -> {
+                for (e in currentErrors)
+                    e.printStackTrace()
 
-            throw MultipleFailureException(errors)
+                throw MultipleFailureException(currentErrors)
+            }
         }
     }
 }
