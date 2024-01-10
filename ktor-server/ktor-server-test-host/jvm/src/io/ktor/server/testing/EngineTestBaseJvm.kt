@@ -281,6 +281,7 @@ actual abstract class EngineTestBase<
         HttpClient(CIO) {
             engine {
                 https.trustManager = trustManager
+                https.serverName = "localhost"
                 requestTimeout = 0
             }
             followRedirects = false
