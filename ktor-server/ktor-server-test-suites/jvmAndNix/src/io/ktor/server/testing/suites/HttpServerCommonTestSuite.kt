@@ -260,11 +260,11 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRemoteHost() {
+    fun testRemoteAddress() {
         createAndStartServer {
             handle {
                 call.respondText {
-                    call.request.local.remoteHost
+                    call.request.local.remoteAddress
                 }
             }
         }
@@ -272,7 +272,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         withUrl("/") {
             bodyAsText().also { text ->
                 assertNotNull(
-                    listOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1").find {
+                    listOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1", "0.0.0.0").find {
                         it == text
                     }
                 )
