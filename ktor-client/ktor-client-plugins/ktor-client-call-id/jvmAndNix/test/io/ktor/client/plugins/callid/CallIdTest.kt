@@ -12,6 +12,7 @@ import io.ktor.server.plugins.callid.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlin.coroutines.*
 import kotlin.test.*
 import io.ktor.server.plugins.callid.CallId as ServerCallId
 
