@@ -499,7 +499,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             parent = TestData("parent")
         ) {
             get("/") {
-                val valueFromContext = coroutineContext[TestData]!!.name
+                val valueFromContext = kotlin.coroutines.coroutineContext[TestData]!!.name
                 call.respond(HttpStatusCode.OK, valueFromContext)
             }
         }

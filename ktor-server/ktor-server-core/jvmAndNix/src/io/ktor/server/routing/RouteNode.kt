@@ -111,7 +111,7 @@ public open class RouteNode(
             pipeline.intercept(Call) {
                 val call = call as RoutingPipelineCall
                 val routingCall = call.routingCall()
-                val routingContext = RoutingContext(routingCall, coroutineContext)
+                val routingContext = RoutingContext(routingCall)
                 if (call.isHandled) return@intercept
                 handlers[index].invoke(routingContext)
             }
@@ -222,9 +222,8 @@ public class RoutingCall internal constructor(
  * The context of a [RoutingHandler] that is used to handle a [RoutingCall].
  */
 public class RoutingContext(
-    public val call: RoutingCall,
-    override val coroutineContext: CoroutineContext
-) : CoroutineScope {
+    public val call: RoutingCall
+) {
     public val application: Application
         get() = call.application
 }
