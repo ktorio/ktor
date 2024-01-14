@@ -73,7 +73,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         if (status != HttpStatusCode.OK) {
             throw SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${status.value}")
         }
-        if (contentType != ContentType.Text.EventStream.toString()) {
+        if (contentType?.startsWith(ContentType.Text.EventStream.toString()) == true) {
             throw SSEException("Expected Content-Type ${ContentType.Text.EventStream} but was: $contentType")
         }
         if (session !is ClientSSESession) {
