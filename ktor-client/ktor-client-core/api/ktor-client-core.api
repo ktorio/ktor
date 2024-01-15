@@ -296,16 +296,6 @@ public final class io/ktor/client/plugins/DoubleReceivePluginKt {
 	public static final fun skipSavingBody (Lio/ktor/client/request/HttpRequestBuilder;)V
 }
 
-public final class io/ktor/client/plugins/HttpCalValidatorConfig {
-	public fun <init> ()V
-	public final fun getExpectSuccess ()Z
-	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
-	public final fun handleResponseException (Lkotlin/jvm/functions/Function3;)V
-	public final fun handleResponseExceptionWithRequest (Lkotlin/jvm/functions/Function3;)V
-	public final fun setExpectSuccess (Z)V
-	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
-}
-
 public final class io/ktor/client/plugins/HttpCallValidatorConfig {
 	public fun <init> ()V
 	public final fun getExpectSuccess ()Z

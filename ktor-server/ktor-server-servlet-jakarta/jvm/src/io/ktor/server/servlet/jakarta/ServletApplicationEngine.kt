@@ -10,7 +10,9 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.server.engine.*
+import io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.ApplicationAttributeKey
 import io.ktor.util.*
+import jakarta.servlet.*
 import jakarta.servlet.annotation.*
 import org.slf4j.*
 import kotlin.coroutines.*
@@ -22,17 +24,10 @@ import kotlin.coroutines.*
 public open class ServletApplicationEngine : KtorServlet() {
 
     override val managedByEngineHeaders: Set<String>
-        get() {
-            servletContext.getAttribute(ApplicationAttributeKey)?.let {
-                return emptySet()
-            }
-
-            val servletContext = servletContext
-            return if ("tomcat" in (servletContext.serverInfo?.toLowerCasePreservingASCIIRules() ?: "")) {
-                setOf(HttpHeaders.TransferEncoding, HttpHeaders.Connection)
-            } else {
-                emptySet()
-            }
+        get() = if (servletContext.isTomcat()) {
+            setOf(HttpHeaders.TransferEncoding, HttpHeaders.Connection)
+        } else {
+            emptySet()
         }
 
     private val embeddedServer: EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>? by lazy {
@@ -171,3 +166,6 @@ private object EmptyEngineFactory : ApplicationEngineFactory<ApplicationEngine, 
         }
     }
 }
+
+internal fun ServletContext.isTomcat() =
+    getAttribute(ApplicationAttributeKey) == null && serverInfo.contains("tomcat", ignoreCase = true)
