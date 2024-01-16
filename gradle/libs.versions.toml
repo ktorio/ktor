@@ -17,7 +17,7 @@ jetty-alpn-boot-version = "8.1.13.v20181017"
 jetty-alpn-openjdk8 = "9.4.53.v20231009"
 
 tomcat-version = "9.0.83"
-tomcat-jakarta-version = "10.1.16"
+tomcat-jakarta-version = "10.1.18"
 
 apache-version = "4.1.5"
 apache5-version = "5.3"
