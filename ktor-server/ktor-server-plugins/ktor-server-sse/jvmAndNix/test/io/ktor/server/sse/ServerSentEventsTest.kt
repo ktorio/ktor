@@ -4,12 +4,15 @@
 
 package io.ktor.server.sse
 
+import io.ktor.client.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.sse.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
 class ServerSentEventsTest {
@@ -23,10 +26,9 @@ class ServerSentEventsTest {
             }
         }
 
-        client.get("/hello").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals(ContentType.Text.EventStream.toString(), headers[HttpHeaders.ContentType])
-            assertEquals("data: world", bodyAsText().trim())
+        val client = createSseClient()
+        client.sse("/hello") {
+            assertEquals("world", incoming.single().data)
         }
     }
 
@@ -41,14 +43,10 @@ class ServerSentEventsTest {
             }
         }
 
-        client.get("/events").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals(ContentType.Text.EventStream.toString(), headers[HttpHeaders.ContentType])
-            val events = bodyAsText().lines()
-            assertEquals(201, events.size)
-            for (i in 0 until 100) {
-                assertEquals("data: event $i", events[i * 2])
-                assertTrue { events[i * 2 + 1].isEmpty() }
+        val client = createSseClient()
+        client.sse("/events") {
+            incoming.collectIndexed { i, event ->
+                assertEquals("event $i", event.data)
             }
         }
     }
@@ -94,21 +92,23 @@ class ServerSentEventsTest {
             }
         }
 
-        client.get("/events").apply {
-            val events = bodyAsText().lines()
-            assertEquals(201, events.size)
-            for (i in 0 until 100) {
-                assertEquals("data: event $i", events[i * 2])
-                assertTrue { events[i * 2 + 1].isEmpty() }
+        val client = createSseClient()
+        client.sse("/events") {
+            incoming.collectIndexed { i, event ->
+                assertEquals("event $i", event.data)
             }
         }
-        client.get("/events").apply {
-            val events = bodyAsText().lines()
-            assertEquals(201, events.size)
-            for (i in 0 until 100) {
-                assertEquals("data: event $i", events[i * 2])
-                assertTrue { events[i * 2 + 1].isEmpty() }
+        client.sse("/events") {
+            incoming.collectIndexed { i, event ->
+                assertEquals("event $i", event.data)
             }
         }
+    }
+
+    private fun ApplicationTestBuilder.createSseClient(): HttpClient {
+        val client = createClient {
+            install(io.ktor.client.plugins.sse.SSE)
+        }
+        return client
     }
 }
