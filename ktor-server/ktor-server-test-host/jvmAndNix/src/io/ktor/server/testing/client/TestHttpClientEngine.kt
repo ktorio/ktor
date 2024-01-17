@@ -6,6 +6,7 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -40,9 +41,10 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val callContext = callContext()
         if (data.isUpgradeRequest()) {
             val (testServerCall, session) = with(data) {
-                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
+                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext)
             }
             return with(testServerCall.response) {
                 httpResponseData(session)
@@ -52,10 +54,30 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         val testServerCall = with(data) {
             runRequest(method, url, headers, body, url.protocol)
         }
+        val response = testServerCall.response
+        val status = response.statusOrNotFound()
+        val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
+            .build { append(HttpHeaders.ContentLength, "0") }
+        val body = ByteReadChannel(response.byteContent ?: byteArrayOf())
 
-        return with(testServerCall.response) {
-            httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
+        val responseBody: Any = if (needToProcessSSE(data, status, headers)) {
+            DefaultClientSSESession(
+                data.body as SSEClientContent,
+                body,
+                callContext
+            )
+        } else {
+            body
         }
+
+        return HttpResponseData(
+            status,
+            GMTDate(),
+            headers,
+            HttpProtocolVersion.HTTP_1_1,
+            responseBody,
+            callContext
+        )
     }
 
     private suspend fun runRequest(
@@ -80,7 +102,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     @OptIn(InternalAPI::class)
     private suspend fun TestApplicationResponse.httpResponseData(body: Any) = HttpResponseData(
-        status() ?: HttpStatusCode.NotFound,
+        statusOrNotFound(),
         GMTDate(),
         headers.allValues().takeUnless { it.isEmpty() } ?: Headers
             .build { append(HttpHeaders.ContentLength, "0") },
@@ -120,4 +142,6 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
+
+    private fun TestApplicationResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
 }
