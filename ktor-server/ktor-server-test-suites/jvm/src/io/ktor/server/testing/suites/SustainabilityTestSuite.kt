@@ -278,7 +278,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
             } catch (cause: TimeoutCancellationException) {
                 DebugProbes.printJob(parent)
-                fail("Server did shut down in time!")
+                fail("Server did not shut down in time!")
             }
         }
 
