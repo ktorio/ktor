@@ -18,7 +18,7 @@ internal class OkHttpSSESession(
     engine: OkHttpClient,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
-) : ClientSSESession, EventSourceListener() {
+) : SSESession, EventSourceListener() {
     private val serverSentEventsSource = EventSources.createFactory(engine).newEventSource(engineRequest, this)
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
