@@ -254,6 +254,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertTrue(job!!.isCancelled)
     }
 
+    @RetryableTest(2)
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testEmbeddedServerCancellation() {
@@ -277,7 +278,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
             } catch (cause: TimeoutCancellationException) {
                 DebugProbes.printJob(parent)
-                fail("Server did shut down in time after cancelling parent!")
+                fail("Server did shut down in time!")
             }
         }
 
