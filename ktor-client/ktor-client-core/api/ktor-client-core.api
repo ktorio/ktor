@@ -787,11 +787,14 @@ public final class io/ktor/client/plugins/sse/BuildersKt {
 	public static synthetic fun sseSession-xEWcMm4$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Boolean;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/client/plugins/sse/ClientSSESession : kotlinx/coroutines/CoroutineScope {
-	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+public final class io/ktor/client/plugins/sse/ClientSSESession : io/ktor/client/plugins/sse/SSESession {
+	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/plugins/sse/SSESession;)V
+	public final fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
 }
 
-public final class io/ktor/client/plugins/sse/DefaultClientSSESession : io/ktor/client/plugins/sse/ClientSSESession {
+public final class io/ktor/client/plugins/sse/DefaultClientSSESession : io/ktor/client/plugins/sse/SSESession {
 	public fun <init> (Lio/ktor/client/plugins/sse/SSEClientContent;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
@@ -821,6 +824,10 @@ public final class io/ktor/client/plugins/sse/SSEConfig {
 
 public final class io/ktor/client/plugins/sse/SSEKt {
 	public static final fun getSSE ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public abstract interface class io/ktor/client/plugins/sse/SSESession : kotlinx/coroutines/CoroutineScope {
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class io/ktor/client/plugins/websocket/BuildersKt {

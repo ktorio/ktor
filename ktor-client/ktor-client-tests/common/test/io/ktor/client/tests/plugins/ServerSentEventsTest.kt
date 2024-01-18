@@ -10,6 +10,7 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
@@ -293,6 +294,19 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
                 assertEquals("from server", lines[1])
             }
             session.cancel()
+        }
+    }
+
+    @Test
+    fun testResponseHeaders() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/content_type_with_charset") {
+                assertEquals(ContentType.Text.EventStream, call.response.contentType()?.withoutParameters())
+            }
         }
     }
 }
