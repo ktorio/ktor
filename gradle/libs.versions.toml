@@ -4,7 +4,7 @@ kotlinx-html-version = "0.10.1"
 kotlinx-datetime = "0.5.0"
 coroutines-version = "1.7.3"
 atomicfu-version = "0.23.1"
-serialization-version = "1.6.2"
+serialization-version = "1.6.1"
 ktlint-version = "3.15.0"
 
 netty-version = "4.1.105.Final"
