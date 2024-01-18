@@ -1177,7 +1177,7 @@ public abstract interface class io/ktor/server/response/PipelineResponse : io/kt
 }
 
 public final class io/ktor/server/response/ResponseCookies {
-	public fun <init> (Lio/ktor/server/response/PipelineResponse;Z)V
+	public fun <init> (Lio/ktor/server/response/PipelineResponse;)V
 	public final fun append (Lio/ktor/http/Cookie;)V
 	public final fun append (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Long;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
 	public static synthetic fun append$default (Lio/ktor/server/response/ResponseCookies;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Long;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILjava/lang/Object;)V
