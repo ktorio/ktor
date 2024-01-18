@@ -6,6 +6,7 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -245,6 +246,11 @@ fun Project.configureTargets() {
                 tasks.findByName("linkDebugTestLinuxX64")?.onlyIf { HOST_NAME == "linux" }
                 tasks.findByName("linkDebugTestLinuxArm64")?.onlyIf { HOST_NAME == "linux" }
                 tasks.findByName("linkDebugTestMingwX64")?.onlyIf { HOST_NAME == "windows" }
+
+                // slower to cache, gradle gets angry
+                tasks.findByName("compileCommonMainKotlinMetadata")?.let { task ->
+                    task.outputs.cacheIf { false }
+                }
             }
         }
     }

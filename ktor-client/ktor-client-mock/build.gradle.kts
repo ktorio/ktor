@@ -7,6 +7,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-client:ktor-client-core"))
+            api(libs.kotlin.stdlib)
         }
     }
 
