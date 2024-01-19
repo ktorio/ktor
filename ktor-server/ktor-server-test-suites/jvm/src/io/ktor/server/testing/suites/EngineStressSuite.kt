@@ -8,11 +8,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.testing.*
+import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*

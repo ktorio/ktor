@@ -12,7 +12,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
 import io.ktor.server.plugins.*
@@ -23,6 +22,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
@@ -30,7 +30,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.test.Test
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>

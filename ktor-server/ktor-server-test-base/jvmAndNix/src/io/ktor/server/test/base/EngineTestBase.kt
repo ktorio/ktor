@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.base
+package io.ktor.server.test.base
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -32,6 +32,8 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     protected var port: Int
     protected var sslPort: Int
     protected var server: EmbeddedServer<TEngine, TConfiguration>?
+
+    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable>
 
     protected fun createAndStartServer(
         log: Logger? = null,

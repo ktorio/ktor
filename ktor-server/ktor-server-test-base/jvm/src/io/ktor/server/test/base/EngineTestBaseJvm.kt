@@ -3,7 +3,7 @@
  */
 
 // ktlint-disable filename
-package io.ktor.server.base
+package io.ktor.server.test.base
 
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -109,7 +109,7 @@ actual abstract class EngineTestBase<
     }
 
     protected open fun createServer(
-        log: Logger? = null,
+        log: org.slf4j.Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
@@ -199,7 +199,7 @@ actual abstract class EngineTestBase<
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+    protected actual fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test

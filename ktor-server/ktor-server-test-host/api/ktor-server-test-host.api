@@ -18,37 +18,12 @@ public final class io/ktor/server/testing/ExternalServicesBuilder {
 	public final fun hosts ([Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/testing/HighLoadHttpGenerator {
-	public static final field Companion Lio/ktor/server/testing/HighLoadHttpGenerator$Companion;
-	public fun <init> (Ljava/lang/String;IIIZLkotlin/jvm/functions/Function1;)V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;IIIZ)V
-	public final fun getHighPressure ()Z
-	public final fun getHost ()Ljava/lang/String;
-	public final fun getNumberOfConnections ()I
-	public final fun getQueueSize ()I
-	public static final fun main ([Ljava/lang/String;)V
-	public final fun mainLoop ()V
-	public final fun shutdown ()V
-	public final fun stop ()V
-}
-
-public final class io/ktor/server/testing/HighLoadHttpGenerator$Companion {
-	public final fun doRun (Ljava/lang/String;IIIIZJJLkotlin/jvm/functions/Function1;)V
-	public final fun doRun (Ljava/lang/String;Ljava/lang/String;IIIIZJJ)V
-	public final fun main ([Ljava/lang/String;)V
-}
-
 public final class io/ktor/server/testing/It {
 	public static final field INSTANCE Lio/ktor/server/testing/It;
 }
 
 public final class io/ktor/server/testing/On {
 	public static final field INSTANCE Lio/ktor/server/testing/On;
-}
-
-public final class io/ktor/server/testing/StressTestCondition : org/junit/jupiter/api/extension/ExecutionCondition {
-	public fun <init> ()V
-	public fun evaluateExecutionCondition (Lorg/junit/jupiter/api/extension/ExtensionContext;)Lorg/junit/jupiter/api/extension/ConditionEvaluationResult;
 }
 
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {

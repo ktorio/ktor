@@ -1,8 +1,8 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.testing
+package io.ktor.server.test.base
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
