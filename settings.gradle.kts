@@ -16,6 +16,9 @@ pluginManagement {
         }
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+}
 
 rootProject.name = "ktor"
 
@@ -168,3 +171,5 @@ include(":ktor-shared:ktor-websockets")
 include(":ktor-shared:ktor-sse")
 include(":ktor-shared:ktor-junit")
 include(":ktor-java-modules-test")
+include("ktor-server:ktor-server-test-base")
+findProject(":ktor-server:ktor-server-test-base")?.name = "ktor-server-test-base"

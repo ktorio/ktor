@@ -21,7 +21,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-client:ktor-client-cio"))
                 api(project(":ktor-client:ktor-client-mock"))
-                api(project(":ktor-server:ktor-server-test-host"))
+                api(project(":ktor-server:ktor-server-test-base"))
             }
         }
         jvmTest {
