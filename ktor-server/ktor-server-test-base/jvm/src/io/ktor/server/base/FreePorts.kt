@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.testing
+package io.ktor.server.base
 
 import org.slf4j.*
 import java.net.*

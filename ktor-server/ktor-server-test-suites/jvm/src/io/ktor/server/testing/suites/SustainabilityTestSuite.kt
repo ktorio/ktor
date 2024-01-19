@@ -12,6 +12,7 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.junit.*
 import io.ktor.server.application.*
+import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.compression.*

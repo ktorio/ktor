@@ -11,7 +11,6 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-test-base"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
-            implementation(project(":ktor-shared:ktor-junit"))
         }
     }
 

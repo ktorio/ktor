@@ -6,7 +6,6 @@ kotlin.sourceSets {
     jvmAndNixMain {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-shared:ktor-junit"))
         }
     }
 

@@ -1,9 +1,9 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.testing
+// ktlint-disable filename
+package io.ktor.server.base
 
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -17,6 +17,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*

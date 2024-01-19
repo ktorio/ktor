@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
+import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*

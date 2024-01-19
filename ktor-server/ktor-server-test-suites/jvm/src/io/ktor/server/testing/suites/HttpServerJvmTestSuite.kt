@@ -7,6 +7,7 @@ package io.ktor.server.testing.suites
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
+import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.request.*

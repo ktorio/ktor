@@ -87,7 +87,6 @@ extra["nonDefaultProjectStructure"] = mutableListOf(
 val disabledExplicitApiModeProjects = listOf(
     "ktor-client-tests",
     "ktor-server-test-base",
-    "ktor-server-test-host",
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-client-content-negotiation-tests",

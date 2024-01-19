@@ -5,6 +5,7 @@
 package io.ktor.tests.server.netty
 
 import io.ktor.http.*
+import io.ktor.server.base.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
