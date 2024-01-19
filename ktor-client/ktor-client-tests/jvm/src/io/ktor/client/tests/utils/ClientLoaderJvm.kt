@@ -64,7 +64,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         )
         val notOnlyEngine = onlyWithEngine != null && engineName.lowercase(locale) != onlyWithEngine.lowercase(locale)
 
-        return platformShouldBeSkipped || engineShouldBeSkipped || notOnlyEngine
+        return (engineShouldBeSkipped && platformShouldBeSkipped) || notOnlyEngine
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

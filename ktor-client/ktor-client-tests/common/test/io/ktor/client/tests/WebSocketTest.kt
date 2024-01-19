@@ -307,4 +307,19 @@ class WebSocketTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testIncomingOverflow() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(1000) {
+                    send("test")
+                }
+            }
+        }
+    }
 }
