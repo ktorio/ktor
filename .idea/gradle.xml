@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/buildSrc" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/ktor-bom" />
+            <option value="$PROJECT_DIR$/ktor-client" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-android" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-apache" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-apache5" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-cio" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-core" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-curl" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-darwin" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-darwin-legacy" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-ios" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-java" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-jetty" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-jetty-jakarta" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-js" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-mock" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-okhttp" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-auth" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-bom-remover" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-call-id" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-content-negotiation" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-content-negotiation/ktor-client-content-negotiation-tests" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-encoding" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-json" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-json/ktor-client-gson" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-json/ktor-client-jackson" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-json/ktor-client-serialization" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-logging" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-resources" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-plugins/ktor-client-websockets" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-tests" />
+            <option value="$PROJECT_DIR$/ktor-client/ktor-client-winhttp" />
+            <option value="$PROJECT_DIR$/ktor-http" />
+            <option value="$PROJECT_DIR$/ktor-http/ktor-http-cio" />
+            <option value="$PROJECT_DIR$/ktor-io" />
+            <option value="$PROJECT_DIR$/ktor-java-modules-test" />
+            <option value="$PROJECT_DIR$/ktor-network" />
+            <option value="$PROJECT_DIR$/ktor-network/ktor-network-tls" />
+            <option value="$PROJECT_DIR$/ktor-network/ktor-network-tls/ktor-network-tls-certificates" />
+            <option value="$PROJECT_DIR$/ktor-server" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-cio" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-config-yaml" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-core" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-host-common" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-jetty" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-jetty-jakarta" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-jetty-jakarta/ktor-server-jetty-test-http2-jakarta" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-jetty/ktor-server-jetty-test-http2" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-netty" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-auth" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-auth-jwt" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-auth-ldap" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-auto-head-response" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-body-limit" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-caching-headers" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-call-id" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-call-logging" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-compression" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-conditional-headers" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-content-negotiation" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-cors" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-csrf" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-data-conversion" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-default-headers" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-double-receive" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-forwarded-header" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-freemarker" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-hsts" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-html-builder" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-http-redirect" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-i18n" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-jte" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-method-override" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-metrics" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-metrics-micrometer" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-mustache" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-openapi" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-partial-content" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-pebble" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-rate-limit" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-request-validation" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-resources" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-sessions" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-sse" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-status-pages" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-swagger" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-thymeleaf" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-velocity" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-webjars" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-plugins/ktor-server-websockets" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-servlet" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-servlet-jakarta" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-test-host" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-test-suites" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-tests" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-tomcat" />
+            <option value="$PROJECT_DIR$/ktor-server/ktor-server-tomcat-jakarta" />
+            <option value="$PROJECT_DIR$/ktor-shared" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-call-id" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-events" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-junit" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-resources" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-gson" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-jackson" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx/ktor-serialization-kotlinx-cbor" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx/ktor-serialization-kotlinx-json" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx/ktor-serialization-kotlinx-protobuf" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx/ktor-serialization-kotlinx-tests" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-kotlinx/ktor-serialization-kotlinx-xml" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-serialization/ktor-serialization-tests" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-sse" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-websocket-serialization" />
+            <option value="$PROJECT_DIR$/ktor-shared/ktor-websockets" />
+            <option value="$PROJECT_DIR$/ktor-test-dispatcher" />
+            <option value="$PROJECT_DIR$/ktor-utils" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
