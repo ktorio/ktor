@@ -3,7 +3,7 @@
 */
 
 plugins {
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("plugin.serialization") version "2.0.0-241135-2"
     id("org.gradle.kotlin.kotlin-dsl") version "4.3.0"
 }
 
@@ -25,8 +25,8 @@ sourceSets.main {
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
-    implementation(kotlin("gradle-plugin", "1.9.20"))
-    implementation(kotlin("serialization", "1.9.20"))
+    implementation(kotlin("gradle-plugin", "2.0.0-241135-2"))
+    implementation(kotlin("serialization", "2.0.0-241135-2"))
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
