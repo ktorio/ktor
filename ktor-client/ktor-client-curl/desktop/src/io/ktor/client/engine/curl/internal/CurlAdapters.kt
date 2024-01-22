@@ -84,3 +84,19 @@ internal fun UInt.fromCurl(): HttpProtocolVersion = when (this) {
     // old curl fallback
     else -> HttpProtocolVersion.HTTP_1_1
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal fun getCurlProtocols(): List<String> {
+    val currentVersion = CURLversion.values().first { it.value == CURLVERSION_NOW.toUInt() }
+    val versionInfoPtr = curl_version_info(currentVersion)
+    val versionInfo = versionInfoPtr!!.reinterpret<curl_version_info_data>().pointed
+    val protocols = versionInfo.protocols ?: return emptyList()
+    var index = 0
+
+    return buildList {
+        do {
+            val protocol = protocols[index++] ?: break
+            add(protocol.toKString())
+        } while (true)
+    }
+}

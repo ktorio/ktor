@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
 import libcurl.*
 import kotlin.coroutines.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
@@ -28,6 +28,7 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     contentLength = body.contentLength ?: headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: -1L,
     connectTimeout = getCapabilityOrNull(HttpTimeoutCapability)?.connectTimeoutMillis,
     executionContext = executionContext,
+    isUpgradeRequest = isUpgradeRequest(),
     forceProxyTunneling = config.forceProxyTunneling,
     sslVerify = config.sslVerify,
     caInfo = config.caInfo,
@@ -43,6 +44,7 @@ internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor
     val contentLength: Long,
     val connectTimeout: Long?,
     val executionContext: Job,
+    val isUpgradeRequest: Boolean,
     val forceProxyTunneling: Boolean,
     val sslVerify: Boolean,
     val caInfo: String?,
@@ -52,11 +54,12 @@ internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor
         "CurlRequestData(url='$url', method='$method', content: $contentLength bytes)"
 }
 
-internal class CurlResponseBuilder(val request: CurlRequestData) {
+internal class CurlResponseBuilder(
+    val request: CurlRequestData,
+    val bodyStartedReceiving: CompletableDeferred<Unit>,
+    val responseBody: CurlResponseBodyData
+) {
     val headersBytes = BytePacketBuilder()
-    val bodyChannel = ByteChannel(true).apply {
-        attachJob(request.executionContext)
-    }
 }
 
 internal sealed class CurlResponseData
@@ -65,7 +68,7 @@ internal class CurlSuccess(
     val status: Int,
     val version: UInt,
     val headersBytes: ByteArray,
-    val bodyChannel: ByteReadChannel
+    val responseBody: CurlResponseBodyData
 ) : CurlResponseData() {
     override fun toString(): String = "CurlSuccess(${HttpStatusCode.fromValue(status)})"
 }

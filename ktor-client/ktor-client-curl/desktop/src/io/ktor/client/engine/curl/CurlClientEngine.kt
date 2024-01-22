@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.dropCompressionHeaders
 import io.ktor.http.*
@@ -21,7 +22,7 @@ internal class CurlClientEngine(
 ) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
@@ -48,9 +49,15 @@ internal class CurlClientEngine(
 
             val status = HttpStatusCode.fromValue(status)
 
-            val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
-                ?.adapt(data, status, headers, bodyChannel, data.body, callContext)
-                ?: bodyChannel
+            val responseBody: Any = if (data.isUpgradeRequest()) {
+                val websocket = responseBody as CurlWebSocketResponseBody
+                CurlWebSocketSession(websocket, callContext)
+            } else {
+                val httpResponse = responseBody as CurlHttpResponseBody
+                data.attributes.getOrNull(ResponseAdapterAttributeKey)
+                    ?.adapt(data, status, headers, httpResponse.bodyChannel, data.body, callContext)
+                    ?: httpResponse.bodyChannel
+            }
 
             HttpResponseData(
                 status,
