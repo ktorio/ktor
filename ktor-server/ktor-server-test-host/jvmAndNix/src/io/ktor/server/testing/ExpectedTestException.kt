@@ -7,4 +7,4 @@ package io.ktor.server.testing
 /**
  * Exception that is expected to be thrown during test execution. It will not be logged and will not fail the test.
  */
-open class ExpectedTestException(message: String) : Throwable(message)
+public open class ExpectedTestException(message: String) : Throwable(message)

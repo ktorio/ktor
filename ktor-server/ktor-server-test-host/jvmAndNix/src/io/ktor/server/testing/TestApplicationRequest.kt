@@ -26,17 +26,13 @@ import kotlinx.coroutines.*
 public class TestApplicationRequest constructor(
     call: TestApplicationCall,
     closeRequest: Boolean,
-    method: HttpMethod = HttpMethod.Get,
-    uri: String = "/",
-    port: Int? = null,
-    version: String = "HTTP/1.1"
+    public var method: HttpMethod = HttpMethod.Get,
+    public var uri: String = "/",
+    public var port: Int? = null,
+    public var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
 
-    var uri = uri
-    var protocol: String = "http"
-    var port = port
-    var version = version
-    var method = method
+    public var protocol: String = "http"
 
     override val local: RequestConnectionPoint = object : RequestConnectionPoint {
         override val uri: String
@@ -94,7 +90,7 @@ public class TestApplicationRequest constructor(
     /**
      * Request body channel.
      */
-    var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
+    public var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
     override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
 

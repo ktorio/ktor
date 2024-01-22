@@ -19,7 +19,6 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-apache"))
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
-            api(project(":ktor-shared:ktor-junit"))
 
             // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
             // so shouldn"t increase the size of the final artifact.

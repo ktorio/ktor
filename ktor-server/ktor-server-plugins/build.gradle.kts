@@ -9,7 +9,7 @@ subprojects {
             }
             commonTest {
                 dependencies {
-                    api(project(":ktor-server:ktor-server-test-host"))
+                    api(project(":ktor-server:ktor-server-test-base"))
                 }
             }
 

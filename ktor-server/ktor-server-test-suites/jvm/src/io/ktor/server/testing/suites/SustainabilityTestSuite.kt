@@ -19,6 +19,7 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*

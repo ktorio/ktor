@@ -271,9 +271,9 @@ public open class TestApplicationBuilder {
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client by lazy { createClient { } }
+    override val client: HttpClient by lazy { createClient { } }
 
-    internal val application by lazy { TestApplication(this) }
+    internal val application: TestApplication by lazy { TestApplication(this) }
 
     /**
      * Starts instance of [TestApplication].

@@ -76,6 +76,7 @@ val configuredVersion: String by extra
 apply(from = "gradle/verifier.gradle")
 
 extra["skipPublish"] = mutableListOf(
+    "ktor-server-test-base",
     "ktor-junit"
 )
 extra["nonDefaultProjectStructure"] = mutableListOf(
@@ -85,7 +86,7 @@ extra["nonDefaultProjectStructure"] = mutableListOf(
 
 val disabledExplicitApiModeProjects = listOf(
     "ktor-client-tests",
-    "ktor-server-test-host",
+    "ktor-server-test-base",
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-client-content-negotiation-tests",

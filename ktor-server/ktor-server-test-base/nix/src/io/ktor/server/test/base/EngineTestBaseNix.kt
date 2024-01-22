@@ -1,8 +1,8 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.testing
+package io.ktor.server.test.base
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,6 +15,7 @@ import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -104,7 +105,7 @@ actual constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+    protected actual fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test

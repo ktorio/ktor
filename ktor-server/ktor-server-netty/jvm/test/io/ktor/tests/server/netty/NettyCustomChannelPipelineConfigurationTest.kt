@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
+import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.netty.channel.*
 import kotlin.test.*

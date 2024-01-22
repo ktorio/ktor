@@ -4,6 +4,7 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*

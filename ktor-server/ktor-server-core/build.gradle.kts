@@ -32,7 +32,7 @@ kotlin {
 
         jvmAndNixTest {
             dependencies {
-                api(project(":ktor-server:ktor-server-test-host"))
+                api(project(":ktor-server:ktor-server-test-base"))
                 api(libs.logback.classic)
                 api(project(":ktor-network"))
             }
@@ -41,7 +41,7 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(project(":ktor-server:ktor-server-config-yaml"))
-                implementation(project(":ktor-server:ktor-server-test-host"))
+                implementation(project(":ktor-server:ktor-server-test-base"))
                 implementation(project(":ktor-server:ktor-server-test-suites"))
                 implementation(project(":ktor-server:ktor-server-config-yaml"))
                 

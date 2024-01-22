@@ -28,12 +28,12 @@ internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, a
     ): Pair<TestApplicationCall, WebSocketSession>
 }
 
-class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
     private val app: TestApplicationEngine = config.app
 
     private val bridge = TestHttpClientEngineBridge(this, app)
 
-    override val supportedCapabilities = bridge.supportedCapabilities
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = bridge.supportedCapabilities
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
@@ -125,7 +125,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         clientJob.complete()
     }
 
-    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)
