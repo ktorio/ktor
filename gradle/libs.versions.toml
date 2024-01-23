@@ -61,9 +61,9 @@ ws-version = "8.5.0"
 xmlutil-version = "0.86.3"
 yamlkt-version = "0.13.0"
 
-swagger-codegen-version = "3.0.41"
-swagger-codegen-generators-version = "1.0.38"
-swagger-parser-version = "2.1.19"
+swagger-codegen-version = "3.0.52"
+swagger-codegen-generators-version = "1.0.46"
+swagger-parser-version = "2.1.20"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
