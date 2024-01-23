@@ -16,7 +16,7 @@ public class SSEClientContent(
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,
     public val showRetryEvents: Boolean,
-    private val requestBody: OutgoingContent = EmptyContent
+    public val requestBody: OutgoingContent = EmptyContent
 ) : OutgoingContent.WriteChannelContent() {
     override val contentType: ContentType? = requestBody.contentType
 

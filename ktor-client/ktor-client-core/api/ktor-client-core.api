@@ -807,6 +807,7 @@ public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/eng
 
 public final class io/ktor/client/plugins/sse/SSEClientContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
 	public synthetic fun <init> (JZZLio/ktor/http/content/OutgoingContent;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JZZLio/ktor/http/content/OutgoingContent;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getReconnectionTime-UwyO8pc ()J
