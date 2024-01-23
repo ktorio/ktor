@@ -4,14 +4,17 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
@@ -45,9 +48,9 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
 
-    transformRequestBody { request, _, _ ->
+    on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
-            return@transformRequestBody null
+            return@on content
         }
         LOGGER.trace("Sending SSE request ${request.url}")
         request.setCapability(SSECapability, Unit)
@@ -56,10 +59,12 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
 
+        content.contentType?.let { request.contentType(it) }
         SSEClientContent(
             localReconnectionTime ?: reconnectionTime,
             localShowCommentEvents ?: showCommentEvents,
-            localShowRetryEvents ?: showRetryEvents
+            localShowRetryEvents ?: showRetryEvents,
+            content
         )
     }
 
@@ -90,4 +95,18 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
 
 private fun <T : Any> getAttributeValue(request: HttpRequestBuilder, attributeKey: AttributeKey<T>): T? {
     return request.attributes.getOrNull(attributeKey)
+}
+
+private object AfterRender : ClientHook<suspend (HttpRequestBuilder, OutgoingContent) -> OutgoingContent> {
+    override fun install(
+        client: HttpClient,
+        handler: suspend (HttpRequestBuilder, OutgoingContent) -> OutgoingContent
+    ) {
+        val phase = PipelinePhase("AfterRender")
+        client.requestPipeline.insertPhaseAfter(HttpRequestPipeline.Render, phase)
+        client.requestPipeline.intercept(phase) { content ->
+            if (content !is OutgoingContent) return@intercept
+            proceedWith(handler(context, content))
+        }
+    }
 }

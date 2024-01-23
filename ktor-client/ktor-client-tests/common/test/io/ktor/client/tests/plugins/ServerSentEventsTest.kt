@@ -325,4 +325,24 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }
         }
     }
+
+    @Test
+    fun testRequestBody() = clientTests(listOf("Android", "OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        val body = "hello"
+        val contentType = ContentType.Text.Plain
+        test { client ->
+            client.sse({
+                url("$TEST_SERVER/sse/echo")
+                setBody(body)
+                contentType(contentType)
+            }) {
+                assertEquals(contentType, call.request.contentType()?.withoutParameters())
+                assertEquals(body, incoming.single().data)
+            }
+        }
+    }
 }

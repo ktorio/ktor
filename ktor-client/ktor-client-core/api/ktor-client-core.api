@@ -805,13 +805,15 @@ public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/eng
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/plugins/sse/SSEClientContent : io/ktor/http/content/OutgoingContent$NoContent {
-	public synthetic fun <init> (JZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class io/ktor/client/plugins/sse/SSEClientContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
+	public synthetic fun <init> (JZZLio/ktor/http/content/OutgoingContent;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getReconnectionTime-UwyO8pc ()J
 	public final fun getShowCommentEvents ()Z
 	public final fun getShowRetryEvents ()Z
 	public fun toString ()Ljava/lang/String;
+	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/sse/SSEConfig {
