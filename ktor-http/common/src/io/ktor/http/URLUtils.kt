@@ -19,6 +19,12 @@ public fun Url(urlString: String): Url = URLBuilder(urlString).build()
 public fun Url(builder: URLBuilder): Url = URLBuilder().takeFrom(builder).build()
 
 /**
+ * Construct a [Url] by applying [block] an empty [UrlBuilder].
+ */
+public fun buildUrl(block: URLBuilder.() -> Unit): Url = URLBuilder().apply(block).build()
+
+
+/**
  * Construct [URLBuilder] from [urlString].
  */
 @Suppress("FunctionName")
