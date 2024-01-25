@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.plugins
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -120,36 +121,21 @@ class CookiesTest {
         }
     }
 
+    /*
+     * We do not enforce that Secure flag matches protocol, because we could be behind a proxy.  There are other ways
+     * to ensure that secure cookies are not vulnerable to man-in-the-middle attacks, but we leave this to the
+     * developer.
+     */
     @Test
-    fun testSecureCookieHttp() {
-        withTestApplication {
-            application.routing {
-                get("/*") {
-                    call.response.cookies.append("S", "secret", secure = true)
-                    call.respond("ok")
-                }
-            }
-
-            assertFails {
-                handleRequest(HttpMethod.Get, "/1")
+    fun testSecureCookie() = testApplication {
+        routing {
+            get("/*") {
+                call.response.cookies.append("S", "secret", secure = true)
+                call.respond("ok")
             }
         }
-    }
-
-    @Test
-    fun testSecureCookieHttps() {
-        withTestApplication {
-            application.routing {
-                get("/*") {
-                    call.response.cookies.append("S", "secret", secure = true)
-                    call.respond("ok")
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                protocol = "https"
-            }
-        }
+        val response = client.get("/cookie-monster")
+        assertEquals("S=secret; Secure", response.headers["Set-Cookie"]?.cutSetCookieHeader())
     }
 
     private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
