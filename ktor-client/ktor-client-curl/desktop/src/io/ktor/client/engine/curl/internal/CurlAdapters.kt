@@ -97,18 +97,15 @@ internal fun UInt.fromCurl(): HttpProtocolVersion = when (this) {
     else -> HttpProtocolVersion.HTTP_1_1
 }
 
+/**
+ * Retrieves the supported protocols for the current version of cURL.
+ *
+ * @return The list of supported protocols as strings, e.g. [ftp, http, ws]
+ */
 @OptIn(ExperimentalForeignApi::class)
 internal fun getCurlProtocols(): List<String> {
     val currentVersion = CURLversion.values().first { it.value == CURLVERSION_NOW.toUInt() }
     val versionInfoPtr = curl_version_info(currentVersion)
     val versionInfo = versionInfoPtr!!.reinterpret<curl_version_info_data>().pointed
-    val protocols = versionInfo.protocols ?: return emptyList()
-    var index = 0
-
-    return buildList {
-        do {
-            val protocol = protocols[index++] ?: break
-            add(protocol.toKString())
-        } while (true)
-    }
+    return versionInfo.protocols?.toKStringList().orEmpty()
 }
