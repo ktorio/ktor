@@ -30,7 +30,7 @@ public abstract class BaseApplicationResponse(
         private set
 
     override val cookies: ResponseCookies by lazy {
-        ResponseCookies(this, call.request.origin.scheme == "https" || call.request.origin.scheme == "wss")
+        ResponseCookies(this)
     }
 
     override fun status(): HttpStatusCode? = _status
