@@ -13,6 +13,9 @@ import libcurl.*
 import platform.posix.*
 import kotlin.coroutines.*
 
+/**
+ *  The callback is getting called on each completely parser header line.
+ */
 @OptIn(ExperimentalForeignApi::class)
 internal fun onHeadersReceived(
     buffer: CPointer<ByteVar>,
@@ -25,12 +28,21 @@ internal fun onHeadersReceived(
     val chunkSize = (size * count).toLong()
     packet.writeFully(buffer, 0, chunkSize)
 
-    if (chunkSize == 2L && buffer[0] == 0x0D.toByte() && buffer[1] == 0x0A.toByte()) {
+    if (isFinalHeaderLine(chunkSize, buffer) && !response.bodyStartedReceiving.isCompleted) {
         response.bodyStartedReceiving.complete(Unit)
     }
 
     return chunkSize
 }
+
+/**
+ * Checks if the given header represents the final header line (CR LF).
+ *
+ * @see <a href="https://curl.se/libcurl/c/CURLOPT_HEADERFUNCTION.html">Description.</a>
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun isFinalHeaderLine(chunkSize: Long, buffer: CPointer<ByteVar>) =
+    chunkSize == 2L && buffer[0] == 0x0D.toByte() && buffer[1] == 0x0A.toByte()
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun onBodyChunkReceived(
