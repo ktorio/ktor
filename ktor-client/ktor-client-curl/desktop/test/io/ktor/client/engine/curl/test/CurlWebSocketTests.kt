@@ -9,6 +9,7 @@ import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class CurlWebSocketTests {
@@ -47,6 +48,30 @@ class CurlWebSocketTests {
 
                 assertTrue(actual is Frame.Text)
                 assertEquals("", actual.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testWebSocketHeaders() {
+        val client = HttpClient(Curl) {
+            install(WebSockets)
+        }
+
+        runBlocking {
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                val actual = incoming.receive()
+
+                assertTrue(actual is Frame.Text)
+
+                val headersString = actual.readText()
+                val headers = Json.decodeFromString<Map<String, List<String>>>(headersString)
+
+                assertEquals(listOf("Upgrade"), headers["Connection"])
+                assertEquals(listOf("websocket"), headers["Upgrade"])
+                assertEquals(listOf("13"), headers["Sec-WebSocket-Version"])
+                val webSocketKey = assertNotNull(headers["Sec-WebSocket-Key"])
+                assertTrue(webSocketKey.single().isNotEmpty())
             }
         }
     }

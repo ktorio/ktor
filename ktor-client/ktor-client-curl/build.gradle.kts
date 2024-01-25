@@ -28,6 +28,7 @@ kotlin {
             dependencies {
                 api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
                 api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
+                implementation(libs.kotlinx.serialization.json)
             }
         }
     }

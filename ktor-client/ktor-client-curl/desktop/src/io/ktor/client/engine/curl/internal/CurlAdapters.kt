@@ -19,6 +19,17 @@ internal typealias EasyHandle = COpaquePointer
 @OptIn(ExperimentalForeignApi::class)
 internal typealias MultiHandle = COpaquePointer
 
+/**
+ * Curl manages websocket headers internally:
+ * @see <a href="https://github.com/curl/curl/blob/f0986c6e18417865f49e725201a5224d9b5af849/lib/ws.c#L684">List of headers</a>
+ */
+internal val DISALLOWED_WEBSOCKET_HEADERS = setOf(
+    HttpHeaders.Upgrade,
+    HttpHeaders.Connection,
+    HttpHeaders.SecWebSocketVersion,
+    HttpHeaders.SecWebSocketKey
+)
+
 @OptIn(ExperimentalForeignApi::class)
 internal fun CURLMcode.verify() {
     if (this != CURLM_OK) {
@@ -68,6 +79,7 @@ internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     var result: CPointer<curl_slist>? = null
 
     mergeHeaders(headers, body) { key, value ->
+        if (isUpgradeRequest() && DISALLOWED_WEBSOCKET_HEADERS.contains(key)) return@mergeHeaders
         val header = "$key: $value"
         result = curl_slist_append(result, header)
     }
