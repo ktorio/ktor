@@ -33,7 +33,7 @@ junit-version = "5.10.1"
 slf4j-version = "2.0.11"
 logback-version = "1.3.5"
 
-dropwizard-version = "4.2.24"
+dropwizard-version = "4.2.25"
 micrometer-version = "1.12.2"
 
 jansi-version = "2.4.1"
