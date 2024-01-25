@@ -43,9 +43,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
-        if (request.isUpgradeRequest && !curlProtocols.contains("ws")) {
-            @Suppress("DEPRECATION")
-            throw CurlRuntimeException("WebSockets are supported in experimental libcurl 7.86 and greater")
+        if (request.isUpgradeRequest && !curlProtocols.contains(request.protocol)) {
+            error("WebSockets are supported in experimental libcurl 7.86 and greater")
         }
 
         val result = CompletableDeferred<CurlSuccess>()

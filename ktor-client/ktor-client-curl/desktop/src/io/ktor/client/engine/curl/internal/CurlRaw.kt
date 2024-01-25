@@ -20,6 +20,7 @@ import kotlin.coroutines.*
 
 @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
+    protocol = url.protocol.name,
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
@@ -36,6 +37,7 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
 )
 
 internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor(
+    val protocol: String,
     val url: String,
     val method: String,
     val headers: CPointer<curl_slist>,
