@@ -17,9 +17,7 @@ public class CSRFConfig {
     internal var originMatchesHost = false
     internal val allowedOrigins = mutableListOf<Url>()
     internal val headerChecks = mutableMapOf<String, HeaderPredicate>()
-    internal var handleFailure: suspend ApplicationCall.(String) -> Unit = { message ->
-        respond(HttpStatusCode.BadRequest, "Cross-site request validation failed; $message")
-    }
+    internal var handleFailure = respondBadRequestIfNotCommitted
 
     /**
      * All incoming requests must have an "Origin" header matching one of the hosts
@@ -65,9 +63,20 @@ public class CSRFConfig {
      * @param handleFailure handler for CSRF error conditions
      */
     public fun onFailure(handleFailure: suspend ApplicationCall.(String) -> Unit) {
-        this.handleFailure = handleFailure
+        this.handleFailure = handleFailure + respondBadRequestIfNotCommitted
     }
 }
 
 private typealias HeaderPredicate = ApplicationCall.(String) -> Boolean
 private infix fun HeaderPredicate.and(other: HeaderPredicate): HeaderPredicate = { this@and(it) && other(it) }
+internal typealias ErrorMessageHandler = suspend ApplicationCall.(String) -> Unit
+
+internal val respondBadRequestIfNotCommitted: ErrorMessageHandler = { message ->
+    if (!response.isCommitted) {
+        respond(HttpStatusCode.BadRequest, "Cross-site request validation failed; $message")
+    }
+}
+internal operator fun ErrorMessageHandler.plus(other: ErrorMessageHandler): ErrorMessageHandler = { message ->
+    this@plus(message)
+    other(message)
+}

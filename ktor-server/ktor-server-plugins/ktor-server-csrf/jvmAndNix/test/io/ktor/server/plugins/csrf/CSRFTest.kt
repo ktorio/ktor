@@ -143,6 +143,38 @@ class CSRFTest {
     }
 
     @Test
+    fun onFailureDefaultResponse() {
+        var errorMessageVariable = ""
+
+        testApplication {
+            configureCSRF {
+                checkHeader("X-CSRF") { csrfHeader ->
+                    request.headers[HttpHeaders.Origin]?.let { origin ->
+                        csrfHeader == origin.hashCode().toString(32)
+                    } == true
+                }
+                onFailure {
+                    errorMessageVariable = it
+                }
+            }
+
+            client.get("/csrf") {
+                headers[HttpHeaders.Origin] = "http://localhost:8080"
+                headers["X-CSRF"] = "http://localhost:8080".hashCode().toString(32)
+            }.let { response ->
+                assertEquals(200, response.status.value)
+            }
+
+            client.get("/csrf").let { response ->
+                val expectedMessage = "missing \"X-CSRF\" header"
+                assertEquals(400, response.status.value)
+                assertEquals("Cross-site request validation failed; $expectedMessage", response.bodyAsText())
+                assertEquals(errorMessageVariable, expectedMessage)
+            }
+        }
+    }
+
+    @Test
     fun worksWithDefaultPort() {
         testApplication {
             configureCSRF {
