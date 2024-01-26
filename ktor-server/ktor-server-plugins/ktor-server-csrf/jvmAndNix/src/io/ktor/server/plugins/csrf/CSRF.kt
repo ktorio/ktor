@@ -38,6 +38,11 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     val headerChecks = pluginConfig.headerChecks
     val onFailure = pluginConfig.handleFailure
 
+    if (!checkHost && allowedOrigins.isEmpty() && headerChecks.isEmpty()) {
+        application.log.warn("No validation options provided for CSRF plugin - requests will not be verified!")
+        return@createRouteScopedPlugin
+    }
+
     onCall { call ->
 
         if (call.request.httpMethod in setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options)) {
