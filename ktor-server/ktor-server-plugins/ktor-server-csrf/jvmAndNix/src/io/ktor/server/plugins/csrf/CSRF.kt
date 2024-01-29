@@ -40,6 +40,9 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
 
     onCall { call ->
 
+        if (call.request.httpMethod in setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options))
+            return@onCall
+
         // Host standard header matches the Origin
         if (checkHost) {
             val origin = call.originOrReferrerUrl() ?: return@onCall onFailure(call, "missing \"Origin\" header")
