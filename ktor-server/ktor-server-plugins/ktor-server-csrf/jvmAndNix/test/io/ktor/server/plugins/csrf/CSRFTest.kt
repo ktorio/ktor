@@ -142,6 +142,23 @@ class CSRFTest {
         }
     }
 
+    @Test
+    fun worksWithDefaultPort() {
+        testApplication {
+            configureCSRF {
+                originMatchesHost()
+            }
+
+            client.post("/csrf") {
+                header("Host", "localhost:80")
+                header("Origin", "http://localhost:80")
+            }.let { response ->
+                assertEquals(200, response.status.value)
+                assertEquals("success", response.bodyAsText())
+            }
+        }
+    }
+
     private fun ApplicationTestBuilder.configureCSRF(csrfOptions: CSRFConfig.() -> Unit) {
         routing {
             route("/csrf") {
@@ -151,9 +168,12 @@ class CSRFTest {
                 get {
                     call.respondText("success")
                 }
+                post {
+                    call.respondText("success")
+                }
             }
             route("/no-csrf") {
-                get {
+                post {
                     call.respondText("success")
                 }
             }
