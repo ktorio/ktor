@@ -173,7 +173,7 @@ class CSRFTest {
                 }
             }
             route("/no-csrf") {
-                post {
+                get {
                     call.respondText("success")
                 }
             }
