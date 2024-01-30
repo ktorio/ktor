@@ -18,6 +18,12 @@ internal class RequestContainer(
     val completionHandler: CompletableDeferred<CurlSuccess>
 )
 
+/**
+ * A class responsible for processing requests asynchronously.
+ *
+ * It holds a dispatcher interacting with curl multi interface API,
+ * which requires API calls from single thread.
+ */
 internal class CurlProcessor(coroutineContext: CoroutineContext) {
     @OptIn(InternalAPI::class)
     private val curlDispatcher: CloseableCoroutineDispatcher =
@@ -28,6 +34,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
     private val requestQueue: Channel<RequestContainer> = Channel(Channel.UNLIMITED)
+    private val requestCounter = atomic(0L)
     private val curlProtocols by lazy { getCurlProtocols() }
 
     init {
@@ -48,8 +55,9 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
 
         val result = CompletableDeferred<CurlSuccess>()
-        requestQueue.send(RequestContainer(request, result))
-        curlApi!!.wakeup()
+        nextRequest {
+            requestQueue.send(RequestContainer(request, result))
+        }
         return result.await()
     }
 
@@ -59,7 +67,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
             val api = curlApi!!
             while (!requestQueue.isClosedForReceive) {
                 drainRequestQueue(api)
-                api.perform()
+                api.perform(requestCounter)
             }
         }
     }
@@ -91,6 +99,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         if (!closed.compareAndSet(false, true)) return
 
         requestQueue.close()
+        nextRequest()
+
         GlobalScope.launch(curlDispatcher) {
             curlScope.coroutineContext[Job]!!.join()
             curlApi!!.close()
@@ -104,5 +114,11 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         curlScope.launch {
             curlApi!!.cancelRequest(easyHandle, cause)
         }
+    }
+
+    private inline fun nextRequest(body: (Long) -> Unit = {}) = try {
+        body(requestCounter.incrementAndGet())
+    } finally {
+        curlApi!!.wakeup()
     }
 }

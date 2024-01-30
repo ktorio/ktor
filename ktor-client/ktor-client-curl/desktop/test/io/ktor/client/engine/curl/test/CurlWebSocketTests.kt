@@ -7,6 +7,7 @@ package io.ktor.client.engine.curl.test
 import io.ktor.client.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
@@ -14,6 +15,7 @@ import kotlin.test.*
 
 class CurlWebSocketTests {
 
+    private val TEST_SERVER: String = "http://127.0.0.1:8080"
     private val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 
     @Test
@@ -73,6 +75,29 @@ class CurlWebSocketTests {
                 val webSocketKey = assertNotNull(headers["Sec-WebSocket-Key"])
                 assertTrue(webSocketKey.single().isNotEmpty())
             }
+        }
+    }
+
+    @Test
+    fun testParallelSessions() {
+        val client = HttpClient(Curl) {
+            install(WebSockets)
+        }
+
+        runBlocking {
+            val websocketInitialized = CompletableDeferred<Boolean>()
+
+            launch {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    websocketInitialized.complete(true)
+                    delay(20)
+                }
+            }
+
+            websocketInitialized.await()
+
+            val response = client.get(TEST_SERVER)
+            assertEquals(200, response.status.value)
         }
     }
 }
