@@ -1,3 +1,24 @@
+# 2.3.8
+> Published 31 January 2024
+
+### Bugfixes
+* "KeyStoreException: JKS not found" exception on Android when configuring secure connection ([KTOR-6720](https://youtrack.jetbrains.com/issue/KTOR-6720))
+* `URLBuilder` crashes on React Native platforms ([KTOR-6576](https://youtrack.jetbrains.com/issue/KTOR-6576))
+* CIO: Unable to perform WebSocket upgrade when Content-Type header is sent in the request ([KTOR-6366](https://youtrack.jetbrains.com/issue/KTOR-6366))
+* ContentNegotiation: Adding charset to content type of JacksonConverter breaks request matching ([KTOR-6420](https://youtrack.jetbrains.com/issue/KTOR-6420))
+* High Native Server Memory Usage ([KTOR-6321](https://youtrack.jetbrains.com/issue/KTOR-6321))
+* Server ContentNegotiation no longer allows multiple decoders for one Content-Type ([KTOR-5410](https://youtrack.jetbrains.com/issue/KTOR-5410))
+* Logging plugin blocks response body streaming when level is BODY ([KTOR-6482](https://youtrack.jetbrains.com/issue/KTOR-6482))
+* WebSockets: Confusing error message when server doesn't respond with Upgrade ([KTOR-6397](https://youtrack.jetbrains.com/issue/KTOR-6397))
+* {...} (tailcard) does not match URLs ending with '/' ([KTOR-2121](https://youtrack.jetbrains.com/issue/KTOR-2121))
+* HttpCache: NumberFormatException for cache-control with max age more than Int.MAX_VALUE ([KTOR-6505](https://youtrack.jetbrains.com/issue/KTOR-6505))
+* CORS: `allowHost` without the second argument doesn't allow the secure host ([KTOR-6494](https://youtrack.jetbrains.com/issue/KTOR-6494))
+* "ReferenceError: 'self' is not defined" when using URLBuilder in a custom JS engine ([KTOR-5978](https://youtrack.jetbrains.com/issue/KTOR-5978))
+* MDC diagnostic value is changed during logging of the request ([KTOR-6528](https://youtrack.jetbrains.com/issue/KTOR-6528))
+* WebSocket doesn't get terminated when runBlocking is used ([KTOR-6664](https://youtrack.jetbrains.com/issue/KTOR-6664))
+* CIO: "getSubjectAlternativeNames(...) must not be null" error on Android when using CA without SAN since 2.3.5 ([KTOR-6396](https://youtrack.jetbrains.com/issue/KTOR-6396))
+* RequestConnectionPoint should implement toString() ([KTOR-6577](https://youtrack.jetbrains.com/issue/KTOR-6577))
+
 # 2.3.7
 > Published 28 November 2023
 
