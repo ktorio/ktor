@@ -11,6 +11,8 @@ import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.errors.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.recovery.*
+import io.ktor.network.quic.recovery.ConnectionForRetransmission
 import io.ktor.network.quic.streams.*
 import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
@@ -86,6 +88,8 @@ internal class QUICConnection(
 
     private val streamManager = StreamManager()
 
+    private val connectionForRetransmission = ConnectionForRetransmissionImpl()
+
     /**
      * [QUICTransportParameters] that were announced to the peer.
      *
@@ -151,6 +155,8 @@ internal class QUICConnection(
     suspend fun processPacket(packet: QUICPacket) {
         logger.info("Decrypted packet:\n${packet.toDebugString(withPayload = false).prependIndent("\t")}")
 
+        // TODO: A packet MUST NOT be acknowledged until packet protection has been successfully removed
+        //  and all frames contained in the packet have been processed.
         packet.encryptionLevel?.let { level ->
             packetNumberSpacePool[level].receivePacket(packet.packetNumber)
         }
@@ -199,16 +205,19 @@ internal class QUICConnection(
         packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
+        connection = connectionForRetransmission,
     )
     private val handshakePacketHandler = PacketSendHandlerImpl.Handshake(
         packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
+        connection = connectionForRetransmission,
     )
     private val oneRTTPacketHandler = PacketSendHandlerImpl.OneRTT(
         packetWriter = packetWriter,
         packetHandler = readyPacketHandler,
         role = ConnectionRole.SERVER,
+        connection = connectionForRetransmission,
     )
 
     private suspend fun sendInInitialPacket(
@@ -769,7 +778,8 @@ internal class QUICConnection(
         private val logger = logger()
     }
 
-    private inner class StreamManager {
+    @Suppress("UNUSED_PARAMETER", "unused")
+    internal inner class StreamManager {
         private val receiveStates = hashMapOf<Long, ReceiveStreamState>()
 
         private val streams = hashMapOf<Long, QUICStreamImpl>()
@@ -842,6 +852,40 @@ internal class QUICConnection(
             } else {
                 streams[streamId]!!.appendDataToInput(dataChunk)
             }
+        }
+
+        /**
+         * "Reset Recvd" state is reached
+         */
+        fun streamCancelled(streamId: Long): Boolean {
+            return false // todo streams
+        }
+
+        /**
+         * Either the "Reset Recvd" or "Data Recvd" state is reached on the sending part of the stream
+         */
+        fun streamFinished(streamId: Long): Boolean {
+            return false // todo streams
+        }
+
+        fun needToRetransmitMaxStreamData(streamId: Long): Boolean {
+            return false // todo streams
+        }
+
+        fun currentMaxStreamData(streamId: Long): Long {
+            return 0 // todo streams
+        }
+    }
+
+    private inner class ConnectionForRetransmissionImpl : ConnectionForRetransmission {
+        override val streamManager: StreamManager get() = this@QUICConnection.streamManager
+
+        override fun needToRetransmitMaxData(): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun currentMaxData(): Long {
+            TODO("Not yet implemented")
         }
     }
 

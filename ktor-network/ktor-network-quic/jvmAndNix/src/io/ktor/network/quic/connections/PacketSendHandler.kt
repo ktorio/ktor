@@ -8,6 +8,7 @@ import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.consts.*
 import io.ktor.network.quic.frames.*
 import io.ktor.network.quic.packets.*
+import io.ktor.network.quic.recovery.*
 import io.ktor.network.quic.tls.*
 import io.ktor.network.quic.util.*
 import io.ktor.util.logging.*
@@ -29,13 +30,19 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
     protected val packetHandler: ReadyHandler,
     protected val encryptionLevel: EncryptionLevel,
     private val role: ConnectionRole,
+    private val connection: ConnectionForRetransmission,
 ) : PacketSendHandler {
     protected abstract val logger: Logger
 
     private val buffer = MutexPacketBuilder()
 
+    private val retransmission = RetransmissionImpl(connection)
+    private val recovery = Recovery(retransmission)
+
     private val frameWriter: FrameWriter by lazy {
-        FrameWriterImpl(this)
+        FrameWriterImpl(this, recovery).also {
+            retransmission.withFrameWriter(it)
+        }
     }
 
     protected abstract val maximumHeaderSize: Int
@@ -110,7 +117,8 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler.Initial,
         role: ConnectionRole,
-    ) : PacketSendHandlerImpl<ReadyPacketHandler.Initial>(packetHandler, EncryptionLevel.Initial, role) {
+        connection: ConnectionForRetransmission,
+    ) : PacketSendHandlerImpl<ReadyPacketHandler.Initial>(packetHandler, EncryptionLevel.Initial, role, connection) {
         override val logger: Logger = logger()
 
         override val maximumHeaderSize: Int by lazy {
@@ -141,7 +149,8 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler,
         role: ConnectionRole,
-    ) : PacketSendHandlerImpl<ReadyPacketHandler>(packetHandler, EncryptionLevel.Handshake, role) {
+        connection: ConnectionForRetransmission,
+    ) : PacketSendHandlerImpl<ReadyPacketHandler>(packetHandler, EncryptionLevel.Handshake, role, connection) {
         override val logger: Logger = logger()
 
         override val maximumHeaderSize: Int by lazy {
@@ -170,7 +179,8 @@ internal sealed class PacketSendHandlerImpl<ReadyHandler : ReadyPacketHandler>(
         private val packetWriter: PacketWriter,
         packetHandler: ReadyPacketHandler.OneRTT,
         role: ConnectionRole,
-    ) : PacketSendHandlerImpl<ReadyPacketHandler.OneRTT>(packetHandler, EncryptionLevel.AppData, role) {
+        connection: ConnectionForRetransmission,
+    ) : PacketSendHandlerImpl<ReadyPacketHandler.OneRTT>(packetHandler, EncryptionLevel.AppData, role, connection) {
         override val logger: Logger = logger()
 
         override val maximumHeaderSize: Int by lazy {

@@ -9,6 +9,7 @@ package io.ktor.network.quic.frames
 import io.ktor.network.quic.bytes.*
 import io.ktor.network.quic.connections.*
 import io.ktor.network.quic.errors.*
+import io.ktor.network.quic.recovery.*
 import io.ktor.network.quic.util.*
 import io.ktor.utils.io.core.*
 
@@ -109,6 +110,7 @@ internal interface FrameWriter {
 
 internal class FrameWriterImpl(
     packetSendHandler: PacketSendHandler,
+    private val recovery: Recovery,
 ) : FrameWriter, PacketSendHandler by packetSendHandler {
     override suspend fun writePadding(): Long = writeFrame(PayloadSize.FRAME_TYPE_SIZE) {
         writeFrameType(QUICFrameType.PADDING)
@@ -229,6 +231,8 @@ internal class FrameWriterImpl(
             writeVarInt(streamId)
             applicationProtocolErrorCode.writeToFrame(this)
             writeVarInt(finalSize)
+        }.alsoRegisterForRecovery {
+            retransmitResetStream(streamId, applicationProtocolErrorCode, finalSize)
         }
     }
 
@@ -242,6 +246,8 @@ internal class FrameWriterImpl(
             writeFrameType(QUICFrameType.STOP_SENDING)
             writeVarInt(streamId)
             applicationProtocolErrorCode.writeToFrame(this)
+        }.alsoRegisterForRecovery {
+            retransmitStopSending(streamId, applicationProtocolErrorCode)
         }
     }
 
@@ -314,6 +320,8 @@ internal class FrameWriterImpl(
             offset?.let { writeVarInt(it) }
             length?.let { writeVarInt(it) }
             writeFully(data)
+        }.alsoRegisterForRecovery {
+            retransmitStream(streamId, offset, specifyLength, fin, data)
         }
     }
 
@@ -321,6 +329,8 @@ internal class FrameWriterImpl(
         return writeFrame(PayloadSize.FRAME_TYPE_SIZE + PayloadSize.ofVarInt(maximumData)) {
             writeFrameType(QUICFrameType.MAX_DATA)
             writeVarInt(maximumData)
+        }.alsoRegisterForRecovery {
+            retransmitMaxData()
         }
     }
 
@@ -334,6 +344,8 @@ internal class FrameWriterImpl(
             writeFrameType(QUICFrameType.MAX_STREAM_DATA)
             writeVarInt(streamId)
             writeVarInt(maximumStreamData)
+        }.alsoRegisterForRecovery {
+            retransmitMaxStreamData(streamId)
         }
     }
 
@@ -511,5 +523,9 @@ internal class FrameWriterImpl(
     private fun BytePacketBuilder.writeFrameType(typeV1: QUICFrameType) {
         // it is actually a varint with length 8, as frame types are all values in 0x00..0x1e
         writeUInt8(typeV1.typeValue)
+    }
+
+    private fun Long.alsoRegisterForRecovery(retransmission: suspend Retransmission.() -> Unit): Long = also {
+        recovery.registerForRecovery(it, retransmission)
     }
 }
