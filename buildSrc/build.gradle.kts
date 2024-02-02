@@ -6,7 +6,6 @@ plugins {
     `kotlin-dsl`
     kotlin("plugin.serialization") version "1.9.22"
 }
-
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
 
 extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
@@ -36,7 +35,10 @@ configurations.configureEach {
     if (isCanBeResolved) {
         attributes {
             @Suppress("UnstableApiUsage")
-            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                project.objects.named(GradleVersion.current().version)
+            )
         }
     }
 }
@@ -45,7 +47,10 @@ configurations.configureEach {
     if (isCanBeResolved) {
         attributes {
             @Suppress("UnstableApiUsage")
-            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, project.objects.named(GradleVersion.current().version))
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                project.objects.named(GradleVersion.current().version)
+            )
         }
     }
 }
@@ -97,8 +102,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
     if (kotlin_language_version != null) {
         kotlinOptions.languageVersion = kotlin_language_version
-    }
-    if (kotlin_language_version != null) {
-        kotlinOptions.apiVersion = kotlin_api_version
+        kotlinOptions.apiVersion = kotlin_language_version
+        println("Configured Kotlin Api version: '$kotlin_language_version'")
+        println("Configured Kotlin Language version: '$kotlin_language_version'")
     }
 }
