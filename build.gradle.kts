@@ -270,9 +270,7 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
 
     extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
     val kotlin_language_version: String? by extra
-
-    extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
-    val kotlin_api_version: String? by extra
+    val kotlin_api_version = kotlin_language_version
 
 
     sourceSets
@@ -289,6 +287,7 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
                 languageVersion = kotlin_language_version
                 apiVersion = kotlin_api_version
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
+                println("Configured Kotlin Language version: '$kotlin_language_version'")
             }
         }
 }
