@@ -16,6 +16,8 @@ import javax.net.ssl.*
 public actual class TLSConfigBuilder {
     /**
      * List of client certificate chains with private keys.
+     *
+     * The Chain will be used only if the first certificate in the chain is issued by server's certificate.
      */
     public val certificates: MutableList<CertificateAndKey> = mutableListOf()
 
@@ -76,6 +78,8 @@ public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
 
 /**
  * Add client certificate chain to use.
+ *
+ * It will be used only if the first certificate in the chain is issued by server's certificate.
  */
 public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
     certificates += CertificateAndKey(chain, key)
