@@ -72,5 +72,6 @@ internal fun OutgoingContent.convertToHttpRequestBody(
         contentLength = contentLength ?: -1
     ) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
     is OutgoingContent.NoContent -> HttpRequest.BodyPublishers.noBody()
-    else -> throw UnsupportedContentTypeException(this)
+    is OutgoingContent.ContentWrapper -> delegate().convertToHttpRequestBody(callContext)
+    is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }

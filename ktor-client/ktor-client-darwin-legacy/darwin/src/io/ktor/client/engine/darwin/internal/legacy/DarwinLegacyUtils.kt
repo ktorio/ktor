@@ -21,7 +21,8 @@ internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     }.channel.readRemaining().readBytes().toNSData()
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readBytes().toNSData()
     is OutgoingContent.NoContent -> null
-    else -> throw UnsupportedContentTypeException(this)
+    is OutgoingContent.ContentWrapper -> delegate().toNSData()
+    is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)

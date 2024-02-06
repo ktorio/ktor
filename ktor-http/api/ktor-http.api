@@ -1243,6 +1243,17 @@ public abstract class io/ktor/http/content/OutgoingContent$ByteArrayContent : io
 	public abstract fun bytes ()[B
 }
 
+public abstract class io/ktor/http/content/OutgoingContent$ContentWrapper : io/ktor/http/content/OutgoingContent {
+	public fun <init> (Lio/ktor/http/content/OutgoingContent;)V
+	public final fun delegate ()Lio/ktor/http/content/OutgoingContent;
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+}
+
 public abstract class io/ktor/http/content/OutgoingContent$NoContent : io/ktor/http/content/OutgoingContent {
 	public fun <init> ()V
 }
@@ -1262,6 +1273,10 @@ public abstract class io/ktor/http/content/OutgoingContent$ReadChannelContent : 
 public abstract class io/ktor/http/content/OutgoingContent$WriteChannelContent : io/ktor/http/content/OutgoingContent {
 	public fun <init> ()V
 	public abstract fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/content/OutgoingContentKt {
+	public static final fun isEmpty (Lio/ktor/http/content/OutgoingContent;)Z
 }
 
 public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {

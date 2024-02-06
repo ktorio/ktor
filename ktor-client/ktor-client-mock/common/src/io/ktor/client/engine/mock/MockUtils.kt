@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
+    is OutgoingContent.ContentWrapper -> delegate().toByteArray()
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
     is OutgoingContent.WriteChannelContent -> {
@@ -27,8 +28,7 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
         }
         channel.toByteArray()
     }
-
-    else -> ByteArray(0)
+    is OutgoingContent.ProtocolUpgrade, is OutgoingContent.NoContent -> ByteArray(0)
 }
 
 @Suppress("KDocMissingDocumentation")

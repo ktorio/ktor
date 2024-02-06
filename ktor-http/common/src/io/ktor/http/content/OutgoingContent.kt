@@ -138,4 +138,32 @@ public sealed class OutgoingContent {
             userContext: CoroutineContext
         ): Job
     }
+
+    /**
+     * Variant of an [OutgoingContent] which delegates to provided [OutgoingContent]
+     */
+    public abstract class ContentWrapper(private val delegate: OutgoingContent) : OutgoingContent() {
+        override val contentType: ContentType?
+            get() = delegate.contentType
+        override val contentLength: Long?
+            get() = delegate.contentLength
+        override val status: HttpStatusCode?
+            get() = delegate.status
+        override val headers: Headers
+            get() = delegate.headers
+
+        override fun <T : Any> getProperty(key: AttributeKey<T>): T? = delegate.getProperty(key)
+        override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?): Unit = delegate.setProperty(key, value)
+
+        public fun delegate(): OutgoingContent = delegate
+    }
+}
+
+/**
+ * Check if current [OutgoingContent] doesn't contains content
+ */
+public fun OutgoingContent.isEmpty(): Boolean = when (this) {
+    is OutgoingContent.NoContent -> true
+    is OutgoingContent.ContentWrapper -> delegate().isEmpty()
+    else -> false
 }
