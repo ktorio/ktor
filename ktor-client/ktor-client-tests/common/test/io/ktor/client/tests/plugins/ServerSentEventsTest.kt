@@ -13,8 +13,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
@@ -342,6 +344,33 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }) {
                 assertEquals(contentType, call.request.contentType()?.withoutParameters())
                 assertEquals(body, incoming.single().data)
+            }
+        }
+    }
+
+    @Test
+    fun testErrorForProtocolUpgradeRequestBody() = clientTests(listOf("Android", "OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        val body = object : OutgoingContent.ProtocolUpgrade() {
+            override suspend fun upgrade(
+                input: ByteReadChannel,
+                output: ByteWriteChannel,
+                engineContext: CoroutineContext,
+                userContext: CoroutineContext
+            ): Job {
+                output.close()
+                return Job()
+            }
+        }
+        test { client ->
+            kotlin.test.assertFailsWith<SSEException> {
+                client.sse({
+                    url("$TEST_SERVER/sse/echo")
+                    setBody(body)
+                }) {}
             }
         }
     }

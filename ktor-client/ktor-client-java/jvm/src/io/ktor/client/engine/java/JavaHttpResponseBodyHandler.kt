@@ -45,11 +45,10 @@ internal class JavaHttpResponseBodyHandler(
         val status = HttpStatusCode.fromValue(response.statusCode())
         val headers = HeadersImpl(response.headers().map())
 
-        val body: Any = if (needToProcessSSE(requestData, status, headers)) {
-            DefaultClientSSESession(requestData.body as SSEClientContent, responseChannel, callContext)
-        } else {
-            responseChannel
-        }
+        val body: Any = requestData.attributes.getOrNull(ResponseAdapterAttributeKey)
+            ?.adapt(requestData, status, headers, responseChannel, requestData.body, callContext)
+            ?: responseChannel
+
         private val httpResponse = HttpResponseData(
             status,
             requestTime,

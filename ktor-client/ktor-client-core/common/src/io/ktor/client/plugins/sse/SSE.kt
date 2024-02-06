@@ -59,6 +59,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
 
+        request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
         content.contentType?.let { request.contentType(it) }
         SSEClientContent(
             localReconnectionTime ?: reconnectionTime,

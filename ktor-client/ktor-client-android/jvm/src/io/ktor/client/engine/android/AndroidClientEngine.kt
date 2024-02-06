@@ -62,7 +62,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             config.requestConfig(this)
 
             if (data.method in METHODS_WITHOUT_BODY) {
-                if (outgoingContent is OutgoingContent.NoContent || data.isSseRequestWithoutBody()) {
+                if (outgoingContent.isEmpty()) {
                     return@apply
                 }
 
@@ -93,15 +93,9 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
             val responseHeaders = HeadersImpl(headerFields)
 
-            val responseBody: Any = if (needToProcessSSE(data, statusCode, responseHeaders)) {
-                DefaultClientSSESession(
-                    outgoingContent as SSEClientContent,
-                    content,
-                    callContext
-                )
-            } else {
-                content
-            }
+            val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
+                ?.adapt(data, statusCode, responseHeaders, content, outgoingContent, callContext)
+                ?: content
 
             HttpResponseData(statusCode, requestTime, responseHeaders, version, responseBody, callContext)
         }
@@ -137,11 +131,8 @@ internal suspend fun OutgoingContent.writeTo(
         is OutgoingContent.NoContent -> {
         }
 
-        else -> throw UnsupportedContentTypeException(this)
-    }
-}
+        is OutgoingContent.ContentWrapper -> delegate().writeTo(stream, callContext)
 
-@OptIn(InternalAPI::class)
-private fun HttpRequestData.isSseRequestWithoutBody(): Boolean {
-    return isSseRequest() && (body as SSEClientContent).requestBody is OutgoingContent.NoContent
+        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
+    }
 }

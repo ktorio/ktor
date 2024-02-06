@@ -6,7 +6,6 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -60,15 +59,9 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             .build { append(HttpHeaders.ContentLength, "0") }
         val body = ByteReadChannel(response.byteContent ?: byteArrayOf())
 
-        val responseBody: Any = if (needToProcessSSE(data, status, headers)) {
-            DefaultClientSSESession(
-                data.body as SSEClientContent,
-                body,
-                callContext
-            )
-        } else {
-            body
-        }
+        val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
+            ?.adapt(data, status, headers, body, data.body, callContext)
+            ?: body
 
         return HttpResponseData(
             status,
@@ -139,7 +132,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
             writeTo(channel)
         }.channel
-
+        is OutgoingContent.ContentWrapper -> delegate().toByteReadChannel()
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 
