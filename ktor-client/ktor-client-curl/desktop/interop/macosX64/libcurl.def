@@ -1,0 +1,25 @@
+package = libcurl
+headers = curl/curl.h
+headerFilter = curl/*
+
+compilerOpts = -DCURL_STATICLIB
+
+linkerOpts   = -lpthread -lresolv -liconv
+
+libraryPaths = desktop/interop/macosX64/lib/
+
+staticLibraries = \
+libcurl.a \
+libcares.a \
+libnghttp3.a \
+libnghttp2.a \
+libidn2.a \
+libunistring.a \
+libssh2.a \
+libssl.a \
+libcrypto.a \
+libz.a \
+libpsl.a \
+libzstd.a \
+libbrotlidec.a \
+libbrotlicommon.a \
