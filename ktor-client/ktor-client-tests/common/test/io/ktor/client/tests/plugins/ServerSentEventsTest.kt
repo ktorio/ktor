@@ -322,14 +322,17 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
+            println(client.engine)
             client.sse("$TEST_SERVER/sse/content_type_with_charset") {
                 assertEquals(ContentType.Text.EventStream, call.response.contentType()?.withoutParameters())
             }
         }
     }
 
+    // Android and Darwin engines don't support request body in GET request
+    // SSE in OkHttp and Curl doesn't send a request body for GET request
     @Test
-    fun testRequestBody() = clientTests(listOf("Android", "OkHttp")) {
+    fun testRequestBody() = clientTests(listOf("Android", "OkHttp", "Darwin", "DarwinLegacy", "Curl")) {
         config {
             install(SSE)
         }
