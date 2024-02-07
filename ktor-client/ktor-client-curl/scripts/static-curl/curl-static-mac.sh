@@ -2,7 +2,7 @@
 
 # To compile locally, clone the Git repository, navigate to the repository directory,
 # and then execute the following command:
-# ARCHS="x86_64 arm64" CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 bash curl-static-mac.sh
+# ARCHES="x86_64 arm64" CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 bash curl-static-mac.sh
 
 
 shopt -s expand_aliases;
@@ -15,8 +15,7 @@ alias make=gmake;
 init_env() {
     local number
     export DIR="${DIR:-${HOME}/build}"
-    export PREFIX="${DIR}/curl"
-    export RELEASE_DIR=${DIR};
+    export RELEASE_DIR=${RELEASE_DIR:-${HOME}};
     number=$(sysctl -n hw.ncpu 2>/dev/null)
     export CPU_CORES=${number:-1}
 
@@ -28,9 +27,7 @@ init_env() {
     esac
 
     echo "Source directory: ${DIR}"
-    echo "Prefix directory: ${PREFIX}"
-    echo "Release directory: ${HOME}"
-    echo "Architecture: ${ARCH}"
+    echo "Release directory: ${RELEASE_DIR}"
     echo "cURL version: ${CURL_VERSION}"
     echo "TLS Library: ${TLS_LIB}"
     echo "QuicTLS version: ${QUICTLS_VERSION}"
@@ -76,15 +73,13 @@ arch_variants() {
     _clang_path;
     [ -z "${ARCH}" ] && ARCH="$(uname -m)"
     case "${ARCH}" in
-        x86_64)   arch="amd64"
-                  ARCHFLAGS="-arch x86_64"
+        x86_64)   ARCHFLAGS="-arch x86_64"
                   OPENSSL_ARCH="darwin64-x86_64"
                   TARGET="x86_64-apple-darwin"
                   export CC="${clang_path} -target x86_64-apple-macos11"
                   export CXX="${clang_pp_path} -target x86_64-apple-macos11"
                   ;;
-        arm64)    arch="arm64"
-                  ARCHFLAGS="-arch arm64"
+        arm64)    ARCHFLAGS="-arch arm64"
                   OPENSSL_ARCH="darwin64-arm64"
                   TARGET="aarch64-apple-darwin"
                   export CC="${clang_path} -target arm64-apple-macos11"
@@ -248,6 +243,12 @@ change_dir() {
     cd "${DIR}";
 }
 
+_copy_license() {
+    # $1: original file name; $2: target file name
+    mkdir -p "${PREFIX}/licenses/";
+    cp -p "${1}" "${PREFIX}/licenses/${2}";
+}
+
 compile_zlib() {
     echo "Compiling zlib, Arch: ${ARCH}" | tee "${RELEASE_DIR}/running"
     local url
@@ -260,6 +261,8 @@ compile_zlib() {
     ./configure --prefix="${PREFIX}" --static;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license LICENSE zlib;
 }
 
 compile_libunistring() {
@@ -274,6 +277,8 @@ compile_libunistring() {
     ./configure --host="${TARGET}" --prefix="${PREFIX}" --disable-rpath --disable-shared;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license COPYING libunistring;
 }
 
 compile_libidn2() {
@@ -293,6 +298,8 @@ compile_libidn2() {
         --disable-shared;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license COPYING libidn2;
 }
 
 compile_libpsl() {
@@ -310,6 +317,8 @@ compile_libpsl() {
         --enable-static --enable-shared=no --enable-builtin --disable-runtime;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license LICENSE libpsl;
 }
 
 compile_ares() {
@@ -322,8 +331,10 @@ compile_ares() {
     download_and_extract "${url}"
 
     ./configure --host="${TARGET}" --prefix="${PREFIX}" --enable-static --disable-shared;
-    make -j "$(nproc)";
+    CFLAGS="-I${PREFIX}/include -I${PREFIX}/include/brotli" make -j "$(nproc)";
     make install;
+
+    _copy_license LICENSE.md c-ares;
 }
 
 compile_tls() {
@@ -354,6 +365,8 @@ compile_tls() {
 
     make -j "${CPU_CORES}";
     make install_sw;
+
+    _copy_license LICENSE.txt openssl;
 }
 
 compile_libssh2() {
@@ -373,6 +386,8 @@ compile_libssh2() {
             --with-crypto=openssl --with-libssl-prefix="${PREFIX}";
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license COPYING libssh2;
 }
 
 compile_nghttp2() {
@@ -390,6 +405,8 @@ compile_nghttp2() {
             --enable-lib-only --enable-shared=no;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license COPYING nghttp2;
 }
 
 compile_ngtcp2() {
@@ -413,6 +430,8 @@ compile_ngtcp2() {
     make install;
     cp -a crypto/includes/ngtcp2/ngtcp2_crypto_quictls.h crypto/includes/ngtcp2/ngtcp2_crypto.h \
         "${PREFIX}/include/ngtcp2/"
+
+    _copy_license COPYING ngtcp2;
 }
 
 compile_nghttp3() {
@@ -430,6 +449,8 @@ compile_nghttp3() {
         --enable-lib-only --disable-dependency-tracking;
     make -j "${CPU_CORES}";
     make install;
+
+    _copy_license COPYING nghttp3;
 }
 
 compile_brotli() {
@@ -450,6 +471,7 @@ compile_brotli() {
     PKG_CONFIG="pkg-config --static" \
         cmake --build . --config Release --target install;
 
+    _copy_license ../LICENSE brotli;
     cd "${PREFIX}/lib/"
     if [ -f libbrotlidec-static.a ] && [ ! -f libbrotlidec.a ]; then ln -f libbrotlidec-static.a libbrotlidec.a; fi
     if [ -f libbrotlienc-static.a ] && [ ! -f libbrotlienc.a ]; then ln -f libbrotlienc-static.a libbrotlienc.a; fi
@@ -468,6 +490,8 @@ compile_zstd() {
     PKG_CONFIG="pkg-config --static" \
         make -j "${CPU_CORES}" PREFIX="${PREFIX}";
     make install;
+
+    _copy_license LICENSE zstd
 }
 
 curl_config() {
@@ -547,23 +571,41 @@ compile_curl() {
         CPPFLAGS="-I${PREFIX}/include -I${PREFIX}/include/brotli" \
         make -j "${CPU_CORES}";
 
-    install_curl;
+    _copy_license COPYING curl;
+    make install;
 }
 
 install_curl() {
-    mkdir -p "${HOME}/release/"
+    mkdir -p "${RELEASE_DIR}/release/bin/"
 
-    ls -l src/curl
-    file src/curl
-    otool -L src/curl
-    sha256sum src/curl
-    src/curl -V || true
+    ls -l "${PREFIX}"/bin/curl;
+    cp -pf "${PREFIX}/bin/curl" "${RELEASE_DIR}/release/bin/curl-macos-${ARCH}";
 
-    cp -f src/curl "${HOME}/release/curl-macos-${arch}"
+    ${PREFIX}/bin/curl -V || true
 
-    if [ ! -f "${HOME}/version.txt" ]; then
-        echo "${CURL_VERSION}" > "${HOME}/version.txt"
+    if [ ! -f "${RELEASE_DIR}/version.txt" ]; then
+        echo "${CURL_VERSION}" > "${RELEASE_DIR}/version.txt"
     fi
+
+    XZ_OPT=-9 tar -Jcf "${RELEASE_DIR}/release/curl-macos-${ARCH}-dev-${CURL_VERSION}.tar.xz" -C "${DIR}" "curl-${ARCH}"
+}
+
+_arch_match() {
+    local arch_search="$1"
+    local arch_array="$2"
+
+    for element in ${arch_array}; do
+        if [ "${element}" = "${arch_search}" ]; then
+            return 0    # in the array
+        fi
+    done
+
+    return 1            # not in the array
+}
+
+_arch_valid() {
+    local arches="x86_64 arm64"
+    return $(_arch_match "${ARCH}" "${arches}")
 }
 
 compile() {
@@ -582,26 +624,40 @@ compile() {
     compile_nghttp2;
     compile_brotli;
     compile_curl;
+
+    install_curl;
 }
 
 main() {
     local arch_temp
 
+    if [ "${ARCHES}" = "" ] && [ "${ARCHS}" = "" ] && [ "${ARCH}" = "" ]; then
+        ARCHES="$(uname -m)";
+    elif [ "${ARCHES}" = "" ] && [ "${ARCHS}" != "" ]; then
+        ARCHES="${ARCHS}";    # previous misspellings, keep this parameter for compatibility
+    elif [ "${ARCHES}" = "" ] && [ "${ARCH}" != "" ]; then
+        ARCHES="${ARCH}";
+    fi
+
     init_env;                    # Initialize the build env
     install_packages;            # Install dependencies
     set -o errexit -o xtrace;
 
-    [ -z "${ARCHS}" ] && ARCHS=$(uname -m)
-    echo "Compiling for all ARCHs: ${ARCHS}"
-    for arch_temp in ${ARCHS}; do
+    echo "Compiling for all ARCHes: ${ARCHES}"
+    for arch_temp in ${ARCHES}; do
         # Set the ARCH, PREFIX and PKG_CONFIG_PATH env variables
         export ARCH=${arch_temp}
         export PREFIX="${DIR}/curl-${ARCH}"
         export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 
-        echo "Compiling for ${ARCH}"
+        echo "Architecture: ${ARCH}"
         echo "Prefix directory: ${PREFIX}"
-        compile;
+
+        if _arch_valid; then
+            compile;
+        else
+            echo "Unsupported architecture ${ARCH}";
+        fi
     done
 }
 

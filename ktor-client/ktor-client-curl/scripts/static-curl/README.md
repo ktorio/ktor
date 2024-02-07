@@ -30,46 +30,54 @@ Download the latest release from the [Releases page](https://github.com/stunnel/
 Extract the archive and use it.  
 The binary is built with GitHub Actions.
 
+### Release files
+
+- `curl-linux-ARCH-VERSION`: binaries for Linux, linked with `glibc`
+- `curl-linux-ARCH-dev-VERSION`: binaries, headers and static library archives for Linux, for development
+- `curl-linux-ARCH-musl-VERSION`: binaries for Linux, linked with `musl`
+- `curl-macOS-ARCH-VERSION`: binaries for macOS
+- `curl-windows-ARCH-VERSION`: binaries for Windows
+- `curl-windows-ARCH-dev-VERSION`: binaries, headers and library archives for Windows, for development
+
 ## Compile
 
-This script utilizes `clang` or `qbt-musl-cross-make` for cross-compilation on Linux, providing support for the following architectures:
+This script utilizes `clang` or `qbt-musl-cross-make` for cross-compilation on Linux, `mstorsjo/llvm-mingw` for cross-compilation for Windows, providing support for the following architectures:
 
 - Linux
-  - x86_64
-  - aarch64
-  - armv7l
-  - i686
-  - riscv64
-  - s390x
-  - mips64
-  - mips64el
-  - mips
-  - mipsel
-  - powerpc64le
-  - powerpc
+    - x86_64(glibc and musl)
+    - aarch64(glibc and musl)
+    - armv7(glibc and musl)
+    - i686(musl)
+    - riscv64(glibc and musl)
+    - s390x(glibc and musl)
+    - mips64(glibc and musl)
+    - mips64el(glibc and musl)
+    - mips(musl)
+    - mipsel(glibc and musl)
+    - powerpc64le(glibc and musl)
+    - powerpc(glibc and musl)
 - macOS
-  - x86_64
-  - aarch64
+    - x86_64
+    - aarch64
 - Windows
-  - x86_64
-  - aarch64
-  - i686
-  - armv7
+    - x86_64
+    - aarch64
+    - i686
+    - armv7
 
 ### How to compile
 
 #### Linux
 
 - To compile locally, install Docker, clone the Git repository, navigate to the repository directory, and then execute the following command:  
-`sh curl-static-cross.sh`  
-script will create a container and compile the host architecture cURL only.
+  `sh curl-static-cross.sh`  
+  script will create a container and compile the host architecture cURL only.
 
-- To compile in docker, run:  
+- To compile in docker, run:
   ```shell
   docker run --network host --rm -v $(pwd):/mnt -w /mnt \
       --name "build-curl-$(date +%Y%m%d-%H%M)" \
-      -e ARCH=all \
-      -e ARCHS="x86_64 aarch64 armv7l i686 riscv64 s390x mips64 mips64el mips mipsel powerpc64le powerpc" \
+      -e ARCHES="x86_64 aarch64 armv7 i686 riscv64 s390x mips64 mips64el mips mipsel powerpc64le powerpc" \
       -e TLS_LIB="openssl" \
       -e CURL_VERSION="" \
       -e QUICTLS_VERSION="" \
@@ -90,7 +98,7 @@ script will create a container and compile the host architecture cURL only.
 Run the following command to compile:
 
 ```shell
-ARCHS="x86_64 arm64" \
+ARCHES="x86_64 arm64" \
     TLS_LIB=openssl \
     CURL_VERSION="" \
     QUICTLS_VERSION="" \
@@ -112,15 +120,14 @@ ARCHS="x86_64 arm64" \
 #### Windows
 
 - To compile locally, install Docker, clone the Git repository, navigate to the repository directory, and then execute the following command:  
-  `ARCH=x86_64 sh curl-static-win.sh`  
+  `ARCHES="x86_64 aarch64" sh curl-static-win.sh`  
   script will create a Linux container and cross-compile cURL via [LLVM MinGW toolchain](https://github.com/mstorsjo/llvm-mingw).
 
 - To compile in docker, run:
   ```shell
   docker run --network host --rm -v $(pwd):/mnt -w /mnt \
       --name "build-curl-$(date +%Y%m%d-%H%M)" \
-      -e ARCH=all \
-      -e ARCHS="x86_64 i686 aarch64 armv7" \
+      -e ARCHES="x86_64 i686 aarch64 armv7" \
       -e TLS_LIB="openssl" \
       -e CURL_VERSION="" \
       -e QUICTLS_VERSION="" \
@@ -141,9 +148,8 @@ ARCHS="x86_64 arm64" \
 Supported Environment Variables list:  
 For all `VERSION` variables, leaving them blank will automatically fetch the latest version.
 
-- `ARCH`: The architecture to compile. The default is the host architecture. If set to `all`, all architectures listed in `ARCHS` will be compiled.
-- `ARCHS`: The list of architectures to compile. You can set one or multiple architectures from the following options: `x86_64 aarch64 armv7l i686 riscv64 s390x mips64 mips64el mips mipsel powerpc64le powerpc`.
-- `TLS_LIB`: The TLS library. `quictls`(default) or `openssl`(requires openssl 3.2.0 or later, and curl 8.6.0+).
+- `ARCHES`: The list of architectures to compile. You can set one or multiple architectures from the following options: [Compile](#Compile)
+- `TLS_LIB`: The TLS library. `quictls`(default) or `openssl`(requires openssl 3.2.0+, and curl 8.6.0+).
 - `CURL_VERSION`: The version of cURL. If set to `dev`, will clone the latest source code from GitHub.
 - `QUICTLS_VERSION`: The version of quictls.
 - `OPENSSL_VERSION`: The version of OpenSSL.
