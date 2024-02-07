@@ -2,7 +2,7 @@
 
 # To compile locally, install Docker, clone the Git repository, navigate to the repository directory,
 # and then execute the following command:
-# ARCH=x86_64 CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 \
+# ARCHES="x86_64 i686" CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 \
 #     ZLIB_VERSION= CONTAINER_IMAGE=mstorsjo/llvm-mingw:latest \
 #     sh curl-static-win.sh
 # script will create a container and compile curl.
@@ -11,8 +11,7 @@
 # docker run --network host --rm -v $(pwd):/mnt -w /mnt \
 #     --name "build-curl-$(date +%Y%m%d-%H%M)" \
 #     -e RELEASE_DIR=/mnt \
-#     -e ARCH=all \
-#     -e ARCHS="x86_64 i686 aarch64 armv7" \
+#     -e ARCHES="x86_64 i686 aarch64 armv7" \
 #     -e ENABLE_DEBUG=0 \
 #     -e CURL_VERSION=8.6.0 \
 #     -e TLS_LIB=openssl \
@@ -34,7 +33,6 @@
 
 init_env() {
     export DIR=${DIR:-/data};
-    export PREFIX="${DIR}/curl";
     export RELEASE_DIR=${RELEASE_DIR:-/mnt};
     export ARCH_HOST=$(uname -m)
 
@@ -46,11 +44,9 @@ init_env() {
     esac
 
     echo "Source directory: ${DIR}"
-    echo "Prefix directory: ${PREFIX}"
     echo "Release directory: ${RELEASE_DIR}"
     echo "Host Architecture: ${ARCH_HOST}"
-    echo "Architecture: ${ARCH}"
-    echo "Architecture list: ${ARCHS}"
+    echo "Architecture list: ${ARCHES}"
     echo "cURL version: ${CURL_VERSION}"
     echo "TLS Library: ${TLS_LIB}"
     echo "QuicTLS version: ${QUICTLS_VERSION}"
@@ -70,7 +66,7 @@ init_env() {
     export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig";
 
     . /etc/os-release;  # get the ID variable
-    mkdir -p "${RELEASE_DIR}/release/"
+    mkdir -p "${RELEASE_DIR}/release/bin/"
 }
 
 install_packages_debian() {
@@ -111,16 +107,7 @@ configure_toolchain() {
 arch_variants() {
     echo "Setting up the ARCH and OpenSSL arch, Arch: ${ARCH}"
 
-    [ -z "${ARCH}" ] && ARCH="${ARCH_HOST}"
-    case "${ARCH}" in
-        x86_64)     arch="amd64" ;;
-        armv7)      arch="armv7" ;;
-        i686)       arch="i686" ;;
-        *)          arch="${ARCH}" ;;
-    esac
-
     TARGET="${ARCH}-w64-mingw32"
-
     unset LD STRIP LDFLAGS
     export LDFLAGS="-L${PREFIX}/lib -L${PREFIX}/lib64" ;
 
@@ -283,6 +270,12 @@ change_dir() {
     cd "${DIR}";
 }
 
+_copy_license() {
+    # $1: original file name; $2: target file name
+    mkdir -p "${PREFIX}/licenses/";
+    cp -p "${1}" "${PREFIX}/licenses/${2}";
+}
+
 compile_zlib() {
     echo "Compiling zlib, Arch: ${ARCH}" | tee "${RELEASE_DIR}/running"
     local url
@@ -301,7 +294,7 @@ compile_zlib() {
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
         cmake --build . --config Release --target install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-zlib" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-zlib" || true; fi
+    _copy_license ../LICENSE zlib;
 }
 
 compile_libunistring() {
@@ -317,7 +310,7 @@ compile_libunistring() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libunistring" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libunistring" || true; fi
+    _copy_license COPYING libunistring;
 }
 
 compile_libidn2() {
@@ -330,6 +323,7 @@ compile_libidn2() {
     download_and_extract "${url}"
 
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    LDFLAGS="${LDFLAGS} --static" \
     ./configure \
         --host "${TARGET}" \
         --with-libunistring-prefix="${PREFIX}" \
@@ -338,7 +332,7 @@ compile_libidn2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libidn2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libidn2" || true; fi
+    _copy_license COPYING libidn2;
 }
 
 compile_libpsl() {
@@ -351,13 +345,14 @@ compile_libpsl() {
     download_and_extract "${url}"
 
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    LDFLAGS="${LDFLAGS} --static" \
       ./configure --host="${TARGET}" --prefix="${PREFIX}" \
         --enable-static --enable-shared=no --enable-builtin --disable-runtime;
 
     make -j "$(nproc)" LDFLAGS="-static -all-static -Wl,-s ${LDFLAGS}";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libpsl" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-libpsl" || true; fi
+    _copy_license LICENSE libpsl;
 }
 
 compile_ares() {
@@ -373,7 +368,7 @@ compile_ares() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-c-ares" ]; then cp -p LICENSE.md "${RELEASE_DIR}/release/LICENSE-c-ares" || true; fi
+    _copy_license LICENSE.md c-ares;
 }
 
 compile_tls() {
@@ -422,7 +417,6 @@ compile_tls() {
         --cross-compile-prefix="${TARGET}-" \
         ${openssl_arch} \
         CC=clang CXX=clang++ \
-        -fPIC \
         --prefix="${PREFIX}" \
         threads no-shared \
         enable-ktls \
@@ -430,12 +424,13 @@ compile_tls() {
         enable-tls1_3 \
         enable-ssl3 enable-ssl3-method \
         enable-des enable-rc4 \
-        enable-weak-ssl-ciphers;
+        enable-weak-ssl-ciphers \
+        --static -static;
 
     make -j "$(nproc)";
     make install_sw;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-openssl" ]; then cp -p LICENSE.txt "${RELEASE_DIR}/release/LICENSE-openssl" || true; fi
+    _copy_license LICENSE.txt openssl;
 }
 
 compile_libssh2() {
@@ -456,7 +451,7 @@ compile_libssh2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libssh2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libssh2" || true; fi
+    _copy_license COPYING libssh2;
 }
 
 compile_nghttp2() {
@@ -475,7 +470,7 @@ compile_nghttp2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-nghttp2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-nghttp2" || true; fi
+    _copy_license COPYING nghttp2;
 }
 
 compile_ngtcp2() {
@@ -499,7 +494,7 @@ compile_ngtcp2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-ngtcp2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-ngtcp2" || true; fi
+    _copy_license COPYING ngtcp2;
 }
 
 compile_nghttp3() {
@@ -517,7 +512,7 @@ compile_nghttp3() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-nghttp3" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-nghttp3" || true; fi
+    _copy_license COPYING nghttp3;
 }
 
 compile_brotli() {
@@ -532,13 +527,13 @@ compile_brotli() {
     mkdir -p out
     cd out/
 
-    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" LDFLAGS="-static" \
         cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DBUILD_SHARED_LIBS=OFF \
               -DCMAKE_COMPILE_PREFIX="${TARGET}" -DCMAKE_INSTALL_PREFIX="${PREFIX}" .. ;
-    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" LDFLAGS="-static" \
         cmake --build . --config Release --target install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-brotli" ]; then cp -p ../LICENSE "${RELEASE_DIR}/release/LICENSE-brotli" || true; fi
+    _copy_license ../LICENSE brotli;
     cd "${PREFIX}/lib/"
     if [ -f libbrotlidec-static.a ] && [ ! -f libbrotlidec.a ]; then ln -f libbrotlidec-static.a libbrotlidec.a; fi
     if [ -f libbrotlienc-static.a ] && [ ! -f libbrotlienc.a ]; then ln -f libbrotlienc-static.a libbrotlienc.a; fi
@@ -564,7 +559,7 @@ compile_zstd() {
         cmake --build . --config Release --target install;
 
     if [ ! -f "${PREFIX}/lib/libzstd.a" ]; then cp -f lib/libzstd.a "${PREFIX}/lib/libzstd.a"; fi
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-zstd" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-zstd" || true; fi
+    _copy_license ../../../LICENSE zstd
 }
 
 curl_config() {
@@ -654,15 +649,14 @@ compile_curl() {
 
     make -j "$(nproc)" LDFLAGS="-static -all-static -Wl,-s ${LDFLAGS}" CFLAGS="$cflags_extra ${CFLAGS}";
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-curl" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-curl" || true; fi
-    install_curl;
-    prepare_certificates;
+    _copy_license COPYING curl;
+    make install;
 }
 
 prepare_certificates() {
     echo "Preparing CA certificates" | tee "${RELEASE_DIR}/running"
-    local license_file="${RELEASE_DIR}/release/LICENSE-ca-bundle"
-    local ca_cert_file="${RELEASE_DIR}/release/curl-ca-bundle.crt"
+    local license_file="${PREFIX}/licenses/ca-bundle"
+    local ca_cert_file="${RELEASE_DIR}/release/bin/curl-ca-bundle.crt"
 
     # add curl CA certificates
     if [ ! -f "${ca_cert_file}" ]; then
@@ -675,15 +669,24 @@ prepare_certificates() {
     fi
 }
 
+prepare_libs() {
+    echo "Preparing mingw32 libs" | tee "${RELEASE_DIR}/running"
+    cp "/opt/llvm-mingw/${ARCH}-w64-mingw32/lib/libwinpthread.a" "${PREFIX}/lib"
+}
+
 install_curl() {
-    mkdir -p "${RELEASE_DIR}/release/"
+    mkdir -p "${RELEASE_DIR}/release/bin/"
 
     ls -l src/curl.exe
-    cp -pf src/curl.exe "${RELEASE_DIR}/release/curl-windows-${arch}.exe"
+    cp -pf src/curl.exe "${RELEASE_DIR}/release/bin/curl-windows-${ARCH}.exe"
 
     if [ ! -f "${RELEASE_DIR}/release/version.txt" ]; then
         echo "${CURL_VERSION}" > "${RELEASE_DIR}/release/version.txt"
     fi
+
+    prepare_certificates;
+    prepare_libs;
+    XZ_OPT=-9 tar -Jcf "${RELEASE_DIR}/release/curl-windows-${ARCH}-dev-${CURL_VERSION}.tar.xz" -C "${DIR}" "curl-${ARCH}"
 }
 
 _arch_match() {
@@ -700,8 +703,8 @@ _arch_match() {
 }
 
 _arch_valid() {
-    local  archs="x86_64 i686 aarch64 armv7"
-    return $(_arch_match "${ARCH}" "${archs}")
+    local arches="x86_64 i686 aarch64 armv7"
+    return $(_arch_match "${ARCH}" "${arches}")
 }
 
 _build_in_docker() {
@@ -727,8 +730,7 @@ _build_in_docker() {
         --network host \
         -v "$(pwd):${RELEASE_DIR}" -w "${RELEASE_DIR}" \
         -e RELEASE_DIR="${RELEASE_DIR}" \
-        -e ARCH="${ARCH}" \
-        -e ARCHS="${ARCHS}" \
+        -e ARCHES="${ARCHES}" \
         -e ENABLE_DEBUG="${ENABLE_DEBUG}" \
         -e CURL_VERSION="${CURL_VERSION}" \
         -e TLS_LIB="${TLS_LIB}" \
@@ -743,6 +745,7 @@ _build_in_docker() {
         -e LIBSSH2_VERSION="${LIBSSH2_VERSION}" \
         -e LIBUNISTRING_VERSION="${LIBUNISTRING_VERSION}" \
         -e LIBIDN2_VERSION="${LIBIDN2_VERSION}" \
+        -e TOKEN_READ="${TOKEN_READ}" \
         "${container_image}" sh "${RELEASE_DIR}/${base_name}" 2>&1 | tee -a "${container_name}.log"
 
     # Exit script after docker finishes
@@ -766,14 +769,19 @@ compile() {
     compile_nghttp2;
     compile_brotli;
     compile_curl;
+
+    install_curl;
 }
 
 main() {
     local base_name current_time container_name arch_temp
 
-    if [ "${ARCH}" = "all" ] && [ "${ARCHS}" = "" ]; then
-        echo "Please set the ARCHS variable."
-        exit 1;
+    if [ "${ARCHES}" = "" ] && [ "${ARCHS}" = "" ] && [ "${ARCH}" = "" ]; then
+        ARCHES="$(uname -m)";
+    elif [ "${ARCHES}" = "" ] && [ "${ARCHS}" != "" ]; then
+        ARCHES="${ARCHS}";    # previous misspellings, keep this parameter for compatibility
+    elif [ "${ARCHES}" = "" ] && [ "${ARCH}" != "" ]; then
+        ARCHES="${ARCH}";
     fi
 
     # If not in docker, run the script in docker and exit
@@ -785,28 +793,22 @@ main() {
     install_packages;            # Install dependencies
     set -o errexit -o xtrace;
 
-    # if ${ARCH} = "all", then compile all the ARCHS
-    if [ "${ARCH}" = "all" ]; then
-        echo "Compiling for all ARCHs: ${ARCHS}"
+    echo "Compiling for all ARCHes: ${ARCHES}"
+    for arch_temp in ${ARCHES}; do
+        # Set the ARCH, PREFIX and PKG_CONFIG_PATH env variables
+        export ARCH=${arch_temp}
+        export PREFIX="${DIR}/curl-${ARCH}"
+        export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig"
 
-        for arch_temp in ${ARCHS}; do
-            # Set the ARCH, PREFIX and PKG_CONFIG_PATH env variables
-            export ARCH=${arch_temp}
-            export PREFIX="${DIR}/curl-${ARCH}"
-            export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig"
+        echo "Architecture: ${ARCH}"
+        echo "Prefix directory: ${PREFIX}"
 
-            echo "Prefix directory: ${PREFIX}"
-
-            if _arch_valid; then
-                compile;
-            else
-                echo "Unsupported architecture ${ARCH} in ${ARCH_HOST}";
-            fi
-        done
-    else
-        # else compile for the host ARCH
-        compile;
-    fi
+        if _arch_valid; then
+            compile;
+        else
+            echo "Unsupported architecture ${ARCH}";
+        fi
+    done
 }
 
 # If the first argument is not "--source-only" then run the script,
