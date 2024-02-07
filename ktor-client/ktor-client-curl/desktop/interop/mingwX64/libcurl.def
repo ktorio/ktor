@@ -1,0 +1,22 @@
+package = libcurl
+headers = curl/curl.h
+headerFilter = curl/*
+
+compilerOpts = -DCURL_STATICLIB -DCARES_STATICLIB -DNGHTTP2_STATICLIB -DNGHTTP3_STATICLIB -DNGTCP2_STATICLIB
+linkerOpts   = -liconv
+libraryPaths = desktop/interop/mingwX64/lib/
+
+staticLibraries = \
+libcurl.a \
+libcares.a \
+libnghttp3.a \
+libnghttp2.a \
+libunistring.a \
+libssh2.a \
+libssl.a \
+libcrypto.a \
+libzlibstatic.a \
+libpsl.a \
+libzstd.a \
+libbrotlidec.a \
+libbrotlicommon.a \
