@@ -2,7 +2,7 @@
 
 # To compile locally, install Docker, clone the Git repository, navigate to the repository directory,
 # and then execute the following command:
-# ARCH=aarch64 CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 \
+# ARCHES="x86_64 aarch64" CURL_VERSION=8.6.0 TLS_LIB=openssl QUICTLS_VERSION=3.1.5 \
 #     ZLIB_VERSION= CONTAINER_IMAGE=debian:latest \
 #     sh curl-static-cross.sh
 # script will create a container and compile curl.
@@ -11,8 +11,7 @@
 # docker run --network host --rm -v $(pwd):/mnt -w /mnt \
 #     --name "build-curl-$(date +%Y%m%d-%H%M)" \
 #     -e RELEASE_DIR=/mnt \
-#     -e ARCH=all \
-#     -e ARCHS="x86_64 aarch64 armv7l i686 riscv64 s390x" \
+#     -e ARCHES="x86_64 aarch64 armv7 i686 riscv64 s390x" \
 #     -e ENABLE_DEBUG=0 \
 #     -e CURL_VERSION=8.6.0 \
 #     -e TLS_LIB=openssl \
@@ -28,15 +27,18 @@
 #     -e BROTLI_VERSION="" \
 #     -e ZSTD_VERSION="" \
 #     -e LIBSSH2_VERSION="" \
+#     -e ENABLE_TRURL="" \
+#     -e TRURL_VERSION="" \
+#     -e LIBC="" \
+#     -e STATIC_LIBRARY=1 \
 #     -e CONTAINER_IMAGE=debian:latest \
 #     debian:latest sh curl-static-cross.sh
-# Supported architectures: x86_64, aarch64, armv7l, i686, riscv64, s390x,
+# Supported architectures: x86_64, aarch64, armv7, i686, riscv64, s390x,
 #                          mips64, mips64el, mips, mipsel, powerpc64le, powerpc
 
 
 init_env() {
     export DIR=${DIR:-/data};
-    export PREFIX="${DIR}/curl";
     export RELEASE_DIR=${RELEASE_DIR:-/mnt};
     export ARCH_HOST=$(uname -m)
 
@@ -48,11 +50,9 @@ init_env() {
     esac
 
     echo "Source directory: ${DIR}"
-    echo "Prefix directory: ${PREFIX}"
     echo "Release directory: ${RELEASE_DIR}"
     echo "Host Architecture: ${ARCH_HOST}"
-    echo "Architecture: ${ARCH}"
-    echo "Architecture list: ${ARCHS}"
+    echo "Architecture list: ${ARCHES}"
     echo "cURL version: ${CURL_VERSION}"
     echo "TLS Library: ${TLS_LIB}"
     echo "QuicTLS version: ${QUICTLS_VERSION}"
@@ -68,11 +68,12 @@ init_env() {
     echo "zstd version: ${ZSTD_VERSION}"
     echo "libssh2 version: ${LIBSSH2_VERSION}"
     echo "c-ares version: ${ARES_VERSION}"
+    echo "trurl version: ${TRURL_VERSION}"
 
     export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig";
 
     . /etc/os-release;  # get the ID variable
-    mkdir -p "${RELEASE_DIR}/release/"
+    mkdir -p "${RELEASE_DIR}/release/bin/"
 }
 
 install_packages_alpine() {
@@ -121,7 +122,7 @@ install_packages() {
 install_cross_compile() {
     echo "Installing cross compile toolchain, Arch: ${ARCH}" | tee "${RELEASE_DIR}/running"
     change_dir;
-    local url
+    local url arch_alt
 
     if [ ! -f "github-qbt-musl-cross-make.json" ]; then
         # GitHub API has a limit of 60 requests per hour, cache the results.
@@ -129,9 +130,10 @@ install_cross_compile() {
             "https://api.github.com/repos/userdocs/qbt-musl-cross-make/releases" -o "github-qbt-musl-cross-make.json"
     fi
 
+    if [ "${ARCH}" = "armv7" ]; then arch_alt=armv7l; else arch_alt=${ARCH}; fi
     browser_download_url=$(jq -r '.' "github-qbt-musl-cross-make.json" \
         | grep browser_download_url \
-        | grep -i "${ARCH}-" \
+        | grep -i "${arch_alt}-" \
         | head -1)
     url=$(printf "%s" "${browser_download_url}" | awk '{print $2}' | sed 's/"//g')
     download_and_extract "${url}"
@@ -155,7 +157,7 @@ install_cross_compile_debian() {
     arch_name=${ARCH}
 
     case "${ARCH}" in
-        armv7l)
+        armv7l|armv7)
             arch_compiler=arm
             c_lib=gnueabihf
             arch_name=arm
@@ -202,15 +204,6 @@ arch_variants() {
     echo "Setting up the ARCH and OpenSSL arch, Arch: ${ARCH}"
     local qemu_arch
 
-    [ -z "${ARCH}" ] && ARCH="${ARCH_HOST}"
-    case "${ARCH}" in
-        x86_64)     arch="amd64" ;;
-        aarch64)    arch="arm64" ;;
-        armv7l)     arch="armv7" ;;
-        i686)       arch="i686" ;;
-        *)          arch="${ARCH}" ;;
-    esac
-
     EC_NISTP_64_GCC_128=""
     OPENSSL_ARCH=""
 
@@ -225,7 +218,7 @@ arch_variants() {
         aarch64)        qemu_arch="aarch64"
                         EC_NISTP_64_GCC_128="enable-ec_nistp_64_gcc_128"
                         OPENSSL_ARCH="linux-aarch64" ;;
-        armv7l)         qemu_arch="arm"
+        armv7l|armv7)   qemu_arch="arm"
                         OPENSSL_ARCH="linux-armv4" ;;
         i686)           qemu_arch="i386"
                         OPENSSL_ARCH="linux-x86" ;;
@@ -251,15 +244,18 @@ arch_variants() {
     unset LD STRIP LDFLAGS
     TARGET="${ARCH}-pc-linux-gnu"
     export LDFLAGS="-L${PREFIX}/lib -L${PREFIX}/lib64";
-    if [ "${ARCH}" != "${ARCH_HOST}" ]; then
-        # If the architecture is not the same as the host, need to cross compile
+    libc_flag="";
+
+    if [ "${ARCH}" != "${ARCH_HOST}" ] || [ "${LIBC}" = "musl" ]; then
+        # If the architecture is not the same as the host, or it is Alpine, then cross compile
         install_qemu "${qemu_arch}";
 
-        if [ "${ARCH}" = "mips" ]  || [ "${ARCH}" = "i686" ] || [ "${ID}" = "alpine" ]; then
+        if [ "${LIBC}" = "musl" ] || [ "${ID}" = "alpine" ] || [ "${ARCH}" = "mips" ] || [ "${ARCH}" = "i686" ]; then
             # Cross-compilation failed with atomic using clang in MIPS and i686.
             # Alpine does not have a GCC cross-compile toolchain.
             # Therefore, musl-cross-make is used for compilation.
             install_cross_compile;
+            libc_flag="-musl";
         else
             # Uses Clang for default cross-compilation
             install_cross_compile_debian;
@@ -430,6 +426,12 @@ change_dir() {
     cd "${DIR}";
 }
 
+_copy_license() {
+    # $1: original file name; $2: target file name
+    mkdir -p "${PREFIX}/licenses/";
+    cp -p "${1}" "${PREFIX}/licenses/${2}";
+}
+
 compile_zlib() {
     echo "Compiling zlib, Arch: ${ARCH}" | tee "${RELEASE_DIR}/running"
     local url
@@ -443,7 +445,7 @@ compile_zlib() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-zlib" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-zlib" || true; fi
+    _copy_license LICENSE zlib;
 }
 
 compile_libunistring() {
@@ -459,7 +461,7 @@ compile_libunistring() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libunistring" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libunistring" || true; fi
+    _copy_license COPYING libunistring;
 }
 
 compile_libidn2() {
@@ -472,6 +474,7 @@ compile_libidn2() {
     download_and_extract "${url}"
 
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    LDFLAGS="${LDFLAGS} --static" \
     ./configure \
         --host "${TARGET}" \
         --with-libunistring-prefix="${PREFIX}" \
@@ -480,7 +483,7 @@ compile_libidn2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libidn2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libidn2" || true; fi
+    _copy_license COPYING libidn2;
 }
 
 compile_libpsl() {
@@ -493,13 +496,14 @@ compile_libpsl() {
     download_and_extract "${url}"
 
     PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
+    LDFLAGS="${LDFLAGS} --static" \
       ./configure --host="${TARGET}" --prefix="${PREFIX}" \
         --enable-static --enable-shared=no --enable-builtin --disable-runtime;
 
     make -j "$(nproc)" LDFLAGS="-static -all-static -Wl,-s ${LDFLAGS}";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libpsl" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-libpsl" || true; fi
+    _copy_license LICENSE libpsl;
 }
 
 compile_ares() {
@@ -515,7 +519,7 @@ compile_ares() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-c-ares" ]; then cp -p LICENSE.md "${RELEASE_DIR}/release/LICENSE-c-ares" || true; fi
+    _copy_license LICENSE.md c-ares;
 }
 
 compile_tls() {
@@ -542,12 +546,13 @@ compile_tls() {
         enable-tls1_3 \
         enable-ssl3 enable-ssl3-method \
         enable-des enable-rc4 \
-        enable-weak-ssl-ciphers;
+        enable-weak-ssl-ciphers \
+        --static -static;
 
     make -j "$(nproc)";
     make install_sw;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-openssl" ]; then cp -p LICENSE.txt "${RELEASE_DIR}/release/LICENSE-openssl" || true; fi
+    _copy_license LICENSE.txt openssl;
 }
 
 compile_libssh2() {
@@ -568,7 +573,7 @@ compile_libssh2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-libssh2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-libssh2" || true; fi
+    _copy_license COPYING libssh2;
 }
 
 compile_nghttp2() {
@@ -587,7 +592,7 @@ compile_nghttp2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-nghttp2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-nghttp2" || true; fi
+    _copy_license COPYING nghttp2;
 }
 
 compile_ngtcp2() {
@@ -611,7 +616,7 @@ compile_ngtcp2() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-ngtcp2" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-ngtcp2" || true; fi
+    _copy_license COPYING ngtcp2;
 }
 
 compile_nghttp3() {
@@ -629,7 +634,7 @@ compile_nghttp3() {
     make -j "$(nproc)";
     make install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-nghttp3" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-nghttp3" || true; fi
+    _copy_license COPYING nghttp3;
 }
 
 compile_brotli() {
@@ -644,16 +649,11 @@ compile_brotli() {
     mkdir -p out
     cd out/
 
-    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
-        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DBUILD_SHARED_LIBS=OFF ..;
-    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
-        cmake --build . --config Release --target install;
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_SYSTEM_PROCESSOR="${ARCH}" ..;
+    cmake --build . --config Release --target install;
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-brotli" ]; then cp -p ../LICENSE "${RELEASE_DIR}/release/LICENSE-brotli" || true; fi
-    cd "${PREFIX}/lib/"
-    if [ -f libbrotlidec-static.a ] && [ ! -f libbrotlidec.a ]; then ln -f libbrotlidec-static.a libbrotlidec.a; fi
-    if [ -f libbrotlienc-static.a ] && [ ! -f libbrotlienc.a ]; then ln -f libbrotlienc-static.a libbrotlienc.a; fi
-    if [ -f libbrotlicommon-static.a ] && [ ! -f libbrotlicommon.a ]; then ln -f libbrotlicommon-static.a libbrotlicommon.a; fi
+    _copy_license ../LICENSE brotli;
 }
 
 compile_zstd() {
@@ -665,12 +665,39 @@ compile_zstd() {
     url="${URL}"
     download_and_extract "${url}"
 
-    PKG_CONFIG="pkg-config --static --with-path=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig" \
-        make -j "$(nproc)" PREFIX="${PREFIX}";
+    mkdir -p build/cmake/out/
+    cd build/cmake/out/
+
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_SYSTEM_PROCESSOR="${ARCH}" \
+        -DZSTD_BUILD_STATIC=ON -DZSTD_BUILD_SHARED=OFF ..;
+    cmake --build . --config Release --target install;
+
+    _copy_license ../../../LICENSE zstd
+    if [ ! -f "${PREFIX}/lib/libzstd.a" ]; then cp -f lib/libzstd.a "${PREFIX}/lib/libzstd.a"; fi
+}
+
+compile_trurl() {
+    case "${ENABLE_TRURL}" in
+        true|1|yes|on|y|Y)
+            echo ;;
+        *)
+            return ;;
+    esac
+
+    echo "Compiling trurl, Arch: ${ARCH}" | tee "${RELEASE_DIR}/running"
+    local url
+    change_dir;
+
+    url_from_github curl/trurl "${TRURL_VERSION}"
+    url="${URL}"
+    download_and_extract "${url}"
+
+    export PATH=${PREFIX}/bin:$PATH
+
+    LDFLAGS="-static -Wl,-s ${LDFLAGS}" make PREFIX="${PREFIX}";
     make install;
 
-    if [ ! -f "${PREFIX}/lib/libzstd.a" ]; then cp -f lib/libzstd.a "${PREFIX}/lib/libzstd.a"; fi
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-zstd" ]; then cp -p LICENSE "${RELEASE_DIR}/release/LICENSE-zstd" || true; fi
+    _copy_license LICENSES/curl.txt trurl;
 }
 
 curl_config() {
@@ -738,7 +765,7 @@ compile_curl() {
     fi
 
     curl_config;
-    if [ "${ARCH}" = "armv7l" ] || [ "${ARCH}" = "mipsel" ] || [ "${ARCH}" = "mips" ] \
+    if [ "${ARCH}" = "armv7l" ] || [ "${ARCH}" = "armv7" ] || [ "${ARCH}" = "mipsel" ] || [ "${ARCH}" = "mips" ] \
         || [ "${ARCH}" = "powerpc" ] || [ "${ARCH}" = "i686" ]; then
         # add -Wno-cast-align to avoid error alignment from 4 to 8
         make -j "$(nproc)" LDFLAGS="-static -all-static -Wl,-s ${LDFLAGS}" CFLAGS="-Wno-cast-align ${CFLAGS}";
@@ -746,21 +773,29 @@ compile_curl() {
         make -j "$(nproc)" LDFLAGS="-static -all-static -Wl,-s ${LDFLAGS}";
     fi
 
-    if [ ! -f "${RELEASE_DIR}/release/LICENSE-curl" ]; then cp -p COPYING "${RELEASE_DIR}/release/LICENSE-curl" || true; fi
-    install_curl;
+    _copy_license COPYING curl;
+    make install;
 }
 
 install_curl() {
-    mkdir -p "${RELEASE_DIR}/release/"
+    mkdir -p "${RELEASE_DIR}/release/bin/"
 
-    ls -l src/curl
-    cp -pf src/curl "${RELEASE_DIR}/release/curl-linux-${arch}"
+    ls -l "${PREFIX}/bin/curl";
+    cp -pf "${PREFIX}/bin/curl" "${RELEASE_DIR}/release/bin/curl-linux-${ARCH}${libc_flag}";
+    if [ -f "${PREFIX}/bin/trurl" ]; then
+        ls -l "${PREFIX}/bin/trurl";
+        cp -pf "${PREFIX}/bin/trurl" "${RELEASE_DIR}/release/bin/trurl-linux-${ARCH}${libc_flag}";
+    fi
 
     if [ ! -f "${RELEASE_DIR}/release/version.txt" ]; then
         echo "${CURL_VERSION}" > "${RELEASE_DIR}/release/version.txt"
     fi
     if [ ! -f "${RELEASE_DIR}/release/version-info.txt" ]; then
-        src/curl -V >> "${RELEASE_DIR}/release/version-info.txt"
+        "${PREFIX}"/bin/curl -V >> "${RELEASE_DIR}/release/version-info.txt"
+    fi
+
+    if [ -n "${STATIC_LIBRARY}" ]; then
+        XZ_OPT=-9 tar -Jcf "${RELEASE_DIR}/release/curl-linux-${ARCH}-dev-${CURL_VERSION}.tar.xz" -C "${DIR}" "curl-${ARCH}"
     fi
 }
 
@@ -778,8 +813,8 @@ _arch_match() {
 }
 
 _arch_valid() {
-    local  arch_x86_64="x86_64 aarch64 armv7l riscv64 s390x mips64 mips64el powerpc64le mipsel i686 mips powerpc"
-    local arch_aarch64="x86_64 aarch64 armv7l riscv64 s390x mips64 mips64el powerpc64le mipsel"
+    local  arch_x86_64="x86_64 aarch64 armv7 armv7l riscv64 s390x mips64 mips64el powerpc64le mipsel i686 mips powerpc"
+    local arch_aarch64="x86_64 aarch64 armv7 armv7l riscv64 s390x mips64 mips64el powerpc64le mipsel"
 
     if [ "${ARCH_HOST}" = "x86_64" ]; then
         result=$(_arch_match "${ARCH}" "${arch_x86_64}")
@@ -801,8 +836,7 @@ _build_in_docker() {
     current_time=$(date "+%Y%m%d-%H%M")
     container_image=${CONTAINER_IMAGE:-debian:latest}  # or alpine:latest
 
-    [ -z "${ARCH}" ] && ARCH=$(uname -m)
-    container_name="build-curl-${ARCH}-${current_time}"
+    container_name="build-curl-${current_time}"
     RELEASE_DIR=${RELEASE_DIR:-/mnt}
 
     # Run in docker,
@@ -815,8 +849,7 @@ _build_in_docker() {
         --network host \
         -v "$(pwd):${RELEASE_DIR}" -w "${RELEASE_DIR}" \
         -e RELEASE_DIR="${RELEASE_DIR}" \
-        -e ARCH="${ARCH}" \
-        -e ARCHS="${ARCHS}" \
+        -e ARCHES="${ARCHES}" \
         -e ENABLE_DEBUG="${ENABLE_DEBUG}" \
         -e CURL_VERSION="${CURL_VERSION}" \
         -e TLS_LIB="${TLS_LIB}" \
@@ -831,6 +864,11 @@ _build_in_docker() {
         -e LIBSSH2_VERSION="${LIBSSH2_VERSION}" \
         -e LIBUNISTRING_VERSION="${LIBUNISTRING_VERSION}" \
         -e LIBIDN2_VERSION="${LIBIDN2_VERSION}" \
+        -e ENABLE_TRURL="${ENABLE_TRURL}" \
+        -e TRURL_VERSION="${TRURL_VERSION}" \
+        -e LIBC="${LIBC}" \
+        -e STATIC_LIBRARY="${STATIC_LIBRARY}" \
+        -e TOKEN_READ="${TOKEN_READ}" \
         "${container_image}" sh "${RELEASE_DIR}/${base_name}" 2>&1 | tee -a "${container_name}.log"
 
     # Exit script after docker finishes
@@ -854,14 +892,20 @@ compile() {
     compile_nghttp2;
     compile_brotli;
     compile_curl;
+    compile_trurl;
+
+    install_curl;
 }
 
 main() {
     local base_name current_time container_name arch_temp
 
-    if [ "${ARCH}" = "all" ] && [ "${ARCHS}" = "" ]; then
-        echo "Please set the ARCHS variable."
-        exit 1;
+    if [ "${ARCHES}" = "" ] && [ "${ARCHS}" = "" ] && [ "${ARCH}" = "" ]; then
+        ARCHES="$(uname -m)";
+    elif [ "${ARCHES}" = "" ] && [ "${ARCHS}" != "" ]; then
+        ARCHES="${ARCHS}";    # previous misspellings, keep this parameter for compatibility
+    elif [ "${ARCHES}" = "" ] && [ "${ARCH}" != "" ]; then
+        ARCHES="${ARCH}";
     fi
 
     # If not in docker, run the script in docker and exit
@@ -873,28 +917,22 @@ main() {
     install_packages;            # Install dependencies
     set -o errexit -o xtrace;
 
-    # if ${ARCH} = "all", then compile all the ARCHS
-    if [ "${ARCH}" = "all" ]; then
-        echo "Compiling for all ARCHs: ${ARCHS}"
+    echo "Compiling for all ARCHes: ${ARCHES}"
+    for arch_temp in ${ARCHES}; do
+        # Set the ARCH, PREFIX and PKG_CONFIG_PATH env variables
+        export ARCH=${arch_temp}
+        export PREFIX="${DIR}/curl-${ARCH}"
+        export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig"
 
-        for arch_temp in ${ARCHS}; do
-            # Set the ARCH, PREFIX and PKG_CONFIG_PATH env variables
-            export ARCH=${arch_temp}
-            export PREFIX="${DIR}/curl-${ARCH}"
-            export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig"
+        echo "Architecture: ${ARCH}"
+        echo "Prefix directory: ${PREFIX}"
 
-            echo "Prefix directory: ${PREFIX}"
-
-            if _arch_valid; then
-                compile;
-            else
-                echo "Unsupported architecture ${ARCH} in ${ARCH_HOST}";
-            fi
-        done
-    else
-        # else compile for the host ARCH
-        compile;
-    fi
+        if _arch_valid; then
+            compile;
+        else
+            echo "Unsupported architecture ${ARCH} in ${ARCH_HOST}";
+        fi
+    done
 }
 
 # If the first argument is not "--source-only" then run the script,
