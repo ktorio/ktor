@@ -5,12 +5,16 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.tests.*
+import io.ktor.network.tls.*
 
 class CIOHttpsTest : HttpsTest<CIOEngineConfig>(CIO) {
 
     override fun CIOEngineConfig.disableCertificatePinning() {
         https {
             trustManager = trustAllCertificates[0]
+            onHandshake = { type, role ->
+                println("${if (role == NetworkRole.SERVER) "RECEIVE" else "SEND   "} $type")
+            }
         }
     }
 }

@@ -23,7 +23,6 @@ public fun Url(builder: URLBuilder): Url = URLBuilder().takeFrom(builder).build(
  */
 public fun buildUrl(block: URLBuilder.() -> Unit): Url = URLBuilder().apply(block).build()
 
-
 /**
  * Construct [URLBuilder] from [urlString].
  */

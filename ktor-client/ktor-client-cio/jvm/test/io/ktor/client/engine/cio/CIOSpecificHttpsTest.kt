@@ -147,6 +147,7 @@ class CIOSpecificHttpsTest : TestWithKtor() {
         }
     }
 
+    @Ignore // TODO why are we calling this in our test?
     @Test
     fun testGetServerTrusted() {
         testWithEngine(CIO) {

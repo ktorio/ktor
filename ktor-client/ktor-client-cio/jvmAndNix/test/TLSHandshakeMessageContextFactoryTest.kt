@@ -8,7 +8,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class ConnectionFactoryTest {
+class TLSHandshakeMessageContextFactoryTest {
 
     private lateinit var selectorManager: SelectorManager
 

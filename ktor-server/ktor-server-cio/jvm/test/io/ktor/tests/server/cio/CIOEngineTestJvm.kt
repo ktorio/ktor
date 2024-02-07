@@ -46,7 +46,7 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
 
 class CIOConfigTest : ConfigTestSuite(CIO)
 
-class CIOConnectionTest : ConnectionTestSuite(CIO)
+class CIOTLSHandshakeMessageContextTest : TLSHandshakeMessageContextTestSuite(CIO)
 
 class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {

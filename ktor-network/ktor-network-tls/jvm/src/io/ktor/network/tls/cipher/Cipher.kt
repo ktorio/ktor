@@ -14,10 +14,10 @@ internal interface TLSCipher {
     public fun decrypt(record: TLSRecord): TLSRecord
 
     public companion object {
-        public fun fromSuite(suite: CipherSuite, keyMaterial: ByteArray): TLSCipher =
+        public fun fromSuite(suite: CipherSuite, keyMaterial: ByteArray, role: NetworkRole): TLSCipher =
             when (suite.cipherType) {
-                CipherType.GCM -> GCMCipher(suite, keyMaterial)
-                CipherType.CBC -> CBCCipher(suite, keyMaterial)
+                CipherType.GCM -> GCMCipher.create(suite, keyMaterial, role)
+                CipherType.CBC -> CBCCipher(suite, keyMaterial) // TODO
             }
     }
 }

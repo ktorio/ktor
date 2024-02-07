@@ -42,7 +42,7 @@ internal class CBCCipher(
             writeFully(sendCipher.iv)
         }
 
-        return TLSRecord(record.type, packet = packet)
+        return TLSRecord(record.type, record.version, packet)
     }
 
     override fun decrypt(record: TLSRecord): TLSRecord {
@@ -97,7 +97,7 @@ internal class CBCCipher(
         val padding = content[content.size - 1].toInt() and 0xFF
         for (i in paddingStart until content.size) {
             val byte = content[i].toInt() and 0xFF
-            if (padding != byte) throw TLSException("Padding invalid: expected $padding, actual $byte")
+            if (padding != byte) throw TLSValidationException("Padding invalid: expected $padding, actual $byte")
         }
     }
 
@@ -120,6 +120,6 @@ internal class CBCCipher(
 
         val expectedMac = receiveMac.doFinal()!!
         val actual = content.sliceArray(macOffset until macOffset + suite.macStrengthInBytes)
-        if (!MessageDigest.isEqual(expectedMac, actual)) throw TLSException("Failed to verify MAC content")
+        if (!MessageDigest.isEqual(expectedMac, actual)) throw TLSValidationException("Failed to verify MAC content")
     }
 }

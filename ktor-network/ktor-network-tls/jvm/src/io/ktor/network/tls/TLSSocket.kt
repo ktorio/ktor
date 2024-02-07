@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.tls
 
@@ -14,24 +14,9 @@ import kotlinx.coroutines.channels.*
 import java.nio.*
 import kotlin.coroutines.*
 
-internal actual suspend fun openTLSSession(
-    socket: Socket,
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    config: TLSConfig,
-    context: CoroutineContext
-): Socket {
-    val handshake = TLSClientHandshake(input, output, config, context)
-    try {
-        handshake.negotiate()
-    } catch (cause: ClosedSendChannelException) {
-        throw TLSException("Negotiation failed due to EOS", cause)
-    }
-    return TLSSocket(handshake.input, handshake.output, socket, context)
-}
-
 @Suppress("DEPRECATION")
-private class TLSSocket(
+internal class TLSSocket(
+    private val version: TLSVersion,
     private val input: ReceiveChannel<TLSRecord>,
     private val output: SendChannel<TLSRecord>,
     private val socket: Socket,
@@ -58,7 +43,7 @@ private class TLSSocket(
                         pipe.writePacket(record.packet)
                         pipe.flush()
                     }
-                    else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
+                    else -> throw TLSValidationException("Unexpected record ${record.type} ($length bytes)")
                 }
             }
         } catch (_: Throwable) {
@@ -67,24 +52,23 @@ private class TLSSocket(
         }
     }
 
-    private suspend fun appDataOutputLoop(
-        pipe: ByteReadChannel
-    ): Unit = DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
-        try {
-            while (true) {
-                buffer.clear()
-                val rc = pipe.readAvailable(buffer)
-                if (rc == -1) break
+    private suspend fun appDataOutputLoop(pipe: ByteReadChannel): Unit =
+        DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
+            try {
+                while (true) {
+                    buffer.clear()
+                    val rc = pipe.readAvailable(buffer)
+                    if (rc == -1) break
 
-                buffer.flip()
-                output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
+                    buffer.flip()
+                    output.send(TLSRecord(TLSRecordType.ApplicationData, version, buildPacket { writeFully(buffer) }))
+                }
+            } catch (_: ClosedSendChannelException) {
+                // The socket was already closed, we should ignore that error.
+            } finally {
+                output.close()
             }
-        } catch (_: ClosedSendChannelException) {
-            // The socket was already closed, we should ignore that error.
-        } finally {
-            output.close()
         }
-    }
 
     override fun dispose() {
         socket.dispose()
