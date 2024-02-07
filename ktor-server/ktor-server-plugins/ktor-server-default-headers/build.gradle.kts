@@ -13,7 +13,7 @@ kotlin {
         }
     }
 
-    createCInterop("utils", nixTargets()) {
+    createCInterop("utils", nixTargets()) { _ ->
         defFile = File(projectDir, "nix/interop/utils.def")
     }
 }
