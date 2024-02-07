@@ -19,11 +19,11 @@ val Project.kotlinter: KotlinterExtension get() = the()
 fun KotlinMultiplatformExtension.createCInterop(
     name: String,
     cinteropTargets: List<String>,
-    block: DefaultCInteropSettings.() -> Unit
+    block: DefaultCInteropSettings.(String) -> Unit
 ) {
     cinteropTargets.mapNotNull { targets.findByName(it) }.filterIsInstance<KotlinNativeTarget>().forEach {
         val main by it.compilations
-        main.cinterops.create(name, block)
+        main.cinterops.create(name) { block(it.name) }
     }
 }
 

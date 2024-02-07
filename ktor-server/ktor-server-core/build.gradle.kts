@@ -5,7 +5,7 @@
 description = ""
 
 kotlin {
-    createCInterop("host_common", posixTargets()) {
+    createCInterop("host_common", posixTargets()) { _ ->
         definitionFile = projectDir.resolve("posix/interop/host_common.def")
     }
 

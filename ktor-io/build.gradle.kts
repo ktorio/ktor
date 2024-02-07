@@ -4,7 +4,7 @@ plugins {
 }
 
 kotlin {
-    createCInterop("mutex", posixTargets()) {
+    createCInterop("mutex", posixTargets()) { _ ->
         definitionFile = File(projectDir, "posix/interop/mutex.def")
     }
 

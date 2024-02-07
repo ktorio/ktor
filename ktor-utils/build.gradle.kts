@@ -7,7 +7,7 @@ plugins {
 }
 
 kotlin {
-    createCInterop("threadUtils", nixTargets()) {
+    createCInterop("threadUtils", nixTargets()) { _ ->
         definitionFile = File(projectDir, "nix/interop/threadUtils.def")
     }
 

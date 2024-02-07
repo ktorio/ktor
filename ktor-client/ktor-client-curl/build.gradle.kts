@@ -22,17 +22,17 @@ plugins {
 }
 
 kotlin {
-    createCInterop("libcurl", listOf("macosX64", "linuxX64", "mingwX64")) {
+    createCInterop("libcurl", listOf("macosX64", "linuxX64", "mingwX64")) { _ ->
         definitionFile = File(projectDir, "desktop/interop/libcurl.def")
         includeDirs.headerFilterOnly(paths)
     }
 
-    createCInterop("libcurl", listOf("macosArm64")) {
+    createCInterop("libcurl", listOf("macosArm64")) { _ ->
         definitionFile = File(projectDir, "desktop/interop/libcurl_arm64.def")
         includeDirs.headerFilterOnly(paths)
     }
 
-    createCInterop("libcurl", listOf("linuxArm64")) {
+    createCInterop("libcurl", listOf("linuxArm64")) { _ ->
         definitionFile = File(projectDir, "desktop/interop/libcurl_linux_arm64.def")
         includeDirs.headerFilterOnly(listOf("desktop/interop/linuxArm64/include/"))
     }
