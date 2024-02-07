@@ -29,6 +29,7 @@ public enum class TLSExtensionType(public val code: Short) {
 
 internal class TLSExtension(
     val type: TLSExtensionType,
-    val length: Int,
     val packet: ByteReadPacket
-)
+) {
+    val length = packet.remaining
+}

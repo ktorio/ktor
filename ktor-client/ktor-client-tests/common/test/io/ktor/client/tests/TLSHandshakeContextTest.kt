@@ -12,7 +12,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
-class ConnectionTest : ClientLoader() {
+class TLSHandshakeContextTest : ClientLoader() {
     private val testContent = buildString {
         append("x".repeat(100))
     }

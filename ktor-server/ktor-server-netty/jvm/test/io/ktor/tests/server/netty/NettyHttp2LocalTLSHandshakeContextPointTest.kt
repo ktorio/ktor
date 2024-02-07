@@ -11,7 +11,7 @@ import java.net.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION_ERROR")
-class NettyHttp2LocalConnectionPointTest {
+class NettyHttp2LocalTLSHandshakeContextPointTest {
     @Test
     fun testMethod() {
         val point = point {

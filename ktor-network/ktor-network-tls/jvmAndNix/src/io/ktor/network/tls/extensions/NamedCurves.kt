@@ -4,8 +4,6 @@
 
 package io.ktor.network.tls.extensions
 
-import kotlin.native.concurrent.*
-
 /**
  * Named curves for Elliptic Curves.
  * @property code curve numeric code

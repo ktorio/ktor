@@ -5,9 +5,7 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]

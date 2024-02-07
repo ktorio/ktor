@@ -14,7 +14,26 @@ internal class TLSRecord(
 )
 
 @Suppress("KDocMissingDocumentation")
-internal class TLSHandshake {
-    var type: TLSHandshakeType = TLSHandshakeType.HelloRequest
-    var packet = ByteReadPacket.Empty
+internal data class TLSHandshake(
+    val type: TLSHandshakeType = TLSHandshakeType.HelloRequest,
+    val packet: ByteReadPacket = ByteReadPacket.Empty,
+) {
+    companion object: BytePacketSerializer<TLSHandshake> {
+        override suspend fun read(input: ByteReadPacket): TLSHandshake {
+            val typeAndLength = input.readInt()
+            val length = typeAndLength and 0xffffff
+            return TLSHandshake(
+                type = TLSHandshakeType.byCode(typeAndLength ushr 24),
+                packet = buildPacket {
+                    writeFully(input.readBytes(length))
+                }
+            )
+        }
+
+        override fun write(output: BytePacketBuilder, value: TLSHandshake) {
+            val typeAndLength = (value.type.code shl 24) or value.packet.remaining.toInt()
+            output.writeInt(typeAndLength)
+            output.writeFully(value.packet.readBytes())
+        }
+    }
 }

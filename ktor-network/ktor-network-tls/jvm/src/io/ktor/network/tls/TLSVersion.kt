@@ -4,6 +4,9 @@
 
 package io.ktor.network.tls
 
+import io.ktor.utils.io.core.*
+import io.ktor.network.tls.readShortCompatible
+
 /**
  * TLS version
  * @property code numeric TLS version code
@@ -15,7 +18,7 @@ public enum class TLSVersion(public val code: Int) {
     TLS11(0x0302),
     TLS12(0x0303);
 
-    public companion object {
+    public companion object: BytePacketParser<TLSVersion> {
         private val byOrdinal = values()
 
         /**
@@ -25,5 +28,8 @@ public enum class TLSVersion(public val code: Int) {
             in 0x0300..0x0303 -> byOrdinal[code - 0x0300]
             else -> throw IllegalArgumentException("Invalid TLS version code $code")
         }
+
+        override suspend fun read(input: ByteReadPacket): TLSVersion =
+            byCode(input.readShort().toInt() and 0xffff)
     }
 }

@@ -20,15 +20,17 @@ internal actual suspend fun openTLSSession(
     output: ByteWriteChannel,
     config: TLSConfig,
     context: CoroutineContext
-): Socket {
-    val handshake = TLSClientHandshake(input, output, config, context)
+): Socket =
     try {
-        handshake.negotiate()
+        TLSHandshakeConnector(input, output, config, context)
+            .also { TLSClientHandshake.negotiate(it) }
+            .getIOChannels()
+            .let { (recordInput, recordOutput) ->
+                TLSSocket(recordInput, recordOutput, socket, context)
+            }
     } catch (cause: ClosedSendChannelException) {
         throw TLSException("Negotiation failed due to EOS", cause)
     }
-    return TLSSocket(handshake.input, handshake.output, socket, context)
-}
 
 @Suppress("DEPRECATION")
 private class TLSSocket(

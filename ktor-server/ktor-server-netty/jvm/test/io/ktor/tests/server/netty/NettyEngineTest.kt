@@ -14,7 +14,6 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -141,7 +140,7 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
 
 class NettyConfigTest : ConfigTestSuite(Netty)
 
-class NettyConnectionTest : ConnectionTestSuite(Netty)
+class NettyTLSHandshakeContextTest : TLSHandshakeContextTestSuite(Netty)
 
 class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
 

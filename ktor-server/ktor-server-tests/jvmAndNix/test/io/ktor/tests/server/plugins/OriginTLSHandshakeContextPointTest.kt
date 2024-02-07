@@ -15,7 +15,7 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION", "DEPRECATION_ERROR")
-class OriginConnectionPointTest {
+class OriginTLSHandshakeContextPointTest {
     @Test
     fun testDirectRequest() {
         withTestApplication {

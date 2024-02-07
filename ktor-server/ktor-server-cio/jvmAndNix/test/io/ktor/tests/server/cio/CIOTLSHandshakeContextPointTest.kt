@@ -9,7 +9,7 @@ import io.ktor.server.cio.*
 import io.ktor.util.network.*
 import kotlin.test.*
 
-class CIOConnectionPointTest {
+class CIOTLSHandshakeContextPointTest {
 
     @Test
     fun testLocalHostAndPort() {
