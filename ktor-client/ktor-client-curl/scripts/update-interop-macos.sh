@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ARCHES="x86_64 arm64"
-CURL_VERSION="8.6.0"
+CURL_VERSION="8.8.0"
 
 platform="macos"
 
@@ -11,7 +11,7 @@ rm -R "build/${platform}" || true
 rm -R "release/curl-${platform}"-* || true
 
 # build libraries
-ARCHES="${ARCHES}" CURL_VERSION="${CURL_VERSION}" TLS_LIB=openssl DIR=$(pwd)"/build/${platform}" RELEASE_DIR=$(pwd) sh curl-static-mac.sh
+ARCHES="${ARCHES}" CURL_VERSION="${CURL_VERSION}" TLS_LIB=openssl DIR=$(pwd)"/build/${platform}" RELEASE_DIR=$(pwd) ARES_VERSION="1.28.1" sh curl-static-mac.sh
 
 for source_arch in $ARCHES; do
     case $source_arch in

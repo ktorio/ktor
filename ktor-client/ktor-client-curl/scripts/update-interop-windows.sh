@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ARCHES="x86_64"
-CURL_VERSION="8.6.0"
+CURL_VERSION="8.8.0"
 
 source_platform="windows"
 target_platform="mingw"
