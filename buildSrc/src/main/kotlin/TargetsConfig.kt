@@ -26,8 +26,6 @@ fun Project.configureTargets() {
     configureCommon()
     if (hasJvm) configureJvm()
 
-    if (COMMON_JVM_ONLY) return
-
     kotlin {
         if (hasJs) {
             js(IR) {

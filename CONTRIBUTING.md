@@ -77,16 +77,6 @@ To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ I
 that it is a Gradle project and import it. It's important that you make sure that all building and test operations
 are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
 
-
-##### Working with Js and Native in IntelliJ IDEA
-
-The import, syntax highlight, and build for Js and Native source sets are disabled by default in IntelliJ IDEA.
-If you want to work on multiplatform code in IDE, you should disable the `jvmAndCommonOnly` flag in the `gradle.properties` file:
-```
-ktor.ide.jvmAndCommonOnly=false
-```
-Please note that disabling this flag increases the time it takes to import and index the project.
-
 ### Pull Requests
 
 Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests):

@@ -154,8 +154,6 @@ println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinComp
 filterSnapshotTests()
 
 fun configureDokka() {
-    if (COMMON_JVM_ONLY) return
-
     allprojects {
         plugins.apply("org.jetbrains.dokka")
 
@@ -225,13 +223,4 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
                 progressiveMode = true
             }
         }
-
-    if (!COMMON_JVM_ONLY) return
-
-    sourceSets {
-        findByName("jvmMain")?.kotlin?.srcDirs("jvmAndNix/src")
-        findByName("jvmTest")?.kotlin?.srcDirs("jvmAndNix/test")
-        findByName("jvmMain")?.resources?.srcDirs("jvmAndNix/resources")
-        findByName("jvmTest")?.resources?.srcDirs("jvmAndNix/test-resources")
-    }
 }
