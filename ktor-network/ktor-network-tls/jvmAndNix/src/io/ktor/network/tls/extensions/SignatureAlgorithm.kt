@@ -5,9 +5,7 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
@@ -36,7 +34,7 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
          * @throws TLSExtension if no hash algorithm found by code
          */
         public fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
-            ?: throw TLSException("Unknown hash algorithm: $code")
+            ?: throw TLSUnsupportedException("Unknown hash algorithm: $code")
     }
 }
 
@@ -105,24 +103,23 @@ public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
 
 internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
     val length = readShort().toInt() and 0xffff
+    if (remaining.toInt() != length) {
+        throw TLSValidationException("Invalid hash and sign packet size: expected $length, actual $remaining")
+    }
 
     val result = mutableListOf<HashAndSign>()
     while (remaining > 0) {
         result += readHashAndSign() ?: continue
     }
 
-    if (remaining.toInt() != length) {
-        throw TLSException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
-    }
-
     return result
 }
 
-internal fun ByteReadPacket.readHashAndSign(): HashAndSign? {
-    val hash = readByte()
-    val sign = readByte()
-    return HashAndSign.byCode(hash, sign)
-}
+internal fun ByteReadPacket.readHashAndSign(): HashAndSign? =
+    HashAndSign.byCode(
+        hash = readByte(),
+        sign = readByte()
+    )
 
 public fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign? {
     check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }

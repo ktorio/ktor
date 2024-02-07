@@ -106,7 +106,7 @@ class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, 
 
 class NettyConfigTest : ConfigTestSuite(Netty)
 
-class NettyConnectionTest : ConnectionTestSuite(Netty)
+class NettyTLSHandshakeMessageContextTest : TLSHandshakeMessageContextTestSuite(Netty)
 
 class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
 

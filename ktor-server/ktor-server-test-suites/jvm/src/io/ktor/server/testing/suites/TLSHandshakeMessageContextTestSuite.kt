@@ -18,7 +18,7 @@ import org.junit.*
 import org.junit.Assert.*
 import java.net.*
 
-abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+abstract class TLSHandshakeMessageContextTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test

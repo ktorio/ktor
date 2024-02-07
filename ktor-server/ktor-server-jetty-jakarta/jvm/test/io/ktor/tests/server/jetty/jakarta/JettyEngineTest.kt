@@ -90,7 +90,7 @@ class JettySustainabilityTest :
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
 
-class JettyConnectionTest : ConnectionTestSuite(Jetty)
+class JettyTLSHandshakeMessageContextTest : TLSHandshakeMessageContextTestSuite(Jetty)
 
 class JettyServerPluginsTest : ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty

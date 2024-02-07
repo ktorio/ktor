@@ -169,7 +169,7 @@ class TomcatSustainabilityTestSuite :
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
 
-class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
+class TomcatTLSHandshakeMessageContextTest : TLSHandshakeMessageContextTestSuite(Tomcat)
 
 class TomcatClientCertTest :
     ClientCertTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
