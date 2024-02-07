@@ -5,9 +5,7 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
-import kotlin.native.concurrent.*
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
@@ -36,7 +34,7 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
          * @throws TLSExtension if no hash algorithm found by code
          */
         public fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
-            ?: throw TLSException("Unknown hash algorithm: $code")
+            ?: throw TLSUnsupportedException("Unknown hash algorithm: $code")
     }
 }
 
@@ -112,7 +110,7 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
     }
 
     if (remaining.toInt() != length) {
-        throw TLSException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
+        throw TLSValidationException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
     }
 
     return result

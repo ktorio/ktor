@@ -16,7 +16,7 @@ public enum class TLSRecordType(public val code: Int) {
     ApplicationData(0x17);
 
     public companion object {
-        private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
+        private val byCode = Array(256) { idx -> entries.firstOrNull { it.code == idx } }
 
         /**
          * Find an instance of [TLSRecordType] by its numeric code or fail

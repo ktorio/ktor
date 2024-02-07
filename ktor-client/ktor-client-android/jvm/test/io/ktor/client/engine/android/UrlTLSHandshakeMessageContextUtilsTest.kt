@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import kotlin.test.*
 
-class UrlConnectionUtilsTest {
+class UrlTLSHandshakeMessageContextUtilsTest {
 
     private val data = HttpRequestBuilder().build()
 

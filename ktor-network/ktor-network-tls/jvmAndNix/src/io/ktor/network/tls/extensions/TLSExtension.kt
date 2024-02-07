@@ -21,7 +21,7 @@ public enum class TLSExtensionType(public val code: Short) {
 
     public companion object {
         public fun byCode(code: Int): TLSExtensionType =
-            values().find { it.code == code.toShort() } ?: throw TLSException(
+            values().find { it.code == code.toShort() } ?: throw TLSUnsupportedException(
                 "Unknown server hello extension type: $code"
             )
     }
@@ -29,6 +29,7 @@ public enum class TLSExtensionType(public val code: Short) {
 
 internal class TLSExtension(
     val type: TLSExtensionType,
-    val length: Int,
     val packet: ByteReadPacket
-)
+) {
+    val length = packet.remaining
+}

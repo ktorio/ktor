@@ -18,7 +18,7 @@ import java.net.*
 import kotlin.test.*
 import kotlin.test.Test
 
-abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+abstract class TLSHandshakeMessageContextTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test

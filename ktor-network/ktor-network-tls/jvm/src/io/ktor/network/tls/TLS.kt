@@ -5,6 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
+import kotlinx.coroutines.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -31,7 +32,9 @@ public actual suspend fun Socket.tls(
     } catch (cause: Throwable) {
         reader.cancel(cause)
         writer.close(cause)
-        close()
+        withContext(Dispatchers.IO) {
+            close()
+        }
         throw cause
     }
 }

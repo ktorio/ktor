@@ -30,7 +30,7 @@ import kotlin.test.Test
 
 @Suppress("UNCHECKED_CAST")
 @CoroutinesTimeout(20_000)
-class ConnectionTest {
+class TLSConnectionTest {
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {

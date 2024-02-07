@@ -4,6 +4,7 @@
 
 package io.ktor.network.tls
 
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.security.*
 import java.security.cert.*
@@ -52,6 +53,28 @@ public actual class TLSConfigBuilder {
     public actual var serverName: String? = null
 
     /**
+     * Version of TLS handshake algorithm to use.
+     */
+    public var version: TLSVersion
+        get() = TLSVersion.TLS12
+        set(_) = error("Only TLS 1.2 is currently supported")
+
+    /**
+     * For TCP connections accepting connections from clients.
+     */
+    public var role: NetworkRole = NetworkRole.CLIENT
+
+    /**
+     * How long to wait between handshake responses.
+     */
+    public var handshakeTimeoutMillis: Long? = null
+
+    /**
+     * Perform some operation on every handshake message.
+     */
+    public var onHandshake: (Closeable.(TLSHandshakeType, NetworkRole) -> Unit)? = null
+
+    /**
      * Create [TLSConfig].
      */
     public actual fun build(): TLSConfig = TLSConfig(
@@ -59,7 +82,11 @@ public actual class TLSConfigBuilder {
         certificates,
         trustManager as? X509TrustManager ?: findTrustManager(),
         cipherSuites,
-        serverName
+        serverName,
+        version,
+        role,
+        handshakeTimeoutMillis,
+        onHandshake,
     )
 }
 

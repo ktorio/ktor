@@ -153,5 +153,3 @@ public object CIOCipherSuites {
 }
 
 internal expect fun CipherSuite.isSupported(): Boolean
-
-internal class TLSException(message: String, cause: Throwable? = null) : IOException(message, cause)

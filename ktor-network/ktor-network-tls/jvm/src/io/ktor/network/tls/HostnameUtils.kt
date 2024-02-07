@@ -20,7 +20,7 @@ internal fun verifyHostnameInCertificate(serverName: String, certificate: X509Ce
     if (hosts.isEmpty()) return
     if (hosts.any { matchHostnameWithCertificate(serverName, it) }) return
 
-    throw TLSException(
+    throw TLSValidationException(
         "No server host: $serverName in the server certificate. " +
             "Provided in certificate: ${hosts.joinToString()}"
     )
@@ -34,7 +34,7 @@ internal fun verifyIpInCertificate(ipString: String, certificate: X509Certificat
     if (ips.isEmpty()) return
     if (ips.any { it == ipString }) return
 
-    throw TLSException(
+    throw TLSValidationException(
         "No server host: $ipString in the server certificate." +
             " The certificate was issued for: ${ips.joinToString()}."
     )
@@ -91,7 +91,7 @@ internal fun matchHostnameWithCertificate(serverName: String, certificateHost: S
     return (nameIndex == nameChunks.size && certificateIndex == certificateChunks.size) && wildcardUsedCorrect
 }
 
-private fun X509Certificate.hosts(): List<String> = subjectAlternativeNames
+internal fun X509Certificate.hosts(): List<String> = subjectAlternativeNames
     ?.filter { it[0] as Int == DNS_NAME_TYPE }
     ?.map { it[1] as String }
     ?: emptyList()
