@@ -46,12 +46,11 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showRetryEvents = pluginConfig.showRetryEvents
 
     transformRequestBody { request, _, _ ->
-        LOGGER.trace("Sending SSE request ${request.url}")
-        request.setCapability(SSECapability, Unit)
-
         if (getAttributeValue(request, sseRequestAttr) != true) {
             return@transformRequestBody null
         }
+        LOGGER.trace("Sending SSE request ${request.url}")
+        request.setCapability(SSECapability, Unit)
 
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
