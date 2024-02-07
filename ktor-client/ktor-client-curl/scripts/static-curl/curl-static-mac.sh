@@ -16,7 +16,7 @@ init_env() {
     local number
     export DIR="${DIR:-${HOME}/build}"
     export PREFIX="${DIR}/curl"
-    export RELEASE_DIR=${DIR};
+    export RELEASE_DIR=${RELEASE_DIR:-${HOME}};
     number=$(sysctl -n hw.ncpu 2>/dev/null)
     export CPU_CORES=${number:-1}
 
@@ -29,7 +29,7 @@ init_env() {
 
     echo "Source directory: ${DIR}"
     echo "Prefix directory: ${PREFIX}"
-    echo "Release directory: ${HOME}"
+    echo "Release directory: ${RELEASE_DIR}"
     echo "Architecture: ${ARCH}"
     echo "cURL version: ${CURL_VERSION}"
     echo "TLS Library: ${TLS_LIB}"
@@ -551,7 +551,7 @@ compile_curl() {
 }
 
 install_curl() {
-    mkdir -p "${HOME}/release/"
+    mkdir -p "${RELEASE_DIR}/release/curl-macos-${arch}"
 
     ls -l src/curl
     file src/curl
@@ -559,10 +559,19 @@ install_curl() {
     sha256sum src/curl
     src/curl -V || true
 
-    cp -f src/curl "${HOME}/release/curl-macos-${arch}"
+    cp -f src/curl "${RELEASE_DIR}/release/curl-macos-${arch}/curl"
 
-    if [ ! -f "${HOME}/version.txt" ]; then
-        echo "${CURL_VERSION}" > "${HOME}/version.txt"
+    mkdir -p "${RELEASE_DIR}/release/curl-macos-${arch}/include/curl"
+    cp -a "${PREFIX}/include" "${RELEASE_DIR}/release/curl-macos-${arch}/"
+    cp -a include/curl/*.h "${RELEASE_DIR}/release/curl-macos-${arch}/include/curl/"
+
+    mkdir -p "${RELEASE_DIR}/release/curl-macos-${arch}/lib"
+    cp -a "${PREFIX}/lib/"*.a "${RELEASE_DIR}/release/curl-macos-${arch}/lib/"
+    cp -a "${PREFIX}/lib64/"*.a "${RELEASE_DIR}/release/curl-macos-${arch}/lib/" || true
+    cp -aL lib/.libs/*.a "${RELEASE_DIR}/release/curl-macos-${arch}/lib"
+
+    if [ ! -f "${RELEASE_DIR}/version.txt" ]; then
+        echo "${CURL_VERSION}" > "${RELEASE_DIR}/version.txt"
     fi
 }
 

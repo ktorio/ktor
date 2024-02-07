@@ -751,10 +751,19 @@ compile_curl() {
 }
 
 install_curl() {
-    mkdir -p "${RELEASE_DIR}/release/"
+    mkdir -p "${RELEASE_DIR}/release/curl-linux-${arch}"
 
     ls -l src/curl
-    cp -pf src/curl "${RELEASE_DIR}/release/curl-linux-${arch}"
+    cp -pf src/curl "${RELEASE_DIR}/release/curl-linux-${arch}/curl"
+
+    mkdir -p "${RELEASE_DIR}/release/curl-linux-${arch}/include/curl"
+    cp -a "${PREFIX}/include" "${RELEASE_DIR}/release/curl-linux-${arch}/"
+    cp -a include/curl/*.h "${RELEASE_DIR}/release/curl-linux-${arch}/include/curl/"
+
+    mkdir -p "${RELEASE_DIR}/release/curl-linux-${arch}/lib"
+    cp -a "${PREFIX}/lib/"*.a "${RELEASE_DIR}/release/curl-linux-${arch}/lib/"
+    cp -a "${PREFIX}/lib64/"*.a "${RELEASE_DIR}/release/curl-linux-${arch}/lib/" || true
+    cp -aL lib/.libs/*.a "${RELEASE_DIR}/release/curl-linux-${arch}/lib/"
 
     if [ ! -f "${RELEASE_DIR}/release/version.txt" ]; then
         echo "${CURL_VERSION}" > "${RELEASE_DIR}/release/version.txt"
@@ -831,6 +840,7 @@ _build_in_docker() {
         -e LIBSSH2_VERSION="${LIBSSH2_VERSION}" \
         -e LIBUNISTRING_VERSION="${LIBUNISTRING_VERSION}" \
         -e LIBIDN2_VERSION="${LIBIDN2_VERSION}" \
+        -e TOKEN_READ="${TOKEN_READ}" \
         "${container_image}" sh "${RELEASE_DIR}/${base_name}" 2>&1 | tee -a "${container_name}.log"
 
     # Exit script after docker finishes
