@@ -22,8 +22,6 @@ plugins {
 }
 
 kotlin {
-    if (fastTarget()) return@kotlin
-
     createCInterop("libcurl", listOf("macosX64", "linuxX64", "mingwX64")) {
         defFile = File(projectDir, "desktop/interop/libcurl.def")
         includeDirs.headerFilterOnly(paths)

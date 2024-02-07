@@ -51,8 +51,6 @@ fun isAvailableForPublication(publication: Publication): Boolean {
 }
 
 fun Project.configurePublication() {
-    if (COMMON_JVM_ONLY) return
-
     apply(plugin = "maven-publish")
 
     tasks.withType<AbstractPublishToMaven>().all {
