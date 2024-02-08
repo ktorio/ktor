@@ -9,6 +9,8 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.sse.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.sse.*
@@ -32,6 +34,20 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             client.serverSentEvents {}
         }.let {
             kotlin.test.assertContains(it.message!!, SSE.key.name)
+        }
+    }
+
+    @Test
+    fun normalRequestsWorkWithSSEInstalled() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val response = client.post("$TEST_SERVER/content/echo") {
+                setBody("Hello")
+            }
+            assertEquals("Hello", response.bodyAsText())
         }
     }
 

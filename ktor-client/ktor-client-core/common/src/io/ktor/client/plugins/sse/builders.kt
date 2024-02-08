@@ -13,6 +13,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.time.*
 
+internal val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
 internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime")
 internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
@@ -40,6 +41,7 @@ public suspend fun HttpClient.serverSentEventsSession(
     val sessionDeferred = CompletableDeferred<ClientSSESession>()
     val statement = prepareRequest {
         block()
+        addAttribute(sseRequestAttr, true)
         addAttribute(reconnectionTimeAttr, reconnectionTime)
         addAttribute(showCommentEventsAttr, showCommentEvents)
         addAttribute(showRetryEventsAttr, showRetryEvents)
