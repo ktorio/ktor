@@ -5,7 +5,7 @@
 description = ""
 
 kotlin {
-    createCInterop("host_common", nixTargets()) {
+    createCInterop("host_common", nixTargets()) { _ ->
         defFile = projectDir.resolve("nix/interop/host_common.def")
     }
 

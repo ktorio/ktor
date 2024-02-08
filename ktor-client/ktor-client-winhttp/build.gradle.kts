@@ -8,7 +8,7 @@ plugins {
 kotlin {
     if (fastTarget()) return@kotlin
 
-    createCInterop("winhttp", windowsTargets()) {
+    createCInterop("winhttp", windowsTargets()) { _ ->
         defFile = File(projectDir, "windows/interop/winhttp.def")
     }
 

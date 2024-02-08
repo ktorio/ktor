@@ -1,0 +1,28 @@
+package = libcurl
+headers = curl/curl.h
+headerFilter = curl/*
+
+linkerOpts   = -Wl,-Bstatic -static \
+               -lcares -lnghttp3 -lnghttp2 \
+               -lidn2 -lunistring -liconv \
+               -lssh2 -lssl -lcrypto \
+               -lz -lpsl -lzstd \
+               -lbrotlidec -lbrotlicommon
+
+libraryPaths = desktop/interop/linuxX64/lib/
+
+staticLibraries = \
+libcurl.a \
+libcares.a \
+libnghttp3.a \
+libnghttp2.a \
+libidn2.a \
+libunistring.a \
+libssh2.a \
+libssl.a \
+libcrypto.a \
+libz.a \
+libpsl.a \
+libzstd.a \
+libbrotlidec.a \
+libbrotlicommon.a \
