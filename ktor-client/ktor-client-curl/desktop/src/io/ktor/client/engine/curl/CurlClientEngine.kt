@@ -8,10 +8,10 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -21,7 +21,7 @@ internal class CurlClientEngine(
 ) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
-    override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
+    override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
@@ -46,9 +46,15 @@ internal class CurlClientEngine(
             rawHeaders.release()
 
             val responseBody: Any = if (needToProcessSSE(data, status, headers)) {
-                DefaultClientSSESession(data.body as SSEClientContent, bodyChannel, callContext)
+                val content = data.body as SSEClientContent
+                val body = responseBody as CurlHttpResponseBody
+                DefaultClientSSESession(content, body.bodyChannel, callContext)
+            } else if (data.isUpgradeRequest()) {
+                val websocket = responseBody as CurlWebSocketResponseBody
+                CurlWebSocketSession(websocket, callContext)
             } else {
-                bodyChannel
+                val body = responseBody as CurlHttpResponseBody
+                body.bodyChannel
             }
 
             HttpResponseData(

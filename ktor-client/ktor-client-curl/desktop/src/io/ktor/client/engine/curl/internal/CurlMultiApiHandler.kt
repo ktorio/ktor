@@ -9,6 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
+import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import libcurl.*
@@ -25,6 +26,11 @@ private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
     }
 }
 
+/**
+ * Handles requests using libcurl with multi interface.
+ *
+ * @see <a href="https://curl.se/libcurl/c/libcurl-multi.html">Multi interface overview</a>
+ */
 @OptIn(InternalAPI::class)
 internal class CurlMultiApiHandler : Closeable {
     @OptIn(ExperimentalForeignApi::class)
@@ -46,8 +52,7 @@ internal class CurlMultiApiHandler : Closeable {
     @OptIn(ExperimentalForeignApi::class)
     override fun close() {
         for ((handle, holder) in activeHandles) {
-            curl_multi_remove_handle(multiHandle, handle).verify()
-            curl_easy_cleanup(handle)
+            cleanupEasyHandle(handle)
             holder.dispose()
         }
 
@@ -62,20 +67,16 @@ internal class CurlMultiApiHandler : Closeable {
             CurlIllegalStateException("Could not initialize an easy handle")
 
         val bodyStartedReceiving = CompletableDeferred<Unit>()
-        val responseData = CurlResponseBuilder(request)
-        val responseDataRef = responseData.asStablePointer()
-
-        val responseWrapper = CurlResponseBodyData(
-            body = responseData.bodyChannel,
-            callContext = request.executionContext,
-            bodyStartedReceiving = bodyStartedReceiving,
-            onUnpause = {
-                synchronized(easyHandlesToUnpauseLock) {
-                    easyHandlesToUnpause.add(easyHandle)
-                }
-                curl_multi_wakeup(multiHandle)
+        val responseBody = if (request.isUpgradeRequest) {
+            CurlWebSocketResponseBody(easyHandle)
+        } else {
+            CurlHttpResponseBody(request.executionContext) {
+                unpauseEasyHandle(easyHandle)
             }
-        ).asStablePointer()
+        }
+        val responseData = CurlResponseBuilder(request, bodyStartedReceiving, responseBody)
+        val responseDataRef = responseData.asStablePointer()
+        val responseWrapper = responseBody.asStablePointer()
 
         bodyStartedReceiving.invokeOnCompletion {
             val result = collectSuccessResponse(easyHandle) ?: return@invokeOnCompletion
@@ -137,11 +138,12 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    internal fun perform() {
+    internal fun perform(counter: AtomicLong) {
         if (activeHandles.isEmpty()) return
 
         memScoped {
             val transfersRunning = alloc<IntVar>()
+            val requestId = counter.value
             do {
                 synchronized(easyHandlesToUnpauseLock) {
                     var handle = easyHandlesToUnpause.removeFirstOrNull()
@@ -157,7 +159,7 @@ internal class CurlMultiApiHandler : Closeable {
                 if (transfersRunning.value < activeHandles.size) {
                     handleCompleted()
                 }
-            } while (transfersRunning.value != 0)
+            } while (transfersRunning.value != 0 && requestId == counter.value)
         }
     }
 
@@ -194,10 +196,7 @@ internal class CurlMultiApiHandler : Closeable {
             body = request.content,
             callContext = request.executionContext,
             onUnpause = {
-                synchronized(easyHandlesToUnpauseLock) {
-                    easyHandlesToUnpause.add(easyHandle)
-                }
-                curl_multi_wakeup(multiHandle)
+                unpauseEasyHandle(easyHandle)
             }
         ).asStablePointer()
 
@@ -256,12 +255,11 @@ internal class CurlMultiApiHandler : Closeable {
             try {
                 return CurlFail(cause)
             } finally {
-                responseBuilder.bodyChannel.close(cause)
+                responseBuilder.responseBody.close(cause)
                 responseBuilder.headersBytes.release()
             }
         } finally {
-            curl_multi_remove_handle(multiHandle, easyHandle).verify()
-            curl_easy_cleanup(easyHandle)
+            cleanupEasyHandle(easyHandle)
         }
     }
 
@@ -285,12 +283,11 @@ internal class CurlMultiApiHandler : Closeable {
                 collectFailedResponse(message, responseBuilder.request, result, httpStatusCode.value)
                     ?: collectSuccessResponse(easyHandle)!!
             } finally {
-                responseBuilder.bodyChannel.close(null)
+                responseBuilder.responseBody.close()
                 responseBuilder.headersBytes.release()
             }
         } finally {
-            curl_multi_remove_handle(multiHandle, easyHandle).verify()
-            curl_easy_cleanup(easyHandle)
+            cleanupEasyHandle(easyHandle)
         }
     }
 
@@ -359,7 +356,7 @@ internal class CurlMultiApiHandler : Closeable {
                 httpStatusCode.value.toInt(),
                 httpProtocolVersion.value.toUInt(),
                 headers,
-                bodyChannel
+                responseBody
             )
         }
     }
@@ -367,5 +364,19 @@ internal class CurlMultiApiHandler : Closeable {
     @OptIn(ExperimentalForeignApi::class)
     fun wakeup() {
         curl_multi_wakeup(multiHandle)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun unpauseEasyHandle(easyHandle: EasyHandle) {
+        synchronized(easyHandlesToUnpauseLock) {
+            easyHandlesToUnpause.add(easyHandle)
+        }
+        curl_multi_wakeup(multiHandle)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun cleanupEasyHandle(easyHandle: EasyHandle) {
+        curl_multi_remove_handle(multiHandle, easyHandle).verify()
+        curl_easy_cleanup(easyHandle)
     }
 }

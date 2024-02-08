@@ -19,3 +19,18 @@ internal inline fun <T : Any> T.asStablePointer(): COpaquePointer = StableRef.cr
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun <reified T : Any> COpaquePointer.fromCPointer(): T = asStableRef<T>().get()
+
+/**
+ * Converts null terminated list of char pointers to list of UTF-8 encoded strings.
+ */
+@OptIn(ExperimentalForeignApi::class)
+internal fun CPointer<CPointerVar<ByteVar>>.toKStringList(): List<String> {
+    val array = this
+    var index = 0
+    return buildList {
+        do {
+            val value = array[index++] ?: break
+            add(value.toKString())
+        } while (true)
+    }
+}
