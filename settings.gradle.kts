@@ -70,7 +70,7 @@ if (native_targets_enabled) {
     include(":ktor-client:ktor-client-curl")
     include(":ktor-client:ktor-client-winhttp")
 
-    if (onMac) {
+    if (System.getProperty("os.name").contains("Mac")) {
         include(":ktor-client:ktor-client-ios")
         include(":ktor-client:ktor-client-darwin")
         include(":ktor-client:ktor-client-darwin-legacy")
