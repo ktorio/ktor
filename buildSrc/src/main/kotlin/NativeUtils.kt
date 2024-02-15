@@ -8,7 +8,7 @@ val onMac: Boolean = System.getProperty("os.name").contains("Mac")
 
 fun Project.posixTargets(): List<String> = nixTargets() + windowsTargets()
 
-fun Project.nixTargets(): List<String> = (if (System.getProperty("os.name") == "Mac OS X") darwinTargets() else emptyList()) + linuxTargets()
+fun Project.nixTargets(): List<String> = (if (onMac) darwinTargets() else emptyList()) + linuxTargets()
 
 fun Project.linuxTargets(): List<String> = with(kotlin) {
     listOf(
