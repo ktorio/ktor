@@ -49,7 +49,7 @@ fun Project.configureTargets() {
                 val nixTest by creating
             }
 
-            if (hasDarwin) {
+            if (hasDarwin && onMac) {
                 val darwinMain by creating
                 val darwinTest by creating {
                     dependencies {
@@ -145,7 +145,7 @@ fun Project.configureTargets() {
                 }
             }
 
-            if (hasDarwin) {
+            if (hasDarwin && onMac) {
                 val nixMain: KotlinSourceSet? = findByName("nixMain")
                 val darwinMain by getting
                 val darwinTest by getting
