@@ -329,10 +329,10 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
     }
 
-    // Android and Darwin engines don't support request body in GET request
+    // Android, Darwin and Js engines don't support request body in GET request
     // SSE in OkHttp and Curl doesn't send a request body for GET request
     @Test
-    fun testRequestBody() = clientTests(listOf("Android", "OkHttp", "Darwin", "DarwinLegacy", "Curl")) {
+    fun testRequestBody() = clientTests(listOf("Android", "Darwin", "DarwinLegacy", "Js", "OkHttp", "Curl")) {
         config {
             install(SSE)
         }
@@ -352,7 +352,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     }
 
     @Test
-    fun testErrorForProtocolUpgradeRequestBody() = clientTests(listOf("Android", "OkHttp")) {
+    fun testErrorForProtocolUpgradeRequestBody() = clientTests(listOf("OkHttp")) {
         config {
             install(SSE)
         }

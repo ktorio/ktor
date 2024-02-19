@@ -5,6 +5,7 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
@@ -48,7 +49,8 @@ private suspend fun getBodyBytes(content: OutgoingContent, callContext: Coroutin
             }.channel.readRemaining().readBytes()
         }
         is OutgoingContent.ContentWrapper -> getBodyBytes(content.delegate(), callContext)
-        is OutgoingContent.NoContent, is OutgoingContent.ProtocolUpgrade -> null
+        is OutgoingContent.NoContent -> null
+        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
     }
 }
 
