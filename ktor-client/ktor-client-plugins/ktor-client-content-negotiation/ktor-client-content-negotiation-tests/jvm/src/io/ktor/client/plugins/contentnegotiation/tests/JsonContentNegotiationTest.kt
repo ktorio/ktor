@@ -281,6 +281,25 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
+    fun testNoDuplicatedHeaders() = testApplication {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, converter)
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get {
+            header(HttpHeaders.Accept, "application/json")
+        }.let { response ->
+            response.request.headers.forEach { _, values ->
+                assertEquals(1, values.size)
+            }
+        }
+    }
+
+    @Test
     open fun testRespondNestedSealedWithTypeInfoAny() = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
