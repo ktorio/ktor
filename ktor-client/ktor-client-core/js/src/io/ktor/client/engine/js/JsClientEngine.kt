@@ -49,11 +49,9 @@ internal class JsClientEngine(
         val version = HttpProtocolVersion.HTTP_1_1
 
         val body = CoroutineScope(callContext).readBody(rawResponse)
-        val responseBody: Any = if (needToProcessSSE(data, status, headers)) {
-            DefaultClientSSESession(data.body as SSEClientContent, body, callContext)
-        } else {
-            body
-        }
+        val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
+            ?.adapt(data, status, headers, body, data.body, callContext)
+            ?: body
 
         return HttpResponseData(
             status,

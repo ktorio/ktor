@@ -102,6 +102,7 @@ private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent
             writeRequest(source, request, callContext)
         }
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+        is OutgoingContent.ContentWrapper -> sendRequestBody(request, content.delegate(), callContext)
     }
 }
 

@@ -150,6 +150,8 @@ public abstract class BaseApplicationResponse(
                 commitHeaders(content)
                 respondNoContent(content)
             }
+
+            is OutgoingContent.ContentWrapper -> respondOutgoingContent(content.delegate())
         }
         isSent = true
     }

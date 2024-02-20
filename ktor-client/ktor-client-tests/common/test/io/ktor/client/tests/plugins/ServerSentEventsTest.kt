@@ -13,8 +13,10 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
@@ -322,6 +324,55 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         test { client ->
             client.sse("$TEST_SERVER/sse/content_type_with_charset") {
                 assertEquals(ContentType.Text.EventStream, call.response.contentType()?.withoutParameters())
+            }
+        }
+    }
+
+    // Android, Darwin and Js engines don't support request body in GET request
+    // SSE in OkHttp and Curl doesn't send a request body for GET request
+    @Test
+    fun testRequestBody() = clientTests(listOf("Android", "Darwin", "DarwinLegacy", "Js", "OkHttp", "Curl")) {
+        config {
+            install(SSE)
+        }
+
+        val body = "hello"
+        val contentType = ContentType.Text.Plain
+        test { client ->
+            client.sse({
+                url("$TEST_SERVER/sse/echo")
+                setBody(body)
+                contentType(contentType)
+            }) {
+                assertEquals(contentType, call.request.contentType()?.withoutParameters())
+                assertEquals(body, incoming.single().data)
+            }
+        }
+    }
+
+    @Test
+    fun testErrorForProtocolUpgradeRequestBody() = clientTests(listOf("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        val body = object : OutgoingContent.ProtocolUpgrade() {
+            override suspend fun upgrade(
+                input: ByteReadChannel,
+                output: ByteWriteChannel,
+                engineContext: CoroutineContext,
+                userContext: CoroutineContext
+            ): Job {
+                output.close()
+                return Job()
+            }
+        }
+        test { client ->
+            kotlin.test.assertFailsWith<SSEException> {
+                client.sse({
+                    url("$TEST_SERVER/sse/echo")
+                    setBody(body)
+                }) {}
             }
         }
     }

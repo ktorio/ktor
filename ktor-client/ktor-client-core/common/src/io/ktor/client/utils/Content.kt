@@ -73,4 +73,5 @@ public fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingCon
             userContext: CoroutineContext
         ): Job = this@wrapHeaders.upgrade(input, output, engineContext, userContext)
     }
+    is OutgoingContent.ContentWrapper -> delegate().wrapHeaders(block)
 }

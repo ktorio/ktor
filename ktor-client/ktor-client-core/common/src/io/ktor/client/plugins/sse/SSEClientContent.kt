@@ -14,9 +14,12 @@ public class SSEClientContent(
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,
     public val showRetryEvents: Boolean,
-) : OutgoingContent.NoContent() {
+    requestBody: OutgoingContent,
+) : OutgoingContent.ContentWrapper(requestBody) {
 
     override val headers: Headers = HeadersBuilder().apply {
+        appendAll(requestBody.headers)
+
         append(HttpHeaders.Accept, ContentType.Text.EventStream)
         append(HttpHeaders.CacheControl, "no-store")
     }.build()

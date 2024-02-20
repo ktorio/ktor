@@ -6,6 +6,7 @@ package test.server.tests
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
@@ -68,6 +69,13 @@ internal fun Application.serverSentEvents() {
                 call.respondBytesWriter(contentType = contentType) {
                     writeSseEvents(events)
                 }
+            }
+            get("/echo") {
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent(call.receiveText()))
+                    }
+                )
             }
         }
     }

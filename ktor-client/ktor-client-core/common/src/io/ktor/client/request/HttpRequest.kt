@@ -312,9 +312,45 @@ public fun HttpRequestData.isSseRequest(): Boolean {
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public fun needToProcessSSE(data: HttpRequestData, status: HttpStatusCode, headers: Headers): Boolean {
-    val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-    return data.isSseRequest() &&
-        status == HttpStatusCode.OK &&
-        contentType?.withoutParameters() == ContentType.Text.EventStream
+public val ResponseAdapterAttributeKey: AttributeKey<ResponseAdapter> = AttributeKey("ResponseAdapterAttributeKey")
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public fun interface ResponseAdapter {
+    public fun adapt(
+        data: HttpRequestData,
+        status: HttpStatusCode,
+        headers: Headers,
+        responseBody: ByteReadChannel,
+        outgoingContent: OutgoingContent,
+        callContext: CoroutineContext
+    ): Any?
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+public class SSEClientResponseAdapter : ResponseAdapter {
+    @OptIn(InternalAPI::class)
+    override fun adapt(
+        data: HttpRequestData,
+        status: HttpStatusCode,
+        headers: Headers,
+        responseBody: ByteReadChannel,
+        outgoingContent: OutgoingContent,
+        callContext: CoroutineContext
+    ): Any? {
+        val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+        return if (data.isSseRequest() &&
+            status == HttpStatusCode.OK &&
+            contentType?.withoutParameters() == ContentType.Text.EventStream
+        ) {
+            DefaultClientSSESession(
+                outgoingContent as SSEClientContent,
+                responseBody,
+                callContext
+            )
+        } else {
+            null
+        }
+    }
 }

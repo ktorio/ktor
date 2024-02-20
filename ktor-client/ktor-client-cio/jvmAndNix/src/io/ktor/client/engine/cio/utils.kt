@@ -6,7 +6,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -124,13 +123,7 @@ internal suspend fun writeBody(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            when (val body = request.body) {
-                is OutgoingContent.NoContent -> return@launch
-                is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
-                is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
-                is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
-                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
-            }
+            if (!processOutgoingContent(request, request.body, channel)) return@launch
         } catch (cause: Throwable) {
             channel.close(cause)
             throw cause
@@ -147,6 +140,18 @@ internal suspend fun writeBody(
             }
         }
     }
+}
+
+private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel): Boolean {
+    when (body) {
+        is OutgoingContent.NoContent -> return false
+        is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
+        is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
+        is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
+        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
+        is OutgoingContent.ContentWrapper -> processOutgoingContent(request, body.delegate(), channel)
+    }
+    return true
 }
 
 @Suppress("DEPRECATION")
@@ -192,11 +197,9 @@ internal suspend fun readResponse(
             }
         }
 
-        val responseBody: Any = if (needToProcessSSE(request, status, headers)) {
-            DefaultClientSSESession(request.body as SSEClientContent, body, callContext)
-        } else {
-            body
-        }
+        val responseBody: Any = request.attributes.getOrNull(ResponseAdapterAttributeKey)
+            ?.adapt(request, status, headers, body, request.body, callContext)
+            ?: body
 
         return@withContext HttpResponseData(status, requestTime, headers, version, responseBody, callContext)
     }
