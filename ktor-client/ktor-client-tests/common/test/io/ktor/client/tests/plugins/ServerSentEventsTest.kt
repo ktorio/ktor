@@ -322,7 +322,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            println(client.engine)
             client.sse("$TEST_SERVER/sse/content_type_with_charset") {
                 assertEquals(ContentType.Text.EventStream, call.response.contentType()?.withoutParameters())
             }

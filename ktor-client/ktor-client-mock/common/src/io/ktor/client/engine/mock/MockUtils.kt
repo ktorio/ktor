@@ -28,7 +28,7 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
         }
         channel.toByteArray()
     }
-    is OutgoingContent.ProtocolUpgrade, is OutgoingContent.NoContent -> ByteArray(0)
+    is OutgoingContent.ProtocolUpgrade, is OutgoingContent.NoContent -> EmptyArray
 }
 
 @Suppress("KDocMissingDocumentation")
@@ -111,3 +111,5 @@ public fun MockRequestHandleScope.respond(
     content,
     callContext
 )
+
+private val EmptyArray = ByteArray(0)
