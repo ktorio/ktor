@@ -14,7 +14,7 @@ fun Project.configureJs() {
         sourceSets {
             val jsTest by getting {
                 dependencies {
-                    implementation(npm("puppeteer", "*"))
+                    implementation(npm("puppeteer", Versions.puppeteer))
                 }
             }
         }
