@@ -64,7 +64,7 @@ internal class JsClientEngine(
         val body = CoroutineScope(callContext).readBody(rawResponse)
         val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
             ?.adapt(data, status, headers, body, data.body, callContext)
-            ?: data.body
+            ?: body
 
         return HttpResponseData(
             status,
