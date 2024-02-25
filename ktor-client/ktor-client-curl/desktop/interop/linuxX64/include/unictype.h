@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Unicode character classification and properties.
-   Copyright (C) 2002, 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -20,14 +20,17 @@
 
 #include "unitypes.h"
 
-/* Get LIBUNISTRING_DLL_VARIABLE.  */
-#include <unistring/woe32dll.h>
-
 /* Get bool.  */
 #include <unistring/stdbool.h>
 
 /* Get size_t.  */
 #include <stddef.h>
+
+#if 1
+# include <unistring/woe32dll.h>
+#else
+# define LIBUNISTRING_DLL_VARIABLE
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -638,6 +641,8 @@ extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_ID_CONTINUE;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_OTHER_ID_CONTINUE;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_XID_START;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_XID_CONTINUE;
+extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_ID_COMPAT_MATH_START;
+extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_ID_COMPAT_MATH_CONTINUE;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_PATTERN_WHITE_SPACE;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_PATTERN_SYNTAX;
 /* Shaping and rendering.  */
@@ -671,6 +676,7 @@ extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_ASCII_HEX_DIGIT
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_IDEOGRAPHIC;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_UNIFIED_IDEOGRAPH;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_RADICAL;
+extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_IDS_UNARY_OPERATOR;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_IDS_BINARY_OPERATOR;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_IDS_TRINARY_OPERATOR;
 /* Emoji.  */
@@ -686,6 +692,7 @@ extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_SPACE;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_NON_BREAK;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_ISO_CONTROL;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_FORMAT_CONTROL;
+extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_PREPENDED_CONCATENATION_MARK;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_DASH;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_HYPHEN;
 extern LIBUNISTRING_DLL_VARIABLE const uc_property_t UC_PROPERTY_PUNCTUATION;
@@ -778,6 +785,10 @@ extern bool uc_is_property_xid_start (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_xid_continue (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
+extern bool uc_is_property_id_compat_math_start (ucs4_t uc)
+       _UC_ATTRIBUTE_CONST;
+extern bool uc_is_property_id_compat_math_continue (ucs4_t uc)
+       _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_pattern_white_space (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_pattern_syntax (ucs4_t uc)
@@ -836,6 +847,8 @@ extern bool uc_is_property_unified_ideograph (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_radical (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
+extern bool uc_is_property_ids_unary_operator (ucs4_t uc)
+       _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_ids_binary_operator (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_ids_trinary_operator (ucs4_t uc)
@@ -861,6 +874,8 @@ extern bool uc_is_property_non_break (ucs4_t uc)
 extern bool uc_is_property_iso_control (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_format_control (ucs4_t uc)
+       _UC_ATTRIBUTE_CONST;
+extern bool uc_is_property_prepended_concatenation_mark (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_dash (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
@@ -903,6 +918,40 @@ extern bool uc_is_property_extender (ucs4_t uc)
 extern bool uc_is_property_ignorable_control (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 extern bool uc_is_property_regional_indicator (ucs4_t uc)
+       _UC_ATTRIBUTE_CONST;
+
+/* ========================================================================= */
+
+/* Other attributes.  */
+
+/* ------------------------------------------------------------------------- */
+
+/* Indic_Conjunct_Break (InCB): from the file DerivedCoreProperties.txt
+   in the Unicode Character Database.  */
+
+/* Possible values of the Indic_Conjunct_Break attribute.
+   This enumeration may be extended in the future.  */
+enum
+{
+  UC_INDIC_CONJUNCT_BREAK_NONE,              /* None */
+  UC_INDIC_CONJUNCT_BREAK_CONSONANT,         /* Consonant */
+  UC_INDIC_CONJUNCT_BREAK_LINKER,            /* Linker */
+  UC_INDIC_CONJUNCT_BREAK_EXTEND             /* Extend */
+};
+
+/* Return the name of an Indic_Conjunct_Break value.  */
+extern const char *
+       uc_indic_conjunct_break_name (int indic_conjunct_break)
+       _UC_ATTRIBUTE_CONST;
+
+/* Return the Indic_Conjunct_Break value given by name, e.g. "Consonant".  */
+extern int
+       uc_indic_conjunct_break_byname (const char *indic_conjunct_break_name)
+       _UC_ATTRIBUTE_PURE;
+
+/* Return the Indic_Conjunct_Break attribute of a Unicode character.  */
+extern int
+       uc_indic_conjunct_break (ucs4_t uc)
        _UC_ATTRIBUTE_CONST;
 
 /* ========================================================================= */

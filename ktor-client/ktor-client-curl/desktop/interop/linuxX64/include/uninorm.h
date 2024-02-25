@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Normalization forms (composition and decomposition) of Unicode strings.
-   Copyright (C) 2001-2002, 2009-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2002, 2009-2024 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2009.
 
    This file is free software: you can redistribute it and/or modify
@@ -22,13 +22,16 @@
 /* Get common macros for C.  */
 #include <unistring/cdefs.h>
 
-/* Get LIBUNISTRING_DLL_VARIABLE.  */
-#include <unistring/woe32dll.h>
-
 /* Get size_t.  */
 #include <stddef.h>
 
 #include "unitypes.h"
+
+#if 1
+# include <unistring/woe32dll.h>
+#else
+# define LIBUNISTRING_DLL_VARIABLE
+#endif
 
 
 #ifdef __cplusplus

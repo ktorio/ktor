@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Elementary Unicode string functions.
-   Copyright (C) 2001-2002, 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2002, 2005-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -386,6 +386,15 @@ extern uint16_t *
        u16_cpy (uint16_t *_UC_RESTRICT dest, const uint16_t *src, size_t n);
 extern uint32_t *
        u32_cpy (uint32_t *_UC_RESTRICT dest, const uint32_t *src, size_t n);
+
+/* Copy N units from SRC to DEST, returning pointer after last written unit.  */
+/* Similar to mempcpy().  */
+extern uint8_t *
+       u8_pcpy (uint8_t *_UC_RESTRICT dest, const uint8_t *src, size_t n);
+extern uint16_t *
+       u16_pcpy (uint16_t *_UC_RESTRICT dest, const uint16_t *src, size_t n);
+extern uint32_t *
+       u32_pcpy (uint32_t *_UC_RESTRICT dest, const uint32_t *src, size_t n);
 
 /* Copy N units from SRC to DEST, guaranteeing correct behavior for
    overlapping memory areas.  */

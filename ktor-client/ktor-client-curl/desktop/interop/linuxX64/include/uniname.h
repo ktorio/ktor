@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Association between Unicode characters and their names.
-   Copyright (C) 2000-2002, 2005, 2007, 2009-2022 Free Software Foundation,
+   Copyright (C) 2000-2002, 2005, 2007, 2009-2024 Free Software Foundation,
    Inc.
 
    This file is free software.

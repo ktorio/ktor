@@ -1,5 +1,5 @@
 /* Determine a canonical name for the current locale's character encoding.
-   Copyright (C) 2000-2003, 2009-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2003, 2009-2024 Free Software Foundation, Inc.
    This file is part of the GNU CHARSET Library.
 
    This file is free software: you can redistribute it and/or modify
@@ -104,10 +104,8 @@ extern const char * locale_charset (void);
    GBK                         glibc aix osf solaris freebsd darwin cygwin windows dos
    GB18030                     glibc hpux solaris freebsd netbsd darwin
    SHIFT_JIS               Y   hpux osf solaris freebsd netbsd darwin
-   JOHAB                       glibc solaris windows
+   JOHAB                       solaris windows
    TIS-620                     glibc aix hpux osf solaris cygwin zos
-   VISCII                  Y   glibc
-   TCVN5712-1                  glibc
    ARMSCII-8                   glibc freebsd netbsd darwin
    GEORGIAN-PS                 glibc cygwin
    PT154                       glibc netbsd cygwin

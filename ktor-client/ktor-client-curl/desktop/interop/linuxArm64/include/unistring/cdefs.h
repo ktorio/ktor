@@ -1,5 +1,5 @@
 /* Common macro definitions for C include files.
-   Copyright (C) 2008-2021 Free Software Foundation, Inc.
+   Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or
    modify it under the terms of either:
@@ -74,7 +74,9 @@
 
 #if (defined __has_attribute \
      && (!defined __clang_minor__ \
-         || 3 < __clang_major__ + (5 <= __clang_minor__)))
+         || (defined __apple_build_version__ \
+             ? 6000000 <= __apple_build_version__ \
+             : 5 <= __clang_major__)))
 # define _UC_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
 #else
 # define _UC_HAS_ATTRIBUTE(attr) _UC_ATTR_##attr
@@ -82,10 +84,14 @@
 # define _UC_ATTR_unused _UC_GNUC_PREREQ (2, 7)
 #endif
 
-#ifdef __has_c_attribute
-# define _UC_HAS_C_ATTRIBUTE(attr) __has_c_attribute (__##attr##__)
+#ifdef __cplusplus
+# if defined __clang__
+#  define _UC_BRACKET_BEFORE_ATTRIBUTE 1
+# endif
 #else
-# define _UC_HAS_C_ATTRIBUTE(attr) 0
+# if defined __GNUC__ && !defined __clang__
+#  define _UC_BRACKET_BEFORE_ATTRIBUTE 1
+# endif
 #endif
 
 #if _UC_GNUC_PREREQ (11, 0)
@@ -93,7 +99,14 @@
 #else
 # define _UC_ATTRIBUTE_DEALLOC(f, i)
 #endif
-#define _UC_ATTRIBUTE_DEALLOC_FREE _UC_ATTRIBUTE_DEALLOC (free, 1)
+#if defined __cplusplus && defined __GNUC__ && !defined __clang__
+/* Work around GCC bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108231> */
+# define _UC_ATTRIBUTE_DEALLOC_FREE \
+    _UC_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
+#else
+# define _UC_ATTRIBUTE_DEALLOC_FREE \
+    _UC_ATTRIBUTE_DEALLOC (free, 1)
+#endif
 
 #if _UC_HAS_ATTRIBUTE (malloc)
 # define _UC_ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
@@ -101,9 +114,18 @@
 # define _UC_ATTRIBUTE_MALLOC
 #endif
 
-#if _UC_HAS_C_ATTRIBUTE (maybe_unused)
-# define _UC_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
-#else
+#ifndef _UC_BRACKET_BEFORE_ATTRIBUTE
+# if defined __clang__ && defined __cplusplus
+#  if !defined __apple_build_version__ && __clang_major__ >= 10
+#   define _UC_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
+#  endif
+# elif defined __has_c_attribute
+#  if __has_c_attribute (__maybe_unused__)
+#   define _UC_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
+#  endif
+# endif
+#endif
+#ifndef _UC_ATTRIBUTE_MAYBE_UNUSED
 # define _UC_ATTRIBUTE_MAYBE_UNUSED _UC_ATTRIBUTE_UNUSED
 #endif
 

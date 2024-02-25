@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Line breaking of Unicode strings.
-   Copyright (C) 2001-2003, 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2005-2024 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2001.
 
    This file is free software.

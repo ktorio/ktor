@@ -1,5 +1,5 @@
 /* Decision whether to use 'inline' or not.
-   Copyright (C) 2006, 2009, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or
    modify it under the terms of either:
@@ -40,10 +40,10 @@
    equivalent is effectively supported, i.e. if the compiler is likely to
    drop unused 'static inline' functions.  */
 
-#if defined __GNUC__
-/* GNU C or GNU C++.  */
+#if defined __GNUC__ || defined __clang__
+/* GNU C/C++ or clang C/C++.  */
 # if defined __NO_INLINE__
-/* GCC defines __NO_INLINE__ if not optimizing or if -fno-inline is
+/* GCC and clang define __NO_INLINE__ if not optimizing or if -fno-inline is
    specified.  */
 #  define UNISTRING_HAVE_INLINE 0
 # else
