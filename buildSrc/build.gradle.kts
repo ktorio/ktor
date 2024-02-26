@@ -100,8 +100,7 @@ val kotlin_api_version: String? by extra
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions.freeCompilerArgs += listOf(
         "-Xsuppress-version-warnings",
-        "-Xskip-metadata-version-check",
-        "-version"
+        "-Xskip-metadata-version-check"
     )
 
     if (kotlin_language_version != null) {
