@@ -27,17 +27,17 @@ public actual abstract class Charset(internal val _name: String) {
         }
     }
 
-    override fun equals(other: Any?): Boolean {
+    actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Charset) return false
         return _name == other._name
     }
 
-    override fun hashCode(): Int {
+    actual override fun hashCode(): Int {
         return _name.hashCode()
     }
 
-    override fun toString(): String {
+    actual override fun toString(): String {
         return _name
     }
 }
