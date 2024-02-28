@@ -51,7 +51,7 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
             if (host !in listOf(origin.hostWithPortIfSpecified, origin.hostWithPort)) {
                 return@onCall onFailure(
                     call,
-                    "expected \"Origin\" [${origin.host}] host to match \"Host\" [$host] header value"
+                    "expected \"Origin\" [${origin.hostWithPortIfSpecified}] host to match \"Host\" [$host] header value"
                 )
             }
         }
