@@ -6,7 +6,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.tls.*
@@ -24,6 +23,7 @@ import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class CIOSpecificHttpsTest : TestWithKtor() {
