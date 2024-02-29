@@ -13,6 +13,7 @@ import io.ktor.util.date.*
  */
 public class ResponseCookies(
     private val response: ApplicationResponse,
+    private val secureTransport: Boolean
 ) {
     /**
      * Gets a cookie from a response's `Set-Cookie` header.
