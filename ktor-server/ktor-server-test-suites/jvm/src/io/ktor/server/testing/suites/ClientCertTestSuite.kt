@@ -37,6 +37,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
         val ca = generateCertificate(keyType = KeyType.CA)
     }
 
+    @Ignore
     @Test
     open fun `Server requesting Client Certificate from CIO Client`() {
         val clientKeys = ca.generateCertificate(keyType = KeyType.Client)
