@@ -30,7 +30,7 @@ public abstract class BaseApplicationResponse(
         private set
 
     override val cookies: ResponseCookies by lazy {
-        ResponseCookies(this)
+        ResponseCookies(this, false)
     }
 
     override fun status(): HttpStatusCode? = _status
