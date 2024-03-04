@@ -1,3 +1,12 @@
+# 2.3.9
+> Published 4 March 2024
+
+### Improvements
+* Allow to set secure cookie even with http scheme ([KTOR-3159](https://youtrack.jetbrains.com/issue/KTOR-3159))
+
+### Bugfixes
+* ContentNegotiation: the plugin appends duplicated MIME type to Accept header ([KTOR-6684](https://youtrack.jetbrains.com/issue/KTOR-6684))
+
 # 2.3.8
 > Published 31 January 2024
 
