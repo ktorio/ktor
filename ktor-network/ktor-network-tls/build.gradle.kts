@@ -10,6 +10,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(libs.netty.handler)
+            api(libs.mockk)
         }
     }
 }
