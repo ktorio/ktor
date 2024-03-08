@@ -44,6 +44,7 @@ public fun Route.sse(handler: suspend ServerSSESession.() -> Unit) {
         call.response.header(HttpHeaders.ContentType, ContentType.Text.EventStream.toString())
         call.response.header(HttpHeaders.CacheControl, "no-store")
         call.response.header(HttpHeaders.Connection, "keep-alive")
+        call.response.header("X-Accel-Buffering", "no")
         call.respond(SSEServerContent(call, handler))
     }
 }
