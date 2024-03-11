@@ -105,6 +105,21 @@ class ServerSentEventsTest {
         }
     }
 
+    @Test
+    fun testNoDuplicateHeader() = testApplication {
+        install(SSE)
+        routing {
+            sse { }
+        }
+
+        val client = createSseClient()
+        client.sse {
+            call.response.headers.forEach { _, values ->
+                assertEquals(1, values.size)
+            }
+        }
+    }
+
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {
         val client = createClient {
             install(io.ktor.client.plugins.sse.SSE)
