@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import org.slf4j.*
 import kotlin.test.*
 
 class CSRFTest {
@@ -214,6 +215,26 @@ class CSRFTest {
                 assertEquals("success", response.bodyAsText())
             }
         }
+    }
+
+    @Test
+    fun logsWarningWhenMisconfigured() {
+        val warnings = mutableListOf<String>()
+        val testLogger = object : Logger by LoggerFactory.getLogger("") {
+            override fun warn(message: String?) {
+                message?.let(warnings::add)
+            }
+        }
+        testApplication {
+            environment {
+                log = testLogger
+            }
+            install(CSRF)
+        }
+        assertEquals(
+            "No validation options provided for CSRF plugin - requests will not be verified!",
+            warnings.firstOrNull()
+        )
     }
 
     private fun ApplicationTestBuilder.configureCSRF(csrfOptions: CSRFConfig.() -> Unit) {
