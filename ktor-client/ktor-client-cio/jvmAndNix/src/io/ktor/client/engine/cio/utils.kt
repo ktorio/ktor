@@ -142,7 +142,11 @@ internal suspend fun writeBody(
     }
 }
 
-private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel): Boolean {
+private suspend fun processOutgoingContent(
+    request: HttpRequestData,
+    body: OutgoingContent,
+    channel: ByteWriteChannel
+): Boolean {
     when (body) {
         is OutgoingContent.NoContent -> return false
         is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
