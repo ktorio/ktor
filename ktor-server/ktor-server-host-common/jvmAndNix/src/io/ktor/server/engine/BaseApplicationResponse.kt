@@ -92,8 +92,10 @@ public abstract class BaseApplicationResponse(
             }
         }
 
-        content.contentType?.let {
-            headers.append(HttpHeaders.ContentType, it.toString(), safeOnly = false)
+        if (!headers.contains(HttpHeaders.ContentType)) {
+            content.contentType?.let {
+                headers.append(HttpHeaders.ContentType, it.toString(), safeOnly = false)
+            }
         }
 
         val connection = call.request.headers[HttpHeaders.Connection]
