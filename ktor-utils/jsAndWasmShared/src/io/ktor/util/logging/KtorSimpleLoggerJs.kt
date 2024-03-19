@@ -11,7 +11,7 @@ private fun getKtorLogLevel(): String? = js("process.env.KTOR_LOG_LEVEL")
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
 
-    override val level: LogLevel = when (PlatformUtils.IS_NODE) {
+    override val level: LogLevel = when (PlatformUtils.IS_NODE || PlatformUtils.IS_BROWSER) {
         true -> runCatching { getKtorLogLevel() }
             .getOrNull()
             ?.let { rawLevel: String -> LogLevel.entries.firstOrNull { it.name == rawLevel } }
