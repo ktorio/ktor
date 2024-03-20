@@ -20,7 +20,7 @@ public enum class TLSVersion(public val code: Int) {
     TLS13(0x0304);
 
     public companion object : ByteChannelSerializer<TLSVersion>, BytePacketSerializer<TLSVersion> {
-        private val byOrdinal = entries
+        private val byOrdinal = values()
 
         /**
          * Find version instance by its numeric [code] or fail

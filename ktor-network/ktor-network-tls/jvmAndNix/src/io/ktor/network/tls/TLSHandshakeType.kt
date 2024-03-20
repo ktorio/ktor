@@ -22,7 +22,7 @@ public enum class TLSHandshakeType(public val code: Int) {
     Finished(0x14);
 
     public companion object {
-        private val byCode = Array(256) { idx -> entries.firstOrNull { it.code == idx } }
+        private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find handshake type instance by its numeric [code] or fail
