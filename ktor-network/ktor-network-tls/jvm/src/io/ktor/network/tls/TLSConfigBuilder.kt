@@ -101,6 +101,9 @@ public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
     cipherSuites = other.cipherSuites
     serverName = other.serverName
     trustManager = other.trustManager
+    role = other.role
+    handshakeTimeoutMillis = other.handshakeTimeoutMillis
+    onHandshake = other.onHandshake
 }
 
 /**
