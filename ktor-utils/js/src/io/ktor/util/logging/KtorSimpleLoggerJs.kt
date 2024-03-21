@@ -10,7 +10,7 @@ import io.ktor.util.*
 public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {
 
     @OptIn(kotlin.ExperimentalStdlibApi::class)
-    override val level: LogLevel = when (PlatformUtils.IS_NODE) {
+    override val level: LogLevel = when (PlatformUtils.IS_NODE || PlatformUtils.IS_BROWSER) {
         true -> runCatching { js("process.env.KTOR_LOG_LEVEL") as String? }
             .getOrNull()
             ?.let { rawLevel: String -> LogLevel.values().firstOrNull { it.name == rawLevel } }
