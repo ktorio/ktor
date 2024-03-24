@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.android
 
+import android.os.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -83,3 +84,7 @@ internal fun HttpURLConnection.content(callContext: CoroutineContext, request: H
  */
 private fun Throwable.isTimeoutException(): Boolean =
     this is java.net.SocketTimeoutException || (this is ConnectException && message?.contains("timed out") ?: false)
+
+internal val isAndroid: Boolean = "Dalvik" == System.getProperty("java.vm.name")
+
+internal fun isAndroid14() = isAndroid && Build.VERSION.SDK_INT < 34
