@@ -23,14 +23,14 @@ public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
     public actual abstract fun newDecoder(): CharsetDecoder
 
-    override fun equals(other: Any?): Boolean {
+    actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
         return other is Charset && (_name != other._name)
     }
 
-    override fun hashCode(): Int = _name.hashCode()
+    actual override fun hashCode(): Int = _name.hashCode()
 
-    override fun toString(): String = _name
+    actual override fun toString(): String = _name
 
     public companion object {
         private fun getCharset(name: String): Charset? = when (name.replace('_', '-').lowercase()) {
