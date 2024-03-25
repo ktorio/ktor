@@ -27,7 +27,7 @@ internal suspend inline fun withMDC(
 }
 
 internal fun List<MDCEntry>.setup(call: ApplicationCall): Map<String, String> {
-    val result = HashMap<String, String>()
+    val result = MDC.getCopyOfContextMap() ?: mutableMapOf()
 
     val savedEntries = call.attributes.computeIfAbsent(MdcEntriesKey) { mutableMapOf() }
     for (entry in this) {
