@@ -12,7 +12,7 @@ import kotlin.test.*
 class SuspendFunctionGunTest {
     @Test
     fun throwsErrorWhenNoDistinctContinuation() = testSuspend {
-        val gun = SuspendFunctionGun(Unit, Unit, listOf({_, _, _ ->}))
+        val gun = SuspendFunctionGun(Unit, Unit, listOf({ _, _, _ -> }))
         gun.addContinuation(gun.continuation)
 
         val cause = assertFailsWith<IllegalStateException> { gun.continuation.context }
@@ -21,7 +21,7 @@ class SuspendFunctionGunTest {
 
     @Test
     fun returnsLastDistinctContinuationContext() = testSuspend {
-        val gun = SuspendFunctionGun(Unit, Unit, listOf({_, _, _ ->}, {_, _, _ ->}))
+        val gun = SuspendFunctionGun(Unit, Unit, listOf({ _, _, _ -> }, { _, _, _ -> }))
         val continuation = Continuation<Unit>(EmptyCoroutineContext) {}
         gun.addContinuation(continuation)
         gun.addContinuation(gun.continuation)
@@ -31,7 +31,7 @@ class SuspendFunctionGunTest {
 
     @Test
     fun returnsFirstDistinctContinuationContext() = testSuspend {
-        val gun = SuspendFunctionGun(Unit, Unit, listOf({_, _, _ ->}))
+        val gun = SuspendFunctionGun(Unit, Unit, listOf({ _, _, _ -> }))
         val continuation = Continuation<Unit>(EmptyCoroutineContext) {}
         gun.addContinuation(continuation)
 
