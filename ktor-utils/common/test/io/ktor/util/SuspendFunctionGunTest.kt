@@ -20,7 +20,7 @@ class SuspendFunctionGunTest {
     }
 
     @Test
-    fun returnsLastDistinctContinuation() = testSuspend {
+    fun returnsLastDistinctContinuationContext() = testSuspend {
         val gun = SuspendFunctionGun(Unit, Unit, listOf({_, _, _ ->}, {_, _, _ ->}))
         val continuation = Continuation<Unit>(EmptyCoroutineContext) {}
         gun.addContinuation(continuation)
@@ -30,7 +30,7 @@ class SuspendFunctionGunTest {
     }
 
     @Test
-    fun returnsFirstDistinctContinuation() = testSuspend {
+    fun returnsFirstDistinctContinuationContext() = testSuspend {
         val gun = SuspendFunctionGun(Unit, Unit, listOf({_, _, _ ->}))
         val continuation = Continuation<Unit>(EmptyCoroutineContext) {}
         gun.addContinuation(continuation)
