@@ -739,7 +739,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         createAndStartServer {
             post("/") {
                 call.receiveChannel()
-                call.respondText { "OK" }
+                call.respondText { call.request.contentLength().toString() }
             }
         }
 
@@ -751,7 +751,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("OK", bodyAsText())
+            assertEquals("${Int.MAX_VALUE.toLong() + 1}", bodyAsText())
         }
     }
 
