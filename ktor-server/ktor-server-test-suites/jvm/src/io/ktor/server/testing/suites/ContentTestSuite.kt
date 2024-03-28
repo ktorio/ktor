@@ -734,6 +734,27 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
+    @Test
+    fun testReceivingBodyWithContentLengthMoreThanMaxInt() {
+        createAndStartServer {
+            post("/") {
+                call.receiveChannel()
+                call.respondText { "OK" }
+            }
+        }
+
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Post
+                headers.append("Content-Length", (Int.MAX_VALUE.toLong() + 1).toString())
+            }
+        ) {
+            assertEquals(200, status.value)
+            assertEquals("OK", bodyAsText())
+        }
+    }
+
     companion object {
         const val classesDir: String = "build/classes/"
     }
