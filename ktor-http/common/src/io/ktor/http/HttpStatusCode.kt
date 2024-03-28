@@ -46,6 +46,7 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
         public val ResetContent: HttpStatusCode = HttpStatusCode(205, "Reset Content")
         public val PartialContent: HttpStatusCode = HttpStatusCode(206, "Partial Content")
         public val MultiStatus: HttpStatusCode = HttpStatusCode(207, "Multi-Status")
+        public val DoubtfulButOkay: HttpStatusCode = HttpStatusCode(267, "Doubtful But Okay")
 
         public val MultipleChoices: HttpStatusCode = HttpStatusCode(300, "Multiple Choices")
         public val MovedPermanently: HttpStatusCode = HttpStatusCode(301, "Moved Permanently")
@@ -82,6 +83,7 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
             HttpStatusCode(416, "Requested Range Not Satisfiable")
 
         public val ExpectationFailed: HttpStatusCode = HttpStatusCode(417, "Expectation Failed")
+        public val ImATeapot: HttpStatusCode = HttpStatusCode(418, "I’m a teapot")
         public val UnprocessableEntity: HttpStatusCode = HttpStatusCode(422, "Unprocessable Entity")
         public val Locked: HttpStatusCode = HttpStatusCode(423, "Locked")
         public val FailedDependency: HttpStatusCode = HttpStatusCode(424, "Failed Dependency")
@@ -132,6 +134,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.ResetContent,
     HttpStatusCode.PartialContent,
     HttpStatusCode.MultiStatus,
+    HttpStatusCode.DoubtfulButOkay,
     HttpStatusCode.MultipleChoices,
     HttpStatusCode.MovedPermanently,
     HttpStatusCode.Found,
@@ -159,6 +162,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.UnsupportedMediaType,
     HttpStatusCode.RequestedRangeNotSatisfiable,
     HttpStatusCode.ExpectationFailed,
+    HttpStatusCode.ImATeapot,
     HttpStatusCode.UnprocessableEntity,
     HttpStatusCode.Locked,
     HttpStatusCode.FailedDependency,
