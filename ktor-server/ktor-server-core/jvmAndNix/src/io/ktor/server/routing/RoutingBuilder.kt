@@ -31,6 +31,15 @@ public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit
 }
 
 /**
+ * Builds a route to optionally match specified [path], if it exists.
+ */
+@KtorDsl
+fun Route.optionalRoute(path: String, build: Route.() -> Unit): Route {
+    val selector = OptionalPathSegmentConstantRouteSelector(path.replaceFirstChar { if (it == '/') "" else "$it" })
+    return createChild(selector).apply(build)
+}
+
+/**
  * Builds a route to match the specified HTTP [method].
  * @see [Application.routing]
  */
