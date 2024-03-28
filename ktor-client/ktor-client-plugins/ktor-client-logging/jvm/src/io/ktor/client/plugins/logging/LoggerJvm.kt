@@ -32,7 +32,9 @@ public val Logger.Companion.ANDROID: Logger
             return MessageLengthLimitingLogger(delegate = logger)
         }
 
-        if (LoggerFactory.getILoggerFactory() !is NOPLoggerFactory) return MessageLengthLimitingLogger(delegate = logger)
+        if (LoggerFactory.getILoggerFactory() !is NOPLoggerFactory) {
+            return MessageLengthLimitingLogger(delegate = logger)
+        }
 
         return MessageLengthLimitingLogger(delegate = LogcatLogger(logClass))
     }
