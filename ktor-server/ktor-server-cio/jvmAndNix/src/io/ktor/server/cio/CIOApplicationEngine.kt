@@ -151,7 +151,7 @@ public class CIOApplicationEngine(
     }
 
     private fun hasBody(request: CIOApplicationRequest): Boolean {
-        val contentLength = request.headers[HttpHeaders.ContentLength]?.toInt()
+        val contentLength = request.headers[HttpHeaders.ContentLength]?.toLong()
         val transferEncoding = request.headers[HttpHeaders.TransferEncoding]
         return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
