@@ -7,6 +7,6 @@ object Versions {
     val coroutines = "1.8.0"
     val slf4j = "1.7.36"
     val junit = "5.10.1"
-    val logback = "1.2.11"
+    val logback = "1.5.3"
     val puppeteer = "21.5.0"
 }
