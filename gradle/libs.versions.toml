@@ -39,7 +39,7 @@ micrometer-version = "1.12.4"
 jansi-version = "2.4.1"
 typesafe-version = "1.4.3"
 
-mockk-version = "1.13.9"
+mockk-version = "1.13.10"
 
 java-jwt-version = "4.4.0"
 
