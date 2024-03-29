@@ -36,15 +36,27 @@ public val Logger.Companion.ANDROID: Logger
             return MessageLengthLimitingLogger(delegate = logger)
         }
 
-        return MessageLengthLimitingLogger(delegate = LogcatLogger(logClass))
+        return MessageLengthLimitingLogger(delegate = LogcatLogger(logClass, logger))
     }
 
-private class LogcatLogger(private val logClass: Class<*>) : Logger {
+private class LogcatLogger(logClass: Class<*>, private val fallback: Logger) : Logger {
     private val tag = "Ktor Client"
+
+    private val method = try {
+        logClass.getDeclaredMethod("i", String::class.java, String::class.java)
+    } catch (_: Throwable) {
+        null
+    }
     override fun log(message: String) {
-        runCatching {
-            val method = logClass.getDeclaredMethod("i", String::class.java, String::class.java)
+        if (method == null) {
+            fallback.log(message)
+            return
+        }
+
+        try {
             method.invoke(null, tag, message)
+        } catch (_: Throwable) {
+            fallback.log(message)
         }
     }
 }
