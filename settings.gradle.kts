@@ -19,6 +19,7 @@ pluginManagement {
 
 rootProject.name = "ktor"
 
+val android_targets_enabled = extra.has("enable_android_targets")
 val native_targets_enabled = !extra.has("disable_native_targets")
 val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
 
@@ -65,6 +66,7 @@ include(":ktor-client:ktor-client-tests")
 include(":ktor-client:ktor-client-apache")
 include(":ktor-client:ktor-client-apache5")
 include(":ktor-client:ktor-client-android")
+include(":ktor-client:ktor-client-android:ktor-client-android-test")
 include(":ktor-client:ktor-client-cio")
 if (native_targets_enabled) {
     include(":ktor-client:ktor-client-curl")

@@ -83,6 +83,7 @@ extra["skipPublish"] = mutableListOf(
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",
+    "ktor-client-android-test"
 )
 
 val disabledExplicitApiModeProjects = listOf(
@@ -101,6 +102,7 @@ plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
     id("kotlinx-atomicfu") version "0.23.1" apply false
     id("com.osacky.doctor") version "0.9.2"
+//    id("com.android.library") version "8.2.0" apply false
 }
 
 doctor {
