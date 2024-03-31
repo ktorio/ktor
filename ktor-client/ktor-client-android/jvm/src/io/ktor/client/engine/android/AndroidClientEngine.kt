@@ -31,11 +31,11 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
-    private val urlFactory = if (!config.httpEngineEnabled || isAndroid14()) {
-            URLConnectionFactory.StandardURLConnectionFactory(config)
-        } else {
-            Android14HttpEngineFactory(config)
-        }
+    private val urlFactory = if (config.httpEngineDisabled || !isAndroid14() || config.proxy != null) {
+        URLConnectionFactory.StandardURLConnectionFactory(config)
+    } else {
+        Android14HttpEngineFactory(config)
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()

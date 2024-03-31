@@ -5,6 +5,7 @@
 plugins {
     kotlin("plugin.serialization") version "1.9.22"
     id("org.gradle.kotlin.kotlin-dsl") version "4.3.0"
+    id("com.android.library") version "8.2.0" apply false
 }
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
@@ -13,6 +14,7 @@ repositories {
     maven("https://plugins.gradle.org/m2")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+    google()
 
     if (buildSnapshotTrain) {
         mavenLocal()

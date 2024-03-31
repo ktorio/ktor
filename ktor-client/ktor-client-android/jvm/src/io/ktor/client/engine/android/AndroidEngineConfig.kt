@@ -42,15 +42,13 @@ public class AndroidEngineConfig : HttpClientEngineConfig() {
      */
     public var httpEngineConfig: HttpEngine.Builder.() -> Unit = {}
 
-    // TODO replace with a simpler is != null
-    internal var httpEngineEnabled = false
+    internal var httpEngineDisabled = false
 
     /**
      * Allows you to set engine-specific request configuration.
      */
     public var context: android.content.Context? = null
         set(value) {
-            httpEngineEnabled = true
             field = value
         }
 }

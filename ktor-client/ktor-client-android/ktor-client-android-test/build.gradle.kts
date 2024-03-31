@@ -2,31 +2,20 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import com.android.build.api.dsl.*
 
 plugins {
-    id("com.android.library")
+    id("com.android.test")
+    kotlin("multiplatform")
 }
 
-//kotlin {
-//    androidTarget {
-//        publishLibraryVariants("release")
-//        instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
-//    }
-//
-//    sourceSets {
-//        val androidTest by getting {
-////            kotlin.srcDir("android/test")
-//            dependencies {
-//                implementation(project(":ktor-client:ktor-client-android"))
-//                implementation(kotlin("test-junit5"))
-//            }
-//        }
-//    }
-//
-//    sourceSets.all {
-//    }
-//}
+extensions.getByType(TestExtension::class.java).apply {
+    compileSdk = 34
+}
+
+kotlin {
+    androidTarget()
+}
 
 android {
     namespace = "io.ktor.client.engine.android"
@@ -40,6 +29,13 @@ android {
 
     defaultConfig {
         minSdk = 9
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+}
+
+dependencies {
+    implementation(libs.kotlin.test)
+    implementation(libs.kotlinx.coroutines.test)
+    implementation(project(":ktor-client:ktor-client-android"))
 }
