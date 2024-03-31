@@ -11,8 +11,6 @@ internal class Android14HttpEngineFactory(private val config: AndroidEngineConfi
     private val engine = buildEngine()
 
     fun buildEngine(): HttpEngine {
-        // TODO work out how to change proxies?
-
         return HttpEngine.Builder(config.context!!)
             .apply(config.httpEngineConfig)
             .build()
