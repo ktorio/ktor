@@ -83,7 +83,6 @@ extra["skipPublish"] = mutableListOf(
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",
-    "ktor-client-android-test"
 )
 
 val disabledExplicitApiModeProjects = listOf(
@@ -98,7 +97,6 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("com.android.library") version "8.2.0" apply false
     id("org.jetbrains.dokka") version "1.9.10" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
     id("kotlinx-atomicfu") version "0.23.1" apply false
@@ -121,7 +119,6 @@ allprojects {
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
-        google()
     }
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra

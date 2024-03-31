@@ -31,7 +31,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
-    private val urlFactory = if (config.httpEngineDisabled || !isAndroid14() || config.proxy != null) {
+    private val urlFactory = if (config.httpEngineDisabled || !isAndroid14() || config.proxy != null || config.context == null) {
         URLConnectionFactory.StandardURLConnectionFactory(config)
     } else {
         Android14HttpEngineFactory(config)
