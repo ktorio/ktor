@@ -77,14 +77,14 @@ internal class CIOConnectionPoint(
 
     override val serverPort: Int
         get() = hostHeaderValue
-            ?.substringAfter(":", defaultPort.toString())?.toInt()
+            ?.substringAfterLast(":", defaultPort.toString())?.toInt()
             ?: localPort
 
     override val localHost: String
         get() = localNetworkAddress?.hostname ?: "localhost"
 
     override val serverHost: String
-        get() = hostHeaderValue?.substringBefore(":") ?: localHost
+        get() = hostHeaderValue?.substringBeforeLast(":") ?: localHost
 
     override val localAddress: String
         get() = localNetworkAddress?.address ?: "localhost"
