@@ -17,7 +17,7 @@ public abstract class ServletApplicationRequest(
 
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
-    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
+    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters).toQueryParameters() }
 
     override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
         val uri = servletRequest.queryString ?: return@lazy Parameters.Empty

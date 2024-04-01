@@ -92,7 +92,7 @@ public class TestApplicationRequest constructor(
      */
     public var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
-    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters) }
+    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters).toQueryParameters() }
 
     override val rawQueryParameters: Parameters by lazy {
         parseQueryString(queryString(), decode = false)
