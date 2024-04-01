@@ -1053,6 +1053,7 @@ public abstract interface class io/ktor/server/request/PipelineRequest : io/ktor
 
 public final class io/ktor/server/request/PipelineRequestKt {
 	public static final fun encodeParameters (Lio/ktor/server/request/ApplicationRequest;Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
+	public static final fun toQueryParameters (Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
 
 public final class io/ktor/server/request/RequestAlreadyConsumedException : java/lang/IllegalStateException {
