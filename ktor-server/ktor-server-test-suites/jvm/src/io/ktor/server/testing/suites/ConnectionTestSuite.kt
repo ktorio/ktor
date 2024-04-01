@@ -112,9 +112,16 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
         withTimeout(5000) {
             serverStarted.join()
-            val response = HttpClient(CIO).use { client -> client.get("http://[::1]:$serverPort/") }
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("[::1]:$serverPort", response.bodyAsText())
+            val client = HttpClient(CIO)
+            client.get("http://[::1]:$serverPort/").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("[::1]:$serverPort", response.bodyAsText())
+            }
+            client.get("http://[0:0:0:0:0:0:0:1]:$serverPort/").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("[0:0:0:0:0:0:0:1]:$serverPort", response.bodyAsText())
+            }
+            client.close()
         }
 
         server.stop(50, 100)
