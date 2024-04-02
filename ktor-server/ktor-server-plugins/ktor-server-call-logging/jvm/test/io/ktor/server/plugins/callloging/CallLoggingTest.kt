@@ -563,6 +563,35 @@ class CallLoggingTest {
         assertContains(messages, "INFO: /without [hardcoded=1]")
     }
 
+    @Test
+    fun `no double logging when with Status Pages`() = testApplication {
+        environment {
+            log = logger
+        }
+        application {
+            install(CallLogging) {
+                format { it.request.uri }
+            }
+            install(StatusPages) {
+                status(HttpStatusCode.BadRequest) { call, _ ->
+                    call.respond("From StatusPages")
+                }
+            }
+        }
+        routing {
+            get {
+                call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+
+        client.get("/").apply {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("From StatusPages", bodyAsText())
+        }
+
+        assertEquals(1, messages.count { it == "INFO: /" })
+    }
+
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)
     private fun red(value: Any): String = colored(value, Ansi.Color.RED)
     private fun cyan(value: Any): String = colored(value, Ansi.Color.CYAN)
