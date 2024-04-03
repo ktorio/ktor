@@ -47,6 +47,26 @@ internal class CIOApplicationRequest(
     }
 }
 
+/**
+ * Converts parameters to query parameters by fixing the [Parameters.get] method
+ * to make it return an empty string for the query parameter without value
+ */
+private fun Parameters.toQueryParameters(): Parameters {
+    val parameters = this
+    return object : Parameters {
+        override fun get(name: String): String? {
+            val values = getAll(name) ?: return null
+            return if (values.isEmpty()) "" else values.first()
+        }
+        override val caseInsensitiveName: Boolean
+            get() = parameters.caseInsensitiveName
+        override fun getAll(name: String): List<String>? = parameters.getAll(name)
+        override fun names(): Set<String> = parameters.names()
+        override fun entries(): Set<Map.Entry<String, List<String>>> = parameters.entries()
+        override fun isEmpty(): Boolean = parameters.isEmpty()
+    }
+}
+
 internal class CIOConnectionPoint(
     private val remoteNetworkAddress: NetworkAddress?,
     private val localNetworkAddress: NetworkAddress?,
