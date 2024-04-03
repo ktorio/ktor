@@ -22,22 +22,23 @@ public actual val Logger.Companion.DEFAULT: Logger
  * Breaks up long log messages that would be truncated by Android's max log
  * length of 4068 characters.
  */
-public val Logger.Companion.ANDROID: Logger
-    get() {
-        val logger = Logger.DEFAULT
+public val Logger.Companion.ANDROID: Logger by lazy { getAndroidLogger() }
 
-        val logClass = try {
-            Class.forName("android.util.Log")
-        } catch (_: ClassNotFoundException) {
-            return MessageLengthLimitingLogger(delegate = logger)
-        }
+private fun getAndroidLogger(): Logger {
+    val logger = Logger.DEFAULT
 
-        if (LoggerFactory.getILoggerFactory() !is NOPLoggerFactory) {
-            return MessageLengthLimitingLogger(delegate = logger)
-        }
-
-        return MessageLengthLimitingLogger(delegate = LogcatLogger(logClass, logger))
+    val logClass = try {
+        Class.forName("android.util.Log")
+    } catch (_: ClassNotFoundException) {
+        return MessageLengthLimitingLogger(delegate = logger)
     }
+
+    if (LoggerFactory.getILoggerFactory() !is NOPLoggerFactory) {
+        return MessageLengthLimitingLogger(delegate = logger)
+    }
+
+    return MessageLengthLimitingLogger(delegate = LogcatLogger(logClass, logger))
+}
 
 private class LogcatLogger(logClass: Class<*>, private val fallback: Logger) : Logger {
     private val tag = "Ktor Client"
