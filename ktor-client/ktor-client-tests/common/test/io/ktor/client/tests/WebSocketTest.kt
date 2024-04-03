@@ -17,6 +17,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
 
@@ -318,6 +319,30 @@ class WebSocketTest : ClientLoader() {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 repeat(1000) {
                     send("test")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testImmediateReceiveAfterConnect() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            withTimeout(10_000) {
+                coroutineScope {
+                    val defs = (1..100).map {
+                        async {
+                            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                                val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
+                                assertNotNull(frame)
+                                assertIs<Frame.Text>(frame)
+                            }
+                        }
+                    }
+                    defs.awaitAll()
                 }
             }
         }
