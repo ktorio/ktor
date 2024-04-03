@@ -7,6 +7,7 @@ package io.ktor.server.testing.suites
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -76,6 +77,52 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
             serverStarted.join()
             val response = HttpClient(CIO).get("http://127.0.0.1:$serverPort/")
             assertEquals(HttpStatusCode.OK, response.status)
+        }
+
+        server.stop(50, 100)
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun testIpv6ServerHostAndPort() = runBlocking {
+        val serverStarted = CompletableDeferred<Unit>()
+        val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
+        val server = embeddedServer(
+            engine,
+            applicationProperties(applicationEnvironment()) {
+                module {
+                    routing {
+                        get("/") {
+                            val local = call.request.local
+                            call.respondText { "${local.serverHost}:${local.serverPort}" }
+                        }
+                    }
+                }
+            }
+        ) {
+            connector { port = serverPort }
+        }
+
+        server.monitor.subscribe(ServerReady) {
+            serverStarted.complete(Unit)
+        }
+
+        GlobalScope.launch {
+            server.start(true)
+        }
+
+        withTimeout(5000) {
+            serverStarted.join()
+            val client = HttpClient(CIO)
+            client.get("http://[::1]:$serverPort/").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("[::1]:$serverPort", response.bodyAsText())
+            }
+            client.get("http://[0:0:0:0:0:0:0:1]:$serverPort/").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("[0:0:0:0:0:0:0:1]:$serverPort", response.bodyAsText())
+            }
+            client.close()
         }
 
         server.stop(50, 100)
