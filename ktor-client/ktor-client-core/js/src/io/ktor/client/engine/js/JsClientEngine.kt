@@ -90,14 +90,14 @@ internal class JsClientEngine(
         val urlString = request.url.toString()
         val socket: WebSocket = createWebSocket(urlString, request.headers)
 
+        val session = JsWebSocketSession(callContext, socket)
+
         try {
             socket.awaitConnection()
         } catch (cause: Throwable) {
             callContext.cancel(CancellationException("Failed to connect to $urlString", cause))
             throw cause
         }
-
-        val session = JsWebSocketSession(callContext, socket)
 
         return HttpResponseData(
             HttpStatusCode.SwitchingProtocols,
