@@ -755,6 +755,19 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
+    @Test
+    fun testAccessingQueryParameterWithoutValue() {
+        createAndStartServer {
+            get("/") {
+                call.respondText(call.request.queryParameters["auto"].toString())
+            }
+        }
+
+        withUrl("/?auto") {
+            assertEquals("", bodyAsText())
+        }
+    }
+
     companion object {
         const val classesDir: String = "build/classes/"
     }
