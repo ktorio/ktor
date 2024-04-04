@@ -112,12 +112,12 @@ class UDPSocketTest {
             .bind()
 
         socket.outgoing.invokeOnClose {
-            done += 1
+            done.addAndGet(1)
         }
 
         assertFailsWith<IllegalStateException> {
             socket.outgoing.invokeOnClose {
-                done += 2
+                done.addAndGet(2)
             }
         }
 
@@ -136,7 +136,7 @@ class UDPSocketTest {
             .bind()
 
         socket.outgoing.invokeOnClose {
-            done += 1
+            done.addAndGet(1)
             assertTrue(it is AssertionError)
         }
 
@@ -154,7 +154,7 @@ class UDPSocketTest {
             .bind()
 
         socket.outgoing.invokeOnClose {
-            done += 1
+            done.addAndGet(1)
         }
 
         socket.close()
@@ -174,7 +174,7 @@ class UDPSocketTest {
         socket.outgoing.close(AssertionError())
 
         socket.outgoing.invokeOnClose {
-            done += 1
+            done.addAndGet(1)
             assertTrue(it is AssertionError)
         }
 

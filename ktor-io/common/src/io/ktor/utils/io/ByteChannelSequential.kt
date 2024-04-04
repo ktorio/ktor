@@ -840,9 +840,9 @@ public abstract class ByteChannelSequentialBase(
     private fun addBytesRead(count: Int) {
         require(count >= 0) { "Can't read negative amount of bytes: $count" }
 
-        channelSize.minusAssign(count)
+        channelSize.addAndGet(-count)
         _totalBytesRead.addAndGet(count.toLong())
-        _availableForRead.minusAssign(count)
+        _availableForRead.addAndGet(-count)
 
         check(channelSize.value >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
         check(availableForRead >= 0) { "Readable bytes count is negative: $availableForRead, $count in $this" }
@@ -851,7 +851,7 @@ public abstract class ByteChannelSequentialBase(
     private fun addBytesWritten(count: Int) {
         require(count >= 0) { "Can't write negative amount of bytes: $count" }
 
-        channelSize.plusAssign(count)
+        channelSize.addAndGet(count)
         _totalBytesWritten.addAndGet(count.toLong())
 
         check(channelSize.value >= 0) { "Readable bytes count is negative: ${channelSize.value}, $count in $this" }

@@ -16,6 +16,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlin.concurrent.Volatile
 
 /**
  * Engine that based on CIO backend
@@ -51,7 +52,8 @@ public class CIOApplicationEngine(
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()
 
-    private var serverJob: Job by atomic(Job())
+    // See KT-67440
+    @Volatile private var serverJob: Job = Job()
 
     init {
         serverJob = initServerJob()
