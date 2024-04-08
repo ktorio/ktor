@@ -1,3 +1,20 @@
+# 2.3.10
+> Published 8 April 2024
+
+### Bugfixes
+* CallLogging, StatusPages: response logged twice when status handler is used ([KTOR-6839](https://youtrack.jetbrains.com/issue/KTOR-6839))
+* NodeJS WebSocket client sometimes drops a frame received immediately after handshake ([KTOR-6883](https://youtrack.jetbrains.com/issue/KTOR-6883))
+* IPv6 addresses are not supported in NettyConnectionPoint and CIOConnectionPoint ([KTOR-5383](https://youtrack.jetbrains.com/issue/KTOR-5383))
+* JS browser: "Maximum call stack size exceeded" on HTTP request when targeting es2015 ([KTOR-6878](https://youtrack.jetbrains.com/issue/KTOR-6878))
+* CIO: File upload fails with `NumberFormatException` when uploading file larger than INT_MAX bytes (~2.1 GiB) since 2.3.0 ([KTOR-6851](https://youtrack.jetbrains.com/issue/KTOR-6851))
+* CallLogging: the plugin completely overrides MDC if at least one entry is configured ([KTOR-6642](https://youtrack.jetbrains.com/issue/KTOR-6642))
+* SSE plugin: Duplicated "Content-Type: text/event-stream" headers ([KTOR-6735](https://youtrack.jetbrains.com/issue/KTOR-6735))
+* CIO: "getSubjectAlternativeNames(...) must not be null" when IP-addresses are verified and no SAN in the certificate ([KTOR-6746](https://youtrack.jetbrains.com/issue/KTOR-6746))
+
+### Improvements
+* Inconsistent behavior of Netty and rest engines by returning null or empty string for query parameters without values ([KTOR-6850](https://youtrack.jetbrains.com/issue/KTOR-6850))
+* Android: no logs are present in Logcat with `Logger.ANDROID` ([KTOR-1219](https://youtrack.jetbrains.com/issue/KTOR-1219))
+
 # 2.3.9
 > Published 4 March 2024
 
