@@ -221,7 +221,8 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
         StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
     }
     is OutgoingContent.NoContent -> ByteArray(0).toRequestBody(null, 0, 0)
-    else -> throw UnsupportedContentTypeException(this)
+    is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext)
+    is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 
 /**

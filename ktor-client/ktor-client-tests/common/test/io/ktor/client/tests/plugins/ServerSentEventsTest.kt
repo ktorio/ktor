@@ -376,4 +376,22 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }
         }
     }
+
+    @Test
+    fun testPostRequest() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse({
+                url("$TEST_SERVER/sse")
+                method = HttpMethod.Post
+            }) {
+                incoming.single().apply {
+                    assertEquals("Hello", data)
+                }
+            }
+        }
+    }
 }
