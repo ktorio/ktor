@@ -77,6 +77,15 @@ internal fun Application.serverSentEvents() {
                     }
                 )
             }
+
+            post {
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent("Hello"))
+                    }
+                )
+
+            }
         }
     }
 }
