@@ -43,7 +43,9 @@ public class DefaultHeadersConfig {
         public fun now(): Long
     }
 
-    internal val cachedDateText: AtomicRef<String> = atomic("")
+    private val _cachedDateText: AtomicRef<String> = atomic("")
+
+    internal var cachedDateText: String by _cachedDateText
 }
 
 /**
@@ -78,9 +80,9 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
         val currentTimeStamp = pluginConfig.clock.now()
         if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
             cachedDateTimeStamp = currentTimeStamp
-            pluginConfig.cachedDateText.value = GMTDate(currentTimeStamp).toHttpDate()
+            pluginConfig.cachedDateText = GMTDate(currentTimeStamp).toHttpDate()
         }
-        return pluginConfig.cachedDateText.value
+        return pluginConfig.cachedDateText
     }
 
     val serverHeader = "Ktor/$ktorVersion"
