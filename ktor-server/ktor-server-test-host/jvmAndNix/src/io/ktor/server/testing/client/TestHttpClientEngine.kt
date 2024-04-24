@@ -6,6 +6,7 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -41,36 +42,40 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        if (data.isUpgradeRequest()) {
-            val (testServerCall, session) = with(data) {
-                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext)
+        try {
+            if (data.isUpgradeRequest()) {
+                val (testServerCall, session) = with(data) {
+                    bridge.runWebSocketRequest(url.fullPath, headers, body, callContext)
+                }
+                return with(testServerCall.response) {
+                    httpResponseData(session)
+                }
             }
-            return with(testServerCall.response) {
-                httpResponseData(session)
+
+            val testServerCall = with(data) {
+                runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeoutCapability))
             }
+            val response = testServerCall.response
+            val status = response.statusOrNotFound()
+            val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
+                .build { append(HttpHeaders.ContentLength, "0") }
+            val body = ByteReadChannel(response.byteContent ?: byteArrayOf())
+
+            val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
+                ?.adapt(data, status, headers, body, data.body, callContext)
+                ?: body
+
+            return HttpResponseData(
+                status,
+                GMTDate(),
+                headers,
+                HttpProtocolVersion.HTTP_1_1,
+                responseBody,
+                callContext
+            )
+        } catch (cause: Throwable) {
+            throw cause.mapToKtor(data)
         }
-
-        val testServerCall = with(data) {
-            runRequest(method, url, headers, body, url.protocol)
-        }
-        val response = testServerCall.response
-        val status = response.statusOrNotFound()
-        val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
-            .build { append(HttpHeaders.ContentLength, "0") }
-        val body = ByteReadChannel(response.byteContent ?: byteArrayOf())
-
-        val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
-            ?.adapt(data, status, headers, body, data.body, callContext)
-            ?: body
-
-        return HttpResponseData(
-            status,
-            GMTDate(),
-            headers,
-            HttpProtocolVersion.HTTP_1_1,
-            responseBody,
-            callContext
-        )
     }
 
     private suspend fun runRequest(
@@ -78,9 +83,10 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         url: Url,
         headers: Headers,
         content: OutgoingContent,
-        protocol: URLProtocol
+        protocol: URLProtocol,
+        timeoutAttributes: HttpTimeoutConfig? = null
     ): TestApplicationCall {
-        return app.handleRequestNonBlocking {
+        return app.handleRequestNonBlocking(timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port
             this.method = method
@@ -88,7 +94,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             this.protocol = protocol.name
 
             if (content !is OutgoingContent.NoContent) {
-                bodyChannel = content.toByteReadChannel()
+                bodyChannel = content.toByteReadChannel(timeoutAttributes)
             }
         }
     }
@@ -125,16 +131,22 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
-        is OutgoingContent.NoContent -> ByteReadChannel.Empty
-        is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
-        is OutgoingContent.ReadChannelContent -> readFrom()
-        is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
-            writeTo(channel)
-        }.channel
-        is OutgoingContent.ContentWrapper -> delegate().toByteReadChannel()
-        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
-    }
+    private fun OutgoingContent.toByteReadChannel(timeoutAttributes: HttpTimeoutConfig?): ByteReadChannel =
+        when (this) {
+            is OutgoingContent.NoContent -> ByteReadChannel.Empty
+            is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
+            is OutgoingContent.ReadChannelContent -> readFrom()
+            is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
+                val job = launch {
+                    writeTo(channel)
+                }
+
+                configureSocketTimeoutIfNeeded(timeoutAttributes, job) { channel.totalBytesWritten }
+            }.channel
+
+            is OutgoingContent.ContentWrapper -> delegate().toByteReadChannel(timeoutAttributes)
+            is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
+        }
 
     private fun TestApplicationResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
 }
