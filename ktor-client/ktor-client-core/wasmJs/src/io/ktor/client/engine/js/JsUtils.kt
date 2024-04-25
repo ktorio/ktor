@@ -40,6 +40,7 @@ internal suspend fun HttpRequestData.toRaw(
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 private suspend fun getBodyBytes(content: OutgoingContent, callContext: CoroutineContext): ByteArray? {
     return when (content) {

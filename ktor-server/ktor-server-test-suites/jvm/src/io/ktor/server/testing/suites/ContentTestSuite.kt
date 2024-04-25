@@ -15,13 +15,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import java.io.*
 import kotlin.test.*
-import kotlin.test.Test
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -286,6 +284,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             get("/chunked") {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
+                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
                             channel.close()
@@ -297,6 +296,8 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
                         override val contentLength: Long? get() = size
+
+                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
                             channel.close()
@@ -632,8 +633,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> {
-                            @Suppress("DEPRECATION")
-                            val lineSequence = part.streamProvider().bufferedReader().lineSequence()
+                            val lineSequence = part.provider().readRemaining().readText().lines()
                             response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
                         }
 

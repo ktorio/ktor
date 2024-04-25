@@ -320,10 +320,10 @@ class TestApplicationTestJvm {
 
         val body = object : OutgoingContent.WriteChannelContent() {
             override suspend fun writeTo(channel: ByteWriteChannel) {
-                channel.writeAvailable("Hello".toByteArray())
+                channel.writeByteArray("Hello".toByteArray())
                 channel.flush()
                 delay(300)
-                channel.writeAvailable("World".toByteArray())
+                channel.writeByteArray("World".toByteArray())
                 channel.flush()
             }
         }

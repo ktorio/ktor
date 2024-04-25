@@ -900,7 +900,7 @@ public final class io/ktor/server/plugins/CannotTransformContentToTypeException 
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
-public abstract class io/ktor/server/plugins/ContentTransformationException : java/lang/Exception {
+public abstract class io/ktor/server/plugins/ContentTransformationException : java/io/IOException {
 	public fun <init> (Ljava/lang/String;)V
 }
 

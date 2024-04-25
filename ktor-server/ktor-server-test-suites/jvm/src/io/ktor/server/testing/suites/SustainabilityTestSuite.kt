@@ -23,6 +23,7 @@ import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
@@ -35,7 +36,9 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.io.use
 import kotlin.test.*
+import kotlin.text.toByteArray
 
 @ExtendWith(RetrySupport::class)
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -134,7 +137,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                                 val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
                                 channel.discardExact(contentLength)
                                 response.release()
-                            } ?: kotlin.test.fail("No response found for request #$requestNumber")
+                            } ?: fail("No response found for request #$requestNumber")
                         }
                     }
                 }
@@ -142,6 +145,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     @NoHttp2
     @Ignore
@@ -569,7 +573,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
             post("/") {
                 call.receiveParameters()
-                kotlin.test.fail("We should NOT receive any content")
+                fail("We should NOT receive any content")
             }
         }
 

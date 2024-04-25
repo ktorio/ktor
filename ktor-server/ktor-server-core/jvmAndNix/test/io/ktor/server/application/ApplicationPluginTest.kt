@@ -304,6 +304,7 @@ class ApplicationPluginTest {
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testTransformBody() = withTestApplication {
         data class MyInt(val x: Int)

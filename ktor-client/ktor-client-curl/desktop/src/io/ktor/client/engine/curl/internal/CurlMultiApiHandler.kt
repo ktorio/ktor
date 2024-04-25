@@ -247,6 +247,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalForeignApi::class)
     private fun processCancelledEasyHandle(easyHandle: EasyHandle, cause: Throwable): CurlFail = memScoped {
         try {
@@ -265,6 +266,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalForeignApi::class)
     private fun processCompletedEasyHandle(
         message: CURLMSG?,
@@ -335,6 +337,7 @@ internal class CurlMultiApiHandler : Closeable {
         )
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalForeignApi::class)
     private fun collectSuccessResponse(easyHandle: EasyHandle): CurlSuccess? = memScoped {
         val responseDataRef = alloc<COpaquePointerVar>()

@@ -4,59 +4,133 @@
 
 package io.ktor.utils.io.internal
 
-import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
- * Exclusive slot for waiting.
- * Only one waiter allowed.
+ * AwaitingSlot class is used to suspend coroutines until a condition is met, or it is resumed/canceled.
+ * If the second waiter comes, it evicts the first waiter.
  *
- * TODO: replace [Job] -> [Continuation] when all coroutines problems are fixed.
+ * @constructor Creates an instance of AwaitingSlot.
  */
 internal class AwaitingSlot {
-    private val suspension: AtomicRef<CompletableJob?> = atomic(null)
+    private val suspension: AtomicRef<CancellableContinuation<Unit>?> = atomic(null)
 
     /**
-     * Wait for other [sleep] or resume.
+     * Wait for other [sleepWhile] or resume.
      */
-    suspend fun sleep(sleepCondition: () -> Boolean) {
-        if (trySuspend(sleepCondition)) {
-            return
+    suspend fun sleepWhile(sleepCondition: () -> Boolean) {
+        while (sleepCondition()) {
+            trySuspend(sleepCondition)
         }
-
-        resume()
     }
 
     /**
      * Resume waiter.
      */
     fun resume() {
-        suspension.getAndSet(null)?.complete()
+        val continuation = suspension.getAndUpdate {
+            if (it == CLOSED) CLOSED else null
+        }
+
+        continuation?.resume(Unit)
     }
 
     /**
      * Cancel waiter.
      */
-    fun cancel(cause: Throwable?) {
-        val continuation = suspension.getAndSet(null) ?: return
+    fun close(cause: Throwable?) {
+        val closeContinuation = if (cause != null) ClosedSlot(cause) else CLOSED
+        val continuation = suspension.getAndSet(closeContinuation) ?: return
+        if (continuation is ClosedSlot) return
 
         if (cause != null) {
-            continuation.completeExceptionally(cause)
+            continuation.resumeWithException(cause)
         } else {
-            continuation.complete()
+            continuation.resume(Unit)
         }
     }
 
     private suspend fun trySuspend(sleepCondition: () -> Boolean): Boolean {
         var suspended = false
 
-        val job = Job()
-        if (suspension.compareAndSet(null, job) && sleepCondition()) {
-            suspended = true
-            job.join()
+        suspendCancellableCoroutine {
+            val published = suspension.compareAndSet(null, it)
+            if (!published) {
+                it.resume(Unit)
+                return@suspendCancellableCoroutine
+            }
+
+            if (sleepCondition()) {
+                suspended = true
+            } else {
+                suspension.getAndSet(null)?.resume(Unit)
+            }
         }
 
         return suspended
+    }
+}
+
+private val CLOSED = ClosedSlot(null)
+
+private class ClosedSlot(val cause: Throwable?) : CancellableContinuation<Unit> {
+    override val context: CoroutineContext = EmptyCoroutineContext
+    override val isActive: Boolean = false
+    override val isCancelled: Boolean = cause != null
+    override val isCompleted: Boolean = true
+
+    override fun cancel(cause: Throwable?): Boolean {
+        return false
+    }
+
+    @InternalCoroutinesApi
+    override fun completeResume(token: Any) {
+        checkClosed()
+    }
+
+    @InternalCoroutinesApi
+    override fun initCancellability() = Unit
+
+    override fun invokeOnCancellation(handler: CompletionHandler) = Unit
+
+    @InternalCoroutinesApi
+    override fun tryResumeWithException(exception: Throwable): Any? {
+        checkClosed()
+        return null
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun CoroutineDispatcher.resumeUndispatchedWithException(exception: Throwable) {
+        checkClosed()
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun CoroutineDispatcher.resumeUndispatched(value: Unit) {
+        checkClosed()
+    }
+
+    @InternalCoroutinesApi
+    override fun tryResume(value: Unit, idempotent: Any?, onCancellation: ((cause: Throwable) -> Unit)?): Any? {
+        checkClosed()
+        return null
+    }
+
+    @InternalCoroutinesApi
+    override fun tryResume(value: Unit, idempotent: Any?): Any? {
+        checkClosed()
+        return null
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun resume(value: Unit, onCancellation: ((cause: Throwable) -> Unit)?) = checkClosed()
+
+    override fun resumeWith(result: Result<Unit>) = checkClosed()
+
+    override fun hashCode(): Int = 777
+
+    fun checkClosed() {
+        if (cause != null) throw cause
     }
 }

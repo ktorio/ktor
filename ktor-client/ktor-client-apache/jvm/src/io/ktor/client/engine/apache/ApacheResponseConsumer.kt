@@ -44,6 +44,7 @@ internal class ApacheResponseConsumer(
         }
     }
 
+    @OptIn(InternalAPI::class)
     override fun consumeContent(decoder: ContentDecoder, ioctrl: IOControl) {
         check(!waiting.value)
 
@@ -53,7 +54,7 @@ internal class ApacheResponseConsumer(
             channel.writeAvailable {
                 result = decoder.read(it)
             }
-            channel.flush()
+            channel.flushWriteBuffer()
         } while (result > 0)
 
         if (result < 0 || decoder.isCompleted) {
@@ -86,12 +87,13 @@ internal class ApacheResponseConsumer(
         return true
     }
 
+    @OptIn(InternalAPI::class)
     override fun close() {
         channel.close()
         consumerJob.complete()
     }
 
-    override fun getException(): Exception? = channel.closedCause as? Exception
+    override fun getException(): Exception? = channel.closedCause as Exception?
 
     override fun getResult() {
     }

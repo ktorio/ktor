@@ -6,6 +6,7 @@ package io.ktor.websocket.internals
 
 import io.ktor.utils.io.core.*
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.endsWith(data: ByteArray): Boolean {
     copy().apply {
         discard(remaining - data.size)

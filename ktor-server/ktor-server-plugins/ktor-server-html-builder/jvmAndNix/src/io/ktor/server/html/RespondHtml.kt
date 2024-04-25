@@ -43,7 +43,10 @@ public class HtmlContent(
         val content = buildPacket {
             try {
                 append("<!DOCTYPE html>\n")
-                appendHTML().html(block = builder)
+                val html = buildString {
+                    appendHTML().html(block = builder)
+                }
+                append(html)
             } catch (cause: Throwable) {
                 channel.close(cause)
                 throw cause

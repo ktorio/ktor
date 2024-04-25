@@ -173,6 +173,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
         }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun readAvailable(channel: ByteReadChannel): String {
         val buffer = ByteArray(1024)
         val length = channel.readAvailable(buffer)

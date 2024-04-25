@@ -206,6 +206,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testHttpUpgrade() {
         createAndStartServer {
@@ -299,6 +300,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
             get("/ll") {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
+                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             val bb: ByteBuffer = ByteBuffer.allocate(1024)
                             Random().nextBytes(bb.array())

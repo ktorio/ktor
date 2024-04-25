@@ -132,6 +132,7 @@ internal class Endpoint(
         }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun processExpectContinue(
         request: HttpRequestData,
         input: ByteReadChannel,

@@ -12,13 +12,13 @@ import io.ktor.network.sockets.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.*
+import kotlinx.io.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 
@@ -37,7 +37,7 @@ internal actual class ConnectionPipeline actual constructor(
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
-    public actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
+    actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
                 val task = withTimeoutOrNull(keepAliveTime) {
@@ -101,11 +101,11 @@ internal actual class ConnectionPipeline actual constructor(
                         (status !in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent)) &&
                         !status.isInformational()
 
-                    val responseChannel = if (hasBody) ByteChannel() else null
+                    val responseChannel = if (hasBody) io.ktor.utils.io.ByteChannel() else null
 
                     var skipTask: Job? = null
                     val body: ByteReadChannel = if (responseChannel != null) {
-                        val proxyChannel = ByteChannel()
+                        val proxyChannel = io.ktor.utils.io.ByteChannel()
                         skipTask = skipCancels(responseChannel, proxyChannel)
                         proxyChannel
                     } else ByteReadChannel.Empty
@@ -138,6 +138,7 @@ internal actual class ConnectionPipeline actual constructor(
                 if (shouldClose) break
             }
         } finally {
+            @Suppress("DEPRECATION")
             networkOutput.close()
             connection.socket.close()
         }
@@ -149,6 +150,7 @@ internal actual class ConnectionPipeline actual constructor(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun CoroutineScope.skipCancels(
     input: ByteReadChannel,
     output: ByteWriteChannel

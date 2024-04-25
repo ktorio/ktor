@@ -46,7 +46,8 @@ public class HttpTimeoutConfig {
 
     /**
      * Specifies a request timeout in milliseconds.
-     * The request timeout is the time period required to process an HTTP call: from sending a request to receiving a response.
+     * The request timeout is the time period required to process an HTTP call: from sending a request to receiving a
+     * response.
      */
     public var requestTimeoutMillis: Long?
         get() = _requestTimeoutMillis
@@ -113,7 +114,8 @@ public object HttpTimeoutCapability : HttpClientEngineCapability<HttpTimeoutConf
 
 /**
  * A plugin that allows you to configure the following timeouts:
- * - __request timeout__ — a time period required to process an HTTP call: from sending a request to receiving a response.
+ * - __request timeout__ — a time period required to process an HTTP call: from sending a request to receiving
+ * a response.
  * - __connection timeout__ — a time period in which a client should establish a connection with a server.
  * - __socket timeout__ — a maximum time of inactivity between two data packets when exchanging data with a server.
  *
@@ -183,12 +185,16 @@ public fun HttpRequestBuilder.timeout(block: HttpTimeoutConfig.() -> Unit): Unit
 
 /**
  * This exception is thrown in case the request timeout is exceeded.
- * The request timeout is the time period required to process an HTTP call: from sending a request to receiving a response.
+ * The request timeout is the time period required to process an HTTP call: from sending a request to receiving
+ * a response.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public class HttpRequestTimeoutException(
-    url: String,
-    timeoutMillis: Long?
-) : IOException("Request timeout has expired [url=$url, request_timeout=${timeoutMillis ?: "unknown"} ms]") {
+    private val url: String,
+    private val timeoutMillis: Long?,
+    cause: Throwable? = null
+) : IOException("Request timeout has expired [url=$url, request_timeout=${timeoutMillis ?: "unknown"} ms]", cause),
+    CopyableThrowable<HttpRequestTimeoutException> {
 
     public constructor(request: HttpRequestBuilder) : this(
         request.url.buildString(),
@@ -199,6 +205,10 @@ public class HttpRequestTimeoutException(
         request.url.toString(),
         request.getCapabilityOrNull(HttpTimeoutCapability)?.requestTimeoutMillis
     )
+
+    override fun createCopy(): HttpRequestTimeoutException {
+        return HttpRequestTimeoutException(url, timeoutMillis, cause)
+    }
 }
 
 /**

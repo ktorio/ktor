@@ -7,7 +7,6 @@ package io.ktor.network.tls
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import java.io.*
 import java.math.*
 import java.security.cert.*
 import java.security.spec.*
@@ -26,6 +25,7 @@ internal suspend fun ByteReadChannel.readTLSRecord(): TLSRecord {
     return TLSRecord(type, version, packet)
 }
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readTLSHandshake(): TLSHandshake = TLSHandshake().apply {
     val typeAndVersion = readInt()
     type = TLSHandshakeType.byCode(typeAndVersion ushr 24)
@@ -35,6 +35,7 @@ internal fun ByteReadPacket.readTLSHandshake(): TLSHandshake = TLSHandshake().ap
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
     val version = readTLSVersion()
 
@@ -82,6 +83,7 @@ internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
     return TLSServerHello(version, random, sessionId, suite, compressionMethod, extensions)
 }
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readCurveParams(): NamedCurve {
     val type = readByte().toInt() and 0xff
     when (ServerKeyExchangeType.byCode(type)) {
@@ -95,6 +97,7 @@ internal fun ByteReadPacket.readCurveParams(): NamedCurve {
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readTLSCertificate(): List<Certificate> {
     val certificatesChainLength = readTripleByteLength()
     var certificateBase = 0
@@ -119,6 +122,7 @@ internal fun ByteReadPacket.readTLSCertificate(): List<Certificate> {
     return result
 }
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readECPoint(fieldSize: Int): ECPoint {
     val pointSize = readByte().toInt() and 0xff
 
@@ -137,9 +141,11 @@ internal fun ByteReadPacket.readECPoint(fieldSize: Int): ECPoint {
 private suspend fun ByteReadChannel.readTLSVersion() =
     TLSVersion.byCode(readShortCompatible() and 0xffff)
 
+@Suppress("DEPRECATION")
 private fun ByteReadPacket.readTLSVersion() =
     TLSVersion.byCode(readShort().toInt() and 0xffff)
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.readTripleByteLength(): Int = (readByte().toInt() and 0xff shl 16) or
     (readShort().toInt() and 0xffff)
 

@@ -404,7 +404,7 @@ class TestApplicationTest {
                     HttpStatusCode.OK,
                     object : OutgoingContent.WriteChannelContent() {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeAvailable("Hello".toByteArray())
+                            channel.writeByteArray("Hello".toByteArray())
                             channel.flush()
                             delay(300)
                         }

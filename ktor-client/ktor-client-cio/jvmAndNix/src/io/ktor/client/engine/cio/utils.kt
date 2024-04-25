@@ -32,6 +32,7 @@ internal suspend fun writeRequest(
     writeBody(request, output, callContext)
 }
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun writeHeaders(
     request: HttpRequestData,
@@ -100,7 +101,7 @@ internal suspend fun writeHeaders(
     }
 }
 
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION", "DEPRECATION")
 internal suspend fun writeBody(
     request: HttpRequestData,
     output: ByteWriteChannel,
@@ -162,7 +163,6 @@ private suspend fun processOutgoingContent(request: HttpRequestData, body: Outgo
     }
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
@@ -274,7 +274,6 @@ internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
 /**
  * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
  */
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun ByteWriteChannel.withoutClosePropagation(
     coroutineContext: CoroutineContext,

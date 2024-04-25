@@ -13,6 +13,7 @@ import java.util.zip.*
 private val PADDED_EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0, 0xff.toByte(), 0xff.toByte())
 private val EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0xff.toByte(), 0xff.toByte())
 
+@Suppress("DEPRECATION")
 internal fun Deflater.deflateFully(data: ByteArray): ByteArray {
     setInput(data)
 
@@ -56,9 +57,11 @@ internal fun Inflater.inflateFully(data: ByteArray): ByteArray {
         }
     }
 
+    @Suppress("DEPRECATION")
     return packet.readBytes()
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.deflateTo(
     deflater: Deflater,
     buffer: ByteBuffer,

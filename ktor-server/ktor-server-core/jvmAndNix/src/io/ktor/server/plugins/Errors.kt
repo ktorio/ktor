@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.internal.*
 import io.ktor.util.internal.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.reflect.*
 
 /**
@@ -64,7 +65,7 @@ public class ParameterConversionException(
  * It is not defined which status code will be replied when an exception of this type is thrown and not caught.
  * Depending on child type it could be 4xx or 5xx status code. By default it will be 500 Internal Server Error.
  */
-public abstract class ContentTransformationException(message: String) : Exception(message)
+public abstract class ContentTransformationException(message: String) : IOException(message)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 public class CannotTransformContentToTypeException(

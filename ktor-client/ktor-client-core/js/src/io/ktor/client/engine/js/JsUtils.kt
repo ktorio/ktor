@@ -17,7 +17,7 @@ import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalAPI::class)
 internal suspend fun HttpRequestData.toRaw(
     clientConfig: HttpClientConfig<*>,
     callContext: CoroutineContext
@@ -38,6 +38,7 @@ internal suspend fun HttpRequestData.toRaw(
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 private suspend fun getBodyBytes(content: OutgoingContent, callContext: CoroutineContext): ByteArray? {
     return when (content) {

@@ -12,7 +12,6 @@ import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.math.*
 
-@Suppress("DEPRECATION")
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
@@ -26,26 +25,30 @@ internal fun CoroutineScope.attachForWritingImpl(
     var total = 0
     while (!sockedClosed && !source.isClosedForRead) {
         val count = source.read { memory, start, stop ->
-            val bufferStart = memory.pointer + start
-            val remaining = stop - start
-            val bytesWritten = if (remaining > 0) {
-                send(descriptor, bufferStart, remaining.convert(), 0).toInt()
-            } else {
-                0
-            }
+            val written = memory.usePinned { pinned ->
+                val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
+                val remaining = stop - start
+                val bytesWritten = if (remaining > 0) {
+                    send(descriptor, bufferStart, remaining.convert(), 0).toInt()
+                } else {
+                    0
+                }
 
-            when (bytesWritten) {
-                0 -> sockedClosed = true
-                -1 -> {
-                    if (errno == EAGAIN) {
-                        needSelect = true
-                    } else {
-                        throw PosixException.forErrno()
+                when (bytesWritten) {
+                    0 -> sockedClosed = true
+                    -1 -> {
+                        if (errno == EAGAIN) {
+                            needSelect = true
+                        } else {
+                            throw PosixException.forErrno()
+                        }
                     }
                 }
+
+                bytesWritten
             }
 
-            max(0, bytesWritten)
+            max(0, written)
         }
 
         total += count

@@ -67,6 +67,7 @@ internal class SavedHttpResponse(
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
     val responseBody = response.content.readRemaining().readBytes()

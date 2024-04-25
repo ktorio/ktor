@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
@@ -57,9 +61,6 @@ public actual val CharsetEncoder.charset: Charset get() = _charset
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
     encodeToByteArrayImpl(input, fromIndex, toIndex)
 
-@Suppress("DEPRECATION")
-internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
-
 // ----------------------------------------------------------------------
 
 public actual abstract class CharsetDecoder(internal val _charset: Charset)
@@ -67,7 +68,7 @@ internal data class CharsetDecoderImpl(private val charset: Charset) : CharsetDe
 
 public actual val CharsetDecoder.charset: Charset get() = _charset
 
-internal val platformUtf16: String = if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
+internal val platformUtf16: String = if (ByteOrder.nativeOrder() == io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 // -----------------------------------------------------------
 public actual open class MalformedInputException actual constructor(message: String) : IOException(message)

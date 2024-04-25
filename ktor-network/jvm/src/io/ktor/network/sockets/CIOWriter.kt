@@ -24,7 +24,7 @@ internal fun CoroutineScope.attachForWritingImpl(
 ): ReaderJob {
     val buffer = pool.borrow()
 
-    return reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
+    return reader(Dispatchers.IO + CoroutineName("cio-to-nio-writer"), channel) {
         try {
             val timeout = if (socketOptions?.socketTimeout != null) {
                 createTimeout("writing", socketOptions.socketTimeout) {
@@ -81,7 +81,7 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
     selectable: Selectable,
     selector: SelectorManager,
     socketOptions: SocketOptions.TCPClientSocketOptions? = null
-): ReaderJob = reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
+): ReaderJob = reader(Dispatchers.IO + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
         @Suppress("DEPRECATION")

@@ -105,6 +105,7 @@ public fun AuthenticationConfig.basic(
 /**
  * Retrieves [basic] authentication credentials for this [ApplicationRequest].
  */
+@Suppress("DEPRECATION")
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {

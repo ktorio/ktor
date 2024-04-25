@@ -114,6 +114,7 @@ internal class JsWebSocketSession(
                 when (it.frameType) {
                     FrameType.TEXT -> {
                         val text = it.data
+                        @Suppress("DEPRECATION")
                         websocket.send(String(text))
                     }
                     FrameType.BINARY -> {

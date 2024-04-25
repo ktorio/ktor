@@ -55,6 +55,7 @@ public abstract class ServletApplicationResponse(
 
             if (responseJob.isInitialized()) {
                 responseJob.value.apply {
+                    @Suppress("DEPRECATION")
                     channel.close()
                     join()
                 }

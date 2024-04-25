@@ -60,7 +60,6 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 }
                 PartData.BinaryChannelItem(value.block, partHeaders.build())
             }
-            is Input -> error("Can't use [Input] as part of form: $value. Consider using [InputProvider] instead.")
             else -> error("Unknown form content type: $value")
         }
 
@@ -136,6 +135,7 @@ public class FormBuilder internal constructor() {
     /**
      * Appends a pair [key]:[value] with optional [headers].
      */
+    @Suppress("DEPRECATION")
     public fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
@@ -179,6 +179,7 @@ public class FormBuilder internal constructor() {
 /**
  * Appends a form part with the specified [key] using [bodyBuilder] for its body.
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun FormBuilder.append(
     key: String,
@@ -211,6 +212,7 @@ public class ChannelProvider(public val size: Long? = null, public val block: ()
 /**
  * Appends a form part with the specified [key], [filename], and optional [contentType] using [bodyBuilder] for its body.
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public fun FormBuilder.append(
     key: String,

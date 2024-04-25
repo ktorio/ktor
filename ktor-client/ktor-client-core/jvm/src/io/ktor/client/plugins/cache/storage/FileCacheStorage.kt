@@ -86,6 +86,7 @@ private class FileCacheStorage(
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("MD5").digest(url.toString().encodeToByteArray()))
 
+    @OptIn(InternalAPI::class)
     private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {

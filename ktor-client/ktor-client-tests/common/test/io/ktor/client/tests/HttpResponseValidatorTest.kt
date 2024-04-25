@@ -498,7 +498,8 @@ class HttpResponseValidatorTest {
                 client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
-                assertEquals(cause.message?.contains("<body failed decoding>"), true)
+                val message = "Bad response: HttpResponse[http://localhost, 900 Awesome code]. Text: "
+                assertTrue { cause.message!!.startsWith(message) }
             }
         }
     }

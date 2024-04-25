@@ -55,6 +55,7 @@ public expect fun generateNonce(): String
 /**
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  */
+@Suppress("DEPRECATION")
 public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
         writeText(generateNonce())
