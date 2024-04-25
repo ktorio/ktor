@@ -43,6 +43,7 @@ class PostTest : ClientLoader() {
             val response = client.post("$TEST_SERVER/content/echo") {
                 setBody(
                     object : OutgoingContent.WriteChannelContent() {
+                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeStringUtf8(content)
                             delay(1000)

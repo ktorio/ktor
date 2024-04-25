@@ -7,6 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
@@ -59,6 +60,7 @@ public class CIOMultipartDataBase(
         }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun partToData(part: MultipartEvent.MultipartPart): PartData {
         val headers = part.headers.await()
 

@@ -5,11 +5,13 @@
 package io.ktor.network.tls
 
 import io.ktor.network.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import java.security.*
 
 internal fun Digest(): Digest = Digest(BytePacketBuilder())
 
+@Suppress("DEPRECATION")
 @JvmInline
 internal value class Digest(val state: BytePacketBuilder) : Closeable {
 
@@ -39,6 +41,7 @@ internal value class Digest(val state: BytePacketBuilder) : Closeable {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun close() {
         state.release()
     }

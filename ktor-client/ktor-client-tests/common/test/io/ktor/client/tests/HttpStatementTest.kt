@@ -15,6 +15,7 @@ import kotlin.test.*
 
 class HttpStatementTest : ClientLoader() {
 
+    @Suppress("DEPRECATION")
     @Test
     @Ignore
     fun testExecute() = clientTests {

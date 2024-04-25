@@ -72,8 +72,8 @@ private suspend fun client(
     callDispatcher: CoroutineContext,
     handler: HttpRequestHandler
 ) {
-    val incoming = ByteChannel(true)
-    val outgoing = ByteChannel()
+    val incoming = io.ktor.utils.io.ByteChannel(true)
+    val outgoing = io.ktor.utils.io.ByteChannel()
 
     GlobalScope.launch(ioCoroutineContext) {
         val buffer = DefaultByteBufferPool.borrow()

@@ -5,6 +5,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -77,11 +78,13 @@ public actual class RequestResponseBuilder actual constructor() {
     /**
      * Build a packet of request/response
      */
+    @Suppress("DEPRECATION")
     public actual fun build(): ByteReadPacket = packet.build()
 
     /**
      * Release all resources hold by the builder
      */
+    @Suppress("DEPRECATION")
     public actual fun release() {
         packet.release()
     }

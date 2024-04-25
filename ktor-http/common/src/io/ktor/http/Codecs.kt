@@ -196,6 +196,7 @@ private fun String.decodeScan(start: Int, end: Int, plusIsSpace: Boolean, charse
     return if (start == 0 && end == length) toString() else substring(start, end)
 }
 
+@Suppress("DEPRECATION")
 private fun CharSequence.decodeImpl(
     start: Int,
     end: Int,
@@ -291,6 +292,7 @@ private fun hexDigitToChar(digit: Int): Char = when (digit) {
     else -> 'A' + digit - 10
 }
 
+@Suppress("DEPRECATION")
 private fun ByteReadPacket.forEach(block: (Byte) -> Unit) {
     takeWhile { buffer ->
         while (buffer.canRead()) {

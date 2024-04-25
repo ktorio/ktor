@@ -45,6 +45,7 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
     )
 }
 
+@Suppress("DEPRECATION")
 internal actual fun ByteReadPacket.readTextWithCustomCharset(charset: Charset): String =
     inputStream().reader(charset).readText()
 

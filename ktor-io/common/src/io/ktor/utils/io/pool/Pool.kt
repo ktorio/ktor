@@ -1,9 +1,9 @@
 package io.ktor.utils.io.pool
 
-import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 
-public interface ObjectPool<T : Any> : Closeable {
+@OptIn(ExperimentalStdlibApi::class)
+public interface ObjectPool<T : Any> : AutoCloseable {
     /**
      * Pool capacity
      */

@@ -22,12 +22,14 @@ internal suspend fun ByteWriteChannel.writeRecord(record: TLSRecord) = with(reco
     flush()
 }
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writeTLSHandshakeType(type: TLSHandshakeType, length: Int) {
     if (length > 0xffffff) throw TLSException("TLS handshake size limit exceeded: $length")
     val v = (type.code shl 24) or length
     writeInt(v)
 }
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writeTLSClientHello(
     version: TLSVersion,
     suites: List<CipherSuite>,
@@ -70,6 +72,7 @@ internal fun BytePacketBuilder.writeTLSClientHello(
     }
 }
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writeTLSCertificates(certificates: Array<X509Certificate>) {
     val chain = buildPacket {
         for (certificate in certificates) {
@@ -83,6 +86,7 @@ internal fun BytePacketBuilder.writeTLSCertificates(certificates: Array<X509Cert
     writePacket(chain)
 }
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writeEncryptedPreMasterSecret(
     preSecret: ByteArray,
     publicKey: PublicKey,
@@ -108,6 +112,7 @@ internal fun finished(digest: ByteArray, secretKey: SecretKey) = buildPacket {
 internal fun serverFinished(handshakeHash: ByteArray, secretKey: SecretKey, length: Int = 12): ByteArray =
     PRF(secretKey, SERVER_FINISHED_LABEL, handshakeHash, length)
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writePublicKeyUncompressed(key: PublicKey) = when (key) {
     is ECPublicKey -> {
         val fieldSize = key.params.curve.field.fieldSize
@@ -116,6 +121,7 @@ internal fun BytePacketBuilder.writePublicKeyUncompressed(key: PublicKey) = when
     else -> throw TLSException("Unsupported public key type: $key")
 }
 
+@Suppress("DEPRECATION")
 internal fun BytePacketBuilder.writeECPoint(point: ECPoint, fieldSize: Int) {
     val pointData = buildPacket {
         writeByte(4) // 4 - uncompressed
@@ -127,6 +133,7 @@ internal fun BytePacketBuilder.writeECPoint(point: ECPoint, fieldSize: Int) {
     writePacket(pointData)
 }
 
+@Suppress("DEPRECATION")
 private fun buildSignatureAlgorithmsExtension(
     algorithms: List<HashAndSign> = SupportedSignatureAlgorithms
 ): ByteReadPacket = buildPacket {
@@ -143,6 +150,7 @@ private fun buildSignatureAlgorithmsExtension(
 }
 
 private const val MAX_SERVER_NAME_LENGTH: Int = Short.MAX_VALUE - 5
+@Suppress("DEPRECATION")
 private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket {
     require(name.length < MAX_SERVER_NAME_LENGTH) {
         "Server name length limit exceeded: at most $MAX_SERVER_NAME_LENGTH characters allowed"
@@ -158,6 +166,7 @@ private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket
 
 private const val MAX_CURVES_QUANTITY: Int = Short.MAX_VALUE / 2 - 1
 
+@Suppress("DEPRECATION")
 private fun buildECCurvesExtension(curves: List<NamedCurve> = SupportedNamedCurves): ByteReadPacket = buildPacket {
     require(curves.size <= MAX_CURVES_QUANTITY) {
         "Too many named curves provided: at most $MAX_CURVES_QUANTITY could be provided"
@@ -174,6 +183,7 @@ private fun buildECCurvesExtension(curves: List<NamedCurve> = SupportedNamedCurv
     }
 }
 
+@Suppress("DEPRECATION")
 private fun buildECPointFormatExtension(
     formats: List<PointFormat> = SupportedPointFormats
 ): ByteReadPacket = buildPacket {
@@ -188,6 +198,7 @@ private fun buildECPointFormatExtension(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeAligned(src: ByteArray, fieldSize: Int) {
     val expectedSize = (fieldSize + 7) ushr 3
     val index = src.indexOfFirst { it != 0.toByte() }
@@ -197,6 +208,7 @@ private fun BytePacketBuilder.writeAligned(src: ByteArray, fieldSize: Int) {
     writeFully(src, index, src.size - index)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeTripleByteLength(value: Int) {
     val high = (value ushr 16) and 0xff
     val low = value and 0xffff

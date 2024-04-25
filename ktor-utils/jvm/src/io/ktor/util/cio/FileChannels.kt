@@ -26,18 +26,25 @@ public fun File.readChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteReadChannel {
     val fileLength = length()
-    return CoroutineScope(coroutineContext).writer(CoroutineName("file-reader") + coroutineContext, autoFlush = false) {
+    val randomAccessFile = RandomAccessFile(this@readChannel, "r")
+    val writer = CoroutineScope(coroutineContext).writer(CoroutineName("file-reader") + coroutineContext, autoFlush = false) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
         require(endInclusive <= fileLength - 1) {
             "endInclusive points to the position out of the file: file size = $fileLength, endInclusive = $endInclusive"
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
-        RandomAccessFile(this@readChannel, "r").use { file ->
+        randomAccessFile.use { file ->
             val fileChannel: FileChannel = file.channel
             fileChannel.writeToScope(this, start, endInclusive)
         }
-    }.channel
+    }
+
+    writer.invokeOnCompletion {
+        randomAccessFile.close()
+    }
+
+    return writer.channel
 }
 
 @Suppress("BlockingMethodInNonBlockingContext")

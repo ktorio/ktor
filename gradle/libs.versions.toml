@@ -2,6 +2,7 @@
 kotlin-version = "1.9.22"
 kotlinx-html-version = "0.11.0"
 kotlinx-datetime = "0.5.0"
+kotlinx-io = "0.3.2-SNAPSHOT"
 coroutines-version = "1.8.0"
 atomicfu-version = "0.23.2"
 serialization-version = "1.6.1" # Do not upgrade, 1.6.2 breaks maven publishing!
@@ -88,6 +89,8 @@ kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-seria
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html-version" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty-version" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty-version" }

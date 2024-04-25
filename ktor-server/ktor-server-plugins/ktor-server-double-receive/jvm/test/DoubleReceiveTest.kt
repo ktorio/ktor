@@ -11,6 +11,7 @@ import kotlin.test.*
 
 class DoubleReceiveTest {
 
+    @Suppress("DEPRECATION")
     @Test
     fun testFileCache() = runBlocking {
         val content = ByteArray(16 * 1024 * 1024) { it.toByte() }
@@ -26,6 +27,7 @@ class DoubleReceiveTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testInMemoryCache() = runBlocking {
         val content = ByteArray(16 * 1024 * 1024) { it.toByte() }

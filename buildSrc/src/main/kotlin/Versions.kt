@@ -8,5 +8,5 @@ object Versions {
     val slf4j = "1.7.36"
     val junit = "5.10.1"
     val logback = "1.2.11"
-    val puppeteer = "21.5.0"
+    val puppeteer = "22.7.1"
 }

@@ -13,12 +13,10 @@ import java.net.*
 import java.security.*
 import java.security.cert.*
 import java.security.cert.Certificate
-import java.text.*
 import java.time.*
-import java.time.format.DateTimeFormatter
-import java.util.*
+import java.time.format.*
 import javax.net.ssl.*
-import javax.security.auth.x500.X500Principal
+import javax.security.auth.x500.*
 import kotlin.time.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -81,6 +79,7 @@ public fun generateCertificate(
  * The [keyType] determines the extensions that should be written in the certificate, such as [OID.ExtKeyUsage] or
  * [OID.BasicConstraints] to use the key as CA.
  */
+@Suppress("DEPRECATION")
 internal fun generateX509Certificate(
     subject: X500Principal,
     issuer: X500Principal,
@@ -196,6 +195,7 @@ public val KeyStore.trustManagers: List<TrustManager>
     get() = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         .apply { init(this@trustManagers) }.trustManagers.toList()
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeX509Info(
     algorithm: String,
     issuer: X500Principal,
@@ -247,6 +247,7 @@ private fun BytePacketBuilder.writeX509Info(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.extKeyUsage(content: BytePacketBuilder.() -> Unit) {
     writeDerSequence {
         writeDerObjectIdentifier(OID.ExtKeyUsage)
@@ -256,18 +257,21 @@ private fun BytePacketBuilder.extKeyUsage(content: BytePacketBuilder.() -> Unit)
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.clientAuth() {
     writeDerSequence {
         writeDerObjectIdentifier(OID.ClientAuth)
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.serverAuth() {
     writeDerSequence {
         writeDerObjectIdentifier(OID.ServerAuth)
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.subjectAlternativeNames(
     domains: List<String>,
     ipAddresses: List<InetAddress>
@@ -293,6 +297,7 @@ private fun BytePacketBuilder.subjectAlternativeNames(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.caExtension() {
     writeDerSequence {
         writeDerObjectIdentifier(OID.BasicConstraints)
@@ -307,6 +312,7 @@ private fun BytePacketBuilder.caExtension() {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeAlgorithmIdentifier(algorithm: String) {
     writeDerSequence {
         val oid = OID.fromAlgorithm(algorithm)
@@ -315,6 +321,7 @@ private fun BytePacketBuilder.writeAlgorithmIdentifier(algorithm: String) {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeX509Extension(id: Int, builder: BytePacketBuilder.() -> Unit) {
     writeByte((0x80 or id).toByte())
     val packet = buildPacket { builder() }
@@ -322,10 +329,12 @@ private fun BytePacketBuilder.writeX509Extension(id: Int, builder: BytePacketBui
     writePacket(packet)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeX500Principal(dName: X500Principal) {
     writeFully(dName.encoded)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeCertificate(
     issuer: X500Principal,
     subject: X500Principal,
@@ -360,6 +369,7 @@ private fun BytePacketBuilder.writeCertificate(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeVersion(v: Int = 2) {
     writeDerType(2, 0, false)
     val encoded = buildPacket {
@@ -369,6 +379,7 @@ private fun BytePacketBuilder.writeVersion(v: Int = 2) {
     writePacket(encoded)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerOctetString(block: BytePacketBuilder.() -> Unit) {
     val sub = buildPacket { block() }
 
@@ -377,6 +388,7 @@ private fun BytePacketBuilder.writeDerOctetString(block: BytePacketBuilder.() ->
     writePacket(sub)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 0) {
     require(unused in 0..7)
 
@@ -386,6 +398,7 @@ private fun BytePacketBuilder.writeDerBitString(array: ByteArray, unused: Int = 
     writeFully(array)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerUTCTime(date: Instant) {
     writeDerUTF8String(
         DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
@@ -393,6 +406,7 @@ private fun BytePacketBuilder.writeDerUTCTime(date: Instant) {
     )
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerGeneralizedTime(date: Instant) {
     writeDerUTF8String(
         DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
@@ -400,6 +414,7 @@ private fun BytePacketBuilder.writeDerGeneralizedTime(date: Instant) {
     )
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerUTF8String(s: String, type: Int = 0x0c) {
     val sub = buildPacket {
         writeText(s)
@@ -410,10 +425,12 @@ private fun BytePacketBuilder.writeDerUTF8String(s: String, type: Int = 0x0c) {
     writePacket(sub)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerNull() {
     writeShort(0x0500)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerSequence(block: BytePacketBuilder.() -> Unit) {
     val sub = buildPacket { block() }
 
@@ -422,10 +439,12 @@ private fun BytePacketBuilder.writeDerSequence(block: BytePacketBuilder.() -> Un
     writePacket(sub)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerObjectIdentifier(identifier: OID) {
     writeDerObjectIdentifier(identifier.asArray)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerObjectIdentifier(identifier: IntArray) {
     require(identifier.size >= 2)
     require(identifier[0] in 0..2)
@@ -444,6 +463,7 @@ private fun BytePacketBuilder.writeDerObjectIdentifier(identifier: IntArray) {
     writePacket(sub)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeAsnInt(value: BigInteger) {
     writeDerType(0, 2, true)
 
@@ -452,6 +472,7 @@ private fun BytePacketBuilder.writeAsnInt(value: BigInteger) {
     writeFully(encoded)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeAsnInt(value: Int) {
     writeDerType(0, 2, true)
 
@@ -473,6 +494,7 @@ private fun BytePacketBuilder.writeAsnInt(value: Int) {
     writePacket(encoded)
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerLength(length: Int) {
     require(length >= 0)
 
@@ -503,6 +525,7 @@ private fun BytePacketBuilder.writeDerLength(length: Int) {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerType(kind: Int, typeIdentifier: Int, simpleType: Boolean) {
     require(kind in 0..3)
     require(typeIdentifier >= 0)
@@ -541,6 +564,7 @@ private fun Int.derLength(): Int {
  * Length: 1 Byte (0x01)
  * Value: 0b1111 1111 if true or 0b0000 0000 if false
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalUnsignedTypes::class)
 private fun BytePacketBuilder.writeDerBoolean(value: Boolean) {
     writeDerType(0, 1, true)
@@ -554,6 +578,7 @@ private fun Boolean.toUByte(): UByte = if (this) {
     0.toUByte()
 }
 
+@Suppress("DEPRECATION")
 private fun BytePacketBuilder.writeDerInt(value: Int) {
     require(value >= 0)
 

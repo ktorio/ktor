@@ -48,6 +48,7 @@ internal class DatagramSendChannel(
         return true
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(InternalCoroutinesApi::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()

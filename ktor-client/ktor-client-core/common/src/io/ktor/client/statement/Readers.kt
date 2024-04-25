@@ -19,6 +19,7 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * Reads the whole [HttpResponse.content] if `Content-Length` is specified.
  * Otherwise, it just reads one byte.
  */
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 public suspend fun HttpResponse.readBytes(): ByteArray = content.readRemaining().readBytes()
 

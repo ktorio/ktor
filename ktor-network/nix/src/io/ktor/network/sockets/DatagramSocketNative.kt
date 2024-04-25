@@ -90,10 +90,11 @@ internal class DatagramSocketNative(
         val clientAddressLength: UIntVarOf<UInt> = alloc()
         clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
-        val buffer = DefaultDatagramChunkBufferPool.borrow()
+        val buffer = BytePacketBuilder()
+
         try {
             val count = buffer.write { memory, startIndex, endIndex ->
-                val bufferStart = memory.pointer + startIndex
+                val bufferStart = memory + startIndex
                 val size = endIndex - startIndex
                 val bytesRead = recvfrom(
                     descriptor,
@@ -102,11 +103,11 @@ internal class DatagramSocketNative(
                     0,
                     clientAddress.ptr.reinterpret(),
                     clientAddressLength.ptr
-                ).toInt()
+                ).toLong()
 
                 when (bytesRead) {
-                    0 -> throw IOException("Failed reading from closed socket")
-                    -1 -> {
+                    0L -> throw IOException("Failed reading from closed socket")
+                    -1L -> {
                         if (errno == EAGAIN) return@write 0
                         throw PosixException.forErrno()
                     }
@@ -118,11 +119,11 @@ internal class DatagramSocketNative(
             val address = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
             return Datagram(
-                buildPacket { writeFully(buffer) },
+                buffer.build(),
                 address.toSocketAddress()
             )
         } finally {
-            buffer.release(DefaultDatagramChunkBufferPool)
+            buffer.close()
         }
     }
 }

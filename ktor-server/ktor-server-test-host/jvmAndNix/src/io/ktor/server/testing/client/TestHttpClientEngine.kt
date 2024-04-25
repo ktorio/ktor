@@ -137,11 +137,12 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
             is OutgoingContent.ReadChannelContent -> readFrom()
             is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
+                val counted = channel.counted()
                 val job = launch {
-                    writeTo(channel)
+                    writeTo(counted)
                 }
 
-                configureSocketTimeoutIfNeeded(timeoutAttributes, job) { channel.totalBytesWritten }
+                configureSocketTimeoutIfNeeded(timeoutAttributes, job) { counted.totalBytesWritten }
             }.channel
 
             is OutgoingContent.ContentWrapper -> delegate().toByteReadChannel(timeoutAttributes)
@@ -150,3 +151,4 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private fun TestApplicationResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
 }
+

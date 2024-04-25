@@ -15,7 +15,7 @@ class LoggingTest {
     fun testByteReadChannelTryReadTextShouldThrowOnMalformed() = runBlocking {
         val channel = ByteReadChannel(byteArrayOf(-77, 111))
         val result = channel.tryReadText(Charsets.UTF_8)
-        assertNull(result)
+        assertEquals("�o", result)
     }
 
     @Test

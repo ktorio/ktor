@@ -159,9 +159,9 @@ public final class io/ktor/network/sockets/Connection {
 }
 
 public final class io/ktor/network/sockets/Datagram {
-	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/network/sockets/SocketAddress;)V
+	public fun <init> (Lkotlinx/io/Source;Lio/ktor/network/sockets/SocketAddress;)V
 	public final fun getAddress ()Lio/ktor/network/sockets/SocketAddress;
-	public final fun getPacket ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public final fun getPacket ()Lkotlinx/io/Source;
 }
 
 public abstract interface class io/ktor/network/sockets/DatagramReadChannel {

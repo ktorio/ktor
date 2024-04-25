@@ -8,7 +8,6 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -50,6 +49,7 @@ internal class DatagramSendChannel(
         return true
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
@@ -59,28 +59,29 @@ internal class DatagramSendChannel(
             }
         }
 
-        var result = false
+        val result: Boolean
 
+        val buffer = Buffer()
         try {
-            DefaultDatagramChunkBufferPool.useInstance { buffer ->
-                element.packet.copy().readAvailable(buffer)
+            element.packet.copy().readAvailable(buffer)
 
-                val bytes = element.packet.copy().readBytes()
-                val bytesWritten = sento(element, bytes)
+            val bytes = element.packet.copy().readBytes()
+            val bytesWritten = sento(element, bytes)
 
-                result = when (bytesWritten) {
-                    0 -> throw IOException("Failed writing to closed socket")
-                    -1 -> {
-                        if (errno == EAGAIN) {
-                            false
-                        } else {
-                            throw PosixException.forErrno()
-                        }
+            result = when (bytesWritten) {
+                0 -> throw IOException("Failed writing to closed socket")
+                -1 -> {
+                    if (errno == EAGAIN) {
+                        false
+                    } else {
+                        throw PosixException.forErrno()
                     }
-                    else -> true
                 }
+
+                else -> true
             }
         } finally {
+            buffer.close()
             lock.unlock()
         }
 
@@ -132,6 +133,7 @@ internal class DatagramSendChannel(
         return bytesWritten ?: error("bytesWritten cannot be null")
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(UnsafeNumber::class)
     private tailrec suspend fun sendImpl(
         datagram: Datagram,

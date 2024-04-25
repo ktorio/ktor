@@ -2,15 +2,18 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+
 package io.ktor.http.cio
 
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import java.nio.*
 
 /**
  * Builds an HTTP request or response
  */
+@Suppress("DEPRECATION")
 public actual class RequestResponseBuilder actual constructor() {
     private val packet = BytePacketBuilder()
 

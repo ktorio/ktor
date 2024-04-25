@@ -9,6 +9,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
+@Suppress("DEPRECATION")
 internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingContent = when (this) {
     is OutgoingContent.ByteArrayContent -> {
         log.writeFully(bytes())

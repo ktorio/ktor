@@ -80,6 +80,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 
+    @Suppress("DEPRECATION")
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")

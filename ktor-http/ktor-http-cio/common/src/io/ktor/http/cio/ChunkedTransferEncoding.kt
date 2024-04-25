@@ -10,6 +10,7 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
@@ -54,6 +55,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
  */
+@Suppress("DEPRECATION")
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L

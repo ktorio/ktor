@@ -567,6 +567,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     open fun testFlushingHeaders() {
         createAndStartServer {

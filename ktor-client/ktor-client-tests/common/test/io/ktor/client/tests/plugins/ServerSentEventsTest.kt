@@ -357,6 +357,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         val body = object : OutgoingContent.ProtocolUpgrade() {
+            @Suppress("DEPRECATION")
             override suspend fun upgrade(
                 input: ByteReadChannel,
                 output: ByteWriteChannel,

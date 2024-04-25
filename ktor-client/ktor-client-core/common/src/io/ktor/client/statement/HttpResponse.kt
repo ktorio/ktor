@@ -81,6 +81,7 @@ internal fun HttpResponse.complete() {
  * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.
  */
+@Suppress("DEPRECATION")
 public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.UTF_8): String {
     val originCharset = charset() ?: fallbackCharset
     val decoder = originCharset.newDecoder()

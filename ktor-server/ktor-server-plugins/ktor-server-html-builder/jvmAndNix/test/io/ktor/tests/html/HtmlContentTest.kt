@@ -40,7 +40,6 @@ class HtmlContentTest {
         try {
             channel.readRemaining().readText()
         } catch (cause: Throwable) {
-            cause.printStackTrace()
             secondFail = true
             assertEquals("BAAM", cause.message)
         }

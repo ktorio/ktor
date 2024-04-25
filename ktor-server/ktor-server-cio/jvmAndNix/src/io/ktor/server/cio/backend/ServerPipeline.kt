@@ -8,10 +8,10 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.internal.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -182,6 +182,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
+@OptIn(InternalAPI::class)
 private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
     val bc = ByteChannel()
     if (actorChannel.trySend(bc).isSuccess) {

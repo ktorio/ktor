@@ -195,6 +195,7 @@ class CIOEngineTest {
             if (body != null) setBody(body)
         }
 
+    @Suppress("DEPRECATION")
     private suspend fun readAvailableLine(channel: ByteReadChannel): String {
         val buffer = ByteArray(1024)
         val length = channel.readAvailable(buffer)

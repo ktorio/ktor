@@ -11,12 +11,14 @@ import kotlin.contracts.*
 /**
  * Convert [ByteReadChannel] to [ByteArray]
  */
+@Suppress("DEPRECATION")
 public suspend fun ByteReadChannel.toByteArray(limit: Int = Int.MAX_VALUE): ByteArray =
     readRemaining(limit.toLong()).readBytes()
 
 /**
  * Executes [block] on [ByteWriteChannel] and close it down correctly whether an exception
  */
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
 public inline fun ByteWriteChannel.use(block: ByteWriteChannel.() -> Unit) {
     contract {
