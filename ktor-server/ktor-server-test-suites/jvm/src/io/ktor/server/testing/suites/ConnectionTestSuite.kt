@@ -84,26 +84,24 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testIpv6ServerHostAndPort() = runBlocking {
+    fun testIpv6ServerHostAndPort(): Unit = runBlocking {
         val serverStarted = CompletableDeferred<Unit>()
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
-        val server = embeddedServer(
-            engine,
-            applicationProperties(applicationEnvironment()) {
-                module {
-                    routing {
-                        get("/") {
-                            val local = call.request.local
-                            call.respondText { "${local.serverHost}:${local.serverPort}" }
-                        }
+        val env = applicationEngineEnvironment {
+            connector { port = serverPort }
+
+            module {
+                routing {
+                    get("/") {
+                        val local = call.request.local
+                        call.respondText { "${local.serverHost}:${local.serverPort}" }
                     }
                 }
             }
-        ) {
-            connector { port = serverPort }
         }
+        val server = embeddedServer(engine, env)
 
-        server.monitor.subscribe(ServerReady) {
+        server.environment.monitor.subscribe(ServerReady) {
             serverStarted.complete(Unit)
         }
 

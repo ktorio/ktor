@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -203,7 +204,7 @@ class TestApplicationEngine(
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
         val callJob = GlobalScope.async(coroutineContext) {
-            handleRequestNonBlocking(closeRequest, setup)
+            handleRequestNonBlocking(closeRequest, timeoutAttributes = null, setup)
         }
 
         return runBlocking { callJob.await() }
@@ -211,6 +212,7 @@ class TestApplicationEngine(
 
     internal suspend fun handleRequestNonBlocking(
         closeRequest: Boolean = true,
+        timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration? = null,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall {
         val job = Job(testEngineJob)
@@ -220,6 +222,9 @@ class TestApplicationEngine(
             setup = { processRequest(setup) },
             context = Dispatchers.IOBridge + job
         )
+        if (timeoutAttributes != null) {
+            call.attributes.put(timeoutAttributesKey, timeoutAttributes)
+        }
 
         val context = SupervisorJob(job) + CoroutineName("request")
         withContext(coroutineContext + context) {
@@ -306,3 +311,5 @@ fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
         callback()
     }
 }
+
+internal val timeoutAttributesKey = AttributeKey<HttpTimeout.HttpTimeoutCapabilityConfiguration>("TimeoutAttributes")
