@@ -5,6 +5,7 @@
 package io.ktor.tests.server.testing
 
 import io.ktor.client.*
+import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -21,6 +22,7 @@ import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -393,6 +395,49 @@ class TestApplicationTest {
             }
             assertEquals("test", client.get("/").bodyAsText())
         }
+    }
+
+    private fun testSocketTimeoutRead(timeout: Long, expectException: Boolean) = testApplication {
+        routing {
+            get {
+                call.respond(
+                    HttpStatusCode.OK,
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeAvailable("Hello".toByteArray())
+                            channel.flush()
+                            delay(300)
+                        }
+                    }
+                )
+            }
+        }
+
+        val clientWithTimeout = createClient {
+            install(HttpTimeout) {
+                socketTimeoutMillis = timeout
+            }
+        }
+
+        if (expectException) {
+            assertFailsWith<SocketTimeoutException> {
+                clientWithTimeout.get("/")
+            }
+        } else {
+            clientWithTimeout.get("/").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
+    }
+
+    @Test
+    fun testSocketTimeoutReadElapsed() {
+        testSocketTimeoutRead(100, true)
+    }
+
+    @Test
+    fun testSocketTimeoutReadNotElapsed() {
+        testSocketTimeoutRead(1000, false)
     }
 
     class MyElement(val data: String) : CoroutineContext.Element {

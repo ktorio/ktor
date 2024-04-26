@@ -4,9 +4,13 @@
 
 package io.ktor.tests.server.testing
 
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.response.*
@@ -14,6 +18,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -280,6 +285,54 @@ class TestApplicationTestJvm {
             client.webSocket("/ws") { }
         }
         assertEquals("WebSocket connection failed", error.message)
+    }
+
+    private fun testSocketTimeoutWrite(timeout: Long, expectException: Boolean) = testApplication {
+        routing {
+            post {
+                call.respond(HttpStatusCode.OK, call.request.receiveChannel().readRemaining().toString())
+            }
+        }
+
+        val clientWithTimeout = createClient {
+            install(HttpTimeout) {
+                socketTimeoutMillis = timeout
+            }
+        }
+
+        val body = object : OutgoingContent.WriteChannelContent() {
+            override suspend fun writeTo(channel: ByteWriteChannel) {
+                channel.writeAvailable("Hello".toByteArray())
+                channel.flush()
+                delay(300)
+                channel.writeAvailable("World".toByteArray())
+                channel.flush()
+            }
+        }
+
+        if (expectException) {
+            assertFailsWith<SocketTimeoutException> {
+                clientWithTimeout.post("/") {
+                    setBody(body)
+                }
+            }
+        } else {
+            clientWithTimeout.post("/") {
+                setBody(body)
+            }.apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
+    }
+
+    @Test
+    fun testSocketTimeoutWriteElapsed() {
+        testSocketTimeoutWrite(100, true)
+    }
+
+    @Test
+    fun testSocketTimeoutWriteNotElapsed() {
+        testSocketTimeoutWrite(1000, false)
     }
 }
 
