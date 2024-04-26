@@ -26,6 +26,9 @@ public class TestApplicationResponse(
     call: TestApplicationCall,
     private val readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
+    private val scope: CoroutineScope get() = this
+
+    private val timeoutAttributes get() = call.attributes.getOrNull(timeoutAttributesKey)
 
     /**
      * Gets a response body text content. Could be blocking. Remains `null` until response appears.
@@ -76,7 +79,6 @@ public class TestApplicationResponse(
     }
 
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
@@ -84,8 +86,12 @@ public class TestApplicationResponse(
             launchResponseJob(result)
         }
 
-        val job = GlobalScope.reader(responseJob ?: EmptyCoroutineContext) {
-            channel.copyAndClose(result, Long.MAX_VALUE)
+        val job = scope.reader(responseJob ?: EmptyCoroutineContext) {
+            val readJob = launch {
+                channel.copyAndClose(result, Long.MAX_VALUE)
+            }
+
+            configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { channel.totalBytesRead }
         }
 
         if (responseJob == null) {

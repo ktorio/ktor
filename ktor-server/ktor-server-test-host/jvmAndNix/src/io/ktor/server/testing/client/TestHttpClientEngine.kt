@@ -6,6 +6,7 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -41,22 +42,26 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        app.start()
-        if (data.isUpgradeRequest()) {
-            val (testServerCall, session) = with(data) {
-                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
+        try {
+            app.start()
+            if (data.isUpgradeRequest()) {
+                val (testServerCall, session) = with(data) {
+                    bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
+                }
+                return with(testServerCall.response) {
+                    httpResponseData(session)
+                }
             }
+
+            val testServerCall = with(data) {
+                runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeout))
+            }
+
             return with(testServerCall.response) {
-                httpResponseData(session)
+                httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
             }
-        }
-
-        val testServerCall = with(data) {
-            runRequest(method, url, headers, body, url.protocol)
-        }
-
-        return with(testServerCall.response) {
-            httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
+        } catch (cause: Throwable) {
+            throw cause.mapToKtor(data)
         }
     }
 
@@ -65,9 +70,10 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         url: Url,
         headers: Headers,
         content: OutgoingContent,
-        protocol: URLProtocol
+        protocol: URLProtocol,
+        timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration? = null
     ): TestApplicationCall {
-        return app.handleRequestNonBlocking {
+        return app.handleRequestNonBlocking(timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port
             this.method = method
@@ -75,7 +81,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
             this.protocol = protocol.name
 
             if (content !is OutgoingContent.NoContent) {
-                bodyChannel = content.toByteReadChannel()
+                bodyChannel = content.toByteReadChannel(timeoutAttributes)
             }
         }
     }
@@ -112,14 +118,20 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
-        is OutgoingContent.NoContent -> ByteReadChannel.Empty
-        is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
-        is OutgoingContent.ReadChannelContent -> readFrom()
-        is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
-            writeTo(channel)
-        }.channel
-        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
-    }
+    private fun OutgoingContent.toByteReadChannel(
+        timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration?
+    ): ByteReadChannel =
+        when (this) {
+            is OutgoingContent.NoContent -> ByteReadChannel.Empty
+            is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
+            is OutgoingContent.ReadChannelContent -> readFrom()
+            is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
+                val job = launch {
+                    writeTo(channel)
+                }
+
+                configureSocketTimeoutIfNeeded(timeoutAttributes, job) { channel.totalBytesWritten }
+            }.channel
+            is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
+        }
 }
