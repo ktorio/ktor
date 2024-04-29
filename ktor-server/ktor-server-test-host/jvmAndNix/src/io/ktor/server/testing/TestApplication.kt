@@ -60,7 +60,7 @@ public class TestApplication internal constructor(
         Created, Starting, Started, Stopped
     }
 
-    internal val state = atomic(State.Created)
+    private val state = atomic(State.Created)
 
     internal val externalApplications by lazy { builder.externalServices.externalApplications }
     internal val server by lazy { builder.embeddedServer }

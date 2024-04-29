@@ -2228,7 +2228,7 @@ internal open class ByteBufferChannel(
                 continuation.resume(flush && hasEnoughBytes)
                 return COROUTINE_SUSPENDED
             }
-        } while (!setContinuation({ readOp }, _readOp, continuation, { closed == null && readSuspendPredicate(size) }))
+        } while (!_readOp.setContinuation(continuation, { closed == null && readSuspendPredicate(size) }))
 
         return COROUTINE_SUSPENDED
     }
@@ -2283,7 +2283,7 @@ internal open class ByteBufferChannel(
                 ucont.resume(Unit)
                 break
             }
-        } while (!setContinuation({ writeOp }, _writeOp, ucont.intercepted(), { writeSuspendPredicate(size) }))
+        } while (!_writeOp.setContinuation(ucont.intercepted(), { writeSuspendPredicate(size) }))
 
         flushImpl(minWriteSize = size)
 
@@ -2329,7 +2329,7 @@ internal open class ByteBufferChannel(
                 c.resume(Unit)
                 break
             }
-        } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
+        } while (!_writeOp.setContinuation(c, { writeSuspendPredicate(size) }))
 
         flushImpl(minWriteSize = size)
 
@@ -2338,22 +2338,19 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private inline fun <T, C : Continuation<T>> setContinuation(
-        getter: () -> C?,
-        updater: AtomicRef<C?>,
+    private inline fun <T, C : Continuation<T>> AtomicRef<C?>.setContinuation(
         continuation: C,
         predicate: () -> Boolean
     ): Boolean {
-        while (true) {
-            val current = getter()
+        loop { current ->
             check(current == null) { "Operation is already in progress" }
 
             if (!predicate()) {
                 return false
             }
 
-            if (updater.compareAndSet(null, continuation)) {
-                return (predicate() || !updater.compareAndSet(continuation, null))
+            if (this.compareAndSet(null, continuation)) {
+                return (predicate() || !this.compareAndSet(continuation, null))
             }
         }
     }

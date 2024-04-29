@@ -55,7 +55,7 @@ internal fun onBodyChunkReceived(
         return -1
     }
     if (written > 0) {
-        wrapper.bytesWritten += written
+        wrapper.bytesWritten.addAndGet(written)
     }
     if (wrapper.bytesWritten.value == chunkSize) {
         wrapper.bytesWritten.value = 0
