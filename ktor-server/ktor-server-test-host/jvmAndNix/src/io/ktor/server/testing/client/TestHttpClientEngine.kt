@@ -42,22 +42,26 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        app.start()
-        if (data.isUpgradeRequest()) {
-            val (testServerCall, session) = with(data) {
-                bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
+        try {
+            app.start()
+            if (data.isUpgradeRequest()) {
+                val (testServerCall, session) = with(data) {
+                    bridge.runWebSocketRequest(url.fullPath, headers, body, callContext())
+                }
+                return with(testServerCall.response) {
+                    httpResponseData(session)
+                }
             }
+
+            val testServerCall = with(data) {
+                runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeout))
+            }
+
             return with(testServerCall.response) {
-                httpResponseData(session)
+                httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
             }
-        }
-
-        val testServerCall = with(data) {
-            runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeout))
-        }
-
-        return with(testServerCall.response) {
-            httpResponseData(ByteReadChannel(byteContent ?: byteArrayOf()))
+        } catch (cause: Throwable) {
+            throw cause.mapToKtor(data)
         }
     }
 
@@ -128,8 +132,6 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
                 configureSocketTimeoutIfNeeded(timeoutAttributes, job) { channel.totalBytesWritten }
             }.channel
-
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
         }
-
 }
