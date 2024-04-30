@@ -114,7 +114,9 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         }
     }
 
-    private fun OutgoingContent.toByteReadChannel(timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration?): ByteReadChannel =
+    private fun OutgoingContent.toByteReadChannel(
+        timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration?
+    ): ByteReadChannel =
         when (this) {
             is OutgoingContent.NoContent -> ByteReadChannel.Empty
             is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
