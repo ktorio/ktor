@@ -53,7 +53,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         }
 
         val testServerCall = with(data) {
-            runRequest(method, url, headers, body, url.protocol)
+            runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeout))
         }
 
         return with(testServerCall.response) {
