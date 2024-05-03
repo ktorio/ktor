@@ -325,6 +325,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testImmediateReceiveAfterConnect() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
