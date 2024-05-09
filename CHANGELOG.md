@@ -1,3 +1,9 @@
+# 2.3.11
+> Published 8 May 2024
+
+### Bugfixes
+* Test client ignores socket timeout ([KTOR-6909](https://youtrack.jetbrains.com/issue/KTOR-6909))
+
 # 2.3.10
 > Published 8 April 2024
 
