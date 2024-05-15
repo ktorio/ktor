@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.apache.hc.client5.http.config.*
@@ -28,6 +29,13 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 
 @OptIn(InternalAPI::class)
 internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpClientEngineBase("ktor-apache") {
+
+    override val dispatcher by lazy {
+        Dispatchers.clientDispatcher(
+            config.threadsCount,
+            "ktor-apache-dispatcher"
+        )
+    }
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 

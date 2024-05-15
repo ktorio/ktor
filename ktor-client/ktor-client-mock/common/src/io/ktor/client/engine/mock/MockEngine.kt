@@ -9,13 +9,16 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.locks.*
+import io.ktor.utils.io.locks.*
 import kotlinx.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
  */
+@OptIn(InternalAPI::class)
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    override val dispatcher: CoroutineDispatcher = config.dispatcher
+
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
         HttpTimeoutCapability,
         WebSocketCapability,

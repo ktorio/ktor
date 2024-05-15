@@ -18,8 +18,6 @@ import kotlin.coroutines.*
 public abstract class HttpClientEngineBase(private val engineName: String) : HttpClientEngine {
     private val closed = atomic(false)
 
-    override val dispatcher: CoroutineDispatcher = ioDispatcher()
-
     override val coroutineContext: CoroutineContext by lazy {
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
@@ -30,6 +28,9 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
         val requestJob = coroutineContext[Job] as? CompletableJob ?: return
 
         requestJob.complete()
+        requestJob.invokeOnCompletion {
+            dispatcher.close()
+        }
     }
 }
 
@@ -53,5 +54,3 @@ private fun CoroutineDispatcher.close() {
         // Some closeable dispatchers like Dispatchers.IO can't be closed.
     }
 }
-
-internal expect fun ioDispatcher(): CoroutineDispatcher

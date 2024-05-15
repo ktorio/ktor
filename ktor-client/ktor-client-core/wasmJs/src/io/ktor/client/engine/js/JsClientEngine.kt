@@ -16,7 +16,6 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
@@ -37,6 +36,8 @@ private fun createWebSocketNodeJs(
 internal class JsClientEngine(
     override val config: JsClientEngineConfig,
 ) : HttpClientEngineBase("ktor-js") {
+
+    override val dispatcher = Dispatchers.Default
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 

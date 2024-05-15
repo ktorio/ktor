@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.testing.*
@@ -35,9 +36,12 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = bridge.supportedCapabilities
 
+    @OptIn(InternalAPI::class)
+    override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
+
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = clientJob + dispatcher
+    override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {

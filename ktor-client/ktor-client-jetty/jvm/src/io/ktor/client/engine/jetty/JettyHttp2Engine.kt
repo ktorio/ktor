@@ -7,10 +7,12 @@ package io.ktor.client.engine.jetty
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.util.thread.*
 
 @OptIn(InternalAPI::class)
 internal class JettyHttp2Engine(
@@ -18,6 +20,14 @@ internal class JettyHttp2Engine(
 ) : HttpClientEngineBase("ktor-jetty") {
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability)
+
+    override val dispatcher: CoroutineDispatcher by lazy {
+        Dispatchers.clientDispatcher(
+            config.threadsCount,
+            "ktor-jetty-dispatcher"
+        )
+    }
+
 
     /**
      * Cache that keeps least recently used [HTTP2Client] instances. Set "0" to avoid caching.

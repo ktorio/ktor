@@ -7,15 +7,24 @@ package io.ktor.client.engine.jetty.jakarta
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.util.thread.*
 
 @OptIn(InternalAPI::class)
 internal class JettyHttp2Engine(
     override val config: JettyEngineConfig
 ) : HttpClientEngineBase("ktor-jetty") {
+
+    override val dispatcher: CoroutineDispatcher by lazy {
+        Dispatchers.clientDispatcher(
+            config.threadsCount,
+            "ktor-jetty-dispatcher"
+        )
+    }
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability)
 
@@ -50,10 +59,8 @@ internal class JettyHttp2Engine(
             addBean(config.sslContextFactory)
             check(config.proxy == null) { "Proxy unsupported in Jetty engine." }
 
-            executor = Dispatchers.IO.asExecutor()
-
+            executor = dispatcher.asExecutor()
             setupTimeoutAttributes(timeoutExtension)
-
             config.config(this)
 
             start()
