@@ -97,7 +97,7 @@ val disabledExplicitApiModeProjects = listOf(
 apply(from = "gradle/compatibility.gradle")
 
 plugins {
-    id("org.jetbrains.dokka") version "1.9.10" apply false
+    id("org.jetbrains.dokka") version "1.9.20" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
     id("kotlinx-atomicfu") version "0.23.1" apply false
     id("com.osacky.doctor") version "0.9.2"
