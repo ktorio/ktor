@@ -63,7 +63,7 @@ yamlkt-version = "0.13.0"
 
 swagger-codegen-version = "3.0.56"
 swagger-codegen-generators-version = "1.0.46"
-swagger-parser-version = "2.1.20"
+swagger-parser-version = "2.1.22"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
