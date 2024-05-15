@@ -160,7 +160,7 @@ fun configureDokka() {
 
         val dokkaPlugin by configurations
         dependencies {
-            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.9.10")
+            dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.9.20")
         }
     }
 
