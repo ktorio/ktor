@@ -10,9 +10,9 @@ import platform.iconv.*
 import platform.posix.*
 
 public actual object Charsets {
-    public actual val UTF_8: Charset = CharsetIconv("UTF-8")
-    public actual val ISO_8859_1: Charset = CharsetIconv("ISO-8859-1")
-    internal val UTF_16: Charset = CharsetIconv(platformUtf16)
+    public actual val UTF_8: Charset by lazy { CharsetIconv("UTF-8") }
+    public actual val ISO_8859_1: Charset by lazy { CharsetIconv("ISO-8859-1") }
+    internal val UTF_16: Charset by lazy { CharsetIconv(platformUtf16) }
 }
 
 internal actual fun findCharset(name: String): Charset {
