@@ -7,7 +7,7 @@ serialization-version = "1.5.1"
 validator-version = "0.8.0"
 ktlint-version = "3.15.0"
 
-netty-version = "4.1.106.Final"
+netty-version = "4.1.109.Final"
 netty-tcnative-version = "2.0.62.Final"
 
 jetty-version = "9.4.54.v20240208"
