@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io.charsets
 
-import io.ktor.utils.io.js.*
 import kotlinx.io.*
 import org.khronos.webgl.*
 
