@@ -396,8 +396,6 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
     }
 
-
-
     @Test
     fun testSseWithLogging() = clientTests {
         config {
