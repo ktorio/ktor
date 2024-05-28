@@ -9,9 +9,6 @@ import kotlinx.io.*
 import kotlin.concurrent.*
 
 internal class SourceByteReadChannel(private val source: Source) : ByteReadChannel {
-
-    val created = Exception()
-
     @Volatile
     private var closed: CloseToken? = null
 
