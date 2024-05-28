@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -381,6 +382,29 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     fun testPostRequest() = clientTests {
         config {
             install(SSE)
+        }
+
+        test { client ->
+            client.sse({
+                url("$TEST_SERVER/sse")
+                method = HttpMethod.Post
+            }) {
+                incoming.single().apply {
+                    assertEquals("Hello", data)
+                }
+            }
+        }
+    }
+
+
+
+    @Test
+    fun testSseWithLogging() = clientTests {
+        config {
+            install(SSE)
+            install(Logging) {
+                level = LogLevel.ALL
+            }
         }
 
         test { client ->

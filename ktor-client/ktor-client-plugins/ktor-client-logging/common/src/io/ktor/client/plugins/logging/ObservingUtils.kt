@@ -28,7 +28,7 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
         content.copyToBoth(log, responseChannel)
         LoggedContent(this, responseChannel)
     }
-    is OutgoingContent.ContentWrapper -> delegate().observe(log)
+    is OutgoingContent.ContentWrapper -> copy(delegate().observe(log))
     is OutgoingContent.NoContent, is OutgoingContent.ProtocolUpgrade -> {
         log.close()
         this
