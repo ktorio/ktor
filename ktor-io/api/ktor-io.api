@@ -15,7 +15,6 @@ public final class io/ktor/utils/io/ByteChannel : io/ktor/utils/io/BufferedByteW
 	public fun flushWriteBuffer ()V
 	public final fun getAutoFlush ()Z
 	public fun getClosedCause ()Ljava/lang/Throwable;
-	public final fun getCreated ()Ljava/lang/Exception;
 	public fun getReadBuffer ()Lkotlinx/io/Source;
 	public fun getWriteBuffer ()Lkotlinx/io/Sink;
 	public fun isClosedForRead ()Z

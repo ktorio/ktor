@@ -17,8 +17,6 @@ public val CHANNEL_MAX_SIZE: Int = 4 * 1024
  * Sequential (non-concurrent) byte channel implementation
  */
 public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
-    public val created: Exception = Exception()
-
     private val _closedCause = atomic<CloseToken?>(null)
     private val slot = AwaitingSlot()
     private val flushBuffer: Buffer = Buffer()
