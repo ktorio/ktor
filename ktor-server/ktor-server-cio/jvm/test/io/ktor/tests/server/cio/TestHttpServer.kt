@@ -15,6 +15,7 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.time.*
+import io.ktor.utils.io.ByteChannel as KtorByteChannel
 
 // this is only suitable for tests, do not use in production
 @Suppress("BlockingMethodInNonBlockingContext")
@@ -73,7 +74,7 @@ private suspend fun client(
     handler: HttpRequestHandler
 ) {
     val incoming = io.ktor.utils.io.ByteChannel(true)
-    val outgoing = io.ktor.utils.io.ByteChannel()
+    val outgoing = KtorByteChannel()
 
     GlobalScope.launch(ioCoroutineContext) {
         val buffer = DefaultByteBufferPool.borrow()

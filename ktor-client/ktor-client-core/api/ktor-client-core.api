@@ -225,11 +225,6 @@ public final class io/ktor/client/network/sockets/SocketTimeoutException : java/
 	public fun getCause ()Ljava/lang/Throwable;
 }
 
-public final class io/ktor/client/network/sockets/TimeoutExceptionsCommonKt {
-	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteReadChannel;
-	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteWriteChannel;
-}
-
 public final class io/ktor/client/plugins/BodyProgressKt {
 	public static final fun getBodyProgress ()Lio/ktor/client/plugins/api/ClientPlugin;
 	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/client/content/ProgressListener;)V

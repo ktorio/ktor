@@ -1,4 +1,4 @@
-package io.ktor.utils.io.js
+package io.ktor.utils.io.charsets
 
 import org.khronos.webgl.*
 

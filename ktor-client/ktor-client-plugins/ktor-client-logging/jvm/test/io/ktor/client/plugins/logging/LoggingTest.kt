@@ -12,7 +12,7 @@ import kotlin.test.*
 class LoggingTest {
 
     @Test
-    fun testByteReadChannelTryReadTextShouldThrowOnMalformed() = runBlocking {
+    fun testByteReadChannelTryReadTextShouldCompleteOnMalformed() = runBlocking {
         val channel = ByteReadChannel(byteArrayOf(-77, 111))
         val result = channel.tryReadText(Charsets.UTF_8)
         assertEquals("�o", result)

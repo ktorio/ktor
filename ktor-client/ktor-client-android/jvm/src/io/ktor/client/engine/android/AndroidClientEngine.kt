@@ -85,7 +85,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) }
                 ?: HttpStatusCode.fromValue(responseCode)
 
-            val content: ByteReadChannel = current.content(callContext, data)
+            val content: ByteReadChannel = current.content(callContext)
             val headerFields: Map<String, List<String>> = current.headerFields
                 .mapKeys { it.key?.lowercase(Locale.getDefault()) ?: "" }
                 .filter { it.key.isNotBlank() }

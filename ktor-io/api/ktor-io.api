@@ -36,7 +36,6 @@ public final class io/ktor/utils/io/ByteChannelKt {
 }
 
 public final class io/ktor/utils/io/ByteChannelUtilsKt {
-	public static final fun ByteChannel (Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/ByteChannel;
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lio/ktor/utils/io/ChannelJob;)V
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lkotlinx/coroutines/Job;)V
 }
@@ -190,6 +189,21 @@ public final class io/ktor/utils/io/CountedByteReadChannel : io/ktor/utils/io/By
 public final class io/ktor/utils/io/CountedByteReadChannelKt {
 	public static final fun counted (Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/CountedByteReadChannel;
 	public static final fun getTotalBytesRead (Lio/ktor/utils/io/ByteReadChannel;)J
+}
+
+public final class io/ktor/utils/io/CountedByteWriteChannel : io/ktor/utils/io/ByteWriteChannel {
+	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;)V
+	public fun cancel (Ljava/lang/Throwable;)V
+	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun flushAndClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getClosedCause ()Ljava/lang/Throwable;
+	public final fun getTotalBytesWritten ()J
+	public fun getWriteBuffer ()Lkotlinx/io/Sink;
+	public fun isClosedForWrite ()Z
+}
+
+public final class io/ktor/utils/io/CountedByteWriteChannelKt {
+	public static final fun counted (Lio/ktor/utils/io/ByteWriteChannel;)Lio/ktor/utils/io/CountedByteWriteChannel;
 }
 
 public final class io/ktor/utils/io/DeprecationKt {

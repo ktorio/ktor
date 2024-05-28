@@ -18,9 +18,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.*
-import kotlinx.io.*
+import kotlinx.io.EOFException
 import java.nio.channels.*
 import kotlin.coroutines.*
+import io.ktor.utils.io.ByteChannel as KtorByteChannel
 
 internal actual class ConnectionPipeline actual constructor(
     keepAliveTime: Long,
@@ -101,11 +102,11 @@ internal actual class ConnectionPipeline actual constructor(
                         (status !in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent)) &&
                         !status.isInformational()
 
-                    val responseChannel = if (hasBody) io.ktor.utils.io.ByteChannel() else null
+                    val responseChannel = if (hasBody) KtorByteChannel() else null
 
                     var skipTask: Job? = null
                     val body: ByteReadChannel = if (responseChannel != null) {
-                        val proxyChannel = io.ktor.utils.io.ByteChannel()
+                        val proxyChannel = KtorByteChannel()
                         skipTask = skipCancels(responseChannel, proxyChannel)
                         proxyChannel
                     } else ByteReadChannel.Empty
