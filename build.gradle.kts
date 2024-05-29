@@ -31,7 +31,6 @@ buildscript {
             )
         }
         repositories {
-            mavenLocal()
             maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
         }
 
@@ -48,7 +47,6 @@ buildscript {
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
     repositories {
-        mavenLocal()
         mavenCentral()
         google()
         gradlePluginPortal()
@@ -115,7 +113,6 @@ allprojects {
     setupTrainForSubproject()
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
@@ -198,11 +195,6 @@ fun Project.setupJvmToolchain() {
 
 fun KotlinMultiplatformExtension.setCompilationOptions() {
     targets.all {
-        if (this is KotlinJsTarget) {
-            irTarget?.compilations?.all {
-                configureCompilation()
-            }
-        }
         compilations.all {
             configureCompilation()
         }

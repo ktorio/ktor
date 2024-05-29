@@ -3,7 +3,7 @@
  */
 
 object Versions {
-    val kotlin = "1.9.22"
+    val kotlin = "2.0.0"
     val coroutines = "1.8.0"
     val slf4j = "1.7.36"
     val junit = "5.10.1"
