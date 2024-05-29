@@ -351,28 +351,30 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     }
 
     @Test
-    fun testErrorForProtocolUpgradeRequestBody() = clientTests(listOf("OkHttp")) {
-        config {
-            install(SSE)
-        }
-
-        val body = object : OutgoingContent.ProtocolUpgrade() {
-            override suspend fun upgrade(
-                input: ByteReadChannel,
-                output: ByteWriteChannel,
-                engineContext: CoroutineContext,
-                userContext: CoroutineContext
-            ): Job {
-                output.close()
-                return Job()
+    fun testErrorForProtocolUpgradeRequestBody() = repeat(10000) {
+        clientTests(listOf("OkHttp")) {
+            config {
+                install(SSE)
             }
-        }
-        test { client ->
-            kotlin.test.assertFailsWith<SSEException> {
-                client.sse({
-                    url("$TEST_SERVER/sse/echo")
-                    setBody(body)
-                }) {}
+
+            val body = object : OutgoingContent.ProtocolUpgrade() {
+                override suspend fun upgrade(
+                    input: ByteReadChannel,
+                    output: ByteWriteChannel,
+                    engineContext: CoroutineContext,
+                    userContext: CoroutineContext
+                ): Job {
+                    output.close()
+                    return Job()
+                }
+            }
+            test { client ->
+                kotlin.test.assertFailsWith<SSEException> {
+                    client.sse({
+                        url("$TEST_SERVER/sse/echo")
+                        setBody(body)
+                    }) {}
+                }
             }
         }
     }

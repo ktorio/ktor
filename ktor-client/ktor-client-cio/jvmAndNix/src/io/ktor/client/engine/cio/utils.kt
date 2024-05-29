@@ -111,6 +111,9 @@ internal suspend fun writeBody(
         if (closeChannel) output.close()
         return
     }
+    if (request.body is OutgoingContent.ProtocolUpgrade) {
+        throw UnsupportedContentTypeException(request.body)
+    }
 
     val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
     val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
@@ -123,7 +126,7 @@ internal suspend fun writeBody(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            if (!processOutgoingContent(request, request.body, channel)) return@launch
+            processOutgoingContent(request, request.body, channel)
         } catch (cause: Throwable) {
             channel.close(cause)
             throw cause
@@ -142,20 +145,15 @@ internal suspend fun writeBody(
     }
 }
 
-private suspend fun processOutgoingContent(
-    request: HttpRequestData,
-    body: OutgoingContent,
-    channel: ByteWriteChannel
-): Boolean {
+private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel) {
     when (body) {
-        is OutgoingContent.NoContent -> return false
         is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
         is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
         is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
-        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
         is OutgoingContent.ContentWrapper -> processOutgoingContent(request, body.delegate(), channel)
+        is OutgoingContent.ProtocolUpgrade -> error("unreachable code")
+        is OutgoingContent.NoContent -> error("unreachable code")
     }
-    return true
 }
 
 @Suppress("DEPRECATION")
