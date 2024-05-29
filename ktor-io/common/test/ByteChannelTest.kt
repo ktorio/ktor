@@ -137,4 +137,19 @@ class ByteChannelTest {
 
         assertTrue(channel.isClosedForRead)
     }
+
+    @Test
+    fun testWriteAndFlushResumeReader() = testSuspend {
+        val channel = ByteChannel()
+        val reader = async {
+            channel.readByte()
+        }
+
+        yield()
+
+        channel.writeByte(42)
+        channel.flush()
+
+        assertEquals(42, reader.await())
+    }
 }

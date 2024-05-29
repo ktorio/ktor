@@ -42,7 +42,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     override val writeBuffer: Sink
         get() {
             closedCause?.let { throw it }
-            if (isClosedForWrite) throw IOException("Channel is closed for write")
+            if (isClosedForWrite) {
+                throw IOException("Channel is closed for write")
+            }
             return _writeBuffer
         }
 
