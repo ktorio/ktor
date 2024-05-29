@@ -247,8 +247,10 @@ public fun ByteReadChannel.readAvailable(min: Int, block: (Buffer) -> Int): Int 
     return block(readBuffer.buffer)
 }
 
-@JvmInline
-public value class ReaderScope(public val channel: ByteReadChannel)
+public class ReaderScope(
+    public val channel: ByteReadChannel,
+    override val coroutineContext: CoroutineContext
+): CoroutineScope
 
 public class ReaderJob internal constructor(
     public val channel: ByteWriteChannel,
@@ -270,7 +272,10 @@ public fun CoroutineScope.reader(
 ): ReaderJob {
     val job = launch(coroutineContext) {
         try {
-            block(ReaderScope(channel))
+            val job = Job(this.coroutineContext.job)
+            block(ReaderScope(channel, this.coroutineContext + job))
+            job.complete()
+            job.join()
 
             if (this.coroutineContext.job.isCancelled) {
                 channel.cancel(this.coroutineContext.job.getCancellationException())

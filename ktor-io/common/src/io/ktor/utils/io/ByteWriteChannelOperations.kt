@@ -93,8 +93,10 @@ public fun ByteWriteChannel.close(cause: Throwable?) {
     }
 }
 
-@JvmInline
-public value class WriterScope(public val channel: ByteWriteChannel)
+public class WriterScope(
+    public val channel: ByteWriteChannel,
+    override val coroutineContext: CoroutineContext
+) : CoroutineScope
 
 public interface ChannelJob {
     public val job: Job
@@ -137,7 +139,10 @@ public fun CoroutineScope.writer(
 ): WriterJob {
     val job = launch(coroutineContext) {
         try {
-            block(WriterScope(channel))
+            val nested = Job(this.coroutineContext.job)
+            block(WriterScope(channel, this.coroutineContext + nested))
+            nested.complete()
+            nested.join()
 
             if (this.coroutineContext.job.isCancelled) {
                 channel.cancel(this.coroutineContext.job.getCancellationException())

@@ -1,7 +1,6 @@
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -39,5 +38,38 @@ class WriterReaderTest {
         assertFailsWith<CancellationException> {
             reader.channel.writeByte(42)
         }
+    }
+
+    @Test
+    fun testReaderWaitsNestedLaunch() = testSuspend {
+        val incoming = ByteChannel()
+        val out = reader {
+            launch {
+                channel.copyAndClose(incoming)
+            }
+        }.channel
+
+        delay(1000)
+        out.writeByte(42)
+        out.flushAndClose()
+
+        assertEquals(42, incoming.readByte())
+    }
+
+    @Test
+    fun testWriterWaitsNestedLaunch() = testSuspend {
+        val out = ByteChannel()
+
+        val incoming = writer {
+            launch {
+                out.copyAndClose(channel)
+            }
+        }.channel
+
+        delay(1000)
+        out.writeByte(42)
+        out.flushAndClose()
+
+        assertEquals(42, incoming.readByte())
     }
 }
