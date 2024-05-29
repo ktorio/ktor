@@ -156,6 +156,11 @@ public sealed class OutgoingContent {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?): Unit = delegate.setProperty(key, value)
 
         public fun delegate(): OutgoingContent = delegate
+
+        /**
+         * Returns a copy of this implementation of [ContentWrapper] with provided [OutgoingContent]
+         */
+        public abstract fun copy(delegate: OutgoingContent): ContentWrapper
     }
 }
 

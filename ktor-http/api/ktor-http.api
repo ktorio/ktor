@@ -1245,6 +1245,7 @@ public abstract class io/ktor/http/content/OutgoingContent$ByteArrayContent : io
 
 public abstract class io/ktor/http/content/OutgoingContent$ContentWrapper : io/ktor/http/content/OutgoingContent {
 	public fun <init> (Lio/ktor/http/content/OutgoingContent;)V
+	public abstract fun copy (Lio/ktor/http/content/OutgoingContent;)Lio/ktor/http/content/OutgoingContent$ContentWrapper;
 	public final fun delegate ()Lio/ktor/http/content/OutgoingContent;
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
