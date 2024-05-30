@@ -19,9 +19,6 @@ repositories {
     }
 }
 
-sourceSets.main {
-}
-
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
