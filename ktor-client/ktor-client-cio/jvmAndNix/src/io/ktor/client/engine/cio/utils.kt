@@ -107,17 +107,18 @@ internal suspend fun writeBody(
     callContext: CoroutineContext,
     closeChannel: Boolean = true
 ) {
-    if (request.body is OutgoingContent.NoContent) {
+    val body = request.body.getUnwrapped()
+    if (body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
         return
     }
-    if (request.body is OutgoingContent.ProtocolUpgrade) {
-        throw UnsupportedContentTypeException(request.body)
+    if (body is OutgoingContent.ProtocolUpgrade) {
+        throw UnsupportedContentTypeException(body)
     }
 
-    val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
+    val contentLength = request.headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = request.body.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
@@ -126,7 +127,7 @@ internal suspend fun writeBody(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            processOutgoingContent(request, request.body, channel)
+            processOutgoingContent(request, body, channel)
         } catch (cause: Throwable) {
             channel.close(cause)
             throw cause
@@ -143,6 +144,11 @@ internal suspend fun writeBody(
             }
         }
     }
+}
+
+private fun OutgoingContent.getUnwrapped(): OutgoingContent = when (this) {
+    is OutgoingContent.ContentWrapper -> delegate().getUnwrapped()
+    else -> this
 }
 
 private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel) {
