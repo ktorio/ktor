@@ -165,7 +165,6 @@ public sealed class OutgoingContent {
 @InternalAPI
 public fun OutgoingContent.isEmpty(): Boolean = when (this) {
     is OutgoingContent.NoContent -> true
-    is OutgoingContent.ProtocolUpgrade -> true
     is OutgoingContent.ContentWrapper -> delegate().isEmpty()
     else -> false
 }
