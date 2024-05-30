@@ -6,8 +6,6 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.*
-import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
