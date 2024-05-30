@@ -189,10 +189,7 @@ fun Project.setupJvmToolchain() {
     }
 
     kotlin {
-        jvmToolchain {
-            check(this is JavaToolchainSpec)
-            languageVersion = JavaLanguageVersion.of(jdk)
-        }
+        jvmToolchain(jdk)
     }
 }
 
