@@ -81,7 +81,8 @@ class ResourceUrlBuilderTest {
 
     @Test
     fun testSimpleResourceWithWildcardAndNested() {
-        val resource1 = SimpleResourceWithWildcardAndNested(listOf("123"), SimpleResourceWithWildcard(listOf("456", "789")))
+        val resource1 =
+            SimpleResourceWithWildcardAndNested(listOf("123"), SimpleResourceWithWildcard(listOf("456", "789")))
         val url1 = href(resourcesFormat, resource1)
         assertEquals("/resource/456/789/foo/123", url1)
 

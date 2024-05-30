@@ -76,7 +76,9 @@ public fun <T> href(
                     val emptyGroup = path.substring(matchResult.range.first - 1, matchResult.range.last + 1)
                     if (emptyGroup.startsWith("/")) {
                         NO_PARAMETER_FOUND
-                    } else ""
+                    } else {
+                        ""
+                    }
                 }
             }
 
