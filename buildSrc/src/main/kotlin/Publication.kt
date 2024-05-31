@@ -125,7 +125,9 @@ fun Project.configurePublication() {
                 }
 
                 root.appendNode("scm").apply {
-                    appendNode("url", "https://github.com/ktorio/ktor.git")
+                    appendNode("url", "https://github.com/ktorio/ktor")
+                    appendNode("connection", "scm:git:git://github.com/ktorio/ktor.git")
+                    appendNode("developerConnection", "scm:git:git://github.com/ktorio/ktor.git")
                 }
             }
         }
