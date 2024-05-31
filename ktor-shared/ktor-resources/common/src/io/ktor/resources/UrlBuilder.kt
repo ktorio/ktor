@@ -96,7 +96,7 @@ public fun <T> href(
         }
     }
 
-    urlBuilder.set(path = newPath.replace("/$NO_PARAMETER_FOUND", ""))
+    urlBuilder.path(newPath.replace("/$NO_PARAMETER_FOUND", ""))
     val queryArgs = actualParameterValues.filter { key, _ -> key !in parameterNamesFoundInPath }
     urlBuilder.parameters.appendAll(queryArgs)
 }
