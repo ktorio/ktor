@@ -60,7 +60,8 @@ public fun <T> href(
                 val foundParameterValues = actualParameterValues.getAll(foundParameterName)
                 if (foundParameterValues != null && foundParameterValues.size > 1) {
                     throw ResourceSerializationException(
-                        "Expect zero or one parameter with name: $foundParameterName, but found ${foundParameterValues.size}"
+                        "Expect zero or one parameter with name: $foundParameterName, " +
+                            "but found ${foundParameterValues.size}"
                     )
                 }
                 parameterNamesFoundInPath += foundParameterName
