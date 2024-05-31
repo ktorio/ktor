@@ -49,7 +49,7 @@ public object AuthScheme {
     /**
      * Bearer Authentication described in the RFC-6749 & RFC6750:
      *
-     * see https://tools.ietf.org/html/rfc6749 
+     * see https://tools.ietf.org/html/rfc6749
      * & https://tools.ietf.org/html/rfc6750
      */
     public const val Bearer: String = "Bearer"
