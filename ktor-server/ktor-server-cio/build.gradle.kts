@@ -14,11 +14,11 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-server:ktor-server-test-suites"))
+            api(project(":ktor-server:ktor-server-test-base"))
         }
     }
     jvmTest {
         dependencies {
-            api(project(":ktor-server:ktor-server-test-base"))
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api(libs.logback.classic)
         }
