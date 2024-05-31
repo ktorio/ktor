@@ -1,0 +1,27 @@
+#-------------------------------------------------------------------------------#
+#               Qodana analysis is configured by qodana.yaml file               #
+#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
+#-------------------------------------------------------------------------------#
+version: "1.0"
+
+#Specify inspection profile for code analysis
+profile:
+  path: custom-profile.yaml
+
+exclude:
+    - name: All
+      paths:
+          - ktor-client/ktor-client-darwin/darwin
+          - ktor-client/ktor-client-darwin-legacy/darwin
+          - ktor-io/darwin/src/CharsetDarwin.kt
+          - ktor-network/darwin/src/io/ktor/network
+          - ktor-network/ios/src/io/ktor/network/util/SocketUtilsIos.kt
+          - ktor-network/macos/src/io/ktor/network/util/SocketUtilsMacos.kt
+          - ktor-network/tvos/src/io/ktor/network/util/SocketUtilsTvos.kt
+          - ktor-network/watchos/src/io/ktor/network/util/SocketUtilsWatchos.kt
+          - ktor-utils/darwin/src/io/ktor/util/ThreadInfoDarwin.kt
+
+
+projectJDK: 17 #(Applied in CI/CD pipeline)
+
+linter: jetbrains/qodana-jvm:latest

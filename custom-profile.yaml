@@ -1,0 +1,11 @@
+name: "My custom profile"
+
+baseProfile: qodana.single:HighlightVisitorInternal
+
+inspections:
+  - group: ALL
+    ignore:
+      - "scope#file:*.kts"
+      - "**/jsAndWasmShared/**"
+      - "**/wasmJs/**"
+
