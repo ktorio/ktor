@@ -35,7 +35,6 @@ buildscript {
                 mavenContent { snapshotsOnly() }
             }
             mavenLocal()
-            maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
         }
 
         configurations.classpath {
@@ -51,11 +50,11 @@ buildscript {
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
     repositories {
-        mavenLocal()
         mavenCentral()
         google()
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        mavenLocal()
     }
 }
 

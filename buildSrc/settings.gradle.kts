@@ -6,10 +6,10 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        if (build_snapshot_train?.toBoolean() == true) {
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        if (build_snapshot_train.toBoolean()) {
             mavenLocal()
         }
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     }
 }
 
