@@ -22,7 +22,7 @@ buildscript {
     extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
     val build_snapshot_train: String? by extra
 
-    if (build_snapshot_train?.toBoolean() == true) {
+    if (build_snapshot_train.toBoolean()) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
         if (kotlin_version == null) {

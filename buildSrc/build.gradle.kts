@@ -7,14 +7,13 @@ plugins {
     kotlin("plugin.serialization") version "1.9.22"
 }
 
-val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
+val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-
     if (buildSnapshotTrain) {
         mavenLocal()
     }

@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.*
 
 fun Project.filterSnapshotTests() {
     val build_snapshot_train: String? by extra
-    if (build_snapshot_train?.toBoolean() != true) return
+    if (!build_snapshot_train.toBoolean()) return
 
     println("Hacking test tasks, removing stress and flaky tests")
     subprojects {
@@ -47,7 +47,7 @@ fun Project.filterSnapshotTests() {
 
 fun Project.setupTrainForSubproject() {
     val build_snapshot_train: String? by extra
-    if (build_snapshot_train?.toBoolean() != true) {
+    if (!build_snapshot_train.toBoolean()) {
         return
     }
 
