@@ -23,7 +23,7 @@ public interface ConfigLoader {
         /**
          * Find and load a configuration file to [ApplicationConfig].
          */
-        public fun ConfigLoader.Companion.load(path: String? = null): ApplicationConfig {
+        public fun load(path: String? = null): ApplicationConfig {
             if (path == null) {
                 val default = loadDefault()
                 if (default != null) return default
