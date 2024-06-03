@@ -13,8 +13,6 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.util.logging.*
 
-internal expect fun DefaultTestConfig(configPath: String? = null): ApplicationConfig
-
 /**
  * Creates an engine environment for a test application.
  */
