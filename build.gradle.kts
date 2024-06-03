@@ -31,6 +31,9 @@ buildscript {
             )
         }
         repositories {
+            maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
+                mavenContent { snapshotsOnly() }
+            }
             mavenLocal()
             maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
         }
