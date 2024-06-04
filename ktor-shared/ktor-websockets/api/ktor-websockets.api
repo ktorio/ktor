@@ -59,7 +59,6 @@ public final class io/ktor/websocket/DefaultWebSocketSessionKt {
 
 public abstract class io/ktor/websocket/Frame {
 	public static final field Companion Lio/ktor/websocket/Frame$Companion;
-	public synthetic fun <init> (ZLio/ktor/websocket/FrameType;[BLkotlinx/coroutines/DisposableHandle;ZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (ZLio/ktor/websocket/FrameType;[BLkotlinx/coroutines/DisposableHandle;ZZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun copy ()Lio/ktor/websocket/Frame;
 	public final fun getBuffer ()Ljava/nio/ByteBuffer;
