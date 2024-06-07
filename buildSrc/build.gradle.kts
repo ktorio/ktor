@@ -22,7 +22,7 @@ repositories {
 sourceSets.main {
 }
 
-val ktor_version = "3.0.0-eap-852"
+val ktor_version = "3.0.0-tls-eap-907"
 
 dependencies {
     implementation(kotlin("gradle-plugin", "1.9.22"))
