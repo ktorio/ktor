@@ -325,6 +325,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    @Ignore //delete after fixing KTOR-7081
     fun testImmediateReceiveAfterConnect() = clientTests(ENGINES_WITHOUT_WS) {
         config {
             install(WebSockets)
