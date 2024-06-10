@@ -13,4 +13,4 @@ import kotlinx.io.*
     ReplaceWith("output.transferTo(this)", "kotlinx.io.transferTo"),
     level = DeprecationLevel.ERROR
 )
-public fun Source.copyTo(output: Sink): Long = output.transferFrom(this)
+public fun Source.copyTo(output: Sink): Long = transferTo(output)

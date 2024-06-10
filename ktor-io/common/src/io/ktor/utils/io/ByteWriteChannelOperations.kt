@@ -138,18 +138,19 @@ public fun CoroutineScope.writer(
     block: suspend WriterScope.() -> Unit
 ): WriterJob {
     val job = launch(coroutineContext) {
+        val nested = Job(this.coroutineContext.job)
         try {
-            val nested = Job(this.coroutineContext.job)
             block(WriterScope(channel, this.coroutineContext + nested))
             nested.complete()
-            nested.join()
 
             if (this.coroutineContext.job.isCancelled) {
                 channel.cancel(this.coroutineContext.job.getCancellationException())
             }
         } catch (cause: Throwable) {
+            nested.cancel("Exception thrown while writing to channel", cause)
             channel.cancel(cause)
         } finally {
+            nested.join()
             runCatching { channel.flushAndClose() }
         }
     }.apply {
