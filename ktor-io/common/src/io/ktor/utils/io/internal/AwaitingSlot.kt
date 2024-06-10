@@ -31,7 +31,7 @@ internal class AwaitingSlot {
      */
     fun resume() {
         val continuation = suspension.getAndUpdate {
-            if (it == CLOSED) CLOSED else null
+            it as? ClosedSlot
         }
 
         continuation?.resume(Unit)

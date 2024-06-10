@@ -271,18 +271,19 @@ public fun CoroutineScope.reader(
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
     val job = launch(coroutineContext) {
+        val nested = Job(this.coroutineContext.job)
         try {
-            val job = Job(this.coroutineContext.job)
-            block(ReaderScope(channel, this.coroutineContext + job))
-            job.complete()
-            job.join()
+            block(ReaderScope(channel, this.coroutineContext + nested))
+            nested.complete()
 
             if (this.coroutineContext.job.isCancelled) {
                 channel.cancel(this.coroutineContext.job.getCancellationException())
             }
         } catch (cause: Throwable) {
+            nested.cancel("Exception thrown while reading from channel", cause)
             channel.close(cause)
         } finally {
+            nested.join()
             runCatching { channel.flushAndClose() }
         }
     }.apply {

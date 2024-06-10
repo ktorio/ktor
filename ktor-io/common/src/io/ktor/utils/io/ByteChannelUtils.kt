@@ -6,7 +6,9 @@ package io.ktor.utils.io
 
 import kotlinx.coroutines.*
 
-@Suppress("UnusedReceiverParameter", "UNUSED_PARAMETER")
+/**
+ * Ensures that when the given job is canceled, the ByteChannel is canceled with the same exception.
+ */
 public fun ByteChannel.attachJob(job: Job) {
     job.invokeOnCompletion {
         if (it != null) {
@@ -15,6 +17,9 @@ public fun ByteChannel.attachJob(job: Job) {
     }
 }
 
+/**
+ * Ensures that when the given job is canceled, the ByteChannel is canceled with the same exception.
+ */
 public fun ByteChannel.attachJob(job: ChannelJob) {
     attachJob(job.job)
 }
