@@ -111,7 +111,7 @@ public data class HostRouteSelector(
         require(hostList.isNotEmpty() || hostPatterns.isNotEmpty() || portsList.isNotEmpty())
     }
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val requestHost = context.call.request.origin.serverHost
         val requestPort = context.call.request.origin.serverPort
 
