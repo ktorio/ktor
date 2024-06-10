@@ -27,7 +27,10 @@ public fun File.readChannel(
 ): ByteReadChannel {
     val fileLength = length()
     val randomAccessFile = RandomAccessFile(this@readChannel, "r")
-    val writer = CoroutineScope(coroutineContext).writer(CoroutineName("file-reader") + coroutineContext, autoFlush = false) {
+    val writer = CoroutineScope(coroutineContext).writer(
+        CoroutineName("file-reader") + coroutineContext,
+        autoFlush = false
+    ) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
         require(endInclusive <= fileLength - 1) {
             "endInclusive points to the position out of the file: file size = $fileLength, endInclusive = $endInclusive"

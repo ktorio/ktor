@@ -12,5 +12,4 @@ public actual enum class ByteOrder {
             TODO("Not yet implemented")
         }
     }
-
 }

@@ -15,7 +15,6 @@ import kotlin.coroutines.*
 import kotlin.jvm.*
 import kotlin.math.*
 
-
 @OptIn(InternalAPI::class)
 public val ByteWriteChannel.availableForWrite: Int
     get() = CHANNEL_MAX_SIZE - writeBuffer.size
@@ -250,7 +249,7 @@ public fun ByteReadChannel.readAvailable(min: Int, block: (Buffer) -> Int): Int 
 public class ReaderScope(
     public val channel: ByteReadChannel,
     override val coroutineContext: CoroutineContext
-): CoroutineScope
+) : CoroutineScope
 
 public class ReaderJob internal constructor(
     public val channel: ByteWriteChannel,
@@ -381,7 +380,7 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
         }
 
         // CRLF fully in buffer
-        if (cr >=0 && lf == cr + 1) {
+        if (cr >= 0 && lf == cr + 1) {
             val count = if (max != Int.MAX_VALUE) cr else minOf(max - consumed, cr.toInt()).toLong()
             out.append(readBuffer.readString(count))
             if (count == cr) readBuffer.discard(2)
