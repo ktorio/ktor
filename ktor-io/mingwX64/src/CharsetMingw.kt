@@ -106,7 +106,6 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return length
 }
 
-
 @OptIn(ExperimentalForeignApi::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     val charset = iconvCharsetName(charset.name)

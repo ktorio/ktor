@@ -7,4 +7,3 @@ public typealias ChunkBuffer = kotlinx.io.Buffer
 
 @Suppress("DEPRECATION")
 public val ChunkBuffer.writeRemaining: Int get() = Int.MAX_VALUE
-

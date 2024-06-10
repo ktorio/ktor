@@ -4,8 +4,6 @@
 
 package io.ktor.utils.io.pool
 
-import io.ktor.utils.io.pool.*
-
 public actual abstract class DefaultPool<T : Any>
 actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
 
