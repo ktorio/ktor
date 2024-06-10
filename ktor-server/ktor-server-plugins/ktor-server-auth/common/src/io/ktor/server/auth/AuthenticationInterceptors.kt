@@ -270,7 +270,7 @@ public class RouteAuthenticationConfig {
  * @param names of authentication providers to be applied to this route.
  */
 public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation.Transparent
     }
 

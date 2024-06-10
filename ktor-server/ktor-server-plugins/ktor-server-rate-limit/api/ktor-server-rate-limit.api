@@ -34,7 +34,7 @@ public final class io/ktor/server/plugins/ratelimit/RateLimitProviderConfig {
 
 public final class io/ktor/server/plugins/ratelimit/RateLimitRouteSelector : io/ktor/server/routing/RouteSelector {
 	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
+	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getName-_QBa2po ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }

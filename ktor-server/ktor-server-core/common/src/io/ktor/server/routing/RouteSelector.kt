@@ -185,7 +185,7 @@ public abstract class RouteSelector {
     /**
      * Evaluates this selector against [context] and a path segment at [segmentIndex].
      */
-    public abstract fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation
+    public abstract suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation
 }
 
 /**
@@ -205,7 +205,7 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
         segmentIncrement = parts.size
     )
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         check(segmentIndex == 0) { "Root selector should be evaluated first." }
         if (parts.isEmpty()) {
             return RouteSelectorEvaluation.Constant
@@ -239,7 +239,7 @@ public data class ConstantParameterRouteSelector(
     val value: String
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.parameters.contains(name, value)) {
             return RouteSelectorEvaluation.Constant
         }
@@ -257,7 +257,7 @@ public data class ParameterRouteSelector(
     val name: String
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
             return RouteSelectorEvaluation.Success(
@@ -279,7 +279,7 @@ public data class OptionalParameterRouteSelector(
     val name: String
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
             return RouteSelectorEvaluation.Success(
@@ -301,7 +301,7 @@ public data class PathSegmentConstantRouteSelector(
     val value: String
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
             RouteSelectorEvaluation.ConstantPath
 
@@ -316,7 +316,7 @@ public data class PathSegmentConstantRouteSelector(
  */
 public object TrailingSlashRouteSelector : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Transparent
         context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Transparent
@@ -341,7 +341,7 @@ public data class PathSegmentParameterRouteSelector(
     val suffix: String? = null
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
             segmentIndex = segmentIndex,
@@ -367,7 +367,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
     val suffix: String? = null
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
             segmentIndex = segmentIndex,
@@ -385,7 +385,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
  * Evaluates a route against any single path segment.
  */
 public object PathSegmentWildcardRouteSelector : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (segmentIndex < context.segments.size && context.segments[segmentIndex].isNotEmpty()) {
             return RouteSelectorEvaluation.WildcardPath
         }
@@ -409,7 +409,7 @@ public data class PathSegmentTailcardRouteSelector(
         require(prefix.none { it == '/' }) { "Multisegment prefix is not supported" }
     }
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val segments = context.segments
         if (prefix.isNotEmpty()) {
             val segmentText = segments.getOrNull(segmentIndex)
@@ -456,7 +456,7 @@ public data class OrRouteSelector(
     val second: RouteSelector
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
         return if (result.succeeded) {
             result
@@ -479,7 +479,7 @@ public data class AndRouteSelector(
     val second: RouteSelector
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
         if (result1 !is RouteSelectorEvaluation.Success) {
             return result1
@@ -507,7 +507,7 @@ public data class HttpMethodRouteSelector(
     val method: HttpMethod
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.request.httpMethod == method) {
             return RouteSelectorEvaluation.Constant
         }
@@ -527,7 +527,7 @@ public data class HttpHeaderRouteSelector(
     val value: String
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val headers = context.call.request.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
         val header = parsedHeaders.firstOrNull { it.value.equals(value, ignoreCase = true) }
@@ -552,7 +552,7 @@ internal data class ContentTypeHeaderRouteSelector(
         HttpStatusCode.UnsupportedMediaType
     )
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val headers = context.call.request.header(HttpHeaders.ContentType)
         val parsedHeaders = parseAndSortContentTypeHeader(headers)
 
@@ -575,7 +575,7 @@ public data class HttpAcceptRouteSelector(
 
     private val delegate = HttpMultiAcceptRouteSelector(listOf(contentType))
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return delegate.evaluate(context, segmentIndex)
     }
 
@@ -590,7 +590,7 @@ public data class HttpMultiAcceptRouteSelector(
     val contentTypes: List<ContentType>
 ) : RouteSelector() {
 
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val acceptHeaderContent = context.call.request.headers[HttpHeaders.Accept]
         try {
             val parsedHeaders = parseAndSortContentTypeHeader(acceptHeaderContent)
