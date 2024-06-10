@@ -25,7 +25,7 @@ public object It
  * DSL for creating a test case
  */
 @Suppress("UNUSED_PARAMETER")
-public fun on(comment: String, body: On.() -> Unit): Unit = On.body()
+public inline fun on(comment: String, body: On.() -> Unit): Unit = On.body()
 
 /**
  * DSL function for a test case assertions
