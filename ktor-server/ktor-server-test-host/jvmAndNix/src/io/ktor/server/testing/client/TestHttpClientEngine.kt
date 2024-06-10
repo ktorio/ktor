@@ -151,4 +151,3 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private fun TestApplicationResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
 }
-

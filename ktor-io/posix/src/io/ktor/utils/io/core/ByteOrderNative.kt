@@ -5,7 +5,6 @@
 // ktlint-disable filename
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.core.ByteOrder
 import kotlin.experimental.*
 
 public actual enum class ByteOrder {

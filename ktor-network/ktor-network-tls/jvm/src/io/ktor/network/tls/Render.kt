@@ -150,6 +150,7 @@ private fun buildSignatureAlgorithmsExtension(
 }
 
 private const val MAX_SERVER_NAME_LENGTH: Int = Short.MAX_VALUE - 5
+
 @Suppress("DEPRECATION")
 private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket {
     require(name.length < MAX_SERVER_NAME_LENGTH) {

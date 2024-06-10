@@ -25,4 +25,3 @@ public fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): Byt
     ByteReadChannel(text.toByteArray(charset))
 
 public fun ByteReadChannel(source: Source): ByteReadChannel = SourceByteReadChannel(source)
-

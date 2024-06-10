@@ -54,4 +54,3 @@ public suspend fun ByteWriteChannel.writeWhile(block: (ByteBuffer) -> Boolean) {
         flush()
     }
 }
-
