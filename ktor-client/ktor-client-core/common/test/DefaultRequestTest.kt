@@ -113,10 +113,10 @@ class DefaultRequestTest {
         val defaultUrl = Url(URLBuilder.Companion.origin)
         if (defaultUrl.port == defaultUrl.protocol.defaultPort) {
             assertEquals("https://localhost", client.get {}.bodyAsText())
-            assertEquals("ws://localhost:443", client.get { url(scheme = "ws") }.bodyAsText())
+            assertEquals("ws://localhost", client.get { url(scheme = "ws") }.bodyAsText())
         } else {
             assertEquals("https://${defaultUrl.hostWithPort}", client.get {}.bodyAsText())
-            assertEquals("ws://${defaultUrl.hostWithPort}", client.get { url(scheme = "ws") }.bodyAsText())
+            assertEquals("ws://${defaultUrl.host}", client.get { url(scheme = "ws") }.bodyAsText())
         }
         assertEquals("https://other.host/", client.get("//other.host/").bodyAsText())
         assertEquals("ws://other.host/", client.get("ws://other.host/").bodyAsText())
@@ -194,7 +194,7 @@ class DefaultRequestTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
-                    respond(it.url.parameters["key"] ?: "missing")
+                    respond(it.url.parameters.getAll("key")?.joinToString() ?: "missing")
                 }
             }
 
@@ -204,7 +204,8 @@ class DefaultRequestTest {
         }
 
         assertEquals("default", client.get { }.bodyAsText())
-        assertEquals("custom", client.get { url.parameters.append("key", "custom") }.bodyAsText())
+        assertEquals("custom", client.get { url.parameters["key"] = "custom" }.bodyAsText())
+        assertEquals("default, custom", client.get { url.parameters.append("key", "custom") }.bodyAsText())
     }
 
     @Test

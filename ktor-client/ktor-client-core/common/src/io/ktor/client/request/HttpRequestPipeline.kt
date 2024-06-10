@@ -19,8 +19,9 @@ public class HttpRequestPipeline(
      * Last phase should proceed with [HttpClientCall].
      */
     public companion object Phases {
+
         /**
-         * The earliest phase that happens before any other.
+         * Called before the request is processed, after the URL and headers are supplied.
          */
         public val Before: PipelinePhase = PipelinePhase("Before")
 
@@ -43,6 +44,22 @@ public class HttpRequestPipeline(
          * A phase for the [HttpSend] plugin.
          */
         public val Send: PipelinePhase = PipelinePhase("Send")
+
+        private val DoNothing: HttpRequestBuilder.() -> Unit = {}
+    }
+
+    /**
+     * Applied when a new HttpRequestBuilder is created from the client.
+     */
+    public var initRequest: HttpRequestBuilder.() -> Unit = DoNothing
+        private set
+
+    /**
+     * Include a basic function that initializes the request builder.
+     * This is executed before anything is supplied to the request.
+     */
+    public fun onCreate(onCreate: HttpRequestBuilder.() -> Unit) {
+        initRequest = if (initRequest === DoNothing) onCreate else {{ initRequest(); onCreate() }}
     }
 }
 

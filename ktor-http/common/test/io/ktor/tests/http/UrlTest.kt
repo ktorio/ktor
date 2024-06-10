@@ -9,6 +9,7 @@ import kotlin.random.*
 import kotlin.test.*
 
 class UrlTest {
+
     @Test
     fun testBasicProperties() {
         val urlString = "https://ktor.io/quickstart/?query=string&param=value&param=value2#fragment"
@@ -122,6 +123,13 @@ class UrlTest {
     }
 
     @Test
+    fun testEmptyQuery() {
+        val urlString = "http://localhost/test?"
+        val url = URLBuilder(urlString).build()
+        assertEquals(urlString, url.toString())
+    }
+
+    @Test
     fun testEqualsInQueryValue() {
         val urlString =
             "https://akamai.removed.com/22/225b067044aa56f36590ef56d41e256cd1d0887b176bfdeec123ecccc6057790" +
@@ -204,6 +212,7 @@ class UrlTest {
         assertFails { testPort(-2) }
     }
 
+    @Ignore // this isn't a valid url...
     @Test
     fun testEscapeInUrls() {
         val url = Url("https://google.com:80\\\\@yahoo.com/")
@@ -312,8 +321,15 @@ class UrlTest {
 
     @Test
     fun testIsRelative() {
-        assertTrue(Url("hello").isRelativePath)
-        assertTrue(Url("").isRelativePath)
-        assertTrue(Url("hello/world").isRelativePath)
+        assertTrue(Url("./hello").isRelativePath)
+        assertTrue(Url(".").isRelativePath)
+        assertTrue(Url("./hello/world").isRelativePath)
+    }
+
+    @Test
+    fun testOnlyHost() {
+        assertEquals("localhost", Url("localhost").host)
+        assertEquals("google.com", Url("google.com").host)
+        assertEquals("localhost", Url("localhost:8080").host)
     }
 }

@@ -15,14 +15,14 @@ import kotlin.jvm.*
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(
-    builder: HttpRequestBuilder = HttpRequestBuilder()
+    builder: HttpRequestBuilder = HttpRequestBuilder().apply(requestPipeline.initRequest)
 ): HttpResponse = HttpStatement(builder, this).execute()
 
 /**
  * Prepares an [HttpClient]'s request with the parameters specified using [builder].
  */
 public suspend inline fun HttpClient.prepareRequest(
-    builder: HttpRequestBuilder = HttpRequestBuilder()
+    builder: HttpRequestBuilder = HttpRequestBuilder().apply(requestPipeline.initRequest)
 ): HttpStatement = HttpStatement(builder, this)
 
 /**
@@ -31,13 +31,13 @@ public suspend inline fun HttpClient.prepareRequest(
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    request(HttpRequestBuilder().apply(block))
+    request(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s request with the parameters specified using [block].
  */
 public suspend inline fun HttpClient.prepareRequest(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareRequest(HttpRequestBuilder().apply(block))
+    prepareRequest(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s request with the [urlString] and the parameters configured in [block].
@@ -219,7 +219,7 @@ public suspend inline fun HttpClient.prepareHead(builder: HttpRequestBuilder): H
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    get(HttpRequestBuilder().apply(block))
+    get(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s POST request with the parameters configured in [block].
@@ -227,7 +227,7 @@ public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): 
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    post(HttpRequestBuilder().apply(block))
+    post(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s PUT request with the parameters configured in [block].
@@ -235,7 +235,7 @@ public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit):
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    put(HttpRequestBuilder().apply(block))
+    put(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s DELETE request with the parameters configured in [block].
@@ -243,7 +243,7 @@ public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): 
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    delete(HttpRequestBuilder().apply(block))
+    delete(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s OPTIONS request with the parameters configured in [block].
@@ -251,7 +251,7 @@ public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    options(HttpRequestBuilder().apply(block))
+    options(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s PATCH request with the parameters configured in [block].
@@ -259,7 +259,7 @@ public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Uni
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    patch(HttpRequestBuilder().apply(block))
+    patch(createRequest(block))
 
 /**
  * Executes an [HttpClient]'s HEAD request with the parameters configured in [block].
@@ -267,55 +267,63 @@ public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit)
  * Learn more from [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    head(HttpRequestBuilder().apply(block))
+    head(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s GET request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.prepareGet(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareGet(HttpRequestBuilder().apply(block))
+    prepareGet(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s POST request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.preparePost(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePost(HttpRequestBuilder().apply(block))
+    preparePost(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s PUT request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.preparePut(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePut(HttpRequestBuilder().apply(block))
+    preparePut(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s DELETE request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.prepareDelete(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareDelete(HttpRequestBuilder().apply(block))
+    prepareDelete(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s OPTIONS request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.prepareOptions(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareOptions(HttpRequestBuilder().apply(block))
+    prepareOptions(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s PATCH request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePatch(HttpRequestBuilder().apply(block))
+    preparePatch(createRequest(block))
 
 /**
  * Prepares an [HttpClient]'s HEAD request with the parameters configured in [block].
  */
 public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareHead(HttpRequestBuilder().apply(block))
+    prepareHead(createRequest(block))
 
 /**
  * Creates an [HttpRequestBuilder] and configures it using [block].
  */
 public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
     HttpRequestBuilder().apply(block)
+
+/**
+ * Creates an [HttpRequestBuilder], applies the client initialization, then configures it using [block].
+ */
+public inline fun HttpClient.createRequest(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
+    HttpRequestBuilder()
+        .apply(requestPipeline.initRequest)
+        .apply(block)
 
 /**
  * Executes an [HttpClient]'s GET request with the specified [url] and

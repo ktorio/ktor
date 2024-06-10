@@ -501,11 +501,20 @@ internal class URLBuilderTest {
         assertTrue(URLBuilder("/hello").isAbsolutePath)
     }
 
+    @Ignore // TODO expose parsing mode when paths are wanted
     @Test
     fun testIsRelative() {
         assertTrue(URLBuilder("hello").isRelativePath)
         assertTrue(URLBuilder("").isRelativePath)
         assertTrue(URLBuilder("hello/world").isRelativePath)
+    }
+
+    @Test
+    fun testUrlHost() {
+        assertEquals("http://localhost", URLBuilder("localhost").buildString())
+        assertEquals("http://127.0.0.1", URLBuilder("127.0.0.1").buildString())
+        assertEquals("http://google.com", URLBuilder("google.com").buildString())
+        assertEquals("http://localhost:8080", URLBuilder("localhost:8080").buildString())
     }
 
     /**

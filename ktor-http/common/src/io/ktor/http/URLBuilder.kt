@@ -69,6 +69,12 @@ public class URLBuilder(
         }
 
     public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPathPart() }
+        set(value) {
+            field = value
+            replaceLastSegment = value.isNotEmpty() && value.last().let { it.isEmpty() || it.contains('.') }
+        }
+
+    public var replaceLastSegment: Boolean = false
 
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
@@ -225,6 +231,12 @@ public fun URLBuilder.path(vararg path: String) {
 }
 
 /**
+ * Appends the given path to the current [encodedPath].
+ */
+public fun URLBuilder.appendEncodedPath(path: String): URLBuilder =
+    appendEncodedPathSegments(path.split('/'))
+
+/**
  * Adds [segments] to current [encodedPath]
  */
 public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
@@ -312,3 +324,9 @@ public fun URLBuilder.pathComponents(vararg components: String): URLBuilder = ap
     level = DeprecationLevel.ERROR
 )
 public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = appendPathSegments(components)
+
+/**
+ * Returns true if no properties have been assigned.
+ */
+public fun URLBuilder.isEmpty(): Boolean =
+    host.isEmpty() && pathSegments.isEmpty() && protocolOrNull == null
