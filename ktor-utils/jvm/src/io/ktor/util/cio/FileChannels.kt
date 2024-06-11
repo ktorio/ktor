@@ -26,7 +26,7 @@ public fun File.readChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteReadChannel {
     val fileLength = length()
-    val randomAccessFile = RandomAccessFile(this@readChannel, "r")
+    val randomAccessFile by lazy { RandomAccessFile(this@readChannel, "r") }
     val writer = CoroutineScope(coroutineContext).writer(
         CoroutineName("file-reader") + coroutineContext,
         autoFlush = false

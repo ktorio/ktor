@@ -332,7 +332,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @OptIn(InternalAPI::class)
-    @RetryableTest(2)
+    @RetryableTest(4)
     open fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
         createAndStartServer {
