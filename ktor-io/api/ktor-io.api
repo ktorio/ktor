@@ -240,18 +240,10 @@ public final class io/ktor/utils/io/ReaderJob : io/ktor/utils/io/ChannelJob {
 	public fun getJob ()Lkotlinx/coroutines/Job;
 }
 
-public final class io/ktor/utils/io/ReaderScope {
-	public static final synthetic fun box-impl (Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ReaderScope;
-	public static fun constructor-impl (Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
-	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteReadChannel;)Z
+public final class io/ktor/utils/io/ReaderScope : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
-	public fun hashCode ()I
-	public static fun hashCode-impl (Lio/ktor/utils/io/ByteReadChannel;)I
-	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Lio/ktor/utils/io/ByteReadChannel;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 }
 
 public final class io/ktor/utils/io/WriterJob : io/ktor/utils/io/ChannelJob {
@@ -259,18 +251,10 @@ public final class io/ktor/utils/io/WriterJob : io/ktor/utils/io/ChannelJob {
 	public fun getJob ()Lkotlinx/coroutines/Job;
 }
 
-public final class io/ktor/utils/io/WriterScope {
-	public static final synthetic fun box-impl (Lio/ktor/utils/io/ByteWriteChannel;)Lio/ktor/utils/io/WriterScope;
-	public static fun constructor-impl (Lio/ktor/utils/io/ByteWriteChannel;)Lio/ktor/utils/io/ByteWriteChannel;
-	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteWriteChannel;)Z
+public final class io/ktor/utils/io/WriterScope : kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun getChannel ()Lio/ktor/utils/io/ByteWriteChannel;
-	public fun hashCode ()I
-	public static fun hashCode-impl (Lio/ktor/utils/io/ByteWriteChannel;)I
-	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Lio/ktor/utils/io/ByteWriteChannel;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 }
 
 public final class io/ktor/utils/io/bits/ByteOrderJVMKt {
