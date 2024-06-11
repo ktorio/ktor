@@ -86,6 +86,7 @@ public enum class Month(public val value: String) {
  *
  * @property timestamp is a number of epoch milliseconds
  */
+@ConsistentCopyVisibility
 public data class GMTDate internal constructor(
     val seconds: Int,
     val minutes: Int,

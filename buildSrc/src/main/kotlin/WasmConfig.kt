@@ -41,7 +41,7 @@ private fun Project.configureWasmTasks() {
                 testTask(
                     Action {
                         useKarma {
-                            useChromeHeadlessWasmGc()
+                            useChromeHeadless()
                             useConfigDirectory(File(project.rootProject.projectDir, "karma"))
                         }
                     }
