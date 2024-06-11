@@ -18,4 +18,7 @@ public actual enum class ByteOrder(public val nioOrder: java.nio.ByteOrder) {
 }
 
 private fun orderOf(nioOrder: java.nio.ByteOrder): io.ktor.utils.io.core.ByteOrder =
-    if (nioOrder === java.nio.ByteOrder.BIG_ENDIAN) io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN else io.ktor.utils.io.core.ByteOrder.LITTLE_ENDIAN
+    if (nioOrder === java.nio.ByteOrder.BIG_ENDIAN)
+        io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN
+    else
+        io.ktor.utils.io.core.ByteOrder.LITTLE_ENDIAN

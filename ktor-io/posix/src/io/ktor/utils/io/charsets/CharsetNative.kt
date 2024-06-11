@@ -68,7 +68,8 @@ internal data class CharsetDecoderImpl(private val charset: Charset) : CharsetDe
 
 public actual val CharsetDecoder.charset: Charset get() = _charset
 
-internal val platformUtf16: String = if (ByteOrder.nativeOrder() == io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
+internal val platformUtf16: String =
+    if (ByteOrder.nativeOrder() == io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 // -----------------------------------------------------------
 public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
