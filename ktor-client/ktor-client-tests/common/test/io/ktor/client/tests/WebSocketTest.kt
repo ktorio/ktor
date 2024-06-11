@@ -325,7 +325,9 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testImmediateReceiveAfterConnect() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testImmediateReceiveAfterConnect() = clientTests(
+        ENGINES_WITHOUT_WS + "Darwin" // TODO KTOR-7088
+    ) {
         config {
             install(WebSockets)
         }
