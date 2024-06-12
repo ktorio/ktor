@@ -1289,7 +1289,10 @@ class RoutingResolveTest {
         val siblingTop = root.handle(PathSegmentParameterRouteSelector("sibling", "top"))
         val transparentEntryTop = root.createChild(
             object : RouteSelector() {
-                override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                override suspend fun evaluate(
+                    context: RoutingResolveContext,
+                    segmentIndex: Int,
+                ): RouteSelectorEvaluation {
                     return RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
                 }
 
