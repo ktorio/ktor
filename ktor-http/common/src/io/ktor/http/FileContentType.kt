@@ -65,7 +65,14 @@ private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
 internal fun List<ContentType>.selectDefault(): ContentType {
     val contentType = firstOrNull() ?: ContentType.Application.OctetStream
     return when {
-        contentType.contentType == "text" && contentType.charset() == null -> contentType.withCharset(Charsets.UTF_8)
+        contentType.match(ContentType.Text.Any) && contentType.charset() == null -> contentType.withCharset(
+            Charsets.UTF_8
+        )
+
+        contentType.match(ContentType.Image.SVG) && contentType.charset() == null -> contentType.withCharset(
+            Charsets.UTF_8
+        )
+
         else -> contentType
     }
 }

@@ -1253,6 +1253,26 @@ class StaticContentTest {
         assertEquals(ContentType.Text.Plain, responseZip.contentType()!!.withoutParameters())
         assertEquals("file-nested.txt", responseZip.bodyAsText().trim())
     }
+
+    @Test
+    fun testCharset() = testApplication {
+        val fileName = "file"
+        val extensions = mapOf(
+            "js" to ContentType.Text.JavaScript,
+            "css" to ContentType.Text.CSS,
+            "svg" to ContentType.Image.SVG
+        )
+
+        routing {
+            staticResources("/", "public/types")
+        }
+
+        extensions.forEach { (extension, contentType) ->
+            client.get("/$fileName.$extension").apply {
+                assertEquals(contentType.withCharset(Charsets.UTF_8), contentType())
+            }
+        }
+    }
 }
 
 private fun String.replaceSeparators() = replace("/", File.separator)

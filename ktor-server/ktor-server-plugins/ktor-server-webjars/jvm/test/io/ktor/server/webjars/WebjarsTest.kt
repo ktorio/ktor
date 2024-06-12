@@ -56,7 +56,7 @@ class WebjarsTest {
             }
             client.get("/assets/webjars/jquery/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -69,7 +69,7 @@ class WebjarsTest {
             }
             client.get("/jquery/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -89,7 +89,7 @@ class WebjarsTest {
             }
             client.get("/jquery/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -101,7 +101,7 @@ class WebjarsTest {
 
             client.get("/webjars/jquery/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -113,7 +113,7 @@ class WebjarsTest {
 
             client.get("/webjars/jquery/jquery.js?param1=value1").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -125,7 +125,7 @@ class WebjarsTest {
 
             client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
@@ -160,7 +160,7 @@ class WebjarsTest {
             install(CachingHeaders)
             client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
                 assertNotNull(response.headers["Last-Modified"])
                 assertEquals("\"3.6.4\"", response.headers["Etag"])
                 assertEquals("max-age=${90.days.inWholeSeconds}", response.headers["Cache-Control"])
@@ -181,7 +181,7 @@ class WebjarsTest {
             install(CachingHeaders)
             client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/javascript", response.headers["Content-Type"])
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
                 assertEquals(date.toHttpDate(), response.headers["Last-Modified"])
                 assertEquals("\"test\"", response.headers["Etag"])
                 assertEquals("max-age=5", response.headers["Cache-Control"])
@@ -209,7 +209,7 @@ class WebjarsTest {
             val response = client.get("/webjars/jquery/3.3.1/jquery.js")
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("Hello", response.bodyAsText())
-            assertNotEquals("application/javascript", response.headers["Content-Type"])
+            assertNotEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
     }
 }
