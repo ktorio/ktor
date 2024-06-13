@@ -1001,6 +1001,7 @@ public final class io/ktor/http/URLUtilsKt {
 	public static final fun isAbsolutePath (Lio/ktor/http/Url;)Z
 	public static final fun isRelativePath (Lio/ktor/http/URLBuilder;)Z
 	public static final fun isRelativePath (Lio/ktor/http/Url;)Z
+	public static final fun parseUrl (Ljava/lang/String;)Lio/ktor/http/Url;
 	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
 	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Lio/ktor/http/Url;)Lio/ktor/http/URLBuilder;
 }
