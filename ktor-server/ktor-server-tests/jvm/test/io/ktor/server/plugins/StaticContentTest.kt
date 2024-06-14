@@ -1260,7 +1260,8 @@ class StaticContentTest {
         val extensions = mapOf(
             "js" to ContentType.Text.JavaScript,
             "css" to ContentType.Text.CSS,
-            "svg" to ContentType.Image.SVG
+            "svg" to ContentType.Image.SVG,
+            "xml" to ContentType.Application.Xml,
         )
 
         routing {
