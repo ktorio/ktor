@@ -26,15 +26,15 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
  * @param application is an instance of [Application] for this routing node.
  */
 @KtorDsl
-public class Routing(
+public class RoutingRoot(
     public val application: Application
-) : RouteNode(
+) : RoutingNode(
     parent = null,
     selector = RootRouteSelector(application.rootPath),
     application.developmentMode,
     application.environment
 ),
-    RootRoute {
+    RootRouting {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     init {
@@ -72,7 +72,7 @@ public class Routing(
 
     private suspend fun executeResult(
         context: PipelineContext<Unit, PipelineCall>,
-        route: RouteNode,
+        route: RoutingNode,
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
@@ -121,10 +121,10 @@ public class Routing(
     }
 
     /**
-     * An installation object of the [Routing] plugin.
+     * An installation object of the [RoutingRoot] plugin.
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : BaseApplicationPlugin<Application, RootRoute, Routing> {
+    public companion object Plugin : BaseApplicationPlugin<Application, RootRouting, RoutingRoot> {
 
         /**
          * A definition for an event that is fired when routing-based call processing starts.
@@ -136,31 +136,31 @@ public class Routing(
          */
         public val RoutingCallFinished: EventDefinition<RoutingCall> = EventDefinition()
 
-        override val key: AttributeKey<Routing> = AttributeKey("Routing")
+        override val key: AttributeKey<RoutingRoot> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: RootRoute.() -> Unit): Routing {
-            val routing = Routing(pipeline).apply(configure)
-            pipeline.intercept(Call) { routing.interceptor(this) }
-            return routing
+        override fun install(pipeline: Application, configure: RootRouting.() -> Unit): RoutingRoot {
+            val routingRoot = RoutingRoot(pipeline).apply(configure)
+            pipeline.intercept(Call) { routingRoot.interceptor(this) }
+            return routingRoot
         }
     }
 }
 
 /**
- * Gets an [Application] for this [RouteNode] by scanning the hierarchy to the root.
+ * Gets an [Application] for this [RoutingNode] by scanning the hierarchy to the root.
  */
-public val Route.application: Application
+public val Routing.application: Application
     get() = when (this) {
-        is Routing -> application
+        is RoutingRoot -> application
         else -> parent?.application ?: throw UnsupportedOperationException(
             "Cannot retrieve application from unattached routing entry"
         )
     }
 
 /**
- * Installs a [Routing] plugin for the this [Application] and runs a [configuration] script on it.
+ * Installs a [RoutingRoot] plugin for the this [Application] and runs a [configuration] script on it.
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
 @KtorDsl
-public fun Application.routing(configuration: RootRoute.() -> Unit): Routing =
-    pluginOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
+public fun Application.routing(configuration: RootRouting.() -> Unit): RoutingRoot =
+    pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)

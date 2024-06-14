@@ -1027,7 +1027,7 @@ class RoutingProcessingTest {
         }
     }
 
-    private fun Route.transparent(build: Route.() -> Unit): Route {
+    private fun Routing.transparent(build: Routing.() -> Unit): Routing {
         val route = createChild(
             object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {

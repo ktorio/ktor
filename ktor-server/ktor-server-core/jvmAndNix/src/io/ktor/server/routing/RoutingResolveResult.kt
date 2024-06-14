@@ -11,7 +11,7 @@ import io.ktor.http.*
  *
  * @property route specifies a routing node for successful resolution, or nearest one for failed.
  */
-public sealed class RoutingResolveResult(public val route: RouteNode) {
+public sealed class RoutingResolveResult(public val route: RoutingNode) {
     /**
      * Provides all captured values for this result.
      */
@@ -21,7 +21,7 @@ public sealed class RoutingResolveResult(public val route: RouteNode) {
      * Represents a successful result
      */
     public class Success internal constructor(
-        route: RouteNode,
+        route: RoutingNode,
         override val parameters: Parameters,
         internal val quality: Double
     ) : RoutingResolveResult(route) {
@@ -30,7 +30,7 @@ public sealed class RoutingResolveResult(public val route: RouteNode) {
             "This will become internal in future releases.",
             level = DeprecationLevel.ERROR
         )
-        public constructor(route: RouteNode, parameters: Parameters) : this(route, parameters, 0.0)
+        public constructor(route: RoutingNode, parameters: Parameters) : this(route, parameters, 0.0)
 
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route"
     }
@@ -40,7 +40,7 @@ public sealed class RoutingResolveResult(public val route: RouteNode) {
      * @param reason provides information on reason of a failure
      */
     public class Failure internal constructor(
-        route: RouteNode,
+        route: RoutingNode,
         public val reason: String,
         public val errorStatusCode: HttpStatusCode
     ) : RoutingResolveResult(route) {
@@ -49,7 +49,7 @@ public sealed class RoutingResolveResult(public val route: RouteNode) {
             "This will become internal in future releases.",
             level = DeprecationLevel.ERROR
         )
-        public constructor(route: RouteNode, reason: String) : this(route, reason, HttpStatusCode.NotFound)
+        public constructor(route: RoutingNode, reason: String) : this(route, reason, HttpStatusCode.NotFound)
 
         override val parameters: Nothing
             get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")

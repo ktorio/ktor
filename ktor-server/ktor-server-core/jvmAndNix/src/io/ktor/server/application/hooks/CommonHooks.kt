@@ -62,7 +62,7 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     override fun install(pipeline: ApplicationCallPipeline, handler: (Param) -> Unit) {
         val application = when (pipeline) {
             is Application -> pipeline
-            is Route -> pipeline.application
+            is Routing -> pipeline.application
             else -> error("Unsupported pipeline: $pipeline")
         }
         application.monitor.subscribe(event) {

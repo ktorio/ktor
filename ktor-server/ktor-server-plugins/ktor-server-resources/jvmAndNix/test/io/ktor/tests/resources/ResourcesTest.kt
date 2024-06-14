@@ -495,19 +495,19 @@ class ResourcesTest {
 
         routing {
             get<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             options<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             head<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             post<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             put<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             delete<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
             patch<someResource> { call.respondText("Hi!") }
-                .apply { assertIs<HttpMethodRouteSelector>((this as RouteNode).selector) }
+                .apply { assertIs<HttpMethodRouteSelector>((this as RoutingNode).selector) }
         }
     }
 

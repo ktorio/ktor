@@ -92,7 +92,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
 }
 
 /**
- * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RoutingNode].
  *
  * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
@@ -110,7 +110,7 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
  * @param name A name of a plugin that is used to get its instance
- * when it is installed to [io.ktor.server.routing.Routing].
+ * when it is installed to [io.ktor.server.routing.RoutingRoot].
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
  * note that it may be modified later when a user of your plugin calls [install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
@@ -129,7 +129,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
         configure: PluginConfigT.() -> Unit
     ): PluginInstance {
         val application = when (pipeline) {
-            is RouteNode -> pipeline.application
+            is RoutingNode -> pipeline.application
             is Application -> pipeline
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
@@ -139,7 +139,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
 }
 
 /**
- * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RoutingNode].
  *
  * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
@@ -157,7 +157,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
  * @param name A name of a plugin that is used to get its instance
- * when it is installed to [io.ktor.server.routing.Routing].
+ * when it is installed to [io.ktor.server.routing.RoutingRoot].
  * @param configurationPath is path in configuration file to configuration of this plugin.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
  * note that it may be modified later when a user of your plugin calls [install].
@@ -186,7 +186,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
         }
 
         val application = when (pipeline) {
-            is RouteNode -> pipeline.application
+            is RoutingNode -> pipeline.application
             is Application -> pipeline
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
@@ -221,7 +221,7 @@ public fun createApplicationPlugin(
 ): ApplicationPlugin<Unit> = createApplicationPlugin(name, {}, body)
 
 /**
- * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RouteNode].
+ * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RoutingNode].
  *
  * The example below creates a plugin that prints a requested URL each time your application receives a call:
  * ```
@@ -238,7 +238,7 @@ public fun createApplicationPlugin(
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
- * @param name A name of a plugin that is used to get an instance of the plugin installed to the [io.ktor.server.routing.RouteNode].
+ * @param name A name of a plugin that is used to get an instance of the plugin installed to the [io.ktor.server.routing.RoutingNode].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
  **/
@@ -287,7 +287,7 @@ private fun <
         override val application: Application = application
         override val pipeline: ApplicationCallPipeline = pipeline
         override val pluginConfig: PluginConfigT = config
-        override val route: RouteNode? = pipeline as? RouteNode
+        override val route: RoutingNode? = pipeline as? RoutingNode
     }
 
     pluginBuilder.setupPlugin(body)
