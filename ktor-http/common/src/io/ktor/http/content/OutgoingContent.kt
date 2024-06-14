@@ -165,8 +165,9 @@ public sealed class OutgoingContent {
 }
 
 /**
- * Check if current [OutgoingContent] doesn't contains content
+ * Check if current [OutgoingContent] doesn't contain content
  */
+@InternalAPI
 public fun OutgoingContent.isEmpty(): Boolean = when (this) {
     is OutgoingContent.NoContent -> true
     is OutgoingContent.ContentWrapper -> delegate().isEmpty()

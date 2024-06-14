@@ -107,14 +107,18 @@ internal suspend fun writeBody(
     callContext: CoroutineContext,
     closeChannel: Boolean = true
 ) {
-    if (request.body is OutgoingContent.NoContent) {
+    val body = request.body.getUnwrapped()
+    if (body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
         return
     }
+    if (body is OutgoingContent.ProtocolUpgrade) {
+        throw UnsupportedContentTypeException(body)
+    }
 
-    val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
+    val contentLength = request.headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = request.body.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
@@ -123,7 +127,7 @@ internal suspend fun writeBody(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            if (!processOutgoingContent(request, request.body, channel)) return@launch
+            processOutgoingContent(request, body, channel)
         } catch (cause: Throwable) {
             channel.close(cause)
             throw cause
@@ -142,20 +146,20 @@ internal suspend fun writeBody(
     }
 }
 
-private suspend fun processOutgoingContent(
-    request: HttpRequestData,
-    body: OutgoingContent,
-    channel: ByteWriteChannel
-): Boolean {
+private fun OutgoingContent.getUnwrapped(): OutgoingContent = when (this) {
+    is OutgoingContent.ContentWrapper -> delegate().getUnwrapped()
+    else -> this
+}
+
+private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel) {
     when (body) {
-        is OutgoingContent.NoContent -> return false
         is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
         is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
         is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
-        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
         is OutgoingContent.ContentWrapper -> processOutgoingContent(request, body.delegate(), channel)
+        is OutgoingContent.ProtocolUpgrade -> error("unreachable code")
+        is OutgoingContent.NoContent -> error("unreachable code")
     }
-    return true
 }
 
 @Suppress("DEPRECATION")
