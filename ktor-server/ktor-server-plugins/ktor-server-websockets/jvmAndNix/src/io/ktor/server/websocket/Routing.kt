@@ -218,7 +218,7 @@ private suspend fun DefaultWebSocketSession.handleServerSession(
 private class WebSocketProtocolsSelector(
     val requiredProtocol: String
 ) : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol]
         if (protocols == null) {
             LOGGER.trace("Skipping WebSocket plugin because no Sec-WebSocket-Protocol header provided.")
