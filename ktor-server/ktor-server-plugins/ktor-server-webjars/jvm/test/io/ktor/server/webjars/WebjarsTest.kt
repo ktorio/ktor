@@ -12,135 +12,132 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class WebjarsTest {
 
     @Test
     fun resourceNotFound() {
-        withTestApplication {
-            application.install(Webjars)
-            handleRequest(HttpMethod.Get, "/webjars/foo.js").let { call ->
+        testApplication {
+            install(Webjars)
+            client.get("/webjars/foo.js").let { response ->
                 // Should be handled by some other routing
-                assertEquals(HttpStatusCode.NotFound, call.response.status())
+                assertEquals(HttpStatusCode.NotFound, response.status)
             }
         }
     }
 
     @Test
     fun pathLike() {
-        withTestApplication {
-            application.install(Webjars)
-            application.routing {
+        testApplication {
+            install(Webjars)
+            routing {
                 get("/webjars-something/jquery") {
                     call.respondText { "Something Else" }
                 }
             }
-            handleRequest(HttpMethod.Get, "/webjars-something/jquery").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("Something Else", call.response.content)
+            client.get("/webjars-something/jquery").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("Something Else", response.bodyAsText())
             }
         }
     }
 
     @Test
     fun nestedPath() {
-        withTestApplication {
-            application.install(Webjars) {
+        testApplication {
+            install(Webjars) {
                 path = "/assets/webjars"
             }
-            handleRequest(HttpMethod.Get, "/assets/webjars/jquery/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/assets/webjars/jquery/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
     fun rootPath() {
-        withTestApplication {
-            application.install(Webjars) {
+        testApplication {
+            install(Webjars) {
                 path = "/"
             }
-            handleRequest(HttpMethod.Get, "/jquery/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/jquery/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
     fun rootPath2() {
-        withTestApplication {
-            application.install(Webjars) {
+        testApplication {
+            install(Webjars) {
                 path = "/"
             }
-            application.routing {
+            routing {
                 get("/") { call.respondText("Hello, World") }
             }
-            handleRequest(HttpMethod.Get, "/").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("Hello, World", call.response.content)
+            client.get("/").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("Hello, World", response.bodyAsText())
             }
-            handleRequest(HttpMethod.Get, "/jquery/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/jquery/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
     fun versionAgnostic() {
-        withTestApplication {
-            application.install(Webjars)
+        testApplication {
+            install(Webjars)
 
-            handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/webjars/jquery/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
     fun withGetParameters() {
-        withTestApplication {
-            application.install(Webjars)
+        testApplication {
+            install(Webjars)
 
-            handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js?param1=value1").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/webjars/jquery/jquery.js?param1=value1").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
     fun withSpecificVersion() {
-        withTestApplication {
-            application.install(Webjars)
+        testApplication {
+            install(Webjars)
 
-            handleRequest(HttpMethod.Get, "/webjars/jquery/3.6.4/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             }
         }
     }
 
     @Test
-    fun withConditionalHeaders() {
-        withTestApplication {
-            application.install(Webjars)
-            application.install(ConditionalHeaders)
-            handleRequest(HttpMethod.Get, "/webjars/jquery/3.6.4/jquery.js").let { call ->
-                assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("application/javascript", call.response.headers["Content-Type"])
-                assertNotNull(call.response.headers["Last-Modified"])
+    fun withConditionalAndCachingHeaders() {
+        testApplication {
+            install(Webjars)
+            install(ConditionalHeaders)
+            client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
+                assertNotNull(response.headers["Last-Modified"])
             }
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun callHandledBeforeWebjars() {
         val alwaysRespondHello = object : Hook<Unit> {
@@ -161,7 +158,7 @@ class WebjarsTest {
             val response = client.get("/webjars/jquery/3.3.1/jquery.js")
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("Hello", response.bodyAsText())
-            assertNotEquals("application/javascript", response.headers["Content-Type"])
+            assertNotEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
     }
 }
