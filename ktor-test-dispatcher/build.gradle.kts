@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlinx.coroutines.test)
+                api(libs.kotlinx.coroutines.test)
             }
         }
         posixMain {
