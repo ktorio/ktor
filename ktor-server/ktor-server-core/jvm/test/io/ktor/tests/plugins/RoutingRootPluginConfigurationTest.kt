@@ -10,7 +10,7 @@ import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class RoutingPluginConfigurationTest {
+class RoutingRootPluginConfigurationTest {
 
     @Test
     fun testReadPropertyFromFile() {

@@ -97,7 +97,7 @@ class TestApplicationEngineTest {
     @Test
     fun testResponseAwait() {
         withTestApplication {
-            application.install(Routing) {
+            application.install(RoutingRoot) {
                 get("/good") {
                     call.respond(HttpStatusCode.OK, "The Response")
                 }
@@ -129,7 +129,7 @@ class TestApplicationEngineTest {
     @Test
     fun testResponseAwaitWithCustomPort() {
         withTestApplication {
-            application.install(Routing) {
+            application.install(RoutingRoot) {
                 port(7070) {
                     get("/good") {
                         call.respond(HttpStatusCode.OK, "The Response")
@@ -233,7 +233,7 @@ class TestApplicationEngineTest {
         withTestApplication {
             application.routing {
                 get("/exist") {
-                    call.respondText("Route exist")
+                    call.respondText("Routing exist")
                 }
             }
 

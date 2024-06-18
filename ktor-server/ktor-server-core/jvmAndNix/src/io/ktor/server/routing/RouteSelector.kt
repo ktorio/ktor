@@ -119,56 +119,56 @@ public sealed class RouteSelectorEvaluation(
         public const val qualityFailedParameter: Double = 0.01
 
         /**
-         * Route evaluation failed to succeed, route doesn't match a context.
+         * Routing evaluation failed to succeed, route doesn't match a context.
          */
         public val Failed: RouteSelectorEvaluation.Failure =
             RouteSelectorEvaluation.Failure(0.0, HttpStatusCode.NotFound)
 
         /**
-         * Route evaluation failed to succeed on a path selector.
+         * Routing evaluation failed to succeed on a path selector.
          */
         public val FailedPath: RouteSelectorEvaluation.Failure =
             RouteSelectorEvaluation.Failure(0.0, HttpStatusCode.NotFound)
 
         /**
-         * Route evaluation failed to succeed on a method selector.
+         * Routing evaluation failed to succeed on a method selector.
          */
         public val FailedMethod: RouteSelectorEvaluation.Failure =
             RouteSelectorEvaluation.Failure(qualityFailedMethod, HttpStatusCode.MethodNotAllowed)
 
         /**
-         * Route evaluation failed to succeed on a query, header, or other parameter selector.
+         * Routing evaluation failed to succeed on a query, header, or other parameter selector.
          */
         public val FailedParameter: RouteSelectorEvaluation.Failure =
             RouteSelectorEvaluation.Failure(qualityFailedParameter, HttpStatusCode.BadRequest)
 
         /**
-         * Route evaluation succeeded for a missing optional value.
+         * Routing evaluation succeeded for a missing optional value.
          */
         public val Missing: RouteSelectorEvaluation =
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing)
 
         /**
-         * Route evaluation succeeded for a constant value.
+         * Routing evaluation succeeded for a constant value.
          */
         public val Constant: RouteSelectorEvaluation =
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant)
 
         /**
-         * Route evaluation succeeded for a [qualityTransparent] value. Useful for helper DSL methods that may wrap
+         * Routing evaluation succeeded for a [qualityTransparent] value. Useful for helper DSL methods that may wrap
          * routes but should not change priority of routing.
          */
         public val Transparent: RouteSelectorEvaluation =
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
 
         /**
-         * Route evaluation succeeded for a single path segment with a constant value.
+         * Routing evaluation succeeded for a single path segment with a constant value.
          */
         public val ConstantPath: RouteSelectorEvaluation =
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
 
         /**
-         * Route evaluation succeeded for a wildcard path segment.
+         * Routing evaluation succeeded for a wildcard path segment.
          */
         public val WildcardPath: RouteSelectorEvaluation =
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)

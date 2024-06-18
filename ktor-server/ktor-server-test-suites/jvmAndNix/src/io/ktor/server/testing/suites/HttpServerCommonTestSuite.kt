@@ -702,7 +702,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     call.respondText { "From plugin" }
                 }
             }
-            check(this is RouteNode)
+            check(this is RoutingNode)
             application.install(plugin)
             application.install(HSTS)
 

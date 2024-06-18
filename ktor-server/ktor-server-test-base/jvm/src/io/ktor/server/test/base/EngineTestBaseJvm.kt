@@ -159,15 +159,15 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfig: Routing.() -> Unit) {
         application.install(CallLogging)
-        application.install(Routing, routingConfig)
+        application.install(RoutingRoot, routingConfig)
     }
 
     protected actual fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
-        routingConfigurer: Route.() -> Unit
+        routingConfigurer: Routing.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {

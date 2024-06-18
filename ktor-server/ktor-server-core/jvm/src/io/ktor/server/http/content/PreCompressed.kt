@@ -28,7 +28,7 @@ public enum class CompressedFileType(public val extension: String, public val en
 
 internal val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
 
-internal val Route.staticContentEncodedTypes: List<CompressedFileType>?
+internal val Routing.staticContentEncodedTypes: List<CompressedFileType>?
     get() = attributes.getOrNull(compressedKey) ?: parent?.staticContentEncodedTypes
 
 internal class PreCompressedResponse(
