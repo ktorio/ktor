@@ -233,7 +233,7 @@ class CSRFTest {
     fun logsWarningWhenMisconfigured() {
         val warnings = mutableListOf<String>()
         val testLogger = object : Logger by LoggerFactory.getLogger("") {
-            override fun warn(message: String?) {
+            override fun info(message: String?) {
                 message?.let(warnings::add)
             }
         }
@@ -241,11 +241,31 @@ class CSRFTest {
             environment {
                 log = testLogger
             }
-            install(CSRF)
+            configureCSRF {}
+
+            for (allowedOrigin in listOf("http://localhost", "http://127.0.0.1", "http://0.0.0.0")) {
+                client.post("/csrf") {
+                    header("Origin", allowedOrigin)
+                }.let { response ->
+                    assertEquals(200, response.status.value)
+                    assertEquals("success", response.bodyAsText())
+                }
+            }
+
+            client.post("/csrf") {
+                header("Origin", "http://website.com")
+            }.let { response ->
+                assertEquals(400, response.status.value)
+                assertEquals(
+                    "Cross-site request validation failed; " +
+                        "unexpected \"Origin\" header value [http://website.com]",
+                    response.bodyAsText()
+                )
+            }
         }
         assertEquals(
-            "No validation options provided for CSRF plugin - requests will not be verified!",
-            warnings.firstOrNull()
+            "CSRF configuration is empty; defaulting to allow only local origins",
+            warnings.firstOrNull { it.contains("CSRF") }
         )
     }
 
