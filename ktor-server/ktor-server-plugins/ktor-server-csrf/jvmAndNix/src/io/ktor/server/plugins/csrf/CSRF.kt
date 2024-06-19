@@ -39,8 +39,16 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     val onFailure = pluginConfig.handleFailure
 
     if (!checkHost && allowedOrigins.isEmpty() && headerChecks.isEmpty()) {
-        application.log.warn("No validation options provided for CSRF plugin - requests will not be verified!")
-        return@createRouteScopedPlugin
+        application.log.info("CSRF configuration is empty; defaulting to allow only local origins")
+        allowedOrigins.addAll(
+            listOf(
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0",
+            ).map {
+                buildUrl { host = it }
+            }
+        )
     }
 
     onCall { call ->
