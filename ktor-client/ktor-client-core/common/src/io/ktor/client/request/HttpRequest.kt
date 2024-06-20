@@ -429,4 +429,6 @@ private fun Url.substitutePathParameters(substitutions: Iterable<Pair<String, An
         }
         builder.user = user
         builder.password = password
+        builder.fragment = fragment
+        builder.trailingQuery = trailingQuery
     }.build()
