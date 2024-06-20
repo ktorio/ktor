@@ -2,6 +2,7 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.errors.IOException
 import io.ktor.utils.io.js.*
 import org.khronos.webgl.*
 
@@ -274,7 +275,7 @@ private data class CharsetImpl(val name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
 
 @Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {

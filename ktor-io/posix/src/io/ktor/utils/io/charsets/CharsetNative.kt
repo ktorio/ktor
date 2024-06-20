@@ -1,6 +1,7 @@
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.IOException
 
 /**
  * Find a charset by name.
@@ -69,4 +70,4 @@ public actual val CharsetDecoder.charset: Charset get() = _charset
 internal val platformUtf16: String = if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 // -----------------------------------------------------------
-public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
