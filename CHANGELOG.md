@@ -1,3 +1,16 @@
+# 2.3.12
+> Published 20 June 2024
+
+### Bugfixes
+* NoSuchMethodError when using coroutines 1.9.0-RC ([KTOR-7054](https://youtrack.jetbrains.com/issue/KTOR-7054))
+* Server: Content-Type header for static js, css and svg resources misses charset ([KTOR-6655](https://youtrack.jetbrains.com/issue/KTOR-6655))
+* Embedded Linux device without iso-8859-1 and UTF-16 cannot use ktor-network ([KTOR-7016](https://youtrack.jetbrains.com/issue/KTOR-7016))
+
+### Improvements
+* Update netty to 4.1.111.Final ([KTOR-7094](https://youtrack.jetbrains.com/issue/KTOR-7094))
+* Update netty due to CVE-2024-29025 ([KTOR-7014](https://youtrack.jetbrains.com/issue/KTOR-7014))
+* Update dependency on swagger ([KTOR-7019](https://youtrack.jetbrains.com/issue/KTOR-7019))
+
 # 2.3.11
 > Published 8 May 2024
 

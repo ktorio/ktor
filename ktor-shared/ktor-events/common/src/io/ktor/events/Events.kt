@@ -6,9 +6,9 @@ package io.ktor.events
 
 import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.util.internal.*
 import io.ktor.util.logging.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.internal.*
 
 @OptIn(InternalAPI::class)
 public class Events {
@@ -20,7 +20,6 @@ public class Events {
      */
     public fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
         val registration = HandlerRegistration(handler)
-        @OptIn(InternalCoroutinesApi::class)
         handlers.computeIfAbsent(definition) { LockFreeLinkedListHead() }.addLast(registration)
         return registration
     }
@@ -54,7 +53,6 @@ public class Events {
         exception?.let { throw it }
     }
 
-    @OptIn(InternalCoroutinesApi::class)
     private class HandlerRegistration(val handler: EventHandler<*>) : LockFreeLinkedListNode(), DisposableHandle {
         override fun dispose() {
             remove()
@@ -87,6 +85,6 @@ public typealias EventHandler<T> = (T) -> Unit
  * Inheriting of this class is an experimental feature.
  * Instantiate directly if inheritance not necessary.
  *
- * @param T specifies what is a type of a value passed to the event
+ * @param T specifies what is a type of value passed to the event
  */
 public open class EventDefinition<T>
