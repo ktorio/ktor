@@ -99,41 +99,45 @@ public val MicrometerMetrics: ClientPlugin<MicrometerMetricsConfig> =
         val useExpandedUrlWhenPatternUnavailable = pluginConfig.useExpandedUrlWhenPatternUnavailable
         val meterRegistry = pluginConfig.registry
 
-        fun Timer.Builder.addDefaultTags(request: HttpRequestBuilder) =
+        fun Timer.Builder.addDefaultTags(
+            targetScheme: String,
+            host: String,
+            port: String,
+            method: String,
+            uri: String,
+        ) =
             tags(
                 Tags.of(
-                    Tag.of(TAG_TARGET_SCHEME, request.url.protocol.name),
-                    Tag.of(TAG_TARGET_HOST, request.host),
-                    Tag.of(TAG_TARGET_PORT, "${request.port}"),
-                    Tag.of(TAG_METHOD, request.method.value),
-                    Tag.of(
-                        TAG_URI,
-                        request.attributes.getOrNull(UriPatternAttributeKey)
-                            .let { it ?: request.url.takeIf { useExpandedUrlWhenPatternUnavailable }?.toString() }
-                            ?.removeHostPart(request.host)
-                            ?.let { it.takeUnless { dropQueryPartInUriTag } ?: it.removeQueryPart() }
-                            ?: TAG_VALUE_UNKNOWN
-                    ),
+                    Tag.of(TAG_TARGET_SCHEME, targetScheme),
+                    Tag.of(TAG_TARGET_HOST, host),
+                    Tag.of(TAG_TARGET_PORT, port),
+                    Tag.of(TAG_METHOD, method),
+                    Tag.of(TAG_URI, uri),
                 )
             ).tags(extraTags)
 
+        fun Attributes.uriPattern(host: String, url: Any) =
+            getOrNull(UriPatternAttributeKey)
+                .let { it ?: url.takeIf { useExpandedUrlWhenPatternUnavailable }?.toString() }
+                ?.removeHostPart(host)
+                ?.let { it.takeUnless { dropQueryPartInUriTag } ?: it.removeQueryPart() }
+                ?: TAG_VALUE_UNKNOWN
+
+        fun Timer.Builder.addDefaultTags(request: HttpRequestBuilder) =
+            addDefaultTags(targetScheme = request.url.protocol.name,
+                host = request.host,
+                port = "${request.port}",
+                method = request.method.value,
+                uri = request.attributes.uriPattern(request.host, request.url),
+            )
+
         fun Timer.Builder.addDefaultTags(request: HttpRequest) =
-            tags(
-                Tags.of(
-                    Tag.of(TAG_TARGET_SCHEME, request.url.protocol.name),
-                    Tag.of(TAG_TARGET_HOST, request.url.host),
-                    Tag.of(TAG_TARGET_PORT, "${request.url.port}"),
-                    Tag.of(TAG_METHOD, request.method.value),
-                    Tag.of(
-                        TAG_URI,
-                        request.attributes.getOrNull(UriPatternAttributeKey)
-                            .let { it ?: request.url.takeIf { useExpandedUrlWhenPatternUnavailable }?.toString() }
-                            ?.removeHostPart(request.url.host)
-                            ?.let { it.takeUnless { dropQueryPartInUriTag } ?: it.removeQueryPart() }
-                            ?: TAG_VALUE_UNKNOWN
-                    ),
-                )
-            ).tags(extraTags)
+            addDefaultTags(targetScheme = request.url.protocol.name,
+                host = request.url.host,
+                port = "${request.url.port}",
+                method = request.method.value,
+                uri = request.attributes.uriPattern(request.url.host, request.url),
+            )
 
         on(SendHook) { request ->
             val timer = Timer.start(meterRegistry)
