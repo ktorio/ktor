@@ -1,5 +1,5 @@
 kotlin {
-    createCInterop("mutex", posixTargets()) {
+    createCInterop("mutex", posixTargets()) { _ ->
         defFile = File(projectDir, "posix/interop/mutex.def")
     }
 

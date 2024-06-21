@@ -1,5 +1,5 @@
 kotlin {
-    createCInterop("threadUtils", nixTargets()) {
+    createCInterop("threadUtils", nixTargets()) { _ ->
         defFile = File(projectDir, "nix/interop/threadUtils.def")
     }
 
