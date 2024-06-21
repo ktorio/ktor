@@ -65,6 +65,9 @@ swagger-codegen-version = "3.0.57"
 swagger-codegen-generators-version = "1.0.50"
 swagger-parser-version = "2.1.22"
 
+puppeteer-version = "21.5.0"
+tomlj-version = "1.1.1"
+
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin-version" }
@@ -178,3 +181,5 @@ yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yaml
 swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen-version" }
 swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators-version" }
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser-version" }
+
+tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj-version" }
