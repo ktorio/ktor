@@ -2,7 +2,7 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.plugins.callloging
+package io.ktor.server.plugins.calllogging
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -477,7 +477,7 @@ class CallLoggingTest {
         }
         application {
             routing {
-                staticFiles("/", File("jvm/test/io/ktor/server/plugins/callloging"), index = "CallLoggingTest.kt")
+                staticFiles("/", File("jvm/test/io/ktor/server/plugins/calllogging"), index = "CallLoggingTest.kt")
             }
         }
         val response = client.get("/CallLoggingTest.kt")
