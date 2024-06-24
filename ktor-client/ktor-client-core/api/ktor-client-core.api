@@ -816,6 +816,15 @@ public final class io/ktor/client/plugins/sse/SSEClientContent : io/ktor/http/co
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/plugins/sse/SSEClientException : java/lang/IllegalStateException {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;Ljava/lang/String;)V
+	public synthetic fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+}
+
 public final class io/ktor/client/plugins/sse/SSEConfig {
 	public fun <init> ()V
 	public final fun getReconnectionTime-UwyO8pc ()J
