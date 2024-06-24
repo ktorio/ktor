@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
@@ -80,19 +79,37 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             return@intercept
         }
         if (status != HttpStatusCode.OK) {
-            throw SSEException("Expected status code ${HttpStatusCode.OK.value} but was: ${status.value}")
+            throw SSEClientException(
+                response,
+                message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
+            )
         }
         if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
-            throw SSEException("Expected Content-Type ${ContentType.Text.EventStream} but was: $contentType")
+            throw SSEClientException(
+                response,
+                message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
+            )
         }
         if (session !is SSESession) {
-            throw SSEException("Expected ${SSESession::class.simpleName} content but was: $session")
+            throw SSEClientException(
+                response,
+                message = "Expected ${SSESession::class.simpleName} content but was $session"
+            )
         }
 
         LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
         proceedWith(HttpResponseContainer(info, ClientSSESession(context, session)))
     }
 }
+
+/**
+ * Represents an exception which can be thrown during client SSE session.
+ */
+public class SSEClientException(
+    public val response: HttpResponse? = null,
+    public override val cause: Throwable? = null,
+    public override val message: String? = null
+) : IllegalStateException()
 
 private fun <T : Any> getAttributeValue(request: HttpRequestBuilder, attributeKey: AttributeKey<T>): T? {
     return request.attributes.getOrNull(attributeKey)
