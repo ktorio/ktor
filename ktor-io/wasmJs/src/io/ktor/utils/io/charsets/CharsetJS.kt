@@ -6,7 +6,9 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.EOFException
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.js.*
 
 /**
@@ -23,14 +25,14 @@ public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newEncoder(): CharsetEncoder
     public actual abstract fun newDecoder(): CharsetDecoder
 
-    override fun equals(other: Any?): Boolean {
+    actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
         return other is Charset && (_name != other._name)
     }
 
-    override fun hashCode(): Int = _name.hashCode()
+    actual override fun hashCode(): Int = _name.hashCode()
 
-    override fun toString(): String = _name
+    actual override fun toString(): String = _name
 
     public companion object {
         private fun getCharset(name: String): Charset? = when (name.replace('_', '-').lowercase()) {
@@ -236,7 +238,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
 
 // -----------------------------------------------------------
 
-public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
 
 @Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
