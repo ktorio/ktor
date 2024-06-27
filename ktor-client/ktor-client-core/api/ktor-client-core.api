@@ -163,9 +163,11 @@ public final class io/ktor/client/engine/HttpClientEngineCapabilityKt {
 
 public class io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
+	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getPipelining ()Z
 	public final fun getProxy ()Ljava/net/Proxy;
 	public final fun getThreadsCount ()I
+	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setPipelining (Z)V
 	public final fun setProxy (Ljava/net/Proxy;)V
 	public final fun setThreadsCount (I)V
