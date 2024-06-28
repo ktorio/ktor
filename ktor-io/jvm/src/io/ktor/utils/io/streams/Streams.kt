@@ -29,10 +29,10 @@ public fun OutputStream.writePacket(block: BytePacketBuilder.() -> Unit) {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(SnapshotApi::class, UnsafeIoApi::class)
+@OptIn(UnsafeIoApi::class)
 public fun InputStream.readPacketAtLeast(min: Int = 1): ByteReadPacket {
     val buffer = Buffer()
-    UnsafeBufferAccessors.writeToTail(buffer, min) { array, start, end ->
+    UnsafeBufferOperations.writeToTail(buffer, min) { array, start, end ->
         val read = read(array, start, end - start)
         if (read < 0) 0 else read
     }

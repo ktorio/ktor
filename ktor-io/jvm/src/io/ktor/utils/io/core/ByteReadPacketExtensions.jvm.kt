@@ -24,9 +24,9 @@ public fun ByteReadPacket.readFully(buffer: ByteBuffer) {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalIoApi::class)
 public fun ByteReadPacket.read(block: (ByteBuffer) -> Unit) {
-    UnsafeBufferAccessors.readFromHead(buffer) { array, start, endExclusive ->
+    UnsafeBufferOperations.readFromHead(buffer) { array, start, endExclusive ->
         val wrap = ByteBuffer.wrap(array, start, endExclusive - start)
         block(wrap)
 

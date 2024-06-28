@@ -10,10 +10,10 @@ import kotlinx.io.*
 import kotlinx.io.unsafe.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
 public fun Input.readAvailable(cPointer: CPointer<ByteVar>, offset: Int, length: Int): Int {
     var result = 0
-    UnsafeBufferAccessors.readFromHead(buffer) { array, startOffset, endExclusive ->
+    UnsafeBufferOperations.readFromHead(buffer) { array, startOffset, endExclusive ->
         val size = minOf(endExclusive - startOffset, length)
         array.usePinned { pinned ->
             memcpy(cPointer + offset, pinned.addressOf(startOffset), size.convert())

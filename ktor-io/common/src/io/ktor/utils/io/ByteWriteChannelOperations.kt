@@ -174,13 +174,13 @@ public fun CoroutineScope.writer(
  * or when it is impossible to represent all [desiredSpace] bytes as a single memory range
  * due to internal implementation reasons.
  */
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
     block: (Memory, Int, Int) -> Int
 ): Int {
     val before = writeBuffer.size
-    UnsafeBufferAccessors.writeToTail(writeBuffer.buffer, desiredSpace, block)
+    UnsafeBufferOperations.writeToTail(writeBuffer.buffer, desiredSpace, block)
     val after = writeBuffer.size
     val written = after - before
     flushIfNeeded()

@@ -121,7 +121,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     return dst.readByteArray()
 }
 
-@OptIn(SnapshotApi::class, InternalIoApi::class)
+@OptIn(InternalIoApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     val decoder = Decoder(charset.name, true)
 

@@ -165,12 +165,12 @@ public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
  *
  * @return number of consumed bytes or -1 if the block wasn't executed.
  */
-@OptIn(InternalAPI::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
     if (isClosedForRead || readBuffer.exhausted()) return -1
 
     var result = 0
-    UnsafeBufferAccessors.readFromHead(readBuffer.buffer) { array, start, endExclusive ->
+    UnsafeBufferOperations.readFromHead(readBuffer.buffer) { array, start, endExclusive ->
         val buffer = ByteBuffer.wrap(array, start, endExclusive - start)
         result = block(buffer)
         result
