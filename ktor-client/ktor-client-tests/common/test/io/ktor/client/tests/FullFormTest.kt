@@ -17,7 +17,7 @@ class FullFormTest : ClientLoader() {
         test { client ->
             val text = client.prepareRequest {
                 url {
-                    protocol = URLProtocol.HTTP
+                    protocol = UrlProtocol.HTTP
                     host = "127.0.0.1"
                     port = 8080
                     encodedPath = "/forms/hello"
@@ -34,7 +34,7 @@ class FullFormTest : ClientLoader() {
         test { client ->
             val text = client.prepareRequest {
                 url {
-                    protocol = URLProtocol.HTTP
+                    protocol = UrlProtocol.HTTP
                     host = "127.0.0.1"
                     port = 8080
                     encodedPath = "/forms/hello"
@@ -53,7 +53,7 @@ class FullFormTest : ClientLoader() {
             val requestBuilder = request {
                 url {
                     host = "127.0.0.1"
-                    protocol = URLProtocol.HTTP
+                    protocol = UrlProtocol.HTTP
                     port = 8080
                     encodedPath = "/forms/hello"
                     method = HttpMethod.Post

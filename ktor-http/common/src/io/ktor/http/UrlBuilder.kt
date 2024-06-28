@@ -10,6 +10,12 @@ package io.ktor.http
 public const val DEFAULT_PORT: Int = 0
 
 /**
+ * Type alias for UrlBuilder for backwards compatibility.
+ */
+@Deprecated("Use UrlBuilder", replaceWith = ReplaceWith("UrlBuilder"), level = DeprecationLevel.WARNING)
+public typealias URLBuilder = UrlBuilder
+
+/**
  * A URL builder with all mutable components
  *
  * @property protocol URL protocol (scheme)
@@ -22,8 +28,8 @@ public const val DEFAULT_PORT: Int = 0
  * @property fragment URL fragment (anchor name)
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
-public class URLBuilder(
-    protocol: URLProtocol? = null,
+public class UrlBuilder(
+    protocol: UrlProtocol? = null,
     public var host: String = "",
     port: Int = DEFAULT_PORT,
     user: String? = null,
@@ -32,7 +38,7 @@ public class URLBuilder(
     parameters: Parameters = Parameters.Empty,
     fragment: String = "",
     public var trailingQuery: Boolean = false
-) {
+): Locator {
     public var port: Int = port
         set(value) {
             require(value in 0..65535) {
@@ -41,9 +47,9 @@ public class URLBuilder(
             field = value
         }
 
-    public var protocolOrNull: URLProtocol? = protocol
-    public var protocol: URLProtocol
-        get() = protocolOrNull ?: URLProtocol.HTTP
+    public var protocolOrNull: UrlProtocol? = protocol
+    public var protocol: UrlProtocol
+        get() = protocolOrNull ?: UrlProtocol.HTTP
         set(value) { protocolOrNull = value }
 
     public var encodedUser: String? = user?.encodeURLParameter()
@@ -69,12 +75,6 @@ public class URLBuilder(
         }
 
     public var encodedPathSegments: List<String> = pathSegments.map { it.encodeURLPathPart() }
-        set(value) {
-            field = value
-            replaceLastSegment = value.isNotEmpty() && value.last().let { it.isEmpty() || it.contains('.') }
-        }
-
-    public var replaceLastSegment: Boolean = false
 
     public var pathSegments: List<String>
         get() = encodedPathSegments.map { it.decodeURLPart() }
@@ -107,27 +107,30 @@ public class URLBuilder(
     /**
      * Build a [Url] instance (everything is copied to a new instance)
      */
-    public fun build(): Url {
-        applyOrigin()
-        return Url(
+    public fun build(): Url =
+        asUri().toUrl()
+
+    override fun asUri(): UriReference =
+        Uri(
             protocol = protocolOrNull,
-            host = host,
-            specifiedPort = port,
-            pathSegments = pathSegments,
-            parameters = parameters.build(),
-            fragment = fragment,
-            user = user,
-            password = password,
-            trailingQuery = trailingQuery,
-            urlString = buildString()
+            protocolSeparator = ProtocolSeparator.takeIf { protocol.name != "mailto" },
+            authority = host.takeIf { it.isNotEmpty() || port != DEFAULT_PORT || user != null }?.let {
+                Uri.Authority(
+                    userInfo = user?.let { Uri.UserInfo(it, password) },
+                    host = host.takeIf { it.isNotEmpty() },
+                    port = port.takeIf { it != DEFAULT_PORT },
+                )
+            },
+            path = Uri.Path(pathSegments),
+            parameters = parameters.build().takeIf { !it.isEmpty() || trailingQuery },
+            fragment = fragment.takeIf { it.isNotEmpty() },
         )
-    }
 
     private fun applyOrigin() {
         if (host.isNotEmpty() || protocol.name == "file") return
         host = originUrl.host
-        if (protocolOrNull == null) protocolOrNull = originUrl.protocolOrNull
-        if (port == DEFAULT_PORT) port = originUrl.specifiedPort
+        if (protocolOrNull == null) protocolOrNull = originUrl.protocol
+        if (port == DEFAULT_PORT) port = originUrl.port ?: DEFAULT_PORT
     }
 
     // Required to write external extension function
@@ -136,7 +139,7 @@ public class URLBuilder(
     }
 }
 
-private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
+private fun <A : Appendable> UrlBuilder.appendTo(out: A): A {
     out.append(protocol.name)
 
     when (protocol.name) {
@@ -184,14 +187,14 @@ private fun Appendable.appendFile(host: String, encodedPath: String) {
  *
  * It uses "http://localhost" for all platforms except js.
  */
-public expect val URLBuilder.Companion.origin: String
+public expect val UrlBuilder.Companion.origin: String
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
  */
-public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
+public fun UrlBuilder.clone(): UrlBuilder = UrlBuilder().takeFrom(this)
 
-internal val URLBuilder.encodedUserAndPassword: String
+internal val UrlBuilder.encodedUserAndPassword: String
     get() = buildString {
         appendUserAndPassword(encodedUser, encodedPassword)
     }
@@ -203,7 +206,7 @@ internal val URLBuilder.encodedUserAndPassword: String
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
  * `false` to use '/' as a separator between path segments.
  */
-public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Boolean = false): URLBuilder {
+public fun UrlBuilder.appendPathSegments(segments: List<String>, encodeSlash: Boolean = false): UrlBuilder {
     val pathSegments = if (!encodeSlash) segments.flatMap { it.split('/') } else segments
     val encodedSegments = pathSegments.map { it.encodeURLPathPart() }
     appendEncodedPathSegments(encodedSegments)
@@ -218,7 +221,7 @@ public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Bo
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
  * `false` to use '/' as a separator between path segments.
  */
-public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash: Boolean = false): URLBuilder {
+public fun UrlBuilder.appendPathSegments(vararg components: String, encodeSlash: Boolean = false): UrlBuilder {
     return appendPathSegments(components.toList(), encodeSlash)
 }
 
@@ -226,20 +229,20 @@ public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash:
  * Replace [components] in the current [encodedPath]. The [path] components will be escaped, except `/` character.
  * @param path path items to set
  */
-public fun URLBuilder.path(vararg path: String) {
+public fun UrlBuilder.path(vararg path: String) {
     encodedPathSegments = path.map { it.encodeURLPath() }
 }
 
 /**
  * Appends the given path to the current [encodedPath].
  */
-public fun URLBuilder.appendEncodedPath(path: String): URLBuilder =
+public fun UrlBuilder.appendEncodedPath(path: String): UrlBuilder =
     appendEncodedPathSegments(path.split('/'))
 
 /**
  * Adds [segments] to current [encodedPath]
  */
-public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
+public fun UrlBuilder.appendEncodedPathSegments(segments: List<String>): UrlBuilder {
     val endsWithSlash =
         encodedPathSegments.size > 1 && encodedPathSegments.last().isEmpty() && segments.isNotEmpty()
     val startWithSlash =
@@ -256,13 +259,13 @@ public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuil
 /**
  * Adds [components] to current [encodedPath]
  */
-public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder =
+public fun UrlBuilder.appendEncodedPathSegments(vararg components: String): UrlBuilder =
     appendEncodedPathSegments(components.toList())
 
 /**
- * [URLBuilder] authority.
+ * [UrlBuilder] authority.
  */
-public val URLBuilder.authority: String
+public val UrlBuilder.authority: String
     get() = buildString {
         append(encodedUserAndPassword)
         append(host)
@@ -273,7 +276,7 @@ public val URLBuilder.authority: String
         }
     }
 
-public var URLBuilder.encodedPath: String
+public var UrlBuilder.encodedPath: String
     get() = encodedPathSegments.joinPath()
     set(value) {
         encodedPathSegments = when {
@@ -295,16 +298,16 @@ private fun List<String>.joinPath(): String {
 
 /**
  * Sets the url parts using the specified [scheme], [host], [port] and [path].
- * Pass `null` to keep existing value in the [URLBuilder].
+ * Pass `null` to keep existing value in the [UrlBuilder].
  */
-public fun URLBuilder.set(
+public fun UrlBuilder.set(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    block: URLBuilder.() -> Unit = {}
+    block: UrlBuilder.() -> Unit = {}
 ) {
-    if (scheme != null) protocol = URLProtocol.createOrDefault(scheme)
+    if (scheme != null) protocol = UrlProtocol.createOrDefault(scheme)
     if (host != null) this.host = host
     if (port != null) this.port = port
     if (path != null) encodedPath = path
@@ -316,17 +319,17 @@ public fun URLBuilder.set(
     replaceWith = ReplaceWith("this.appendPathSegments(components"),
     level = DeprecationLevel.ERROR
 )
-public fun URLBuilder.pathComponents(vararg components: String): URLBuilder = appendPathSegments(components.toList())
+public fun UrlBuilder.pathComponents(vararg components: String): UrlBuilder = appendPathSegments(components.toList())
 
 @Deprecated(
     message = "Please use appendPathSegments method",
     replaceWith = ReplaceWith("this.appendPathSegments(components"),
     level = DeprecationLevel.ERROR
 )
-public fun URLBuilder.pathComponents(components: List<String>): URLBuilder = appendPathSegments(components)
+public fun UrlBuilder.pathComponents(components: List<String>): UrlBuilder = appendPathSegments(components)
 
 /**
  * Returns true if no properties have been assigned.
  */
-public fun URLBuilder.isEmpty(): Boolean =
+public fun UrlBuilder.isEmpty(): Boolean =
     host.isEmpty() && pathSegments.isEmpty() && protocolOrNull == null

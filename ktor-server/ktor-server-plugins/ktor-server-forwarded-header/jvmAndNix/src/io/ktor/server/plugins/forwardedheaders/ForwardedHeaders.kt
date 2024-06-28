@@ -98,7 +98,7 @@ public class ForwardedHeadersConfig {
         if (forward.proto != null) {
             val proto: String = forward.proto
             connectionPoint.scheme = proto
-            URLProtocol.byName[proto]?.let { p ->
+            UrlProtocol.byName[proto]?.let { p ->
                 connectionPoint.port = p.defaultPort
                 connectionPoint.serverPort = p.defaultPort
             }
@@ -123,7 +123,7 @@ public class ForwardedHeadersConfig {
             port.toIntOrNull()?.let {
                 connectionPoint.port = it
                 connectionPoint.serverPort = it
-            } ?: URLProtocol.byName[connectionPoint.scheme]?.let {
+            } ?: UrlProtocol.byName[connectionPoint.scheme]?.let {
                 connectionPoint.port = it.defaultPort
                 connectionPoint.serverPort = it.defaultPort
             }

@@ -10,7 +10,7 @@ import io.ktor.http.*
  * [CookiesStorage] that ignores [addCookie] and returns a list of specified [cookies] when constructed.
  */
 public class ConstantCookiesStorage(vararg cookies: Cookie) : CookiesStorage {
-    private val storage: List<Cookie> = cookies.map { it.fillDefaults(URLBuilder().build()) }.toList()
+    private val storage: List<Cookie> = cookies.map { it.fillDefaults(UrlBuilder().build()) }.toList()
 
     override suspend fun get(requestUrl: Url): List<Cookie> = storage.filter { it.matches(requestUrl) }
 

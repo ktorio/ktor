@@ -60,7 +60,7 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
         var call = origin
         var requestBuilder = context
         val originProtocol = origin.request.url.protocol
-        val originAuthority = origin.request.url.authority
+        val originAuthority = origin.request.url.authority.toString()
 
         while (true) {
             client.monitor.raise(HttpResponseRedirectEvent, call.response)

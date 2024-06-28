@@ -4,7 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.http.UrlParser.parse
 import io.ktor.util.*
 
 internal val ROOT_PATH = listOf("")
@@ -13,7 +12,7 @@ internal val ROOT_PATH = listOf("")
  * Take url parts from [urlString]
  * throws [URLParserException]
  */
-public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+public fun UrlBuilder.takeFrom(urlString: String): UrlBuilder {
     if (urlString.isBlank()) return this
 
     return try {
@@ -31,100 +30,99 @@ public class URLParserException(urlString: String, cause: Throwable) : IllegalSt
     cause
 )
 
-internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
-    parse(urlString)
-//    var startIndex = urlString.indexOfFirst { !it.isWhitespace() }
-//    val endIndex = urlString.indexOfLast { !it.isWhitespace() } + 1
-//
-//    val schemeLength = findScheme(urlString, startIndex, endIndex)
-//    if (schemeLength > 0) {
-//        val scheme = urlString.substring(startIndex, startIndex + schemeLength)
-//
-//        protocol = URLProtocol.createOrDefault(scheme)
-//        startIndex += schemeLength + 1
-//    }
-//
-//    // Auth & Host
-//    val slashCount = count(urlString, startIndex, endIndex, '/')
-//    startIndex += slashCount
-//
-//    if (protocol.name == "file") {
-//        parseFile(urlString, startIndex, endIndex, slashCount)
-//        return this
-//    }
-//
-//    if (protocol.name == "mailto") {
-//        require(slashCount == 0)
-//        parseMailto(urlString, startIndex, endIndex)
-//        return this
-//    }
-//
-//    if (slashCount >= 2) {
-//        loop@ while (true) {
-//            val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
-//
-//            if (delimiter < endIndex && urlString[delimiter] == '@') {
-//                // user and password check
-//                val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
-//                if (passwordIndex != -1) {
-//                    encodedUser = urlString.substring(startIndex, passwordIndex)
-//                    encodedPassword = urlString.substring(passwordIndex + 1, delimiter)
-//                } else {
-//                    encodedUser = urlString.substring(startIndex, delimiter)
-//                }
-//                startIndex = delimiter + 1
-//            } else {
-//                fillHost(urlString, startIndex, delimiter)
-//                startIndex = delimiter
-//                break@loop
-//            }
-//        }
-//    }
-//
-//    // Path
-//    if (startIndex >= endIndex) {
-//        encodedPathSegments = if (urlString[endIndex - 1] == '/') ROOT_PATH else emptyList()
-//        return this
-//    }
-//
-//    encodedPathSegments = if (slashCount == 0) {
-//        // Relative path
-//        // last item is either file name or empty string for directories
-//        encodedPathSegments.dropLast(1)
-//    } else {
-//        emptyList()
-//    }
-//
-//    val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
-//    if (pathEnd > startIndex) {
-//        val rawPath = urlString.substring(startIndex, pathEnd)
-//        val basePath = when {
-//            encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
-//            else -> encodedPathSegments
-//        }
-//
-//        val rawChunks = if (rawPath == "/") ROOT_PATH else rawPath.split('/')
-//
-//        val relativePath = when (slashCount) {
-//            1 -> ROOT_PATH
-//            else -> emptyList()
-//        } + rawChunks
-//
-//        encodedPathSegments = basePath + relativePath
-//        startIndex = pathEnd
-//    }
-//
-//    // Query
-//    if (startIndex < endIndex && urlString[startIndex] == '?') {
-//        startIndex = parseQuery(urlString, startIndex, endIndex)
-//    }
-//
-//    // Fragment
-//    parseFragment(urlString, startIndex, endIndex)
+internal fun UrlBuilder.takeFromUnsafe(urlString: String): UrlBuilder {
+    var startIndex = urlString.indexOfFirst { !it.isWhitespace() }
+    val endIndex = urlString.indexOfLast { !it.isWhitespace() } + 1
+
+    val schemeLength = findScheme(urlString, startIndex, endIndex)
+    if (schemeLength > 0) {
+        val scheme = urlString.substring(startIndex, startIndex + schemeLength)
+
+        protocol = UrlProtocol.createOrDefault(scheme)
+        startIndex += schemeLength + 1
+    }
+
+    // Auth & Host
+    val slashCount = count(urlString, startIndex, endIndex, '/')
+    startIndex += slashCount
+
+    if (protocol.name == "file") {
+        parseFile(urlString, startIndex, endIndex, slashCount)
+        return this
+    }
+
+    if (protocol.name == "mailto") {
+        require(slashCount == 0)
+        parseMailto(urlString, startIndex, endIndex)
+        return this
+    }
+
+    if (slashCount >= 2) {
+        loop@ while (true) {
+            val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
+
+            if (delimiter < endIndex && urlString[delimiter] == '@') {
+                // user and password check
+                val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
+                if (passwordIndex != -1) {
+                    encodedUser = urlString.substring(startIndex, passwordIndex)
+                    encodedPassword = urlString.substring(passwordIndex + 1, delimiter)
+                } else {
+                    encodedUser = urlString.substring(startIndex, delimiter)
+                }
+                startIndex = delimiter + 1
+            } else {
+                fillHost(urlString, startIndex, delimiter)
+                startIndex = delimiter
+                break@loop
+            }
+        }
+    }
+
+    // Path
+    if (startIndex >= endIndex) {
+        encodedPathSegments = if (urlString[endIndex - 1] == '/') ROOT_PATH else emptyList()
+        return this
+    }
+
+    encodedPathSegments = if (slashCount == 0) {
+        // Relative path
+        // last item is either file name or empty string for directories
+        encodedPathSegments.dropLast(1)
+    } else {
+        emptyList()
+    }
+
+    val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
+    if (pathEnd > startIndex) {
+        val rawPath = urlString.substring(startIndex, pathEnd)
+        val basePath = when {
+            encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
+            else -> encodedPathSegments
+        }
+
+        val rawChunks = if (rawPath == "/") ROOT_PATH else rawPath.split('/')
+
+        val relativePath = when (slashCount) {
+            1 -> ROOT_PATH
+            else -> emptyList()
+        } + rawChunks
+
+        encodedPathSegments = basePath + relativePath
+        startIndex = pathEnd
+    }
+
+    // Query
+    if (startIndex < endIndex && urlString[startIndex] == '?') {
+        startIndex = parseQuery(urlString, startIndex, endIndex)
+    }
+
+    // Fragment
+    parseFragment(urlString, startIndex, endIndex)
     return this
 }
 
-private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
+private fun UrlBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
     when (slashCount) {
         2 -> {
             val nextSlash = urlString.indexOf('/', startIndex)
@@ -144,7 +142,7 @@ private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: I
     }
 }
 
-private fun URLBuilder.parseMailto(urlString: String, startIndex: Int, endIndex: Int) {
+private fun UrlBuilder.parseMailto(urlString: String, startIndex: Int, endIndex: Int) {
     val delimiter = urlString.indexOf("@", startIndex)
     if (delimiter == -1) {
         throw IllegalArgumentException("Invalid mailto url: $urlString, it should contain '@'.")
@@ -154,7 +152,7 @@ private fun URLBuilder.parseMailto(urlString: String, startIndex: Int, endIndex:
     host = urlString.substring(delimiter + 1, endIndex)
 }
 
-private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: Int): Int {
+private fun UrlBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: Int): Int {
     if (startIndex + 1 == endIndex) {
         trailingQuery = true
         return endIndex
@@ -170,13 +168,13 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
     return fragmentStart
 }
 
-private fun URLBuilder.parseFragment(urlString: String, startIndex: Int, endIndex: Int) {
+private fun UrlBuilder.parseFragment(urlString: String, startIndex: Int, endIndex: Int) {
     if (startIndex < endIndex && urlString[startIndex] == '#') {
         encodedFragment = urlString.substring(startIndex + 1, endIndex)
     }
 }
 
-private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: Int) {
+private fun UrlBuilder.fillHost(urlString: String, startIndex: Int, endIndex: Int) {
     val colonIndex = urlString.indexOfColonInHostPort(startIndex, endIndex).takeIf { it > 0 } ?: endIndex
 
     host = urlString.substring(startIndex, colonIndex)

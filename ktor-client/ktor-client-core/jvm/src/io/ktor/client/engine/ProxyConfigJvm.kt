@@ -18,7 +18,7 @@ public actual object ProxyBuilder {
     /**
      * Create http proxy from [url].
      */
-    public actual fun http(url: Url): ProxyConfig = Proxy(Proxy.Type.HTTP, InetSocketAddress(url.host, url.port))
+    public actual fun http(url: Url): ProxyConfig = Proxy(Proxy.Type.HTTP, InetSocketAddress(url.host, url.portOrDefault))
 
     /**
      * Create socks proxy from [host] and [port].

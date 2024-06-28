@@ -102,9 +102,9 @@ class ServerURLBuilderTest {
     fun testPort() {
         assertEquals("http://localhost", url { port = 80 })
         assertEquals("http://localhost:8080", url { port = 8080 })
-        assertEquals("https://localhost:80", url { protocol = URLProtocol.HTTPS; port = 80 })
-        assertEquals("https://localhost", url { protocol = URLProtocol.HTTPS; port = 443 })
-        assertEquals("https://localhost", url { protocol = URLProtocol.HTTPS })
+        assertEquals("https://localhost:80", url { protocol = UrlProtocol.HTTPS; port = 80 })
+        assertEquals("https://localhost", url { protocol = UrlProtocol.HTTPS; port = 443 })
+        assertEquals("https://localhost", url { protocol = UrlProtocol.HTTPS })
     }
 
     @Test

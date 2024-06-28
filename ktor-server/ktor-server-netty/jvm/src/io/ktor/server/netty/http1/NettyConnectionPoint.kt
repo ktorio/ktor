@@ -57,7 +57,7 @@ internal class NettyConnectionPoint(
         get() = (context.channel().localAddress() as? InetSocketAddress)?.hostString ?: "localhost"
 
     private val defaultPort
-        get() = URLProtocol.createOrDefault(scheme).defaultPort
+        get() = UrlProtocol.createOrDefault(scheme).defaultPort
 
     override val localPort: Int
         get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: defaultPort

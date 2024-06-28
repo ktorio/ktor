@@ -61,7 +61,7 @@ public suspend fun HttpClient.webSocketRaw(
     block: suspend ClientWebSocketSession.() -> Unit
 ) {
     val session = webSocketRawSession(method, host, port, path) {
-        url.protocol = URLProtocol.WS
+        url.protocol = UrlProtocol.WS
         if (port != null) url.port = port
 
         request()
@@ -107,7 +107,7 @@ public suspend fun HttpClient.wssRaw(
         port,
         path,
         request = {
-            url.protocol = URLProtocol.WSS
+            url.protocol = UrlProtocol.WSS
             if (port != null) url.port = port
 
             request()

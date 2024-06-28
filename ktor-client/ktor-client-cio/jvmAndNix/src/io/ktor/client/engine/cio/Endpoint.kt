@@ -228,7 +228,7 @@ internal class Endpoint(
                     }
                     val realAddress = when (proxy) {
                         null -> address
-                        else -> InetSocketAddress(requestData.url.host, requestData.url.port)
+                        else -> InetSocketAddress(requestData.url.host, requestData.url.portOrDefault)
                     }
                     val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)

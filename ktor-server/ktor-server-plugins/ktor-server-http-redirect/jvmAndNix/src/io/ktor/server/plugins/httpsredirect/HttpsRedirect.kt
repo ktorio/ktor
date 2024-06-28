@@ -19,7 +19,7 @@ public class HttpsRedirectConfig {
     /**
      * Specifies an HTTPS port (443 by default) used to redirect HTTP requests.
      */
-    public var sslPort: Int = URLProtocol.HTTPS.defaultPort
+    public var sslPort: Int = UrlProtocol.HTTPS.defaultPort
 
     /**
      * Specifies whether to use permanent or temporary redirect.
@@ -79,7 +79,7 @@ public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplica
         if (call.request.origin.scheme == "http" &&
             pluginConfig.excludePredicates.none { predicate -> predicate(call) }
         ) {
-            val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = pluginConfig.sslPort }
+            val redirectUrl = call.url { protocol = UrlProtocol.HTTPS; port = pluginConfig.sslPort }
             if (!call.response.isCommitted) {
                 call.respondRedirect(redirectUrl, pluginConfig.permanentRedirect)
             }

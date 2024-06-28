@@ -60,6 +60,6 @@ public inline fun <reified T : Any> HttpClient.href(resource: T): String {
  *
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
-public inline fun <reified T : Any> HttpClient.href(resource: T, urlBuilder: URLBuilder) {
+public inline fun <reified T : Any> HttpClient.href(resource: T, urlBuilder: UrlBuilder) {
     href(plugin(Resources).resourcesFormat, resource, urlBuilder)
 }

@@ -105,7 +105,7 @@ internal class CIOEngine(
     private fun selectEndpoint(url: Url, proxy: ProxyConfig?): Endpoint {
         val host: String
         val port: Int
-        val protocol: URLProtocol = url.protocol
+        val protocol: UrlProtocol = url.protocol
 
         if (proxy != null) {
             val proxyAddress = proxy.resolveAddress()
@@ -113,7 +113,7 @@ internal class CIOEngine(
             port = proxyAddress.port
         } else {
             host = url.host
-            port = url.port
+            port = url.portOrDefault
         }
 
         val endpointId = "$host:$port:$protocol"

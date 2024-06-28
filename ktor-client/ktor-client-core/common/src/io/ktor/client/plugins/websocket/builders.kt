@@ -30,7 +30,7 @@ public suspend fun HttpClient.webSocketSession(
     val sessionDeferred = CompletableDeferred<DefaultClientWebSocketSession>()
     val statement = prepareRequest {
         url {
-            protocol = URLProtocol.WS
+            protocol = UrlProtocol.WS
             port = protocol.defaultPort
         }
         block()
@@ -91,7 +91,7 @@ public suspend fun HttpClient.webSocket(
     plugin(WebSockets)
     val session = prepareRequest {
         url {
-            protocol = URLProtocol.WS
+            protocol = UrlProtocol.WS
         }
         request()
     }
@@ -141,7 +141,7 @@ public suspend fun HttpClient.webSocket(
         null,
         null,
         {
-            url.protocol = URLProtocol.WS
+            url.protocol = UrlProtocol.WS
             url.port = port
 
             url.takeFrom(urlString)
@@ -188,7 +188,7 @@ public suspend fun HttpClient.wss(
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(
     {
-        url.protocol = URLProtocol.WSS
+        url.protocol = UrlProtocol.WSS
         url.port = url.protocol.defaultPort
         request()
     },
@@ -226,7 +226,7 @@ public suspend fun HttpClient.wss(
     port,
     path,
     request = {
-        url.protocol = URLProtocol.WSS
+        url.protocol = UrlProtocol.WSS
         if (port != null) url.port = port
 
         request()

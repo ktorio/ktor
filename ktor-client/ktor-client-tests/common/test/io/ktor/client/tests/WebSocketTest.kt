@@ -119,7 +119,7 @@ class WebSocketTest : ClientLoader() {
             defaultRequest {
                 val url = Url(TEST_WEBSOCKET_SERVER)
                 host = url.host
-                port = url.port
+                port = url.portOrDefault
             }
         }
 

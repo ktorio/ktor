@@ -4,18 +4,9 @@
 
 package io.ktor.http
 
-import java.net.*
-
-/**
- * Construct [Url] from [String]
- */
-public operator fun Url.Companion.invoke(fullUrl: String): Url = URLBuilder().apply {
-    takeFrom(URI(fullUrl))
-}.build()
-
 /**
  * Hostname of current origin.
  *
  * It uses "localhost" for all platforms except js.
  */
-public actual val URLBuilder.Companion.origin: String get() = "http://localhost"
+public actual val UrlBuilder.Companion.origin: String get() = "http://localhost"

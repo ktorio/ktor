@@ -8,7 +8,10 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
 
 /**
  * Sets default request parameters. Used to add common headers and URL for a request.
@@ -64,19 +67,112 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             DefaultRequest(block)
 
         override fun install(plugin: DefaultRequest, scope: HttpClient) {
-            scope.requestPipeline.onCreate {
-                DefaultRequestBuilder(
-                    attributes = this.attributes,
-                    url = this.url
-                ).apply(plugin.block)
-
-                if (url.isEmpty())
-                    url(URLBuilder.Companion.origin)
-
-                url.replaceLastSegment = true
-            }
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                DefaultRequestBuilder(headers = context.headers).apply(plugin.block)
+                val originalUrlString = context.url.toString()
+                val defaultRequest = DefaultRequestBuilder().apply {
+                    headers.appendAll(this@intercept.context.headers)
+                    plugin.block(this)
+                }
+                context.uri = mergeUris(
+                    defaultRequest.uri.asUri(),
+                    context.uri.asRelativeUri(),
+                )
+
+                defaultRequest.attributes.allKeys.forEach {
+                    if (!context.attributes.contains(it)) {
+                        @Suppress("UNCHECKED_CAST")
+                        context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
+                    }
+                }
+
+                context.headers.clear()
+                context.headers.appendAll(defaultRequest.headers.build())
+
+                LOGGER.trace("Applied DefaultRequest to $originalUrlString. New url: ${context.url}")
+            }
+        }
+
+        private fun mergeUris(defaults: UriReference, request: UriReference): Locator {
+            return Uri(
+                protocol = request.protocol ?: defaults.protocol,
+                protocolSeparator = request.protocolSeparator ?: defaults.protocolSeparator,
+                authority = Uri.Authority(
+                    request.authority?.userInfo ?: defaults.authority?.userInfo,
+                    request.host ?: defaults.host,
+                    request.port ?: defaults.port,
+                ),
+                path = when {
+                    request.path.isAbsolute() -> request.path
+                    request.path.isRelative() -> Uri.Path(
+                        defaults.path.segments.dropLast(1) + request.path.segments
+                    )
+                    else -> defaults.path
+                },
+                parameters = mergeParameters(defaults.parameters, request.parameters),
+                fragment = request.fragment ?: defaults.fragment
+            )
+        }
+
+        private fun mergeParameters(defaults: Parameters?, request: Parameters?): Parameters? =
+            if (request == null && defaults == null)
+                null
+            else Parameters.build {
+                appendAll(defaults.orEmpty())
+                appendAll(request.orEmpty())
+            }
+
+        private fun mergeUrls(defaultUrl: Url, requestUrl: UrlBuilder) {
+            if (requestUrl.protocolOrNull == null) {
+                requestUrl.protocolOrNull = defaultUrl.protocol
+            }
+            if (requestUrl.host.isNotEmpty()) return
+
+            val tempFromDefault = URLBuilder(defaultUrl)
+            with(requestUrl) {
+                tempFromDefault.protocolOrNull = protocolOrNull
+                if (port != DEFAULT_PORT) {
+                    tempFromDefault.port = port
+                }
+
+                tempFromDefault.encodedPathSegments = concatenatePath(tempFromDefault.encodedPathSegments, encodedPathSegments)
+
+                if (encodedFragment.isNotEmpty()) {
+                    tempFromDefault.encodedFragment = encodedFragment
+                }
+
+                // 1. Make a params builder with default parameters
+                val defaultParameters = ParametersBuilder().apply {
+                    appendAll(tempFromDefault.encodedParameters)
+                }
+
+                // 2. Set result params to request
+                tempFromDefault.encodedParameters = encodedParameters
+
+                // 3. Add default params where keys match
+                defaultParameters.entries().forEach { (key, values) ->
+                    if (!tempFromDefault.encodedParameters.contains(key)) {
+                        tempFromDefault.encodedParameters.appendAll(key, values)
+                    }
+                }
+
+                // 4. Add request + default params to request
+                takeFrom(tempFromDefault)
+            }
+        }
+
+        private fun concatenatePath(parent: List<String>, child: List<String>): List<String> {
+            if (child.isEmpty()) return parent
+            if (parent.isEmpty()) return child
+
+            // Path starts from "/"
+            if (child.first().isEmpty()) return child
+
+            return buildList(parent.size + child.size - 1) {
+                for (index in 0 until parent.size - 1) {
+                    add(parent[index])
+                }
+
+                addAll(child)
             }
         }
     }
@@ -86,26 +182,32 @@ public class DefaultRequest private constructor(private val block: DefaultReques
      */
     @KtorDsl
     public class DefaultRequestBuilder internal constructor(
-        public val url: URLBuilder = URLBuilder(),
         public val attributes: Attributes = Attributes(concurrent = true),
         override val headers: HeadersBuilder = HeadersBuilder()
     ) : HttpMessageBuilder {
 
+        public val url: UrlBuilder get() =
+            uri as? UrlBuilder ?: URLBuilder(uri).also {
+                uri = it
+            }
+
+        public var uri: Locator = UrlBuilder()
+
         /**
-         * Executes a [block] that configures the [URLBuilder] associated to this request.
+         * Executes a [block] that configures the [UrlBuilder] associated to this request.
          */
-        public fun url(block: URLBuilder.() -> Unit): Unit = block(url)
+        public fun url(block: UrlBuilder.() -> Unit): Unit = block(url)
 
         /**
          * Sets the [url] using the specified [scheme], [host], [port] and [path].
-         * Pass `null` to keep existing value in the [URLBuilder].
+         * Pass `null` to keep existing value in the [UrlBuilder].
          */
         public fun url(
             scheme: String? = null,
             host: String? = null,
             port: Int? = null,
             path: String? = null,
-            block: URLBuilder.() -> Unit = {}
+            block: UrlBuilder.() -> Unit = {}
         ) {
             url.set(scheme, host, port, path, block)
         }
@@ -114,7 +216,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
          * Sets the [HttpRequestBuilder.url] from [urlString].
          */
         public fun url(urlString: String) {
-            url.takeFrom(urlString)
+            uri = LocatorString(urlString)
         }
 
         /**

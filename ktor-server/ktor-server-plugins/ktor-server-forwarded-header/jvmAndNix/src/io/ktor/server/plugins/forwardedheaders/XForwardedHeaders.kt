@@ -127,7 +127,7 @@ public class XForwardedHeadersConfig {
         protoValues?.let { values ->
             val scheme = extractValue(values) ?: return@let
             connectionPoint.scheme = scheme
-            URLProtocol.byName[scheme]?.let {
+            UrlProtocol.byName[scheme]?.let {
                 connectionPoint.port = it.defaultPort
                 connectionPoint.serverPort = it.defaultPort
             }
@@ -139,8 +139,8 @@ public class XForwardedHeadersConfig {
 
             connectionPoint.let { route ->
                 route.scheme = "https"
-                route.port = URLProtocol.HTTPS.defaultPort
-                route.serverPort = URLProtocol.HTTPS.defaultPort
+                route.port = UrlProtocol.HTTPS.defaultPort
+                route.serverPort = UrlProtocol.HTTPS.defaultPort
             }
         }
 
@@ -154,7 +154,7 @@ public class XForwardedHeadersConfig {
             port.toIntOrNull()?.let {
                 connectionPoint.port = it
                 connectionPoint.serverPort = it
-            } ?: URLProtocol.byName[connectionPoint.scheme]?.let {
+            } ?: UrlProtocol.byName[connectionPoint.scheme]?.let {
                 connectionPoint.port = it.defaultPort
                 connectionPoint.serverPort = it.defaultPort
             }

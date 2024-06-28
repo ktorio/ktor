@@ -79,7 +79,7 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     }
 }
 
-private fun ApplicationCall.originOrReferrerUrl(expectedProtocol: URLProtocol? = null): Url? =
+private fun ApplicationCall.originOrReferrerUrl(expectedProtocol: UrlProtocol? = null): Url? =
     request.originHeader() ?: request.referrerNormalized(expectedProtocol)
 
 private fun ApplicationRequest.originHeader(): Url? =
@@ -91,9 +91,9 @@ private fun ApplicationRequest.originHeader(): Url? =
  *
  * @see [Checking the Referrer header](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#checking-the-referer-header)
  */
-private fun ApplicationRequest.referrerNormalized(expectedProtocol: URLProtocol? = null): Url? =
+private fun ApplicationRequest.referrerNormalized(expectedProtocol: UrlProtocol? = null): Url? =
     headers[HttpHeaders.Referrer]?.let { referrer ->
-        URLBuilder().takeFrom(referrer).apply {
+        UrlBuilder().takeFrom(referrer).apply {
             encodedPath = ""
             expectedProtocol?.let {
                 protocol = expectedProtocol

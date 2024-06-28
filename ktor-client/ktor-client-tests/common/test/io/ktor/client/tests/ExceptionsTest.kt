@@ -54,7 +54,7 @@ class ExceptionsTest : ClientLoader() {
             message = "Some redirect",
             exceptionType = RedirectResponseException::class
         ) {
-            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+            assertTrue("GET ${UrlBuilder.origin}/www.google.com" in it.message!!)
         }
 
     @Test
@@ -64,7 +64,7 @@ class ExceptionsTest : ClientLoader() {
             message = "Some conflict",
             exceptionType = ClientRequestException::class
         ) {
-            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+            assertTrue("GET ${UrlBuilder.origin}/www.google.com" in it.message!!)
         }
 
     @Test
@@ -74,7 +74,7 @@ class ExceptionsTest : ClientLoader() {
             message = "Some variant",
             exceptionType = ServerResponseException::class
         ) {
-            assertTrue("GET ${URLBuilder.origin}/www.google.com" in it.message!!)
+            assertTrue("GET ${UrlBuilder.origin}/www.google.com" in it.message!!)
         }
 
     @Test

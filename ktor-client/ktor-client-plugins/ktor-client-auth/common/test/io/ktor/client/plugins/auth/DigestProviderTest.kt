@@ -42,7 +42,7 @@ class DigestProviderTest {
         val params = ParametersBuilder(1)
         params.append(paramName, paramValue)
 
-        val url = URLBuilder(parameters = params.build(), trailingQuery = true).apply { encodedPath = path }
+        val url = UrlBuilder(parameters = params.build(), trailingQuery = true).apply { encodedPath = path }
         requestBuilder = HttpRequestBuilder {
             takeFrom(url)
         }

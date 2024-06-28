@@ -10,12 +10,12 @@ import java.net.*
 import java.util.*
 import kotlin.test.*
 
-class URLBuilderTestJvm {
+class UrlBuilderTestJvm {
     private val urlString = "http://localhost:8080/path"
 
     @Test
     fun takeFromURITest() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             takeFrom(URI.create(urlString))
         }
 
@@ -28,7 +28,7 @@ class URLBuilderTestJvm {
 
     @Test
     fun buildStringTest() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             takeFrom(URI.create(urlString))
         }
 
@@ -37,7 +37,7 @@ class URLBuilderTestJvm {
 
     @Test
     fun defaultPortBuildStringTest() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             takeFrom(URI.create("http://localhost:80/path"))
         }
 
@@ -51,10 +51,10 @@ class URLBuilderTestJvm {
         val uri1 = URI.create(urlStr1)
         val uri2 = URI.create(urlStr2)
 
-        val url1 = URLBuilder().apply {
+        val url1 = UrlBuilder().apply {
             takeFrom(uri1)
         }
-        val url2 = URLBuilder().apply {
+        val url2 = UrlBuilder().apply {
             takeFrom(uri2)
         }
 
@@ -64,7 +64,7 @@ class URLBuilderTestJvm {
 
     @Test
     fun testCustom() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             takeFrom(URI.create("custom://localhost:8080/path"))
         }
 
@@ -73,7 +73,7 @@ class URLBuilderTestJvm {
 
     @Test
     fun testWss() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             takeFrom(URI.create("wss://localhost/path"))
         }
 
@@ -83,7 +83,7 @@ class URLBuilderTestJvm {
 
     @Test
     fun testCapitalize() {
-        val url = URLBuilder().apply {
+        val url = UrlBuilder().apply {
             val uri = "custom://localhost:8080/path".replaceFirstChar {
                 if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
             }
@@ -95,17 +95,17 @@ class URLBuilderTestJvm {
 
     @Test
     fun testTakeFromRewritePort() {
-        URLBuilder().apply {
+        UrlBuilder().apply {
             port = 9093
             takeFrom(URI("http://localhost:81/"))
         }.buildString().let { url -> assertEquals("http://localhost:81/", url) }
 
-        URLBuilder().apply {
+        UrlBuilder().apply {
             port = 9093
             takeFrom(URI("http://localhost/"))
         }.buildString().let { url -> assertEquals("http://localhost/", url) }
 
-        URLBuilder().apply {
+        UrlBuilder().apply {
             port = 9093
             takeFrom(URI("/test"))
         }.buildString().let { url -> assertEquals("http://localhost:9093/test", url) }
@@ -115,7 +115,7 @@ class URLBuilderTestJvm {
     fun testUnderscoreInHost() {
         assertEquals(
             "http://my_service:8080",
-            URLBuilder().takeFrom(URL("http://my_service:8080")).buildString()
+            UrlBuilder().takeFrom(URL("http://my_service:8080")).buildString()
         )
     }
 }

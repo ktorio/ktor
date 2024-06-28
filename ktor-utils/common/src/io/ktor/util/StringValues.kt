@@ -74,19 +74,10 @@ public interface StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public interface StringValuesBuilder {
-    public val caseInsensitiveName: Boolean
-    public fun getAll(name: String): List<String>?
-
-    public operator fun contains(name: String): Boolean
-    public fun contains(name: String, value: String): Boolean
-    public fun names(): Set<String>
-    public fun isEmpty(): Boolean
-    public fun entries(): Set<Map.Entry<String, List<String>>>
+public interface StringValuesBuilder: StringValues {
 
     public operator fun set(name: String, value: String)
 
-    public operator fun get(name: String): String?
     public fun append(name: String, value: String)
     public fun appendAll(stringValues: StringValues)
     public fun appendMissing(stringValues: StringValues)

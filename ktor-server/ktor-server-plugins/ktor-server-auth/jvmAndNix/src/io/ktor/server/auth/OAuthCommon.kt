@@ -72,7 +72,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+        public val authorizeUrlInterceptor: UrlBuilder.() -> Unit = {},
         public val passParamsInURL: Boolean = false,
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),

@@ -52,7 +52,7 @@ internal class Http2LocalConnectionPoint(
         get() = localNetworkAddress?.hostString ?: "localhost"
 
     private val defaultPort
-        get() = URLProtocol.createOrDefault(scheme).defaultPort
+        get() = UrlProtocol.createOrDefault(scheme).defaultPort
     override val localPort: Int
         get() = localNetworkAddress?.port ?: defaultPort
     override val serverPort: Int

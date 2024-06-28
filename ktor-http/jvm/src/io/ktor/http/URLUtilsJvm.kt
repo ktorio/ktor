@@ -9,9 +9,9 @@ import java.net.*
 /**
  * Take URI components from [uri]
  */
-public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
+public fun UrlBuilder.takeFrom(uri: URI): UrlBuilder {
     uri.scheme?.let {
-        protocol = URLProtocol.createOrDefault(it)
+        protocol = UrlProtocol.createOrDefault(it)
         port = protocol.defaultPort
     }
 
@@ -46,7 +46,7 @@ public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
 /**
  * Take URL components from [url]
  */
-public fun URLBuilder.takeFrom(url: URL): URLBuilder = when {
+public fun UrlBuilder.takeFrom(url: URL): UrlBuilder = when {
     url.host.contains('_') -> takeFrom(url.toString())
     else -> takeFrom(url.toURI())
 }
@@ -62,4 +62,4 @@ public fun Url.toURI(): URI = URI(toString())
  * Creates [Url] from [URI]
  */
 @Suppress("FunctionName")
-public fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()
+public fun Url(uri: URI): Url = UrlBuilder().takeFrom(uri).build()

@@ -47,7 +47,7 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     state: String,
     extraParameters: List<Pair<String, String>> = emptyList(),
     scopes: List<String> = emptyList(),
-    interceptor: URLBuilder.() -> Unit
+    interceptor: UrlBuilder.() -> Unit
 ) {
     redirectAuthenticateOAuth2(
         authenticateUrl = settings.authorizeUrl,
@@ -99,9 +99,9 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     state: String,
     scopes: List<String>,
     parameters: List<Pair<String, String>>,
-    interceptor: URLBuilder.() -> Unit
+    interceptor: UrlBuilder.() -> Unit
 ) {
-    val url = URLBuilder()
+    val url = UrlBuilder()
     url.takeFrom(authenticateUrl)
     url.parameters.apply {
         append(OAuth2RequestParameters.ClientId, clientId)

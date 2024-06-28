@@ -83,7 +83,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         url: Url,
         headers: Headers,
         content: OutgoingContent,
-        protocol: URLProtocol,
+        protocol: UrlProtocol,
         timeoutAttributes: HttpTimeoutConfig? = null
     ): TestApplicationCall {
         return app.handleRequestNonBlocking(timeoutAttributes = timeoutAttributes) {

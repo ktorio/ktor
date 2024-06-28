@@ -12,11 +12,11 @@ import io.ktor.server.request.*
 /**
  * Creates an url using current call's schema, path and parameters as initial
  */
-public fun URLBuilder.Companion.createFromCall(call: ApplicationCall): URLBuilder {
+public fun UrlBuilder.Companion.createFromCall(call: ApplicationCall): UrlBuilder {
     val origin = call.request.origin
 
-    val builder = URLBuilder()
-    builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
+    val builder = UrlBuilder()
+    builder.protocol = UrlProtocol.byName[origin.scheme] ?: UrlProtocol(origin.scheme, 0)
     builder.host = origin.serverHost
     builder.port = origin.serverPort
     builder.encodedPath = call.request.path()
@@ -28,11 +28,11 @@ public fun URLBuilder.Companion.createFromCall(call: ApplicationCall): URLBuilde
 /**
  * Construct a URL
  */
-public fun url(block: URLBuilder.() -> Unit): String = URLBuilder().apply(block).buildString()
+public fun url(block: UrlBuilder.() -> Unit): String = UrlBuilder().apply(block).buildString()
 
 /**
  * Creates an url using current call's schema, path and parameters as initial
  * and then invokes [block] function on the url builder so amend parameters
  */
-public inline fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String =
-    URLBuilder.createFromCall(this).apply(block).buildString()
+public inline fun ApplicationCall.url(block: UrlBuilder.() -> Unit = {}): String =
+    UrlBuilder.createFromCall(this).apply(block).buildString()

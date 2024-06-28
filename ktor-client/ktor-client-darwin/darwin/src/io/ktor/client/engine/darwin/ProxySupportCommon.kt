@@ -16,8 +16,8 @@ internal fun NSURLSessionConfiguration.setupProxy(config: DarwinClientEngineConf
     val url = proxy.url
 
     when (url.protocol) {
-        URLProtocol.HTTP -> setupHttpProxy(url)
-        URLProtocol.HTTPS -> setupHttpProxy(url)
+        UrlProtocol.HTTP -> setupHttpProxy(url)
+        UrlProtocol.HTTPS -> setupHttpProxy(url)
 //        URLProtocol.SOCKS -> setupSocksProxy(url)
         else -> error("Proxy type ${url.protocol.name} is unsupported by Darwin client engine.")
     }

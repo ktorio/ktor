@@ -148,7 +148,7 @@ public class DigestAuthProvider(
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val nonceCount = requestCounter.incrementAndGet()
         val methodName = request.method.value.uppercase()
-        val url = URLBuilder().takeFrom(request.url).build()
+        val url = UrlBuilder().takeFrom(request.url).build()
 
         val nonce = serverNonce.value!!
         val serverOpaque = opaque.value

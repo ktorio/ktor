@@ -175,7 +175,7 @@ internal object ReceiveError : ClientHook<suspend (HttpRequest, Throwable) -> Th
 private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
     override val call: HttpClientCall get() = error("Call is not initialized")
     override val method: HttpMethod = builder.method
-    override val url: Url = builder.url.build()
+    override val url: Url = builder.url.toUrl()
     override val attributes: Attributes = builder.attributes
     override val headers: Headers = builder.headers.build()
     override val content: OutgoingContent

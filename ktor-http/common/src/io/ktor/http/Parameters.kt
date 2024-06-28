@@ -26,7 +26,7 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public interface ParametersBuilder : StringValuesBuilder {
+public interface ParametersBuilder : StringValuesBuilder, Parameters {
     override fun build(): Parameters
 }
 
@@ -102,6 +102,8 @@ public operator fun Parameters.plus(other: Parameters): Parameters = when {
         )
     }
 }
+
+public fun Parameters?.orEmpty(): Parameters = this ?: Parameters.Empty
 
 internal object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true

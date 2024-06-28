@@ -18,8 +18,8 @@ package io.ktor.http
  * @property password password part of URL
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
-public class Url internal constructor(
-    protocol: URLProtocol?,
+public class UrlOld internal constructor(
+    protocol: UrlProtocol?,
     public val host: String,
     public val specifiedPort: Int,
     public val pathSegments: List<String>,
@@ -36,8 +36,8 @@ public class Url internal constructor(
         }
     }
 
-    public val protocolOrNull: URLProtocol? = protocol
-    public val protocol: URLProtocol = protocolOrNull ?: URLProtocol.HTTP
+    public val protocolOrNull: UrlProtocol? = protocol
+    public val protocol: UrlProtocol = protocolOrNull ?: UrlProtocol.HTTP
 
     public val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
 
@@ -107,7 +107,7 @@ public class Url internal constructor(
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as Url
+        other as UrlOld
 
         if (urlString != other.urlString) return false
 
@@ -120,33 +120,3 @@ public class Url internal constructor(
 
     public companion object
 }
-
-/**
- * [Url] authority.
- */
-public val Url.authority: String
-    get() = buildString {
-        append(encodedUserAndPassword)
-        append(hostWithPortIfSpecified)
-    }
-
-/**
- * A [Url] protocol and authority.
- */
-public val Url.protocolWithAuthority: String
-    get() = buildString {
-        append(protocol.name)
-        append("://")
-        append(encodedUserAndPassword)
-
-        if (specifiedPort == DEFAULT_PORT || specifiedPort == protocol.defaultPort) {
-            append(host)
-        } else {
-            append(hostWithPort)
-        }
-    }
-
-internal val Url.encodedUserAndPassword: String
-    get() = buildString {
-        appendUserAndPassword(encodedUser, encodedPassword)
-    }

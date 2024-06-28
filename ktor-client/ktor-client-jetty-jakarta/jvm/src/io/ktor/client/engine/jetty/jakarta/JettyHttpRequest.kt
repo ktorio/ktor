@@ -63,7 +63,7 @@ internal suspend fun HTTP2Client.connect(
     config: JettyEngineConfig
 ): Session = withPromise { promise ->
     val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
-    connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
+    connect(factory, InetSocketAddress(url.host, url.portOrDefault), Session.Listener.Adapter(), promise)
 }
 
 @OptIn(InternalAPI::class)

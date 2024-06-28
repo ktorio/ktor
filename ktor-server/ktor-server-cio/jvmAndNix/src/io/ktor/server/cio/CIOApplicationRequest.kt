@@ -78,7 +78,7 @@ internal class CIOConnectionPoint(
     override val scheme: String
         get() = "http"
 
-    private val defaultPort = URLProtocol.createOrDefault(scheme).defaultPort
+    private val defaultPort = UrlProtocol.createOrDefault(scheme).defaultPort
 
     @Deprecated("Use localPort or serverPort instead")
     override val host: String

@@ -17,7 +17,7 @@ import io.ktor.http.content.*
  */
 @UseHttp2Push
 public interface ResponsePushBuilder {
-    public val url: URLBuilder
+    public val url: UrlBuilder
     public val headers: HeadersBuilder
     public var method: HttpMethod
     public val versions: MutableList<Version>

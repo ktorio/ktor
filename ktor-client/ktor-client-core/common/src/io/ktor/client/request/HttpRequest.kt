@@ -60,9 +60,19 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
  */
 public class HttpRequestBuilder : HttpMessageBuilder {
     /**
-     * [URLBuilder] to configure the URL for this request.
+     * [UrlBuilder] to configure the URL for this request.
+     *
+     * Now delegates to the "uri" field.
      */
-    public val url: URLBuilder = URLBuilder()
+    public val url: UrlBuilder get() =
+        uri as? UrlBuilder ?: URLBuilder(uri).also {
+            uri = it
+        }
+
+    /**
+     * Accepts any URI-like locator.  Used in the final request.
+     */
+    public var uri: Locator = UrlBuilder()
 
     /**
      * [HttpMethod] used by this request. [HttpMethod.Get] by default.
@@ -106,16 +116,16 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
-     * Executes a [block] that configures the [URLBuilder] associated to this request.
+     * Executes a [block] that configures the [UrlBuilder] associated to this request.
      */
-    public fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
+    public fun url(block: UrlBuilder.(UrlBuilder) -> Unit): Unit = url.block(url)
 
     /**
      * Creates immutable [HttpRequestData].
      */
     @OptIn(InternalAPI::class)
     public fun build(): HttpRequestData = HttpRequestData(
-        url.build(),
+        uri.toUrl(),
         method,
         headers.build(),
         body as? OutgoingContent ?: error("No request transformation found: $body"),
@@ -147,8 +157,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         method = builder.method
         body = builder.body
         bodyType = builder.bodyType
-        url.takeFrom(builder.url)
-        url.encodedPathSegments = url.encodedPathSegments
+        uri += builder.uri
         headers.appendAll(builder.headers)
         attributes.putAll(builder.attributes)
 
@@ -239,9 +248,9 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder
 }
 
 /**
- * Executes a [block] that configures the [URLBuilder] associated to this request.
+ * Executes a [block] that configures the [UrlBuilder] associated to this request.
  */
-public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(url)
+public fun HttpRequestBuilder.url(block: UrlBuilder.() -> Unit): Unit = block(url)
 
 /**
  * Sets the [HttpRequestBuilder] from [request].
@@ -259,21 +268,21 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
 }
 
 /**
- * Executes a [block] that configures the [URLBuilder] associated to this request.
+ * Executes a [block] that configures the [UrlBuilder] associated to this request.
  */
-public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
+public operator fun HttpRequestBuilder.Companion.invoke(block: UrlBuilder.() -> Unit): HttpRequestBuilder =
     HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
- * Pass `null` to keep the existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [UrlBuilder].
  */
 public fun HttpRequestBuilder.url(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    block: URLBuilder.() -> Unit = {}
+    block: UrlBuilder.() -> Unit = {}
 ) {
     url.set(scheme, host, port, path, block)
 }
@@ -281,21 +290,21 @@ public fun HttpRequestBuilder.url(
 /**
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
- * Pass `null` to keep the existing value in the [URLBuilder].
+ * Pass `null` to keep the existing value in the [UrlBuilder].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    block: URLBuilder.() -> Unit = {}
+    block: UrlBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
 public fun HttpRequestBuilder.url(urlString: String) { // ktlint-disable filename
-    url.takeFrom(urlString)
+    uri = LocatorString(urlString)
 }
 
 @InternalAPI

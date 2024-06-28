@@ -17,7 +17,7 @@ import kotlinx.serialization.*
 public inline fun <reified T> href(
     resourcesFormat: ResourcesFormat,
     resource: T,
-    urlBuilder: URLBuilder
+    urlBuilder: UrlBuilder
 ) {
     val serializer = serializer<T>()
     href(resourcesFormat, serializer, resource, urlBuilder)
@@ -32,7 +32,7 @@ public inline fun <reified T> href(
     resourcesFormat: ResourcesFormat,
     resource: T,
 ): String {
-    val urlBuilder = URLBuilder()
+    val urlBuilder = UrlBuilder()
     href(resourcesFormat, resource, urlBuilder)
     return urlBuilder.build().fullPath
 }
@@ -41,7 +41,7 @@ public fun <T> href(
     resourcesFormat: ResourcesFormat,
     serializer: KSerializer<T>,
     resource: T,
-    urlBuilder: URLBuilder
+    urlBuilder: UrlBuilder
 ) {
     val parameters = resourcesFormat.encodeToParameters(serializer, resource)
     val pathPattern = resourcesFormat.encodeToPathPattern(serializer)

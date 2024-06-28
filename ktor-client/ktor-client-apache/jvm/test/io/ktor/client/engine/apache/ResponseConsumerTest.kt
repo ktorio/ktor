@@ -27,7 +27,7 @@ class ResponseConsumerTest {
         }
 
         val requestData = HttpRequestData(
-            URLBuilder().build(),
+            UrlBuilder().build(),
             HttpMethod.Get,
             Headers.Empty,
             body,

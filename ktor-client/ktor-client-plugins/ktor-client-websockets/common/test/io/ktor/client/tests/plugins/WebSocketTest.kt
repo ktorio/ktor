@@ -20,7 +20,7 @@ class WebSocketTest {
             install(WebSockets)
             engine {
                 addHandler { request ->
-                    port = request.url.port
+                    port = request.url.portOrDefault
 
                     respondBadRequest()
                 }

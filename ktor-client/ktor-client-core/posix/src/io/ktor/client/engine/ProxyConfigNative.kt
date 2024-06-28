@@ -44,7 +44,7 @@ public actual object ProxyBuilder {
      * Create http proxy from [url].
      */
     public actual fun http(url: Url): ProxyConfig {
-        require(url.protocol.name.equals(URLProtocol.HTTP.name, ignoreCase = true))
+        require(url.protocol.name.equals(UrlProtocol.HTTP.name, ignoreCase = true))
 
         return ProxyConfig(url)
     }
@@ -53,8 +53,8 @@ public actual object ProxyBuilder {
      * Create socks proxy from [host] and [port].
      */
     public actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(
-        URLBuilder().apply {
-            protocol = URLProtocol.SOCKS
+        UrlBuilder().apply {
+            protocol = UrlProtocol.SOCKS
 
             this.host = host
             this.port = port
@@ -67,8 +67,8 @@ public actual object ProxyBuilder {
  */
 public actual val ProxyConfig.type: ProxyType
     get() = when (url.protocol) {
-        URLProtocol.HTTP,
-        URLProtocol.HTTPS -> ProxyType.HTTP
-        URLProtocol.SOCKS -> ProxyType.SOCKS
+        UrlProtocol.HTTP,
+        UrlProtocol.HTTPS -> ProxyType.HTTP
+        UrlProtocol.SOCKS -> ProxyType.SOCKS
         else -> ProxyType.UNKNOWN
     }

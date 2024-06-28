@@ -20,18 +20,18 @@ import io.ktor.utils.io.*
 @UseHttp2Push
 public class DefaultResponsePushBuilder(
     override var method: HttpMethod = HttpMethod.Get,
-    override val url: URLBuilder = URLBuilder(),
+    override val url: UrlBuilder = UrlBuilder(),
     override val headers: HeadersBuilder = HeadersBuilder(),
     versions: List<Version> = emptyList()
 ) : ResponsePushBuilder {
 
-    public constructor(url: URLBuilder, headers: Headers) : this(
+    public constructor(url: UrlBuilder, headers: Headers) : this(
         url = url,
         headers = HeadersBuilder().apply { appendAll(headers) }
     )
 
     public constructor(call: ApplicationCall) : this(
-        url = URLBuilder.createFromCall(call),
+        url = UrlBuilder.createFromCall(call),
         headers = HeadersBuilder().apply {
             appendAll(call.request.headers)
             set(HttpHeaders.Referrer, call.url())

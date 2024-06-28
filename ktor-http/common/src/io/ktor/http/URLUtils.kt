@@ -4,47 +4,48 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 /**
  * Construct [Url] from [urlString].
  */
 @Suppress("FunctionName")
-public fun Url(urlString: String): Url = URLBuilder(urlString).build()
+public fun Url(urlString: String, relative: Boolean = false): Url =
+    UriParser.parse(urlString, relative).toUrl()
 
 /**
- * Construct [Url] from [builder] without building origin.
+ * Construct [Url] from [builder] without building origin. TODO wut?
  */
 @Suppress("FunctionName")
-public fun Url(builder: URLBuilder): Url = URLBuilder().takeFrom(builder).build()
+public fun Url(builder: UrlBuilder): Url = UrlBuilder().takeFrom(builder).build()
 
 /**
  * Construct a [Url] by applying [block] an empty [UrlBuilder].
  */
-public fun buildUrl(block: URLBuilder.() -> Unit): Url = URLBuilder().apply(block).build()
+public fun buildUrl(block: UrlBuilder.() -> Unit): Url = UrlBuilder().apply(block).build()
 
 /**
- * Construct [URLBuilder] from [urlString].
+ * Construct [UrlBuilder] from [urlString].
  */
 @Suppress("FunctionName")
-public fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
+public fun URLBuilder(urlString: String): UrlBuilder = UrlBuilder().takeFrom(urlString)
+
+public fun URLBuilder(locator: Locator): UrlBuilder = (locator as? UrlBuilder) ?: UrlBuilder().takeFrom(locator.asUri())
 
 /**
- * Construct [URLBuilder] from [url].
+ * Construct [UrlBuilder] from [url].
  */
 @Suppress("FunctionName")
-public fun URLBuilder(url: Url): URLBuilder = URLBuilder().takeFrom(url)
+public fun URLBuilder(url: Url): UrlBuilder = UrlBuilder().takeFrom(url)
 
 /**
- * Construct [URLBuilder] from [builder].
+ * Construct [UrlBuilder] from [builder].
  */
 @Suppress("FunctionName")
-public fun URLBuilder(builder: URLBuilder): URLBuilder = URLBuilder().takeFrom(builder)
+public fun URLBuilder(builder: UrlBuilder): UrlBuilder = UrlBuilder().takeFrom(builder)
 
 /**
  * Take components from another [url] builder
  */
-public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
+public fun UrlBuilder.takeFrom(url: UrlBuilder): UrlBuilder {
     protocolOrNull = url.protocolOrNull
     host = url.host
     port = url.port
@@ -61,17 +62,34 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
 /**
  * Take components from another [url]
  */
-public fun URLBuilder.takeFrom(url: Url): URLBuilder {
-    protocolOrNull = url.protocolOrNull
+public fun UrlBuilder.takeFrom(url: Url): UrlBuilder {
+    protocolOrNull = url.protocol
     host = url.host
-    port = url.port
-    encodedPath = url.encodedPath
-    encodedUser = url.encodedUser
-    encodedPassword = url.encodedPassword
-    encodedParameters = ParametersBuilder().apply { appendAll(parseQueryString(url.encodedQuery, decode = false)) }
-    encodedFragment = url.encodedFragment
-    trailingQuery = url.trailingQuery
+    port = url.portOrDefault
+    pathSegments = url.path.segments
+    user = url.authority.user
+    password = url.authority.password
+    encodedParameters = ParametersBuilder().apply { url.parameters?.let { appendAll(it) } }
+    url.fragment?.let { fragment = it }
+    trailingQuery = url.parameters != null && url.parameters.isEmpty()
 
+    return this
+}
+
+public fun UrlBuilder.takeFrom(uri: UriReference): UrlBuilder {
+    protocolOrNull = uri.protocol
+    uri.host?.let { host = it }
+    uri.port?.let { port = it }
+    uri.user?.let { user = it }
+    uri.password?.let { password = it }
+    if (uri.host == null && uri.path.isRelative()) {
+        appendPathSegments(uri.path.segments)
+    } else {
+        pathSegments = uri.path.segments
+    }
+    encodedParameters = ParametersBuilder().apply { uri.parameters?.let { appendAll(it) } }
+    uri.fragment?.let { fragment = it }
+    trailingQuery = uri.parameters?.isEmpty() == true
     return this
 }
 
@@ -84,16 +102,77 @@ public val Url.fullPath: String
 /**
  * Host:port pair, not normalized so port is always specified even if the port is schema's default
  */
-public val Url.hostWithPort: String get() = "$host:$port"
+public val Url.hostWithPort: String get() = "$host:$portOrDefault"
 
 /**
  * Returns "host:port" when port is specified. Else, returns host.
  */
 public val Url.hostWithPortIfSpecified: String get() =
-    when (specifiedPort) {
-        DEFAULT_PORT, protocol.defaultPort -> host
-        else -> hostWithPort
+    when(port) {
+        null -> host
+        else -> "$host:$port"
     }
+
+public val Url.protocolWithAuthority: String get() = buildString {
+    append(protocol)
+    append(':')
+    if (protocolSeparator != null)
+        append("//")
+    append(authority)
+}
+
+/**
+ * Either the specified port from the authority or the default from the protocol.
+ */
+public val Url.portOrDefault: Int get() =
+    authority.port ?: protocol.defaultPort
+
+/**
+ * The string value of the path with URL encoding applied.
+ */
+public val Url.encodedPath: String get() =
+    path.toString()
+
+
+/**
+ * The string value of the path with URL encoding applied.
+ */
+public val Url.encodedPathAndQuery: String get() = fullPath
+
+/**
+ * The string value of the query.
+ */
+public val Url.encodedQuery: String get() = parameters?.formUrlEncode() ?: ""
+
+/**
+ * Returns true if URL has ? character and empty query.
+ */
+public val Url.trailingQuery: Boolean get() = parameters != null && parameters.isEmpty()
+
+/**
+ * Returns the list of segments found in the path.
+ */
+public val Url.pathSegments: List<String> get() = path.segments
+
+/**
+ * Returns the user encoded, or empty string.
+ */
+public val Url.encodedUser: String get() = user?.encodeURLParameter() ?: ""
+
+/**
+ * Returns the password encoded, or empty string.
+ */
+public val Url.encodedPassword: String get() = password?.encodeURLParameter() ?: ""
+
+/**
+ * Returns the fragment encoded, or empty string.
+ */
+public val Url.encodedFragment: String get() = fragment?.encodeURLQueryComponent() ?: ""
+
+/**
+ * Get query or empty parameters.
+ */
+public val Url.parameters: Parameters get() = parameters ?: Parameters.Empty
 
 internal fun Appendable.appendUrlFullPath(
     encodedPath: String,
@@ -146,7 +225,7 @@ public fun Appendable.appendUrlFullPath(
 /**
  * Checks if [Url] has absolute path.
  */
-public val Url.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
+public val Url.isAbsolutePath: Boolean get() = path.isAbsolute()
 
 /**
  * Checks if [Url] has absolute path.
@@ -156,12 +235,12 @@ public val Url.isRelativePath: Boolean get() = !isAbsolutePath
 /**
  * Checks if [Url] has absolute path.
  */
-public val URLBuilder.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
+public val UrlBuilder.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
 
 /**
  * Checks if [Url] has absolute path.
  */
-public val URLBuilder.isRelativePath: Boolean get() = !isAbsolutePath
+public val UrlBuilder.isRelativePath: Boolean get() = !isAbsolutePath
 
 internal fun StringBuilder.appendUserAndPassword(encodedUser: String?, encodedPassword: String?) {
     if (encodedUser == null) {

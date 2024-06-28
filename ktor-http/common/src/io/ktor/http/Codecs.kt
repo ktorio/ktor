@@ -39,7 +39,14 @@ internal val ATTRIBUTE_CHARACTERS: Set<Char> = URL_ALPHABET_CHARS + setOf(
 /**
  * Characters allowed in url according to https://tools.ietf.org/html/rfc3986#section-2.3
  */
-private val SPECIAL_SYMBOLS = listOf('-', '.', '_', '~').map { it.code.toByte() }
+private val SPECIAL_SYMBOLS = sequenceOf('-', '.', '_', '~').map { it.code.toByte() }.toSet()
+
+/**
+ * Additional symbols allowed in parameter values.
+ *
+ * See https://datatracker.ietf.org/doc/html/rfc3986#section-3.4
+ */
+private val PARAMETER_VALUE_SYMBOLS = sequenceOf('/', '?').map { it.code.toByte() }.toSet()
 
 /**
  * Encode url part as specified in
@@ -125,7 +132,8 @@ public fun String.encodeURLParameter(
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
     content.forEach {
         when {
-            it in URL_ALPHABET || it in SPECIAL_SYMBOLS -> append(it.toInt().toChar())
+            it in URL_ALPHABET || it in SPECIAL_SYMBOLS || it in PARAMETER_VALUE_SYMBOLS ->
+                append(it.toInt().toChar())
             spaceToPlus && it == ' '.code.toByte() -> append('+')
             else -> append(it.percentEncode())
         }
