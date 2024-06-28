@@ -84,41 +84,28 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
 ): ReaderJob = reader(Dispatchers.IO + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
-        @Suppress("DEPRECATION")
-        channel.lookAheadSuspend {
-            val timeout = if (socketOptions?.socketTimeout != null) {
-                createTimeout("writing-direct", socketOptions.socketTimeout) {
-                    channel.close(SocketTimeoutException())
-                }
-            } else {
-                null
+        val timeout = if (socketOptions?.socketTimeout != null) {
+            createTimeout("writing-direct", socketOptions.socketTimeout) {
+                channel.close(SocketTimeoutException())
             }
-
-            while (true) {
-                val buffer = request(0, 1)
-                if (buffer == null) {
-                    if (!awaitAtLeast(1)) break
-                    continue
-                }
-
-                while (buffer.hasRemaining()) {
-                    var rc = 0
-
-                    timeout.withTimeout {
-                        do {
-                            rc = nioChannel.write(buffer)
-                            if (rc == 0) {
-                                selectable.interestOp(SelectInterest.WRITE, true)
-                                selector.select(selectable, SelectInterest.WRITE)
-                            }
-                        } while (buffer.hasRemaining() && rc == 0)
-                    }
-
-                    consumed(rc)
-                }
-            }
-            timeout?.finish()
+        } else {
+            null
         }
+
+        while (true) {
+            if (!channel.awaitContent(1)) break
+
+            timeout.withTimeout {
+                val rc = channel.readAvailable { buffer ->
+                    nioChannel.write(buffer)
+                }
+                if (rc == 0) {
+                    selectable.interestOp(SelectInterest.WRITE, true)
+                    selector.select(selectable, SelectInterest.WRITE)
+                }
+            }
+        }
+        timeout?.finish()
     } finally {
         selectable.interestOp(SelectInterest.WRITE, false)
         if (nioChannel is SocketChannel) {
