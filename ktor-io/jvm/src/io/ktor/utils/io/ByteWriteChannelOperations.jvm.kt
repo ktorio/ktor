@@ -21,9 +21,9 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteBuffer) {
     flush()
 }
 
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuffer) -> Unit) {
-    UnsafeBufferAccessors.writeToTail(writeBuffer.buffer, min) { array, startIndex, endIndex ->
+    UnsafeBufferOperations.writeToTail(writeBuffer.buffer, min) { array, startIndex, endIndex ->
         val buffer = ByteBuffer.wrap(array, startIndex, endIndex - startIndex)
         block(buffer)
         return@writeToTail buffer.position() - startIndex
@@ -45,7 +45,7 @@ public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuff
  *
  * @return number of consumed bytes or -1 if the block wasn't executed.
  */
-@OptIn(InternalAPI::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun ByteWriteChannel.writeAvailable(min: Int = 1, block: (ByteBuffer) -> Unit): Int {
     require(min > 0) { "min should be positive" }
     require(min <= CHANNEL_MAX_SIZE) { "Min($min) shouldn't be greater than $CHANNEL_MAX_SIZE" }
@@ -53,7 +53,7 @@ public fun ByteWriteChannel.writeAvailable(min: Int = 1, block: (ByteBuffer) -> 
     if (isClosedForWrite) return -1
 
     var result = 0
-    UnsafeBufferAccessors.writeToTail(writeBuffer.buffer, min) { array, startIndex, endIndex ->
+    UnsafeBufferOperations.writeToTail(writeBuffer.buffer, min) { array, startIndex, endIndex ->
         val buffer = ByteBuffer.wrap(array, startIndex, endIndex - startIndex)
         block(buffer)
         result = buffer.position() - startIndex

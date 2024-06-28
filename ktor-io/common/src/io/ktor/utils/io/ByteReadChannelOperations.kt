@@ -414,14 +414,14 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
     return true
 }
 
-@OptIn(InternalAPI::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.read(block: suspend (Memory, Int, Int) -> Int): Int {
     if (isClosedForRead) return -1
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return -1
 
     var result = 0
-    UnsafeBufferAccessors.readFromHead(readBuffer.buffer) { array, start, endExclusive ->
+    UnsafeBufferOperations.readFromHead(readBuffer.buffer) { array, start, endExclusive ->
         result = block(array, start, endExclusive)
         result
     }

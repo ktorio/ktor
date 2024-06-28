@@ -9,9 +9,9 @@ import kotlinx.io.unsafe.*
 import java.nio.*
 
 @Suppress("DEPRECATION")
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalIoApi::class)
 public fun ChunkBuffer.writeDirect(min: Int, block: (ByteBuffer) -> Unit) {
-    UnsafeBufferAccessors.writeToTail(buffer, min) { array, startIndex, endIndex ->
+    UnsafeBufferOperations.writeToTail(buffer, min) { array, startIndex, endIndex ->
         val buffer = ByteBuffer.wrap(array, startIndex, endIndex - startIndex)
         block(buffer)
         return@writeToTail buffer.position() - startIndex
@@ -19,9 +19,9 @@ public fun ChunkBuffer.writeDirect(min: Int, block: (ByteBuffer) -> Unit) {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalIoApi::class)
 public fun ChunkBuffer.readDirect(block: (ByteBuffer) -> Unit) {
-    UnsafeBufferAccessors.readFromHead(buffer) { array, start, endExclusive ->
+    UnsafeBufferOperations.readFromHead(buffer) { array, start, endExclusive ->
         val wrap = ByteBuffer.wrap(array, start, endExclusive - start)
         block(wrap)
 

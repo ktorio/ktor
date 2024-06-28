@@ -41,12 +41,12 @@ public suspend fun ByteWriteChannel.writeSuspendSession(block: suspend WriteSusp
     }
 }
 
-@OptIn(SnapshotApi::class, UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.writeWhile(block: (ByteBuffer) -> Boolean) {
     var done = false
 
     while (!done) {
-        UnsafeBufferAccessors.writeToTail(writeBuffer.buffer, 1) { array, start, endExclusive ->
+        UnsafeBufferOperations.writeToTail(writeBuffer.buffer, 1) { array, start, endExclusive ->
             val buffer = ByteBuffer.wrap(array, start, endExclusive - start)
             done = !block(buffer)
             buffer.position() - start

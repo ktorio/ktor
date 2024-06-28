@@ -10,10 +10,10 @@ import kotlinx.io.unsafe.*
 import platform.posix.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalForeignApi::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun BytePacketBuilder.write(block: (buffer: CPointer<ByteVar>, offset: Long, length: Long) -> Long): Long {
     var result = 0L
-    UnsafeBufferAccessors.writeToTail(this.buffer, 1) { array, start, endExclusive ->
+    UnsafeBufferOperations.writeToTail(this.buffer, 1) { array, start, endExclusive ->
         array.usePinned {
             val pointer = it.addressOf(0)
             result = block(pointer, start.toLong(), endExclusive.toLong())
@@ -26,11 +26,11 @@ public fun BytePacketBuilder.write(block: (buffer: CPointer<ByteVar>, offset: Lo
 }
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalForeignApi::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
 public fun BytePacketBuilder.writeFully(buffer: CPointer<ByteVar>, offset: Long, length: Long) {
     var consumed = 0L
     while (consumed < length) {
-        UnsafeBufferAccessors.writeToTail(this.buffer, 1) { array, start, endExclusive ->
+        UnsafeBufferOperations.writeToTail(this.buffer, 1) { array, start, endExclusive ->
             val size = minOf(length - consumed, (endExclusive - start).toLong())
 
             array.usePinned {

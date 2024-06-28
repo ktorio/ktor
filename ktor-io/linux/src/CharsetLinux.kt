@@ -54,7 +54,7 @@ internal fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class, InternalIoApi::class, SnapshotApi::class, UnsafeIoApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalIoApi::class, UnsafeIoApi::class)
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Sink): Int {
     val length = toIndex - fromIndex
     if (length == 0) return 0
@@ -75,7 +75,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                 val outbytesleft = alloc<size_tVar>()
 
                 while (inbytesleft.value.toLong() > 0) {
-                    UnsafeBufferAccessors.writeToTail(dst.buffer, 1) { to, toStart, toEnd ->
+                    UnsafeBufferOperations.writeToTail(dst.buffer, 1) { to, toStart, toEnd ->
                         to.usePinned {
                             outbuf.value = it.addressOf(toStart).reinterpret()
                             outbytesleft.value = (toEnd - toStart).toULong()
@@ -106,7 +106,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     return length
 }
 
-@OptIn(ExperimentalForeignApi::class, SnapshotApi::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     val charset = iconvCharsetName(charset.name)
     val cd = iconv_open(platformUtf16, charset)
@@ -122,7 +122,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
                 val outbytesleft = alloc<size_tVar>()
 
                 while (!input.exhausted() && copied < max) {
-                    UnsafeBufferAccessors.readFromHead(input.buffer) { data, startIndex, endIndex ->
+                    UnsafeBufferOperations.readFromHead(input.buffer) { data, startIndex, endIndex ->
                         data.usePinned {
                             inbuf.value = it.addressOf(startIndex).reinterpret()
                             inbytesleft.value = (endIndex - startIndex).toULong()
