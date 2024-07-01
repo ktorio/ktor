@@ -2,6 +2,7 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.errors.*
 
 public expect abstract class Charset {
     public abstract fun newEncoder(): CharsetEncoder
@@ -94,7 +95,7 @@ public expect object Charsets {
     public val ISO_8859_1: Charset
 }
 
-public expect open class MalformedInputException(message: String) : Throwable
+public expect open class MalformedInputException(message: String) : IOException
 
 public class TooLongLineException(message: String) : MalformedInputException(message)
 
