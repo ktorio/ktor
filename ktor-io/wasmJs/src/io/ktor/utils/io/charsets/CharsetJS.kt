@@ -6,7 +6,9 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.EOFException
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.js.*
 
 /**
@@ -236,7 +238,7 @@ public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int
 
 // -----------------------------------------------------------
 
-public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
 
 @Suppress("DEPRECATION")
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
