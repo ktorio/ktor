@@ -508,8 +508,6 @@ class AuthTest : ClientLoader() {
         lateinit var clientWithAuth: HttpClient
         test { client ->
             clientWithAuth = client.config {
-                developmentMode = true
-
                 install(Auth) {
                     bearer {
                         loadTokens { BearerTokens("first", "first") }
@@ -536,8 +534,6 @@ class AuthTest : ClientLoader() {
         lateinit var clientWithAuth: HttpClient
         test { client ->
             clientWithAuth = client.config {
-                developmentMode = true
-
                 install(Auth) {
                     bearer {
                         loadTokens { BearerTokens("first", "first") }
