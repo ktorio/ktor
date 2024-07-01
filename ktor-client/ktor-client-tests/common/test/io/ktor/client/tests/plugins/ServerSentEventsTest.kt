@@ -15,9 +15,9 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
@@ -30,13 +30,13 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         val client = HttpClient()
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEventsSession()
-        }.let {
-            kotlin.test.assertContains(it.message!!, SSE.key.name)
+        }.apply {
+            kotlin.test.assertContains(message!!, SSE.key.name)
         }
         kotlin.test.assertFailsWith<IllegalStateException> {
             client.serverSentEvents {}
-        }.let {
-            kotlin.test.assertContains(it.message!!, SSE.key.name)
+        }.apply {
+            kotlin.test.assertContains(message!!, SSE.key.name)
         }
     }
 
@@ -47,10 +47,11 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            val response = client.post("$TEST_SERVER/content/echo") {
+            client.post("$TEST_SERVER/content/echo") {
                 setBody("Hello")
+            }.apply {
+                assertEquals("Hello", bodyAsText())
             }
-            assertEquals("Hello", response.bodyAsText())
         }
     }
 
@@ -117,29 +118,33 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     }
 
     @Test
-    fun testSseSessionWithError() = clientTests(listOf("Darwin", "DarwinLegacy")) {
+    fun testSseSessionUnknownHostError() = clientTests {
         config {
             install(SSE)
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEException> {
-                client.serverSentEventsSession("http://testerror.com/sse")
+            kotlin.test.assertFailsWith<SSEClientException> {
+                client.serverSentEventsSession("http://unknown_host")
+            }.apply {
+                assertNotNull(cause)
             }
         }
     }
 
     @Test
-    fun testExceptionSse() = clientTests {
+    fun testExceptionDuringSSESession() = clientTests {
         config {
             install(SSE)
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEException> {
+            kotlin.test.assertFailsWith<SSEClientException> {
                 client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
-            }.let {
-                kotlin.test.assertContains(it.message!!, "error")
+            }.apply {
+                kotlin.test.assertTrue { cause is IllegalStateException }
+                assertEquals("error", message)
+                assertEquals(HttpStatusCode.OK, response?.status)
             }
         }
     }
@@ -282,16 +287,34 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     }
 
     @Test
-    fun testSseExceptionOn404Response() = clientTests(listOf("CIO", "Apache", "Apache5", "Android", "Java")) {
+    fun testSseExceptionWhenResponseStatusIsNot200() = clientTests {
         config {
             install(SSE)
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEException> {
+            kotlin.test.assertFailsWith<SSEClientException> {
                 client.sse("$TEST_SERVER/sse/404") {}
-            }.let {
-                kotlin.test.assertContains(it.message!!, "Expected status code 200 but was: 404")
+            }.apply {
+                assertEquals(HttpStatusCode.NotFound, response?.status)
+                assertEquals("Expected status code 200 but was 404", message)
+            }
+        }
+    }
+
+    @Test
+    fun testSseExceptionWhenResponseContentTypeNotRight() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            kotlin.test.assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/content-type-text-plain") {}
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response?.status)
+                assertEquals(ContentType.Text.Plain, response?.contentType())
+                assertEquals("Expected Content-Type text/event-stream but was text/plain", message)
             }
         }
     }
@@ -303,28 +326,17 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            val session = client.serverSentEventsSession("$TEST_SERVER/sse/content_type_with_charset")
-            session.incoming.single().apply {
-                assertEquals("0", id)
-                assertEquals("hello 0", event)
-                val lines = data?.lines() ?: emptyList()
-                assertEquals(2, lines.size)
-                assertEquals("hello", lines[0])
-                assertEquals("from server", lines[1])
-            }
-            session.cancel()
-        }
-    }
-
-    @Test
-    fun testResponseHeaders() = clientTests {
-        config {
-            install(SSE)
-        }
-
-        test { client ->
             client.sse("$TEST_SERVER/sse/content_type_with_charset") {
-                assertEquals(ContentType.Text.EventStream, call.response.contentType()?.withoutParameters())
+                assertEquals(ContentType.Text.EventStream.withCharset(Charsets.UTF_8), call.response.contentType())
+
+                incoming.single().apply {
+                    assertEquals("0", id)
+                    assertEquals("hello 0", event)
+                    val lines = data?.lines() ?: emptyList()
+                    assertEquals(2, lines.size)
+                    assertEquals("hello", lines[0])
+                    assertEquals("from server", lines[1])
+                }
             }
         }
     }
@@ -369,7 +381,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }
         }
         test { client ->
-            kotlin.test.assertFailsWith<SSEException> {
+            kotlin.test.assertFailsWith<SSEClientException> {
                 client.sse({
                     url("$TEST_SERVER/sse/echo")
                     setBody(body)
