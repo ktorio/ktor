@@ -33,6 +33,11 @@ public class WriteSuspendSession(public val channel: ByteWriteChannel) {
     }
 }
 
+@Deprecated(
+    "writeSuspendSession deprecated, use writeWhile instead",
+    replaceWith = ReplaceWith("writeWhile { buffer -> }"),
+    level = DeprecationLevel.WARNING
+)
 public suspend fun ByteWriteChannel.writeSuspendSession(block: suspend WriteSuspendSession.() -> Unit) {
     try {
         block(WriteSuspendSession(this))

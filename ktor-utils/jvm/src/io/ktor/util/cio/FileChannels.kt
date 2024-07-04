@@ -61,20 +61,9 @@ internal suspend fun SeekableByteChannel.writeToScope(
     }
 
     if (endInclusive == -1L) {
-        @Suppress("DEPRECATION")
-        writerScope.channel.writeSuspendSession {
-            while (true) {
-                val buffer = request(1)
-                if (buffer == null) {
-                    writerScope.channel.flush()
-                    tryAwait(1)
-                    continue
-                }
-
-                val rc = read(buffer)
-                if (rc == -1) break
-                written(rc)
-            }
+        writerScope.channel.writeWhile { buffer ->
+            val rc = read(buffer)
+            rc != -1
         }
 
         return
