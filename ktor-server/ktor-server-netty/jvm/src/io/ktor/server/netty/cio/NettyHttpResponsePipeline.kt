@@ -322,6 +322,11 @@ internal class NettyHttpResponsePipeline(
         var lastFuture: ChannelFuture = requestMessageFuture
 
         while (!channel.isClosedForRead) {
+            if (channel.availableForRead == 0) {
+                channel.awaitContent()
+                continue
+            }
+
             var message: Any? = null
             channel.read { buffer ->
                 val rc = buffer.remaining()
@@ -333,8 +338,6 @@ internal class NettyHttpResponsePipeline(
 
                 message = call.prepareMessage(buf, false)
             }
-
-            message ?: break
 
             if (shouldFlush.invoke(channel, unflushedBytes)) {
                 context.read()
