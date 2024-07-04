@@ -66,7 +66,7 @@ public actual object Charsets {
         get() = TODO("Not yet implemented")
 }
 
-public actual open class MalformedInputException actual constructor(message: String) : Throwable()
+public actual open class MalformedInputException actual constructor(message: String) : IOException()
 
 internal actual fun CharsetEncoder.encodeImpl(
     input: CharSequence,

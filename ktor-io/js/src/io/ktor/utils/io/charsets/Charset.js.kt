@@ -146,4 +146,4 @@ private data class CharsetImpl(val name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : IOException(message)
