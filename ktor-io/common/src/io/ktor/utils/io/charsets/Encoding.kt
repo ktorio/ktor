@@ -3,7 +3,7 @@ package io.ktor.utils.io.charsets
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.io.*
-import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 
 public expect abstract class Charset {
     public abstract fun newEncoder(): CharsetEncoder
