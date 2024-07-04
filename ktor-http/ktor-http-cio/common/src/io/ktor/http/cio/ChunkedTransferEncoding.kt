@@ -64,9 +64,9 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
         while (true) {
             chunkSizeBuffer.clear()
             if (!input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH)) {
-                throw EOFException("Chunked stream has ended unexpectedly: no chunk size")
+                throw kotlinx.io.EOFException("Chunked stream has ended unexpectedly: no chunk size")
             } else if (chunkSizeBuffer.isEmpty()) {
-                throw EOFException("Invalid chunk size: empty")
+                throw kotlinx.io.EOFException("Invalid chunk size: empty")
             }
 
             val chunkSize =
@@ -80,10 +80,10 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 
             chunkSizeBuffer.clear()
             if (!input.readUTF8LineTo(chunkSizeBuffer, 2)) {
-                throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
+                throw kotlinx.io.EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
             }
             if (chunkSizeBuffer.isNotEmpty()) {
-                throw EOFException("Invalid chunk: content block should end with CR+LF")
+                throw kotlinx.io.EOFException("Invalid chunk: content block should end with CR+LF")
             }
 
             if (chunkSize == 0L) break
@@ -151,7 +151,7 @@ private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
 @Suppress("DEPRECATION")
-private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {
+private suspend fun ByteWriteChannel.writeChunk(memory: ByteArray, startIndex: Int, endIndex: Int): Int {
     val size = endIndex - startIndex
     writeIntHex(size)
     writeShort(CrLfShort)

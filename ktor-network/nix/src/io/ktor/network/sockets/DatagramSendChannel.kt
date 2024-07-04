@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
+import kotlinx.io.IOException
 import platform.posix.*
 
 private val CLOSED: (Throwable?) -> Unit = {}
@@ -69,7 +70,7 @@ internal class DatagramSendChannel(
             val bytesWritten = sento(element, bytes)
 
             result = when (bytesWritten) {
-                0 -> throw IOException("Failed writing to closed socket")
+                0 -> throw kotlinx.io.IOException("Failed writing to closed socket")
                 -1 -> {
                     if (errno == EAGAIN) {
                         false

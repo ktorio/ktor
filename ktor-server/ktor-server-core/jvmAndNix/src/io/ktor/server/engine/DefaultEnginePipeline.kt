@@ -18,6 +18,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 
 /**
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.

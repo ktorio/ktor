@@ -13,6 +13,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")

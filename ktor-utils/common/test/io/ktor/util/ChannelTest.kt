@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -74,14 +75,14 @@ class ChannelTest {
             source.cancel(IllegalStateException(message))
         }
 
-        assertFailsWith<IOException> {
+        assertFailsWith<kotlinx.io.IOException> {
             val firstResult = GlobalScope.async(Dispatchers.Unconfined) {
                 first.readRemaining().readBytes()
             }
             firstResult.await()
         }
 
-        assertFailsWith<IOException> {
+        assertFailsWith<kotlinx.io.IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
                 second.readRemaining().readBytes()
             }
@@ -109,11 +110,11 @@ class ChannelTest {
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWith<IOException> {
+        assertFailsWith<kotlinx.io.IOException> {
             sourceResult.await()
         }
 
-        assertFailsWith<IOException> {
+        assertFailsWith<kotlinx.io.IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
                 second.readRemaining().readBytes()
             }
@@ -141,7 +142,7 @@ class ChannelTest {
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWith<IOException> {
+        assertFailsWith<kotlinx.io.IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
                 @Suppress("DEPRECATION")
                 second.readRemaining().readBytes()

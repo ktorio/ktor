@@ -7,6 +7,7 @@ package io.ktor.client.network.sockets
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 
 /**
  * This exception is thrown in case connect timeout exceeded.
@@ -14,7 +15,7 @@ import io.ktor.utils.io.errors.*
 public actual class ConnectTimeoutException actual constructor(
     message: String,
     cause: Throwable?
-) : IOException(message, cause)
+) : kotlinx.io.IOException(message, cause)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.

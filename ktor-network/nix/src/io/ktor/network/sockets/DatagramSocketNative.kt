@@ -12,6 +12,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import platform.posix.*
 import kotlin.coroutines.*
 
@@ -47,7 +48,7 @@ internal class DatagramSocketNative(
                 channel.send(received)
             }
         } catch (_: ClosedSendChannelException) {
-        } catch (cause: IOException) {
+        } catch (cause: kotlinx.io.IOException) {
         } catch (cause: PosixException) {
         }
     }
@@ -112,6 +113,7 @@ internal class DatagramSocketNative(
                         if (errno == EAGAIN) return@write 0
                         throw PosixException.forErrno()
                     }
+
                     else -> bytesRead
                 }
             }

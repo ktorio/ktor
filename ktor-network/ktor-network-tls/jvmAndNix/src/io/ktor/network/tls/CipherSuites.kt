@@ -6,6 +6,7 @@ package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 
 /**
  * TLS secret key exchange type.

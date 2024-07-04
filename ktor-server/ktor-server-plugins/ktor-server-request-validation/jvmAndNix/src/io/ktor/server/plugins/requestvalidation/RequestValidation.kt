@@ -9,6 +9,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 
 /**
  * A result of validation.

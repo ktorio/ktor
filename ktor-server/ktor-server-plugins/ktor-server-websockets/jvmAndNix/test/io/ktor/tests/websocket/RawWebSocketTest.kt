@@ -13,6 +13,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -28,7 +29,7 @@ class RawWebSocketTest : BaseTest() {
     private lateinit var client: WebSocketSession
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
-        if (cause !is CancellationException && cause !is IOException) {
+        if (cause !is CancellationException && cause !is kotlinx.io.IOException) {
             collectUnhandledException(cause)
         }
     }
@@ -88,7 +89,7 @@ class RawWebSocketTest : BaseTest() {
     @Test
     fun testServerIncomingConnectionLoss(): Unit = runTest {
         client2server.close(PlannedIOException())
-        ensureCompletion(allowedExceptionsFromIncoming = listOf(IOException::class))
+        ensureCompletion(allowedExceptionsFromIncoming = listOf(kotlinx.io.IOException::class))
     }
 
     @Test

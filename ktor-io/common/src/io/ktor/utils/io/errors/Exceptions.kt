@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io.errors
 
+@Deprecated("Use kotlinx.io.IOException instead", ReplaceWith("kotlinx.io.IOException"))
 public typealias IOException = kotlinx.io.IOException
 
+@Deprecated("Use kotlinx.io.EOFException instead", ReplaceWith("kotlinx.io.EOFException"))
 public typealias EOFException = kotlinx.io.EOFException

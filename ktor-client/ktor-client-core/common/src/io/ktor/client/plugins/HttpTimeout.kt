@@ -18,6 +18,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpTimeout")
 

@@ -9,6 +9,12 @@ public expect abstract class Charset {
     public abstract fun newEncoder(): CharsetEncoder
 
     public abstract fun newDecoder(): CharsetDecoder
+
+    final override fun equals(other: Any?): Boolean
+
+    final override fun hashCode(): Int
+
+    final override fun toString(): String
 }
 
 /**

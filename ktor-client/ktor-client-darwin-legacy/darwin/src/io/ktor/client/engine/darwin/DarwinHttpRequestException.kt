@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
 

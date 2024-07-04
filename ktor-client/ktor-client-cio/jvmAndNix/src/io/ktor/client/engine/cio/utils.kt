@@ -16,9 +16,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.errors.EOFException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
 
 internal suspend fun writeRequest(
@@ -172,7 +172,7 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: unexpected EOF")
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
@@ -240,7 +240,7 @@ internal suspend fun startTunnel(
         output.flush()
 
         val rawResponse = parseResponse(input)
-            ?: throw EOFException("Failed to parse CONNECT response: unexpected EOF")
+            ?: throw kotlinx.io.EOFException("Failed to parse CONNECT response: unexpected EOF")
         rawResponse.use {
             if (rawResponse.status / 200 != 1) {
                 throw IOException("Can not establish tunnel connection")

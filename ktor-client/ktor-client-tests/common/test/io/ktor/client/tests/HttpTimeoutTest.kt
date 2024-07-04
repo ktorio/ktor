@@ -16,6 +16,7 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
@@ -303,7 +304,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<IOException> {
+            assertFailsWith<kotlinx.io.IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 4000)
                 }.body<ByteArray>()
@@ -318,7 +319,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<IOException> {
+            assertFailsWith<kotlinx.io.IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 400)
 
@@ -455,7 +456,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<IOException> {
+            assertFailsWith<kotlinx.io.IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
                 }.body<String>()

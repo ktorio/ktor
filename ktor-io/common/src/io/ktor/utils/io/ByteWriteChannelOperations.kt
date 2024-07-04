@@ -177,7 +177,7 @@ public fun CoroutineScope.writer(
 @OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
-    block: (Memory, Int, Int) -> Int
+    block: (ByteArray, Int, Int) -> Int
 ): Int {
     val before = writeBuffer.size
     UnsafeBufferOperations.writeToTail(writeBuffer.buffer, desiredSpace, block)

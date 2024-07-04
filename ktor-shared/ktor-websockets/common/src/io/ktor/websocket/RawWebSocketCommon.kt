@@ -100,7 +100,7 @@ internal class RawWebSocketCommon(
             _incoming.close(cause)
         } catch (cause: CancellationException) {
             _incoming.cancel(cause)
-        } catch (eof: EOFException) {
+        } catch (eof: kotlinx.io.EOFException) {
             // no more bytes is possible to read
         } catch (eof: ClosedReceiveChannelException) {
             // no more bytes is possible to read

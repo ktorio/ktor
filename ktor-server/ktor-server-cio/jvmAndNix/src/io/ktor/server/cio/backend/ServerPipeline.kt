@@ -16,6 +16,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import kotlin.time.*
 
 /**
@@ -59,7 +60,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             } catch (cause: TooLongLineException) {
                 respondBadRequest(actorChannel)
                 break // end pipeline loop
-            } catch (io: IOException) {
+            } catch (io: kotlinx.io.IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
                 throw cancelled

@@ -119,8 +119,8 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
     }
 }
 
-internal fun PosixException.wrapIO(): IOException =
-    IOException("I/O operation failed due to posix error code $errno", this)
+internal fun PosixException.wrapIO(): kotlinx.io.IOException =
+    kotlinx.io.IOException("I/O operation failed due to posix error code $errno", this)
 
 @OptIn(ExperimentalForeignApi::class)
 private fun posixErrorToString(errno: Int): String = strerror(errno)?.toKString() ?: "Unknown error code: $errno"

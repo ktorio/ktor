@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
 
@@ -67,7 +68,7 @@ internal suspend fun OutgoingContent.toDataOrStream(): Any? {
                         if (written < 0) {
                             throw outputStream.streamError?.let { DarwinHttpRequestException(it) }
                                 ?: inputStream.streamError?.let { DarwinHttpRequestException(it) }
-                                ?: IOException("Failed to write to the network")
+                                ?: kotlinx.io.IOException("Failed to write to the network")
                         }
                     }
                 }

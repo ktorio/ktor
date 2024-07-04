@@ -20,6 +20,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlinx.serialization.json.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
@@ -200,15 +201,15 @@ private suspend fun oauth2RequestAccessToken(
 
     val (contentType, content) = try {
         if (response.status == HttpStatusCode.NotFound) {
-            throw IOException("Access token query failed with http status 404 for the page $baseUrl")
+            throw kotlinx.io.IOException("Access token query failed with http status 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 
         Pair(contentType, body)
-    } catch (ioe: IOException) {
+    } catch (ioe: kotlinx.io.IOException) {
         throw ioe
     } catch (t: Throwable) {
-        throw IOException("Failed to acquire request token due to wrong content: $body", t)
+        throw kotlinx.io.IOException("Failed to acquire request token due to wrong content: $body", t)
     }
 
     val contentDecodeResult = Result.runCatching { decodeContent(content, contentType) }
@@ -221,7 +222,7 @@ private suspend fun oauth2RequestAccessToken(
 
     // ensure status code is successful
     if (!response.status.isSuccess()) {
-        throw IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
+        throw kotlinx.io.IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
     }
 
     // will fail if content decode failed but status is OK

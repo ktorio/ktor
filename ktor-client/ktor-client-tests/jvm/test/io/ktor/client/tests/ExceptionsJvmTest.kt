@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import java.net.*
 import kotlin.test.*
 
