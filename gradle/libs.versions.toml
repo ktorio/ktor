@@ -4,7 +4,7 @@ kotlinx-html-version = "0.11.0"
 kotlinx-datetime = "0.5.0"
 kotlinx-io = "0.5.0-20240703164800-SNAPSHOT"
 coroutines-version = "1.8.0"
-atomicfu-version = "0.23.2"
+atomicfu-version = "0.25.0"
 serialization-version = "1.6.1" # Do not upgrade, 1.6.2 breaks maven publishing!
 ktlint-version = "3.15.0"
 

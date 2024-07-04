@@ -98,6 +98,7 @@ internal class NettyHttpResponsePipeline(
         val t = when {
             actualException is IOException && actualException !is ChannelIOException ->
                 ChannelWriteException(exception = actualException)
+
             else -> actualException
         }
 
@@ -320,37 +321,31 @@ internal class NettyHttpResponsePipeline(
         var unflushedBytes = 0
         var lastFuture: ChannelFuture = requestMessageFuture
 
-        @Suppress("DEPRECATION")
-        channel.lookAheadSuspend {
-            while (true) {
-                val buffer = request(0, 1)
-                if (buffer == null) {
-                    if (!awaitAtLeast(1)) break
-                    continue
-                }
-
+        while (!channel.isClosedForRead) {
+            var message: Any? = null
+            channel.read { buffer ->
                 val rc = buffer.remaining()
                 val buf = context.alloc().buffer(rc)
                 val idx = buf.writerIndex()
                 buf.setBytes(idx, buffer)
                 buf.writerIndex(idx + rc)
-
-                consumed(rc)
                 unflushedBytes += rc
 
-                val message = call.prepareMessage(buf, false)
+                message = call.prepareMessage(buf, false)
+            }
 
-                if (shouldFlush.invoke(channel, unflushedBytes)) {
-                    context.read()
-                    val future = context.writeAndFlush(message)
-                    isDataNotFlushed.compareAndSet(expect = true, update = false)
-                    lastFuture = future
-                    future.suspendAwait()
-                    unflushedBytes = 0
-                } else {
-                    lastFuture = context.write(message)
-                    isDataNotFlushed.compareAndSet(expect = false, update = true)
-                }
+            message ?: break
+
+            if (shouldFlush.invoke(channel, unflushedBytes)) {
+                context.read()
+                val future = context.writeAndFlush(message)
+                isDataNotFlushed.compareAndSet(expect = true, update = false)
+                lastFuture = future
+                future.suspendAwait()
+                unflushedBytes = 0
+            } else {
+                lastFuture = context.write(message)
+                isDataNotFlushed.compareAndSet(expect = false, update = true)
             }
         }
 

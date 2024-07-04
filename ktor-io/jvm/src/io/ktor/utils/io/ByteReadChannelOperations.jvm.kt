@@ -202,10 +202,11 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  * @param consumer to be invoked when at least [min] bytes available for read
  */
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.read(min: Int = 1, consumer: (ByteBuffer) -> Unit) {
+public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: (ByteBuffer) -> Unit) {
     require(min >= 0) { "min should be positive or zero" }
     if (availableForRead >= min) {
         readBuffer.read(consumer)
+        return
     }
 
     awaitContent()
