@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
+
 /**
  * Select default port value from protocol.
  */
@@ -76,14 +78,23 @@ public class URLBuilder(
             encodedPathSegments = value.map { it.encodeURLPathPart() }
         }
 
-    public var encodedParameters: ParametersBuilder = encodeParameters(parameters)
+    public var encodedParameters: ParametersBuilder = recreateEncodedBuilder(encodeParameters(parameters))
         set(value) {
-            field = value
-            parameters = UrlDecodedParametersBuilder(value)
+            field = recreateEncodedBuilder(value)
         }
 
-    public var parameters: ParametersBuilder = UrlDecodedParametersBuilder(encodedParameters)
+    public lateinit var parameters: ParametersBuilder
         private set
+
+    private lateinit var rawEncodedParameters: ParametersBuilder
+
+    private fun recreateEncodedBuilder(additionalParameters: ParametersBuilder): ParametersBuilder {
+        parameters = ParametersBuilder()
+        rawEncodedParameters = ParametersBuilder()
+        return UrlEncodedParametersBuilder(rawEncodedParameters, parameters).also {
+            it.appendAll(additionalParameters)
+        }
+    }
 
     /**
      * Build a URL string
@@ -109,6 +120,7 @@ public class URLBuilder(
             specifiedPort = port,
             pathSegments = pathSegments,
             parameters = parameters.build(),
+            rawEncodedParameters = rawEncodedParameters.build(),
             fragment = fragment,
             user = user,
             password = password,
