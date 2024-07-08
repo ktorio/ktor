@@ -11,11 +11,11 @@ pluginManagement {
         maven("https://plugins.gradle.org/m2")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
         mavenCentral()
-        if (build_snapshot_train?.toBoolean() == true) {
-            mavenLocal()
-        }
         if (kotlin_repo_url != null) {
             maven(kotlin_repo_url!!)
+        }
+        if (build_snapshot_train?.toBoolean() == true) {
+            mavenLocal()
         }
     }
 }

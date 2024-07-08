@@ -19,13 +19,13 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
     maven("https://plugins.gradle.org/m2")
-    mavenLocal()
-    if (buildSnapshotTrain) {
-        mavenLocal()
-    }
     if (kotlin_repo_url != null) {
         maven(kotlin_repo_url!!)
     }
+    if (buildSnapshotTrain) {
+        mavenLocal()
+    }
+    mavenLocal()
 }
 
 sourceSets.main {

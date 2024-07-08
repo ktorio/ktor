@@ -68,8 +68,8 @@ fun Project.setupTrainForSubproject() {
         check(version, serialization_version, "serialization")
     }
     repositories {
-        mavenLocal()
         maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
+        mavenLocal()
     }
 }
 
