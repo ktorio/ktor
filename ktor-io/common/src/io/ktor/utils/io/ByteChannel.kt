@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 @InternalAPI
 public val CHANNEL_MAX_SIZE: Int = 4 * 1024
@@ -132,18 +133,29 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
     // Awaiting Slot
-    private val suspensionSlot: AtomicRef<CancellableContinuation<Unit>?> = atomic(null)
+    private val suspensionSlot: AtomicRef<Continuation<Unit>?> = atomic(null)
+
+    private val readContinuation = KtorSafeContinuation()
 
     private suspend fun sleepForRead(min: Int) {
         while (flushBufferSize + _readBuffer.size < min && _closedCause.value == null) {
-            trySuspendSlot { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
+            suspendCoroutineUninterceptedOrReturn {
+                readContinuation.init(it.intercepted())
+                trySuspendSlot(it) { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
+                readContinuation.getOrThrow()
+            }
         }
     }
 
+    private val writeContinuation = KtorSafeContinuation()
     @OptIn(InternalAPI::class)
     private suspend fun sleepForWrite() {
         while (flushBufferSize >= CHANNEL_MAX_SIZE) {
-            trySuspendSlot { flushBufferSize >= CHANNEL_MAX_SIZE }
+            suspendCoroutineUninterceptedOrReturn {
+                writeContinuation.init(it.intercepted())
+                trySuspendSlot(it) { flushBufferSize >= CHANNEL_MAX_SIZE }
+                writeContinuation.getOrThrow()
+            }
         }
     }
 
@@ -173,23 +185,15 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
     }
 
-    private suspend inline fun trySuspendSlot(crossinline sleepCondition: () -> Boolean): Boolean {
-        var suspended = false
-
-        suspendCancellableCoroutine {
-            val published = suspensionSlot.compareAndSet(null, it)
-            if (!published) {
-                it.resume(Unit)
-                return@suspendCancellableCoroutine
-            }
-
-            if (sleepCondition()) {
-                suspended = true
-            } else {
-                suspensionSlot.getAndSet(null)?.resume(Unit)
-            }
+    private inline fun trySuspendSlot(continuation: Continuation<Unit>, crossinline sleepCondition: () -> Boolean) {
+        val published = suspensionSlot.compareAndSet(null, continuation)
+        if (!published) {
+            continuation.resume(Unit)
+            return
         }
 
-        return suspended
+        if (!sleepCondition()) {
+            suspensionSlot.getAndSet(null)?.resume(Unit)
+        }
     }
 }

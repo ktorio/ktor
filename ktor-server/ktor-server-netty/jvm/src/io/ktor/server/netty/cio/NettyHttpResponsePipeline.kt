@@ -328,15 +328,16 @@ internal class NettyHttpResponsePipeline(
             }
 
             var message: Any? = null
-            channel.read { buffer ->
-                val rc = buffer.remaining()
+            channel.read { array, startIndex, endIndex ->
+                val rc = endIndex - startIndex
                 val buf = context.alloc().buffer(rc)
                 val idx = buf.writerIndex()
-                buf.setBytes(idx, buffer)
+                buf.setBytes(idx, array, startIndex, rc)
                 buf.writerIndex(idx + rc)
                 unflushedBytes += rc
 
                 message = call.prepareMessage(buf, false)
+                rc
             }
 
             if (shouldFlush.invoke(channel, unflushedBytes)) {

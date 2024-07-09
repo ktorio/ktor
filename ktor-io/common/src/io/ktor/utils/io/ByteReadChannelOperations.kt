@@ -415,7 +415,7 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
-public suspend fun ByteReadChannel.read(block: suspend (ByteArray, Int, Int) -> Int): Int {
+public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteArray, Int, Int) -> Int): Int {
     if (isClosedForRead) return -1
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return -1

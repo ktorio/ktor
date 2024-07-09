@@ -47,7 +47,7 @@ public suspend fun ByteWriteChannel.writeSuspendSession(block: suspend WriteSusp
 }
 
 @OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
-public suspend fun ByteWriteChannel.writeWhile(block: (ByteBuffer) -> Boolean) {
+public suspend inline fun ByteWriteChannel.writeWhile(crossinline block: (ByteBuffer) -> Boolean) {
     var done = false
 
     while (!done) {
