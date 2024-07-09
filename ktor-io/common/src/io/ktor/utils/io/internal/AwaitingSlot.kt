@@ -4,78 +4,12 @@
 
 package io.ktor.utils.io.internal
 
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-/**
- * AwaitingSlot class is used to suspend coroutines until a condition is met, or it is resumed/canceled.
- * If the second waiter comes, it evicts the first waiter.
- *
- * @constructor Creates an instance of AwaitingSlot.
- */
-internal class AwaitingSlot {
-    private val suspension: AtomicRef<CancellableContinuation<Unit>?> = atomic(null)
+internal val CLOSED = ClosedSlot(null)
 
-    /**
-     * Wait for other [sleepWhile] or resume.
-     */
-    suspend fun sleepWhile(sleepCondition: () -> Boolean) {
-        while (sleepCondition()) {
-            trySuspend(sleepCondition)
-        }
-    }
-
-    /**
-     * Resume waiter.
-     */
-    fun resume() {
-        val continuation = suspension.getAndUpdate {
-            it as? ClosedSlot
-        }
-
-        continuation?.resume(Unit)
-    }
-
-    /**
-     * Cancel waiter.
-     */
-    fun close(cause: Throwable?) {
-        val closeContinuation = if (cause != null) ClosedSlot(cause) else CLOSED
-        val continuation = suspension.getAndSet(closeContinuation) ?: return
-        if (continuation is ClosedSlot) return
-
-        if (cause != null) {
-            continuation.resumeWithException(cause)
-        } else {
-            continuation.resume(Unit)
-        }
-    }
-
-    private suspend fun trySuspend(sleepCondition: () -> Boolean): Boolean {
-        var suspended = false
-
-        suspendCancellableCoroutine {
-            val published = suspension.compareAndSet(null, it)
-            if (!published) {
-                it.resume(Unit)
-                return@suspendCancellableCoroutine
-            }
-
-            if (sleepCondition()) {
-                suspended = true
-            } else {
-                suspension.getAndSet(null)?.resume(Unit)
-            }
-        }
-
-        return suspended
-    }
-}
-
-private val CLOSED = ClosedSlot(null)
-
-private class ClosedSlot(val cause: Throwable?) : CancellableContinuation<Unit> {
+internal class ClosedSlot(val cause: Throwable?) : CancellableContinuation<Unit> {
     override val context: CoroutineContext = EmptyCoroutineContext
     override val isActive: Boolean = false
     override val isCancelled: Boolean = cause != null

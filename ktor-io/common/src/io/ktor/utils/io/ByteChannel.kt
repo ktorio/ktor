@@ -7,8 +7,10 @@ package io.ktor.utils.io
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 
 @InternalAPI
 public val CHANNEL_MAX_SIZE: Int = 4 * 1024
@@ -18,7 +20,6 @@ public val CHANNEL_MAX_SIZE: Int = 4 * 1024
  */
 public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
     private val _closedCause = atomic<CloseToken?>(null)
-    private val slot = AwaitingSlot()
     private val flushBuffer: Buffer = Buffer()
 
     @Volatile
@@ -61,7 +62,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
 
-        slot.sleepWhile {
+        sleepWhileSlot {
             flushBufferSize + _readBuffer.size < min && _closedCause.value == null
         }
         if (_readBuffer.size < CHANNEL_MAX_SIZE) moveFlushToReadBuffer()
@@ -75,7 +76,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
             flushBufferSize = 0
         }
 
-        slot.resume()
+        resumeSlot()
     }
 
     @OptIn(InternalAPI::class)
@@ -83,7 +84,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         rethrowCloseCauseIfNeeded()
 
         flushWriteBuffer()
-        slot.sleepWhile { flushBufferSize >= CHANNEL_MAX_SIZE }
+        sleepWhileSlot { flushBufferSize >= CHANNEL_MAX_SIZE }
     }
 
     @InternalAPI
@@ -96,7 +97,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
             flushBufferSize += count
         }
 
-        slot.resume()
+        resumeSlot()
     }
 
     @OptIn(InternalAPI::class)
@@ -105,7 +106,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return
-        slot.close(null)
+        closeSlot(null)
     }
 
     override suspend fun flushAndClose() {
@@ -113,7 +114,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return
-        slot.close(null)
+        closeSlot(null)
     }
 
     override fun cancel(cause: Throwable?) {
@@ -123,8 +124,66 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         _closedCause.compareAndSet(null, closedToken)
         val actualCause = closedToken.cause
 
-        slot.close(actualCause)
+        closeSlot(actualCause)
     }
 
-    override fun toString(): String = "ByteChannel[${hashCode()}, ${slot.hashCode()}]"
+    override fun toString(): String = "ByteChannel[${hashCode()}]"
+
+    // Awaiting Slot
+    private val suspensionSlot: AtomicRef<CancellableContinuation<Unit>?> = atomic(null)
+
+    /**
+     * Wait for other [sleepWhile] or resume.
+     */
+    private suspend fun sleepWhileSlot(sleepCondition: () -> Boolean) {
+        while (sleepCondition()) {
+            trySuspendSlot(sleepCondition)
+        }
+    }
+
+    /**
+     * Resume waiter.
+     */
+    private fun resumeSlot() {
+        val continuation = suspensionSlot.getAndUpdate {
+            it as? ClosedSlot
+        }
+
+        continuation?.resume(Unit)
+    }
+
+    /**
+     * Cancel waiter.
+     */
+    private fun closeSlot(cause: Throwable?) {
+        val closeContinuation = if (cause != null) ClosedSlot(cause) else io.ktor.utils.io.internal.CLOSED
+        val continuation = suspensionSlot.getAndSet(closeContinuation) ?: return
+        if (continuation is ClosedSlot) return
+
+        if (cause != null) {
+            continuation.resumeWithException(cause)
+        } else {
+            continuation.resume(Unit)
+        }
+    }
+
+    private suspend fun trySuspendSlot(sleepCondition: () -> Boolean): Boolean {
+        var suspended = false
+
+        suspendCancellableCoroutine {
+            val published = suspensionSlot.compareAndSet(null, it)
+            if (!published) {
+                it.resume(Unit)
+                return@suspendCancellableCoroutine
+            }
+
+            if (sleepCondition()) {
+                suspended = true
+            } else {
+                suspensionSlot.getAndSet(null)?.resume(Unit)
+            }
+        }
+
+        return suspended
+    }
 }
