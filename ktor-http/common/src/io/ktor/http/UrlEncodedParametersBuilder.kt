@@ -29,7 +29,8 @@ internal class UrlEncodedParametersBuilder(
             }
         }
         rawEncodedParametersBuilder.getAll(name)?.let {
-            values -> result.addAll(values)
+                values ->
+            result.addAll(values)
         }
 
         return if (result.isEmpty()) null else result
@@ -38,18 +39,22 @@ internal class UrlEncodedParametersBuilder(
     override fun contains(name: String): Boolean {
         val result = if (name.isDecodableToUTF8String()) {
             decodedParametersBuilder.contains(name.decodeURLParameter())
-        } else false
+        } else {
+            false
+        }
         return result || rawEncodedParametersBuilder.contains(name)
     }
 
     override fun contains(name: String, value: String): Boolean {
         val result = if (name.isDecodableToUTF8String() && value.isDecodableToUTF8String(plusIsSpace = true)) {
             decodedParametersBuilder.contains(name.decodeURLParameter(), value.decodeURLParameterValue())
-        } else false
+        } else {
+            false
+        }
         return result || rawEncodedParametersBuilder.contains(name, value)
     }
 
-    override fun names(): Set<String> = mutableSetOf<String>().apply{
+    override fun names(): Set<String> = mutableSetOf<String>().apply {
         addAll(decodedParametersBuilder.names().encode())
         addAll(rawEncodedParametersBuilder.names())
     }
@@ -93,7 +98,9 @@ internal class UrlEncodedParametersBuilder(
     override fun get(name: String): String? {
         val result = if (name.isDecodableToUTF8String()) {
             decodedParametersBuilder[name.decodeURLParameter()]?.encodeURLParameterValue()
-        } else null
+        } else {
+            null
+        }
         return result ?: rawEncodedParametersBuilder[name]
     }
 
@@ -117,7 +124,8 @@ internal class UrlEncodedParametersBuilder(
             if (decodedValues.isNotEmpty() || encodedValues.isEmpty()) {
                 decodedParametersBuilder.appendAll(
                     name.decodeURLParameter(),
-                    decodedValues.map { it.decodeURLParameterValue() })
+                    decodedValues.map { it.decodeURLParameterValue() }
+                )
             }
             if (encodedValues.isNotEmpty()) {
                 rawEncodedParametersBuilder.appendAll(name, encodedValues)
@@ -136,7 +144,8 @@ internal class UrlEncodedParametersBuilder(
             val (decodedValues, encodedValues) = values.divide { it.checkDecodableToUTF8String(plusIsSpace = true) }
             decodedParametersBuilder.appendMissing(
                 name.decodeURLParameter(),
-                decodedValues.map { it.decodeURLParameterValue() })
+                decodedValues.map { it.decodeURLParameterValue() }
+            )
             rawEncodedParametersBuilder.appendMissing(name, encodedValues)
         }
     }

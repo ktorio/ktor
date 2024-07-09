@@ -151,7 +151,7 @@ private fun String.isDecodable(plusIsSpace: Boolean = false): Decodability {
     for (char in this) {
         if (char == '%') {
             if (remainingPercentChars != 0) {
-                decodability = Decodability.UNDECODABLE  // "%0%"-like pattern
+                decodability = Decodability.UNDECODABLE // "%0%"-like pattern
                 break
             }
             remainingPercentChars = 2
@@ -182,7 +182,7 @@ private fun String.isDecodable(plusIsSpace: Boolean = false): Decodability {
                             2 -> percentByte and 0x0f
                             3 -> percentByte and 0x07
                             else -> {
-                                decodability = Decodability.UNDECODABLE  // unreachable
+                                decodability = Decodability.UNDECODABLE // unreachable
                                 break
                             }
                         }
@@ -193,8 +193,8 @@ private fun String.isDecodable(plusIsSpace: Boolean = false): Decodability {
                         unicodeCharCode = unicodeCharCode or (percentByte and 0x3f)
                         if (remainingUtf8Bytes == 0) {
                             // Check forbidden code points
-                            if (unicodeCharCode in 0xd800..0xdfff) return Decodability.BINARY  // invalid UTF-8 sequence
-                            if (unicodeCharCode >= 0x110000) return Decodability.BINARY  // invalid UTF-8 sequence
+                            if (unicodeCharCode in 0xd800..0xdfff) return Decodability.BINARY // invalid UTF-8 sequence
+                            if (unicodeCharCode >= 0x110000) return Decodability.BINARY // invalid UTF-8 sequence
 
                             // Check overlong encoding
                             when {
@@ -202,45 +202,45 @@ private fun String.isDecodable(plusIsSpace: Boolean = false): Decodability {
                                 expectedUtf8Bytes == 1 && unicodeCharCode in 0x80..0x07ff -> Unit
                                 expectedUtf8Bytes == 2 && unicodeCharCode in 0x0800..0xffff -> Unit
                                 expectedUtf8Bytes == 3 && unicodeCharCode in 0x010000..0x10ffff -> Unit
-                                else -> decodability = Decodability.BINARY  // invalid UTF-8 sequence
+                                else -> decodability = Decodability.BINARY // invalid UTF-8 sequence
                             }
                         }
                     } else {
                         // Unexpected byte in the middle of UTF-8 sequence
-                        decodability = Decodability.BINARY  // invalid UTF-8 sequence
+                        decodability = Decodability.BINARY // invalid UTF-8 sequence
                     }
                 }
             } else if (remainingUtf8Bytes != 0) {
-                decodability = Decodability.BINARY  // invalid UTF-8 sequence
+                decodability = Decodability.BINARY // invalid UTF-8 sequence
             } else if (remainingPercentChars != 0) {
-                decodability = Decodability.UNDECODABLE  // "%0x"-like pattern
+                decodability = Decodability.UNDECODABLE // "%0x"-like pattern
                 break
             }
         } else if (char in SPECIAL_SYMBOLS_CHARS) {
             if (remainingUtf8Bytes != 0) {
-                decodability = Decodability.BINARY  // invalid UTF-8 sequence
+                decodability = Decodability.BINARY // invalid UTF-8 sequence
             } else if (remainingPercentChars != 0) {
-                decodability = Decodability.UNDECODABLE  // "%0~"-like pattern
+                decodability = Decodability.UNDECODABLE // "%0~"-like pattern
                 break
             }
         } else if (char == '+') {
             if (!plusIsSpace || remainingPercentChars != 0) {
-                decodability = Decodability.UNDECODABLE  // plus is threatened as invalid input symbol here or "%0+"-like pattern
+                decodability = Decodability.UNDECODABLE // plus is threatened as invalid input symbol here or "%0+"-like pattern
                 break
             } else if (remainingUtf8Bytes != 0) {
-                decodability = Decodability.BINARY  // invalid UTF-8 sequence
+                decodability = Decodability.BINARY // invalid UTF-8 sequence
             }
         } else {
-            decodability = Decodability.UNDECODABLE  // invalid input symbol
+            decodability = Decodability.UNDECODABLE // invalid input symbol
             break
         }
     }
 
     if (decodability == Decodability.UTF8_STRING && remainingUtf8Bytes != 0) {
-        decodability = Decodability.BINARY  // incomplete UTF-8 sequence
+        decodability = Decodability.BINARY // incomplete UTF-8 sequence
     }
     return if (remainingPercentChars != 0) {
-        Decodability.UNDECODABLE  // "%0"-like pattern
+        Decodability.UNDECODABLE // "%0"-like pattern
     } else {
         decodability
     }

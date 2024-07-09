@@ -152,7 +152,7 @@ class CodecTest {
     fun testEncodeURLPathSurrogateSymbol() {
         assertEquals("/path/%F0%9F%90%95", surrogateSymbolUrlPath.encodeURLPath())
     }
-    
+
     @Test
     fun testIsDecodableToUTF8String() {
         assertTrue("".isDecodableToUTF8String())
@@ -166,16 +166,16 @@ class CodecTest {
         assertFalse("%D+a".isDecodableToUTF8String())
         assertFalse("%D+a".isDecodableToUTF8String(plusIsSpace = true))
 
-        assertFalse("%D0".isDecodableToUTF8String())  // incomplete utf-8 sequence
-        assertFalse("%D0%D0%92".isDecodableToUTF8String())  // incomplete utf-8 sequence
-        assertFalse("%D0a".isDecodableToUTF8String())  // incomplete utf-8 sequence
-        assertFalse("%D0%92%92".isDecodableToUTF8String())  // extra utf-8 trailing byte
-        assertFalse("%D0+%92".isDecodableToUTF8String())  // split utf-8 sequence
-        assertFalse("%D0+%92".isDecodableToUTF8String(plusIsSpace = true))  // split utf-8 sequence
-        assertFalse("%92".isDecodableToUTF8String())  // utf-8 trailing byte without a header
-        assertFalse("%ED%A0%80".isDecodableToUTF8String())  // forbidden (U+D800 - U+DFFF)
-        assertFalse("%F4%90%80%80".isDecodableToUTF8String())  // forbidden (U+110000 and above)
-        assertFalse("%C0%BF".isDecodableToUTF8String())  // overlong encoding for %3F
+        assertFalse("%D0".isDecodableToUTF8String()) // incomplete utf-8 sequence
+        assertFalse("%D0%D0%92".isDecodableToUTF8String()) // incomplete utf-8 sequence
+        assertFalse("%D0a".isDecodableToUTF8String()) // incomplete utf-8 sequence
+        assertFalse("%D0%92%92".isDecodableToUTF8String()) // extra utf-8 trailing byte
+        assertFalse("%D0+%92".isDecodableToUTF8String()) // split utf-8 sequence
+        assertFalse("%D0+%92".isDecodableToUTF8String(plusIsSpace = true)) // split utf-8 sequence
+        assertFalse("%92".isDecodableToUTF8String()) // utf-8 trailing byte without a header
+        assertFalse("%ED%A0%80".isDecodableToUTF8String()) // forbidden (U+D800 - U+DFFF)
+        assertFalse("%F4%90%80%80".isDecodableToUTF8String()) // forbidden (U+110000 and above)
+        assertFalse("%C0%BF".isDecodableToUTF8String()) // overlong encoding for %3F
     }
 
     private fun encodeAndDecodeTest(text: String) {
