@@ -43,7 +43,9 @@ public class RoutingRoot(
 
     private fun addDefaultTracing() {
         tracers.add {
-            LOGGER.trace(it.buildText())
+            if (LOGGER.isTraceEnabled) {
+                LOGGER.trace(it.buildText())
+            }
         }
     }
 
