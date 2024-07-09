@@ -63,9 +63,8 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         rethrowCloseCauseIfNeeded()
         if (flushBufferSize + _readBuffer.size >= min) return true
 
-        sleepWhileSlot {
-            flushBufferSize + _readBuffer.size < min && _closedCause.value == null
-        }
+        sleepForRead(min)
+
         if (_readBuffer.size < CHANNEL_MAX_SIZE) moveFlushToReadBuffer()
         return _closedCause.value == null
     }
@@ -87,7 +86,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         flushWriteBuffer()
         if (flushBufferSize < CHANNEL_MAX_SIZE) return
 
-        sleepWhileSlot { flushBufferSize >= CHANNEL_MAX_SIZE }
+        sleepForWrite()
     }
 
     @InternalAPI
@@ -135,12 +134,16 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     // Awaiting Slot
     private val suspensionSlot: AtomicRef<CancellableContinuation<Unit>?> = atomic(null)
 
-    /**
-     * Wait for other [sleepWhile] or resume.
-     */
-    private suspend fun sleepWhileSlot(sleepCondition: () -> Boolean) {
-        while (sleepCondition()) {
-            trySuspendSlot(sleepCondition)
+    private suspend fun sleepForRead(min: Int) {
+        while (flushBufferSize + _readBuffer.size < min && _closedCause.value == null) {
+            trySuspendSlot { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    private suspend fun sleepForWrite() {
+        while (flushBufferSize >= CHANNEL_MAX_SIZE) {
+            trySuspendSlot { flushBufferSize >= CHANNEL_MAX_SIZE }
         }
     }
 
@@ -170,7 +173,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
     }
 
-    private suspend fun trySuspendSlot(sleepCondition: () -> Boolean): Boolean {
+    private suspend inline fun trySuspendSlot(crossinline sleepCondition: () -> Boolean): Boolean {
         var suspended = false
 
         suspendCancellableCoroutine {
