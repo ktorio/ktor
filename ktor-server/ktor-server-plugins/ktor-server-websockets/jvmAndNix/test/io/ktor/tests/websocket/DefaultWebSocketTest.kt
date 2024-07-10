@@ -88,8 +88,6 @@ class DefaultWebSocketTest : BaseTest() {
     @Test
     @OptIn(InternalAPI::class)
     fun testPingPongTimeout(): Unit = runTest {
-        cleanup()
-
         parent = Job()
         client2server = ByteChannel()
         server2client = ByteChannel()
