@@ -16,6 +16,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class CIOEngineTest {
 
@@ -115,30 +116,32 @@ class CIOEngineTest {
 
     @Test
     fun testDontWaitForContinueResponse(): Unit = runBlocking {
-        val body = "Hello World\n"
+        withTimeout(30.seconds) {
+            val body = "Hello World\n"
 
-        withServerSocket { socket ->
-            val client = HttpClient(CIO) {
-                engine {
-                    requestTimeout = 0
+            withServerSocket { socket ->
+                val client = HttpClient(CIO) {
+                    engine {
+                        requestTimeout = 0
+                    }
                 }
-            }
-            launch {
-                sendExpectRequest(socket, client, body).apply {
-                    assertEquals(HttpStatusCode.OK, status)
+                launch {
+                    sendExpectRequest(socket, client, body).apply {
+                        assertEquals(HttpStatusCode.OK, status)
+                    }
                 }
-            }
 
-            socket.accept().use {
-                val readChannel = it.openReadChannel()
-                val writeChannel = it.openWriteChannel()
+                socket.accept().use {
+                    val readChannel = it.openReadChannel()
+                    val writeChannel = it.openWriteChannel()
 
-                val headers = readAvailableLines(readChannel)
-                delay(2000)
-                val actualBody = readAvailableLine(readChannel)
-                assertTrue(headers.contains(EXPECT_HEADER))
-                assertEquals(body, actualBody)
-                writeOkResponse(writeChannel)
+                    val headers = readAvailableLines(readChannel)
+                    delay(2000)
+                    val actualBody = readAvailableLine(readChannel)
+                    assertTrue(headers.contains(EXPECT_HEADER))
+                    assertEquals(body, actualBody)
+                    writeOkResponse(writeChannel)
+                }
             }
         }
     }

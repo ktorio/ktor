@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
 
 @InternalAPI
 public val CHANNEL_MAX_SIZE: Int = 4 * 1024
@@ -135,26 +134,23 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     // Awaiting Slot
     private val suspensionSlot: AtomicRef<Continuation<Unit>?> = atomic(null)
 
-    private val readContinuation = KtorSafeContinuation()
-
     private suspend fun sleepForRead(min: Int) {
         while (flushBufferSize + _readBuffer.size < min && _closedCause.value == null) {
-            suspendCoroutineUninterceptedOrReturn {
-                readContinuation.init(it.intercepted())
+            suspendCancellableCoroutine {
+//                readContinuation.init(it.intercepted())
                 trySuspendSlot(it) { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
-                readContinuation.getOrThrow()
+//                readContinuation.getOrThrow()
             }
         }
     }
 
-    private val writeContinuation = KtorSafeContinuation()
     @OptIn(InternalAPI::class)
     private suspend fun sleepForWrite() {
         while (flushBufferSize >= CHANNEL_MAX_SIZE) {
-            suspendCoroutineUninterceptedOrReturn {
-                writeContinuation.init(it.intercepted())
+            suspendCancellableCoroutine {
+//                writeContinuation.init(it.intercepted())
                 trySuspendSlot(it) { flushBufferSize >= CHANNEL_MAX_SIZE }
-                writeContinuation.getOrThrow()
+//                writeContinuation.getOrThrow()
             }
         }
     }
