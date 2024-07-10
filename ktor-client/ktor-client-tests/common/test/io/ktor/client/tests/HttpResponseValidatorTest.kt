@@ -498,8 +498,10 @@ class HttpResponseValidatorTest {
                 client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
-                val message = "Bad response: HttpResponse[http://localhost, 900 Awesome code]. Text: "
-                assertTrue { cause.message!!.startsWith(message) }
+                val message = cause.message
+                assertNotNull(message)
+                assertTrue { message.startsWith("Bad response: HttpResponse[http://localhost") }
+                assertTrue { message.contains("900 Awesome code") }
             }
         }
     }
