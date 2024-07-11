@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import java.io.*
+import java.nio.file.*
 
 /**
  * Respond with text content writer.
@@ -49,6 +50,18 @@ public suspend fun ApplicationCall.respondFile(
     configure: OutgoingContent.() -> Unit = {}
 ) {
     val message = LocalFileContent(baseDir, fileName).apply(configure)
+    respond(message)
+}
+
+/**
+ * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
+ */
+public suspend fun ApplicationCall.respondFile(
+    baseDir: Path,
+    fileName: Path,
+    configure: OutgoingContent.() -> Unit = {}
+) {
+    val message = LocalPathContent(baseDir, fileName).apply(configure)
     respond(message)
 }
 
