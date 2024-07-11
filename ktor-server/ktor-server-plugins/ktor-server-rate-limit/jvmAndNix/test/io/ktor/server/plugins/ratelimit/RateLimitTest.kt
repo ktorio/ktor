@@ -701,7 +701,10 @@ class RateLimitTest {
             assertEquals(HttpStatusCode.TooManyRequests, it.status)
         }
         assertEquals(1, rateLimitersRegistry.size)
-        rateLimitersRegistry[rateLimitersRegistry.keys.first()] = RateLimiter.default(limit = 3, refillPeriod = 10.seconds)
+        rateLimitersRegistry[rateLimitersRegistry.keys.first()] = RateLimiter.default(
+            limit = 3,
+            refillPeriod = 10.seconds
+        )
 
         assertEquals(1, createCount)
         assertEquals(1, rateLimitersRegistry.size)
