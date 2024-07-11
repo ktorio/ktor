@@ -14,7 +14,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.ratelimit.RateLim
 internal val LIMITER_NAME_GLOBAL = RateLimitName("KTOR_GLOBAL_RATE_LIMITER")
 internal val LIMITER_NAME_EMPTY = RateLimitName("KTOR_NO_NAME_RATE_LIMITER")
 
-public data class ProviderKey(
+internal data class ProviderKey(
     private val name: RateLimitName,
     private val key: Any,
 )
