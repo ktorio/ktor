@@ -28,7 +28,6 @@ public actual abstract class Charset(internal val _name: String) {
             else -> null
         }
 
-        @Suppress("LocalVariableName")
         public fun forName(name: String): Charset =
             getCharset(name) ?: throw IllegalArgumentException("Charset $name is not supported")
 
@@ -91,8 +90,8 @@ public actual fun CharsetDecoder.decode(
 }
 
 private data class CharsetImpl(val name: String) : Charset(name) {
-    override fun newEncoder(): CharsetEncoder = object : CharsetEncoder(this) { }
-    override fun newDecoder(): CharsetDecoder = object : CharsetDecoder(this) { }
+    override fun newEncoder(): CharsetEncoder = object : CharsetEncoder(this) {}
+    override fun newDecoder(): CharsetDecoder = object : CharsetDecoder(this) {}
 }
 
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
@@ -122,7 +121,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     fromIndex: Int,
     toIndex: Int
 ): ByteArray {
-     var start = fromIndex
+    var start = fromIndex
     if (start >= toIndex) return ByteArray(0)
 
     val dst = Buffer()

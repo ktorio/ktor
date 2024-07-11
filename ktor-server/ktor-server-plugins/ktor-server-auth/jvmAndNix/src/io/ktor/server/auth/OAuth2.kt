@@ -18,9 +18,8 @@ import io.ktor.util.internal.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import kotlinx.io.IOException
+import kotlinx.io.*
 import kotlinx.serialization.json.*
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
@@ -201,15 +200,15 @@ private suspend fun oauth2RequestAccessToken(
 
     val (contentType, content) = try {
         if (response.status == HttpStatusCode.NotFound) {
-            throw kotlinx.io.IOException("Access token query failed with http status 404 for the page $baseUrl")
+            throw IOException("Access token query failed with http status 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 
         Pair(contentType, body)
-    } catch (ioe: kotlinx.io.IOException) {
+    } catch (ioe: IOException) {
         throw ioe
-    } catch (t: Throwable) {
-        throw kotlinx.io.IOException("Failed to acquire request token due to wrong content: $body", t)
+    } catch (cause: Throwable) {
+        throw IOException("Failed to acquire request token due to wrong content: $body", cause)
     }
 
     val contentDecodeResult = Result.runCatching { decodeContent(content, contentType) }
@@ -222,7 +221,9 @@ private suspend fun oauth2RequestAccessToken(
 
     // ensure status code is successful
     if (!response.status.isSuccess()) {
-        throw kotlinx.io.IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
+        throw IOException(
+            "Access token query failed with http status ${response.status} for the page $baseUrl"
+        )
     }
 
     // will fail if content decode failed but status is OK
@@ -247,6 +248,7 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
             (element as? JsonPrimitive)?.content?.let { append(key, it) }
         }
     }
+
     else -> {
         // some servers may respond with a wrong content type, so we have to try to guess
         when {

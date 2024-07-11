@@ -24,7 +24,7 @@ private fun decodeStream(decoder: TextDecoder, buffer: Int8Array): String? =
 private inline fun decodeOrFail(body: () -> String?): String =
     body() ?: error("Buffer decode fail")
 
-internal class JsTextDecoder private constructor(private val decoder: TextDecoder): Decoder {
+internal class JsTextDecoder private constructor(private val decoder: TextDecoder) : Decoder {
     override fun decode(): String =
         decodeOrFail { decode(decoder) }
 

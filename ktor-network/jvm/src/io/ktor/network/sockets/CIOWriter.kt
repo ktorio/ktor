@@ -45,10 +45,10 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
                 }
             }
 
-           if (rc == 0) {
-               selectable.interestOp(SelectInterest.WRITE, true)
-               selector.select(selectable, SelectInterest.WRITE)
-           }
+            if (rc == 0) {
+                selectable.interestOp(SelectInterest.WRITE, true)
+                selector.select(selectable, SelectInterest.WRITE)
+            }
         }
 
         timeout?.finish()

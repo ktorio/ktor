@@ -6,7 +6,6 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.js.JsTextDecoder
 
-
 internal fun Decoder(encoding: String, fatal: Boolean = true): Decoder =
     JsTextDecoder.tryCreate(encoding, fatal)
         ?: ISO8859TextDecoder.tryCreate(encoding, fatal)
