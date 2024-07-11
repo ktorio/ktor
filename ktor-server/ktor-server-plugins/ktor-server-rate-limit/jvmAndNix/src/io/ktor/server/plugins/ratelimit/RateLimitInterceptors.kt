@@ -70,13 +70,13 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 }
 
                 is RateLimiter.State.Available -> {
-                    clearOnRefillJobs[providerKey]?.cancel()
-                    clearOnRefillJobs[providerKey] = application.launch {
-                        delay(state.refillAtTimeMillis - getTimeMillis())
-                        // there is a race here, where we can remove limiter that was just consumed,
-                        // but the alternative is to use locks, which can harm performance
-                        registry.remove(providerKey)
-                        clearOnRefillJobs.remove(providerKey)
+                    if (rateLimiterForCall != RateLimiter.Unlimited) {
+                        clearOnRefillJobs[providerKey]?.cancel()
+                        clearOnRefillJobs[providerKey] = application.launch {
+                            delay(state.refillAtTimeMillis - getTimeMillis())
+                            registry.remove(providerKey, rateLimiterForCall)
+                            clearOnRefillJobs.remove(providerKey)
+                        }
                     }
                     LOGGER.trace("Allowing ${call.request.uri}")
                 }

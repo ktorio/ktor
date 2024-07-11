@@ -12,9 +12,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class RateLimitTest {
@@ -657,6 +659,62 @@ class RateLimitTest {
             assertEquals(HttpStatusCode.OK, it.status)
         }
         assertEquals(2, createCount)
+    }
+
+    @Test
+    fun testRemovesUnusedRateLimitersOnRefillWithRaceCondition() = testApplication {
+        var createCount = 0
+        val key = AttributeKey<ConcurrentMap<ProviderKey, RateLimiter>>("RateLimiterInstancesRegistryKey")
+        val rateLimitersRegistry: ConcurrentMap<ProviderKey, RateLimiter> = ConcurrentMap()
+        var time = getTimeMillis()
+        application {
+            attributes.put(key, rateLimitersRegistry)
+        }
+        install(RateLimit) {
+            register {
+                rateLimiter { _, _ ->
+                    createCount++
+                    RateLimiter.default(limit = 3, refillPeriod = 500.milliseconds) { time }
+                }
+            }
+        }
+        routing {
+            rateLimit {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        time += 60
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        time += 60
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        time += 60
+        client.get("/").let {
+            assertEquals(HttpStatusCode.TooManyRequests, it.status)
+        }
+        assertEquals(1, rateLimitersRegistry.size)
+        rateLimitersRegistry[rateLimitersRegistry.keys.first()] = RateLimiter.default(limit = 3, refillPeriod = 10.seconds)
+
+        assertEquals(1, createCount)
+        assertEquals(1, rateLimitersRegistry.size)
+        delay(550)
+        assertEquals(1, rateLimitersRegistry.size)
+        assertEquals(1, createCount)
+
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+        }
+        assertEquals(1, rateLimitersRegistry.size)
+        assertEquals(1, createCount)
     }
 
     @Test
