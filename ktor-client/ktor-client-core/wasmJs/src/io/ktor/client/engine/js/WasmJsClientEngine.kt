@@ -44,7 +44,7 @@ internal class JsClientEngine(
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val clientConfig = data.attributes[CLIENT_CONFIG]
@@ -55,8 +55,13 @@ internal class JsClientEngine(
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(clientConfig, callContext)
-        val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
+        val controller = AbortController()
+        rawRequest.signal = controller.signal
+        callContext.job.invokeOnCompletion(onCancelling = true) {
+            controller.abort()
+        }
 
+        val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor()
         val version = HttpProtocolVersion.HTTP_1_1

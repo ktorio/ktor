@@ -24,6 +24,7 @@ private fun <T : JsAny> bodyOn(body: ResponseBody, type: String, handler: (T) ->
 private fun bodyOn(body: ResponseBody, type: String, handler: () -> Unit): Unit =
     js("body.on(type, handler)")
 
+@OptIn(InternalCoroutinesApi::class)
 internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = writer {
     val body = response.body?.unsafeCast<ResponseBody>() ?: error("Fail to get body")
 
@@ -35,9 +36,16 @@ internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = 
     }
 
     bodyOn<JsAny>(body, "error") { error: JsAny ->
-        val cause = JsError(error)
-        responseData.close(cause)
-        channel.close(cause)
+        val cancelCause = runCatching {
+            coroutineContext.job.getCancellationException()
+        }.getOrNull()
+
+        if (cancelCause != null) {
+            responseData.cancel(cancelCause)
+        } else {
+            val cause = JsError(error)
+            responseData.close(cause)
+        }
     }
 
     bodyOn(body, "end") {
@@ -51,7 +59,11 @@ internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = 
             body.resume()
         }
     } catch (cause: Throwable) {
-        body.destroy(cause.toJsReference())
-        throw cause
+        val origin = runCatching {
+            coroutineContext.job.getCancellationException()
+        }.getOrNull() ?: cause
+
+        body.destroy(origin.toJsReference())
+        throw origin
     }
 }.channel
