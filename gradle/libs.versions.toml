@@ -44,7 +44,7 @@ mockk-version = "1.13.11"
 java-jwt-version = "4.4.0"
 
 jwks-rsa-version = "0.22.1"
-mustache-version = "0.9.13"
+mustache-version = "0.9.14"
 freemarker-version = "2.3.33"
 pebble-version = "3.2.2"
 velocity-version = "2.3"
