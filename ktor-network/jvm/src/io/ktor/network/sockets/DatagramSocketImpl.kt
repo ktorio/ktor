@@ -7,6 +7,7 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.nio.*
@@ -51,6 +52,7 @@ internal class DatagramSocketImpl(
                 channel.send(receiveImpl())
             }
         } catch (_: ClosedChannelException) {
+        } catch (cause: IOException) {
         }
     }
 
