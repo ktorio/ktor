@@ -38,7 +38,7 @@ public inline fun String.chomp(
     val idx = indexOf(separator)
     return when (idx) {
         -1 -> onMissingDelimiter()
-        else -> substring(0, idx) to substring(idx + 1)
+        else -> substring(0, idx) to substring(idx + separator.length)
     }
 }
 
