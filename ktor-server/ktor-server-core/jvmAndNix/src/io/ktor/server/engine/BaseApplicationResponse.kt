@@ -198,8 +198,8 @@ public abstract class BaseApplicationResponse(
             ensureLength(length, bytes.size.toLong())
         }
 
-        responseChannel().use {
-            withContext(Dispatchers.Unconfined) {
+        withContext(Dispatchers.Unconfined) {
+            responseChannel().use {
                 writeFully(bytes)
             }
         }

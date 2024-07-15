@@ -343,6 +343,7 @@ class LoggingMockedTests {
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testCanStream() = testWithEngine(MockEngine) {
         val channel = ByteChannel(autoFlush = true)

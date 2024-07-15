@@ -97,6 +97,7 @@ public class WebSocketUpgrade(
                 webSocket.handle()
                 webSocket.flush()
             } catch (cause: Throwable) {
+                webSocket.cancel("WebSocket is cancelled", cause)
             } finally {
                 webSocket.cancel()
             }

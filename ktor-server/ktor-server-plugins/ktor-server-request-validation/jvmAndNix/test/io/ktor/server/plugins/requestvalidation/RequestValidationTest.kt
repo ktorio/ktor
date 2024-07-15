@@ -87,6 +87,7 @@ class RequestValidationTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testValidatorDsl() = testApplication {
         install(RequestValidation) {

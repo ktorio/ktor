@@ -35,23 +35,22 @@ public final class io/ktor/util/AttributesKt {
 }
 
 public final class io/ktor/util/Base64Kt {
-	public static final fun decodeBase64Bytes (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/utils/io/core/Input;
 	public static final fun decodeBase64Bytes (Ljava/lang/String;)[B
+	public static final fun decodeBase64Bytes (Lkotlinx/io/Source;)Lkotlinx/io/Source;
 	public static final fun decodeBase64String (Ljava/lang/String;)Ljava/lang/String;
-	public static final fun encodeBase64 (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final fun encodeBase64 (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun encodeBase64 (Lkotlinx/io/Source;)Ljava/lang/String;
 	public static final fun encodeBase64 ([B)Ljava/lang/String;
 }
 
 public final class io/ktor/util/BufferViewJvmKt {
-	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
-	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
+	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lkotlinx/io/Buffer;)I
+	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lkotlinx/io/Buffer;)I
 }
 
 public final class io/ktor/util/ByteChannelsKt {
 	public static final fun copyToBoth (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteWriteChannel;)V
 	public static final fun split (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/CoroutineScope;)Lkotlin/Pair;
-	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/BytesKt {
@@ -228,7 +227,7 @@ public final class io/ktor/util/IdentityEncoder : io/ktor/util/ContentEncoder, i
 }
 
 public final class io/ktor/util/InputJvmKt {
-	public static final fun asStream (Lio/ktor/utils/io/core/Input;)Ljava/io/InputStream;
+	public static final fun asStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
 }
 
 public final class io/ktor/util/NIOKt {

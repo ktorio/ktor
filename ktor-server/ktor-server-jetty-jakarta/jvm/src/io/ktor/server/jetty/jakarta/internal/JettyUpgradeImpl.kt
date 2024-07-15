@@ -17,6 +17,7 @@ import kotlin.coroutines.*
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
 public object JettyUpgradeImpl : ServletUpgrade {
+    @Suppress("DEPRECATION")
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,

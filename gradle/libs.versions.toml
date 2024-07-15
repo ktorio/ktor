@@ -1,23 +1,24 @@
 [versions]
-kotlin-version = "1.9.22"
+kotlin-version = "2.0.0"
 kotlinx-html-version = "0.11.0"
 kotlinx-datetime = "0.5.0"
+kotlinx-io = "0.5.0"
 coroutines-version = "1.8.0"
-atomicfu-version = "0.23.2"
+atomicfu-version = "0.25.0"
 serialization-version = "1.6.1" # Do not upgrade, 1.6.2 breaks maven publishing!
 ktlint-version = "3.15.0"
 
-netty-version = "4.1.109.Final"
-netty-tcnative-version = "2.0.62.Final"
+netty-version = "4.1.111.Final"
+netty-tcnative-version = "2.0.65.Final"
 
 jetty-version = "9.4.54.v20240208"
 jetty-jakarta-version = "11.0.21"
 jetty-alpn-api-version = "1.1.3.v20160715"
 jetty-alpn-boot-version = "8.1.13.v20181017"
-jetty-alpn-openjdk8 = "9.4.54.v20240208"
+jetty-alpn-openjdk8 = "9.4.55.v20240627"
 
-tomcat-version = "9.0.85"
-tomcat-jakarta-version = "10.1.18"
+tomcat-version = "9.0.90"
+tomcat-jakarta-version = "10.1.25"
 
 apache-version = "4.1.5"
 apache5-version = "5.3.1"
@@ -29,12 +30,12 @@ json-simple-version = "1.1.1"
 gson-version = "2.10.1"
 jackson-version = "2.16.1"
 
-junit-version = "5.10.2"
-slf4j-version = "2.0.11"
+junit-version = "5.10.3"
+slf4j-version = "2.0.13"
 logback-version = "1.3.5"
 
-dropwizard-version = "4.2.25"
-micrometer-version = "1.13.0"
+dropwizard-version = "4.2.26"
+micrometer-version = "1.13.2"
 
 jansi-version = "2.4.1"
 typesafe-version = "1.4.3"
@@ -44,8 +45,8 @@ mockk-version = "1.13.11"
 java-jwt-version = "4.4.0"
 
 jwks-rsa-version = "0.22.1"
-mustache-version = "0.9.13"
-freemarker-version = "2.3.32"
+mustache-version = "0.9.14"
+freemarker-version = "2.3.33"
 pebble-version = "3.2.2"
 velocity-version = "2.3"
 velocity-tools-version = "3.1"
@@ -61,9 +62,12 @@ ws-version = "8.5.0"
 xmlutil-version = "0.86.3"
 yamlkt-version = "0.13.0"
 
-swagger-codegen-version = "3.0.57"
-swagger-codegen-generators-version = "1.0.49"
+swagger-codegen-version = "3.0.58"
+swagger-codegen-generators-version = "1.0.50"
 swagger-parser-version = "2.1.22"
+
+puppeteer-version = "21.5.0"
+tomlj-version = "1.1.1"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
@@ -88,6 +92,8 @@ kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-seria
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html-version" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty-version" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty-version" }
@@ -178,3 +184,5 @@ yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yaml
 swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen-version" }
 swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators-version" }
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser-version" }
+
+tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj-version" }

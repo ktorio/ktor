@@ -160,6 +160,7 @@ public fun TestApplicationRequest.setBody(value: ByteArray) {
 /**
  * Set HTTP request body from [ByteReadPacket]
  */
+@Suppress("DEPRECATION")
 public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
     bodyChannel = ByteReadChannel(value.readBytes())
 }

@@ -15,6 +15,7 @@ fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
 fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
 
+@Suppress("DEPRECATION")
 suspend fun List<PartData>.makeString(): String = buildString {
     val list = this@makeString
     list.forEach {

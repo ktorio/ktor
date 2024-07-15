@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 
 @Suppress("EXPECT_WITHOUT_ACTUAL")
 public actual class SocketTimeoutException(

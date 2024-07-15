@@ -404,7 +404,7 @@ class TestApplicationTest {
                     HttpStatusCode.OK,
                     object : OutgoingContent.WriteChannelContent() {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeAvailable("Hello".toByteArray())
+                            channel.writeByteArray("Hello".toByteArray())
                             channel.flush()
                             delay(300)
                         }
@@ -438,6 +438,15 @@ class TestApplicationTest {
     @Test
     fun testSocketTimeoutReadNotElapsed() {
         testSocketTimeoutRead(1000, false)
+    }
+
+    @Test
+    fun `configuration file is not loaded automatically`() {
+        testApplication {
+            application {
+                assertNull(environment.config.propertyOrNull("test.property"))
+            }
+        }
     }
 
     class MyElement(val data: String) : CoroutineContext.Element {

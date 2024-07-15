@@ -34,6 +34,7 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
         }.channel
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun receiveBody(
         result: CompletableDeferred<ByteArray>

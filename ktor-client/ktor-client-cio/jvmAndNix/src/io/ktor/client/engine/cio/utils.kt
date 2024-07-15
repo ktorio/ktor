@@ -16,9 +16,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.errors.EOFException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
 
 internal suspend fun writeRequest(
@@ -32,6 +32,7 @@ internal suspend fun writeRequest(
     writeBody(request, output, callContext)
 }
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun writeHeaders(
     request: HttpRequestData,
@@ -100,21 +101,25 @@ internal suspend fun writeHeaders(
     }
 }
 
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION", "DEPRECATION")
 internal suspend fun writeBody(
     request: HttpRequestData,
     output: ByteWriteChannel,
     callContext: CoroutineContext,
     closeChannel: Boolean = true
 ) {
-    if (request.body is OutgoingContent.NoContent) {
+    val body = request.body.getUnwrapped()
+    if (body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
         return
     }
+    if (body is OutgoingContent.ProtocolUpgrade) {
+        throw UnsupportedContentTypeException(body)
+    }
 
-    val contentLength = request.headers[HttpHeaders.ContentLength] ?: request.body.contentLength?.toString()
+    val contentLength = request.headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = request.headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = request.body.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
@@ -123,7 +128,7 @@ internal suspend fun writeBody(
     val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
     scope.launch {
         try {
-            if (!processOutgoingContent(request, request.body, channel)) return@launch
+            processOutgoingContent(request, body, channel)
         } catch (cause: Throwable) {
             channel.close(cause)
             throw cause
@@ -142,23 +147,22 @@ internal suspend fun writeBody(
     }
 }
 
-private suspend fun processOutgoingContent(
-    request: HttpRequestData,
-    body: OutgoingContent,
-    channel: ByteWriteChannel
-): Boolean {
+private fun OutgoingContent.getUnwrapped(): OutgoingContent = when (this) {
+    is OutgoingContent.ContentWrapper -> delegate().getUnwrapped()
+    else -> this
+}
+
+private suspend fun processOutgoingContent(request: HttpRequestData, body: OutgoingContent, channel: ByteWriteChannel) {
     when (body) {
-        is OutgoingContent.NoContent -> return false
         is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
         is OutgoingContent.ReadChannelContent -> body.readFrom().copyAndClose(channel)
         is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
-        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
         is OutgoingContent.ContentWrapper -> processOutgoingContent(request, body.delegate(), channel)
+        is OutgoingContent.ProtocolUpgrade -> error("unreachable code")
+        is OutgoingContent.NoContent -> error("unreachable code")
     }
-    return true
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
@@ -168,7 +172,7 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: unexpected EOF")
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
@@ -236,7 +240,7 @@ internal suspend fun startTunnel(
         output.flush()
 
         val rawResponse = parseResponse(input)
-            ?: throw EOFException("Failed to parse CONNECT response: unexpected EOF")
+            ?: throw kotlinx.io.EOFException("Failed to parse CONNECT response: unexpected EOF")
         rawResponse.use {
             if (rawResponse.status / 200 != 1) {
                 throw IOException("Can not establish tunnel connection")
@@ -270,7 +274,6 @@ internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
 /**
  * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
  */
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun ByteWriteChannel.withoutClosePropagation(
     coroutineContext: CoroutineContext,

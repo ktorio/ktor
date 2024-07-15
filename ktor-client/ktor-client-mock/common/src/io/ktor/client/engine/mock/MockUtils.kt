@@ -7,14 +7,13 @@ package io.ktor.client.engine.mock
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 @Suppress("KDocMissingDocumentation")
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ContentWrapper -> delegate().toByteArray()
@@ -31,8 +30,8 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ProtocolUpgrade, is OutgoingContent.NoContent -> EmptyArray
 }
 
-@Suppress("KDocMissingDocumentation")
-@OptIn(DelicateCoroutinesApi::class)
+@Suppress("KDocMissingDocumentation", "DEPRECATION")
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
@@ -45,7 +44,7 @@ public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (th
         channel.readRemaining()
     }
 
-    else -> ByteReadPacket.Empty
+    else -> ByteReadPacketEmpty
 }
 
 /**

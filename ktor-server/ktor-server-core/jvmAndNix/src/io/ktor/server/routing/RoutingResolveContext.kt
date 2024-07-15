@@ -19,7 +19,7 @@ private const val MIN_QUALITY = -Double.MAX_VALUE
  * @param call instance of [PipelineCall] to use during resolution
  */
 public class RoutingResolveContext(
-    public val routing: RouteNode,
+    public val routing: RoutingNode,
     public val call: PipelineCall,
     private val tracers: List<(RoutingResolveTrace) -> Unit>
 ) {
@@ -90,7 +90,7 @@ public class RoutingResolveContext(
     }
 
     private fun handleRoute(
-        entry: RouteNode,
+        entry: RoutingNode,
         segmentIndex: Int,
         trait: ArrayList<RoutingResolveResult.Success>,
         matchedQuality: Double

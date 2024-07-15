@@ -11,6 +11,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.math.*
 import kotlin.test.*
 
@@ -236,9 +237,9 @@ class HttpRequestRetryTest {
     fun testRetryOnException() = testWithEngine(MockEngine) {
         config {
             engine {
-                addHandler { throw IOException("Network error") }
-                addHandler { throw IOException("Network error") }
-                addHandler { throw IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
                 addHandler { respondOk() }
             }
             install(HttpRequestRetry) {
@@ -257,9 +258,9 @@ class HttpRequestRetryTest {
     fun testRetryOnExceptionOrServerError() = testWithEngine(MockEngine) {
         config {
             engine {
-                addHandler { throw IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
-                addHandler { throw IOException("Another error") }
+                addHandler { throw kotlinx.io.IOException("Another error") }
                 addHandler { respondOk() }
             }
             install(HttpRequestRetry) {
@@ -279,9 +280,9 @@ class HttpRequestRetryTest {
     fun testRetryCanCancel() = testWithEngine(MockEngine) {
         config {
             engine {
-                addHandler { throw IOException("Network error") }
-                addHandler { throw IOException("Network error") }
-                addHandler { throw IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
                 addHandler { respondOk() }
             }
             install(HttpRequestRetry) {
@@ -304,9 +305,9 @@ class HttpRequestRetryTest {
         val delays = mutableListOf<Long>()
         config {
             engine {
-                addHandler { throw IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
-                addHandler { throw IOException("Network error") }
+                addHandler { throw kotlinx.io.IOException("Network error") }
                 addHandler { respondError(HttpStatusCode.InternalServerError) }
                 addHandler { respondOk() }
             }

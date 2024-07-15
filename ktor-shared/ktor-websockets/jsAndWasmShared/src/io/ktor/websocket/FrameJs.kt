@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
  * @property data - a frame content or fragment content
  * @property disposableHandle could be invoked when the frame is processed
  */
+@Suppress("DEPRECATION")
 public actual sealed class Frame actual constructor(
     public actual val fin: Boolean,
     public actual val frameType: FrameType,

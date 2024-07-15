@@ -43,36 +43,43 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 }
 
 private class DelegateHeaders(private val original: Headers) : Headers {
+    private val overridden = HeadersBuilder()
+    private val removed = mutableSetOf<String>()
 
-    private val builder = HeadersBuilder().apply {
-        appendAll(original)
-    }
-
-    private val headers = atomic(builder.build())
-
-    override val caseInsensitiveName: Boolean = headers.value.caseInsensitiveName
+    override val caseInsensitiveName: Boolean = original.caseInsensitiveName
 
     fun setHeader(name: String, values: List<String>?) {
-        builder.remove(name)
-        if (values != null) {
-            builder.appendAll(name, values)
+        if (values == null) {
+            removed.add(name)
+            overridden.remove(name)
+            return
         }
-        headers.value = builder.build()
+
+        overridden.appendAll(name, values)
+        removed.remove(name)
     }
 
     override fun getAll(name: String): List<String>? {
-        return headers.value.getAll(name)
+        if (removed.contains(name)) {
+            return null
+        }
+
+        if (overridden.contains(name)) {
+            return overridden.getAll(name)
+        }
+
+        return original.getAll(name)
     }
 
     override fun names(): Set<String> {
-        return headers.value.names()
+        return original.names() + overridden.names() - removed
     }
 
     override fun entries(): Set<Map.Entry<String, List<String>>> {
-        return headers.value.entries()
+        return (original.entries() + overridden.build().entries()).filterNot { it.key in removed }.toSet()
     }
 
     override fun isEmpty(): Boolean {
-        return headers.value.isEmpty()
+        return names().isEmpty()
     }
 }

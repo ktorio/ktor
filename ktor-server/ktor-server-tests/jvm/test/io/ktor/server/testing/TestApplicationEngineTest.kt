@@ -8,7 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -97,7 +97,7 @@ class TestApplicationEngineTest {
     @Test
     fun testResponseAwait() {
         withTestApplication {
-            application.install(Routing) {
+            application.install(RoutingRoot) {
                 get("/good") {
                     call.respond(HttpStatusCode.OK, "The Response")
                 }
@@ -129,7 +129,7 @@ class TestApplicationEngineTest {
     @Test
     fun testResponseAwaitWithCustomPort() {
         withTestApplication {
-            application.install(Routing) {
+            application.install(RoutingRoot) {
                 port(7070) {
                     get("/good") {
                         call.respond(HttpStatusCode.OK, "The Response")
@@ -233,7 +233,7 @@ class TestApplicationEngineTest {
         withTestApplication {
             application.routing {
                 get("/exist") {
-                    call.respondText("Route exist")
+                    call.respondText("Routing exist")
                 }
             }
 
@@ -285,6 +285,7 @@ class TestApplicationEngineTest {
     }
 }
 
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,

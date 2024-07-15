@@ -13,13 +13,13 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * An application call handled by [Routing].
+ * An application call handled by [RoutingRoot].
  * @property call original call from [io.ktor.server.engine.ApplicationEngine]
  * @property route is the selected route
  */
 public class RoutingPipelineCall(
     public val engineCall: PipelineCall,
-    public val route: RouteNode,
+    public val route: RoutingNode,
     override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
@@ -46,7 +46,7 @@ public class RoutingPipelineCall(
 }
 
 /**
- * An application request handled by [Routing].
+ * An application request handled by [RoutingRoot].
  */
 public class RoutingPipelineRequest(
     override val call: RoutingPipelineCall,
@@ -55,7 +55,7 @@ public class RoutingPipelineRequest(
 ) : PipelineRequest by engineRequest
 
 /**
- * An application response handled by [Routing].
+ * An application response handled by [RoutingRoot].
  */
 public class RoutingPipelineResponse(
     override val call: RoutingPipelineCall,

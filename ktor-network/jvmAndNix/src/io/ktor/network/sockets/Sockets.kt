@@ -8,6 +8,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 
 /**
  * Base type for all async sockets
@@ -66,8 +67,11 @@ public interface ABoundSocket {
  */
 public interface Acceptable<out S : ASocket> : ASocket {
     /**
-     * accepts socket connection or suspends if none yet available.
+     * Suspends until a connection is available and returns it or throws if something
+     * goes wrong.
+     *
      * @return accepted socket
+     * @throws IOException
      */
     public suspend fun accept(): S
 }

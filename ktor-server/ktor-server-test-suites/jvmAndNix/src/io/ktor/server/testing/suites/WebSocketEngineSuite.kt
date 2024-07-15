@@ -14,7 +14,6 @@ import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
@@ -34,7 +33,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     private val errors = mutableListOf<Throwable>()
     override val timeout = 30.seconds
 
-    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
+    override fun plugins(application: Application, routingConfig: Routing.() -> Unit) {
         application.install(WebSockets)
         super.plugins(application, routingConfig)
     }
@@ -760,6 +759,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Suppress("DEPRECATION")
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
         SelectorManager().use {
             aSocket(it).tcp().connect("localhost", port) {

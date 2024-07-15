@@ -206,7 +206,7 @@ class LoggingTest : ClientLoader() {
             "-> Content-Type: application/octet-stream",
             "BODY Content-Type: application/octet-stream",
             "BODY START",
-            "[request body omitted]",
+            "�o",
             "BODY END",
             "RESPONSE: 201 Created",
             "METHOD: HttpMethod(value=POST)",
@@ -214,11 +214,11 @@ class LoggingTest : ClientLoader() {
             "COMMON HEADERS",
             "???-> Connection: close",
             "???-> connection: keep-alive",
-            "-> content-length: 2",
-            "-> content-type: application/octet-stream",
+            "-> Content-Length: 2",
+            "-> Content-Type: application/octet-stream",
             "BODY Content-Type: application/octet-stream",
             "BODY START",
-            "[response body omitted]",
+            "�o",
             "BODY END"
         )
 
@@ -402,7 +402,10 @@ class LoggingTest : ClientLoader() {
 
     @Test
     fun testLoggingWithStreaming() = clientTests {
-        val testLogger = TestLogger()
+        val testLogger = TestLogger(
+            "REQUEST: http://127.0.0.1:8080/content/echo",
+            "METHOD: HttpMethod(value=POST)"
+        )
         config {
             Logging {
                 logger = testLogger

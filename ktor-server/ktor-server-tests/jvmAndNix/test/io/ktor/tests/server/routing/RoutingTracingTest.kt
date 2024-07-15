@@ -33,7 +33,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "bar" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS @ /bar/(method:GET)
             """.trimIndent(),
             trace
@@ -63,7 +63,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "{param}" -> "x" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [param=[bar]] @ /{param}/x/(method:GET)
             """.trimIndent(),
             trace
@@ -93,7 +93,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "baz" -> "x" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS @ /baz/x/(method:GET)
             """.trimIndent(),
             trace
@@ -123,7 +123,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "baz" -> "{y}" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET)
             """.trimIndent(),
             trace
@@ -154,7 +154,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET)
             """.trimIndent(),
             trace
@@ -185,7 +185,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET)
             """.trimIndent(),
             trace
@@ -212,7 +212,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "{param}" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [param=[p]] @ /{param}/(method:GET)
             """.trimIndent(),
             trace
@@ -241,7 +241,7 @@ class RoutingTracingTest {
       /(header:b = x), segment:0 -> FAILURE "Selector didn't match" @ /(header:b = x)
     Matched routes:
       "" -> "{param}" -> "x" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS; Parameters [param=[p]] @ /{param}/x/(method:GET)
             """.trimIndent(),
             trace
@@ -275,7 +275,7 @@ class RoutingTracingTest {
     Matched routes:
       "" -> "(header:a = x)" -> "(method:GET)"
       "" -> "(header:b = x)" -> "(method:GET)"
-    Route resolve result:
+    Routing resolve result:
       SUCCESS @ /(header:a = x)/(method:GET)
             """.trimIndent(),
             trace
@@ -303,7 +303,7 @@ class RoutingTracingTest {
         return trace?.buildText()!!
     }
 
-    private fun Route.testRouting() {
+    private fun Routing.testRouting() {
         get("/bar") { call.respond("/bar") }
         get("/baz") { call.respond("/baz") }
         get("/baz/x") { call.respond("/baz/x") }

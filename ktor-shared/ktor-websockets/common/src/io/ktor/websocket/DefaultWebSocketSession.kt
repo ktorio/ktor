@@ -13,6 +13,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
@@ -68,6 +69,7 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 /**
  * A default WebSocket session implementation that handles ping-pongs, close sequence and frame fragmentation.
  */
+@Suppress("DEPRECATION")
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Long,
@@ -138,7 +140,7 @@ internal class DefaultWebSocketSessionImpl(
     /**
      * Close session with GOING_AWAY reason
      */
-    public suspend fun goingAway(message: String = "Server is going down") {
+    suspend fun goingAway(message: String = "Server is going down") {
         sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
@@ -156,6 +158,7 @@ internal class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
+    @Suppress("DEPRECATION")
     @OptIn(InternalAPI::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined

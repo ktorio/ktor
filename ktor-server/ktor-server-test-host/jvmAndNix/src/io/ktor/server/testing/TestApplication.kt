@@ -10,6 +10,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
@@ -162,7 +163,7 @@ public open class TestApplicationBuilder {
             val oldConfig = config
             this@TestApplicationBuilder.environmentBuilder(this)
             if (config == oldConfig) { // the user did not set config. load the default one
-                config = DefaultTestConfig()
+                config = MapApplicationConfig()
             }
         }
         applicationProperties(environment) {
@@ -252,7 +253,7 @@ public open class TestApplicationBuilder {
      * Installs routing into [TestApplication]
      */
     @KtorDsl
-    public fun routing(configuration: Route.() -> Unit) {
+    public fun routing(configuration: Routing.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
     }

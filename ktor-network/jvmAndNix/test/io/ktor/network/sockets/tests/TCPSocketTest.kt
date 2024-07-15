@@ -8,11 +8,13 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class TCPSocketTest {
 
+    @Suppress("DEPRECATION")
     @Test
     fun testEcho() = testSockets { selector ->
         val tcp = aSocket(selector).tcp()
@@ -56,6 +58,7 @@ class TCPSocketTest {
         server.close()
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testEchoOverUnixSockets() = testSockets { selector ->
         if (!supportsUnixDomainSockets()) return@testSockets

@@ -13,12 +13,12 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlin.test.*
 
-fun routing(rootPath: String = ""): RouteNode =
-    RouteNode(parent = null, selector = RootRouteSelector(rootPath), environment = createTestEnvironment())
+fun routing(rootPath: String = ""): RoutingNode =
+    RoutingNode(parent = null, selector = RootRouteSelector(rootPath), environment = createTestEnvironment())
 
 @Suppress("DEPRECATION")
 fun resolve(
-    routing: RouteNode,
+    routing: RoutingNode,
     path: String,
     parameters: Parameters = Parameters.Empty,
     headers: Headers = Headers.Empty
@@ -41,7 +41,7 @@ fun resolve(
     }
 }
 
-fun RouteNode.handle(selector: RouteSelector) = createChild(selector).apply { handle {} }
+fun RoutingNode.handle(selector: RouteSelector) = createChild(selector).apply { handle {} }
 
 @Suppress("DEPRECATION")
 class RoutingResolveTest {

@@ -47,6 +47,7 @@ internal class CIOApplicationResponse(
         return preparedBodyChannel()
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         sendResponseMessage(contentReady = false)
 
@@ -55,6 +56,7 @@ internal class CIOApplicationResponse(
         upgradedJob.join()
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(contentReady = true)
         val channel = preparedBodyChannel()
@@ -64,11 +66,13 @@ internal class CIOApplicationResponse(
         }
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
         sendResponseMessage(contentReady = true)
         output.close()
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         if (content is OutgoingContent.ProtocolUpgrade) {
             upgraded?.complete(true) ?: throw IllegalStateException(
@@ -116,7 +120,7 @@ internal class CIOApplicationResponse(
         val chunkedOutput = encoderJob.channel
 
         chunkedChannel = chunkedOutput
-        chunkedJob = encoderJob
+        chunkedJob = encoderJob.job
 
         return chunkedOutput
     }

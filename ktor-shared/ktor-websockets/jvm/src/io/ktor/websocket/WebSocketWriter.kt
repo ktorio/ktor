@@ -40,6 +40,7 @@ public class WebSocketWriter(
         pool.useInstance { writeLoop(it) }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun writeLoop(buffer: ByteBuffer) {
         buffer.clear()
         try {

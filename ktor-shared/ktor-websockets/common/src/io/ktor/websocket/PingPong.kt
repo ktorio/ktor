@@ -42,6 +42,7 @@ internal fun CoroutineScope.ponger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
+@Suppress("DEPRECATION")
 internal fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,

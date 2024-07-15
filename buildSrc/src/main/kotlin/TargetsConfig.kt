@@ -5,7 +5,7 @@
 
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
 
@@ -51,54 +51,228 @@ fun Project.configureTargets() {
 
         if (hasPosix || hasLinux || hasDarwin || hasWindows) extra.set("hasNative", true)
 
-        if (hasPosix) { posixTargets() }
-        if (hasDesktop) { desktopTargets() }
-        if (hasNix) { nixTargets() }
-        if (hasLinux) { linuxTargets() }
-        if (hasDarwin) { darwinTargets() }
-        if (hasWindows) { windowsTargets() }
-
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        applyHierarchyTemplate {
-            common {
-                group("nix") {
-                    group("darwin") {
-                        group("macos") { withMacos() }
-                        group("ios") { withIos() }
-                        group("tvos") { withTvos() }
-                        group("watchos") { withWatchos() }
-                    }
-                    group("linux") { withLinux() }
+        sourceSets {
+            if (hasJsAndWasmShared) {
+                val commonMain by getting {}
+                val jsAndWasmSharedMain by creating {
+                    dependsOn(commonMain)
+                }
+                val commonTest by getting {}
+                val jsAndWasmSharedTest by creating {
+                    dependsOn(commonTest)
                 }
 
-                withJvm()
-
-                group("jsAndWasmShared") {
-                    withJs()
-                    withWasm()
+                jsMain {
+                    dependsOn(jsAndWasmSharedMain)
                 }
-
-                group("posix") {
-                    group("nix")
-                    group("windows") { withMingw() }
-                    group("desktop") {
-                        group("macos")
-                        group("linux")
-                        group("windows")
-                    }
+                jsTest {
+                    dependsOn(jsAndWasmSharedTest)
                 }
-
-                group("jvmAndNix") {
-                    group("nix")
-                    withJvm()
+                wasmJsMain {
+                    dependsOn(jsAndWasmSharedMain)
+                }
+                wasmJsTest {
+                    dependsOn(jsAndWasmSharedTest)
                 }
             }
-        }
 
-        sourceSets {
-            commonTest {
-                dependencies {
-                    implementation(kotlin("test"))
+            if (hasPosix) {
+                val posixMain by creating
+                val posixTest by creating
+            }
+
+            if (hasNix) {
+                val nixMain by creating
+                val nixTest by creating
+            }
+
+            if (hasDarwin) {
+                val darwinMain by creating
+                val darwinTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                val macosMain by creating
+                val macosTest by creating
+
+                val watchosMain by creating
+                val watchosTest by creating
+
+                val tvosMain by creating
+                val tvosTest by creating
+
+                val iosMain by creating
+                val iosTest by creating
+            }
+
+            if (hasDesktop) {
+                val desktopMain by creating
+                val desktopTest by creating {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+            }
+
+            if (hasLinux) {
+                val linuxMain by creating
+                val linuxTest by creating
+            }
+
+            if (hasWindows) {
+                val windowsMain by creating
+                val windowsTest by creating
+            }
+
+            if (hasJvmAndNix) {
+                val jvmAndNixMain by creating {
+                    findByName("commonMain")?.let { dependsOn(it) }
+                }
+
+                val jvmAndNixTest by creating {
+                    findByName("commonTest")?.let { dependsOn(it) }
+                }
+            }
+
+            if (hasJvm) {
+                val jvmMain by getting {
+                    findByName("jvmAndNixMain")?.let { dependsOn(it) }
+                }
+
+                val jvmTest by getting {
+                    findByName("jvmAndNixTest")?.let { dependsOn(it) }
+                }
+            }
+
+            if (hasPosix) {
+                val posixMain by getting {
+                    findByName("commonMain")?.let { dependsOn(it) }
+                }
+
+                val posixTest by getting {
+                    findByName("commonTest")?.let { dependsOn(it) }
+
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                posixTargets().forEach {
+                    getByName("${it}Main").dependsOn(posixMain)
+                    getByName("${it}Test").dependsOn(posixTest)
+                }
+            }
+
+            if (hasNix) {
+                val nixMain by getting {
+                    findByName("posixMain")?.let { dependsOn(it) }
+                    findByName("jvmAndNixMain")?.let { dependsOn(it) }
+                }
+
+                val nixTest by getting {
+                    findByName("posixTest")?.let { dependsOn(it) }
+                    findByName("jvmAndNixTest")?.let { dependsOn(it) }
+                }
+
+                nixTargets().forEach {
+                    getByName("${it}Main").dependsOn(nixMain)
+                    getByName("${it}Test").dependsOn(nixTest)
+                }
+            }
+
+            if (hasDarwin) {
+                val nixMain: KotlinSourceSet? = findByName("nixMain")
+                val darwinMain by getting
+                val darwinTest by getting
+                val macosMain by getting
+                val macosTest by getting
+                val iosMain by getting
+                val iosTest by getting
+                val watchosMain by getting
+                val watchosTest by getting
+                val tvosMain by getting
+                val tvosTest by getting
+
+                nixMain?.let { darwinMain.dependsOn(it) }
+                macosMain.dependsOn(darwinMain)
+                tvosMain.dependsOn(darwinMain)
+                iosMain.dependsOn(darwinMain)
+                watchosMain.dependsOn(darwinMain)
+
+                macosTargets().forEach {
+                    getByName("${it}Main").dependsOn(macosMain)
+                    getByName("${it}Test").dependsOn(macosTest)
+                }
+
+                iosTargets().forEach {
+                    getByName("${it}Main").dependsOn(iosMain)
+                    getByName("${it}Test").dependsOn(iosTest)
+                }
+
+                watchosTargets().forEach {
+                    getByName("${it}Main").dependsOn(watchosMain)
+                    getByName("${it}Test").dependsOn(watchosTest)
+                }
+
+                tvosTargets().forEach {
+                    getByName("${it}Main").dependsOn(tvosMain)
+                    getByName("${it}Test").dependsOn(tvosTest)
+                }
+
+                darwinTargets().forEach {
+                    getByName("${it}Main").dependsOn(darwinMain)
+                    getByName("${it}Test").dependsOn(darwinTest)
+                }
+            }
+
+            if (hasLinux) {
+                val linuxMain by getting {
+                    findByName("nixMain")?.let { dependsOn(it) }
+                }
+
+                val linuxTest by getting {
+                    findByName("nixTest")?.let { dependsOn(it) }
+
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                linuxTargets().forEach {
+                    getByName("${it}Main").dependsOn(linuxMain)
+                    getByName("${it}Test").dependsOn(linuxTest)
+                }
+            }
+
+            if (hasDesktop) {
+                val desktopMain by getting {
+                    findByName("posixMain")?.let { dependsOn(it) }
+                }
+
+                val desktopTest by getting
+
+                desktopTargets().forEach {
+                    getByName("${it}Main").dependsOn(desktopMain)
+                    getByName("${it}Test").dependsOn(desktopTest)
+                }
+            }
+
+            if (hasWindows) {
+                val windowsMain by getting {
+                    findByName("posixMain")?.let { dependsOn(it) }
+                }
+
+                val windowsTest by getting {
+                    dependencies {
+                        implementation(kotlin("test"))
+                    }
+                }
+
+                windowsTargets().forEach {
+                    getByName("${it}Main").dependsOn(windowsMain)
+                    getByName("${it}Test").dependsOn(windowsTest)
                 }
             }
 

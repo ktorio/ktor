@@ -9,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -86,15 +85,16 @@ public class TestApplicationResponse(
         }
 
         val job = scope.reader(responseJob ?: EmptyCoroutineContext) {
+            val counted = channel.counted()
             val readJob = launch {
-                channel.copyAndClose(result, Long.MAX_VALUE)
+                counted.copyAndClose(result, Long.MAX_VALUE)
             }
 
-            configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { channel.totalBytesRead }
+            configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }
         }
 
         if (responseJob == null) {
-            responseJob = job
+            responseJob = job.job
         }
 
         responseChannel = result
@@ -149,8 +149,6 @@ public class TestApplicationResponse(
             responseJob?.join()
             webSocketCompleted.join()
         }
-
-        Unit
     }
 
     /**

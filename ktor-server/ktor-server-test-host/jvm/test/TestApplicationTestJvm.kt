@@ -30,18 +30,18 @@ import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 class TestApplicationTestJvm {
 
     @Test
-    fun testDefaultConfig() = testApplication {
+    fun testDefaultConfigDoesNotLoad() = testApplication {
         application {
             val config = environment.config
             routing {
                 get("a") {
-                    call.respond(config.property("ktor.test").getString())
+                    call.respond(config.propertyOrNull("ktor.test").toString())
                 }
             }
         }
 
         val response = client.get("a")
-        assertEquals("test_value", response.bodyAsText())
+        assertEquals("null", response.bodyAsText())
     }
 
     @Test
@@ -95,7 +95,9 @@ class TestApplicationTestJvm {
 
     @Test
     fun testCustomEnvironmentKeepsDefaultProperties() = testApplication {
-        environment { }
+        environment {
+            config = ApplicationConfig("application-custom.conf")
+        }
         routing {
             val config = environment.config
             get("a") {
@@ -104,6 +106,22 @@ class TestApplicationTestJvm {
         }
 
         val response = client.get("a")
+        assertEquals("another_test_value", response.bodyAsText())
+    }
+
+    @Test
+    fun testExplicitDefaultConfig() = testApplication {
+        environment {
+            config = ConfigLoader.load()
+        }
+        routing {
+            val config = environment.config
+            get {
+                call.respond(config.property("ktor.test").getString())
+            }
+        }
+
+        val response = client.get("/")
         assertEquals("test_value", response.bodyAsText())
     }
 
@@ -302,10 +320,10 @@ class TestApplicationTestJvm {
 
         val body = object : OutgoingContent.WriteChannelContent() {
             override suspend fun writeTo(channel: ByteWriteChannel) {
-                channel.writeAvailable("Hello".toByteArray())
+                channel.writeByteArray("Hello".toByteArray())
                 channel.flush()
                 delay(300)
-                channel.writeAvailable("World".toByteArray())
+                channel.writeByteArray("World".toByteArray())
                 channel.flush()
             }
         }

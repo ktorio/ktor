@@ -11,7 +11,6 @@ import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -104,6 +103,7 @@ internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R =
     )
 }
 
+@Suppress("DEPRECATION")
 internal suspend fun ByteReadChannel.readText(
     charset: Charset
 ): String {
@@ -123,4 +123,5 @@ internal suspend fun ByteReadChannel.readText(
     }
 }
 
+@Suppress("DEPRECATION")
 internal expect fun ByteReadPacket.readTextWithCustomCharset(charset: Charset): String

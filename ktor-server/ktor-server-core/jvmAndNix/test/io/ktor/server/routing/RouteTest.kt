@@ -14,39 +14,39 @@ class RouteTest {
 
     @Test
     fun testToStringSimple() {
-        val root = RouteNode(
+        val root = RoutingNode(
             parent = null,
             selector = PathSegmentConstantRouteSelector("root"),
             environment = createTestEnvironment()
         )
-        val simpleChild = RouteNode(
+        val simpleChild = RoutingNode(
             parent = root,
             selector = PathSegmentConstantRouteSelector("simpleChild"),
             environment = createTestEnvironment()
         )
         val simpleGrandChild =
-            RouteNode(
+            RoutingNode(
                 parent = simpleChild,
                 selector = PathSegmentConstantRouteSelector("simpleGrandChild"),
                 environment = createTestEnvironment()
             )
 
-        val slashChild = RouteNode(
+        val slashChild = RoutingNode(
             parent = root,
             selector = TrailingSlashRouteSelector,
             environment = createTestEnvironment()
         )
-        val slashGrandChild = RouteNode(
+        val slashGrandChild = RoutingNode(
             parent = slashChild,
             selector = TrailingSlashRouteSelector,
             environment = createTestEnvironment()
         )
-        val simpleChildInSlash = RouteNode(
+        val simpleChildInSlash = RoutingNode(
             parent = slashGrandChild,
             selector = PathSegmentConstantRouteSelector("simpleChildInSlash"),
             environment = createTestEnvironment()
         )
-        val slashChildInSimpleChild = RouteNode(
+        val slashChildInSimpleChild = RoutingNode(
             parent = simpleChildInSlash,
             selector = TrailingSlashRouteSelector,
             environment = createTestEnvironment()
@@ -63,7 +63,7 @@ class RouteTest {
 
     @Test
     fun testCreateChildKeepsDevelopmentMode() {
-        val root = RouteNode(
+        val root = RoutingNode(
             parent = null,
             selector = PathSegmentConstantRouteSelector("root"),
             developmentMode = true,

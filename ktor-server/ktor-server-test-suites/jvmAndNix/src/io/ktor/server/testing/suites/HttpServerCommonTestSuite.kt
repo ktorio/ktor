@@ -567,6 +567,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     open fun testFlushingHeaders() {
         createAndStartServer {
@@ -702,7 +703,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     call.respondText { "From plugin" }
                 }
             }
-            check(this is RouteNode)
+            check(this is RoutingNode)
             application.install(plugin)
             application.install(HSTS)
 

@@ -22,6 +22,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -80,7 +81,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
-    protected open fun createRoutes(routing: Route): Unit = with(routing) {
+    protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/echo") {
             call.respondWithRequestBody(call.request.contentType())
         }

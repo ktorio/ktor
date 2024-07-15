@@ -17,6 +17,7 @@ import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
@@ -629,7 +630,7 @@ class AuthTest : ClientLoader() {
                     refreshTokens {
                         if (firstCall) {
                             firstCall = false
-                            throw IOException("Refresh failed")
+                            throw kotlinx.io.IOException("Refresh failed")
                         }
                         val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
                         BearerTokens(token, token)

@@ -76,6 +76,7 @@ class ContentTest : ClientLoader(5 * 60) {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testByteReadChannel() = clientTests {
         config {

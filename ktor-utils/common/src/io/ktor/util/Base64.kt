@@ -69,16 +69,19 @@ public fun ByteArray.encodeBase64(): String {
 /**
  * Encode [ByteReadPacket] in base64 format
  */
+@Suppress("DEPRECATION")
 public fun ByteReadPacket.encodeBase64(): String = readBytes().encodeBase64()
 
 /**
  * Decode [String] from base64 format encoded in UTF-8.
  */
+@Suppress("DEPRECATION")
 public fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = Charsets.UTF_8)
 
 /**
  * Decode [String] from base64 format
  */
+@Suppress("DEPRECATION")
 public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
     writeText(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64Bytes().readBytes()

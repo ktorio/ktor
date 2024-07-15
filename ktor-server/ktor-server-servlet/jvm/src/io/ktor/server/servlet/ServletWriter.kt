@@ -40,19 +40,12 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     private val events = Channel<Unit>(2)
 
     suspend fun run() {
-        val buffer = ArrayPool.borrow()
         try {
             output.setWriteListener(this)
             events.receive()
-            loop(buffer)
+            loop()
 
             finish()
-
-            // we shouldn't recycle it in finally
-            // because in case of error, the buffer could be still hold by servlet container,
-            // so we simply drop it as buffer leak has only limited performance impact
-            // (buffer will be collected by GC and pool will produce another one)
-            ArrayPool.recycle(buffer)
         } catch (t: Throwable) {
             onError(t)
         } finally {
@@ -68,27 +61,27 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    private suspend fun loop(buffer: ByteArray) {
+    private suspend fun loop() {
         if (channel.availableForRead == 0) {
             awaitReady()
             output.flush()
         }
 
         var copied = 0L
-        while (true) {
-            val rc = channel.readAvailable(buffer)
-            if (rc == -1) break
+        while (!channel.isClosedForRead) {
+            channel.read { buffer, start, end ->
+                val rc = end - start
+                copied += rc
+                if (copied > MAX_COPY_SIZE) {
+                    copied = 0
+                    yield()
+                }
 
-            copied += rc
-            if (copied > MAX_COPY_SIZE) {
-                copied = 0
-                yield()
+                awaitReady()
+                output.write(buffer, 0, rc)
+                awaitReady()
+                rc
             }
-
-            awaitReady()
-            output.write(buffer, 0, rc)
-            awaitReady()
-
             if (channel.availableForRead == 0) output.flush()
         }
     }
