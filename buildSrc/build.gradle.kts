@@ -3,23 +3,20 @@
 */
 
 plugins {
+    `kotlin-dsl`
     kotlin("plugin.serialization") version "1.9.22"
-    id("org.gradle.kotlin.kotlin-dsl") version "4.3.1"
 }
 
-val buildSnapshotTrain = properties["build_snapshot_train"]?.toString()?.toBoolean() == true
+val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
 
 repositories {
-    maven("https://plugins.gradle.org/m2")
+    mavenCentral()
+    gradlePluginPortal()
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-
     if (buildSnapshotTrain) {
         mavenLocal()
     }
-}
-
-sourceSets.main {
 }
 
 val ktor_version = "3.0.0-eap-852"
@@ -52,8 +49,5 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain {
-        check(this is JavaToolchainSpec)
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
+    jvmToolchain(8)
 }

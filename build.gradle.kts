@@ -22,7 +22,7 @@ buildscript {
     extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
     val build_snapshot_train: String? by extra
 
-    if (build_snapshot_train?.toBoolean() == true) {
+    if (build_snapshot_train.toBoolean()) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
         if (kotlin_version == null) {
@@ -31,8 +31,10 @@ buildscript {
             )
         }
         repositories {
+            maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
+                mavenContent { snapshotsOnly() }
+            }
             mavenLocal()
-            maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
         }
 
         configurations.classpath {
@@ -48,11 +50,11 @@ buildscript {
     extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
 
     repositories {
-        mavenLocal()
         mavenCentral()
         google()
         gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        mavenLocal()
     }
 }
 
@@ -190,10 +192,7 @@ fun Project.setupJvmToolchain() {
     }
 
     kotlin {
-        jvmToolchain {
-            check(this is JavaToolchainSpec)
-            languageVersion = JavaLanguageVersion.of(jdk)
-        }
+        jvmToolchain(jdk)
     }
 }
 
