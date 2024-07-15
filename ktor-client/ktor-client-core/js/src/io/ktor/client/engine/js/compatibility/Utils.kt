@@ -18,13 +18,6 @@ internal suspend fun commonFetch(
     init: RequestInit,
     config: JsClientEngineConfig,
 ): org.w3c.fetch.Response = suspendCancellableCoroutine { continuation ->
-    val controller = AbortController()
-    init.signal = controller.signal
-
-    continuation.invokeOnCancellation {
-        controller.abort()
-    }
-
     val promise: Promise<org.w3c.fetch.Response> = when (PlatformUtils.platform) {
         Platform.Browser -> fetch(input, init)
         else -> {

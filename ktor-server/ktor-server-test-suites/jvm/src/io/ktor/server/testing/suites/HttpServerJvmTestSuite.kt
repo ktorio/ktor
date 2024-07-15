@@ -33,6 +33,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
+    @Suppress("DEPRECATION")
     @Test
     open fun testPipelining() {
         createAndStartServer {
@@ -220,6 +221,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 try {
                     call.respond(
                         object : OutgoingContent.WriteChannelContent() {
+                            @Suppress("DEPRECATION")
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 val bb = ByteBuffer.allocate(512)
                                 for (i in 1L..1000L) {
@@ -274,6 +276,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 try {
                     call.respond(
                         object : OutgoingContent.WriteChannelContent() {
+                            @Suppress("DEPRECATION")
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 val bb = ByteBuffer.allocate(512)
                                 for (i in 1L..1000L) {
@@ -322,6 +325,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     open fun testUpgrade() {
         val completed = CompletableDeferred<Unit>()
@@ -336,6 +340,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                 append(HttpHeaders.Connection, "Upgrade")
                             }
 
+                        @Suppress("DEPRECATION")
                         override suspend fun upgrade(
                             input: ByteReadChannel,
                             output: ByteWriteChannel,

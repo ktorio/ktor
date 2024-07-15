@@ -28,6 +28,7 @@ class HashFunctionConsistencyTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun test(
         algorithm: String,
         hashFunction: HashFunction,

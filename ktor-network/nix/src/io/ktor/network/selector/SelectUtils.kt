@@ -11,6 +11,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 import platform.posix.*
 import kotlin.coroutines.*
 import kotlin.math.*

@@ -99,7 +99,7 @@ apply(from = "gradle/compatibility.gradle")
 plugins {
     id("org.jetbrains.dokka") version "1.9.20" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.14.0"
-    id("kotlinx-atomicfu") version "0.23.1" apply false
+    id("org.jetbrains.kotlinx.atomicfu") version "0.25.0" apply false
     id("com.osacky.doctor") version "0.10.0"
 }
 
@@ -119,13 +119,14 @@ allprojects {
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
     }
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
     apply(plugin = "kotlin-multiplatform")
-    apply(plugin = "kotlinx-atomicfu")
+    apply(plugin = "org.jetbrains.kotlinx.atomicfu")
 
     configureTargets()
 
@@ -198,11 +199,6 @@ fun Project.setupJvmToolchain() {
 
 fun KotlinMultiplatformExtension.setCompilationOptions() {
     targets.all {
-        if (this is KotlinJsTarget) {
-            irTarget?.compilations?.all {
-                configureCompilation()
-            }
-        }
         compilations.all {
             configureCompilation()
         }
@@ -224,17 +220,4 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
                 progressiveMode = true
             }
         }
-}
-
-// Drop this configuration when the Node.JS version in KGP will support wasm gc milestone 4
-// check it here:
-// https://github.com/JetBrains/kotlin/blob/master/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/nodejs/NodeJsRootExtension.kt
-with(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin.apply(rootProject)) {
-    // canary nodejs that supports recent Wasm GC changes
-    nodeVersion = "21.0.0-v8-canary202309167e82ab1fa2"
-    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
-}
-// Drop this when node js version become stable
-tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask::class).configureEach {
-    args.add("--ignore-engines")
 }

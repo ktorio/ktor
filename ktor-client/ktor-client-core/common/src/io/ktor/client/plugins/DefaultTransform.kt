@@ -23,6 +23,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformer
  * Usually installed by default so there is no need to use it
  * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
  */
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 public fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
@@ -73,7 +74,6 @@ public fun HttpClient.defaultTransformers() {
             }
 
             ByteReadPacket::class,
-            @Suppress("DEPRECATION")
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }

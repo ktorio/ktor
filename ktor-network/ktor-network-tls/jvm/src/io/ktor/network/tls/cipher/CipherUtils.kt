@@ -12,6 +12,7 @@ import javax.crypto.*
 
 internal val CryptoBufferPool: ObjectPool<ByteBuffer> = ByteBufferPool(128, 65536)
 
+@Suppress("DEPRECATION")
 internal fun ByteReadPacket.cipherLoop(cipher: Cipher, header: BytePacketBuilder.() -> Unit = {}): ByteReadPacket {
     val srcBuffer = DefaultByteBufferPool.borrow()
     var dstBuffer = CryptoBufferPool.borrow()

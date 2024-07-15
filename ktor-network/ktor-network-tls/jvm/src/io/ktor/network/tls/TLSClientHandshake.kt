@@ -21,6 +21,7 @@ import javax.crypto.spec.*
 import javax.security.auth.x500.*
 import kotlin.coroutines.*
 
+@Suppress("DEPRECATION")
 internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
@@ -501,7 +502,6 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
         generateKeyPair()!!
     }
 
-    @Suppress("UNCHECKED_CAST")
     val publicKey = clientKeys.public as ECPublicKey
     val factory = KeyFactory.getInstance("EC")!!
     val serverPublic = factory.generatePublic(ECPublicKeySpec(serverPoint, publicKey.params!!))!!
@@ -518,6 +518,7 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
  *         DistinguishedName certificate_authorities<0..2^16-1>;
  *     } CertificateRequest;
  */
+@Suppress("DEPRECATION")
 internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
     val typeCount = packet.readByte().toInt() and 0xFF
     val types = packet.readBytes(typeCount)

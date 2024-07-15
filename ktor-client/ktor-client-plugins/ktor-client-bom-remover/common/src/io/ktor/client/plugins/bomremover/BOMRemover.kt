@@ -45,7 +45,7 @@ public val BOMRemover: ClientPlugin<Unit> = createClientPlugin(
                     break
                 }
             }
-            channel.writeFully(beginning, offset, length - offset)
+            channel.writeFully(beginning, startIndex = offset, endIndex = length)
 
             body.copyTo(channel)
         }.channel

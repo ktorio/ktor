@@ -5,7 +5,6 @@
 package io.ktor.tests.websocket
 
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -14,6 +13,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -29,7 +29,7 @@ class RawWebSocketTest : BaseTest() {
     private lateinit var client: WebSocketSession
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
-        if (cause !is CancellationException && cause !is PlannedIOException) {
+        if (cause !is CancellationException && cause !is kotlinx.io.IOException) {
             collectUnhandledException(cause)
         }
     }
@@ -73,6 +73,7 @@ class RawWebSocketTest : BaseTest() {
         ensureCompletion()
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun testServerIncomingDisconnected(): Unit = runTest {
         client2server.close()
@@ -88,7 +89,7 @@ class RawWebSocketTest : BaseTest() {
     @Test
     fun testServerIncomingConnectionLoss(): Unit = runTest {
         client2server.close(PlannedIOException())
-        ensureCompletion(allowedExceptionsFromIncoming = listOf(IOException::class))
+        ensureCompletion(allowedExceptionsFromIncoming = listOf(kotlinx.io.IOException::class))
     }
 
     @Test

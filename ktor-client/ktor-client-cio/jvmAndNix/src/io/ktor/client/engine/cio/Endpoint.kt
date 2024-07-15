@@ -96,8 +96,8 @@ internal class Endpoint(
     ): HttpResponseData {
         try {
             val connection = connect(request)
-            val input = this@Endpoint.mapEngineExceptions(connection.input, request)
-            val originOutput = this@Endpoint.mapEngineExceptions(connection.output, request)
+            val input = connection.input
+            val originOutput = connection.output
 
             val output = originOutput.handleHalfClosed(
                 callContext,
@@ -132,6 +132,7 @@ internal class Endpoint(
         }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun processExpectContinue(
         request: HttpRequestData,
         input: ByteReadChannel,

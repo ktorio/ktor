@@ -2,7 +2,7 @@ description = "Ktor network utilities"
 
 kotlin {
     createCInterop("network", nixTargets()) {
-        defFile = projectDir.resolve("nix/interop/network.def")
+        definitionFile = projectDir.resolve("nix/interop/network.def")
     }
 
     sourceSets {
@@ -23,6 +23,23 @@ kotlin {
                 implementation(project(":ktor-shared:ktor-junit"))
                 implementation(libs.mockk)
             }
+        }
+
+        macosTest {
+            val nixTest = getByName("nixTest")
+            dependsOn(nixTest)
+        }
+        watchosTest {
+            val nixTest = getByName("nixTest")
+            dependsOn(nixTest)
+        }
+        tvosTest {
+            val nixTest = getByName("nixTest")
+            dependsOn(nixTest)
+        }
+        iosTest {
+            val nixTest = getByName("nixTest")
+            dependsOn(nixTest)
         }
     }
 }

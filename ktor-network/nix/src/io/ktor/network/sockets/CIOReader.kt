@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.posix.*
 
 @Suppress("DEPRECATION")
@@ -23,19 +24,21 @@ internal fun CoroutineScope.attachForReadingImpl(
         while (!channel.isClosedForWrite) {
             var close = false
             val count = channel.write { memory, startIndex, endIndex ->
-                val bufferStart = memory.pointer + startIndex
-                val size = endIndex - startIndex
-                val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
+                memory.usePinned {
+                    val bufferStart = it.addressOf(startIndex)
+                    val size = endIndex - startIndex
+                    val bytesRead = recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
-                when (bytesRead) {
-                    0 -> close = true
-                    -1 -> {
-                        if (errno == EAGAIN) return@write 0
-                        throw PosixException.forErrno()
+                    when (bytesRead) {
+                        0 -> close = true
+                        -1 -> {
+                            if (errno == EAGAIN) return@write 0
+                            throw PosixException.forErrno()
+                        }
                     }
-                }
 
-                bytesRead
+                    bytesRead
+                }
             }
 
             channel.flush()

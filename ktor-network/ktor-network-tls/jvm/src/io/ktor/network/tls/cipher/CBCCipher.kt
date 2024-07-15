@@ -26,6 +26,7 @@ internal class CBCCipher(
     private var inputCounter: Long = 0L
     private var outputCounter: Long = 0L
 
+    @Suppress("DEPRECATION")
     override fun encrypt(record: TLSRecord): TLSRecord {
         sendCipher.init(Cipher.ENCRYPT_MODE, sendKey, IvParameterSpec(generateNonce(suite.fixedIvLength)))
 
@@ -45,6 +46,7 @@ internal class CBCCipher(
         return TLSRecord(record.type, packet = packet)
     }
 
+    @Suppress("DEPRECATION")
     override fun decrypt(record: TLSRecord): TLSRecord {
         val packet = record.packet
         val serverIV = packet.readBytes(suite.fixedIvLength)
@@ -84,6 +86,7 @@ internal class CBCCipher(
         return sendMac.doFinal(content)
     }
 
+    @Suppress("DEPRECATION")
     private fun BytePacketBuilder.writePadding() {
         val lastBlockSize = (size + 1) % sendCipher.blockSize
         val paddingSize: Byte = (sendCipher.blockSize - lastBlockSize).toByte()

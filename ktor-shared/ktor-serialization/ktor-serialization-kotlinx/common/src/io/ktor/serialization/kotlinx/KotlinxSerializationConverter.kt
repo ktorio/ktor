@@ -53,6 +53,7 @@ public class KotlinxSerializationConverter(
         return serializeContent(serializer, format, value, contentType, charset)
     }
 
+    @Suppress("DEPRECATION")
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         val fromExtension = extensions.asFlow()
             .map { it.deserialize(charset, typeInfo, content) }

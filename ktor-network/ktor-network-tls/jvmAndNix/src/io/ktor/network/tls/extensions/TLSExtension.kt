@@ -21,12 +21,13 @@ public enum class TLSExtensionType(public val code: Short) {
 
     public companion object {
         public fun byCode(code: Int): TLSExtensionType =
-            values().find { it.code == code.toShort() } ?: throw TLSException(
+            entries.find { it.code == code.toShort() } ?: throw TLSException(
                 "Unknown server hello extension type: $code"
             )
     }
 }
 
+@Suppress("DEPRECATION")
 internal class TLSExtension(
     val type: TLSExtensionType,
     val length: Int,

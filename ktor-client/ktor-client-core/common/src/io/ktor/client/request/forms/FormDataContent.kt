@@ -38,6 +38,7 @@ public class FormDataContent(
  *
  * @param parts form part data
  */
+@Suppress("DEPRECATION")
 public class MultiPartFormDataContent(
     parts: List<PartData>,
     public val boundary: String = generateBoundary(),
@@ -110,6 +111,7 @@ public class MultiPartFormDataContent(
         contentLength = rawLength
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun writeTo(channel: ByteWriteChannel) {
         try {
             for (part in rawParts) {
@@ -158,14 +160,5 @@ private sealed class PreparedPart(val headers: ByteArray, val size: Long?) {
 
 @Suppress("DEPRECATION")
 private suspend fun Input.copyTo(channel: ByteWriteChannel) {
-    if (this is ByteReadPacket) {
-        channel.writePacket(this)
-        return
-    }
-
-    while (!this@copyTo.endOfInput) {
-        channel.write { freeSpace, startOffset, endExclusive ->
-            this@copyTo.readAvailable(freeSpace, startOffset, endExclusive - startOffset).toInt()
-        }
-    }
+    channel.writePacket(this)
 }

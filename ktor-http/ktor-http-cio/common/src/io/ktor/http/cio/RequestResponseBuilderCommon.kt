@@ -44,6 +44,7 @@ public expect class RequestResponseBuilder() {
     /**
      * Build a packet of request/response
      */
+    @Suppress("DEPRECATION")
     public fun build(): ByteReadPacket
 
     /**

@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.collections.*
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
     val body = response.content.readRemaining().readBytes()

@@ -63,6 +63,7 @@ internal abstract class NIOSocketImpl<out S>(
         close()
     }
 
+    @Suppress("DEPRECATION")
     override fun close() {
         if (!closeFlag.compareAndSet(false, true)) return
 
@@ -72,7 +73,7 @@ internal abstract class NIOSocketImpl<out S>(
     }
 
     @Suppress("DEPRECATION")
-    private fun <J : Job> attachFor(
+    private fun <J : ChannelJob> attachFor(
         name: String,
         channel: ByteChannel,
         ref: AtomicReference<J?>,
@@ -141,11 +142,11 @@ internal abstract class NIOSocketImpl<out S>(
         }
     }
 
-    private val AtomicReference<out Job?>.completedOrNotStarted: Boolean
+    private val AtomicReference<out ChannelJob?>.completedOrNotStarted: Boolean
         get() = get().let { it == null || it.isCompleted }
 
     @OptIn(InternalCoroutinesApi::class)
-    private val AtomicReference<out Job?>.exception: Throwable?
+    private val AtomicReference<out ChannelJob?>.exception: Throwable?
         get() = get()?.takeIf { it.isCancelled }
             ?.getCancellationException()?.cause // TODO it should be completable deferred or provide its own exception
 }

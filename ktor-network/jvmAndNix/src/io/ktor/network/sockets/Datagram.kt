@@ -14,6 +14,7 @@ internal const val MAX_DATAGRAM_SIZE = 65535
  * @property packet content
  * @property address to send to
  */
+@Suppress("DEPRECATION")
 public class Datagram(
     public val packet: ByteReadPacket,
     public val address: SocketAddress

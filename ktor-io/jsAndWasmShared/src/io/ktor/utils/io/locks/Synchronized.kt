@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.locks
@@ -38,7 +38,7 @@ public actual class ReentrantLock {
  */
 @JsName(REENTRANT_LOCK)
 @InternalAPI
-public val Lock: ReentrantLock = ReentrantLock()
+public val Lock: ReentrantLock = io.ktor.utils.io.locks.ReentrantLock()
 
 /**
  * Creates a new [ReentrantLock] instance.

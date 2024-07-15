@@ -43,9 +43,13 @@ public class DefaultHeadersConfig {
         public fun now(): Long
     }
 
-    private val _cachedDateText: AtomicRef<String> = atomic("")
+    private val _cachedDateText = atomic("")
 
-    internal var cachedDateText: String by _cachedDateText
+    internal var cachedDateText: String
+        get() = _cachedDateText.value
+        set(value) {
+            _cachedDateText.value = value
+        }
 }
 
 /**

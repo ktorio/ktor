@@ -37,6 +37,7 @@ internal class EndPointReader(
         runReader()
     }
 
+    @Suppress("DEPRECATION")
     private fun runReader(): Job {
         return launch(EndpointReaderCoroutineName + Dispatchers.Unconfined) {
             try {

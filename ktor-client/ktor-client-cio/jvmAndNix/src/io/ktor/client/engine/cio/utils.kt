@@ -16,9 +16,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.errors.EOFException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
 
 internal suspend fun writeRequest(
@@ -32,6 +32,7 @@ internal suspend fun writeRequest(
     writeBody(request, output, callContext)
 }
 
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun writeHeaders(
     request: HttpRequestData,
@@ -100,7 +101,7 @@ internal suspend fun writeHeaders(
     }
 }
 
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
+@Suppress("TYPEALIAS_EXPANSION_DEPRECATION", "DEPRECATION")
 internal suspend fun writeBody(
     request: HttpRequestData,
     output: ByteWriteChannel,
@@ -162,7 +163,6 @@ private suspend fun processOutgoingContent(request: HttpRequestData, body: Outgo
     }
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
@@ -172,7 +172,7 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: unexpected EOF")
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
@@ -240,7 +240,7 @@ internal suspend fun startTunnel(
         output.flush()
 
         val rawResponse = parseResponse(input)
-            ?: throw EOFException("Failed to parse CONNECT response: unexpected EOF")
+            ?: throw kotlinx.io.EOFException("Failed to parse CONNECT response: unexpected EOF")
         rawResponse.use {
             if (rawResponse.status / 200 != 1) {
                 throw IOException("Can not establish tunnel connection")
@@ -274,7 +274,6 @@ internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
 /**
  * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
  */
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun ByteWriteChannel.withoutClosePropagation(
     coroutineContext: CoroutineContext,
