@@ -41,7 +41,7 @@ public actual class InetSocketAddress actual constructor(
     }
 
     public actual override fun toString(): String {
-        return "InetSocketSddress($hostname:$port)"
+        return "InetSocketAddress($hostname:$port)"
     }
 }
 
