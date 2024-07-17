@@ -6,6 +6,7 @@ package io.ktor.client.engine.winhttp
 
 import io.ktor.client.engine.*
 import io.ktor.http.*
+import kotlinx.cinterop.*
 
 public class WinHttpClientEngineConfig : HttpClientEngineConfig() {
 
@@ -25,4 +26,19 @@ public class WinHttpClientEngineConfig : HttpClientEngineConfig() {
      * A value that disables TLS verification for outgoing requests.
      */
     public var sslVerify: Boolean = true
+
+    /**
+     * Handles the challenge of HTTP responses.
+     */
+    @OptIn(ExperimentalForeignApi::class)
+    public var challengeHandler: ChallengeHandler? = null
+        private set
+
+    /**
+     * Sets the [block] as an HTTP request challenge handler.
+     */
+    @OptIn(ExperimentalForeignApi::class)
+    public fun handleChallenge(block: ChallengeHandler) {
+        challengeHandler = block
+    }
 }
