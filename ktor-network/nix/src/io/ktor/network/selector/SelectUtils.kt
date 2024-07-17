@@ -20,7 +20,9 @@ import kotlin.math.*
 internal expect fun inetNtopBridge(type: Int, address: CPointer<*>, addressOf: CPointer<*>, size: Int)
 
 @OptIn(InternalAPI::class)
-internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(private val fdSetSize: Int = fd_setsize()) {
+internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(
+    private val fdSetSize: Int = fd_setsize()
+) {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
     private val closeQueue = LockFreeMPSCQueue<Int>()

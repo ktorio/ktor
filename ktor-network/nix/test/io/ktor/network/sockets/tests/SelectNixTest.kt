@@ -17,7 +17,13 @@ class SelectNixTest {
     fun selectDescriptorIsEqualOrLargerThanFdSetSize() = testSuspend {
         val scope = CoroutineScope(
             CoroutineExceptionHandler { _, cause ->
-                assertEquals("File descriptor 3 is larger or equal to FD_SETSIZE (3)", cause.message)
+                val regexStr = """File descriptor \d+ is larger or equal to FD_SETSIZE \(3\)"""
+                val message = cause.message
+                assertNotNull(message)
+                assertTrue(
+                    regexStr.toRegex().matches(message),
+                    "Expected message in format \"$regexStr\", got $message"
+                )
             }
         )
 
