@@ -10,7 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import org.slf4j.*
+import io.ktor.util.logging.*
 import kotlin.test.*
 
 class CSRFTest {
@@ -232,9 +232,9 @@ class CSRFTest {
     @Test
     fun logsWarningWhenMisconfigured() {
         val warnings = mutableListOf<String>()
-        val testLogger = object : Logger by LoggerFactory.getLogger("") {
-            override fun info(message: String?) {
-                message?.let(warnings::add)
+        val testLogger = object : Logger by KtorSimpleLogger("") {
+            override fun info(message: String) {
+                message.let(warnings::add)
             }
         }
         testApplication {
