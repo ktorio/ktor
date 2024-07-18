@@ -12,8 +12,8 @@ public final class io/ktor/http/cio/CIOHeaders : io/ktor/http/Headers {
 }
 
 public final class io/ktor/http/cio/CIOMultipartDataBase : io/ktor/http/content/MultiPartData, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;I)V
-	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;J)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun readPart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -106,8 +106,8 @@ public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/M
 }
 
 public final class io/ktor/http/cio/MultipartKt {
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;J)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;J)Lkotlinx/coroutines/channels/ReceiveChannel;
 }
 
 public final class io/ktor/http/cio/ParserException : java/lang/IllegalStateException {

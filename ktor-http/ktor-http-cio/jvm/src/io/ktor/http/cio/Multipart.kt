@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
-import java.io.EOFException
 import java.nio.*
 
 /**
@@ -168,12 +167,13 @@ private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadCh
  */
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
-    headers: HttpHeadersMap
+    headers: HttpHeadersMap,
+    maxPartSize: Long
 ): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
 
-    return parseMultipart(input, contentType, contentLength)
+    return parseMultipart(input, contentType, contentLength, maxPartSize)
 }
 
 /**
@@ -183,7 +183,8 @@ public fun CoroutineScope.parseMultipart(
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
-    contentLength: Long?
+    contentLength: Long?,
+    maxPartSize: Long
 ): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) {
         throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
@@ -191,19 +192,19 @@ public fun CoroutineScope.parseMultipart(
     val boundaryBytes = parseBoundaryInternal(contentType)
 
     // TODO fail if contentLength = 0 and content subtype is wrong
-
-    return parseMultipart(boundaryBytes, input, contentLength)
+    return parseMultipart(boundaryBytes, input, contentLength, maxPartSize)
 }
 
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 private fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
-    totalLength: Long?
+    totalLength: Long?,
+    maxPartSize: Long
 ): ReceiveChannel<MultipartEvent> = produce {
     val countedInput = input.counted()
     val readBeforeParse = countedInput.totalBytesRead
@@ -236,20 +237,20 @@ private fun CoroutineScope.parseMultipart(
         val part = MultipartEvent.MultipartPart(headers, body)
         send(part)
 
-        var hh: HttpHeadersMap? = null
+        var headersMap: HttpHeadersMap? = null
         try {
-            hh = parsePartHeadersImpl(countedInput)
-            if (!headers.complete(hh)) {
-                hh.release()
+            headersMap = parsePartHeadersImpl(countedInput)
+            if (!headers.complete(headersMap)) {
+                headersMap.release()
                 throw kotlin.coroutines.cancellation.CancellationException("Multipart processing has been cancelled")
             }
-            parsePartBodyImpl(boundaryPrefixed, countedInput, body, hh)
-        } catch (t: Throwable) {
-            if (headers.completeExceptionally(t)) {
-                hh?.release()
+            parsePartBodyImpl(boundaryPrefixed, countedInput, body, headersMap, maxPartSize)
+        } catch (cause: Throwable) {
+            if (headers.completeExceptionally(cause)) {
+                headersMap?.release()
             }
-            body.close(t)
-            throw t
+            body.close(cause)
+            throw cause
         }
 
         body.close()

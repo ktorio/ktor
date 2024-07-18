@@ -17,31 +17,42 @@ public val ByteReadChannel.totalBytesRead: Long
 public fun ByteReadChannel.counted(): CountedByteReadChannel = CountedByteReadChannel(this)
 
 public class CountedByteReadChannel(public val delegate: ByteReadChannel) : ByteReadChannel {
-    private var count = 0L
-    private var initial = delegate.availableForRead
+    private val buffer = Buffer()
+    private var initial = 0L
+    private var consumed = 0L
 
     public val totalBytesRead: Long
-        get() = count + (initial - delegate.availableForRead).toLong()
+        get() {
+            updateConsumed()
+            return consumed
+        }
 
     override val closedCause: Throwable?
         get() = delegate.closedCause
 
     override val isClosedForRead: Boolean
-        get() = delegate.isClosedForRead
+        get() = buffer.exhausted() && delegate.isClosedForRead
 
     @InternalAPI
     override val readBuffer: Source
-        get() = delegate.readBuffer
+        get() {
+            updateConsumed()
+            val appended = buffer.transferFrom(delegate.readBuffer)
+            initial += appended
+            return buffer
+        }
 
     override suspend fun awaitContent(min: Int): Boolean {
-        val before = delegate.availableForRead
-        val result = delegate.awaitContent(min)
-        count += (initial - before).toLong()
-        initial = delegate.availableForRead
-        return result
+        return delegate.awaitContent(min)
     }
 
     override fun cancel(cause: Throwable?) {
         delegate.cancel(cause)
+        buffer.close()
+    }
+
+    private fun updateConsumed() {
+        consumed += initial - buffer.size
+        initial = buffer.size
     }
 }

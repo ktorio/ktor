@@ -4,16 +4,21 @@
 
 package io.ktor.tests.server.http
 
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 
 @Suppress("DEPRECATION")
@@ -23,73 +28,60 @@ class TestEngineMultipartTest {
 
     @Test
     fun testNonMultipart() {
-        testMultiParts(
-            {
-                assertNull(it, "it should be no multipart data")
-            },
-            setup = {}
-        )
+        testMultiParts({
+            assertNull(it, "it should be no multipart data")
+        }, setup = {})
     }
 
     @Test
     fun testMultiPartsPlainItemBinary() {
         val bytes = ByteArray(256) { it.toByte() }
-        testMultiPartsFileItemBase(
-            filename = "file.bin",
+        testMultiPartsFileItemBase(filename = "file.bin",
             provider = { ByteReadChannel(bytes) },
-            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes())) }
-        )
+            extraFileAssertions = { file ->
+                assertEquals(
+                    hex(bytes), hex(file.provider().readRemaining().readBytes())
+                )
+            })
     }
 
     @Test
     fun testMultiPartsFileItemText() {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
-        testMultiPartsFileItemBase(
-            filename = "file.txt",
+        testMultiPartsFileItemBase(filename = "file.txt",
             provider = { ByteReadChannel(string.toByteArray()) },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
-        )
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) })
     }
 
     @Test
     fun testMultiPartsFileItem() {
         val bytes = ByteArray(256) { it.toByte() }
 
-        testMultiParts(
-            {
-                assertNotNull(it, "it should be multipart data")
-                @Suppress("DEPRECATION")
-                val parts = it.readAllParts()
+        testMultiParts({
+            assertNotNull(it, "it should be multipart data")
+            @Suppress("DEPRECATION") val parts = it.readAllParts()
 
-                assertEquals(1, parts.size)
-                val file = parts[0] as PartData.FileItem
+            assertEquals(1, parts.size)
+            val file = parts[0] as PartData.FileItem
 
-                assertEquals("fileField", file.name)
-                assertEquals("file.bin", file.originalFileName)
-                assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
+            assertEquals("fileField", file.name)
+            assertEquals("file.bin", file.originalFileName)
+            assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
 
-                file.dispose()
-            },
-            setup = {
-                addHeader(HttpHeaders.ContentType, contentType.toString())
-                bodyChannel = buildMultipart(
-                    boundary,
-                    listOf(
-                        PartData.FileItem(
-                            provider = { ByteReadChannel(bytes) },
-                            dispose = {},
-                            partHeaders = headersOf(
-                                HttpHeaders.ContentDisposition,
-                                ContentDisposition.File
-                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
-                                    .toString()
-                            )
-                        )
-                    )
+            file.dispose()
+        }, setup = {
+            addHeader(HttpHeaders.ContentType, contentType.toString())
+            bodyChannel = buildMultipart(
+                boundary,
+                listOf(PartData.FileItem(provider = { ByteReadChannel(bytes) }, dispose = {}, partHeaders = headersOf(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "fileField")
+                        .withParameter(ContentDisposition.Parameters.FileName, "file.bin").toString()
                 )
-            }
-        )
+                )
+                )
+            )
+        })
     }
 
     @Test
@@ -97,8 +89,7 @@ class TestEngineMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 try {
-                    @Suppress("DEPRECATION")
-                    call.receiveMultipart().readAllParts()
+                    @Suppress("DEPRECATION") call.receiveMultipart().readAllParts()
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
                 }
@@ -106,6 +97,93 @@ class TestEngineMultipartTest {
 
             assertFailsWith<AssertionError> {
                 handleRequest(HttpMethod.Post, "/")
+            }
+        }
+    }
+
+    @Test
+    fun testMultipartIsNotTruncated() {
+        if (!PlatformUtils.IS_JVM) return
+
+        testApplication {
+            routing {
+                post {
+                    val multipart = call.receiveMultipart(formFieldLimit = 60 * 1024 * 1024)
+                    while (true) {
+                        val part = multipart.readPart() ?: break
+                        when (part) {
+                            is PartData.FileItem -> {
+                                part.provider().readRemaining().readText()
+                            }
+
+                            is PartData.FormItem -> {
+                                part.value
+                            }
+
+                            is PartData.BinaryChannelItem -> {
+                                part.provider().readRemaining().readText()
+                            }
+
+                            is PartData.BinaryItem -> {
+                                part.provider().readBytes()
+                            }
+                        }
+                        part.dispose()
+                    }
+                    call.respondText("OK")
+                }
+            }
+
+            val response = client.post {
+                setBody(MultiPartFormDataContent(formData {
+                    append("data", "a".repeat(42 * 1024 * 1024))
+                }))
+            }
+
+            if (response.status == HttpStatusCode.UnsupportedMediaType) {
+                return@testApplication
+            }
+        }
+    }
+
+    @Test
+    fun testMultipartBigger65536Fails() {
+        if (!PlatformUtils.IS_JVM) return
+
+        testApplication {
+            routing {
+                post {
+                    val multipart = call.receiveMultipart()
+                    while (true) {
+                        val part = multipart.readPart() ?: break
+                        when (part) {
+                            is PartData.FileItem -> {
+                                part.provider().readRemaining().readText()
+                            }
+
+                            is PartData.FormItem -> {
+                                part.value
+                            }
+
+                            is PartData.BinaryChannelItem -> {
+                                part.provider().readRemaining().readText()
+                            }
+
+                            is PartData.BinaryItem -> {
+                                part.provider().readBytes()
+                            }
+                        }
+                        part.dispose()
+                    }
+                }
+            }
+
+            assertFailsWith<IOException> {
+                client.post {
+                    setBody(MultiPartFormDataContent(formData {
+                        append("data", "a".repeat(42 * 1024 * 1024))
+                    }))
+                }
             }
         }
     }
@@ -129,49 +207,39 @@ class TestEngineMultipartTest {
         provider: () -> ByteReadChannel,
         extraFileAssertions: suspend (file: PartData.FileItem) -> Unit
     ) {
-        testMultiParts(
-            {
-                assertNotNull(it, "it should be multipart data")
-                @Suppress("DEPRECATION")
-                val parts = it.readAllParts()
+        testMultiParts({
+            assertNotNull(it, "it should be multipart data")
+            @Suppress("DEPRECATION") val parts = it.readAllParts()
 
-                assertEquals(1, parts.size)
-                val file = parts[0] as PartData.FileItem
+            assertEquals(1, parts.size)
+            val file = parts[0] as PartData.FileItem
 
-                assertEquals("fileField", file.name)
-                assertEquals(filename, file.originalFileName)
-                extraFileAssertions(file)
+            assertEquals("fileField", file.name)
+            assertEquals(filename, file.originalFileName)
+            extraFileAssertions(file)
 
-                file.dispose()
-            },
-            setup = {
-                addHeader(HttpHeaders.ContentType, contentType.toString())
-                bodyChannel = buildMultipart(
-                    boundary,
-                    listOf(
-                        PartData.FileItem(
-                            provider = provider,
-                            dispose = {},
-                            partHeaders = headersOf(
-                                HttpHeaders.ContentDisposition,
-                                ContentDisposition.File
-                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, filename)
-                                    .toString()
-                            )
+            file.dispose()
+        }, setup = {
+            addHeader(HttpHeaders.ContentType, contentType.toString())
+            bodyChannel = buildMultipart(
+                boundary, listOf(
+                    PartData.FileItem(
+                        provider = provider, dispose = {}, partHeaders = headersOf(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                .withParameter(ContentDisposition.Parameters.FileName, filename).toString()
                         )
                     )
                 )
-            }
-        )
+            )
+        })
     }
 }
 
 @Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
-    boundary: String,
-    parts: List<PartData>
+    boundary: String, parts: List<PartData>
 ): ByteReadChannel = GlobalScope.writer {
     if (parts.isEmpty()) return@writer
 

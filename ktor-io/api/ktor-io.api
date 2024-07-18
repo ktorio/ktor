@@ -68,6 +68,7 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static final fun discard (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun discard$default (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun discardExact (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun exhausted (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getAvailableForRead (Lio/ktor/utils/io/ByteReadChannel;)I
 	public static final fun getAvailableForWrite (Lio/ktor/utils/io/ByteWriteChannel;)I
 	public static final fun read (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
