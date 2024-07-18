@@ -1,6 +1,6 @@
 
 plugins {
-    id("org.jetbrains.kotlinx.kover") version "0.7.6"
+    id("org.jetbrains.kotlinx.kover") version "0.8.2"
 }
 
 kotlin {
