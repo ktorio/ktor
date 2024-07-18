@@ -36,21 +36,26 @@ class TestEngineMultipartTest {
     @Test
     fun testMultiPartsPlainItemBinary() {
         val bytes = ByteArray(256) { it.toByte() }
-        testMultiPartsFileItemBase(filename = "file.bin",
+        testMultiPartsFileItemBase(
+            filename = "file.bin",
             provider = { ByteReadChannel(bytes) },
             extraFileAssertions = { file ->
                 assertEquals(
-                    hex(bytes), hex(file.provider().readRemaining().readBytes())
+                    hex(bytes),
+                    hex(file.provider().readRemaining().readBytes())
                 )
-            })
+            }
+        )
     }
 
     @Test
     fun testMultiPartsFileItemText() {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
-        testMultiPartsFileItemBase(filename = "file.txt",
+        testMultiPartsFileItemBase(
+            filename = "file.txt",
             provider = { ByteReadChannel(string.toByteArray()) },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) })
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
+        )
     }
 
     @Test
@@ -71,16 +76,24 @@ class TestEngineMultipartTest {
             file.dispose()
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
-            bodyChannel = buildMultipart(
-                boundary,
-                listOf(PartData.FileItem(provider = { ByteReadChannel(bytes) }, dispose = {}, partHeaders = headersOf(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "fileField")
-                        .withParameter(ContentDisposition.Parameters.FileName, "file.bin").toString()
+            bodyChannel =
+                buildMultipart(
+                    boundary,
+                    listOf(
+                        PartData.FileItem(
+                            provider = { ByteReadChannel(bytes) },
+                            dispose = {},
+                            partHeaders =
+                            headersOf(
+                                HttpHeaders.ContentDisposition,
+                                ContentDisposition.File
+                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
+                                    .toString()
+                            )
+                        )
+                    )
                 )
-                )
-                )
-            )
         })
     }
 
@@ -134,11 +147,16 @@ class TestEngineMultipartTest {
                 }
             }
 
-            val response = client.post {
-                setBody(MultiPartFormDataContent(formData {
-                    append("data", "a".repeat(42 * 1024 * 1024))
-                }))
-            }
+            val response =
+                client.post {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("data", "a".repeat(42 * 1024 * 1024))
+                            }
+                        )
+                    )
+                }
 
             if (response.status == HttpStatusCode.UnsupportedMediaType) {
                 return@testApplication
@@ -180,15 +198,22 @@ class TestEngineMultipartTest {
 
             assertFailsWith<IOException> {
                 client.post {
-                    setBody(MultiPartFormDataContent(formData {
-                        append("data", "a".repeat(42 * 1024 * 1024))
-                    }))
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("data", "a".repeat(42 * 1024 * 1024))
+                            }
+                        )
+                    )
                 }
             }
         }
     }
 
-    private fun testMultiParts(asserts: suspend (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
+    private fun testMultiParts(
+        asserts: suspend (MultiPartData?) -> Unit,
+        setup: TestApplicationRequest.() -> Unit
+    ) {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 if (call.request.isMultipart()) {
@@ -221,17 +246,24 @@ class TestEngineMultipartTest {
             file.dispose()
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
-            bodyChannel = buildMultipart(
-                boundary, listOf(
-                    PartData.FileItem(
-                        provider = provider, dispose = {}, partHeaders = headersOf(
-                            HttpHeaders.ContentDisposition,
-                            ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                .withParameter(ContentDisposition.Parameters.FileName, filename).toString()
+            bodyChannel =
+                buildMultipart(
+                    boundary,
+                    listOf(
+                        PartData.FileItem(
+                            provider = provider,
+                            dispose = {},
+                            partHeaders =
+                            headersOf(
+                                HttpHeaders.ContentDisposition,
+                                ContentDisposition.File
+                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                    .withParameter(ContentDisposition.Parameters.FileName, filename)
+                                    .toString()
+                            )
                         )
                     )
                 )
-            )
         })
     }
 }
@@ -239,46 +271,52 @@ class TestEngineMultipartTest {
 @Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
-    boundary: String, parts: List<PartData>
-): ByteReadChannel = GlobalScope.writer {
-    if (parts.isEmpty()) return@writer
+    boundary: String,
+    parts: List<PartData>
+): ByteReadChannel =
+    GlobalScope
+        .writer {
+            if (parts.isEmpty()) return@writer
 
-    try {
-        append("\r\n\r\n")
-        parts.forEach {
-            append("--$boundary\r\n")
-            for ((key, values) in it.headers.entries()) {
-                append("$key: ${values.joinToString(";")}\r\n")
-            }
-            append("\r\n")
-            append(
-                when (it) {
-                    is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readBytes())
-                        ""
+            try {
+                append("\r\n\r\n")
+                parts.forEach {
+                    append("--$boundary\r\n")
+                    for ((key, values) in it.headers.entries()) {
+                        append("$key: ${values.joinToString(";")}\r\n")
                     }
+                    append("\r\n")
+                    append(
+                        when (it) {
+                            is PartData.FileItem -> {
+                                channel.writeFully(it.provider().readRemaining().readBytes())
+                                ""
+                            }
 
-                    is PartData.BinaryItem -> {
-                        channel.writeFully(it.provider().readBytes())
-                        ""
-                    }
+                            is PartData.BinaryItem -> {
+                                channel.writeFully(it.provider().readBytes())
+                                ""
+                            }
 
-                    is PartData.FormItem -> it.value
-                    is PartData.BinaryChannelItem -> {
-                        it.provider().copyTo(channel)
-                        ""
-                    }
+                            is PartData.FormItem -> it.value
+                            is PartData.BinaryChannelItem -> {
+                                it.provider().copyTo(channel)
+                                ""
+                            }
+                        }
+                    )
+                    append("\r\n")
                 }
-            )
-            append("\r\n")
-        }
 
-        append("--$boundary--\r\n")
-    } finally {
-        parts.forEach { it.dispose() }
-    }
-}.channel
+                append("--$boundary--\r\n")
+            } finally {
+                parts.forEach { it.dispose() }
+            }
+        }.channel
 
-private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+private suspend fun WriterScope.append(
+    str: String,
+    charset: Charset = Charsets.UTF_8
+) {
     channel.writeFully(str.toByteArray(charset))
 }

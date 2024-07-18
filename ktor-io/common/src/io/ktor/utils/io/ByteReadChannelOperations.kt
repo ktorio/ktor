@@ -19,7 +19,6 @@ import kotlin.math.*
 public val ByteWriteChannel.availableForWrite: Int
     get() = CHANNEL_MAX_SIZE - writeBuffer.size
 
-
 /**
  * Suspends the channel until it is exhausted or gets closed.
  * If the read buffer is empty, it suspends until there are bytes available in the channel.
