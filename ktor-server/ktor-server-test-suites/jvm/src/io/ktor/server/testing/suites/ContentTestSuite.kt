@@ -27,7 +27,6 @@ import kotlin.test.*
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
-
     @Test
     fun testTextContent() {
         createAndStartServer {
@@ -115,10 +114,11 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testLocalFileContent() {
-        val file = listOf(File("jvm"), File("ktor-server/ktor-server/jvm"))
-            .filter { it.exists() }
-            .flatMap { it.walkBottomUp().filter { it.extension == "kt" }.asIterable() }
-            .first()
+        val file =
+            listOf(File("jvm"), File("ktor-server/ktor-server/jvm"))
+                .filter { it.exists() }
+                .flatMap { it.walkBottomUp().filter { it.extension == "kt" }.asIterable() }
+                .first()
 
         testLog.trace("test file is $file")
 
@@ -202,7 +202,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             handle {
                 call.respond(
                     URIFileContent(
-                        this::class.java.classLoader.getResources("java/util/ArrayList.class").toList().first()
+                        this::class.java.classLoader
+                            .getResources("java/util/ArrayList.class")
+                            .toList()
+                            .first()
                     )
                 )
             }
@@ -224,8 +227,11 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     fun testURIContentLocalFile() {
-        val file = File("build/classes/").walkBottomUp()
-            .filter { it.extension == "class" }.first()
+        val file =
+            File("build/classes/")
+                .walkBottomUp()
+                .filter { it.extension == "class" }
+                .first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -312,6 +318,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.respond(
                     object : OutgoingContent.ByteArrayContent() {
                         override val contentLength: Long? get() = size
+
                         override fun bytes(): ByteArray = data
                     }
                 )
@@ -334,6 +341,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.respond(
                     object : OutgoingContent.ReadChannelContent() {
                         override val contentLength: Long? get() = size
+
                         override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
                     }
                 )
@@ -449,8 +457,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     fun testStaticServeFromDir() {
         val targetClasses = File(classesDir)
 
-        val file = targetClasses.walkBottomUp()
-            .first { it.extension == "class" && !it.name.contains('$') }
+        val file =
+            targetClasses
+                .walkBottomUp()
+                .first { it.extension == "class" && !it.name.contains('$') }
 
         val location = file.parentFile!!
 
@@ -569,9 +579,12 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append(
-                            "file:${part.name},${part.originalFileName},${part.provider().readRemaining().readText()}\n"
-                        )
+                        is PartData.FileItem ->
+                            response.append(
+                                "file:${part.name},${part.originalFileName},${
+                                    part.provider().readRemaining().readText()
+                                }\n"
+                            )
 
                         is PartData.BinaryItem -> {}
                         is PartData.BinaryChannelItem -> {}
@@ -588,9 +601,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             "/",
             {
                 method = HttpMethod.Post
-                val contentType = ContentType.MultiPart.FormData
-                    .withParameter("boundary", "***bbb***")
-                    .withCharset(Charsets.ISO_8859_1)
+                val contentType =
+                    ContentType.MultiPart.FormData
+                        .withParameter("boundary", "***bbb***")
+                        .withCharset(Charsets.ISO_8859_1)
 
                 setBody(
                     WriterContent(
@@ -632,12 +646,15 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
-
-                call.receiveMultipart().forEachPart { part ->
+                call.receiveMultipart(formFieldLimit = 1 * 1024 * 1024).forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem -> {
-                            val lineSequence = part.provider().readRemaining().readText().lines()
+                            val lineSequence = part.provider()
+                                .readRemaining()
+                                .readText()
+                                .lines()
+
                             response.append("file:${part.name},${part.originalFileName},${lineSequence.count()}\n")
                         }
 
@@ -658,9 +675,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             "/",
             {
                 method = HttpMethod.Post
-                val contentType = ContentType.MultiPart.FormData
-                    .withParameter("boundary", "***bbb***")
-                    .withCharset(Charsets.ISO_8859_1)
+                val contentType =
+                    ContentType.MultiPart.FormData
+                        .withParameter("boundary", "***bbb***")
+                        .withCharset(Charsets.ISO_8859_1)
 
                 setBody(
                     WriterContent(

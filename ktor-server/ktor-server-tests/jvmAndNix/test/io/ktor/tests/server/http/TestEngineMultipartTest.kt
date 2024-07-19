@@ -74,27 +74,25 @@ class TestEngineMultipartTest {
             assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
 
             file.dispose()
-        }, setup = {
+        }) {
             addHeader(HttpHeaders.ContentType, contentType.toString())
-            bodyChannel =
-                buildMultipart(
-                    boundary,
-                    listOf(
-                        PartData.FileItem(
-                            provider = { ByteReadChannel(bytes) },
-                            dispose = {},
-                            partHeaders =
-                            headersOf(
-                                HttpHeaders.ContentDisposition,
-                                ContentDisposition.File
-                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
-                                    .toString()
-                            )
-                        )
-                    )
+            val partHeaders = headersOf(
+                HttpHeaders.ContentDisposition,
+                ContentDisposition.File
+                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
+                    .toString()
+            )
+            val parts = listOf(
+                PartData.FileItem(
+                    provider = { ByteReadChannel(bytes) },
+                    dispose = {},
+                    partHeaders =
+                    partHeaders
                 )
-        })
+            )
+            bodyChannel = buildMultipart(boundary, parts)
+        }
     }
 
     @Test
