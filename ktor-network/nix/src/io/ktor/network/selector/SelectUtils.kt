@@ -142,12 +142,12 @@ internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(
     ) {
         val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
-//        check(event.descriptor > 0) {
-//            "File descriptor ${event.descriptor} is negative"
-//        }
-//        check(event.descriptor < fdSetSize) {
-//            "File descriptor ${event.descriptor} is larger or equal to FD_SETSIZE ($fdSetSize)"
-//        }
+        check(event.descriptor > 0) {
+            "File descriptor ${event.descriptor} is negative"
+        }
+        check(event.descriptor < fdSetSize) {
+            "File descriptor ${event.descriptor} is larger or equal to FD_SETSIZE ($fdSetSize)"
+        }
 
         select_fd_add(event.descriptor, set)
         select_fd_add(event.descriptor, errorSet)
