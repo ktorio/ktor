@@ -8,7 +8,6 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -126,6 +125,15 @@ class TCPSocketTest {
             assertFailsWith<CancellationException> {
                 readChannel.readByte()
             }
+        }
+    }
+
+    @Test
+    fun testConnectToNonExistingSocket() = testSockets { selector ->
+        assertFailsWith<IllegalStateException> {
+            aSocket(selector)
+                .tcp()
+                .connect("localhost", 8001) // there should be no server active on this port
         }
     }
 }

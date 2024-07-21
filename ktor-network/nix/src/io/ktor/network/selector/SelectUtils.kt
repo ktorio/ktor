@@ -204,7 +204,7 @@ internal class SelectorHelper {
         SelectInterest.READ -> readSet
         SelectInterest.WRITE -> writeSet
         SelectInterest.ACCEPT -> readSet
-        else -> error("Unsupported interest ${event.interest}.")
+        SelectInterest.CONNECT -> writeSet
     }
 }
 
