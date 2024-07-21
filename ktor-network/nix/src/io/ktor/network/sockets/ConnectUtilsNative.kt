@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
+import kotlinx.io.IOException
 import platform.posix.*
 
 private const val DEFAULT_BACKLOG_SIZE = 50
@@ -63,7 +64,7 @@ internal actual suspend fun connect(
         }
     }
 
-    error("Failed to connect to $remoteAddress.")
+    throw IOException("Failed to connect to $remoteAddress.")
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)

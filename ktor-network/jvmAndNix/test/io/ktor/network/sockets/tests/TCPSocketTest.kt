@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 
 class TCPSocketTest {
@@ -130,7 +131,7 @@ class TCPSocketTest {
 
     @Test
     fun testConnectToNonExistingSocket() = testSockets { selector ->
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<IOException> {
             aSocket(selector)
                 .tcp()
                 .connect("localhost", 8001) // there should be no server active on this port
