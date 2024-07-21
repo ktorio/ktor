@@ -19,6 +19,7 @@ internal actual suspend fun connect(
     remoteAddress: SocketAddress,
     socketOptions: SocketOptions.TCPClientSocketOptions
 ): Socket = memScoped {
+    var lastException: PosixException? = null
     for (remote in remoteAddress.resolve()) {
         try {
             val descriptor: Int = socket(remote.family.convert(), SOCK_STREAM, 0).check()
@@ -60,11 +61,12 @@ internal actual suspend fun connect(
                 remoteAddress = remote.toSocketAddress(),
                 localAddress = localAddress.toSocketAddress()
             )
-        } catch (_: Throwable) {
+        } catch (exception: PosixException) {
+            lastException = exception
         }
     }
 
-    throw IOException("Failed to connect to $remoteAddress.")
+    throw IOException("Failed to connect to $remoteAddress.", lastException)
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
