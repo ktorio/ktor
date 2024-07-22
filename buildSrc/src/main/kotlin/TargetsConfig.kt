@@ -11,8 +11,9 @@ import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
 val Project.hasCommon: Boolean get() = files.any { it.name == "common" }
+val Project.hasJvmAndPosix: Boolean get() = hasCommon || files.any { it.name == "jvmAndPosix" }
 val Project.hasJvmAndNix: Boolean get() = hasCommon || files.any { it.name == "jvmAndNix" }
-val Project.hasPosix: Boolean get() = hasCommon || files.any { it.name == "posix" }
+val Project.hasPosix: Boolean get() = hasCommon || hasJvmAndPosix || files.any { it.name == "posix" }
 val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
 val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
 val Project.hasLinux: Boolean get() = hasNix || files.any { it.name == "linux" }
@@ -21,7 +22,7 @@ val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "wind
 val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWasmShared" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
 val Project.hasWasm: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
-val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || files.any { it.name == "jvm" }
+val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || hasJvmAndPosix || files.any { it.name == "jvm" }
 val Project.hasNative: Boolean get() =
     hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
 
@@ -126,6 +127,16 @@ fun Project.configureTargets() {
                 val windowsTest by creating
             }
 
+            if (hasJvmAndPosix) {
+                val jvmAndPosixMain by creating {
+                    findByName("commonMain")?.let { dependsOn(it) }
+                }
+
+                val jvmAndPosixTest by creating {
+                    findByName("commonTest")?.let { dependsOn(it) }
+                }
+            }
+
             if (hasJvmAndNix) {
                 val jvmAndNixMain by creating {
                     findByName("commonMain")?.let { dependsOn(it) }
@@ -139,20 +150,24 @@ fun Project.configureTargets() {
             if (hasJvm) {
                 val jvmMain by getting {
                     findByName("jvmAndNixMain")?.let { dependsOn(it) }
+                    findByName("jvmAndPosixMain")?.let { dependsOn(it) }
                 }
 
                 val jvmTest by getting {
                     findByName("jvmAndNixTest")?.let { dependsOn(it) }
+                    findByName("jvmAndPosixTest")?.let { dependsOn(it) }
                 }
             }
 
             if (hasPosix) {
                 val posixMain by getting {
                     findByName("commonMain")?.let { dependsOn(it) }
+                    findByName("jvmAndPosixMain")?.let { dependsOn(it) }
                 }
 
                 val posixTest by getting {
                     findByName("commonTest")?.let { dependsOn(it) }
+                    findByName("jvmAndPosixTest")?.let { dependsOn(it) }
 
                     dependencies {
                         implementation(kotlin("test"))
@@ -265,6 +280,7 @@ fun Project.configureTargets() {
                 }
 
                 val windowsTest by getting {
+                    findByName("posixTest")?.let { dependsOn(it) }
                     dependencies {
                         implementation(kotlin("test"))
                     }
