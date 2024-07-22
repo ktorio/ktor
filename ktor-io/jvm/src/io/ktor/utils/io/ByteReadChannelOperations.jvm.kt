@@ -204,7 +204,7 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
 @OptIn(InternalAPI::class)
 public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: (ByteBuffer) -> Unit) {
     require(min >= 0) { "min should be positive or zero" }
-    if (availableForRead >= min) {
+    if (availableForRead > 0 && availableForRead >= min) {
         readBuffer.read(consumer)
         return
     }
@@ -214,5 +214,5 @@ public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: 
         throw EOFException("Not enough bytes available: required $min but $availableForRead available")
     }
 
-    readBuffer.read(consumer)
+    if (availableForRead > 0) readBuffer.read(consumer)
 }
