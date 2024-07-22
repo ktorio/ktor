@@ -8,6 +8,11 @@ import io.ktor.client.engine.*
 import io.ktor.http.*
 import kotlinx.cinterop.*
 
+/**
+ * A challenge handler type.
+ */
+public typealias ChallengeHandler = (hRequest: COpaquePointer) -> Unit
+
 public class WinHttpClientEngineConfig : HttpClientEngineConfig() {
 
     /**
@@ -30,14 +35,12 @@ public class WinHttpClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Handles the challenge of HTTP responses.
      */
-    @OptIn(ExperimentalForeignApi::class)
     public var challengeHandler: ChallengeHandler? = null
         private set
 
     /**
      * Sets the [block] as an HTTP request challenge handler.
      */
-    @OptIn(ExperimentalForeignApi::class)
     public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
     }
