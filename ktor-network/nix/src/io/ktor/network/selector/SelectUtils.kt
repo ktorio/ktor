@@ -44,11 +44,15 @@ internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(
     }
 
     fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        val job = scope.launch(CoroutineName("selector")) {
             selectionLoop()
-        }.also {
+        }
+
+        job.invokeOnCompletion {
             cleanup()
         }
+
+        return job
     }
 
     fun requestTermination() {

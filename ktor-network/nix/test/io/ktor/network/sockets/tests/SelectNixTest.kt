@@ -14,7 +14,6 @@ import kotlin.test.*
 
 class SelectNixTest {
     @Test
-    @Ignore
     fun selectDescriptorIsEqualOrLargerThanFdSetSize() = testSuspend {
         val scope = CoroutineScope(
             CoroutineExceptionHandler { _, cause ->
