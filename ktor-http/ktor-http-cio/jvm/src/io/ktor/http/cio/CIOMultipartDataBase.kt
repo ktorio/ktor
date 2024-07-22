@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -21,9 +21,10 @@ public class CIOMultipartDataBase(
     channel: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
-    private val formFieldLimit: Int = 65536,
+    private val formFieldLimit: Long = 65536,
 ) : MultiPartData, CoroutineScope {
-    private val events: ReceiveChannel<MultipartEvent> = parseMultipart(channel, contentType, contentLength)
+    private val events: ReceiveChannel<MultipartEvent> =
+        parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
     override suspend fun readPart(): PartData? {
         while (true) {
@@ -67,8 +68,14 @@ public class CIOMultipartDataBase(
         val contentDisposition = headers["Content-Disposition"]?.let { ContentDisposition.parse(it.toString()) }
         val filename = contentDisposition?.parameter("filename")
 
+        val body = part.body
         if (filename == null) {
-            val packet = part.body.readRemaining(formFieldLimit.toLong()) // TODO fail if limit exceeded
+            val packet = body.readRemaining() // formFieldLimit.toLong())
+//            if (!body.exhausted()) {
+//                val cause = IllegalStateException("Form field size limit exceeded: $formFieldLimit")
+//                body.cancel(cause)
+//                throw cause
+//            }
 
             try {
                 return PartData.FormItem(packet.readText(), { part.release() }, CIOHeaders(headers))
@@ -77,6 +84,10 @@ public class CIOMultipartDataBase(
             }
         }
 
-        return PartData.FileItem({ part.body }, { part.release() }, CIOHeaders(headers))
+        return PartData.FileItem(
+            { part.body },
+            { part.release() },
+            CIOHeaders(headers)
+        )
     }
 }

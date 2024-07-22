@@ -17,6 +17,11 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.reflect.*
 
+private val FORM_FIELD_LIMIT = AttributeKey<Long>("FormFieldLimit")
+
+@PublishedApi
+internal const val DEFAULT_FORM_FIELD_MAX_SIZE: Long = 64 * 1024
+
 /**
  * A pipeline for processing incoming content.
  * When executed, this pipeline starts with an instance of [ByteReadChannel].
@@ -154,11 +159,40 @@ public suspend inline fun ApplicationCall.receiveText(): String {
 public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
 /**
+ * Represents the limit for form field size in bytes for an [ApplicationCall].
+ * This limit determines the maximum size allowed for form field data in a request.
+ *
+ * The default value is 65536 bytes (64 KB).
+ *
+ * To get the value of the formFieldLimit, use the getter:
+ * ```
+ * val limit = call.formFieldLimit
+ * ```
+ *
+ * To set the value of the formFieldLimit, use the setter:
+ * ```
+ * call.formFieldLimit = limit
+ * ```
+ */
+public var ApplicationCall.formFieldLimit: Long
+    get() {
+        return attributes.getOrNull(FORM_FIELD_LIMIT) ?: DEFAULT_FORM_FIELD_MAX_SIZE
+    }
+    set(value) {
+        attributes.put(FORM_FIELD_LIMIT, value)
+    }
+
+/**
  * Receives multipart data for this call.
  * @return instance of [MultiPartData].
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
-public suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+public suspend inline fun ApplicationCall.receiveMultipart(
+    formFieldLimit: Long = DEFAULT_FORM_FIELD_MAX_SIZE
+): MultiPartData {
+    this.formFieldLimit = formFieldLimit
+    return receive()
+}
 
 /**
  * Receives form parameters for this call.

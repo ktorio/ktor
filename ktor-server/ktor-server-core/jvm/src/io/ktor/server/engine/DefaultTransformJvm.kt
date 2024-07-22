@@ -41,7 +41,8 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
         coroutineContext + Dispatchers.Unconfined,
         rc,
         contentType,
-        contentLength
+        contentLength,
+        call.formFieldLimit
     )
 }
 

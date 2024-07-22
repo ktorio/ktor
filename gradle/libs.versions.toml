@@ -5,7 +5,7 @@ kotlinx-datetime = "0.5.0"
 kotlinx-io = "0.5.1"
 coroutines-version = "1.8.1"
 atomicfu-version = "0.25.0"
-serialization-version = "1.6.1" # Do not upgrade, 1.6.2 breaks maven publishing!
+serialization-version = "1.7.1"
 ktlint-version = "3.15.0"
 
 netty-version = "4.1.111.Final"

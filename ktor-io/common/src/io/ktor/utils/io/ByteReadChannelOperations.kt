@@ -19,6 +19,19 @@ import kotlin.math.*
 public val ByteWriteChannel.availableForWrite: Int
     get() = CHANNEL_MAX_SIZE - writeBuffer.size
 
+/**
+ * Suspends the channel until it is exhausted or gets closed.
+ * If the read buffer is empty, it suspends until there are bytes available in the channel.
+ * Once the channel is exhausted or closed, this function returns.
+ *
+ * @return `true` if the channel is exhausted, `false` if EOF is reached or an error occurred.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.exhausted(): Boolean {
+    if (readBuffer.exhausted()) awaitContent()
+    return readBuffer.exhausted()
+}
+
 public suspend fun ByteReadChannel.toByteArray(): ByteArray {
     return readBuffer().readBytes()
 }

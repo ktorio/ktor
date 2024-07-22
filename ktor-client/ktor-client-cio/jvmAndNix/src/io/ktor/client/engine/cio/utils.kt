@@ -172,7 +172,7 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: unexpected EOF")
+        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: the server prematurely closed the connection")
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
