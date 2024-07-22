@@ -6,7 +6,9 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
+import kotlinx.io.IOException
 import platform.posix.*
 
 private const val DEFAULT_BACKLOG_SIZE = 50
@@ -17,30 +19,54 @@ internal actual suspend fun connect(
     remoteAddress: SocketAddress,
     socketOptions: SocketOptions.TCPClientSocketOptions
 ): Socket = memScoped {
+    var lastException: PosixException? = null
     for (remote in remoteAddress.resolve()) {
         try {
             val descriptor: Int = socket(remote.family.convert(), SOCK_STREAM, 0).check()
 
-            remote.nativeAddress { address, size ->
-                connect(descriptor, address, size).check()
-            }
-
             assignOptions(descriptor, socketOptions)
             nonBlocking(descriptor)
+
+            val selectable = SelectableNative(descriptor)
+
+            var connectResult = -1
+            remote.nativeAddress { address, size ->
+                connectResult = connect(descriptor, address, size)
+            }
+
+            if (connectResult < 0 && errno == EINPROGRESS) {
+                while (true) {
+                    selector.select(selectable, SelectInterest.CONNECT)
+                    val result = alloc<IntVar>()
+                    val size = alloc<socklen_tVar> {
+                        value = sizeOf<IntVar>().convert()
+                    }
+                    getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
+                    when (result.value) {
+                        0 -> break // connected
+                        EINPROGRESS -> continue
+                        else -> throw PosixException.forErrno(errno = result.value)
+                    }
+                }
+            } else {
+                connectResult.check()
+            }
 
             val localAddress = getLocalAddress(descriptor)
 
             return TCPSocketNative(
                 descriptor,
                 selector,
+                selectable,
                 remoteAddress = remote.toSocketAddress(),
                 localAddress = localAddress.toSocketAddress()
             )
-        } catch (_: Throwable) {
+        } catch (exception: PosixException) {
+            lastException = exception
         }
     }
 
-    error("Failed to connect to $remoteAddress.")
+    throw IOException("Failed to connect to $remoteAddress.", lastException)
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)

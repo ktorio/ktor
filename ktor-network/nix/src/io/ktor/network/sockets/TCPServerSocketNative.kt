@@ -68,6 +68,7 @@ internal class TCPServerSocketNative(
         TCPSocketNative(
             clientDescriptor,
             selectorManager,
+            SelectableNative(clientDescriptor),
             remoteAddress = remoteAddress.toSocketAddress(),
             localAddress = localAddress.toSocketAddress(),
             parent = selfContext() + coroutineContext
