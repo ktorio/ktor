@@ -23,44 +23,50 @@ internal actual suspend fun connect(
     for (remote in remoteAddress.resolve()) {
         try {
             val descriptor: Int = socket(remote.family.convert(), SOCK_STREAM, 0).check()
-
-            assignOptions(descriptor, socketOptions)
-            nonBlocking(descriptor)
-
             val selectable = SelectableNative(descriptor)
 
-            var connectResult = -1
-            remote.nativeAddress { address, size ->
-                connectResult = connect(descriptor, address, size)
-            }
+            try {
+                assignOptions(descriptor, socketOptions)
+                nonBlocking(descriptor)
 
-            if (connectResult < 0 && errno == EINPROGRESS) {
-                while (true) {
-                    selector.select(selectable, SelectInterest.CONNECT)
-                    val result = alloc<IntVar>()
-                    val size = alloc<socklen_tVar> {
-                        value = sizeOf<IntVar>().convert()
-                    }
-                    getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
-                    when (result.value) {
-                        0 -> break // connected
-                        EINPROGRESS -> continue
-                        else -> throw PosixException.forErrno(errno = result.value)
-                    }
+                var connectResult = -1
+                remote.nativeAddress { address, size ->
+                    connectResult = connect(descriptor, address, size)
                 }
-            } else {
-                connectResult.check()
+
+                if (connectResult < 0 && errno == EINPROGRESS) {
+                    while (true) {
+                        selector.select(selectable, SelectInterest.CONNECT)
+                        val result = alloc<IntVar>()
+                        val size = alloc<socklen_tVar> {
+                            value = sizeOf<IntVar>().convert()
+                        }
+                        getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
+                        when (result.value) {
+                            0 -> break // connected
+                            EINPROGRESS -> continue
+                            else -> throw PosixException.forErrno(errno = result.value)
+                        }
+                    }
+                } else {
+                    connectResult.check()
+                }
+
+                val localAddress = getLocalAddress(descriptor)
+
+                return TCPSocketNative(
+                    descriptor,
+                    selector,
+                    selectable,
+                    remoteAddress = remote.toSocketAddress(),
+                    localAddress = localAddress.toSocketAddress()
+                )
+            } catch (throwable: Throwable) {
+                shutdown(descriptor, SHUT_RDWR)
+                // Descriptor is closed by the selector manager
+                selector.notifyClosed(selectable)
+                throw throwable
             }
-
-            val localAddress = getLocalAddress(descriptor)
-
-            return TCPSocketNative(
-                descriptor,
-                selector,
-                selectable,
-                remoteAddress = remote.toSocketAddress(),
-                localAddress = localAddress.toSocketAddress()
-            )
         } catch (exception: PosixException) {
             lastException = exception
         }
@@ -76,23 +82,33 @@ internal actual fun bind(
     socketOptions: SocketOptions.AcceptorOptions
 ): ServerSocket = memScoped {
     val address = localAddress?.address ?: getAnyLocalAddress()
+
     val descriptor = socket(address.family.convert(), SOCK_STREAM, 0).check()
+    val selectable = SelectableNative(descriptor)
 
-    assignOptions(descriptor, socketOptions)
-    nonBlocking(descriptor)
+    try {
+        assignOptions(descriptor, socketOptions)
+        nonBlocking(descriptor)
 
-    address.nativeAddress { pointer, size ->
-        bind(descriptor, pointer, size).check()
+        address.nativeAddress { pointer, size ->
+            bind(descriptor, pointer, size).check()
+        }
+
+        listen(descriptor, DEFAULT_BACKLOG_SIZE).check()
+
+        val resolvedLocalAddress = getLocalAddress(descriptor)
+
+        return TCPServerSocketNative(
+            descriptor,
+            selector,
+            selectable,
+            localAddress = resolvedLocalAddress.toSocketAddress(),
+            parent = selector.coroutineContext
+        )
+    } catch (throwable: Throwable) {
+        shutdown(descriptor, SHUT_RDWR)
+        // Descriptor is closed by the selector manager
+        selector.notifyClosed(selectable)
+        throw throwable
     }
-
-    listen(descriptor, DEFAULT_BACKLOG_SIZE).check()
-
-    val resolvedLocalAddress = getLocalAddress(descriptor)
-
-    return TCPServerSocketNative(
-        descriptor,
-        selector,
-        localAddress = resolvedLocalAddress.toSocketAddress(),
-        parent = selector.coroutineContext
-    )
 }

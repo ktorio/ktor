@@ -19,11 +19,11 @@ import kotlin.coroutines.*
 internal class DatagramSocketNative(
     private val descriptor: Int,
     val selector: SelectorManager,
+    val selectable: Selectable,
     private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : BoundDatagramSocket, ConnectedDatagramSocket, Socket, CoroutineScope {
     private val _context: CompletableJob = Job(parent[Job])
-    val selectable: SelectableNative = SelectableNative(descriptor)
 
     override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _context
 
