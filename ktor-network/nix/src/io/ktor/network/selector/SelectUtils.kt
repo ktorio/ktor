@@ -146,7 +146,7 @@ internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(
     ) {
         val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
-        check(event.descriptor > 0) {
+        check(event.descriptor >= 0) {
             "File descriptor ${event.descriptor} is negative"
         }
         check(event.descriptor < fdSetSize) {
