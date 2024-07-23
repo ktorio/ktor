@@ -21,3 +21,4 @@ jobs:
               env:
                   PUBLISHING_USER: ${{ secrets.OSSRH_USERNAME }}
                   PUBLISHING_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+                  REPOSITORY_ID: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
