@@ -98,7 +98,7 @@ plugins {
 }
 
 allprojects {
-    group = "io.ktor"
+    group = "io.github.symbol-tabios"
     version = configuredVersion
     extra["hostManager"] = HostManager()
 
