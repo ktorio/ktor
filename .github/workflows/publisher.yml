@@ -19,6 +19,6 @@ jobs:
             - name: Publish package
               run: ./gradlew publishMingwX64PublicationToOSSRHRepository
               env:
-                  PUBLISHING_USER: ${{ secrets.OSSRH_USERNAME }}
-                  PUBLISHING_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+                  PUBLISHING_USER: "68l9hwBa"
+                  PUBLISHING_PASSWORD: "VdwdmCBqJqrTLRAfxFxpCxYZ8qEoMiHdaR5ZwhLtnMJp"
                   REPOSITORY_ID: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
