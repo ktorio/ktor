@@ -84,6 +84,7 @@ fun Project.configurePublication() {
     the<PublishingExtension>().apply {
         repositories {
             maven {
+                name = "OSSRH"
                 if (publishLocal) {
                     setUrl(globalM2)
                 } else {

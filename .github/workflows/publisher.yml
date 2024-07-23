@@ -1,0 +1,23 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# GitHub recommends pinning actions to a commit SHA.
+# To get a newer version, you will need to update the SHA.
+# You can also reference a tag or branch, but the action may change without warning.
+
+name: Publish package to the Maven Central Repository
+on:
+    release:
+        types: [created]
+jobs:
+    publish:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Publish package
+              run: ./gradlew publishMingwX64PublicationToMavenRepository
+              env:
+                  PUBLISHING_USER: ${{ secrets.OSSRH_USERNAME }}
+                  PUBLISHING_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
