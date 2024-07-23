@@ -98,7 +98,7 @@ plugins {
 }
 
 allprojects {
-    group = "io.github.symbol-tabios"
+    group = "io.github.xpointtech"
     version = configuredVersion
     extra["hostManager"] = HostManager()
 

@@ -68,7 +68,7 @@ fun Project.configurePublication() {
     val repositoryId: String? = System.getenv("REPOSITORY_ID")
     val publishingUrl: String? = if (repositoryId?.isNotBlank() == true) {
         println("Set publishing to repository $repositoryId")
-        "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
+        "https://central.sonatype.com/api/v1/"
     } else {
         System.getenv("PUBLISHING_URL")
     }
@@ -109,7 +109,7 @@ fun Project.configurePublication() {
                     "description",
                     "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
                 )
-                root.appendNode("url", "https://github.com/ktorio/ktor")
+                root.appendNode("url", "https://github.com/XpointTech/ktor")
 
                 root.appendNode("licenses").apply {
                     appendNode("license").apply {
@@ -129,7 +129,7 @@ fun Project.configurePublication() {
                 }
 
                 root.appendNode("scm").apply {
-                    appendNode("url", "https://github.com/ktorio/ktor.git")
+                    appendNode("url", "https://github.com/XpointTech/ktor.git")
                 }
             }
         }
@@ -161,8 +161,8 @@ fun Project.configurePublication() {
     val publishToMavenLocal = tasks.getByName("publishToMavenLocal")
     tasks.getByName("publish").dependsOn(publishToMavenLocal)
 
-    val signingKey = System.getenv("SIGN_KEY_ID")
-    val signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
+    val signingKey = "F03FD5EE916844A4463026E557262B1AF7970166"
+    val signingKeyPassphrase = "VDvCksXJfAm5E3NC"
 
     if (signingKey != null && signingKey != "") {
         extra["signing.gnupg.keyName"] = signingKey
