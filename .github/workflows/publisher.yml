@@ -17,7 +17,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Publish package
-              run: ./gradlew publishMingwX64PublicationToMavenRepository
+              run: ./gradlew publishMingwX64PublicationToOSSRHRepository
               env:
                   PUBLISHING_USER: ${{ secrets.OSSRH_USERNAME }}
                   PUBLISHING_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
