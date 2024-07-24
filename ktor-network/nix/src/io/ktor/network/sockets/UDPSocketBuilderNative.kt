@@ -17,25 +17,35 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     options: SocketOptions.UDPSocketOptions
 ): ConnectedDatagramSocket {
     val address = localAddress?.address ?: getAnyLocalAddress()
+
     val descriptor = socket(address.family.convert(), SOCK_DGRAM, 0).check()
+    val selectable = SelectableNative(descriptor)
 
-    assignOptions(descriptor, options)
-    nonBlocking(descriptor)
+    try {
+        assignOptions(descriptor, options)
+        nonBlocking(descriptor)
 
-    address.nativeAddress { pointer, size ->
-        bind(descriptor, pointer, size).check()
+        address.nativeAddress { pointer, size ->
+            bind(descriptor, pointer, size).check()
+        }
+
+        remoteAddress.address.nativeAddress { pointer, size ->
+            connect(descriptor, pointer, size).check()
+        }
+
+        return DatagramSocketNative(
+            descriptor = descriptor,
+            selector = selector,
+            selectable = selectable,
+            remote = remoteAddress,
+            parent = selector.coroutineContext
+        )
+    } catch (throwable: Throwable) {
+        shutdown(descriptor, SHUT_RDWR)
+        // Descriptor is closed by the selector manager
+        selector.notifyClosed(selectable)
+        throw throwable
     }
-
-    remoteAddress.address.nativeAddress { pointer, size ->
-        connect(descriptor, pointer, size).check()
-    }
-
-    return DatagramSocketNative(
-        descriptor = descriptor,
-        selector = selector,
-        remote = remoteAddress,
-        parent = selector.coroutineContext
-    )
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
@@ -45,19 +55,29 @@ internal actual fun UDPSocketBuilder.Companion.bindUDP(
     options: SocketOptions.UDPSocketOptions
 ): BoundDatagramSocket {
     val address = localAddress?.address ?: getAnyLocalAddress()
+
     val descriptor = socket(address.family.convert(), SOCK_DGRAM, 0).check()
+    val selectable = SelectableNative(descriptor)
 
-    assignOptions(descriptor, options)
-    nonBlocking(descriptor)
+    try {
+        assignOptions(descriptor, options)
+        nonBlocking(descriptor)
 
-    address.nativeAddress { pointer, size ->
-        bind(descriptor, pointer, size).check()
+        address.nativeAddress { pointer, size ->
+            bind(descriptor, pointer, size).check()
+        }
+
+        return DatagramSocketNative(
+            descriptor = descriptor,
+            selector = selector,
+            selectable = selectable,
+            remote = null,
+            parent = selector.coroutineContext
+        )
+    } catch (throwable: Throwable) {
+        shutdown(descriptor, SHUT_RDWR)
+        // Descriptor is closed by the selector manager
+        selector.notifyClosed(selectable)
+        throw throwable
     }
-
-    return DatagramSocketNative(
-        descriptor = descriptor,
-        selector = selector,
-        remote = null,
-        parent = selector.coroutineContext
-    )
 }

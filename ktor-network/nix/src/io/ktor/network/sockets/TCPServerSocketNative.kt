@@ -15,11 +15,11 @@ import kotlin.coroutines.*
 internal class TCPServerSocketNative(
     private val descriptor: Int,
     private val selectorManager: SelectorManager,
+    private val selectable: Selectable,
     override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : ServerSocket, CoroutineScope {
     private val _socketContext: CompletableJob = SupervisorJob(parent[Job])
-    private val selectable = SelectableNative(descriptor)
 
     override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _socketContext
 
