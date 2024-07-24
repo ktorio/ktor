@@ -4,7 +4,7 @@
 
 plugins {
     `kotlin-dsl`
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.30-station-874"
 }
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
@@ -22,8 +22,8 @@ repositories {
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
-    implementation(kotlin("gradle-plugin", "2.0.0"))
-    implementation(kotlin("serialization", "2.0.0"))
+    implementation(kotlin("gradle-plugin", "2.1.0-saturn-419"))
+    implementation(kotlin("serialization", "2.1.0-saturn-419"))
 
     val ktlint_version = libs.versions.ktlint.version.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
