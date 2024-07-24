@@ -20,7 +20,9 @@ import kotlin.math.*
 internal expect fun inetNtopBridge(type: Int, address: CPointer<*>, addressOf: CPointer<*>, size: Int)
 
 @OptIn(InternalAPI::class)
-internal class SelectorHelper {
+internal class SelectorHelper @OptIn(ExperimentalForeignApi::class) constructor(
+    private val fdSetSize: Int = fd_setsize()
+) {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
     private val closeQueue = LockFreeMPSCQueue<Int>()
@@ -41,12 +43,16 @@ internal class SelectorHelper {
         return false
     }
 
-    fun start(scope: CoroutineScope) {
-        scope.launch(CoroutineName("selector")) {
+    fun start(scope: CoroutineScope): Job {
+        val job = scope.launch(CoroutineName("selector")) {
             selectionLoop()
-        }.invokeOnCompletion {
+        }
+
+        job.invokeOnCompletion {
             cleanup()
         }
+
+        return job
     }
 
     fun requestTermination() {
@@ -139,6 +145,13 @@ internal class SelectorHelper {
         errorSet: CValue<selection_set>
     ) {
         val set = descriptorSetByInterestKind(event, readSet, writeSet)
+
+        check(event.descriptor >= 0) {
+            "File descriptor ${event.descriptor} is negative"
+        }
+        check(event.descriptor < fdSetSize) {
+            "File descriptor ${event.descriptor} is larger or equal to FD_SETSIZE ($fdSetSize)"
+        }
 
         select_fd_add(event.descriptor, set)
         select_fd_add(event.descriptor, errorSet)
