@@ -59,7 +59,7 @@ jakarta-servlet-version = "5.0.0"
 node-fetch-version = "2.6.7"
 abort-controller-version = "3.0.0"
 ws-version = "8.5.0"
-xmlutil-version = "0.86.3"
+xmlutil-version = "0.90.1"
 yamlkt-version = "0.13.0"
 
 swagger-codegen-version = "3.0.59"
