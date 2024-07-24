@@ -391,6 +391,16 @@ public fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringVa
 }
 
 /**
+ * Replace all values from the specified [builder]
+ */
+public fun StringValuesBuilder.replaceAll(builder: StringValuesBuilder): StringValuesBuilder = apply {
+    builder.entries().forEach { (name, values) ->
+        remove(name)
+        appendAll(name, values)
+    }
+}
+
+/**
  * Appends [name] [value] pair if there are no values associated with [name]
  */
 public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): StringValuesBuilder = apply {
