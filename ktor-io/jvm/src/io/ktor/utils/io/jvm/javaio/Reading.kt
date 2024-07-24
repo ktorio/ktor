@@ -47,8 +47,7 @@ internal class RawSourceChannel(
     override val isClosedForRead: Boolean
         get() = closedToken != null && buffer.exhausted()
 
-    val job = Job(parent[Job])
-    val coroutineContext = parent + job + CoroutineName("RawSourceChannel")
+    val coroutineContext = parent + CoroutineName("RawSourceChannel")
 
     @InternalAPI
     override val readBuffer: Source
@@ -69,7 +68,6 @@ internal class RawSourceChannel(
 
             if (result == -1L) {
                 source.close()
-                job.complete()
                 closedToken = CloseToken(null)
             }
         }
@@ -79,7 +77,7 @@ internal class RawSourceChannel(
 
     override fun cancel(cause: Throwable?) {
         if (closedToken != null) return
-        job.cancel(cause?.message ?: "Channel was cancelled", cause)
+        coroutineContext.job.cancel(cause?.message ?: "Channel was cancelled", cause)
         source.close()
         closedToken = CloseToken(IOException(cause?.message ?: "Channel was cancelled", cause))
     }
