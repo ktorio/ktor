@@ -21,7 +21,7 @@ internal expect fun <TSubject : Any, TContext : Any>
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
-@Suppress("DEPRECATION")
+
 public open class Pipeline<TSubject : Any, TContext : Any>(
     vararg phases: PipelinePhase
 ) {
@@ -266,7 +266,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         return interceptors ?: cacheInterceptors()
     }
 
-    @Suppress("DEPRECATION")
     private fun createContext(
         context: TContext,
         subject: TSubject,

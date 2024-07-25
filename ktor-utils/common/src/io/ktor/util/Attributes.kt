@@ -54,7 +54,6 @@ public class AttributeKey<T : Any> @PublishedApi internal constructor(
  * @param T is a type of the value stored in the attribute
  * @param name is a name of the attribute
  */
-@Suppress("DEPRECATION")
 @Deprecated(
     "Please use `AttributeKey` class instead",
     replaceWith = ReplaceWith("AttributeKey"),

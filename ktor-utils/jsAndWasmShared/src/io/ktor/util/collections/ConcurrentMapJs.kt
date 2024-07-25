@@ -28,7 +28,7 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(initialC
 
     actual override fun containsValue(value: Value): Boolean = delegate.containsValue(value)
 
-    actual override fun get(key: Key): Value? = delegate.get(key)
+    actual override fun get(key: Key): Value? = delegate[key]
 
     actual override fun isEmpty(): Boolean = delegate.isEmpty()
 

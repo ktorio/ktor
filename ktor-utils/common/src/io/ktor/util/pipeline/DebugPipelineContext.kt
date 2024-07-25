@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  * @param subject object representing subject that goes along the pipeline
  */
 @KtorDsl
-internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
+internal class DebugPipelineContext<TSubject : Any, TContext : Any>(
     context: TContext,
     private val interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>,
     subject: TSubject,

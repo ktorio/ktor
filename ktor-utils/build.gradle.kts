@@ -1,6 +1,6 @@
 kotlin {
     createCInterop("threadUtils", nixTargets()) {
-        defFile = File(projectDir, "nix/interop/threadUtils.def")
+        definitionFile = File(projectDir, "nix/interop/threadUtils.def")
     }
 
     sourceSets {

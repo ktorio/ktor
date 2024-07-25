@@ -54,7 +54,6 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
 /**
  * Copy a source channel to both output channels chunk by chunk.
  */
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalStdlibApi::class)
 public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {
     GlobalScope.launch(Dispatchers.Unconfined) {
@@ -77,8 +76,8 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
             first.close(cause)
             second.close(cause)
         } finally {
-            first.close()
-            second.close()
+            first.flushAndClose()
+            second.flushAndClose()
         }
     }.invokeOnCompletion {
         it ?: return@invokeOnCompletion
