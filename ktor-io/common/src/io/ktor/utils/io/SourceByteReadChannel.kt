@@ -32,6 +32,6 @@ internal class SourceByteReadChannel(private val source: Source) : ByteReadChann
     override fun cancel(cause: Throwable?) {
         if (closed != null) return
         source.close()
-        closed = CloseToken(kotlinx.io.IOException(cause?.message ?: "Channel was cancelled", cause))
+        closed = CloseToken(IOException(cause?.message ?: "Channel was cancelled", cause))
     }
 }

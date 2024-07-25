@@ -7,8 +7,7 @@ package io.ktor.utils.io.core
 import kotlinx.io.*
 import java.nio.*
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun BytePacketBuilder.writeFully(buffer: ByteBuffer) {
+public fun Sink.writeFully(buffer: ByteBuffer) {
     this.buffer.transferFrom(buffer)
 }

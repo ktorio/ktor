@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
 internal const val IO_DEPRECATION_MESSAGE = """
@@ -14,13 +13,11 @@ internal const val IO_DEPRECATION_MESSAGE = """
     https://youtrack.jetbrains.com/issue/KTOR-6030/Migrate-to-new-kotlinx.io-library
     """
 
-@Suppress("DEPRECATION")
-public fun ByteReadPacket.readText(): String {
+public fun Source.readText(): String {
     return readString()
 }
 
-@Suppress("DEPRECATION")
 @Deprecated("Use close() instead", ReplaceWith("close()"))
-public fun BytePacketBuilder.release() {
+public fun Sink.release() {
     close()
 }

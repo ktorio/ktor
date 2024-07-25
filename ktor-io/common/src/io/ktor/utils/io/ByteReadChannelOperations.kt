@@ -108,17 +108,13 @@ public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer {
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
+public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long {
     var result = 0L
     try {
-        if (limit == Long.MAX_VALUE) {
-            while (!isClosedForRead) {
-                result += readBuffer.transferTo(channel.writeBuffer)
-                channel.flush()
-                awaitContent()
-            }
-        } else {
-            TODO()
+        while (!isClosedForRead) {
+            result += readBuffer.transferTo(channel.writeBuffer)
+            channel.flush()
+            awaitContent()
         }
 
         closedCause?.let { throw it }
@@ -182,10 +178,6 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel, limit: Long
     return limit - remaining
 }
 
-public fun ByteReadChannel.split(): Pair<ByteReadChannel, ByteReadChannel> {
-    TODO("Not yet implemented")
-}
-
 public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildPacket {
     while (size < count) {
         val packet = readPacket(count - size)
@@ -193,9 +185,8 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
     }
 }.readByteArray()
 
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class, InternalIoApi::class)
-public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket {
+public suspend fun ByteReadChannel.readRemaining(): Source {
     val result = BytePacketBuilder()
     while (!isClosedForRead) {
         result.transferFrom(readBuffer)
@@ -207,7 +198,7 @@ public suspend fun ByteReadChannel.readRemaining(): ByteReadPacket {
 }
 
 @OptIn(InternalAPI::class, InternalIoApi::class)
-public suspend fun ByteReadChannel.readRemaining(max: Long): ByteReadPacket {
+public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
     val result = BytePacketBuilder()
     var remaining = max
     while (!isClosedForRead && remaining > 0) {
@@ -320,9 +311,8 @@ public fun CoroutineScope.reader(
  *
  * @throws EOFException if the channel is closed before the packet is fully read.
  */
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readPacket(packet: Int): ByteReadPacket {
+public suspend fun ByteReadChannel.readPacket(packet: Int): Source {
     val result = Buffer()
     while (result.size < packet) {
         if (readBuffer.exhausted()) awaitContent()

@@ -12,25 +12,21 @@ import java.io.*
 
 public fun InputStream.asInput(): Input = asSource().buffered()
 
-@Suppress("DEPRECATION")
-public fun ByteReadPacket.inputStream(): InputStream = asInputStream()
+public fun Source.inputStream(): InputStream = asInputStream()
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun OutputStream.writePacket(packet: ByteReadPacket) {
+public fun OutputStream.writePacket(packet: Source) {
     packet.buffer.copyTo(this)
 }
 
-@Suppress("DEPRECATION")
-public fun OutputStream.writePacket(block: BytePacketBuilder.() -> Unit) {
+public fun OutputStream.writePacket(block: Sink.() -> Unit) {
     val builder = Buffer()
     builder.block()
     writePacket(builder)
 }
 
-@Suppress("DEPRECATION")
 @OptIn(UnsafeIoApi::class)
-public fun InputStream.readPacketAtLeast(min: Int = 1): ByteReadPacket {
+public fun InputStream.readPacketAtLeast(min: Int = 1): Source {
     val buffer = Buffer()
     UnsafeBufferOperations.writeToTail(buffer, min) { array, start, end ->
         val read = read(array, start, end - start)

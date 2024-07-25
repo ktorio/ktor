@@ -1,13 +1,13 @@
 package io.ktor.utils.io.core
 
+import kotlinx.io.*
 import kotlin.contracts.*
 
 /**
  * Build a byte packet in [block] lambda. Creates a temporary builder and releases it in case of failure
  */
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalContracts::class)
-public inline fun buildPacket(block: BytePacketBuilder.() -> Unit): ByteReadPacket {
+public inline fun buildPacket(block: Sink.() -> Unit): Source {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

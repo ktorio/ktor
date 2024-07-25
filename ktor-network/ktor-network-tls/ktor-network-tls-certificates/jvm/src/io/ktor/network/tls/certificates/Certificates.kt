@@ -7,6 +7,8 @@ package io.ktor.network.tls.certificates
 import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.Sink
+import kotlinx.io.writeUByte
 import java.io.*
 import java.math.*
 import java.net.*
@@ -564,9 +566,8 @@ private fun Int.derLength(): Int {
  * Length: 1 Byte (0x01)
  * Value: 0b1111 1111 if true or 0b0000 0000 if false
  */
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalUnsignedTypes::class)
-private fun BytePacketBuilder.writeDerBoolean(value: Boolean) {
+private fun Sink.writeDerBoolean(value: Boolean) {
     writeDerType(0, 1, true)
     writeDerLength(1)
     writeUByte(value.toUByte())

@@ -87,7 +87,7 @@ public class TestApplicationResponse(
         val job = scope.reader(responseJob ?: EmptyCoroutineContext) {
             val counted = channel.counted()
             val readJob = launch {
-                counted.copyAndClose(result, Long.MAX_VALUE)
+                counted.copyAndClose(result)
             }
 
             configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }

@@ -5,6 +5,7 @@
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 import org.khronos.webgl.*
 
 private val ENCODING_ALIASES = setOf(
@@ -64,7 +65,7 @@ internal class TextDecoderFallback(
 
             writeByte((point and 0xFF).toByte())
         }
-    }.readBytes().decodeToString()
+    }.readByteArray().decodeToString()
 
     override fun decode(buffer: ArrayBufferView, options: dynamic): String {
         return decode(buffer)

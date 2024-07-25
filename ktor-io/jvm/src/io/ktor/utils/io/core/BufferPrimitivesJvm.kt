@@ -7,7 +7,6 @@ import java.nio.*
 /**
  * Write [source] buffer content moving its position.
  */
-@Suppress("DEPRECATION")
 @Deprecated(
     "[writeByteBuffer] is deprecated. Consider using [transferFrom] instead",
     replaceWith = ReplaceWith("this.transferFrom(source)")

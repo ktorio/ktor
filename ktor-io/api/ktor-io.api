@@ -61,8 +61,7 @@ public final class io/ktor/utils/io/ByteReadChannelKt {
 }
 
 public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
-	public static final fun copyAndClose (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun copyAndClose$default (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun copyAndClose (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun copyTo (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun copyTo (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun discard (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -95,7 +94,6 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteChannel;)V
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteReadChannel;)V
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteWriteChannel;)V
-	public static final fun split (Lio/ktor/utils/io/ByteReadChannel;)Lkotlin/Pair;
 	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -355,7 +353,6 @@ public final class io/ktor/utils/io/core/BytePacketBuilderKt {
 	public static final fun writeFully (Lkotlinx/io/Sink;[BII)V
 	public static synthetic fun writeFully$default (Lkotlinx/io/Sink;[BIIILjava/lang/Object;)V
 	public static final fun writePacket (Lkotlinx/io/Sink;Lkotlinx/io/Source;)V
-	public static final fun writeUByte-EK-6454 (Lkotlinx/io/Sink;B)V
 }
 
 public final class io/ktor/utils/io/core/ByteReadPacketExtensions_jvmKt {

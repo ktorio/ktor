@@ -40,16 +40,14 @@ public expect fun CharsetEncoder.encodeToByteArray(
     toIndex: Int = input.length
 ): ByteArray
 
-@Suppress("DEPRECATION")
 public fun CharsetEncoder.encode(
     input: CharSequence,
     fromIndex: Int = 0,
     toIndex: Int = input.length
-): ByteReadPacket = buildPacket {
+): Source = buildPacket {
     encodeToImpl(this, input, fromIndex, toIndex)
 }
 
-@Suppress("DEPRECATION")
 public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: Sink) {
     encodeArrayImpl(input, fromIndex, toIndex, dst)
 }

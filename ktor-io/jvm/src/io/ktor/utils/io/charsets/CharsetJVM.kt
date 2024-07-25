@@ -67,7 +67,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     fromIndex: Int,
     toIndex: Int
 ): ByteArray {
-    TODO()
+    error("Not needed on jvm")
 }
 
 public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder

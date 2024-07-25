@@ -36,7 +36,6 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
     protected actual open fun clearInstance(instance: T): T = instance
     protected actual open fun validateInstance(instance: T) {}
 
-    @Suppress("DEPRECATION")
     public actual final override fun borrow(): T = synchronized(lock) {
         if (instances.isEmpty()) {
             _allocated.incrementAndGet()
@@ -48,7 +47,6 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
         return@synchronized result
     }
 
-    @Suppress("DEPRECATION")
     public actual final override fun recycle(instance: T) {
         synchronized(lock) {
             _recycled.incrementAndGet()
@@ -62,7 +60,6 @@ public actual abstract class DefaultPool<T : Any> actual constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
     public actual final override fun dispose() {
         synchronized(lock) {
             instances.forEach { disposeInstance(it) }
