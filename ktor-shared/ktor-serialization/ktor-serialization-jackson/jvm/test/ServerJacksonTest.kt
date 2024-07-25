@@ -15,8 +15,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.nio.charset.*
 import kotlin.test.*
+import kotlin.test.assertFailsWith
 
-@Suppress("DEPRECATION")
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()
     override val defaultContentType: ContentType = ContentType.Application.Json
@@ -105,11 +105,16 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
     fun testCustomKotlinModule() = withTestApplication {
         application.install(ContentNegotiation) {
             jackson {
-                val module = KotlinModule.Builder()
-                    .configure(KotlinFeature.NullIsSameAsDefault, true)
-                    .build()
-
-                registerModule(module)
+                registerModule(
+                    KotlinModule.Builder()
+                        .withReflectionCacheSize(512)
+                        .configure(KotlinFeature.NullToEmptyCollection, enabled = false)
+                        .configure(KotlinFeature.NullToEmptyMap, enabled = false)
+                        .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
+                        .configure(KotlinFeature.SingletonSupport, enabled = false)
+                        .configure(KotlinFeature.StrictNullChecks, enabled = false)
+                        .build()
+                )
             }
         }
 

@@ -19,7 +19,6 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ServerJacksonBlockingTest {
     private val dispatcher = UnsafeDispatcher()
 
