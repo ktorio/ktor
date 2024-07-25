@@ -76,7 +76,6 @@ public class TestApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = builder.getAll(name).orEmpty()
     }
 
-    @Suppress("DEPRECATION")
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 

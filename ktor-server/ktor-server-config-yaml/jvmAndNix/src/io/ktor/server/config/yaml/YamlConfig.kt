@@ -41,7 +41,6 @@ constructor(
 
     private var root: YamlConfig = this
 
-    @Suppress("DEPRECATION")
     internal constructor(
         yaml: YamlMap,
         root: YamlConfig

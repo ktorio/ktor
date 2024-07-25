@@ -42,12 +42,13 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Allows you to access the environment of the currently running application where the plugin is installed.
      **/
-    public val environment: ApplicationEnvironment? get() = pipeline.environment
+    public val environment: ApplicationEnvironment get() = pipeline.environment
 
     /**
-     * A configuration of your current application (incl. host, port and anything else you can define in application.conf).
+     * A configuration of your current application (incl. host, port and anything else you can define in
+     * application.conf).
      **/
-    public val applicationConfig: ApplicationConfig? get() = environment?.config
+    public val applicationConfig: ApplicationConfig get() = environment.config
 
     internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 

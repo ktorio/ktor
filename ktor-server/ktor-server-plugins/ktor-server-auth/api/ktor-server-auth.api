@@ -55,10 +55,16 @@ public class io/ktor/server/auth/AuthenticationFailedCause$Error : io/ktor/serve
 
 public final class io/ktor/server/auth/AuthenticationFailedCause$InvalidCredentials : io/ktor/server/auth/AuthenticationFailedCause {
 	public static final field INSTANCE Lio/ktor/server/auth/AuthenticationFailedCause$InvalidCredentials;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/auth/AuthenticationFailedCause$NoCredentials : io/ktor/server/auth/AuthenticationFailedCause {
 	public static final field INSTANCE Lio/ktor/server/auth/AuthenticationFailedCause$NoCredentials;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/auth/AuthenticationInterceptorsKt {

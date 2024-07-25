@@ -315,7 +315,7 @@ public fun Routing.staticFileSystem(
  * * This can't be disabled in a child route if it was enabled in the root route
  */
 public fun Routing.preCompressed(
-    vararg types: CompressedFileType = CompressedFileType.values(),
+    vararg types: CompressedFileType = CompressedFileType.entries.toTypedArray(),
     configure: Routing.() -> Unit
 ) {
     val existing = staticContentEncodedTypes ?: emptyList()
@@ -359,7 +359,7 @@ public fun Routing.static(remotePath: String, configure: Routing.() -> Unit): Ro
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticFiles` instead")
 public fun Routing.default(localPath: String): Unit = default(File(localPath))
 
@@ -378,7 +378,7 @@ public fun Routing.default(localPath: File) {
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticFiles` instead")
 public fun Routing.file(remotePath: String, localPath: String = remotePath): Unit =
     file(remotePath, File(localPath))
@@ -398,7 +398,7 @@ public fun Routing.file(remotePath: String, localPath: File) {
 /**
  * Sets up routing to serve all files from [folder]
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticFiles` instead")
 public fun Routing.files(folder: String): Unit = files(File(folder))
 
@@ -421,7 +421,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 /**
  * Base package for relative resources calculations for static content
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticResources` instead")
 public var Routing.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
@@ -442,7 +442,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 /**
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticResources` instead")
 public fun Routing.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val compressedTypes = staticContentEncodedTypes
@@ -459,7 +459,7 @@ public fun Routing.resource(remotePath: String, resource: String = remotePath, r
 /**
  * Sets up routing to serve all resources in [resourcePackage]
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticResources` instead")
 public fun Routing.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
@@ -477,7 +477,7 @@ public fun Routing.resources(resourcePackage: String? = null) {
 /**
  * Specifies [resource] as a default resources to serve when folder is requested
  */
-@Suppress("DEPRECATION")
+
 @Deprecated("Please use `staticResources` instead")
 public fun Routing.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)

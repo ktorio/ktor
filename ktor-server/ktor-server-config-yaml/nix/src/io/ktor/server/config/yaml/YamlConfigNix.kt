@@ -16,7 +16,6 @@ private fun init() {
     addConfigLoader(YamlConfigLoader())
 }
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
 @EagerInitialization
 private val initHook = init()
@@ -35,7 +34,7 @@ public actual fun YamlConfig(path: String?): YamlConfig? {
     val content = readFile(resolvedPath)
     val yaml = Yaml.decodeYamlFromString(content) as? YamlMap
         ?: throw ApplicationConfigurationException("$resolvedPath should be a YAML dictionary")
-    @Suppress("DEPRECATION")
+
     return YamlConfig(yaml).apply { checkEnvironmentVariables() }
 }
 

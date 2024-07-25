@@ -52,7 +52,7 @@ public open class ServletApplicationEngine : KtorServlet() {
         val applicationIdPath = "ktor.application.id"
 
         val combinedConfig = parametersConfig
-            .withFallback(ConfigLoader.load(parametersConfig.tryGetString(configPath)))
+            .withFallback(load(parametersConfig.tryGetString(configPath)))
 
         val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
 

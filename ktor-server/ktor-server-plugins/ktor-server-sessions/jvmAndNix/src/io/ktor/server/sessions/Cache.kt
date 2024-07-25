@@ -8,7 +8,6 @@ import io.ktor.util.collections.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
 /**
  * A cache for [CookieStorage]
  */

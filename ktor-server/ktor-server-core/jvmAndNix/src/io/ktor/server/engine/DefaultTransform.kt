@@ -16,6 +16,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.engine.DefaultTransform")
 
@@ -103,12 +104,11 @@ internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R =
     )
 }
 
-@Suppress("DEPRECATION")
 internal suspend fun ByteReadChannel.readText(
     charset: Charset
 ): String {
     val content = readRemaining(Long.MAX_VALUE)
-    if (content.isEmpty) {
+    if (content.exhausted()) {
         return ""
     }
 
@@ -119,9 +119,8 @@ internal suspend fun ByteReadChannel.readText(
             content.readTextWithCustomCharset(charset)
         }
     } finally {
-        content.release()
+        content.close()
     }
 }
 
-@Suppress("DEPRECATION")
-internal expect fun ByteReadPacket.readTextWithCustomCharset(charset: Charset): String
+internal expect fun Source.readTextWithCustomCharset(charset: Charset): String

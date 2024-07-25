@@ -9,9 +9,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 
-@Suppress("DEPRECATION")
 internal class MemoryCache(
     val body: ByteReadChannel,
     coroutineContext: CoroutineContext = EmptyCoroutineContext
@@ -36,7 +36,7 @@ internal class MemoryCache(
             channel.close(body.closedCause)
         }
 
-        fullBody = packet.build().readBytes()
+        fullBody = packet.build().readByteArray()
     }.channel
 
     override fun read(): ByteReadChannel {

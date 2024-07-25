@@ -6,7 +6,6 @@ package io.ktor.tests.config
 
 import io.ktor.server.application.*
 import io.ktor.server.config.*
-import io.ktor.server.config.ConfigLoader.Companion.load
 import java.nio.file.*
 import kotlin.io.path.*
 import kotlin.test.*

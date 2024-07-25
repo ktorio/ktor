@@ -105,7 +105,6 @@ public fun AuthenticationConfig.basic(
 /**
  * Retrieves [basic] authentication credentials for this [ApplicationRequest].
  */
-@Suppress("DEPRECATION")
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
@@ -114,7 +113,8 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
             if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) return null
 
             val userPass = try {
-                String(authHeader.blob.decodeBase64Bytes(), charset = charset ?: Charsets.ISO_8859_1)
+                val bytes = authHeader.blob.decodeBase64Bytes()
+                bytes.decodeToString(0, 0 + bytes.size)
             } catch (e: Throwable) {
                 return null
             }

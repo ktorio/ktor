@@ -21,7 +21,6 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class TestEngineMultipartTest {
     private val boundary = "***bbb***"
     private val contentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
@@ -42,7 +41,7 @@ class TestEngineMultipartTest {
             extraFileAssertions = { file ->
                 assertEquals(
                     hex(bytes),
-                    hex(file.provider().readRemaining().readBytes())
+                    hex(file.provider().readRemaining().readByteArray())
                 )
             }
         )
@@ -64,14 +63,14 @@ class TestEngineMultipartTest {
 
         testMultiParts({
             assertNotNull(it, "it should be multipart data")
-            @Suppress("DEPRECATION") val parts = it.readAllParts()
+            val parts = it.readAllParts()
 
             assertEquals(1, parts.size)
             val file = parts[0] as PartData.FileItem
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
-            assertEquals(hex(bytes), hex(file.provider().readRemaining().readBytes()))
+            assertEquals(hex(bytes), hex(file.provider().readRemaining().readByteArray()))
 
             file.dispose()
         }) {
@@ -100,7 +99,7 @@ class TestEngineMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 try {
-                    @Suppress("DEPRECATION") call.receiveMultipart().readAllParts()
+                    call.receiveMultipart().readAllParts()
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
                 }
@@ -136,7 +135,7 @@ class TestEngineMultipartTest {
                             }
 
                             is PartData.BinaryItem -> {
-                                part.provider().readBytes()
+                                part.provider().readByteArray()
                             }
                         }
                         part.dispose()
@@ -186,7 +185,7 @@ class TestEngineMultipartTest {
                             }
 
                             is PartData.BinaryItem -> {
-                                part.provider().readBytes()
+                                part.provider().readByteArray()
                             }
                         }
                         part.dispose()
@@ -232,7 +231,7 @@ class TestEngineMultipartTest {
     ) {
         testMultiParts({
             assertNotNull(it, "it should be multipart data")
-            @Suppress("DEPRECATION") val parts = it.readAllParts()
+            val parts = it.readAllParts()
 
             assertEquals(1, parts.size)
             val file = parts[0] as PartData.FileItem
@@ -266,7 +265,6 @@ class TestEngineMultipartTest {
     }
 }
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,
@@ -287,12 +285,12 @@ internal fun buildMultipart(
                     append(
                         when (it) {
                             is PartData.FileItem -> {
-                                channel.writeFully(it.provider().readRemaining().readBytes())
+                                channel.writeFully(it.provider().readRemaining().readByteArray())
                                 ""
                             }
 
                             is PartData.BinaryItem -> {
-                                channel.writeFully(it.provider().readBytes())
+                                channel.writeFully(it.provider().readByteArray())
                                 ""
                             }
 

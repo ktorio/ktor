@@ -16,7 +16,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class RespondFunctionsTest {
     @Test
     fun testRespondBytes(): Unit = withTestApplication {

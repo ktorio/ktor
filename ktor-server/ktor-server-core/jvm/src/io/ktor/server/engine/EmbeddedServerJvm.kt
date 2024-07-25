@@ -145,7 +145,6 @@ actual constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = environment.classLoader
 

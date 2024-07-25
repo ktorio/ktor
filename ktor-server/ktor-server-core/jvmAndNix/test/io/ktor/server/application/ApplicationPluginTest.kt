@@ -16,7 +16,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ApplicationPluginTest {
     @Test
     fun `test empty plugin does not break pipeline`(): Unit = withTestApplication {

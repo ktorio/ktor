@@ -57,8 +57,7 @@ fun main() {
                     output.writePacket(notFound404_11.copy())
                 }
 
-                @Suppress("DEPRECATION")
-                output.close()
+                output.flushAndClose()
             } finally {
                 request.release()
             }

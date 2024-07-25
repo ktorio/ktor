@@ -14,7 +14,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class DefaultWebSocketTest : BaseTest() {
 
@@ -76,7 +75,8 @@ class DefaultWebSocketTest : BaseTest() {
             client.send(Frame.Ping(it.encodeToByteArray()))
         }
         pingsMessages.forEach {
-            assertEquals(it, String((client.incoming.receive() as Frame.Pong).readBytes(), charset = Charsets.UTF_8))
+            val bytes = (client.incoming.receive() as Frame.Pong).readBytes()
+            assertEquals(it, bytes.decodeToString(0, 0 + bytes.size))
         }
 
         client.close()

@@ -96,12 +96,8 @@ private fun String.shouldBeReplaced(): Boolean {
     }
 
     val ReservedCharacters = ReservedCharacters
-    if (any { it < ' ' || it in ReservedCharacters }) {
-        // control characters are not allowed on windows, \0 is not allowed on UNIX
-        return true
-    }
-
-    return false
+    // control characters are not allowed on windows, \0 is not allowed on UNIX
+    return any { it < ' ' || it in ReservedCharacters }
 }
 
 private fun CharArray.toASCIITable(): BooleanArray = BooleanArray(0x100) { it.toChar() in this@toASCIITable }

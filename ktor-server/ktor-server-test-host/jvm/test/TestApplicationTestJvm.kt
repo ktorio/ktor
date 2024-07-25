@@ -288,7 +288,7 @@ class TestApplicationTestJvm {
         override fun toString(): String = "=====$data====="
     }
 
-    public fun Application.module() {
+    fun Application.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
         }

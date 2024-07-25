@@ -458,10 +458,10 @@ public data class OrRouteSelector(
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
-        if (result.succeeded) {
-            return result
+        return if (result.succeeded) {
+            result
         } else {
-            return second.evaluate(context, segmentIndex)
+            second.evaluate(context, segmentIndex)
         }
     }
 

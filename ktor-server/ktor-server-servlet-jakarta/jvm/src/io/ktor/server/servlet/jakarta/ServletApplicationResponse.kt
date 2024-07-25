@@ -32,7 +32,6 @@ public abstract class ServletApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
-    @Suppress("DEPRECATION")
     protected abstract fun createResponseJob(): ReaderJob
 
     @Volatile
@@ -55,8 +54,8 @@ public abstract class ServletApplicationResponse(
 
             if (responseJob.isInitialized()) {
                 responseJob.value.apply {
-                    @Suppress("DEPRECATION")
-                    channel.close()
+
+                    channel.flushAndClose()
                     join()
                 }
                 return@intercept

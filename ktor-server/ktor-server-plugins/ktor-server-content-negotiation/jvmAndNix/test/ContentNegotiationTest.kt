@@ -22,7 +22,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ContentNegotiationTest {
 
     private val alwaysFailingConverter = object : ContentConverter {
@@ -870,7 +869,7 @@ class ContentNegotiationTest {
                         charset: Charset,
                         typeInfo: TypeInfo,
                         content: ByteReadChannel
-                    ): Any? {
+                    ): Any {
                         requestDeserialized = true
                         return User(content.readRemaining().readText())
                     }

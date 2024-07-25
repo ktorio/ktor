@@ -256,7 +256,7 @@ public abstract class BaseApplicationResponse(
      * For example, only upgrade content can set `Upgrade` header.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class InvalidHeaderForContent constructor(
+    public class InvalidHeaderForContent(
         private val name: String,
         private val content: String
     ) : IllegalStateException("Header $name is not allowed for $content"),
@@ -270,7 +270,7 @@ public abstract class BaseApplicationResponse(
      * Content's body size doesn't match the provided one in `Content-Length` header
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class BodyLengthIsTooSmall constructor(
+    public class BodyLengthIsTooSmall(
         private val expected: Long,
         private val actual: Long
     ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
@@ -284,7 +284,7 @@ public abstract class BaseApplicationResponse(
      * Content's body size doesn't match the provided one in `Content-Length` header
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class BodyLengthIsTooLong constructor(
+    public class BodyLengthIsTooLong(
         private val expected: Long
     ) : IllegalStateException("Body.size is too long. Expected $expected"), CopyableThrowable<BodyLengthIsTooLong> {
         override fun createCopy(): BodyLengthIsTooLong = BodyLengthIsTooLong(expected).also {

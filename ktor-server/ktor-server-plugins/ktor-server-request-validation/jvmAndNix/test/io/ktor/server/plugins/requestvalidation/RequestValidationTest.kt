@@ -87,7 +87,6 @@ class RequestValidationTest {
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testValidatorDsl() = testApplication {
         install(RequestValidation) {
@@ -95,7 +94,7 @@ class RequestValidationTest {
                 filter { it is ByteArray }
                 validation {
                     check(it is ByteArray)
-                    val intValue = String(it).toInt()
+                    val intValue = it.decodeToString(0, 0 + it.size).toInt()
                     if (intValue < 0) {
                         ValidationResult.Invalid("Value is negative")
                     } else ValidationResult.Valid
@@ -114,7 +113,7 @@ class RequestValidationTest {
             }
             get("/array") {
                 val body = call.receive<ByteArray>()
-                call.respond(String(body))
+                call.respond(body.decodeToString(0, 0 + body.size))
             }
         }
 

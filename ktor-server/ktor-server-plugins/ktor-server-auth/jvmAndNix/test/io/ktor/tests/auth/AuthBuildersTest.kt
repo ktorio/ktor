@@ -18,7 +18,6 @@ import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class AuthBuildersTest {
 
     @Test

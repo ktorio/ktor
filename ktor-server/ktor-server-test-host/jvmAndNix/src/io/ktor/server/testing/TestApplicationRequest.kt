@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 
 /**
  * A test application request
@@ -23,7 +24,7 @@ import kotlinx.coroutines.*
  * @property port (Optional) HTTP port to send request to
  * @property protocol HTTP protocol to be used or was used
  */
-public class TestApplicationRequest constructor(
+public class TestApplicationRequest(
     call: TestApplicationCall,
     closeRequest: Boolean,
     public var method: HttpMethod = HttpMethod.Get,
@@ -160,15 +161,15 @@ public fun TestApplicationRequest.setBody(value: ByteArray) {
 /**
  * Set HTTP request body from [ByteReadPacket]
  */
-@Suppress("DEPRECATION")
-public fun TestApplicationRequest.setBody(value: ByteReadPacket) {
-    bodyChannel = ByteReadChannel(value.readBytes())
+
+public fun TestApplicationRequest.setBody(value: Source) {
+    bodyChannel = ByteReadChannel(value.readByteArray())
 }
 
 /**
  * Sets a multipart HTTP request body.
  */
-@Suppress("DEPRECATION")
+
 public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IOBridge) {
         if (parts.isEmpty()) return@writer
@@ -184,12 +185,12 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                 append(
                     when (it) {
                         is PartData.FileItem -> {
-                            channel.writeFully(it.provider().readRemaining().readBytes())
+                            channel.writeFully(it.provider().readRemaining().readByteArray())
                             ""
                         }
 
                         is PartData.BinaryItem -> {
-                            channel.writeFully(it.provider().readBytes())
+                            channel.writeFully(it.provider().readByteArray())
                             ""
                         }
 
@@ -213,7 +214,7 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
 /**
  * Sets a multipart HTTP request body.
  */
-@Suppress("DEPRECATION")
+
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,
@@ -232,12 +233,12 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readByteArray())
                         ""
                     }
 
                     is PartData.BinaryItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readByteArray())
                         ""
                     }
 

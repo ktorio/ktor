@@ -145,12 +145,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     @NoHttp2
     @Ignore
     open fun testChunkedWrongLength() {
-        val data = ByteArray(16 * 1024, { it.toByte() })
+        val data = ByteArray(16 * 1024) { it.toByte() }
         val doubleSize = (data.size * 2).toString()
         val halfSize = (data.size / 2).toString()
 
@@ -194,7 +193,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 channel.writeFully(data)
-                                channel.close()
+                                channel.flushAndClose()
                             }
                         }
                     )
@@ -211,7 +210,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 channel.writeFully(data)
-                                channel.close()
+                                channel.flushAndClose()
                             }
                         }
                     )
@@ -656,7 +655,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     class CustomFail(message: String) : Throwable(message)
 
     @Test
-    public fun testErrorInApplicationCallPipelineInterceptor() {
+    fun testErrorInApplicationCallPipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
@@ -692,7 +691,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    public fun testErrorInApplicationReceivePipelineInterceptor() {
+    fun testErrorInApplicationReceivePipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
         val logger = object : Logger by loggerDelegate {
@@ -731,7 +730,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    public fun testErrorInApplicationSendPipelineInterceptor() {
+    fun testErrorInApplicationSendPipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
@@ -773,7 +772,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    public open fun testErrorInEnginePipelineInterceptor() {
+    open fun testErrorInEnginePipelineInterceptor() {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
@@ -807,7 +806,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    public fun testRespondBlockingLarge() {
+    fun testRespondBlockingLarge() {
         val server = createServer {
             routing {
                 get("/blocking/large") {

@@ -18,7 +18,6 @@ import kotlin.test.*
 private enum class SelectedRoute { Get, Param, Header, None }
 private class Foo
 
-@Suppress("DEPRECATION")
 class RoutingProcessingTest {
 
     @Test

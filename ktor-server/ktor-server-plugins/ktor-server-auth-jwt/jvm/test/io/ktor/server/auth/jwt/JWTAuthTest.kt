@@ -21,7 +21,6 @@ import java.security.interfaces.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class JWTAuthTest {
 
     @Test

@@ -4,11 +4,10 @@
 
 package io.ktor.server.sessions
 
-@Suppress("KDocMissingDocumentation")
 /**
  * A caching storage for sessions.
  */
-public class CacheStorage constructor(
+public class CacheStorage(
     public val delegate: SessionStorage,
     idleTimeout: Long,
 ) : SessionStorage {

@@ -299,7 +299,7 @@ public suspend fun verifyWithOAuth2(
 /**
  * List of OAuth2 request parameters for both peers.
  */
-@Suppress("KDocMissingDocumentation")
+
 public object OAuth2RequestParameters {
     public const val ClientId: String = "client_id"
     public const val Scope: String = "scope"
@@ -318,7 +318,7 @@ public object OAuth2RequestParameters {
 /**
  * List of OAuth2 server response parameters.
  */
-@Suppress("KDocMissingDocumentation")
+
 public object OAuth2ResponseParameters {
     public const val AccessToken: String = "access_token"
     public const val TokenType: String = "token_type"
@@ -329,7 +329,7 @@ public object OAuth2ResponseParameters {
 }
 
 private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing {
-    val errorDescription = parameters.get("error_description") ?: "OAuth2 Server responded with $errorCode"
+    val errorDescription = parameters["error_description"] ?: "OAuth2 Server responded with $errorCode"
 
     throw when (errorCode) {
         "invalid_grant" -> OAuth2Exception.InvalidGrant(errorDescription)

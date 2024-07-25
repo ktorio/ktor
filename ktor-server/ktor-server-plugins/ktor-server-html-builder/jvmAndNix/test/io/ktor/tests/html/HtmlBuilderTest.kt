@@ -17,7 +17,6 @@ import io.ktor.utils.io.charsets.*
 import kotlinx.html.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class HtmlBuilderTest {
     @Test
     fun testName() = withTestApplication {

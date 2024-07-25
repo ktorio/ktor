@@ -13,7 +13,7 @@ import io.ktor.http.content.*
  * @param challenges to be passed with the `WWW-Authenticate` header.
  */
 public class UnauthorizedResponse(public vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {
-    override val status: HttpStatusCode?
+    override val status: HttpStatusCode
         get() = HttpStatusCode.Unauthorized
 
     override val headers: Headers

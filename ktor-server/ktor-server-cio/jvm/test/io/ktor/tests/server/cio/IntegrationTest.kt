@@ -20,8 +20,8 @@ class IntegrationTest {
     private val server = CompletableDeferred<ServerSocketChannel>()
     private var handler: suspend (Request, ByteReadChannel, ByteWriteChannel) -> Unit = { r, _, o ->
         respond404(r, o)
-        @Suppress("DEPRECATION")
-        o.close()
+
+        o.flushAndClose()
     }
 
     @BeforeTest

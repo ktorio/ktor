@@ -11,7 +11,6 @@ import io.ktor.server.response.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class HandlerTest {
 
     @Test

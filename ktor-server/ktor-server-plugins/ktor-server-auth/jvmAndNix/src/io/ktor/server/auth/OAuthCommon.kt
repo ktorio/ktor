@@ -12,7 +12,7 @@ import io.ktor.util.*
 /**
  * OAuth versions used in configuration.
  */
-@Suppress("KDocMissingDocumentation")
+
 public enum class OAuthVersion {
     V10a, V20
 }
@@ -159,7 +159,7 @@ public sealed class OAuthAccessTokenResponse : Principal {
 /**
  * OAuth grant types constants.
  */
-@Suppress("KDocMissingDocumentation")
+
 public object OAuthGrantTypes {
     public const val AuthorizationCode: String = "authorization_code"
     public const val Password: String = "password"

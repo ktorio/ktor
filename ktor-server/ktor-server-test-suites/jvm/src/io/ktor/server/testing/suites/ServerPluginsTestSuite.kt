@@ -17,7 +17,6 @@ import org.junit.jupiter.api.*
 import kotlin.test.*
 import kotlin.test.Test
 
-@Suppress("DEPRECATION")
 abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
