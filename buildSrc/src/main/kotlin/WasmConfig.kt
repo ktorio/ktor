@@ -28,24 +28,20 @@ private fun Project.configureWasmTasks() {
         @OptIn(ExperimentalWasmDsl::class)
         wasmJs {
             nodejs {
-                testTask(
-                    Action {
-                        useMocha {
-                            timeout = "10000"
-                        }
+                testTask {
+                    useMocha {
+                        timeout = "10000"
                     }
-                )
+                }
             }
 
             browser {
-                testTask(
-                    Action {
-                        useKarma {
-                            useChromeHeadlessWasmGc()
-                            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
-                        }
+                testTask {
+                    useKarma {
+                        useChromeCanaryHeadless()
+                        useConfigDirectory(File(project.rootProject.projectDir, "karma"))
                     }
-                )
+                }
             }
         }
     }

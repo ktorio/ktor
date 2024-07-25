@@ -46,9 +46,6 @@ buildscript {
         }
     }
 
-    // This flag is also used in settings.gradle to exclude native-only projects
-    extra["native_targets_enabled"] = rootProject.properties["disable_native_targets"] == null
-
     repositories {
         mavenCentral()
         google()
@@ -60,7 +57,6 @@ buildscript {
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
-val native_targets_enabled: Boolean by extra
 val version = (project.version as String).let { if (it.endsWith("-SNAPSHOT")) it.dropLast("-SNAPSHOT".length) else it }
 
 extra["configuredVersion"] = when {
@@ -71,7 +67,7 @@ extra["configuredVersion"] = when {
 
 println("The build version is ${extra["configuredVersion"]}")
 
-extra["globalM2"] = "$buildDir/m2"
+extra["globalM2"] = "${project.file("build")}/m2"
 extra["publishLocal"] = project.hasProperty("publishLocal")
 
 val configuredVersion: String by extra

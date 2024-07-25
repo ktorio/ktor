@@ -88,11 +88,35 @@ fun Project.configureTargets() {
             }
 
             if (hasDarwin) {
-                val darwinMain by creating
+                val darwinMain by creating {
+                    val nixMain = findByName("nixMain")
+                    nixMain?.let { dependsOn(it) }
+
+                    val posixMain = findByName("posixMain")
+                    posixMain?.let { dependsOn(posixMain) }
+
+                    val jvmAndNixMain = findByName("jvmAndNixMain")
+                    jvmAndNixMain?.let { dependsOn(jvmAndNixMain) }
+
+                    val commonMain = findByName("commonMain")
+                    commonMain?.let { dependsOn(commonMain) }
+                }
                 val darwinTest by creating {
                     dependencies {
                         implementation(kotlin("test"))
                     }
+
+                    val nixTest = findByName("nixTest")
+                    nixTest?.let { dependsOn(nixTest) }
+
+                    val posixTest = findByName("posixTest")
+                    posixTest?.let { dependsOn(posixTest) }
+
+                    val jvmAndNixTest = findByName("jvmAndNixTest")
+                    jvmAndNixTest?.let { dependsOn(jvmAndNixTest) }
+
+                    val commonTest = findByName("commonTest")
+                    commonTest?.let { dependsOn(commonTest) }
                 }
 
                 val macosMain by creating
@@ -109,11 +133,13 @@ fun Project.configureTargets() {
             }
 
             if (hasDesktop) {
-                val desktopMain by creating
+                val desktopMain by creating {
+                    val commonMain = findByName("commonMain")
+                    commonMain?.let { dependsOn(commonMain) }
+                }
                 val desktopTest by creating {
-                    dependencies {
-                        implementation(kotlin("test"))
-                    }
+                    val commonTest = findByName("commonTest")
+                    commonTest?.let { dependsOn(commonTest) }
                 }
             }
 
@@ -199,6 +225,8 @@ fun Project.configureTargets() {
 
             if (hasDarwin) {
                 val nixMain: KotlinSourceSet? = findByName("nixMain")
+                val nixTest: KotlinSourceSet? = findByName("nixTest")
+
                 val darwinMain by getting
                 val darwinTest by getting
                 val macosMain by getting
@@ -215,6 +243,12 @@ fun Project.configureTargets() {
                 tvosMain.dependsOn(darwinMain)
                 iosMain.dependsOn(darwinMain)
                 watchosMain.dependsOn(darwinMain)
+
+                nixTest?.let { darwinTest.dependsOn(it) }
+                macosTest.dependsOn(darwinTest)
+                tvosTest.dependsOn(darwinTest)
+                iosTest.dependsOn(darwinTest)
+                watchosTest.dependsOn(darwinTest)
 
                 macosTargets().forEach {
                     getByName("${it}Main").dependsOn(macosMain)
@@ -266,7 +300,9 @@ fun Project.configureTargets() {
                     findByName("posixMain")?.let { dependsOn(it) }
                 }
 
-                val desktopTest by getting
+                val desktopTest by getting {
+                    findByName("posixTest")?.let { dependsOn(it) }
+                }
 
                 desktopTargets().forEach {
                     getByName("${it}Main").dependsOn(desktopMain)
@@ -277,10 +313,15 @@ fun Project.configureTargets() {
             if (hasWindows) {
                 val windowsMain by getting {
                     findByName("posixMain")?.let { dependsOn(it) }
+                    findByName("desktopMain")?.let { dependsOn(it) }
+                    findByName("commonMain")?.let { dependsOn(it) }
                 }
 
                 val windowsTest by getting {
                     findByName("posixTest")?.let { dependsOn(it) }
+                    findByName("desktopTest")?.let { dependsOn(it) }
+                    findByName("commonTest")?.let { dependsOn(it) }
+
                     dependencies {
                         implementation(kotlin("test"))
                     }

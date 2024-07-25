@@ -105,7 +105,11 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
     fun testCustomKotlinModule() = withTestApplication {
         application.install(ContentNegotiation) {
             jackson {
-                registerModule(KotlinModule(nullIsSameAsDefault = true))
+                val module = KotlinModule.Builder()
+                    .configure(KotlinFeature.NullIsSameAsDefault, true)
+                    .build()
+
+                registerModule(module)
             }
         }
 
