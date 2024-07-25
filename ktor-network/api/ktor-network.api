@@ -301,11 +301,6 @@ public final class io/ktor/network/sockets/SocketsKt {
 	public static synthetic fun openWriteChannel$default (Lio/ktor/network/sockets/AWritable;ZILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
-public final class io/ktor/network/sockets/TCPSocketBuilderJvmKt {
-	public static final fun connect (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun connect$default (Lio/ktor/network/sockets/TcpSocketBuilder;Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
 public final class io/ktor/network/sockets/TcpSocketBuilder : io/ktor/network/sockets/Configurable {
 	public fun <init> (Lio/ktor/network/selector/SelectorManager;Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun bind (Lio/ktor/network/sockets/SocketAddress;Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/ServerSocket;

@@ -44,6 +44,6 @@ public actual enum class SelectInterest {
 
     public actual companion object {
         public actual val AllInterests: Array<SelectInterest>
-            get() = values()
+            get() = entries.toTypedArray()
     }
 }

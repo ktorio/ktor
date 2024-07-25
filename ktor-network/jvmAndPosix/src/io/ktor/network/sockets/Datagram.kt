@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
+import kotlinx.io.*
 
 internal const val MAX_DATAGRAM_SIZE = 65535
 
@@ -14,9 +15,8 @@ internal const val MAX_DATAGRAM_SIZE = 65535
  * @property packet content
  * @property address to send to
  */
-@Suppress("DEPRECATION")
 public class Datagram(
-    public val packet: ByteReadPacket,
+    public val packet: Source,
     public val address: SocketAddress
 ) {
     init {

@@ -7,5 +7,4 @@ import kotlinx.coroutines.*
  */
 public expect interface Selectable
 
-@Suppress("KDocMissingDocumentation")
 public class ClosedChannelCancellationException : CancellationException("Closed channel.")

@@ -5,19 +5,19 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 public enum class TLSExtensionType(public val code: Short) {
-    SERVER_NAME(0),
-    MAX_FRAGMENT_LENGTH(1),
-    CLIENT_CERTIFICATE_URL(2),
-    TRUSTED_CA_KEYS(3),
-    TRUNCATED_HMAC(4),
-    STATUS_REQUEST(5),
+    SERVER_NAME(code = 0),
+    MAX_FRAGMENT_LENGTH(code = 1),
+    CLIENT_CERTIFICATE_URL(code = 2),
+    TRUSTED_CA_KEYS(code = 3),
+    TRUNCATED_HMAC(code = 4),
+    STATUS_REQUEST(code = 5),
 
-    ELLIPTIC_CURVES(10),
-    EC_POINT_FORMAT(11),
-    SIGNATURE_ALGORITHMS(13);
+    ELLIPTIC_CURVES(code = 10),
+    EC_POINT_FORMAT(code = 11),
+    SIGNATURE_ALGORITHMS(code = 13);
 
     public companion object {
         public fun byCode(code: Int): TLSExtensionType =
@@ -27,9 +27,8 @@ public enum class TLSExtensionType(public val code: Short) {
     }
 }
 
-@Suppress("DEPRECATION")
 internal class TLSExtension(
     val type: TLSExtensionType,
     val length: Int,
-    val packet: ByteReadPacket
+    val packet: Source
 )

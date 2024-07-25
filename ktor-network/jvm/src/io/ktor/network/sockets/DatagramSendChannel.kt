@@ -48,7 +48,6 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @Suppress("DEPRECATION")
     @OptIn(InternalCoroutinesApi::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
@@ -65,7 +64,7 @@ internal class DatagramSendChannel(
         }
 
         if (result) {
-            element.packet.release()
+            element.packet.close()
         }
 
         return ChannelResult.success(Unit)
@@ -95,7 +94,7 @@ internal class DatagramSendChannel(
             socket.selector.select(socket, SelectInterest.WRITE)
 
             @Suppress("BlockingMethodInNonBlockingContext")
-            // this is actually non-blocking invocation
+            // this is actually a non-blocking invocation
             if (channel.send(buffer, address.toJavaAddress()) != 0) {
                 socket.interestOp(SelectInterest.WRITE, false)
                 break

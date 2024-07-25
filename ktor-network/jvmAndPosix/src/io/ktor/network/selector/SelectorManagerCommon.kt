@@ -36,9 +36,8 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
 }
 
 /**
- * Select interest kind
+ * Select interest kind.
  */
-@Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
 public expect enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 

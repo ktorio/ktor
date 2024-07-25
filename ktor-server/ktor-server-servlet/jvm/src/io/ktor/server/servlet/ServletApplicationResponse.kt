@@ -55,7 +55,9 @@ public abstract class ServletApplicationResponse(
             if (responseJob.isInitialized()) {
                 responseJob.value.apply {
 
-                    channel.flushAndClose()
+                    runCatching {
+                        channel.flushAndClose()
+                    }
                     join()
                 }
                 return@intercept

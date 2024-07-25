@@ -15,7 +15,6 @@ import kotlin.time.Duration.Companion.seconds
 
 class TCPSocketTest {
 
-    @Suppress("DEPRECATION")
     @Test
     fun testEcho() = testSockets { selector ->
         val tcp = aSocket(selector).tcp()
@@ -33,7 +32,7 @@ class TCPSocketTest {
             clientOutput.writeStringUtf8("Hello, world\n")
             clientOutput.flush()
         } finally {
-            clientOutput.close()
+            clientOutput.flushAndClose()
         }
 
         val serverInput = serverConnection.openReadChannel()
@@ -50,7 +49,7 @@ class TCPSocketTest {
 
             assertEquals("Hello From Server", echo)
         } finally {
-            serverOutput.close()
+            serverOutput.flushAndClose()
         }
 
         serverConnection.close()
@@ -59,7 +58,6 @@ class TCPSocketTest {
         server.close()
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testEchoOverUnixSockets() = testSockets { selector ->
         if (!supportsUnixDomainSockets()) return@testSockets
@@ -81,7 +79,7 @@ class TCPSocketTest {
             clientOutput.writeStringUtf8("Hello, world\n")
             clientOutput.flush()
         } finally {
-            clientOutput.close()
+            clientOutput.flushAndClose()
         }
 
         val serverInput = serverConnection.openReadChannel()
@@ -98,7 +96,7 @@ class TCPSocketTest {
 
             assertEquals("Hello From Server", echo)
         } finally {
-            serverOutput.close()
+            serverOutput.flushAndClose()
         }
 
         serverConnection.close()

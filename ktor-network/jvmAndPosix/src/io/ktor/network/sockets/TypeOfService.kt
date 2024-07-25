@@ -22,7 +22,6 @@ public value class TypeOfService(public val value: UByte) {
      */
     public inline val intValue: Int get() = value.toInt()
 
-    @Suppress("KDocMissingDocumentation")
     public companion object {
         public val UNDEFINED: TypeOfService = TypeOfService(0u)
         public val IPTOS_LOWCOST: TypeOfService = TypeOfService(0x02u)
