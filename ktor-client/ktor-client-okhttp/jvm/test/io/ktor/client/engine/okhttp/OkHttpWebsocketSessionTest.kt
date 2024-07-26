@@ -38,11 +38,7 @@ class OkHttpWebsocketSessionTest {
             install(WebSockets)
 
             engine {
-                webSocketFactory = object : WebSocket.Factory {
-                    override fun newWebSocket(request: Request, listener: WebSocketListener): WebSocket {
-                        throw FactoryUsedException()
-                    }
-                }
+                webSocketFactory = WebSocket.Factory { _, _ -> throw FactoryUsedException() }
             }
         }
 

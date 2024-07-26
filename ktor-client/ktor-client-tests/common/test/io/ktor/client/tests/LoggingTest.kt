@@ -19,7 +19,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
     private val content = "Response data"

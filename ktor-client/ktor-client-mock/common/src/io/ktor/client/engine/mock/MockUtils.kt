@@ -12,9 +12,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 
 @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
-@Suppress("KDocMissingDocumentation")
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ContentWrapper -> delegate().toByteArray()
     is OutgoingContent.ByteArrayContent -> bytes()
@@ -27,12 +27,13 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
         }
         channel.toByteArray()
     }
+
     is OutgoingContent.ProtocolUpgrade, is OutgoingContent.NoContent -> EmptyArray
 }
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
-public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
+public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
     is OutgoingContent.WriteChannelContent -> {

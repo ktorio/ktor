@@ -13,7 +13,6 @@ import io.ktor.websocket.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 abstract class JsonWebsocketsTest(private val converter: WebsocketContentConverter) {
 
     @Serializable

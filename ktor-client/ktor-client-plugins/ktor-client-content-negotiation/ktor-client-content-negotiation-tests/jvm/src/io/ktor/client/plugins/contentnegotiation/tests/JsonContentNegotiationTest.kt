@@ -19,7 +19,6 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
 

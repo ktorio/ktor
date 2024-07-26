@@ -6,6 +6,7 @@ package io.ktor.client.statement
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 /**
  * Reads exactly [count] bytes of the [HttpResponse.content].
@@ -19,9 +20,9 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * Reads the whole [HttpResponse.content] if `Content-Length` is specified.
  * Otherwise, it just reads one byte.
  */
-@Suppress("DEPRECATION")
+
 @OptIn(InternalAPI::class)
-public suspend fun HttpResponse.readBytes(): ByteArray = content.readRemaining().readBytes()
+public suspend fun HttpResponse.readBytes(): ByteArray = content.readRemaining().readByteArray()
 
 /**
  * Efficiently discards the remaining bytes of [HttpResponse.content].

@@ -8,6 +8,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 
 internal class ByteChannelReplay(private val origin: ByteReadChannel) {
     private val content: AtomicRef<CompletableDeferred<ByteArray>?> = atomic(null)
@@ -34,7 +35,6 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
         }.channel
     }
 
-    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun receiveBody(
         result: CompletableDeferred<ByteArray>
@@ -51,9 +51,9 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
             }
 
             origin.closedCause?.let { throw it }
-            result.complete(body.build().readBytes())
+            result.complete(body.build().readByteArray())
         } catch (cause: Throwable) {
-            body.release()
+            body.close()
             result.completeExceptionally(cause)
             throw cause
         }

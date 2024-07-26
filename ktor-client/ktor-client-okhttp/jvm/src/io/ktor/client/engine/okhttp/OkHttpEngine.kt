@@ -24,7 +24,6 @@ import okio.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 

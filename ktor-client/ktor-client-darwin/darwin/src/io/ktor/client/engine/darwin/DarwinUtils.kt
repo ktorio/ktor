@@ -68,7 +68,7 @@ internal suspend fun OutgoingContent.toDataOrStream(): Any? {
                         if (written < 0) {
                             throw outputStream.streamError?.let { DarwinHttpRequestException(it) }
                                 ?: inputStream.streamError?.let { DarwinHttpRequestException(it) }
-                                ?: kotlinx.io.IOException("Failed to write to the network")
+                                ?: IOException("Failed to write to the network")
                         }
                     }
                 }
@@ -113,5 +113,4 @@ internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R)
     }
 }
 
-@Suppress("KDocMissingDocumentation")
 public class DarwinHttpRequestException(public val origin: NSError) : IOException("Exception in http request: $origin")

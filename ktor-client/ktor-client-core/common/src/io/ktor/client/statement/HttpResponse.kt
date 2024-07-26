@@ -14,6 +14,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 
 /**
  * An [HttpClient]'s response, a second part of [HttpClientCall].
@@ -81,11 +82,11 @@ internal fun HttpResponse.complete() {
  * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.
  */
-@Suppress("DEPRECATION")
+
 public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.UTF_8): String {
     val originCharset = charset() ?: fallbackCharset
     val decoder = originCharset.newDecoder()
-    val input = body<ByteReadPacket>()
+    val input = body<Source>()
 
     return decoder.decode(input)
 }

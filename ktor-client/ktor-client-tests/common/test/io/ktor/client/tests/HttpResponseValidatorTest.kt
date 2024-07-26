@@ -13,7 +13,6 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class HttpResponseValidatorTest {
     private var firstHandler = 0
     private var secondHandler = 0

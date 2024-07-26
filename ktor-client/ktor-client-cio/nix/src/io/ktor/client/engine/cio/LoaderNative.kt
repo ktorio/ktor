@@ -7,7 +7,6 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import io.ktor.utils.io.*
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
 @EagerInitialization
 private val initHook = CIO

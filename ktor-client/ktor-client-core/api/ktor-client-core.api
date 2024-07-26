@@ -444,6 +444,8 @@ public final class io/ktor/client/plugins/HttpSend$Plugin : io/ktor/client/plugi
 
 public final class io/ktor/client/plugins/HttpTimeoutCapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/plugins/HttpTimeoutCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -802,6 +804,8 @@ public final class io/ktor/client/plugins/sse/DefaultClientSSESession : io/ktor/
 
 public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/plugins/sse/SSECapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -903,6 +907,8 @@ public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSessio
 
 public final class io/ktor/client/plugins/websocket/WebSocketCapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/plugins/websocket/WebSocketCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -913,6 +919,8 @@ public final class io/ktor/client/plugins/websocket/WebSocketException : java/la
 
 public final class io/ktor/client/plugins/websocket/WebSocketExtensionsCapability : io/ktor/client/engine/HttpClientEngineCapability {
 	public static final field INSTANCE Lio/ktor/client/plugins/websocket/WebSocketExtensionsCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1482,7 +1490,9 @@ public final class io/ktor/client/utils/CoroutineDispatcherUtilsKt {
 
 public final class io/ktor/client/utils/EmptyContent : io/ktor/http/content/OutgoingContent$NoContent {
 	public static final field INSTANCE Lio/ktor/client/utils/EmptyContent;
+	public fun equals (Ljava/lang/Object;)Z
 	public fun getContentLength ()Ljava/lang/Long;
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 

@@ -16,6 +16,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
+import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
 class CIOEngineTest {
@@ -182,7 +183,7 @@ class CIOEngineTest {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<WebSocketException> {
+            assertFailsWith<WebSocketException> {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/500") {}
             }.apply {
                 assertEquals(message, "Handshake exception, expected status code 101 but was 500")
@@ -198,11 +199,10 @@ class CIOEngineTest {
             if (body != null) setBody(body)
         }
 
-    @Suppress("DEPRECATION")
     private suspend fun readAvailableLine(channel: ByteReadChannel): String {
         val buffer = ByteArray(1024)
         val length = channel.readAvailable(buffer)
-        return String(buffer, length = length)
+        return buffer.decodeToString(0, 0 + length)
     }
 
     private suspend fun readAvailableLines(channel: ByteReadChannel): List<String> {

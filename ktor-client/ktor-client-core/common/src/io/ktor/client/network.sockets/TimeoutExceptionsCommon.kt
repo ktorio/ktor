@@ -10,7 +10,7 @@ import kotlinx.io.IOException
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-public expect class ConnectTimeoutException(message: String, cause: Throwable? = null) : kotlinx.io.IOException
+public expect class ConnectTimeoutException(message: String, cause: Throwable? = null) : IOException
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.

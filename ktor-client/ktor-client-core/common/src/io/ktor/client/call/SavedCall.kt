@@ -12,6 +12,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 
 internal class SavedHttpCall(
@@ -67,10 +68,10 @@ internal class SavedHttpResponse(
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
-@Suppress("DEPRECATION")
+
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
-    val responseBody = response.content.readRemaining().readBytes()
+    val responseBody = response.content.readRemaining().readByteArray()
 
     return SavedHttpCall(client, request, response, responseBody)
 }

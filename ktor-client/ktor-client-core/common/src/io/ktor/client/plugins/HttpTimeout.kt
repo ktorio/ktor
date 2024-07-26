@@ -109,9 +109,7 @@ public class HttpTimeoutConfig {
     }
 }
 
-public object HttpTimeoutCapability : HttpClientEngineCapability<HttpTimeoutConfig> {
-    override fun toString(): String = "HttpTimeoutCapability"
-}
+public data object HttpTimeoutCapability : HttpClientEngineCapability<HttpTimeoutConfig>
 
 /**
  * A plugin that allows you to configure the following timeouts:

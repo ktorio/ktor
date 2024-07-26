@@ -89,7 +89,6 @@ internal class ApacheRequestEntityProducer(
     private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
-    @Suppress("DEPRECATION")
     private val channel: ByteReadChannel = getChannel(callContext, requestData.body)
 
     @OptIn(DelicateCoroutinesApi::class)

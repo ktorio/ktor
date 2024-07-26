@@ -29,7 +29,6 @@ internal class JavaHttpResponseBodyHandler(
     }
 
     @OptIn(InternalAPI::class)
-    @Suppress("DEPRECATION")
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
         requestData: HttpRequestData,

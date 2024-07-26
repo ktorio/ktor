@@ -52,6 +52,4 @@ internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = 
         body.destroy(origin)
         throw origin
     }
-
-    Unit
 }.channel

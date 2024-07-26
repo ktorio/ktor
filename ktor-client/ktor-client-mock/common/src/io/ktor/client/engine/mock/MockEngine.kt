@@ -74,7 +74,6 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         return response
     }
 
-    @Suppress("KDocMissingDocumentation")
     override fun close() {
         super.close()
 

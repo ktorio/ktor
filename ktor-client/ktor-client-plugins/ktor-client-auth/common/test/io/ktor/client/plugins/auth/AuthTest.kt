@@ -15,9 +15,9 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import kotlinx.io.IOException
+import kotlinx.io.*
+import kotlin.test.assertFailsWith
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
@@ -626,7 +626,7 @@ class AuthTest : ClientLoader() {
                     refreshTokens {
                         if (firstCall) {
                             firstCall = false
-                            throw kotlinx.io.IOException("Refresh failed")
+                            throw IOException("Refresh failed")
                         }
                         val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
                         BearerTokens(token, token)
@@ -639,7 +639,7 @@ class AuthTest : ClientLoader() {
             val first = client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
             assertEquals("OK", first)
 
-            val error = kotlin.test.assertFailsWith<IOException> {
+            val error = assertFailsWith<IOException> {
                 client.get("$TEST_SERVER/auth/bearer/second")
             }
             assertEquals("Refresh failed", error.message)

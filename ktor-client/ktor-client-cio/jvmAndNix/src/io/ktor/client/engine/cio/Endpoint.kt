@@ -132,7 +132,6 @@ internal class Endpoint(
         }
     }
 
-    @Suppress("DEPRECATION")
     private suspend fun processExpectContinue(
         request: HttpRequestData,
         input: ByteReadChannel,
@@ -164,7 +163,7 @@ internal class Endpoint(
                 }
 
                 else -> {
-                    output.close()
+                    output.flushAndClose()
                     return@withContext response
                 }
             }
@@ -311,7 +310,6 @@ private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData
     }
 }
 
-@Suppress("KDocMissingDocumentation")
 public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable
