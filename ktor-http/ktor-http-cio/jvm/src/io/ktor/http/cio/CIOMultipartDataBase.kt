@@ -61,7 +61,6 @@ public class CIOMultipartDataBase(
         }
     }
 
-    @Suppress("DEPRECATION")
     private suspend fun partToData(part: MultipartEvent.MultipartPart): PartData {
         val headers = part.headers.await()
 
@@ -77,10 +76,8 @@ public class CIOMultipartDataBase(
 //                throw cause
 //            }
 
-            try {
-                return PartData.FormItem(packet.readText(), { part.release() }, CIOHeaders(headers))
-            } finally {
-                packet.release()
+            packet.use {
+                return PartData.FormItem(it.readText(), { part.release() }, CIOHeaders(headers))
             }
         }
 

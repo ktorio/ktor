@@ -25,7 +25,6 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 /**
  * Decoder job type
  */
-@Suppress("DEPRECATION")
 public typealias DecoderJob = WriterJob
 
 /**
@@ -55,7 +54,6 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
  */
-@Suppress("DEPRECATION")
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
@@ -64,9 +62,9 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
         while (true) {
             chunkSizeBuffer.clear()
             if (!input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH)) {
-                throw kotlinx.io.EOFException("Chunked stream has ended unexpectedly: no chunk size")
+                throw EOFException("Chunked stream has ended unexpectedly: no chunk size")
             } else if (chunkSizeBuffer.isEmpty()) {
-                throw kotlinx.io.EOFException("Invalid chunk size: empty")
+                throw EOFException("Invalid chunk size: empty")
             }
 
             val chunkSize =
@@ -80,10 +78,10 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 
             chunkSizeBuffer.clear()
             if (!input.readUTF8LineTo(chunkSizeBuffer, 2)) {
-                throw kotlinx.io.EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
+                throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
             }
             if (chunkSizeBuffer.isNotEmpty()) {
-                throw kotlinx.io.EOFException("Invalid chunk: content block should end with CR+LF")
+                throw EOFException("Invalid chunk: content block should end with CR+LF")
             }
 
             if (chunkSize == 0L) break
@@ -93,14 +91,13 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
         throw t
     } finally {
         ChunkSizeBufferPool.recycle(chunkSizeBuffer)
-        out.close()
+        out.flushAndClose()
     }
 }
 
 /**
  * Encoder job type
  */
-@Suppress("DEPRECATION")
 public typealias EncoderJob = ReaderJob
 
 /**
@@ -137,7 +134,6 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
     }
 }
 
-@Suppress("DEPRECATION")
 private fun ByteReadChannel.rethrowCloseCause() {
     val cause = when (this) {
         is ByteChannel -> closedCause
@@ -150,7 +146,6 @@ private const val CrLfShort: Short = 0x0d0a
 private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
-@Suppress("DEPRECATION")
 private suspend fun ByteWriteChannel.writeChunk(memory: ByteArray, startIndex: Int, endIndex: Int): Int {
     val size = endIndex - startIndex
     writeIntHex(size)

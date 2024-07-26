@@ -10,13 +10,16 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.io.*
 import java.io.*
+import java.io.EOFException
+import java.io.IOException
 import java.nio.*
 
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
  */
-@Suppress("DEPRECATION")
+
 public sealed class MultipartEvent {
     /**
      * Release underlying data/packet.
@@ -28,10 +31,10 @@ public sealed class MultipartEvent {
      * @property body contains preamble's content
      */
     public class Preamble(
-        public val body: ByteReadPacket
+        public val body: Source
     ) : MultipartEvent() {
         override fun release() {
-            body.release()
+            body.close()
         }
     }
 
@@ -65,10 +68,10 @@ public sealed class MultipartEvent {
      * @property body contains epilogue's content
      */
     public class Epilogue(
-        public val body: ByteReadPacket
+        public val body: Source
     ) : MultipartEvent() {
         override fun release() {
-            body.release()
+            body.close()
         }
     }
 }
@@ -77,11 +80,11 @@ public sealed class MultipartEvent {
  * Parse a multipart preamble
  * @return number of bytes copied
  */
-@Suppress("DEPRECATION")
+
 private suspend fun parsePreambleImpl(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
-    output: BytePacketBuilder,
+    output: Sink,
     limit: Long = Long.MAX_VALUE
 ): Long =
     copyUntilBoundary(
@@ -211,7 +214,6 @@ public fun CoroutineScope.parseMultipart(
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer,
@@ -286,7 +288,7 @@ private fun CoroutineScope.parseMultipart(
             }
         } else {
             val epilogueContent = countedInput.readRemaining()
-            if (epilogueContent.isNotEmpty) {
+            if (!epilogueContent.exhausted()) {
                 send(MultipartEvent.Epilogue(epilogueContent))
             }
         }
