@@ -7,6 +7,7 @@ package io.ktor.network.selector
 import io.ktor.network.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -17,6 +18,7 @@ internal actual class SelectorHelper {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
     private val closeQueue = LockFreeMPSCQueue<Int>()
+    private val allWsaEvents = atomic(emptyMap<Int, COpaquePointer?>())
 
     actual fun interest(event: EventInfo): Boolean {
         if (interestQueue.addLast(event)) {
@@ -41,16 +43,24 @@ internal actual class SelectorHelper {
 
     actual fun requestTermination() {
         interestQueue.close()
+        closeQueue.close()
         wakeupSignal.signal()
     }
 
     private fun cleanup() {
+        while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeDescriptor(event)
+        }
         wakeupSignal.close()
     }
 
     actual fun notifyClosed(descriptor: Int) {
-        closeQueue.addLast(descriptor)
-        wakeupSignal.signal()
+        if (closeQueue.addLast(descriptor)) {
+            wakeupSignal.signal()
+        } else {
+            closeDescriptor(descriptor)
+        }
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
@@ -58,10 +68,9 @@ internal actual class SelectorHelper {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
-        val allWsaEvents = mutableMapOf<Int, COpaquePointer?>()
 
         while (!interestQueue.isClosed) {
-            val wsaEvents = fillHandlers(watchSet, allWsaEvents)
+            val wsaEvents = fillHandlers(watchSet)
             val index = memScoped {
                 val length = wsaEvents.size + 1
                 val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
@@ -79,7 +88,7 @@ internal actual class SelectorHelper {
                 ).toInt().check()
             }
 
-            processSelectedEvents(watchSet, closeSet, completed, allWsaEvents, index, wsaEvents)
+            processSelectedEvents(watchSet, closeSet, completed, index, wsaEvents)
         }
 
         val exception = CancellationException("Selector closed")
@@ -94,15 +103,14 @@ internal actual class SelectorHelper {
 
     @OptIn(ExperimentalForeignApi::class)
     private fun fillHandlers(
-        watchSet: MutableSet<EventInfo>,
-        allWsaEvents: MutableMap<Int, COpaquePointer?>
+        watchSet: MutableSet<EventInfo>
     ): List<COpaquePointer?> {
         while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
         return watchSet.map { event ->
-            allWsaEvents.getOrPut(event.descriptor) {
+            val lazyWsaEvent = lazy(LazyThreadSafetyMode.NONE) {
                 val wsaEvent = WSACreateEvent()
                 WSAEventSelect(
                     s = event.descriptor.convert(),
@@ -111,6 +119,13 @@ internal actual class SelectorHelper {
                 )
                 wsaEvent
             }
+            allWsaEvents.updateAndGet {
+                if (event.descriptor !in it) {
+                    it + (event.descriptor to lazyWsaEvent.value)
+                } else {
+                    it
+                }
+            }.getValue(event.descriptor)
         }
     }
 
@@ -119,7 +134,6 @@ internal actual class SelectorHelper {
         watchSet: MutableSet<EventInfo>,
         closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
-        allWsaEvents: MutableMap<Int, COpaquePointer?>,
         wsaIndex: Int,
         wsaEvents: List<COpaquePointer?>
     ) {
@@ -155,10 +169,7 @@ internal actual class SelectorHelper {
         }
 
         for (descriptor in closeSet) {
-            close(descriptor)
-            allWsaEvents.remove(descriptor)?.let { wsaEvent ->
-                WSACloseEvent(wsaEvent)
-            }
+            closeDescriptor(descriptor)
         }
         closeSet.clear()
 
@@ -173,6 +184,17 @@ internal actual class SelectorHelper {
         SelectInterest.WRITE -> FD_WRITE
         SelectInterest.ACCEPT -> FD_ACCEPT
         SelectInterest.CONNECT -> FD_CONNECT
+    }
+
+    private fun closeDescriptor(descriptor: Int) {
+        close(descriptor)
+        allWsaEvents.update { map ->
+            map.toMutableMap().apply {
+                remove(descriptor)?.let { wsaEvent ->
+                    WSACloseEvent(wsaEvent)
+                }
+            }
+        }
     }
 
     private companion object {

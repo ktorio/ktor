@@ -4,7 +4,6 @@
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,5 +38,6 @@ internal class WorkerSelectorManager : SelectorManager {
     override fun close() {
         selector.requestTermination()
         selectorContext.close()
+        job.cancel()
     }
 }
