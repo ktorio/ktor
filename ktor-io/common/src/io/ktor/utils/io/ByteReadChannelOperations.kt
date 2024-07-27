@@ -49,8 +49,14 @@ public suspend fun ByteReadChannel.readByte(): Byte {
     return readBuffer.readByte()
 }
 
+@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readShort(): Short {
-    TODO("Not yet implemented")
+    while (availableForRead < 2 && awaitContent()) {
+    }
+
+    if (availableForRead < 2) throw EOFException("Not enough data available")
+
+    return readBuffer.readShort()
 }
 
 @OptIn(InternalAPI::class)
