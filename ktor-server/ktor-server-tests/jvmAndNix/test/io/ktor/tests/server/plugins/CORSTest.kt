@@ -1008,6 +1008,30 @@ class CORSTest {
     }
 
     @Test
+    fun testCorsValidationWithTrailingSlashOrigin () = testApplication {
+        application {
+            install(CORS){}
+            routing {
+                get {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+        }
+
+        client.get("/") {
+             header(HttpHeaders.Origin, "http://localhost:3000/")
+        }.let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://localhost:3000")
+        }.let {
+            assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
+    }
+
+    @Test
     fun originValidation() = testApplication {
         install(CORS) {
             allowSameOrigin = false

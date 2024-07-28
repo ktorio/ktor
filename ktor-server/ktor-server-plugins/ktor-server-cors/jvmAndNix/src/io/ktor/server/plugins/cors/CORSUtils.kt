@@ -102,7 +102,8 @@ internal fun isValidOrigin(origin: String): Boolean {
     }
 
     for (index in portIndex until origin.length) {
-        if (!origin[index].isDigit()) return false
+        val isTrailingSlash = index == origin.length - 1 && origin[index] == '/'
+        if (!origin[index].isDigit() && !isTrailingSlash) return false
     }
 
     return true
@@ -112,10 +113,13 @@ internal fun normalizeOrigin(origin: String, numberRegex: Regex): String {
     if (origin == "null" || origin == "*") return origin
 
     val builder = StringBuilder(origin.length)
-    builder.append(origin)
-
-    if (!origin.substringAfterLast(":", "").matches(numberRegex)) {
-        val port = when (origin.substringBefore(':')) {
+    if (origin.endsWith("/")) {
+        builder.append(origin, 0, origin.length - 1)
+    } else {
+        builder.append(origin)
+    }
+    if (!builder.toString().substringAfterLast(":", "").matches(numberRegex)) {
+        val port = when (builder.toString().substringBefore(':')) {
             "http" -> "80"
             "https" -> "443"
             else -> null
