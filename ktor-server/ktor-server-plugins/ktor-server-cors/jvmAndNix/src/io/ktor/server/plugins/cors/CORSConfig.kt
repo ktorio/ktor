@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.cors
 
 import io.ktor.http.*
+import io.ktor.http.HttpMethod.Companion.DefaultMethods
 import io.ktor.util.*
 import io.ktor.utils.io.*
 
@@ -253,5 +254,12 @@ public class CORSConfig {
         if (method !in CorsDefaultMethods) {
             methods.add(method)
         }
+    }
+
+    /**
+     * Allows requests with any HTTP method.
+     */
+    public fun anyMethod() {
+        methods.addAll(DefaultMethods)
     }
 }
