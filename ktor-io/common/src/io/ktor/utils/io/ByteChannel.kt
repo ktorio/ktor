@@ -13,7 +13,7 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 
 @InternalAPI
-public val CHANNEL_MAX_SIZE: Int = 4 * 1024
+public val CHANNEL_MAX_SIZE: Int = 4096
 
 /**
  * Sequential (non-concurrent) byte channel implementation
