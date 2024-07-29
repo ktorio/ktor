@@ -5,8 +5,6 @@
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
-import io.ktor.network.selector.EventInfo
-import io.ktor.network.selector.SelectorHelper
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*

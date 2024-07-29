@@ -6,13 +6,13 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndNixMain {
+        jvmAndPosixMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
         }
 
-        jvmAndNixTest {
+        jvmAndPosixTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }
@@ -26,19 +26,19 @@ kotlin {
         }
 
         macosTest {
-            val nixTest = getByName("nixTest")
+            val nixTest = getByName("posixTest")
             dependsOn(nixTest)
         }
         watchosTest {
-            val nixTest = getByName("nixTest")
+            val nixTest = getByName("posixTest")
             dependsOn(nixTest)
         }
         tvosTest {
-            val nixTest = getByName("nixTest")
+            val nixTest = getByName("posixTest")
             dependsOn(nixTest)
         }
         iosTest {
-            val nixTest = getByName("nixTest")
+            val nixTest = getByName("posixTest")
             dependsOn(nixTest)
         }
     }
