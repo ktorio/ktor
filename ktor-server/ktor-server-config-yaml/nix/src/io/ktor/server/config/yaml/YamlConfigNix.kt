@@ -16,6 +16,7 @@ private fun init() {
     addConfigLoader(YamlConfigLoader())
 }
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalStdlibApi::class)
 @EagerInitialization
 private val initHook = init()

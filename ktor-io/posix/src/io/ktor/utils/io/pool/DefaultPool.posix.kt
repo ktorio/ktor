@@ -12,11 +12,7 @@ import kotlinx.atomicfu.*
 public actual abstract class DefaultPool<T : Any> actual constructor(
     actual final override val capacity: Int
 ) : ObjectPool<T> {
-    @Deprecated(
-        "This API is implementation detail. Consider creating new SynchronizedObject instead",
-        level = DeprecationLevel.WARNING
-    )
-    protected val lock: SynchronizedObject = SynchronizedObject()
+    private val lock: SynchronizedObject = SynchronizedObject()
 
     private val instances = mutableListOf<T>()
 

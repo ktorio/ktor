@@ -112,7 +112,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     }
 
     override suspend fun flushAndClose() {
-        flush()
+        runCatching {
+            flush()
+        }
 
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return

@@ -197,9 +197,7 @@ internal fun <R> (suspend () -> R).fireAndForget() {
 }
 
 private val NO_CALLBACK = object : Continuation<Any?> {
-    override val context: CoroutineContext
-        get() = EmptyCoroutineContext
+    override val context: CoroutineContext = EmptyCoroutineContext
 
-    override fun resumeWith(result: Result<Any?>) {
-    }
+    override fun resumeWith(result: Result<Any?>) = Unit
 }
