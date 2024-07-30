@@ -22,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
 

@@ -148,7 +148,6 @@ internal expect fun ktor_getsockname(
     __len: CPointer<UIntVar>?
 ): Int
 
-
 @OptIn(ExperimentalForeignApi::class)
 internal expect fun ktor_getpeername(
     __fd: Int,
