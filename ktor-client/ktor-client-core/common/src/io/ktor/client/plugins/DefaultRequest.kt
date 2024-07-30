@@ -70,6 +70,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 val originalUrlString = context.url.toString()
                 val defaultRequest = DefaultRequestBuilder().apply {
+                    headers.appendAll(this@intercept.context.headers)
                     plugin.block(this)
                     val contextHeaders: HeadersBuilder = this@intercept.context.headers
                     contextHeaders.entries().forEach { (name, values) ->
