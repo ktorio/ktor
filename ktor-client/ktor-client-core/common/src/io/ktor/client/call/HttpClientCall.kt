@@ -96,8 +96,6 @@ public open class HttpClientCall(
         } catch (cause: Throwable) {
             response.cancel("Receive failed", cause)
             throw cause
-        } finally {
-            response.complete()
         }
     }
 

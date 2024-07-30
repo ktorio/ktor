@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -97,8 +96,6 @@ public fun HttpClient.defaultTransformers() {
                     } catch (cause: Throwable) {
                         response.cancel("Receive failed", cause)
                         throw cause
-                    } finally {
-                        response.complete()
                     }
                 }.also { writerJob ->
                     writerJob.invokeOnCompletion {
