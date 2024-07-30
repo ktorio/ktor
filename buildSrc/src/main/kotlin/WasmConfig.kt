@@ -12,6 +12,11 @@ fun Project.configureWasm() {
 
     kotlin {
         sourceSets {
+            val wasmJsMain by getting {
+                dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-browser:${Versions.browser}")
+                }
+            }
             val wasmJsTest by getting {
                 dependencies {
                     implementation(npm("puppeteer", Versions.puppeteer))

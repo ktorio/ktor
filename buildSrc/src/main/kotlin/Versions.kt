@@ -27,6 +27,7 @@ val Project.Versions: Versions get() {
             versions["junit-version"],
             versions["logback-version"],
             versions["puppeteer-version"],
+            versions["kotlinx-browser-version"],
         )
     }.also {
         localVersions = it
@@ -42,4 +43,5 @@ data class Versions(
     val junit: String,
     val logback: String,
     val puppeteer: String,
+    val browser: String,
 )
