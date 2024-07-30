@@ -15,7 +15,7 @@ import kotlin.coroutines.*
 internal class TCPServerSocketNative(
     private val descriptor: Int,
     private val selectorManager: SelectorManager,
-    private val selectable: Selectable,
+    val selectable: Selectable,
     override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : ServerSocket, CoroutineScope {

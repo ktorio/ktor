@@ -61,16 +61,24 @@ internal actual class SelectorHelper {
 
     actual fun requestTermination() {
         interestQueue.close()
+        closeQueue.close()
         wakeupSignal.signal()
     }
 
     private fun cleanup() {
+        while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeDescriptor(event)
+        }
         wakeupSignal.close()
     }
 
     actual fun notifyClosed(descriptor: Int) {
-        closeQueue.addLast(descriptor)
-        wakeupSignal.signal()
+        if (closeQueue.addLast(descriptor)) {
+            wakeupSignal.signal()
+        } else {
+            closeDescriptor(descriptor)
+        }
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
@@ -204,7 +212,7 @@ internal actual class SelectorHelper {
         }
 
         for (descriptor in closeSet) {
-            close(descriptor)
+            closeDescriptor(descriptor)
         }
         closeSet.clear()
 
@@ -222,5 +230,9 @@ internal actual class SelectorHelper {
         SelectInterest.WRITE -> writeSet
         SelectInterest.ACCEPT -> readSet
         SelectInterest.CONNECT -> writeSet
+    }
+
+    private fun closeDescriptor(descriptor: Int) {
+        close(descriptor)
     }
 }
