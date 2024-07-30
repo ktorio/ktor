@@ -4,6 +4,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 
 /*
@@ -12,7 +13,6 @@ import kotlin.test.*
 
 class MultiPartFormDataContentTest {
 
-    @Suppress("DEPRECATION")
     @OptIn(InternalAPI::class)
     @Test
     fun testMultiPartFormDataContentHasCorrectPrefix() = testSuspend {
@@ -26,7 +26,7 @@ class MultiPartFormDataContentTest {
         formData.writeTo(channel)
         channel.close()
 
-        val actual = channel.readRemaining().readBytes()
+        val actual = channel.readRemaining().readByteArray()
 
         assertNotEquals('\r'.code.toByte(), actual[0])
         assertNotEquals('\n'.code.toByte(), actual[1])
@@ -230,12 +230,11 @@ class MultiPartFormDataContentTest {
         )
     }
 
-    @Suppress("DEPRECATION")
     private suspend fun MultiPartFormDataContent.readString(charset: Charset = Charsets.UTF_8): String {
-        return String(readBytes(), charset = charset)
+        val bytes = readBytes()
+        return bytes.decodeToString(0, 0 + bytes.size)
     }
 
-    @Suppress("DEPRECATION")
     @OptIn(InternalAPI::class)
     private suspend fun MultiPartFormDataContent.readBytes(): ByteArray = coroutineScope {
         val channel = ByteChannel()
@@ -244,7 +243,7 @@ class MultiPartFormDataContentTest {
             channel.close()
         }
 
-        val result = channel.readRemaining().readBytes()
+        val result = channel.readRemaining().readByteArray()
         writeJob.join()
 
         result

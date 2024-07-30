@@ -286,17 +286,16 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     @Test
     @NoHttp2
     open fun testChunked() {
-        val data = ByteArray(16 * 1024, { it.toByte() })
+        val data = ByteArray(16 * 1024) { it.toByte() }
         val size = data.size.toLong()
 
         createAndStartServer {
             get("/chunked") {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
-                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
-                            channel.close()
+                            channel.flushAndClose()
                         }
                     }
                 )
@@ -304,12 +303,11 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             get("/pseudo-chunked") {
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
-                        override val contentLength: Long? get() = size
+                        override val contentLength: Long get() = size
 
-                        @Suppress("DEPRECATION")
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
-                            channel.close()
+                            channel.flushAndClose()
                         }
                     }
                 )
@@ -317,7 +315,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             get("/array") {
                 call.respond(
                     object : OutgoingContent.ByteArrayContent() {
-                        override val contentLength: Long? get() = size
+                        override val contentLength: Long get() = size
 
                         override fun bytes(): ByteArray = data
                     }
@@ -340,7 +338,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             get("/fixed-read-channel") {
                 call.respond(
                     object : OutgoingContent.ReadChannelContent() {
-                        override val contentLength: Long? get() = size
+                        override val contentLength: Long get() = size
 
                         override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
                     }
@@ -575,8 +573,12 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
-                @Suppress("DEPRECATION")
-                call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
+                val parts = mutableListOf<PartData>()
+                call.receiveMultipart().forEachPart {
+                    parts.add(it)
+                }
+
+                parts.sortedBy { it.name }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem ->

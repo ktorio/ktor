@@ -44,7 +44,7 @@ public enum class NamedCurve(public val code: Short, public val fieldSize: Int) 
          * Find named curve by numeric [code]
          * @return [NamedCurve] instance or `null`
          */
-        public fun fromCode(code: Short): NamedCurve? = values().find { it.code == code }
+        public fun fromCode(code: Short): NamedCurve? = entries.find { it.code == code }
     }
 }
 

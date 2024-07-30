@@ -14,7 +14,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class CORSTest {
 
     @Test
@@ -807,7 +806,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(
                     "custom-header1, custom-header2",
-                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                    call.response.headers[HttpHeaders.AccessControlAllowHeaders]
                 )
             }
         }
@@ -866,7 +865,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(
                     "Range, custom-header1, custom-header2",
-                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                    call.response.headers[HttpHeaders.AccessControlAllowHeaders]
                 )
             }
         }
@@ -892,7 +891,7 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("Range", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals("Range", call.response.headers[HttpHeaders.AccessControlAllowHeaders])
             }
         }
     }
@@ -944,7 +943,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(
                     "custom1-header, custom2-header",
-                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                    call.response.headers[HttpHeaders.AccessControlAllowHeaders]
                 )
             }
         }
@@ -970,7 +969,7 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-matcher-header")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("custom-matcher-header", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals("custom-matcher-header", call.response.headers[HttpHeaders.AccessControlAllowHeaders])
             }
         }
     }
@@ -1001,7 +1000,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(
                     "Content-Type, X-Forwarded-Proto",
-                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                    call.response.headers[HttpHeaders.AccessControlAllowHeaders]
                 )
             }
         }

@@ -8,7 +8,6 @@ import io.ktor.server.config.*
 import net.mamoe.yamlkt.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class YamlConfigTest {
 
     @Test

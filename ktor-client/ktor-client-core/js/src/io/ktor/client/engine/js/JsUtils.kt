@@ -13,6 +13,7 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.*
 import kotlin.coroutines.*
@@ -38,16 +39,15 @@ internal suspend fun HttpRequestData.toRaw(
     }
 }
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 private suspend fun getBodyBytes(content: OutgoingContent, callContext: CoroutineContext): ByteArray? {
     return when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes()
-        is OutgoingContent.ReadChannelContent -> content.readFrom().readRemaining().readBytes()
+        is OutgoingContent.ReadChannelContent -> content.readFrom().readRemaining().readByteArray()
         is OutgoingContent.WriteChannelContent -> {
             GlobalScope.writer(callContext) {
                 content.writeTo(channel)
-            }.channel.readRemaining().readBytes()
+            }.channel.readRemaining().readByteArray()
         }
         is OutgoingContent.ContentWrapper -> getBodyBytes(content.delegate(), callContext)
         is OutgoingContent.NoContent -> null

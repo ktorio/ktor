@@ -2,6 +2,7 @@ import io.ktor.server.plugins.doublereceive.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
@@ -11,7 +12,6 @@ import kotlin.test.*
 
 class DoubleReceiveTest {
 
-    @Suppress("DEPRECATION")
     @Test
     fun testFileCache() = runBlocking {
         val content = ByteArray(16 * 1024 * 1024) { it.toByte() }
@@ -22,12 +22,11 @@ class DoubleReceiveTest {
         )
 
         repeat(3) {
-            val received = cache.read().readRemaining().readBytes()
+            val received = cache.read().readRemaining().readByteArray()
             assertEquals(content.toList(), received.toList())
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testInMemoryCache() = runBlocking {
         val content = ByteArray(16 * 1024 * 1024) { it.toByte() }
@@ -38,7 +37,7 @@ class DoubleReceiveTest {
 
         repeat(3) {
             val channel = cache.read()
-            val received = channel.readRemaining().readBytes()
+            val received = channel.readRemaining().readByteArray()
             assertEquals(content.toList(), received.toList())
         }
     }

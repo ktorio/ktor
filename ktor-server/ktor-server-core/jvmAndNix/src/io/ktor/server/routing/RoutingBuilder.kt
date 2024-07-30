@@ -340,7 +340,7 @@ public object PathSegmentSelectorBuilder {
         return when {
             signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
             signature.endsWith("...") -> {
-                if (suffix != null && suffix.isNotEmpty()) {
+                if (!suffix.isNullOrEmpty()) {
                     throw IllegalArgumentException("Suffix after tailcard is not supported")
                 }
                 PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")

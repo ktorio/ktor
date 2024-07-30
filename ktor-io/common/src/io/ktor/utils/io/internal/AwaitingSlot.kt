@@ -62,9 +62,7 @@ internal class ClosedSlot(val cause: Throwable?) : CancellableContinuation<Unit>
 
     override fun resumeWith(result: Result<Unit>) = checkClosed()
 
-    override fun hashCode(): Int = 777
-
-    fun checkClosed() {
+    private fun checkClosed() {
         if (cause != null) throw cause
     }
 }

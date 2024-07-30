@@ -100,8 +100,8 @@ private fun ldapEscapeImpl(string: String, firstIndex: Int): String = buildStrin
                 append(character)
             } else {
                 character.toString().toByteArray().let { encoded ->
-                    for (byteIndex in 0 until encoded.size) {
-                        val unsignedValue = encoded[byteIndex].toInt() and 0xff
+                    for (element in encoded) {
+                        val unsignedValue = element.toInt() and 0xff
                         append('\\')
                         append(unsignedValue.toString(16).padStart(2, '0'))
                     }

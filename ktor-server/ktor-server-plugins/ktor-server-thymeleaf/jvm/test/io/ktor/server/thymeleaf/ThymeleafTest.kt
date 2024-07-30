@@ -279,7 +279,7 @@ class ThymeleafTest {
     }
 
     companion object {
-        val bax = "$"
+        const val bax = "$"
         private val STRING_TEMPLATE = """
             <p>Hello, [[$bax{id}]]</p>
             <h1 th:text="$bax{title}"></h1>

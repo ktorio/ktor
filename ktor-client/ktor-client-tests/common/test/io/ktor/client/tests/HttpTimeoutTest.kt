@@ -263,7 +263,6 @@ class HttpTimeoutTest : ClientLoader() {
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testGetStream() = clientTests {
         config {
@@ -275,11 +274,10 @@ class HttpTimeoutTest : ClientLoader() {
                 parameter("delay", 10)
             }.body<ByteArray>()
 
-            assertEquals("Text", String(response))
+            assertEquals("Text", response.decodeToString(0, 0 + response.size))
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testGetStreamPerRequestAttributes() = clientTests {
         config {
@@ -293,7 +291,7 @@ class HttpTimeoutTest : ClientLoader() {
                 timeout { requestTimeoutMillis = 1000 }
             }.body<ByteArray>()
 
-            assertEquals("Text", String(response))
+            assertEquals("Text", response.decodeToString(0, 0 + response.size))
         }
     }
 
@@ -304,7 +302,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<kotlinx.io.IOException> {
+            assertFailsWith<IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 4000)
                 }.body<ByteArray>()
@@ -319,7 +317,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<kotlinx.io.IOException> {
+            assertFailsWith<IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 400)
 
@@ -456,7 +454,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWith<kotlinx.io.IOException> {
+            assertFailsWith<IOException> {
                 client.get("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
                 }.body<String>()

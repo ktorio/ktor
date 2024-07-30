@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ApplicationEventTest {
     @Test
     fun testApplicationStopPreparingEvent() {

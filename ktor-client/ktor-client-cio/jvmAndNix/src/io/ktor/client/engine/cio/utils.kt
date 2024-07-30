@@ -32,7 +32,6 @@ internal suspend fun writeRequest(
     writeBody(request, output, callContext)
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 internal suspend fun writeHeaders(
     request: HttpRequestData,
@@ -93,7 +92,7 @@ internal suspend fun writeHeaders(
         output.flush()
     } catch (cause: Throwable) {
         if (closeChannel) {
-            output.close()
+            output.flushAndClose()
         }
         throw cause
     } finally {

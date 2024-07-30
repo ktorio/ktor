@@ -21,6 +21,7 @@ import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
+import kotlin.test.assertFailsWith
 import kotlin.test.*
 
 class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
@@ -28,15 +29,15 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {
         val client = HttpClient()
-        kotlin.test.assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             client.serverSentEventsSession()
         }.apply {
-            kotlin.test.assertContains(message!!, SSE.key.name)
+            assertContains(message!!, SSE.key.name)
         }
-        kotlin.test.assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             client.serverSentEvents {}
         }.apply {
-            kotlin.test.assertContains(message!!, SSE.key.name)
+            assertContains(message!!, SSE.key.name)
         }
     }
 
@@ -124,7 +125,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEClientException> {
+            assertFailsWith<SSEClientException> {
                 client.serverSentEventsSession("http://unknown_host")
             }.apply {
                 assertNotNull(cause)
@@ -139,10 +140,10 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEClientException> {
+            assertFailsWith<SSEClientException> {
                 client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
             }.apply {
-                kotlin.test.assertTrue { cause is IllegalStateException }
+                assertTrue { cause is IllegalStateException }
                 assertEquals("error", message)
                 assertEquals(HttpStatusCode.OK, response?.status)
             }
@@ -293,7 +294,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEClientException> {
+            assertFailsWith<SSEClientException> {
                 client.sse("$TEST_SERVER/sse/404") {}
             }.apply {
                 assertEquals(HttpStatusCode.NotFound, response?.status)
@@ -309,7 +310,7 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<SSEClientException> {
+            assertFailsWith<SSEClientException> {
                 client.sse("$TEST_SERVER/sse/content-type-text-plain") {}
             }.apply {
                 assertEquals(HttpStatusCode.OK, response?.status)
@@ -370,19 +371,19 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
         }
 
         val body = object : OutgoingContent.ProtocolUpgrade() {
-            @Suppress("DEPRECATION")
+
             override suspend fun upgrade(
                 input: ByteReadChannel,
                 output: ByteWriteChannel,
                 engineContext: CoroutineContext,
                 userContext: CoroutineContext
             ): Job {
-                output.close()
+                output.flushAndClose()
                 return Job()
             }
         }
         test { client ->
-            kotlin.test.assertFailsWith<SSEClientException> {
+            assertFailsWith<SSEClientException> {
                 client.sse({
                     url("$TEST_SERVER/sse/echo")
                     setBody(body)

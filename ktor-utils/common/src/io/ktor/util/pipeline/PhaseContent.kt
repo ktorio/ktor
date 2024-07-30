@@ -4,7 +4,6 @@
 
 package io.ktor.util.pipeline
 
-@Suppress("DEPRECATION")
 internal class PhaseContent<TSubject : Any, Call : Any>(
     val phase: PipelinePhase,
     val relation: PipelinePhaseRelation,

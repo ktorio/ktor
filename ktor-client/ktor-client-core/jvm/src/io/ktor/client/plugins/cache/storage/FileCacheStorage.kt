@@ -132,7 +132,6 @@ private class FileCacheStorage(
         }
     }
 
-    @Suppress("DEPRECATION")
     private suspend fun writeCache(channel: ByteChannel, cache: CachedResponseData) {
         channel.writeStringUtf8(cache.url.toString() + "\n")
         channel.writeInt(cache.statusCode.value)

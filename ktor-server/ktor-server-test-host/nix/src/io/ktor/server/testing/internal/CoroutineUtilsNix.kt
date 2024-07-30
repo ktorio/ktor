@@ -6,4 +6,4 @@ package io.ktor.server.testing.internal
 
 import kotlinx.coroutines.*
 
-internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Dispatchers.Default
+internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default

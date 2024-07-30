@@ -10,7 +10,6 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class DataConversionTest {
     @Test
     fun testDefaultConversion() = withTestApplication {

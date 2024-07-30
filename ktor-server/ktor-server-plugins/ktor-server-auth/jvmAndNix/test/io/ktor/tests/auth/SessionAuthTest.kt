@@ -19,7 +19,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class SessionAuthTest {
     @Test
     fun testSessionOnly() {

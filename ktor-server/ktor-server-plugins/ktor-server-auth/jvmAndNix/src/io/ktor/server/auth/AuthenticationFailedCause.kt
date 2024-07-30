@@ -11,12 +11,12 @@ public sealed class AuthenticationFailedCause {
     /**
      * Represents a case when no credentials are provided.
      */
-    public object NoCredentials : AuthenticationFailedCause()
+    public data object NoCredentials : AuthenticationFailedCause()
 
     /**
      * Represents a case when invalid credentials are provided.
      */
-    public object InvalidCredentials : AuthenticationFailedCause()
+    public data object InvalidCredentials : AuthenticationFailedCause()
 
     /**
      * Represents a case when authentication mechanism failed.

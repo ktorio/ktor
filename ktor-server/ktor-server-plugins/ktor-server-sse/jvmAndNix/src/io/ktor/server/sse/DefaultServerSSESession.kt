@@ -23,10 +23,9 @@ internal class DefaultServerSSESession(
         }
     }
 
-    @Suppress("DEPRECATION")
     override suspend fun close() {
         mutex.withLock {
-            output.close()
+            output.flushAndClose()
         }
     }
 

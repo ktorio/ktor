@@ -18,7 +18,7 @@ public sealed class ValidationResult {
     /**
      * A successful result of validation.
      */
-    public object Valid : ValidationResult()
+    public data object Valid : ValidationResult()
 
     /**
      * An unsuccessful result of validation. All errors are stored in the [reasons] list.

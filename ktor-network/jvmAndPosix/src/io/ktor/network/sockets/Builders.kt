@@ -13,7 +13,6 @@ public fun aSocket(selector: SelectorManager): SocketBuilder = SocketBuilder(sel
 /**
  * Socket builder
  */
-@Suppress("PublicApiImplicitType", "unused")
 public class SocketBuilder internal constructor(
     private val selector: SelectorManager,
     override var options: SocketOptions

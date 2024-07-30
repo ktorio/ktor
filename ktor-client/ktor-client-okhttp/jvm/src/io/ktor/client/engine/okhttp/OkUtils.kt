@@ -58,7 +58,6 @@ internal fun OkHttpHeaders.fromOkHttp(): Headers = object : Headers {
     override fun isEmpty(): Boolean = this@fromOkHttp.size == 0
 }
 
-@Suppress("DEPRECATION")
 internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
     Protocol.HTTP_1_0 -> HttpProtocolVersion.HTTP_1_0
     Protocol.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1

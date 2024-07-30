@@ -17,7 +17,6 @@ import kotlinx.io.IOException
 import kotlin.reflect.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 class RawWebSocketTest : BaseTest() {
     private lateinit var parent: CompletableJob
@@ -29,7 +28,7 @@ class RawWebSocketTest : BaseTest() {
     private lateinit var client: WebSocketSession
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
-        if (cause !is CancellationException && cause !is kotlinx.io.IOException) {
+        if (cause !is CancellationException && cause !is IOException) {
             collectUnhandledException(cause)
         }
     }
@@ -60,12 +59,14 @@ class RawWebSocketTest : BaseTest() {
 
         val receivedPing = server.incoming.receive()
         assertEquals(FrameType.PING, receivedPing.frameType)
-        assertEquals(text, String(receivedPing.readBytes(), charset = Charsets.ISO_8859_1))
+        var bytes = receivedPing.readBytes()
+        assertEquals(text, bytes.decodeToString(0, 0 + bytes.size))
 
         server.send(Frame.Pong(text.encodeToByteArray()))
         val receivedPong = client.incoming.receive()
         assertEquals(FrameType.PONG, receivedPong.frameType)
-        assertEquals(text, String(receivedPong.readBytes(), charset = Charsets.ISO_8859_1))
+        bytes = receivedPong.readBytes()
+        assertEquals(text, bytes.decodeToString(0, 0 + bytes.size))
 
         client.cancel()
         server.cancel()
@@ -73,7 +74,6 @@ class RawWebSocketTest : BaseTest() {
         ensureCompletion()
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testServerIncomingDisconnected(): Unit = runTest {
         client2server.close()
@@ -89,7 +89,7 @@ class RawWebSocketTest : BaseTest() {
     @Test
     fun testServerIncomingConnectionLoss(): Unit = runTest {
         client2server.close(PlannedIOException())
-        ensureCompletion(allowedExceptionsFromIncoming = listOf(kotlinx.io.IOException::class))
+        ensureCompletion(allowedExceptionsFromIncoming = listOf(IOException::class))
     }
 
     @Test

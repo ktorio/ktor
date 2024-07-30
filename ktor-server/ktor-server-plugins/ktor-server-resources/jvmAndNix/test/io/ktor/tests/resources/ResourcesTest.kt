@@ -22,7 +22,6 @@ import kotlinx.serialization.*
 import kotlin.jvm.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 internal fun withResourcesApplication(test: ApplicationTestBuilder.() -> Unit) = testApplication {
     install(Resources)
     test()

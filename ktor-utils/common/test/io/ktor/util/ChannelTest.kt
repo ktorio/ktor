@@ -6,13 +6,10 @@ package io.ktor.util
 
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import kotlinx.io.IOException
+import kotlinx.io.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ChannelTest {
 
     @Test
@@ -49,10 +46,10 @@ class ChannelTest {
         }
 
         val firstResult = async(Dispatchers.Unconfined) {
-            first.readRemaining().readBytes()
+            first.readRemaining().readByteArray()
         }
         val secondResult = async(Dispatchers.Unconfined) {
-            second.readRemaining().readBytes()
+            second.readRemaining().readByteArray()
         }
 
         val results = listOf(firstResult, secondResult).awaitAll()
@@ -71,20 +68,20 @@ class ChannelTest {
 
         val message = "Expected reason"
 
-        launch(Dispatchers.Unconfined) {
+        launch(Dispatchers.Default) {
             source.cancel(IllegalStateException(message))
         }
 
-        assertFailsWith<kotlinx.io.IOException> {
-            val firstResult = GlobalScope.async(Dispatchers.Unconfined) {
-                first.readRemaining().readBytes()
+        assertFailsWith<IOException> {
+            val firstResult = GlobalScope.async(Dispatchers.Default) {
+                first.readRemaining().readByteArray()
             }
             firstResult.await()
         }
 
-        assertFailsWith<kotlinx.io.IOException> {
-            val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readBytes()
+        assertFailsWith<IOException> {
+            val secondResult = GlobalScope.async(Dispatchers.Default) {
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }
@@ -110,13 +107,13 @@ class ChannelTest {
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWith<kotlinx.io.IOException> {
+        assertFailsWith<IOException> {
             sourceResult.await()
         }
 
-        assertFailsWith<kotlinx.io.IOException> {
+        assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readBytes()
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }
@@ -142,10 +139,9 @@ class ChannelTest {
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWith<kotlinx.io.IOException> {
+        assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                @Suppress("DEPRECATION")
-                second.readRemaining().readBytes()
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }

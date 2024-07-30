@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -69,6 +70,7 @@ public class LoggingConfig {
  *
  * You can learn more from [Logging](https://ktor.io/docs/client-logging.html).
  */
+@OptIn(InternalAPI::class)
 public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", ::LoggingConfig) {
     val logger: Logger = pluginConfig.logger
     val level: LogLevel = pluginConfig.level
@@ -88,14 +90,16 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
         val channel = ByteChannel()
-        GlobalScope.launch(Dispatchers.Unconfined) {
-            val text = channel.tryReadText(charset) ?: "[request body omitted]"
-            requestLog.appendLine("BODY START")
-            requestLog.appendLine(text)
-            requestLog.append("BODY END")
-        }.invokeOnCompletion {
-            logger.logRequest(requestLog.toString())
-            logger.closeRequestLog()
+        GlobalScope.launch(Dispatchers.Default + MDCContext()) {
+            try {
+                val text = channel.tryReadText(charset) ?: "[request body omitted]"
+                requestLog.appendLine("BODY START")
+                requestLog.appendLine(text)
+                requestLog.append("BODY END")
+            } finally {
+                logger.logRequest(requestLog.toString())
+                logger.closeRequestLog()
+            }
         }
 
         return content.observe(channel)

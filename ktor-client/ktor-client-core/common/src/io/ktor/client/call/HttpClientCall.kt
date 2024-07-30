@@ -155,7 +155,7 @@ public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.bodyNulla
 /**
  * Exception representing that the response payload has already been received.
  */
-@Suppress("KDocMissingDocumentation")
+
 public class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
     override val message: String = "Response already received: $call"
 }
@@ -182,7 +182,7 @@ public class NoTransformationFoundException(
     from: KClass<*>,
     to: KClass<*>
 ) : UnsupportedOperationException() {
-    override val message: String? = """
+    override val message: String = """
         Expected response body of the type '$to' but was '$from'
         In response from `${response.request.url}`
         Response status `${response.status}`

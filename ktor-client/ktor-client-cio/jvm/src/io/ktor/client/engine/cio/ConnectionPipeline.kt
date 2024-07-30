@@ -139,8 +139,7 @@ internal actual class ConnectionPipeline actual constructor(
                 if (shouldClose) break
             }
         } finally {
-            @Suppress("DEPRECATION")
-            networkOutput.close()
+            networkOutput.flushAndClose()
             connection.socket.close()
         }
     }
@@ -151,7 +150,6 @@ internal actual class ConnectionPipeline actual constructor(
     }
 }
 
-@Suppress("DEPRECATION")
 private fun CoroutineScope.skipCancels(
     input: ByteReadChannel,
     output: ByteWriteChannel
@@ -177,6 +175,6 @@ private fun CoroutineScope.skipCancels(
         output.close(cause)
         throw cause
     } finally {
-        output.close()
+        output.flushAndClose()
     }
 }

@@ -17,6 +17,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlinx.serialization.Serializable
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
@@ -24,7 +25,6 @@ import kotlin.system.*
 import kotlin.test.*
 import kotlin.text.Charsets
 
-@Suppress("DEPRECATION")
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
@@ -285,7 +285,6 @@ class TestApplicationEngineTest {
     }
 }
 
-@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 internal fun buildMultipart(
     boundary: String,
@@ -304,12 +303,12 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readByteArray())
                         ""
                     }
 
                     is PartData.BinaryItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readByteArray())
                         ""
                     }
 

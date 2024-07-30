@@ -11,14 +11,13 @@ internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
  */
 @OptIn(ExperimentalUnsignedTypes::class)
 public sealed class SocketOptions(
-    @Suppress("KDocMissingDocumentation") protected val customOptions: MutableMap<Any, Any?>
+    protected val customOptions: MutableMap<Any, Any?>
 ) {
     /**
      * Copy options
      */
     internal abstract fun copy(): SocketOptions
 
-    @Suppress("KDocMissingDocumentation")
     protected open fun copyCommon(from: SocketOptions) {
         typeOfService = from.typeOfService
         reuseAddress = from.reuseAddress
@@ -37,7 +36,7 @@ public sealed class SocketOptions(
         }
     }
 
-    private class GeneralSocketOptions constructor(
+    private class GeneralSocketOptions(
         customOptions: MutableMap<Any, Any?>
     ) : SocketOptions(customOptions) {
         override fun copy(): GeneralSocketOptions = GeneralSocketOptions(HashMap(customOptions)).apply {
@@ -100,7 +99,6 @@ public sealed class SocketOptions(
          */
         public var receiveBufferSize: Int = -1
 
-        @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {
             super.copyCommon(from)
             if (from is PeerSocketOptions) {
@@ -181,7 +179,6 @@ public sealed class SocketOptions(
          */
         public var socketTimeout: Long = INFINITE_TIMEOUT_MS
 
-        @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {
             super.copyCommon(from)
             if (from is TCPClientSocketOptions) {

@@ -108,7 +108,7 @@ class ConfigTest {
             every { serverPort } returns 80
             every { serverName } returns "server"
             every { remoteHost } returns "localhost"
-            every { attributeNames } returns java.util.Collections.enumeration(emptyList())
+            every { attributeNames } returns Collections.enumeration(emptyList())
         }
     }
 }

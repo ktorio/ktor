@@ -60,7 +60,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             } catch (cause: TooLongLineException) {
                 respondBadRequest(actorChannel)
                 break // end pipeline loop
-            } catch (io: kotlinx.io.IOException) {
+            } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
                 throw cancelled

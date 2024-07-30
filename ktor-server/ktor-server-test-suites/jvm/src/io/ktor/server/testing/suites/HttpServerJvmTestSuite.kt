@@ -33,7 +33,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
-    @Suppress("DEPRECATION")
     @Test
     open fun testPipelining() {
         createAndStartServer {
@@ -66,9 +65,10 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             runBlocking {
                 val bb = ByteBuffer.allocate(1911)
                 s.getInputStream().readPacketAtLeast(1).readFully(bb)
+                val bytes = bb.array()
                 assertEquals(
                     pipelinedResponses,
-                    clearSocketResponses(String(bb.array()).lineSequence())
+                    clearSocketResponses(bytes.decodeToString(0, 0 + bytes.size).lineSequence())
                 )
             }
         }
@@ -221,7 +221,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 try {
                     call.respond(
                         object : OutgoingContent.WriteChannelContent() {
-                            @Suppress("DEPRECATION")
+
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 val bb = ByteBuffer.allocate(512)
                                 for (i in 1L..1000L) {
@@ -235,7 +235,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                     channel.flush()
                                 }
 
-                                channel.close()
+                                channel.flushAndClose()
                             }
                         }
                     )
@@ -276,7 +276,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 try {
                     call.respond(
                         object : OutgoingContent.WriteChannelContent() {
-                            @Suppress("DEPRECATION")
+
                             override suspend fun writeTo(channel: ByteWriteChannel) {
                                 val bb = ByteBuffer.allocate(512)
                                 for (i in 1L..1000L) {
@@ -290,7 +290,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                     channel.flush()
                                 }
 
-                                channel.close()
+                                channel.flushAndClose()
                             }
                         }
                     )
@@ -340,7 +340,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                 append(HttpHeaders.Connection, "Upgrade")
                             }
 
-                        @Suppress("DEPRECATION")
                         override suspend fun upgrade(
                             input: ByteReadChannel,
                             output: ByteWriteChannel,
@@ -353,7 +352,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                     input.readFully(bb)
                                     bb.flip()
                                     output.writeFully(bb)
-                                    output.close()
+                                    output.flushAndClose()
                                     input.readRemaining().use {
                                         assertEquals(0, it.remaining)
                                     }

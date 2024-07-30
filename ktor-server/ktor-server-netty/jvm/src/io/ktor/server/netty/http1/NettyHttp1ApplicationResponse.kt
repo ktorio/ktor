@@ -15,7 +15,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlin.coroutines.*
 
-internal class NettyHttp1ApplicationResponse constructor(
+internal class NettyHttp1ApplicationResponse(
     call: NettyApplicationCall,
     context: ChannelHandlerContext,
     engineContext: CoroutineContext,

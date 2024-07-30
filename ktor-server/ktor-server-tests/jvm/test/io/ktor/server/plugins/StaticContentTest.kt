@@ -22,7 +22,6 @@ import java.nio.file.*
 import kotlin.io.path.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class StaticContentTest {
     val basedir =
         listOf(File("jvm/test"), File("ktor-server/ktor-server-tests/jvm/test"))

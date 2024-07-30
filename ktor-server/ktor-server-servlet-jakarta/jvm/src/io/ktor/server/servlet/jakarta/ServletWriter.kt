@@ -13,7 +13,6 @@ import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.*
 
-@Suppress("DEPRECATION")
 internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
     return reader(Dispatchers.IO, writer.channel) {

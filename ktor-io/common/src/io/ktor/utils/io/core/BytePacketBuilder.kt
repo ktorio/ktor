@@ -7,37 +7,26 @@ import kotlinx.io.*
 
 @Deprecated(
     IO_DEPRECATION_MESSAGE,
-    replaceWith = ReplaceWith("Sink", "kotlinx.io.Buffer")
+    replaceWith = ReplaceWith("Sink", "kotlinx.io.Sink")
 )
 public typealias BytePacketBuilder = Sink
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public val BytePacketBuilder.size: Int get() = buffer.size.toInt()
+public val Sink.size: Int get() = buffer.size.toInt()
 
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder(): BytePacketBuilder = kotlinx.io.Buffer()
+public fun BytePacketBuilder(): Sink = kotlinx.io.Buffer()
 
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder.append(value: CharSequence, startIndex: Int = 0, endIndex: Int = value.length) {
+public fun Sink.append(value: CharSequence, startIndex: Int = 0, endIndex: Int = value.length) {
     writeText(value, startIndex, endIndex)
 }
 
 @OptIn(InternalIoApi::class)
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder.build(): ByteReadPacket = buffer
+public fun Sink.build(): Source = buffer
 
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder.writeFully(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset) {
+public fun Sink.writeFully(buffer: ByteArray, offset: Int = 0, length: Int = buffer.size - offset) {
     write(buffer, offset, offset + length)
 }
 
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder.writePacket(packet: ByteReadPacket) {
+public fun Sink.writePacket(packet: Source) {
     transferFrom(packet)
-}
-
-@Suppress("DEPRECATION")
-public fun BytePacketBuilder.writeUByte(value: UByte) {
-    writeByte(value.toByte())
 }

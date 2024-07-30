@@ -9,7 +9,6 @@ import io.netty.buffer.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.channels.*
 
-@Suppress("DEPRECATION")
 internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {
     try {
         while (true) {
@@ -41,6 +40,6 @@ internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWrite
     } catch (t: Throwable) {
         bc.close(t)
     } finally {
-        bc.close()
+        bc.flushAndClose()
     }
 }

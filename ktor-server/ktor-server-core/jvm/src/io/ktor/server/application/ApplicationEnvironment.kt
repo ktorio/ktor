@@ -35,7 +35,7 @@ internal actual class ApplicationPropertiesBridge actual constructor(
     applicationProperties: ApplicationProperties,
     parentCoroutineContext: CoroutineContext,
 ) {
-    public actual val parentCoroutineContext: CoroutineContext = when {
+    actual val parentCoroutineContext: CoroutineContext = when {
         applicationProperties.developmentMode && applicationProperties.watchPaths.isNotEmpty() ->
             parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
 

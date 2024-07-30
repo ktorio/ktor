@@ -17,7 +17,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class AutoHeadResponseTest {
 
     @Test

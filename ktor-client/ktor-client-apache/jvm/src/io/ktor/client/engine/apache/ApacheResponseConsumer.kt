@@ -16,7 +16,7 @@ import kotlin.coroutines.*
 
 @OptIn(InternalCoroutinesApi::class)
 internal class ApacheResponseConsumer(
-    val parentContext: CoroutineContext,
+    private val parentContext: CoroutineContext,
     private val requestData: HttpRequestData
 ) : HttpAsyncResponseConsumer<Unit>, CoroutineScope {
     private val interestController = InterestControllerHolder()
@@ -26,7 +26,6 @@ internal class ApacheResponseConsumer(
 
     private val waiting = atomic(false)
 
-    @Suppress("DEPRECATION")
     private val channel = ByteChannel().also {
         it.attachJob(consumerJob)
     }
@@ -87,7 +86,6 @@ internal class ApacheResponseConsumer(
         return true
     }
 
-    @OptIn(InternalAPI::class)
     override fun close() {
         channel.close()
         consumerJob.complete()
@@ -95,17 +93,15 @@ internal class ApacheResponseConsumer(
 
     override fun getException(): Exception? = channel.closedCause as Exception?
 
-    override fun getResult() {
-    }
+    override fun getResult() = Unit
 
     override fun isDone(): Boolean = channel.isClosedForWrite
 
-    override fun responseCompleted(context: HttpContext) {
-    }
+    override fun responseCompleted(context: HttpContext) = Unit
 
     override fun responseReceived(response: HttpResponse) {
         responseDeferred.complete(response)
     }
 
-    public suspend fun waitForResponse(): HttpResponse = responseDeferred.await()
+    suspend fun waitForResponse(): HttpResponse = responseDeferred.await()
 }

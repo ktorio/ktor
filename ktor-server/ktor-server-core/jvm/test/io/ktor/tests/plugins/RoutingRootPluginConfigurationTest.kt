@@ -21,7 +21,7 @@ class RoutingRootPluginConfigurationTest {
 
         testApplication {
             environment {
-                config = ConfigLoader.load("test-config.yaml")
+                config = load("test-config.yaml")
             }
 
             install(plugin)
@@ -54,7 +54,7 @@ class RoutingRootPluginConfigurationTest {
             install(plugin)
 
             environment {
-                config = ConfigLoader.load("empty-config.yaml")
+                config = load("empty-config.yaml")
             }
         }
 
@@ -70,7 +70,7 @@ class RoutingRootPluginConfigurationTest {
 
         testApplication {
             environment {
-                config = ConfigLoader.load("test-config.yaml")
+                config = load("test-config.yaml")
             }
 
             install(plugin)

@@ -227,7 +227,6 @@ public fun HttpClientConfig<*>.ContentEncoding(
     }
 }
 
-@Suppress("KDocMissingDocumentation")
 public class UnsupportedContentEncodingException(encoding: String) :
     IllegalStateException("Content-Encoding: $encoding unsupported.")
 

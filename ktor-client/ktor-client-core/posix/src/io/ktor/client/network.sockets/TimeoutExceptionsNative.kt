@@ -15,7 +15,7 @@ import kotlinx.io.IOException
 public actual class ConnectTimeoutException actual constructor(
     message: String,
     cause: Throwable?
-) : kotlinx.io.IOException(message, cause)
+) : IOException(message, cause)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.

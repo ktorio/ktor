@@ -40,7 +40,7 @@ public typealias CallIdVerifier = (String) -> Boolean
 public class RejectedCallIdException(
     public val illegalCallId: String
 ) : IllegalArgumentException(), CopyableThrowable<RejectedCallIdException> {
-    override fun createCopy(): RejectedCallIdException? = RejectedCallIdException(illegalCallId).also {
+    override fun createCopy(): RejectedCallIdException = RejectedCallIdException(illegalCallId).also {
         it.initCauseBridge(this)
     }
 }

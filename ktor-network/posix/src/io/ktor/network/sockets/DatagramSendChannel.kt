@@ -14,6 +14,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
+import kotlinx.io.*
+import kotlinx.io.Buffer
 import kotlinx.io.IOException
 
 private val CLOSED: (Throwable?) -> Unit = {}
@@ -49,7 +51,6 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @Suppress("DEPRECATION")
     @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
@@ -62,11 +63,11 @@ internal class DatagramSendChannel(
         val result: Boolean
 
         try {
-            val bytes = element.packet.copy().readBytes()
+            val bytes = element.packet.copy().readByteArray()
             val bytesWritten = sendto(element, bytes)
 
             result = when (bytesWritten) {
-                0 -> throw kotlinx.io.IOException("Failed writing to closed socket")
+                0 -> throw IOException("Failed writing to closed socket")
                 -1 -> {
                     if (isWouldBlockError(getSocketError())) {
                         false
@@ -82,7 +83,7 @@ internal class DatagramSendChannel(
         }
 
         if (result) {
-            element.packet.release()
+            element.packet.close()
         }
 
         return ChannelResult.success(Unit)
@@ -129,11 +130,9 @@ internal class DatagramSendChannel(
         return bytesWritten ?: error("bytesWritten cannot be null")
     }
 
-    @Suppress("DEPRECATION")
-    @OptIn(UnsafeNumber::class)
     private tailrec suspend fun sendImpl(
         datagram: Datagram,
-        bytes: ByteArray = datagram.packet.readBytes()
+        bytes: ByteArray = datagram.packet.readByteArray()
     ) {
         val bytesWritten: Int = sendto(datagram, bytes)
 

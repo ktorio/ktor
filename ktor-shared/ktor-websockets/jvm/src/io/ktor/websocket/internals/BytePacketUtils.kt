@@ -5,11 +5,11 @@
 package io.ktor.websocket.internals
 
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
-@Suppress("DEPRECATION")
-internal fun ByteReadPacket.endsWith(data: ByteArray): Boolean {
+internal fun Source.endsWith(data: ByteArray): Boolean {
     copy().apply {
         discard(remaining - data.size)
-        return readBytes().contentEquals(data)
+        return readByteArray().contentEquals(data)
     }
 }

@@ -23,14 +23,14 @@ internal class CloseToken(origin: Throwable?) {
             }
         }
 
-        origin is kotlinx.io.IOException && origin is CopyableThrowable<*> -> origin.createCopy()
-        else -> kotlinx.io.IOException(origin.message ?: "Channel was closed", origin)
+        origin is IOException && origin is CopyableThrowable<*> -> origin.createCopy()
+        else -> IOException(origin.message ?: "Channel was closed", origin)
     }
 
     val cause: Throwable?
         get() = when {
             closedException == null -> null
-            (closedException is kotlinx.io.IOException) -> {
+            (closedException is IOException) -> {
                 if (closedException is CopyableThrowable<*>) {
                     closedException.createCopy()
                 } else {

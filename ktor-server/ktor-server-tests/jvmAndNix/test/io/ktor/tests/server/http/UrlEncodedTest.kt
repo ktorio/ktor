@@ -11,7 +11,6 @@ import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class UrlEncodedTest {
     fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
         return runBlocking {

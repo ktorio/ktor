@@ -7,7 +7,7 @@ plugins {
 
 kotlin {
     createCInterop("winhttp", windowsTargets()) {
-        defFile = File(projectDir, "windows/interop/winhttp.def")
+        definitionFile = File(projectDir, "windows/interop/winhttp.def")
     }
 
     sourceSets {

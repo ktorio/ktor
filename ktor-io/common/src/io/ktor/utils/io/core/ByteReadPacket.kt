@@ -7,19 +7,17 @@ import kotlinx.io.*
 
 @Deprecated(
     "Use Source instead",
-    ReplaceWith("Source", "kotlinx.io.Buffer")
+    ReplaceWith("Source", "kotlinx.io.Source")
 )
 public typealias ByteReadPacket = Source
 
-@Suppress("DEPRECATION")
-public val ByteReadPacketEmpty: ByteReadPacket = kotlinx.io.Buffer()
+public val ByteReadPacketEmpty: Source = kotlinx.io.Buffer()
 
-@Suppress("DEPRECATION")
 public fun ByteReadPacket(
     array: ByteArray,
     offset: Int = 0,
     length: Int = array.size
-): ByteReadPacket = kotlinx.io.Buffer().apply {
+): Source = kotlinx.io.Buffer().apply {
     write(array, startIndex = offset, endIndex = offset + length)
 }
 
@@ -40,62 +38,53 @@ public fun Sink(pool: ObjectPool<*>): kotlinx.io.Buffer = kotlinx.io.Buffer()
 )
 public fun Sink(): kotlinx.io.Buffer = kotlinx.io.Buffer()
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun ByteReadPacket.readAvailable(out: Buffer): Int {
+public fun Source.readAvailable(out: kotlinx.io.Buffer): Int {
     val result = buffer.size
     out.transferFrom(this)
     return result.toInt()
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun ByteReadPacket.copy(): ByteReadPacket = buffer.copy()
+public fun Source.copy(): Source = buffer.copy()
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun ByteReadPacket.readShortLittleEndian(): Short {
+public fun Source.readShortLittleEndian(): Short {
     return buffer.readShortLe()
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun ByteReadPacket.discard(count: Long = Long.MAX_VALUE): Long {
+public fun Source.discard(count: Long = Long.MAX_VALUE): Long {
     request(count)
     val countToDiscard = minOf(count, remaining)
     buffer.skip(countToDiscard)
     return countToDiscard
 }
 
-@Suppress("DEPRECATION")
 @OptIn(InternalIoApi::class)
-public fun ByteReadPacket.takeWhile(block: (Buffer) -> Boolean) {
-    while (!isEmpty && block(buffer)) {
+public fun Source.takeWhile(block: (kotlinx.io.Buffer) -> Boolean) {
+    while (!exhausted() && block(buffer)) {
     }
 }
 
-@Suppress("DEPRECATION")
-public fun ByteReadPacket.readFully(out: ByteArray, offset: Int = 0, length: Int = out.size - offset) {
+public fun Source.readFully(out: ByteArray, offset: Int = 0, length: Int = out.size - offset) {
     readTo(out, offset, offset + length)
 }
 
-@Suppress("DEPRECATION")
-@OptIn(InternalIoApi::class, ExperimentalStdlibApi::class)
-public fun <T> ByteReadPacket.preview(function: (ByteReadPacket) -> T): T {
+@OptIn(InternalIoApi::class)
+public fun <T> Source.preview(function: (Source) -> T): T {
     return buffer.peek().use(function)
 }
 
-@Suppress("DEPRECATION")
-@OptIn(InternalIoApi::class, ExperimentalStdlibApi::class)
-public fun <T> BytePacketBuilder.preview(function: (ByteReadPacket) -> T): T {
+@OptIn(InternalIoApi::class)
+public fun <T> Sink.preview(function: (Source) -> T): T {
     return buffer.peek().use(function)
 }
 
-@Suppress("DEPRECATION")
 @Deprecated(
     "Use close instead",
     ReplaceWith("this.close()")
 )
-public fun ByteReadPacket.release() {
+public fun Source.release() {
     close()
 }

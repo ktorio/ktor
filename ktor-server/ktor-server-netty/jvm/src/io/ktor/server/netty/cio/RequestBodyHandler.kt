@@ -15,7 +15,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
-@Suppress("DEPRECATION")
 internal class RequestBodyHandler(
     val context: ChannelHandlerContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
@@ -48,7 +47,7 @@ internal class RequestBodyHandler(
                         processContent(channel, event)
 
                         if (!upgraded && event is LastHttpContent) {
-                            current.close()
+                            current.flushAndClose()
                             current = null
                         }
                         requestMoreEvents()
@@ -61,7 +60,7 @@ internal class RequestBodyHandler(
                     }
 
                     is ByteWriteChannel -> {
-                        current?.close()
+                        current?.flushAndClose()
                         current = event
                     }
 
@@ -74,7 +73,7 @@ internal class RequestBodyHandler(
             queue.close(t)
             current?.close(t)
         } finally {
-            current?.close()
+            current?.flushAndClose()
             queue.close()
             consumeAndReleaseQueue()
         }

@@ -27,7 +27,6 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class OAuth2Test {
 
     private val DefaultSettings = OAuthServerSettings.OAuth2ServerSettings(
@@ -94,54 +93,58 @@ class OAuth2Test {
                 if (clientSecret != "clientSecret1") {
                     throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
                 }
-                if (grantType == OAuthGrantTypes.AuthorizationCode) {
-                    if (state != "state1" && state != null) {
-                        throw OAuth2Exception.InvalidGrant("Wrong state $state")
-                    }
-                    if (code != "code1" && code != "code2") {
-                        throw OAuth2Exception.InvalidGrant("Wrong code $code")
-                    }
-                    if ((code == "code1" && state == null) || (code == "code2" && state != null)) {
-                        throw OAuth2Exception.InvalidGrant("Wrong code $code or state $state")
-                    }
-                    if (redirectUri != "http://localhost/login") {
-                        throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
-                    }
-                    if (userName != null || password != null) {
-                        throw OAuth2Exception.UnknownException(
-                            "User/password shouldn't be specified for authorization_code grant type.",
-                            "none"
+                when (grantType) {
+                    OAuthGrantTypes.AuthorizationCode -> {
+                        if (state != "state1" && state != null) {
+                            throw OAuth2Exception.InvalidGrant("Wrong state $state")
+                        }
+                        if (code != "code1" && code != "code2") {
+                            throw OAuth2Exception.InvalidGrant("Wrong code $code")
+                        }
+                        if (((code == "code1") && (state == null)) || ((code == "code2") && (state != null))) {
+                            throw OAuth2Exception.InvalidGrant("Wrong code $code or state $state")
+                        }
+                        if (redirectUri != "http://localhost/login") {
+                            throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
+                        }
+                        if (userName != null || password != null) {
+                            throw OAuth2Exception.UnknownException(
+                                "User/password shouldn't be specified for authorization_code grant type.",
+                                "none"
+                            )
+                        }
+
+                        return OAuthAccessTokenResponse.OAuth2(
+                            "accessToken1",
+                            "type",
+                            Long.MAX_VALUE,
+                            null,
+                            when (state) {
+                                null -> parametersOf("noState", "Had no state")
+                                else -> Parameters.Empty
+                            },
+                            state
                         )
                     }
+                    OAuthGrantTypes.Password -> {
+                        if (userName != "user1") {
+                            throw OAuth2Exception.InvalidGrant("Wrong username $userName")
+                        }
+                        if (password != "password1") {
+                            throw OAuth2Exception.InvalidGrant("Wrong password $password")
+                        }
+                        if (state != null || code != null) {
+                            throw OAuth2Exception.UnknownException(
+                                "State/code shouldn't be specified for password grant type.",
+                                "none"
+                            )
+                        }
 
-                    return OAuthAccessTokenResponse.OAuth2(
-                        "accessToken1",
-                        "type",
-                        Long.MAX_VALUE,
-                        null,
-                        when (state) {
-                            null -> parametersOf("noState", "Had no state")
-                            else -> Parameters.Empty
-                        },
-                        state
-                    )
-                } else if (grantType == OAuthGrantTypes.Password) {
-                    if (userName != "user1") {
-                        throw OAuth2Exception.InvalidGrant("Wrong username $userName")
+                        return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
                     }
-                    if (password != "password1") {
-                        throw OAuth2Exception.InvalidGrant("Wrong password $password")
+                    else -> {
+                        throw OAuth2Exception.UnsupportedGrantType(grantType)
                     }
-                    if (state != null || code != null) {
-                        throw OAuth2Exception.UnknownException(
-                            "State/code shouldn't be specified for password grant type.",
-                            "none"
-                        )
-                    }
-
-                    return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-                } else {
-                    throw OAuth2Exception.UnsupportedGrantType(grantType)
                 }
             }
         }

@@ -32,7 +32,6 @@ public abstract class NettyApplicationResponse(
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
-    @Suppress("DEPRECATION")
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
             super.respondOutgoingContent(content)
@@ -42,7 +41,7 @@ public abstract class NettyApplicationResponse(
             throw t
         } finally {
             val out = responseChannel as? ByteWriteChannel
-            out?.close()
+            out?.flushAndClose()
         }
     }
 

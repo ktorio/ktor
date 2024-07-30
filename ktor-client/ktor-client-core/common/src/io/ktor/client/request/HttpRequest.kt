@@ -206,7 +206,7 @@ public class HttpRequestData @InternalAPI constructor(
 /**
  * Data prepared for [HttpResponse].
  */
-public class HttpResponseData constructor(
+public class HttpResponseData(
     public val statusCode: HttpStatusCode,
     public val requestTime: GMTDate,
     public val headers: Headers,
@@ -299,23 +299,19 @@ public fun HttpRequestBuilder.url(urlString: String) { // ktlint-disable filenam
 }
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isSseRequest(): Boolean {
     return body is SSEClientContent
 }
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public val ResponseAdapterAttributeKey: AttributeKey<ResponseAdapter> = AttributeKey("ResponseAdapterAttributeKey")
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public fun interface ResponseAdapter {
     public fun adapt(
         data: HttpRequestData,
@@ -328,7 +324,6 @@ public fun interface ResponseAdapter {
 }
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public class SSEClientResponseAdapter : ResponseAdapter {
     @OptIn(InternalAPI::class)
     override fun adapt(

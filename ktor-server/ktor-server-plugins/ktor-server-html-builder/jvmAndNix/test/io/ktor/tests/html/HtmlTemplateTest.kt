@@ -70,7 +70,6 @@ class MulticolumnTemplate(val main: MainTemplate) : Template<HTML> {
     }
 }
 
-@Suppress("DEPRECATION")
 class HtmlTemplateTest {
     @Test
     fun testTemplate() = withTestApplication {

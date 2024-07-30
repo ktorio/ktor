@@ -90,8 +90,8 @@ public sealed class OutgoingContent {
         } else {
             GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
                 val source = readFrom()
-                source.discard(range.start)
-                val limit = range.endInclusive - range.start + 1
+                source.discard(range.first)
+                val limit = range.last - range.first + 1
                 source.copyTo(channel, limit)
             }.channel
         }

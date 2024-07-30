@@ -20,6 +20,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
+import kotlinx.io.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -759,7 +760,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    @Suppress("DEPRECATION")
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
         SelectorManager().use {
             aSocket(it).tcp().connect("localhost", port) {
@@ -770,7 +770,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 try {
                     block(connection)
                     // for native, output should be closed explicitly
-                    connection.output.close()
+                    connection.output.flushAndClose()
                 } catch (cause: Throwable) {
                     throw cause
                 }
@@ -821,8 +821,7 @@ internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Bool
 
 internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
 
-@Suppress("DEPRECATION")
-private fun ByteReadPacket.mask(maskKey: Int): ByteReadPacket = withMemory(4) { maskMemory ->
+private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
     buildPacket {
         repeat(remaining.toInt()) { i ->

@@ -11,11 +11,11 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 
 class HttpStatementTest : ClientLoader() {
 
-    @Suppress("DEPRECATION")
     @Test
     @Ignore
     fun testExecute() = clientTests {
@@ -25,7 +25,7 @@ class HttpStatementTest : ClientLoader() {
                     repeat(42) {
                         writeInt(42)
                     }
-                }.readBytes(42)
+                }.readByteArray(42)
 
                 val actual = it.readBytes(42)
 

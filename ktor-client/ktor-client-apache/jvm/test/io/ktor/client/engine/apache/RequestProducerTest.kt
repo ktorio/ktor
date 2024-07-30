@@ -18,7 +18,7 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-@kotlin.Suppress("BlockingMethodInNonBlockingContext")
+@Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
     @OptIn(InternalAPI::class)

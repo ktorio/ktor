@@ -131,7 +131,7 @@ internal fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
 internal fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
 
 internal fun List<LongRange>.isAscending(): Boolean =
-    fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first
+    fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.first) to e.first }.first
 
 internal fun parseIfRangeHeader(header: String): List<HeaderValue> {
     if (header.endsWith(" GMT")) {

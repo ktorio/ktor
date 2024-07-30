@@ -23,7 +23,6 @@ import io.micrometer.core.instrument.simple.*
 import kotlin.reflect.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class MicrometerMetricsTests {
     private var noHandlerHandledRequest = false
     private var throwableCaughtInEngine: Throwable? = null

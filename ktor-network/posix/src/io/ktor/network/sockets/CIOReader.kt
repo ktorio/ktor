@@ -12,7 +12,6 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 
-@Suppress("DEPRECATION")
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForReadingImpl(
     userChannel: ByteChannel,
@@ -43,7 +42,7 @@ internal fun CoroutineScope.attachForReadingImpl(
 
             channel.flush()
             if (close) {
-                channel.close()
+                channel.flushAndClose()
                 break
             }
 
@@ -62,6 +61,6 @@ internal fun CoroutineScope.attachForReadingImpl(
         throw cause
     } finally {
         ktor_shutdown(descriptor, ShutdownCommands.Receive)
-        channel.close()
+        channel.flushAndClose()
     }
 }

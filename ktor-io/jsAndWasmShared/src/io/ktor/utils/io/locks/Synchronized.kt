@@ -38,7 +38,7 @@ public actual class ReentrantLock {
  */
 @JsName(REENTRANT_LOCK)
 @InternalAPI
-public val Lock: ReentrantLock = io.ktor.utils.io.locks.ReentrantLock()
+public val Lock: ReentrantLock = ReentrantLock()
 
 /**
  * Creates a new [ReentrantLock] instance.

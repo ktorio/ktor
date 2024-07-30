@@ -9,9 +9,8 @@ import kotlinx.io.*
 import kotlinx.io.unsafe.*
 import platform.posix.*
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class)
-public fun BytePacketBuilder.write(block: (buffer: CPointer<ByteVar>, offset: Long, length: Long) -> Long): Long {
+public fun Sink.write(block: (buffer: CPointer<ByteVar>, offset: Long, length: Long) -> Long): Long {
     var result = 0L
     UnsafeBufferOperations.writeToTail(this.buffer, 1) { array, start, endExclusive ->
         array.usePinned {
@@ -25,9 +24,8 @@ public fun BytePacketBuilder.write(block: (buffer: CPointer<ByteVar>, offset: Lo
     return result
 }
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
-public fun BytePacketBuilder.writeFully(buffer: CPointer<ByteVar>, offset: Long, length: Long) {
+public fun Sink.writeFully(buffer: CPointer<ByteVar>, offset: Long, length: Long) {
     var consumed = 0L
     while (consumed < length) {
         UnsafeBufferOperations.writeToTail(this.buffer, 1) { array, start, endExclusive ->

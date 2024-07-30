@@ -13,7 +13,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class HttpsRedirectPluginTest {
     @Test
     fun testRedirect() {

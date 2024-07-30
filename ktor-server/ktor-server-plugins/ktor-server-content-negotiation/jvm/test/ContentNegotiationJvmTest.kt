@@ -18,6 +18,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import java.io.*
 import kotlin.test.*
 import kotlin.text.toByteArray
@@ -53,8 +54,11 @@ class ContentNegotiationJvmTest {
                 }
                 post("/multipart") {
                     val multipart = call.receiveMultipart()
+                    val parts = mutableListOf<PartData>()
+                    multipart.forEachPart {
+                        parts.add(it)
+                    }
 
-                    @Suppress("DEPRECATION") val parts = multipart.readAllParts()
                     call.respondText("parts: ${parts.map { it.name }}")
                 }
             }
@@ -109,7 +113,6 @@ class ContentNegotiationJvmTest {
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-@Suppress("DEPRECATION")
 internal fun buildMultipart(
     boundary: String,
     parts: List<PartData>
@@ -127,11 +130,11 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readBytes())
+                        channel.writeFully(it.provider().readRemaining().readByteArray())
                         ""
                     }
                     is PartData.BinaryItem -> {
-                        channel.writeFully(it.provider().readBytes())
+                        channel.writeFully(it.provider().readByteArray())
                         ""
                     }
                     is PartData.FormItem -> it.value

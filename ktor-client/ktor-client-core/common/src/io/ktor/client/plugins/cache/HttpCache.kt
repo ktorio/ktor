@@ -368,7 +368,6 @@ internal fun mergedHeadersLookup(
     }
 }
 
-@Suppress("KDocMissingDocumentation")
 public class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(
     "The entry for url: $requestUrl was removed from cache"
 )

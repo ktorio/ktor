@@ -12,7 +12,6 @@ pluginManagement {
 
 rootProject.name = "ktor"
 
-val native_targets_enabled = !extra.has("disable_native_targets")
 val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
 
 if (CACHE_USER != null) {
@@ -59,13 +58,11 @@ include(":ktor-client:ktor-client-apache")
 include(":ktor-client:ktor-client-apache5")
 include(":ktor-client:ktor-client-android")
 include(":ktor-client:ktor-client-cio")
-if (native_targets_enabled) {
-    include(":ktor-client:ktor-client-curl")
-    include(":ktor-client:ktor-client-ios")
-    include(":ktor-client:ktor-client-darwin")
-    include(":ktor-client:ktor-client-darwin-legacy")
-    include(":ktor-client:ktor-client-winhttp")
-}
+include(":ktor-client:ktor-client-curl")
+include(":ktor-client:ktor-client-ios")
+include(":ktor-client:ktor-client-darwin")
+include(":ktor-client:ktor-client-darwin-legacy")
+include(":ktor-client:ktor-client-winhttp")
 if (currentJdk >= 11) {
     include(":ktor-client:ktor-client-java")
     include(":ktor-client:ktor-client-jetty-jakarta")

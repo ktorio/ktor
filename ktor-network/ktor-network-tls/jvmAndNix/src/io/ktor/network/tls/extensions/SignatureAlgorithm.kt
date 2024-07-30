@@ -6,6 +6,7 @@ package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
@@ -16,7 +17,7 @@ import io.ktor.utils.io.core.*
  * @property code numeric hash algorithm code
  * @property openSSLName is a name used in openssl for this algorithm
  */
-@Suppress("KDocMissingDocumentation")
+
 public enum class HashAlgorithm(public val code: Byte, public val openSSLName: String, public val macName: String) {
     NONE(0, "", ""),
     MD5(1, "MD5", "HmacMD5"),
@@ -42,7 +43,7 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
  * Signature algorithms
  * @property code numeric algorithm codes
  */
-@Suppress("KDocMissingDocumentation")
+
 public enum class SignatureAlgorithm(public val code: Byte) {
     ANON(0),
     RSA(1),
@@ -101,8 +102,7 @@ public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA1, SignatureAlgorithm.RSA, OID.RSAwithSHA1Encryption)
 )
 
-@Suppress("DEPRECATION")
-internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
+internal fun Source.parseSignatureAlgorithms(): List<HashAndSign> {
     val length = readShort().toInt() and 0xffff
 
     val result = mutableListOf<HashAndSign>()
@@ -117,8 +117,7 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
     return result
 }
 
-@Suppress("DEPRECATION")
-internal fun ByteReadPacket.readHashAndSign(): HashAndSign? {
+internal fun Source.readHashAndSign(): HashAndSign? {
     val hash = readByte()
     val sign = readByte()
     return HashAndSign.byCode(hash, sign)

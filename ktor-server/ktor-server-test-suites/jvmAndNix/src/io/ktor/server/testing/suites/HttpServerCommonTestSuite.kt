@@ -28,6 +28,7 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
@@ -567,7 +568,6 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     open fun testFlushingHeaders() {
         createAndStartServer {
@@ -606,7 +606,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 requestBody.writeFully(content)
                 requestBody.close(null)
 
-                assertContentEquals(channel.readRemaining().readBytes(), content)
+                assertContentEquals(channel.readRemaining().readByteArray(), content)
             }
             client.close()
         }

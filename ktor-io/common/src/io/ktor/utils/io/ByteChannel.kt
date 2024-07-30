@@ -13,7 +13,7 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 
 @InternalAPI
-public val CHANNEL_MAX_SIZE: Int = 4 * 1024
+public val CHANNEL_MAX_SIZE: Int = 4096
 
 /**
  * Sequential (non-concurrent) byte channel implementation
@@ -112,7 +112,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     }
 
     override suspend fun flushAndClose() {
-        flush()
+        runCatching {
+            flush()
+        }
 
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return

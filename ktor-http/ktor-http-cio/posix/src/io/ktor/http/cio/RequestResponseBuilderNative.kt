@@ -7,11 +7,12 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 /**
  * Builds an HTTP request or response
  */
-@Suppress("DEPRECATION")
+
 public actual class RequestResponseBuilder actual constructor() {
     private val packet = BytePacketBuilder()
 
@@ -79,13 +80,13 @@ public actual class RequestResponseBuilder actual constructor() {
     /**
      * Build a packet of request/response
      */
-    public actual fun build(): ByteReadPacket = packet.build()
+    public actual fun build(): Source = packet.build()
 
     /**
      * Release all resources hold by the builder
      */
     public actual fun release() {
-        packet.release()
+        packet.close()
     }
 }
 

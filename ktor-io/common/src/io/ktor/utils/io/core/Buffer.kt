@@ -3,6 +3,7 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.*
+import kotlinx.io.Buffer
 
 /**
  * Represents a buffer with read and write positions.
@@ -16,5 +17,4 @@ import io.ktor.utils.io.*
 )
 public typealias Buffer = kotlinx.io.Buffer
 
-@Suppress("DEPRECATION")
 public fun Buffer.canRead(): Boolean = !exhausted()

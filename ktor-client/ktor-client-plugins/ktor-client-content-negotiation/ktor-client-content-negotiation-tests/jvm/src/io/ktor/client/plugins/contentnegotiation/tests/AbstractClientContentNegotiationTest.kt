@@ -29,7 +29,7 @@ import kotlinx.serialization.builtins.*
 import kotlin.test.*
 
 /** Base class for [ContentNegotiation] tests. */
-@Suppress("KDocMissingDocumentation")
+
 abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
     protected val users = listOf(

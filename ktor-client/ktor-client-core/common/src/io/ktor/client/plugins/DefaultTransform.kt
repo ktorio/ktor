@@ -15,6 +15,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.io.*
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
 
@@ -23,7 +24,6 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformer
  * Usually installed by default so there is no need to use it
  * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
  */
-@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
 public fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
@@ -73,7 +73,7 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
             }
 
-            ByteReadPacket::class,
+            Source::class,
             Input::class -> {
                 proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }

@@ -19,6 +19,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -76,7 +77,6 @@ class ContentTest : ClientLoader(5 * 60) {
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testByteReadChannel() = clientTests {
         config {
@@ -87,7 +87,7 @@ class ContentTest : ClientLoader(5 * 60) {
         test { client ->
             testArrays.forEach { content ->
                 val responseData = client.echo<ByteReadChannel>(content)
-                val data = responseData.readRemaining().readBytes()
+                val data = responseData.readRemaining().readByteArray()
                 assertArrayEquals(
                     "Test fail with size: ${content.size}, actual size: ${data.size}",
                     content,

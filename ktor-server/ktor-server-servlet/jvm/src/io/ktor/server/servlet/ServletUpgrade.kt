@@ -55,7 +55,6 @@ public object DefaultServletUpgrade : ServletUpgrade {
 // the following types need to be public as they are accessed through reflection
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public class UpgradeRequest(
     public val response: HttpServletResponse,
     public val upgradeMessage: OutgoingContent.ProtocolUpgrade,
@@ -70,7 +69,6 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 // so we can't pass [UpgradeRequest] through a constructor
 // we also can't make it internal due to the same reason
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     public lateinit var up: UpgradeRequest
@@ -80,7 +78,6 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 
-    @Suppress("DEPRECATION")
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")

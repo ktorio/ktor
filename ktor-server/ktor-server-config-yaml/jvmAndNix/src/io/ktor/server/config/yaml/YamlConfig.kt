@@ -33,15 +33,12 @@ public expect fun YamlConfig(path: String?): YamlConfig?
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
  */
-public class YamlConfig
-@Deprecated("This will become internal")
-constructor(
+public class YamlConfig internal constructor(
     private val yaml: YamlMap
 ) : ApplicationConfig {
 
     private var root: YamlConfig = this
 
-    @Suppress("DEPRECATION")
     internal constructor(
         yaml: YamlMap,
         root: YamlConfig
@@ -123,7 +120,7 @@ constructor(
 
         val primitive = toPrimitive(yaml)
         @Suppress("UNCHECKED_CAST")
-        return primitive as? Map<String, Any?> ?: throw IllegalStateException("Top level element is not a map")
+        return primitive as? Map<String, Any?> ?: error("Top level element is not a map")
     }
 
     public fun checkEnvironmentVariables() {

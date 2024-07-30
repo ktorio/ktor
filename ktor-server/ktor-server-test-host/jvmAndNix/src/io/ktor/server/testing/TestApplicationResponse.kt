@@ -76,7 +76,6 @@ public class TestApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = builder.getAll(name).orEmpty()
     }
 
-    @Suppress("DEPRECATION")
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
@@ -87,7 +86,7 @@ public class TestApplicationResponse(
         val job = scope.reader(responseJob ?: EmptyCoroutineContext) {
             val counted = channel.counted()
             val readJob = launch {
-                counted.copyAndClose(result, Long.MAX_VALUE)
+                counted.copyAndClose(result)
             }
 
             configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }

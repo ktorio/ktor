@@ -35,7 +35,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-@Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration
@@ -109,7 +108,7 @@ actual abstract class EngineTestBase<
     }
 
     protected open fun createServer(
-        log: org.slf4j.Logger? = null,
+        log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {

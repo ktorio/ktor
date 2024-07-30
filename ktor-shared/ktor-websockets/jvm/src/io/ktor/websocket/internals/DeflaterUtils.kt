@@ -7,13 +7,13 @@ package io.ktor.websocket.internals
 import io.ktor.util.cio.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import kotlinx.io.*
 import java.nio.*
 import java.util.zip.*
 
 private val PADDED_EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0, 0xff.toByte(), 0xff.toByte())
 private val EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0xff.toByte(), 0xff.toByte())
 
-@Suppress("DEPRECATION")
 internal fun Deflater.deflateFully(data: ByteArray): ByteArray {
     setInput(data)
 
@@ -28,15 +28,15 @@ internal fun Deflater.deflateFully(data: ByteArray): ByteArray {
     }
 
     if (deflatedBytes.endsWith(PADDED_EMPTY_CHUNK)) {
-        return deflatedBytes.readBytes(deflatedBytes.remaining.toInt() - EMPTY_CHUNK.size).also {
-            deflatedBytes.release()
+        return deflatedBytes.readByteArray(deflatedBytes.remaining.toInt() - EMPTY_CHUNK.size).also {
+            deflatedBytes.close()
         }
     }
 
     return buildPacket {
         writePacket(deflatedBytes)
         writeByte(0)
-    }.readBytes()
+    }.readByteArray()
 }
 
 internal fun Inflater.inflateFully(data: ByteArray): ByteArray {
@@ -57,12 +57,10 @@ internal fun Inflater.inflateFully(data: ByteArray): ByteArray {
         }
     }
 
-    @Suppress("DEPRECATION")
-    return packet.readBytes()
+    return packet.readByteArray()
 }
 
-@Suppress("DEPRECATION")
-private fun BytePacketBuilder.deflateTo(
+private fun Sink.deflateTo(
     deflater: Deflater,
     buffer: ByteBuffer,
     flush: Boolean

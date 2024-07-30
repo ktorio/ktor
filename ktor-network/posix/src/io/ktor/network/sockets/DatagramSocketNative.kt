@@ -48,7 +48,7 @@ internal class DatagramSocketNative(
                 channel.send(received)
             }
         } catch (_: ClosedSendChannelException) {
-        } catch (cause: kotlinx.io.IOException) {
+        } catch (cause: IOException) {
         } catch (cause: PosixException) {
         }
     }
@@ -70,11 +70,9 @@ internal class DatagramSocketNative(
         sender.close()
     }
 
-    @Suppress("DEPRECATION")
     override fun attachForReading(channel: ByteChannel): WriterJob =
         attachForReadingImpl(channel, descriptor, selectable, selector)
 
-    @Suppress("DEPRECATION")
     override fun attachForWriting(channel: ByteChannel): ReaderJob =
         attachForWritingImpl(channel, descriptor, selectable, selector)
 
