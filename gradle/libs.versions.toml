@@ -11,7 +11,7 @@ ktlint-version = "3.15.0"
 netty-version = "4.1.112.Final"
 netty-tcnative-version = "2.0.65.Final"
 
-jetty-version = "9.4.55.v20240627"
+jetty-version = "12.0.12"
 jetty-jakarta-version = "11.0.22"
 jetty-alpn-api-version = "1.1.3.v20160715"
 jetty-alpn-boot-version = "8.1.13.v20181017"
