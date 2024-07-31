@@ -9,4 +9,5 @@ object Versions {
     val junit = "5.10.1"
     val logback = "1.2.11"
     val puppeteer = "21.5.0"
+    val browser = "0.1"
 }
