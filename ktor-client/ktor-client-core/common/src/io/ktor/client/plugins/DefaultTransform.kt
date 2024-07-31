@@ -87,7 +87,7 @@ public fun HttpClient.defaultTransformers() {
                 // could be canceled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext[Job])
-                val channel: ByteReadChannel = writer(response.coroutineContext) {
+                val channel: ByteReadChannel = writer(this@defaultTransformers.coroutineContext) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                     } catch (cause: CancellationException) {
