@@ -51,6 +51,7 @@ public abstract interface class io/ktor/server/application/ApplicationEnvironmen
 	public abstract fun getClassLoader ()Ljava/lang/ClassLoader;
 	public abstract fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
 	public abstract fun getLog ()Lorg/slf4j/Logger;
+	public abstract fun getMonitor ()Lio/ktor/events/Events;
 }
 
 public final class io/ktor/server/application/ApplicationKt {

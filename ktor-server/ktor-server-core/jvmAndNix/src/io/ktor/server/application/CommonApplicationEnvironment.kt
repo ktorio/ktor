@@ -5,6 +5,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
@@ -23,6 +24,16 @@ public expect interface ApplicationEnvironment {
      * Configuration for the [Application]
      */
     public val config: ApplicationConfig
+
+    /**
+     * Provides events on Application lifecycle
+     */
+    @Deprecated(
+        message = "Moved to Application",
+        replaceWith = ReplaceWith("EmbeddedServer.monitor", "io.ktor.server.engine.EmbeddedServer"),
+        level = DeprecationLevel.ERROR,
+    )
+    public val monitor: Events
 }
 
 internal expect class ApplicationPropertiesBridge(
