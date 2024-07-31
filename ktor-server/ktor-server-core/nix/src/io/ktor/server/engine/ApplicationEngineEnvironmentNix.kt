@@ -5,6 +5,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
@@ -38,4 +39,10 @@ public actual class ApplicationEnvironmentBuilder {
 public class ApplicationEnvironmentImplNix(
     override val log: Logger,
     override val config: ApplicationConfig,
+    @Deprecated(
+        "Moved to Application",
+        replaceWith = ReplaceWith("EmbeddedServer.monitor", "io.ktor.server.engine.EmbeddedServer"),
+        level = DeprecationLevel.WARNING
+    )
+    override val monitor: Events = Events()
 ) : ApplicationEnvironment

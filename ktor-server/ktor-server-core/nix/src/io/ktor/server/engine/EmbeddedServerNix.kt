@@ -19,7 +19,7 @@ actual constructor(
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
-    public actual val monitor: Events = Events()
+    public actual val monitor: Events = applicationProperties.environment.monitor
 
     public actual val environment: ApplicationEnvironment = applicationProperties.environment
 
