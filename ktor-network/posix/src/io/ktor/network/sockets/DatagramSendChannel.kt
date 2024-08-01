@@ -8,14 +8,13 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
-import kotlinx.io.*
-import kotlinx.io.Buffer
 import kotlinx.io.IOException
 
 private val CLOSED: (Throwable?) -> Unit = {}
@@ -60,23 +59,25 @@ internal class DatagramSendChannel(
             }
         }
 
-        val result: Boolean
+        var result = false
 
         try {
-            val bytes = element.packet.copy().readByteArray()
-            val bytesWritten = sendto(element, bytes)
+            DefaultDatagramByteArrayPool.useInstance { buffer ->
+                val length = element.packet.copy().readAvailable(buffer)
+                val bytesWritten = sendto(element, buffer, length)
 
-            result = when (bytesWritten) {
-                0 -> throw IOException("Failed writing to closed socket")
-                -1 -> {
-                    if (isWouldBlockError(getSocketError())) {
-                        false
-                    } else {
-                        throw PosixException.forSocketError()
+                result = when (bytesWritten) {
+                    0 -> throw IOException("Failed writing to closed socket")
+                    -1 -> {
+                        if (isWouldBlockError(getSocketError())) {
+                            false
+                        } else {
+                            throw PosixException.forSocketError()
+                        }
                     }
-                }
 
-                else -> true
+                    else -> true
+                }
             }
         } finally {
             lock.unlock()
@@ -97,20 +98,23 @@ internal class DatagramSendChannel(
         }
 
         lock.withLock {
-            sendImpl(element)
+            DefaultDatagramByteArrayPool.useInstance { buffer ->
+                val length = element.packet.readAvailable(buffer)
+                sendSuspend(element, buffer, length)
+            }
         }
     }
 
     @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
-    private fun sendto(datagram: Datagram, bytes: ByteArray): Int {
+    private fun sendto(datagram: Datagram, buffer: ByteArray, length: Int): Int {
         var bytesWritten: Int? = null
-        bytes.usePinned { pinned ->
+        buffer.usePinned { pinned ->
             if (remote == null) {
                 datagram.address.address.nativeAddress { address, addressSize ->
                     bytesWritten = ktor_sendto(
                         descriptor,
                         pinned.addressOf(0),
-                        bytes.size.convert(),
+                        length.convert(),
                         0,
                         address,
                         addressSize
@@ -120,7 +124,7 @@ internal class DatagramSendChannel(
                 bytesWritten = ktor_sendto(
                     descriptor,
                     pinned.addressOf(0),
-                    bytes.size.convert(),
+                    length.convert(),
                     0,
                     null,
                     0.convert()
@@ -130,18 +134,19 @@ internal class DatagramSendChannel(
         return bytesWritten ?: error("bytesWritten cannot be null")
     }
 
-    private tailrec suspend fun sendImpl(
+    private tailrec suspend fun sendSuspend(
         datagram: Datagram,
-        bytes: ByteArray = datagram.packet.readByteArray()
+        buffer: ByteArray,
+        length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, bytes)
+        val bytesWritten: Int = sendto(datagram, buffer, length)
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (isWouldBlockError(getSocketError())) {
                     socket.selector.select(socket.selectable, SelectInterest.WRITE)
-                    sendImpl(datagram, bytes)
+                    sendSuspend(datagram, buffer, length)
                 } else {
                     throw PosixException.forSocketError()
                 }
