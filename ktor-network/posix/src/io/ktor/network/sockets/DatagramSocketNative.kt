@@ -41,7 +41,7 @@ internal class DatagramSocketNative(
     override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val receiver: ReceiveChannel<Datagram> = produce {
+    private val receiver: ReceiveChannel<Datagram> = produce(Dispatchers.IO) {
         try {
             while (true) {
                 val received = readDatagram()

@@ -98,9 +98,11 @@ internal class DatagramSendChannel(
         }
 
         lock.withLock {
-            DefaultDatagramByteArrayPool.useInstance { buffer ->
-                val length = element.packet.readAvailable(buffer)
-                sendSuspend(element, buffer, length)
+            withContext(Dispatchers.IO) {
+                DefaultDatagramByteArrayPool.useInstance { buffer ->
+                    val length = element.packet.readAvailable(buffer)
+                    sendSuspend(element, buffer, length)
+                }
             }
         }
     }
