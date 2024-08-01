@@ -60,6 +60,7 @@ configurations.configureEach {
 dependencies {
     val kotlinVersion = libs.versions.kotlin.version.get()
     implementation(kotlin("gradle-plugin", kotlinVersion))
+    implementation(kotlin("compiler-embeddable", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
 
     val ktlint_version = libs.versions.ktlint.version.get()
