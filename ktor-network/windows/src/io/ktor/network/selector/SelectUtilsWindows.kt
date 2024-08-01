@@ -156,7 +156,9 @@ internal actual class SelectorHelper {
 
             val set = descriptorSetByInterestKind(event)
 
-            if (networkEvents and set == 0) {
+            val isClosed = networkEvents and FD_CLOSE != 0
+
+            if (networkEvents and set == 0 && !isClosed) {
                 return@forEachIndexed
             }
 
@@ -198,6 +200,6 @@ internal actual class SelectorHelper {
     }
 
     private companion object {
-        private val allInterestKinds: Int = FD_READ or FD_WRITE or FD_ACCEPT or FD_CONNECT
+        private val allInterestKinds: Int = FD_READ or FD_WRITE or FD_ACCEPT or FD_CONNECT or FD_CLOSE
     }
 }
