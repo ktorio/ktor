@@ -53,7 +53,7 @@ actual constructor(
     protected actual fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
-        routingConfigurer: Routing.() -> Unit
+        routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
@@ -127,7 +127,7 @@ actual constructor(
         }
     }
 
-    protected actual open fun plugins(application: Application, routingConfig: Routing.() -> Unit) {
+    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         application.install(RoutingRoot, routingConfig)
     }
 

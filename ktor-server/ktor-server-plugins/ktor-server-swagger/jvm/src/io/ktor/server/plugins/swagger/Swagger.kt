@@ -21,7 +21,7 @@ import java.io.*
  * the file system using [java.io.File].
  *
  */
-public fun Routing.swaggerUI(
+public fun Route.swaggerUI(
     path: String,
     swaggerFile: String = "openapi/documentation.yaml",
     block: SwaggerConfig.() -> Unit = {}
@@ -40,7 +40,7 @@ public fun Routing.swaggerUI(
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  */
-public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
+public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
     if (!apiFile.exists()) {
         throw FileNotFoundException("Swagger file not found: ${apiFile.absolutePath}")
     }
@@ -49,7 +49,7 @@ public fun Routing.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.(
     swaggerUI(path, apiFile.name, content, block)
 }
 
-internal fun Routing.swaggerUI(
+internal fun Route.swaggerUI(
     path: String,
     apiUrl: String,
     api: String,

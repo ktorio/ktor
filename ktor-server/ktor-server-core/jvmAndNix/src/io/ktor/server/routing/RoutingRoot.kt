@@ -34,7 +34,7 @@ public class RoutingRoot(
     application.developmentMode,
     application.environment
 ),
-    RootRouting {
+    Routing {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     init {
@@ -124,7 +124,7 @@ public class RoutingRoot(
      * An installation object of the [RoutingRoot] plugin.
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : BaseApplicationPlugin<Application, RootRouting, RoutingRoot> {
+    public companion object Plugin : BaseApplicationPlugin<Application, Routing, RoutingRoot> {
 
         /**
          * A definition for an event that is fired when routing-based call processing starts.
@@ -138,7 +138,7 @@ public class RoutingRoot(
 
         override val key: AttributeKey<RoutingRoot> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: RootRouting.() -> Unit): RoutingRoot {
+        override fun install(pipeline: Application, configure: Routing.() -> Unit): RoutingRoot {
             val routingRoot = RoutingRoot(pipeline).apply(configure)
             pipeline.intercept(Call) { routingRoot.interceptor(this) }
             return routingRoot
@@ -149,7 +149,7 @@ public class RoutingRoot(
 /**
  * Gets an [Application] for this [RoutingNode] by scanning the hierarchy to the root.
  */
-public val Routing.application: Application
+public val Route.application: Application
     get() = when (this) {
         is RoutingRoot -> application
         else -> parent?.application ?: throw UnsupportedOperationException(
@@ -162,5 +162,5 @@ public val Routing.application: Application
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
 @KtorDsl
-public fun Application.routing(configuration: RootRouting.() -> Unit): RoutingRoot =
+public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)

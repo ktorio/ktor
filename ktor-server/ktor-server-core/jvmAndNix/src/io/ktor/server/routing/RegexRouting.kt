@@ -25,7 +25,7 @@ import kotlin.jvm.*
  * ```
  */
 @KtorDsl
-public fun Routing.route(path: Regex, build: Routing.() -> Unit): Routing =
+public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
     createRouteFromRegexPath(path).apply(build)
 
 /**
@@ -43,7 +43,7 @@ public fun Routing.route(path: Regex, build: Routing.() -> Unit): Routing =
  * ```
  */
 @KtorDsl
-public fun Routing.route(path: Regex, method: HttpMethod, build: Routing.() -> Unit): Routing {
+public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createRouteFromRegexPath(path).createChild(selector).apply(build)
 }
@@ -61,7 +61,7 @@ public fun Routing.route(path: Regex, method: HttpMethod, build: Routing.() -> U
  * ```
  */
 @KtorDsl
-public fun Routing.get(path: Regex, body: RoutingHandler): Routing {
+public fun Route.get(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Get) { handle(body) }
 }
 
@@ -78,7 +78,7 @@ public fun Routing.get(path: Regex, body: RoutingHandler): Routing {
  * ```
  */
 @KtorDsl
-public fun Routing.post(path: Regex, body: RoutingHandler): Routing {
+public fun Route.post(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Post) { handle(body) }
 }
 
@@ -96,10 +96,10 @@ public fun Routing.post(path: Regex, body: RoutingHandler): Routing {
  */
 @KtorDsl
 @JvmName("postTypedPath")
-public inline fun <reified R : Any> Routing.post(
+public inline fun <reified R : Any> Route.post(
     path: Regex,
     crossinline body: suspend RoutingContext.(R) -> Unit
-): Routing = post(path) {
+): Route = post(path) {
     body(call.receive())
 }
 
@@ -116,7 +116,7 @@ public inline fun <reified R : Any> Routing.post(
  * ```
  */
 @KtorDsl
-public fun Routing.head(path: Regex, body: RoutingHandler): Routing {
+public fun Route.head(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Head) { handle(body) }
 }
 
@@ -133,7 +133,7 @@ public fun Routing.head(path: Regex, body: RoutingHandler): Routing {
  * ```
  */
 @KtorDsl
-public fun Routing.put(path: Regex, body: RoutingHandler): Routing {
+public fun Route.put(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Put) { handle(body) }
 }
 
@@ -151,10 +151,10 @@ public fun Routing.put(path: Regex, body: RoutingHandler): Routing {
  */
 @KtorDsl
 @JvmName("putTypedPath")
-public inline fun <reified R : Any> Routing.put(
+public inline fun <reified R : Any> Route.put(
     path: Regex,
     crossinline body: suspend RoutingContext.(R) -> Unit
-): Routing = put(path) {
+): Route = put(path) {
     body(call.receive())
 }
 
@@ -171,7 +171,7 @@ public inline fun <reified R : Any> Routing.put(
  * ```
  */
 @KtorDsl
-public fun Routing.patch(path: Regex, body: RoutingHandler): Routing {
+public fun Route.patch(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Patch) { handle(body) }
 }
 
@@ -189,10 +189,10 @@ public fun Routing.patch(path: Regex, body: RoutingHandler): Routing {
  */
 @KtorDsl
 @JvmName("patchTypedPath")
-public inline fun <reified R : Any> Routing.patch(
+public inline fun <reified R : Any> Route.patch(
     path: Regex,
     crossinline body: suspend RoutingContext.(R) -> Unit
-): Routing = patch(path) {
+): Route = patch(path) {
     body(call.receive())
 }
 
@@ -209,7 +209,7 @@ public inline fun <reified R : Any> Routing.patch(
  * ```
  */
 @KtorDsl
-public fun Routing.delete(path: Regex, body: RoutingHandler): Routing {
+public fun Route.delete(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Delete) { handle(body) }
 }
 
@@ -226,11 +226,11 @@ public fun Routing.delete(path: Regex, body: RoutingHandler): Routing {
  * ```
  */
 @KtorDsl
-public fun Routing.options(path: Regex, body: RoutingHandler): Routing {
+public fun Route.options(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Options) { handle(body) }
 }
 
-private fun Routing.createRouteFromRegexPath(regex: Regex): Routing {
+private fun Route.createRouteFromRegexPath(regex: Regex): Route {
     return createChild(PathSegmentRegexRouteSelector(regex))
 }
 

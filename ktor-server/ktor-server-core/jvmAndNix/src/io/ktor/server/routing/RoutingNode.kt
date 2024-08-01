@@ -12,8 +12,6 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
 /**
  * Describes a node in a routing tree.
@@ -30,7 +28,7 @@ public open class RoutingNode(
     public val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment
-) : ApplicationCallPipeline(developmentMode, environment), Routing {
+) : ApplicationCallPipeline(developmentMode, environment), Route {
 
     /**
      * List of child routes for this node.
@@ -236,10 +234,10 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
 /**
  * A builder for a routing tree.
  */
-public interface Routing {
+public interface Route {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
-    public val parent: Routing?
+    public val parent: Route?
 
     /**
      * Installs a handler into this route which is called when the route is selected for a call.
@@ -249,7 +247,7 @@ public interface Routing {
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      */
-    public fun createChild(selector: RouteSelector): Routing
+    public fun createChild(selector: RouteSelector): Route
 
     /**
      * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
@@ -273,7 +271,7 @@ public interface Routing {
 /**
  * A builder for a routing tree root.
  */
-public interface RootRouting : Routing {
+public interface Routing : Route {
 
     /**
      * Registers a function used to trace route resolution.
@@ -316,7 +314,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun Routing.intercept(
+public fun Route.intercept(
     phase: PipelinePhase,
     block: suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit
 ) {
@@ -324,11 +322,11 @@ public fun Routing.intercept(
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun Routing.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
+public fun Route.insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
     (this as RoutingNode).insertPhaseAfter(reference, phase)
 }
 
 @Deprecated("Please use route scoped plugins instead")
-public fun Routing.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
+public fun Route.insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
     (this as RoutingNode).insertPhaseBefore(reference, phase)
 }

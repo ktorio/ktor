@@ -27,7 +27,7 @@ import kotlinx.coroutines.CancellationException
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
  */
-public fun Routing.webSocketRaw(
+public fun Route.webSocketRaw(
     path: String,
     protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
@@ -49,7 +49,7 @@ public fun Routing.webSocketRaw(
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun Routing.webSocketRaw(
+public fun Route.webSocketRaw(
     path: String,
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
@@ -74,7 +74,7 @@ public fun Routing.webSocketRaw(
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
  */
-public fun Routing.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
+public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol, negotiateExtensions = false, handler)
 }
 
@@ -92,7 +92,7 @@ public fun Routing.webSocketRaw(protocol: String? = null, handler: suspend WebSo
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
-public fun Routing.webSocketRaw(
+public fun Route.webSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
@@ -124,7 +124,7 @@ public fun Routing.webSocketRaw(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun Routing.webSocket(
+public fun Route.webSocket(
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
@@ -145,7 +145,7 @@ public fun Routing.webSocket(
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
  */
-public fun Routing.webSocket(
+public fun Route.webSocket(
     path: String,
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
@@ -166,7 +166,7 @@ private suspend fun ApplicationCall.respondWebSocketRaw(
     respond(WebSocketUpgrade(this, protocol, negotiateExtensions, handler))
 }
 
-private fun Routing.webSocketProtocol(protocol: String?, block: Routing.() -> Unit) {
+private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) {
     if (protocol == null) {
         block()
     } else {

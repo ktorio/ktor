@@ -10,10 +10,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
-import org.junit.jupiter.api.*
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -72,7 +70,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
     val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
 
-    override fun plugins(application: Application, routingConfig: Routing.() -> Unit) {
+    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         super.plugins(application, routingConfig)
 
         application.install(plugin)
