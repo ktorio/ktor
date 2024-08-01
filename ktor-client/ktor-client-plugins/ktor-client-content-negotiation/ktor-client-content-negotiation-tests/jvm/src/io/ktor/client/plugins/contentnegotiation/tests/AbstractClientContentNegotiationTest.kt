@@ -81,7 +81,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         }
     }
 
-    protected open fun createRoutes(routing: Routing): Unit = with(routing) {
+    protected open fun createRoutes(route: Route): Unit = with(route) {
         post("/echo") {
             call.respondWithRequestBody(call.request.contentType())
         }

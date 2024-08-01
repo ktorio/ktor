@@ -303,7 +303,7 @@ class RoutingTracingTest {
         return trace?.buildText()!!
     }
 
-    private fun Routing.testRouting() {
+    private fun Route.testRouting() {
         get("/bar") { call.respond("/bar") }
         get("/baz") { call.respond("/baz") }
         get("/baz/x") { call.respond("/baz/x") }

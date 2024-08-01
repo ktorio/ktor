@@ -10,7 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -62,7 +61,7 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     override fun install(pipeline: ApplicationCallPipeline, handler: (Param) -> Unit) {
         val application = when (pipeline) {
             is Application -> pipeline
-            is Routing -> pipeline.application
+            is Route -> pipeline.application
             else -> error("Unsupported pipeline: $pipeline")
         }
         application.monitor.subscribe(event) {

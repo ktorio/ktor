@@ -19,7 +19,7 @@ import io.ktor.server.routing.*
  *
  * @see ServerSSESession
  */
-public fun Routing.sse(path: String, handler: suspend ServerSSESession.() -> Unit) {
+public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit) {
     plugin(SSE)
 
     route(path, HttpMethod.Get) {
@@ -37,7 +37,7 @@ public fun Routing.sse(path: String, handler: suspend ServerSSESession.() -> Uni
  *
  * @see ServerSSESession
  */
-public fun Routing.sse(handler: suspend ServerSSESession.() -> Unit) {
+public fun Route.sse(handler: suspend ServerSSESession.() -> Unit) {
     plugin(SSE)
 
     handle {
