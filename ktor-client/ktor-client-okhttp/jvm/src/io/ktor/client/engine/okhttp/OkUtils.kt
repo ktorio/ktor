@@ -14,17 +14,20 @@ import java.net.*
 import kotlin.coroutines.*
 import okhttp3.Headers as OkHttpHeaders
 
+@OptIn(InternalCoroutinesApi::class)
 internal suspend fun OkHttpClient.execute(
     request: Request,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    callContext: CoroutineContext
 ): Response = suspendCancellableCoroutine { continuation ->
     val call = newCall(request)
 
-    call.enqueue(OkHttpCallback(requestData, continuation))
-
-    continuation.invokeOnCancellation {
+    callContext[Job]!!.invokeOnCompletion(true) {
         call.cancel()
     }
+
+    val callback = OkHttpCallback(requestData, continuation)
+    call.enqueue(callback)
 }
 
 private class OkHttpCallback(
