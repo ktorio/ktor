@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin.sourceSets {
-    jvmAndNixMain {
+    jvmAndPosixMain {
         dependencies {
             api(project(":ktor-shared:ktor-resources"))
             api(libs.kotlinx.serialization.core)

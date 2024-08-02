@@ -70,7 +70,7 @@ kotlin.sourceSets {
         }
     }
 
-    jvmAndNixTest {
+    jvmAndPosixTest {
         dependencies {
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
         }

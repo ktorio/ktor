@@ -1,7 +1,7 @@
 description = ""
 
 kotlin.sourceSets {
-    jvmAndNixMain {
+    jvmAndPosixMain {
         dependencies {
             api(kotlin("test"))
 

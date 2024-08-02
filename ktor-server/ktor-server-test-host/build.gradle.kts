@@ -3,7 +3,7 @@ description = ""
 val jetty_alpn_boot_version: String? by extra
 
 kotlin.sourceSets {
-    jvmAndNixMain {
+    jvmAndPosixMain {
         dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-core"))
@@ -41,7 +41,7 @@ kotlin.sourceSets {
         }
     }
 
-    jvmAndNixTest {
+    jvmAndPosixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-config-yaml"))
         }

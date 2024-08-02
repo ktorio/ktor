@@ -1,10 +1,10 @@
 kotlin.sourceSets {
-    jvmAndNixMain {
+    jvmAndPosixMain {
         dependencies {
             api(libs.kotlinx.html)
         }
     }
-    jvmAndNixTest {
+    jvmAndPosixTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
         }
