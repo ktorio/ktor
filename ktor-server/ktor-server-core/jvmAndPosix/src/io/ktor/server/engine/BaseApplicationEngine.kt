@@ -38,7 +38,7 @@ public abstract class BaseApplicationEngine(
      */
     public open class Configuration : ApplicationEngine.Configuration()
 
-    protected val resolvedConnectors: CompletableDeferred<List<EngineConnectorConfig>> = CompletableDeferred()
+    protected val resolvedConnectorsDeferred: CompletableDeferred<List<EngineConnectorConfig>> = CompletableDeferred()
 
     init {
         val environment = environment
@@ -71,7 +71,7 @@ public abstract class BaseApplicationEngine(
     }
 
     override suspend fun resolvedConnectors(): List<EngineConnectorConfig> {
-        return resolvedConnectors.await()
+        return resolvedConnectorsDeferred.await()
     }
 }
 

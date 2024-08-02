@@ -149,7 +149,7 @@ public class TestApplicationEngine(
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
         )
-        resolvedConnectors.complete(runBlocking { resolvedConnectors() })
+        resolvedConnectorsDeferred.complete(runBlocking { resolvedConnectors() })
 
         return this
     }
