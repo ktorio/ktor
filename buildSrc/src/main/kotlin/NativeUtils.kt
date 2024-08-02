@@ -33,11 +33,13 @@ fun Project.iosTargets(): List<String> = with(kotlin) {
 }
 
 fun Project.watchosTargets(): List<String> = with(kotlin) {
-    listOf(
+    listOfNotNull(
         watchosX64(),
         watchosArm32(),
         watchosArm64(),
         watchosSimulatorArm64(),
+        // because of dependency on YAML library: https://github.com/Him188/yamlkt/issues/67
+        if (project.name != "ktor-server-config-yaml") watchosDeviceArm64() else null,
     ).map { it.name }
 }
 
