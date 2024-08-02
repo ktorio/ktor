@@ -5,6 +5,7 @@
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
+import org.jetbrains.kotlin.gradle.targets.js.ir.*
 import java.io.*
 
 fun Project.configureWasm() {
@@ -40,10 +41,10 @@ private fun Project.configureWasmTasks() {
                 }
             }
 
-            browser {
+            (this as KotlinJsIrTarget).whenBrowserConfigured {
                 testTask {
                     useKarma {
-                        useChromeCanaryHeadless()
+                        useChromeHeadless()
                         useConfigDirectory(File(project.rootProject.projectDir, "karma"))
                     }
                 }
@@ -56,8 +57,6 @@ private fun Project.configureWasmTestTasks() {
     val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunWasmBrowserTest) return
 
-    val cleanWasmJsBrowserTest by tasks.getting
-    val wasmJsBrowserTest by tasks.getting
-    cleanWasmJsBrowserTest.onlyIf { false }
-    wasmJsBrowserTest.onlyIf { false }
+    tasks.findByName("cleanWasmJsBrowserTest")?.onlyIf { false }
+    tasks.findByName("wasmJsBrowserTest")?.onlyIf { false }
 }

@@ -1,7 +1,6 @@
 /*
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:Suppress("UNUSED_VARIABLE")
 
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
@@ -23,8 +22,8 @@ val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWas
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
 val Project.hasWasm: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || hasJvmAndPosix || files.any { it.name == "jvm" }
-val Project.hasNative: Boolean get() =
-    hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
+val Project.hasNative: Boolean
+    get() = hasCommon || hasNix || hasPosix || hasLinux || hasDarwin || hasDesktop || hasWindows
 
 fun Project.configureTargets() {
     configureCommon()
@@ -32,9 +31,14 @@ fun Project.configureTargets() {
 
     kotlin {
         if (hasJs) {
-            js(IR) {
+            js {
                 nodejs()
-                browser()
+                // we don't test `server` modules in a browser.
+                // there are 2 explanations why:
+                // * logical - we don't need server in browser
+                // * technical - we don't have access to files, os, etc.
+                // Also, because of the ` origin ` URL in a browser, special support in `test-host` need to be implemented
+                if (!project.name.startsWith("ktor-server")) browser()
             }
 
             configureJs()
@@ -44,7 +48,8 @@ fun Project.configureTargets() {
             @OptIn(ExperimentalWasmDsl::class)
             wasmJs {
                 nodejs()
-                browser()
+                // we don't test `server` modules in a browser.
+                if (!project.name.startsWith("ktor-server")) browser()
             }
 
             configureWasm()
