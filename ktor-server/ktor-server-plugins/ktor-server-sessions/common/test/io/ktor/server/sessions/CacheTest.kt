@@ -5,11 +5,12 @@
 package io.ktor.server.sessions
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class CacheTest {
     @Test
-    fun testBaseSimpleCase(): Unit = runBlocking {
+    fun testBaseSimpleCase() = runTest {
         var counter = 0
 
         val cache = BaseCache<Int, String> { counter++; it.toString() }
@@ -25,7 +26,7 @@ class CacheTest {
     }
 
     @Test
-    fun testBlocking(): Unit = runBlocking {
+    fun testBlocking() = runTest {
         val latch = Job()
         var ref = ""
 
@@ -45,13 +46,13 @@ class CacheTest {
     }
 
     @Test
-    fun testPeek(): Unit = runBlocking {
+    fun testPeek() = runTest {
         val cache = BaseCache<Int, String> { fail(""); }
         assertNull(cache.peek(1))
     }
 
     @Test
-    fun testInvalidate(): Unit = runBlocking {
+    fun testInvalidate() = runTest {
         var counter = 0
         val cache = BaseCache<Int, String> { counter++; it.toString() }
 
@@ -73,7 +74,7 @@ class CacheTest {
     }
 
     @Test
-    fun testInvalidateWithError(): Unit = runBlocking {
+    fun testInvalidateWithError() = runTest {
         class ExpectedException : Exception()
 
         var counter = 0
@@ -100,7 +101,7 @@ class CacheTest {
     }
 
     @Test
-    fun testStoreSameValueDoesntTriggerDelegate() {
+    fun testStoreSameValueDoesntTriggerDelegate() = runTest {
         var readCount = 0
         var writeCount = 0
         var invalidateCount = 0
@@ -123,24 +124,24 @@ class CacheTest {
         }
         val storage = CacheStorage(memoryStorage, 100)
 
-        runBlocking {
-            storage.write("id", "123")
-            assertEquals("123", storage.read("id"))
-        }
+
+        storage.write("id", "123")
+        assertEquals("123", storage.read("id"))
+
         assertEquals(2, readCount) // compute + read
         assertEquals(1, writeCount)
 
-        runBlocking {
-            storage.write("id", "123")
-            assertEquals("123", storage.read("id"))
-        }
+
+        storage.write("id", "123")
+        assertEquals("123", storage.read("id"))
+
         assertEquals(2, readCount) // no additional read
         assertEquals(1, writeCount)
 
-        runBlocking {
-            storage.write("id", "234")
-            assertEquals("234", storage.read("id"))
-        }
+
+        storage.write("id", "234")
+        assertEquals("234", storage.read("id"))
+
         assertEquals(3, readCount) // additional read after invalidation
         assertEquals(2, writeCount)
 

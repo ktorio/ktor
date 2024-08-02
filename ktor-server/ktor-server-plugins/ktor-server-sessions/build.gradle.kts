@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmAndPosixMain {
+        commonMain {
             dependencies {
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
