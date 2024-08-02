@@ -108,7 +108,7 @@ class WebjarsTest {
     fun withSpecificVersion() = testApplication {
         install(Webjars)
 
-        client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
+        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -139,11 +139,11 @@ class WebjarsTest {
         install(Webjars)
         install(ConditionalHeaders)
         install(CachingHeaders)
-        client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
+        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             assertNotNull(response.headers["Last-Modified"])
-            assertEquals("\"3.6.4\"", response.headers["Etag"])
+            assertEquals("\"3.7.1\"", response.headers["Etag"])
             assertEquals("max-age=${90.days.inWholeSeconds}", response.headers["Cache-Control"])
         }
     }
@@ -158,7 +158,7 @@ class WebjarsTest {
         }
         install(ConditionalHeaders)
         install(CachingHeaders)
-        client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
+        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             assertEquals(date.toHttpDate(), response.headers["Last-Modified"])
@@ -183,7 +183,7 @@ class WebjarsTest {
         install(pluginBeforeWebjars)
         install(Webjars)
 
-        val response = client.get("/webjars/jquery/3.3.1/jquery.js")
+        val response = client.get("/webjars/jquery/3.7.1/jquery.js")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello", response.bodyAsText())
         assertNotEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
