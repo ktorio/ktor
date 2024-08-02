@@ -4,21 +4,19 @@
 
 package io.ktor.tests.websocket
 
-import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.locks.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.io.IOException
+import kotlinx.coroutines.test.*
+import kotlinx.io.*
 import kotlin.reflect.*
 import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)
-class RawWebSocketTest : BaseTest() {
+class RawWebSocketTest {
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
     private lateinit var server2client: ByteChannel
@@ -26,6 +24,31 @@ class RawWebSocketTest : BaseTest() {
     private lateinit var server: WebSocketSession
 
     private lateinit var client: WebSocketSession
+
+    private val errors = mutableListOf<Throwable>()
+
+    @OptIn(InternalAPI::class)
+    private val errorsLock = SynchronizedObject()
+
+    @OptIn(InternalAPI::class)
+    private fun collectUnhandledException(error: Throwable) {
+        synchronized(errorsLock) { errors.add(error) }
+    }
+
+    @AfterTest
+    fun _verifyErrors() {
+        if (errors.isEmpty()) return
+
+        val error = IllegalStateException(
+            "There were ${errors.size} unhandled errors during running test (suppressed)"
+        )
+
+        errors.forEach {
+            error.addSuppressed(it)
+        }
+        error.printStackTrace()
+        throw error // suppressed exceptions print wrong in idea
+    }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, cause ->
         if (cause !is CancellationException && cause !is IOException) {
@@ -53,7 +76,7 @@ class RawWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun smokeTest(): Unit = runTest {
+    fun smokeTest() = runTest {
         val text = "smoke"
         client.send(Frame.Ping(text.encodeToByteArray()))
 
@@ -75,7 +98,7 @@ class RawWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun testServerIncomingDisconnected(): Unit = runTest {
+    fun testServerIncomingDisconnected() = runTest {
         client2server.close()
         assertNull(server.incoming.receiveCatching().getOrNull())
         server.outgoing.send(Frame.Close())
@@ -87,13 +110,13 @@ class RawWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun testServerIncomingConnectionLoss(): Unit = runTest {
+    fun testServerIncomingConnectionLoss() = runTest {
         client2server.close(PlannedIOException())
         ensureCompletion(allowedExceptionsFromIncoming = listOf(IOException::class))
     }
 
     @Test
-    fun testCloseSequenceInitiatedByClient(): Unit = runTest {
+    fun testCloseSequenceInitiatedByClient() = runTest {
         val text = "content"
 
         client.send(Frame.Text(text))
@@ -114,7 +137,7 @@ class RawWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun testSendToClosed(): Unit = runTest {
+    fun testSendToClosed() = runTest {
         cancelAtIncomingEnd(server)
         client.close()
         ensureCompletion()
@@ -130,20 +153,20 @@ class RawWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun testCloseSequenceInitiatedByClientNoMessages(): Unit = runTest {
+    fun testCloseSequenceInitiatedByClientNoMessages() = runTest {
         cancelAtIncomingEnd(server)
         client.close()
         ensureCompletion()
     }
 
     @Test
-    fun testParentCancellation(): Unit = runTest {
+    fun testParentCancellation() = runTest {
         parent.cancel()
         ensureCompletion()
     }
 
     @Test
-    fun testServerTerminate(): Unit = runTest {
+    fun testServerTerminate() = runTest {
         cancelAtIncomingEnd(client)
         server.cancel()
         ensureCompletion()

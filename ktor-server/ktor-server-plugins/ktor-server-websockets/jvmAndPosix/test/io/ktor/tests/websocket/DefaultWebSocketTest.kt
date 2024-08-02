@@ -4,10 +4,8 @@
 
 package io.ktor.tests.websocket
 
-import io.ktor.server.test.base.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -15,7 +13,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)
-class DefaultWebSocketTest : BaseTest() {
+class DefaultWebSocketTest {
 
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
@@ -52,7 +50,7 @@ class DefaultWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun closeByClient(): Unit = runTest {
+    fun closeByClient() = runTestWithRealTime {
         val reason = CloseReason(CloseReason.Codes.NORMAL, "test1")
 
         client.close(reason)
@@ -68,7 +66,7 @@ class DefaultWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun pingPong(): Unit = runTest {
+    fun pingPong() = runTestWithRealTime {
         val pingsMessages = (1..5).map { "ping $it" }
 
         pingsMessages.forEach {
@@ -87,7 +85,7 @@ class DefaultWebSocketTest : BaseTest() {
 
     @Test
     @OptIn(InternalAPI::class)
-    fun testPingPongTimeout(): Unit = runTest {
+    fun testPingPongTimeout() = runTestWithRealTime {
         parent = Job()
         client2server = ByteChannel()
         server2client = ByteChannel()
@@ -111,7 +109,7 @@ class DefaultWebSocketTest : BaseTest() {
     }
 
     @Test
-    fun testCancellation(): Unit = runTest {
+    fun testCancellation() = runTestWithRealTime {
         server.cancel()
 
         client.incoming.receiveCatching().getOrNull()
