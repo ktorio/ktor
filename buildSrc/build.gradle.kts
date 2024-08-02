@@ -65,7 +65,6 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
-    implementation(libs.tomlj)
 
 }
 
