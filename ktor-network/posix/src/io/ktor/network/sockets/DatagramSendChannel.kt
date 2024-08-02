@@ -6,16 +6,16 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
+import kotlinx.io.*
 import kotlinx.io.IOException
+import kotlinx.io.unsafe.*
 
 private val CLOSED: (Throwable?) -> Unit = {}
 private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
@@ -50,7 +50,7 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
+    @OptIn(InternalCoroutinesApi::class, InternalIoApi::class, UnsafeIoApi::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
         if (remote != null) {
@@ -59,37 +59,32 @@ internal class DatagramSendChannel(
             }
         }
 
-        var result = false
-
         try {
-            DefaultDatagramByteArrayPool.useInstance { buffer ->
-                val length = element.packet.copy().readAvailable(buffer)
-                val bytesWritten = sendto(element, buffer, length)
+            UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
+                val length = endIndex - startIndex
+                val bytesWritten = sendto(element, bytes, startIndex, length)
 
-                result = when (bytesWritten) {
+                when (bytesWritten) {
                     0 -> throw IOException("Failed writing to closed socket")
                     -1 -> {
                         if (isWouldBlockError(getSocketError())) {
-                            false
+                            0
                         } else {
                             throw PosixException.forSocketError()
                         }
                     }
 
-                    else -> true
+                    else -> length
                 }
             }
         } finally {
             lock.unlock()
         }
 
-        if (result) {
-            element.packet.close()
-        }
-
         return ChannelResult.success(Unit)
     }
 
+    @OptIn(InternalIoApi::class, UnsafeIoApi::class)
     override suspend fun send(element: Datagram) {
         if (remote != null) {
             check(element.address == remote) {
@@ -99,23 +94,24 @@ internal class DatagramSendChannel(
 
         lock.withLock {
             withContext(Dispatchers.IO) {
-                DefaultDatagramByteArrayPool.useInstance { buffer ->
-                    val length = element.packet.readAvailable(buffer)
-                    sendSuspend(element, buffer, length)
+                UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
+                    val length = endIndex - startIndex
+                    sendSuspend(element, bytes, startIndex, length)
+                    length
                 }
             }
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
-    private fun sendto(datagram: Datagram, buffer: ByteArray, length: Int): Int {
+    @OptIn(ExperimentalForeignApi::class)
+    private fun sendto(datagram: Datagram, bytes: ByteArray, offset: Int, length: Int): Int {
         var bytesWritten: Int? = null
-        buffer.usePinned { pinned ->
+        bytes.usePinned { pinned ->
             if (remote == null) {
                 datagram.address.address.nativeAddress { address, addressSize ->
                     bytesWritten = ktor_sendto(
                         descriptor,
-                        pinned.addressOf(0),
+                        pinned.addressOf(offset),
                         length.convert(),
                         0,
                         address,
@@ -125,7 +121,7 @@ internal class DatagramSendChannel(
             } else {
                 bytesWritten = ktor_sendto(
                     descriptor,
-                    pinned.addressOf(0),
+                    pinned.addressOf(offset),
                     length.convert(),
                     0,
                     null,
@@ -138,17 +134,18 @@ internal class DatagramSendChannel(
 
     private tailrec suspend fun sendSuspend(
         datagram: Datagram,
-        buffer: ByteArray,
+        bytes: ByteArray,
+        offset: Int,
         length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, buffer, length)
+        val bytesWritten: Int = sendto(datagram, bytes, offset, length)
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (isWouldBlockError(getSocketError())) {
                     socket.selector.select(socket.selectable, SelectInterest.WRITE)
-                    sendSuspend(datagram, buffer, length)
+                    sendSuspend(datagram, bytes, offset, length)
                 } else {
                     throw PosixException.forSocketError()
                 }

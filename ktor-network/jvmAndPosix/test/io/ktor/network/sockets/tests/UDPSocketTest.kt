@@ -208,6 +208,7 @@ class UDPSocketTest {
                         val bytePacket = buildPacket { append("hello") }
                         val data = Datagram(bytePacket, address)
                         socket.send(data)
+                        assertTrue(data.packet.exhausted())
                     }
                 }
 
