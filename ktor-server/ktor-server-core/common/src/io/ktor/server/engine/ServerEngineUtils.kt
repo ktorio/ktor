@@ -4,4 +4,6 @@
 
 package io.ktor.server.engine
 
-internal expect val WORKING_DIRECTORY_PATH: String
+import kotlinx.io.files.*
+
+internal val WORKING_DIRECTORY_PATH: String = SystemFileSystem.resolve(Path(".")).toString()

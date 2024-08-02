@@ -4,9 +4,9 @@
 
 package io.ktor.server.engine
 
-import io.ktor.server.config.*
-import io.ktor.server.engine.interop.*
 import kotlinx.cinterop.*
+import platform.posix.*
+import io.ktor.server.engine.interop.environ as interopEnviron
 
 internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
     host: String,
@@ -22,17 +22,19 @@ internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
 internal actual fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {}
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun getConfigFromEnvironment(): ApplicationConfig {
+internal actual fun getKtorEnvironmentProperties(): List<Pair<String, String>> = buildList {
     var index = 0
-    val config = MapApplicationConfig()
-    val environ = environ ?: return config
-    while (environ[index] != null) {
-        val env = environ[index]?.toKString() ?: continue
+    // `platform.posix` also contains `environ` for some targets
+    val env = interopEnviron ?: return@buildList
+    while (env[index] != null) {
+        val keyValue = env[index]?.toKString() ?: continue
         index++
-        if (env.startsWith("ktor.")) {
-            val (key, value) = env.splitPair('=') ?: continue
-            config.put(key, value)
+        if (keyValue.startsWith("ktor.")) {
+            val (key, value) = keyValue.splitPair('=') ?: continue
+            add(key to value)
         }
     }
-    return config
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun getEnvironmentProperty(key: String): String? = getenv(key)?.toKString()

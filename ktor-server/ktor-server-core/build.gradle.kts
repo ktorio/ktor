@@ -10,7 +10,7 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndPosixMain {
+        commonMain {
             dependencies {
                 api(project(":ktor-utils"))
                 api(project(":ktor-http"))

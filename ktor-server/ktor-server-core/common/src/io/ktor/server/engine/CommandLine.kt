@@ -104,7 +104,7 @@ internal fun buildApplicationConfig(args: List<Pair<String, String>>): Applicati
     val configPaths = args.filter { it.first == "-config" }.map { it.second }
 
     val commandLineConfig = MapApplicationConfig(commandLineProperties)
-    val environmentConfig = getConfigFromEnvironment()
+    val environmentConfig = MapApplicationConfig(getKtorEnvironmentProperties())
 
     val fileConfig = when (configPaths.size) {
         0 -> ConfigLoader.load()
@@ -126,7 +126,16 @@ internal expect fun ApplicationEngine.Configuration.configureSSLConnectors(
 
 internal expect fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
 
-internal expect fun getConfigFromEnvironment(): ApplicationConfig
+// Note: on JVM those functions use `properties` and not `environment variables`
+// should return only properties prefixed with `ktor.`
+internal expect fun getKtorEnvironmentProperties(): List<Pair<String, String>>
+
+// to configure CONFIG_PATH
+internal expect fun getEnvironmentProperty(key: String): String?
+
+// for tests
+internal expect fun setEnvironmentProperty(key: String, value: String)
+internal expect fun clearEnvironmentProperty(key: String)
 
 /**
  * Loads common engine configuration parameters applicable to all engine types from the specified [ApplicationConfig].
