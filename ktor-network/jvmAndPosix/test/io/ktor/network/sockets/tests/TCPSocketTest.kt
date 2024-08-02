@@ -136,4 +136,33 @@ class TCPSocketTest {
                 .connect("127.0.0.1", 8001) // there should be no server active on this port
         }
     }
+
+    @Test
+    fun testDisconnect() = testSockets { selector ->
+        val tcp = aSocket(selector).tcp()
+        val server = tcp.bind("127.0.0.1", 8003)
+
+        val serverConnectionPromise = async {
+            server.accept()
+        }
+
+        val clientConnection = tcp.connect("127.0.0.1", 8003)
+        val serverConnection = serverConnectionPromise.await()
+
+        val serverInput = serverConnection.openReadChannel()
+
+        // Need to make sure reading from server is done first, which will suspend because there is nothing to read.
+        // Then close the connection from client side, which should cancel the reading because the socket disconnected.
+        launch {
+            delay(100)
+            clientConnection.close()
+        }
+
+        assertFailsWith<EOFException> {
+            serverInput.readByte()
+        }
+
+        serverConnection.close()
+        server.close()
+    }
 }

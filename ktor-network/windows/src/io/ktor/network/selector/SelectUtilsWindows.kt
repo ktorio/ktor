@@ -7,7 +7,6 @@ package io.ktor.network.selector
 import io.ktor.network.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -18,7 +17,7 @@ internal actual class SelectorHelper {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
     private val closeQueue = LockFreeMPSCQueue<Int>()
-    private val allWsaEvents = atomic(emptyMap<Int, COpaquePointer?>())
+    private val allWsaEvents = ConcurrentMap<Int, COpaquePointer?>()
 
     actual fun interest(event: EventInfo): Boolean {
         if (interestQueue.addLast(event)) {
@@ -109,24 +108,28 @@ internal actual class SelectorHelper {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
-        return watchSet.map { event ->
-            val lazyWsaEvent = lazy(LazyThreadSafetyMode.NONE) {
-                val wsaEvent = WSACreateEvent()
+
+        return watchSet
+            .groupBy { it.descriptor }
+            .map { (descriptor, events) ->
+                val wsaEvent = allWsaEvents.computeIfAbsent(descriptor) {
+                    WSACreateEvent()
+                }
+
+                var lNetworkEvents = events.fold(0) { acc, event ->
+                    acc or descriptorSetByInterestKind(event)
+                }
+                // Always add close event so selector gets notified on socket disconnect.
+                lNetworkEvents = lNetworkEvents or FD_CLOSE
+
                 WSAEventSelect(
-                    s = event.descriptor.convert(),
+                    s = descriptor.convert(),
                     hEventObject = wsaEvent,
-                    lNetworkEvents = allInterestKinds
+                    lNetworkEvents = lNetworkEvents
                 )
+
                 wsaEvent
             }
-            allWsaEvents.updateAndGet {
-                if (event.descriptor !in it) {
-                    it + (event.descriptor to lazyWsaEvent.value)
-                } else {
-                    it
-                }
-            }.getValue(event.descriptor)
-        }
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -156,7 +159,9 @@ internal actual class SelectorHelper {
 
             val set = descriptorSetByInterestKind(event)
 
-            if (networkEvents and set == 0) {
+            val isClosed = networkEvents and FD_CLOSE != 0
+
+            if (networkEvents and set == 0 && !isClosed) {
                 return@forEachIndexed
             }
 
@@ -188,16 +193,8 @@ internal actual class SelectorHelper {
 
     private fun closeDescriptor(descriptor: Int) {
         close(descriptor)
-        allWsaEvents.update { map ->
-            map.toMutableMap().apply {
-                remove(descriptor)?.let { wsaEvent ->
-                    WSACloseEvent(wsaEvent)
-                }
-            }
+        allWsaEvents.remove(descriptor)?.let { wsaEvent ->
+            WSACloseEvent(wsaEvent)
         }
-    }
-
-    private companion object {
-        private val allInterestKinds: Int = FD_READ or FD_WRITE or FD_ACCEPT or FD_CONNECT
     }
 }
