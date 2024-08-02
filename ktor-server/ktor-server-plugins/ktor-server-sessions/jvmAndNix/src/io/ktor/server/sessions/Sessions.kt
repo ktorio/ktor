@@ -28,7 +28,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.sessions.Sessions")
 public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin("Sessions", ::SessionsConfig) {
     val providers = pluginConfig.providers.toList()
 
-    application.attributes.put(SessionProvidersKey, providers)
+    server.attributes.put(SessionProvidersKey, providers)
 
     onCall { call ->
         // For each call, call each provider and retrieve session data if needed.

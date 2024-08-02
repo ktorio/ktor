@@ -7,22 +7,25 @@ package io.ktor.server.response
 import io.ktor.http.*
 import io.ktor.server.application.*
 
+@Deprecated(message = "Renamed to ServerResponse", replaceWith = ReplaceWith("ServerResponse"))
+public typealias ApplicationResponse = ServerResponse
+
 /**
  * A server's response.
  * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
- * @see [ApplicationCall]
- * @see [io.ktor.server.request.ApplicationRequest]
+ * @see [ServerCall]
+ * @see [io.ktor.server.request.ServerRequest]
  */
-public interface ApplicationResponse {
+public interface ServerResponse {
     /**
      * Provides access to headers for the current response.
      */
     public val headers: ResponseHeaders
 
     /**
-     * An [ApplicationCall] instance this [ApplicationResponse] is attached to.
+     * An [ServerCall] instance this [ServerResponse] is attached to.
      */
-    public val call: ApplicationCall
+    public val call: ServerCall
 
     /**
      * Indicates that this response is already committed and no further changes are allowed.
@@ -58,12 +61,12 @@ public interface ApplicationResponse {
 }
 
 /**
- * A server's response that is used in [ApplicationPlugin].
+ * A server's response that is used in [ServerPlugin].
  * To learn how to send responses inside route handlers, see [Sending responses](https://ktor.io/docs/responses.html).
  * @see [PipelineCall]
  * @see [io.ktor.server.request.PipelineRequest]
  */
-public interface PipelineResponse : ApplicationResponse {
+public interface PipelineResponse : ServerResponse {
     /**
      * An [PipelineCall] instance this [PipelineResponse] is attached to.
      */
@@ -72,5 +75,5 @@ public interface PipelineResponse : ApplicationResponse {
     /**
      * A pipeline for sending content.
      */
-    public val pipeline: ApplicationSendPipeline
+    public val pipeline: ServerSendPipeline
 }

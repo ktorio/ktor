@@ -38,7 +38,7 @@ class UserHashedTableAuthTest {
 
     private fun testSingle(hashedUserTable: UserHashedTableAuth) {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 form {
                     challenge("/unauthorized")
                     validate { hashedUserTable.authenticate(it) }
@@ -48,7 +48,7 @@ class UserHashedTableAuthTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     post("/redirect") { call.respondText("ok") }
                 }
@@ -84,11 +84,11 @@ class UserHashedTableAuthTest {
         }
     }
 
-    private fun TestApplicationEngine.handlePost(
+    private fun TestServerEngine.handlePost(
         uri: String,
         user: String? = null,
         password: String? = null
-    ): TestApplicationCall {
+    ): TestServerCall {
         return handleRequest(HttpMethod.Post, uri) {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody(

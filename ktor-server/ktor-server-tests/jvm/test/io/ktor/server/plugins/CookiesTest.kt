@@ -63,7 +63,7 @@ class CookiesTest {
         }
     }
 
-    private fun withTestApplicationResponse(block: TestApplicationResponse.() -> Unit) {
+    private fun withTestApplicationResponse(block: TestServerResponse.() -> Unit) {
         withTestApplication {
             createCall { protocol = "https" }.response.apply(block)
         }
@@ -74,7 +74,7 @@ class CookiesTest {
 
 class SecureCookiesTest {
     @Test
-    fun `consider wss and https to be secure contexts`(): Unit = testApplication {
+    fun `consider wss and https to be secure contexts`(): Unit = testServer {
         @Serializable
         data class User(val id: String)
 

@@ -8,21 +8,21 @@ import io.ktor.server.cio.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
-class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOCompressionTest : CompressionTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
     }
 }
 
-class CIOContentTest : ContentTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOContentTest : ContentTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
     }
 }
 
-class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
@@ -37,7 +37,7 @@ class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApp
     }
 }
 
-class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOSustainabilityTest : SustainabilityTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
@@ -48,7 +48,7 @@ class CIOConfigTest : ConfigTestSuite(CIO)
 
 class CIOConnectionTest : ConnectionTestSuite(CIO)
 
-class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOPluginsTest : ServerPluginsTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false

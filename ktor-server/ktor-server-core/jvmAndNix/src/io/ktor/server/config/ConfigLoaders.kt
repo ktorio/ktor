@@ -8,7 +8,7 @@ internal expect val CONFIG_PATH: List<String>
 
 /**
  * Loads an application configuration.
- * An implementation of this interface should return [ApplicationConfig] if applicable configuration is found
+ * An implementation of this interface should return [ServerConfig] if applicable configuration is found
  * or `null` otherwise.
  */
 public interface ConfigLoader {
@@ -17,13 +17,13 @@ public interface ConfigLoader {
      *
      * @return configuration or null if the path is not found or configuration format is not supported.
      */
-    public fun load(path: String?): ApplicationConfig?
+    public fun load(path: String?): ServerConfig?
 
     public companion object {
         /**
-         * Find and load a configuration file to [ApplicationConfig].
+         * Find and load a configuration file to [ServerConfig].
          */
-        public fun load(path: String? = null): ApplicationConfig {
+        public fun load(path: String? = null): ServerConfig {
             if (path == null) {
                 val default = loadDefault()
                 if (default != null) return default
@@ -34,10 +34,10 @@ public interface ConfigLoader {
                 if (config != null) return config
             }
 
-            return MapApplicationConfig()
+            return MapServerConfig()
         }
 
-        private fun loadDefault(): ApplicationConfig? {
+        private fun loadDefault(): ServerConfig? {
             for (defaultPath in CONFIG_PATH) {
                 for (loader in configLoaders) {
                     val config = loader.load(defaultPath)

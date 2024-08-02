@@ -40,7 +40,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testRespondByteArray() = testApplication {
+    fun testRespondByteArray() = testServer {
         application {
             routing {
                 install(ContentNegotiation) {
@@ -58,7 +58,7 @@ class ContentNegotiationTest {
     object OK
 
     @Test
-    fun testMultipleConverters() = testApplication {
+    fun testMultipleConverters() = testServer {
         var nullSerialized = false
         var nullDeserialized = false
         var okSerialized = false
@@ -173,7 +173,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testEmpty(): Unit = testApplication {
+    fun testEmpty(): Unit = testServer {
         install(ContentNegotiation) {
         }
 
@@ -205,7 +205,7 @@ class ContentNegotiationTest {
     data class Wrapper(val value: String)
 
     @Test
-    fun testTransformWithNotAcceptable(): Unit = testApplication {
+    fun testTransformWithNotAcceptable(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Zip, customContentConverter)
         }
@@ -225,7 +225,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testTransformWithUnsupportedMediaType(): Unit = testApplication {
+    fun testTransformWithUnsupportedMediaType(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Xml, customContentConverter)
         }
@@ -247,7 +247,7 @@ class ContentNegotiationTest {
 
     @Test
     fun testCustom() {
-        testApplication {
+        testServer {
             install(ContentNegotiation) {
                 register(customContentType, customContentConverter)
             }
@@ -384,7 +384,7 @@ class ContentNegotiationTest {
 
     @Test
     fun testSubrouteInstall() {
-        testApplication {
+        testServer {
             routing {
                 route("1") {
                     install(ContentNegotiation) {
@@ -415,7 +415,7 @@ class ContentNegotiationTest {
     fun testMultiple() {
         val textContentConverter: ContentConverter = textContentConverter
 
-        testApplication {
+        testServer {
             install(ContentNegotiation) {
                 // Order here matters. The first registered content type matching the Accept header will be chosen.
                 register(customContentType, customContentConverter)
@@ -476,7 +476,7 @@ class ContentNegotiationTest {
 
     @Suppress("ReplaceSingleLineLet", "MoveLambdaOutsideParentheses")
     @Test
-    fun testReceiveTransformedByDefault(): Unit = testApplication {
+    fun testReceiveTransformedByDefault(): Unit = testServer {
         install(ContentNegotiation) {
             // Order here matters. The first registered content type matching the Accept header will be chosen.
             register(ContentType.Any, alwaysFailingConverter(true))
@@ -526,7 +526,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testReceiveTextIgnoresContentNegotiation(): Unit = testApplication {
+    fun testReceiveTextIgnoresContentNegotiation(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Any, alwaysFailingConverter(false))
         }
@@ -547,7 +547,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testRespondByteReadChannelIgnoresContentNegotiation(): Unit = testApplication {
+    fun testRespondByteReadChannelIgnoresContentNegotiation(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Any, alwaysFailingConverter(false))
         }
@@ -565,7 +565,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testCustomAcceptedContentTypesContributor(): Unit = testApplication {
+    fun testCustomAcceptedContentTypesContributor(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Text.Plain, textContentConverter)
             register(ContentType.Text.Html, textContentConverter)
@@ -631,7 +631,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testDoubleReceive(): Unit = testApplication {
+    fun testDoubleReceive(): Unit = testServer {
         install(DoubleReceive)
         install(ContentNegotiation) {
             register(ContentType.Text.Plain, textContentConverter)
@@ -654,7 +654,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testIllegalAcceptAndContentTypes(): Unit = testApplication {
+    fun testIllegalAcceptAndContentTypes(): Unit = testServer {
         var serializeCalled = false
         var deserializeCalled = false
         install(ContentNegotiation) {
@@ -715,7 +715,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testIllegalAcceptAndCheckAcceptHeader(): Unit = testApplication {
+    fun testIllegalAcceptAndCheckAcceptHeader(): Unit = testServer {
         install(ContentNegotiation) {
             checkAcceptHeaderCompliance = true
             register(ContentType.Text.Plain, textContentConverter)
@@ -737,7 +737,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testMatchingAcceptAndContentTypes(): Unit = testApplication {
+    fun testMatchingAcceptAndContentTypes(): Unit = testServer {
         install(ContentNegotiation) {
             checkAcceptHeaderCompliance = true
         }
@@ -773,7 +773,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testWithCharset() = testApplication {
+    fun testWithCharset() = testServer {
         install(ContentNegotiation) {
             clearIgnoredTypes()
             register(
@@ -819,7 +819,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testMultipleConvertersWithSameType() = testApplication {
+    fun testMultipleConvertersWithSameType() = testServer {
         var nullRequestDeserialized = false
         var requestDeserialized = false
         var nullResponseSerializeAttempted = false

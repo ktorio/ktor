@@ -36,7 +36,7 @@ public fun <T : Throwable> StatusPagesConfig.exception(
     handler: suspend PipelineContext<Unit, PipelineCall>.(T) -> Unit
 ) {
     @Suppress("UNCHECKED_CAST")
-    val cast = handler as suspend (ApplicationCall, Throwable) -> Unit
+    val cast = handler as suspend (ServerCall, Throwable) -> Unit
 
     exceptions[klass.kotlin] = cast
 }

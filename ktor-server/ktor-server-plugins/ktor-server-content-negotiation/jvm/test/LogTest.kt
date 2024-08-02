@@ -28,7 +28,7 @@ class LogTest {
             convertResponseBody()
         }
 
-        testApplication {
+        testServer {
             application {
                 install(plugin)
                 routing {

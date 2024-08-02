@@ -22,11 +22,14 @@ private val FORM_FIELD_LIMIT = AttributeKey<Long>("FormFieldLimit")
 @PublishedApi
 internal const val DEFAULT_FORM_FIELD_MAX_SIZE: Long = 64 * 1024
 
+@Deprecated(message = "Renamed to ServerReceivePipeline", replaceWith = ReplaceWith("ServerReceivePipeline"))
+public typealias ApplicationReceivePipeline = ServerReceivePipeline
+
 /**
  * A pipeline for processing incoming content.
  * When executed, this pipeline starts with an instance of [ByteReadChannel].
  */
-public open class ApplicationReceivePipeline(
+public open class ServerReceivePipeline(
     override val developmentMode: Boolean = false
 ) : Pipeline<Any, PipelineCall>(Before, Transform, After) {
     /**
@@ -62,14 +65,14 @@ public open class ApplicationReceivePipeline(
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
 @Suppress("DEPRECATION_ERROR")
-public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
+public suspend inline fun <reified T : Any> ServerCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
 
 /**
  * Receives content for this request.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())
+public suspend inline fun <reified T : Any> ServerCall.receive(): T = receiveNullable(typeInfo<T>())
     ?: throw CannotTransformContentToTypeException(typeInfo<T>().kotlinType!!)
 
 /**
@@ -77,7 +80,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = recei
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = receiveNullable(typeInfo<T>())
+public suspend inline fun <reified T> ServerCall.receiveNullable(): T? = receiveNullable(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -85,7 +88,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
+public suspend fun <T : Any> ServerCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
     return receiveNullable(TypeInfo(type, kotlinType.platformType, kotlinType))!!
 }
@@ -97,7 +100,7 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  * @throws NullPointerException when content is `null`.
  */
-public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
+public suspend fun <T> ServerCall.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
 
 /**
  * Receives content for this request.
@@ -110,11 +113,11 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveN
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
-public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
+public suspend fun <T : Any> ServerCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
         receiveNullable(typeInfo)
     } catch (cause: ContentTransformationException) {
-        application.log.debug("Conversion failed, null returned", cause)
+        server.log.debug("Conversion failed, null returned", cause)
         null
     }
 }
@@ -130,10 +133,10 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
 )
-public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? = try {
+public suspend fun <T : Any> ServerCall.receiveOrNull(type: KClass<T>): T? = try {
     receive(type)
 } catch (cause: ContentTransformationException) {
-    application.log.debug("Conversion failed, null returned", cause)
+    server.log.debug("Conversion failed, null returned", cause)
     null
 }
 
@@ -142,7 +145,7 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? 
  * @return text received from this call.
  * @throws BadRequestException when Content-Type header is invalid.
  */
-public suspend inline fun ApplicationCall.receiveText(): String {
+public suspend inline fun ServerCall.receiveText(): String {
     val charset = try {
         request.contentCharset() ?: Charsets.UTF_8
     } catch (cause: BadContentTypeFormatException) {
@@ -156,10 +159,10 @@ public suspend inline fun ApplicationCall.receiveText(): String {
  * @return instance of [ByteReadChannel] to read incoming bytes for this call.
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
  */
-public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
+public suspend inline fun ServerCall.receiveChannel(): ByteReadChannel = receive()
 
 /**
- * Represents the limit for form field size in bytes for an [ApplicationCall].
+ * Represents the limit for form field size in bytes for an [ServerCall].
  * This limit determines the maximum size allowed for form field data in a request.
  *
  * The default value is 65536 bytes (64 KB).
@@ -174,7 +177,7 @@ public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = re
  * call.formFieldLimit = limit
  * ```
  */
-public var ApplicationCall.formFieldLimit: Long
+public var ServerCall.formFieldLimit: Long
     get() {
         return attributes.getOrNull(FORM_FIELD_LIMIT) ?: DEFAULT_FORM_FIELD_MAX_SIZE
     }
@@ -187,7 +190,7 @@ public var ApplicationCall.formFieldLimit: Long
  * @return instance of [MultiPartData].
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
-public suspend inline fun ApplicationCall.receiveMultipart(
+public suspend inline fun ServerCall.receiveMultipart(
     formFieldLimit: Long = DEFAULT_FORM_FIELD_MAX_SIZE
 ): MultiPartData {
     this.formFieldLimit = formFieldLimit
@@ -199,7 +202,7 @@ public suspend inline fun ApplicationCall.receiveMultipart(
  * @return instance of [Parameters].
  * @throws ContentTransformationException when content cannot be transformed to the [Parameters].
  */
-public suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
+public suspend inline fun ServerCall.receiveParameters(): Parameters = receive()
 
 /**
  * Thrown when content cannot be transformed to the desired type.
@@ -207,7 +210,7 @@ public suspend inline fun ApplicationCall.receiveParameters(): Parameters = rece
 public typealias ContentTransformationException = io.ktor.server.plugins.ContentTransformationException
 
 /**
- * This object is attached to an [ApplicationCall] with [DoubleReceivePreventionTokenKey] when
+ * This object is attached to an [ServerCall] with [DoubleReceivePreventionTokenKey] when
  * the [receive] function is invoked. It is used to detect double receive invocation
  * that causes [RequestAlreadyConsumedException] to be thrown unless the [DoubleReceive] plugin installed.
  */
@@ -218,7 +221,7 @@ internal val DoubleReceivePreventionTokenKey =
 
 /**
  * Thrown when a request body has already been received.
- * Usually it is caused by double [ApplicationCall.receive] invocation.
+ * Usually it is caused by double [ServerCall.receive] invocation.
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
     "Request body has already been consumed (received)."

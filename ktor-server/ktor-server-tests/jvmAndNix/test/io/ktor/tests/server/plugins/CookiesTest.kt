@@ -126,7 +126,7 @@ class CookiesTest {
      * developer.
      */
     @Test
-    fun testSecureCookie() = testApplication {
+    fun testSecureCookie() = testServer {
         routing {
             get("/*") {
                 call.response.cookies.append("S", "secret", secure = true)
@@ -144,13 +144,13 @@ class CookiesTest {
         }
     }
 
-    private fun withTestApplicationResponse(block: TestApplicationResponse.() -> Unit) {
+    private fun withTestApplicationResponse(block: TestServerResponse.() -> Unit) {
         withTestApplication {
             createCall { protocol = "https" }.response.apply(block)
         }
     }
 
-    private fun withRawCookies(header: String, block: TestApplicationRequest.() -> Unit) {
+    private fun withRawCookies(header: String, block: TestServerRequest.() -> Unit) {
         withTestApplication {
             createCall { protocol = "https" }.request.apply {
                 addHeader("Cookie", header)

@@ -18,14 +18,14 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, Jetty) {
+        val server = EmbeddedServer(config.serverParameters, Jetty) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.serverParameters.environment.config)
         }
         server.start(true)
     }
 
-    private fun JettyApplicationEngineBase.Configuration.loadConfiguration(config: ApplicationConfig) {
+    private fun JettyServerEngineBase.Configuration.loadConfiguration(config: ServerConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
     }

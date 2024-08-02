@@ -17,9 +17,9 @@ import kotlin.coroutines.*
  * @param TEngine The type of the application engine used by the server.
  * @param TConfiguration The type of the configuration used by the engine.
  */
-public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    applicationProperties: ApplicationProperties,
-    engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+public expect class EmbeddedServer<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    serverParameters: ServerParameters,
+    engineFactory: ServerEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit = {}
 ) {
     /**
@@ -27,8 +27,8 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
      */
     public val monitor: Events
 
-    public val environment: ApplicationEnvironment
-    public val application: Application
+    public val environment: ServerEnvironment
+    public val server: Server
     public val engine: TEngine
     public val engineConfig: TConfiguration
 
@@ -40,12 +40,15 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
     )
 }
 
+@Deprecated(message = "Renamed to ServerEngineFactory", replaceWith = ReplaceWith("ServerEngineFactory"))
+public typealias ApplicationEngineFactory<E, C> = ServerEngineFactory<E, C>
+
 /**
- * Factory interface for creating [ApplicationEngine] instances.
+ * Factory interface for creating [ServerEngine] instances.
  */
-public interface ApplicationEngineFactory<
-    out TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration
+public interface ServerEngineFactory<
+    out TEngine : ServerEngine,
+    TConfiguration : ServerEngine.Configuration
     > {
 
     public fun configuration(configure: TConfiguration.() -> Unit): TConfiguration
@@ -54,11 +57,11 @@ public interface ApplicationEngineFactory<
      * Creates an engine from the given [environment] and [configuration].
      */
     public fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
         configuration: TConfiguration,
-        applicationProvider: () -> Application
+        serverProvider: () -> Server
     ): TEngine
 }
 
@@ -66,25 +69,25 @@ public interface ApplicationEngineFactory<
  * Creates an embedded server with the given [factory], listening on [host]:[port].
  */
 @OptIn(DelicateCoroutinesApi::class)
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+public fun <TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration> embeddedServer(
+    factory: ServerEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
-    module: Application.() -> Unit
+    module: Server.() -> Unit
 ): EmbeddedServer<TEngine, TConfiguration> =
     GlobalScope.embeddedServer(factory, port, host, watchPaths, module = module)
 
 /**
  * Creates an embedded server with the given [factory], listening on [host]:[port].
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+public fun <TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
+    factory: ServerEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    module: Application.() -> Unit
+    module: Server.() -> Unit
 ): EmbeddedServer<TEngine, TConfiguration> {
     val connectors: Array<EngineConnectorConfig> = arrayOf(
         EngineConnectorBuilder().apply {
@@ -104,17 +107,17 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], listening on given [connectors].
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+public fun <TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
+    factory: ServerEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(),
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-    module: Application.() -> Unit
+    module: Server.() -> Unit
 ): EmbeddedServer<TEngine, TConfiguration> {
-    val environment = applicationEnvironment {
+    val environment = serverEnvironment {
         this.log = KtorSimpleLogger("io.ktor.server.Application")
     }
-    val applicationProperties = applicationProperties(environment) {
+    val applicationProperties = serverParams(environment) {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.watchPaths = watchPaths
         this.module(module)
@@ -129,13 +132,13 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], [environment] and [configure] script.
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    environment: ApplicationEnvironment = applicationEnvironment(),
+public fun <TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration> embeddedServer(
+    factory: ServerEngineFactory<TEngine, TConfiguration>,
+    environment: ServerEnvironment = serverEnvironment(),
     configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit = {}
+    module: Server.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
-    val applicationProperties = applicationProperties(environment) {
+    val applicationProperties = serverParams(environment) {
         module(body = module)
     }
     return embeddedServer(factory, applicationProperties, configure)
@@ -144,10 +147,10 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], [environment] and [configure] script.
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
-    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    applicationProperties: ApplicationProperties,
+public fun <TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration> embeddedServer(
+    factory: ServerEngineFactory<TEngine, TConfiguration>,
+    serverParameters: ServerParameters,
     configure: TConfiguration.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
-    return EmbeddedServer(applicationProperties, factory, configure)
+    return EmbeddedServer(serverParameters, factory, configure)
 }

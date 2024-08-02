@@ -37,7 +37,7 @@ public class MustacheConfig {
  * Provides the ability to respond with [MustacheContent].
  * You can learn more from [Mustache](https://ktor.io/docs/mustache.html).
  */
-public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
+public val Mustache: ServerPlugin<MustacheConfig> = createServerPlugin("Mustache", ::MustacheConfig) {
     val mustacheFactory = pluginConfig.mustacheFactory
 
     @OptIn(InternalAPI::class)

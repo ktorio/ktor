@@ -20,9 +20,9 @@ import kotlin.reflect.*
  * A hook that is invoked as a first step in processing a call.
  * Useful for validating, updating a call based on proxy information, etc.
  */
-public object CallSetup : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Setup) {
+public object CallSetup : Hook<suspend (ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: suspend (ServerCall) -> Unit) {
+        pipeline.intercept(ServerCallPipeline.Setup) {
             handler(call)
         }
     }
@@ -31,14 +31,14 @@ public object CallSetup : Hook<suspend (ApplicationCall) -> Unit> {
 /**
  * A hook that is invoked when a call fails with an exception.
  */
-public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable) -> Unit> {
+public object CallFailed : Hook<suspend (call: ServerCall, cause: Throwable) -> Unit> {
 
     private val phase = PipelinePhase("BeforeSetup")
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (call: ApplicationCall, cause: Throwable) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend (call: ServerCall, cause: Throwable) -> Unit
     ) {
-        pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
+        pipeline.insertPhaseBefore(ServerCallPipeline.Setup, phase)
         pipeline.intercept(phase) {
             try {
                 coroutineScope {
@@ -53,18 +53,18 @@ public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable
 }
 
 /**
- * A shortcut hook for [Application.monitor] subscription.
+ * A shortcut hook for [Server.monitor] subscription.
  */
 public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     private val event: Event
 ) : Hook<(Param) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: (Param) -> Unit) {
-        val application = when (pipeline) {
-            is Application -> pipeline
-            is Route -> pipeline.application
+    override fun install(pipeline: ServerCallPipeline, handler: (Param) -> Unit) {
+        val server = when (pipeline) {
+            is Server -> pipeline
+            is Route -> pipeline.server
             else -> error("Unsupported pipeline: $pipeline")
         }
-        application.monitor.subscribe(event) {
+        server.monitor.subscribe(event) {
             handler(it)
         }
     }
@@ -77,9 +77,9 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
  * Can be renamed or removed from public API in the future.
  */
 @InternalAPI
-public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Monitoring) {
+public object Metrics : Hook<suspend (ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: suspend (ServerCall) -> Unit) {
+        pipeline.intercept(ServerCallPipeline.Monitoring) {
             handler(call)
         }
     }
@@ -89,7 +89,7 @@ public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
  * A hook that is invoked when a response body comes through all transformations and is ready to be sent.
  */
 public object ResponseBodyReadyForSend :
-    Hook<suspend ResponseBodyReadyForSend.Context.(ApplicationCall, OutgoingContent) -> Unit> {
+    Hook<suspend ResponseBodyReadyForSend.Context.(ServerCall, OutgoingContent) -> Unit> {
     public class Context(private val context: PipelineContext<Any, PipelineCall>) {
         public fun transformBodyTo(body: OutgoingContent) {
             context.subject = body
@@ -97,10 +97,10 @@ public object ResponseBodyReadyForSend :
     }
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend Context.(ApplicationCall, OutgoingContent) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend Context.(ServerCall, OutgoingContent) -> Unit
     ) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.After) {
             handler(Context(this), call, subject as OutgoingContent)
         }
     }
@@ -110,9 +110,9 @@ public object ResponseBodyReadyForSend :
  * A hook that is invoked when response was successfully sent to a client.
  * Useful for cleaning up opened resources or finishing measurements.
  */
-public object ResponseSent : Hook<(ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Engine) {
+public object ResponseSent : Hook<(ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: (ServerCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.Engine) {
             proceed()
             handler(call)
         }
@@ -122,12 +122,12 @@ public object ResponseSent : Hook<(ApplicationCall) -> Unit> {
 /**
  * A hook that is invoked when a request is about to be received. It gives control over the raw request body.
  */
-public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadChannel) -> ByteReadChannel> {
+public object ReceiveRequestBytes : Hook<(call: ServerCall, body: ByteReadChannel) -> ByteReadChannel> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: (call: ApplicationCall, body: ByteReadChannel) -> ByteReadChannel
+        pipeline: ServerCallPipeline,
+        handler: (call: ServerCall, body: ByteReadChannel) -> ByteReadChannel
     ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { body ->
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.Before) { body ->
             if (body !is ByteReadChannel) return@intercept
             val convertedBody = handler(call, body)
             proceedWith(convertedBody)
@@ -141,13 +141,13 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
  */
 @InternalAPI
 public class BeforeResponseTransform<T : Any>(private val clazz: KClass<T>) :
-    Hook<suspend (call: ApplicationCall, body: T) -> Any> {
+    Hook<suspend (call: ServerCall, body: T) -> Any> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (call: ApplicationCall, body: T) -> Any
+        pipeline: ServerCallPipeline,
+        handler: suspend (call: ServerCall, body: T) -> Any
     ) {
         val beforeTransform = PipelinePhase("BeforeTransform")
-        pipeline.sendPipeline.insertPhaseBefore(ApplicationSendPipeline.Transform, beforeTransform)
+        pipeline.sendPipeline.insertPhaseBefore(ServerSendPipeline.Transform, beforeTransform)
         pipeline.sendPipeline.intercept(beforeTransform) { body ->
             if (body.instanceOf(this@BeforeResponseTransform.clazz)) {
                 @Suppress("UNCHECKED_CAST")

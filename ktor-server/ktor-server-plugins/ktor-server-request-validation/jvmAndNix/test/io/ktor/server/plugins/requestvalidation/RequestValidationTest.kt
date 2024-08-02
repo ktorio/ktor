@@ -13,13 +13,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class RequestValidationTest {
 
     @Test
-    fun testSimpleValidationByClass() = testApplication {
+    fun testSimpleValidationByClass() = testServer {
         install(RequestValidation) {
             validate<CharSequence> {
                 if (!it.startsWith("+")) {
@@ -88,7 +87,7 @@ class RequestValidationTest {
     }
 
     @Test
-    fun testValidatorDsl() = testApplication {
+    fun testValidatorDsl() = testServer {
         install(RequestValidation) {
             validate {
                 filter { it is ByteArray }

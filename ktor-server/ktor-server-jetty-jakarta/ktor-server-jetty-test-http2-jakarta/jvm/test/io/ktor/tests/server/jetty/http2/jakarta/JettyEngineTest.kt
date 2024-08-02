@@ -9,20 +9,20 @@ import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
 class JettyEngineHttp2CompressionTest :
-    CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    CompressionTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
 class JettyEngineHttp2ContentTest :
-    ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    ContentTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
 class JettyEngineHttp2HttpServerCommonTest :
-    HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    HttpServerCommonTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty) {
     override fun testFlushingHeaders() {
         // no op
     }
 }
 
 class JettyEngineHttp2HttpServerJvmTest :
-    HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    HttpServerJvmTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty) {
     @Ignore
     override fun testPipelining() {
     }
@@ -33,10 +33,10 @@ class JettyEngineHttp2HttpServerJvmTest :
 }
 
 class JettyEngineHttp2SustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
 class JettyEngineServerPluginsTest :
-    ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    ServerPluginsTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty) {
     init {
         enableHttp2 = false
         enableSsl = false

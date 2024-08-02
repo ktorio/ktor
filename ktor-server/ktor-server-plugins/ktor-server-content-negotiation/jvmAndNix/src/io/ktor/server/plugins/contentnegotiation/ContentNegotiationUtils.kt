@@ -17,7 +17,7 @@ import io.ktor.server.request.*
  */
 internal class ConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
 
-internal fun ApplicationCall.parseAcceptHeader(): List<ContentTypeWithQuality> {
+internal fun ServerCall.parseAcceptHeader(): List<ContentTypeWithQuality> {
     val acceptHeaderContent = request.header(HttpHeaders.Accept)
 
     return try {

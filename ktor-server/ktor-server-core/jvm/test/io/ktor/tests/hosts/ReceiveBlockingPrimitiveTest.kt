@@ -26,7 +26,7 @@ class ReceiveBlockingPrimitiveTest {
     }
 
     private fun testOnThread(
-        block: suspend (ApplicationCall) -> Unit
+        block: suspend (ServerCall) -> Unit
     ) {
         val result = CompletableDeferred<Unit>()
         val call = TestCall()
@@ -51,27 +51,27 @@ class ReceiveBlockingPrimitiveTest {
         }
     }
 
-    private class TestCall : BaseApplicationCall(
-        Application(
-            applicationEnvironment {},
+    private class TestCall : BaseServerCall(
+        Server(
+            serverEnvironment {},
             false,
             "/",
             Events(),
             EmptyCoroutineContext
         ) {
-            object : ApplicationEngine {
+            object : ServerEngine {
                 override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = TODO("Not yet implemented")
-                override val environment: ApplicationEnvironment get() = TODO("Not yet implemented")
-                override fun start(wait: Boolean): ApplicationEngine = TODO("Not yet implemented")
+                override val environment: ServerEnvironment get() = TODO("Not yet implemented")
+                override fun start(wait: Boolean): ServerEngine = TODO("Not yet implemented")
                 override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = TODO("Not yet implemented")
             }
         }
     ) {
         init {
-            application.receivePipeline.installDefaultTransformations()
+            server.receivePipeline.installDefaultTransformations()
         }
 
-        override val request: BaseApplicationRequest = object : BaseApplicationRequest(this) {
+        override val request: BaseServerRequest = object : BaseServerRequest(this) {
             override val queryParameters: Parameters
                 get() = TODO("Not yet implemented")
             override val rawQueryParameters: Parameters
@@ -125,11 +125,11 @@ class ReceiveBlockingPrimitiveTest {
             override val engineReceiveChannel: ByteReadChannel = ByteReadChannel.Empty
         }
 
-        override val response: BaseApplicationResponse
+        override val response: BaseServerResponse
             get() = error("Shouldn't be invoked")
 
         fun close() {
-            application.dispose()
+            server.dispose()
         }
     }
 

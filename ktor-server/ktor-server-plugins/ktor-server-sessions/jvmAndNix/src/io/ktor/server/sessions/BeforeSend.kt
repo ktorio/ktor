@@ -7,9 +7,9 @@ package io.ktor.server.sessions
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 
-internal object BeforeSend : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
+internal object BeforeSend : Hook<suspend (ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: suspend (ServerCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.Before) {
             handler(call)
         }
     }

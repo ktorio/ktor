@@ -24,7 +24,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.contentnegotiatio
  * @see ContentNegotiation.Configuration.accept
  */
 public typealias AcceptHeaderContributor = (
-    call: ApplicationCall,
+    call: ServerCall,
     acceptedContentTypes: List<ContentTypeWithQuality>
 ) -> List<ContentTypeWithQuality>
 
@@ -58,7 +58,7 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 /**
  * Detects a suitable charset for an application call by using the `Accept` header or fallbacks to [defaultCharset].
  */
-public fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+public fun ServerCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset
         Charsets.isSupported(charset) -> return Charsets.forName(charset)

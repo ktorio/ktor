@@ -283,10 +283,10 @@ class RoutingTracingTest {
     }
 
     private fun tracingApplication(
-        block: suspend ApplicationTestBuilder.() -> Unit
+        block: suspend ServerTestBuilder.() -> Unit
     ): String {
         var trace: RoutingResolveTrace? = null
-        testApplication {
+        testServer {
             application {
                 routing {
                     trace {

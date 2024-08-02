@@ -10,9 +10,9 @@ import kotlin.reflect.*
 
 /**
  * Gets a current session or fails if the [Sessions] plugin is not installed.
- * @throws MissingApplicationPluginException
+ * @throws MissingServerPluginException
  */
-public val ApplicationCall.sessions: CurrentSession
+public val ServerCall.sessions: CurrentSession
     get() = attributes.getOrNull(SessionDataKey) ?: reportMissingSession()
 
 /**
@@ -144,14 +144,14 @@ internal data class SessionData(
     }
 }
 
-internal suspend fun <S : Any> SessionProvider<S>.receiveSessionData(call: ApplicationCall): SessionProviderData<S> {
+internal suspend fun <S : Any> SessionProvider<S>.receiveSessionData(call: ServerCall): SessionProviderData<S> {
     val receivedValue = transport.receive(call)
     val unwrapped = tracker.load(call, receivedValue)
     val incoming = receivedValue != null
     return SessionProviderData(unwrapped, null, incoming, this)
 }
 
-internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: ApplicationCall) {
+internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: ServerCall) {
     val oldValue = oldValue
     val newValue = newValue
     when {
@@ -177,8 +177,8 @@ internal data class SessionProviderData<S : Any>(
 
 internal val SessionDataKey = AttributeKey<SessionData>("SessionKey")
 
-private fun ApplicationCall.reportMissingSession(): Nothing {
-    application.plugin(Sessions) // ensure the plugin is installed
+private fun ServerCall.reportMissingSession(): Nothing {
+    server.plugin(Sessions) // ensure the plugin is installed
     throw SessionNotYetConfiguredException()
 }
 
@@ -190,7 +190,7 @@ public class TooLateSessionSetException :
 
 /**
  * Thrown when a session is asked too early before the [Sessions] plugin had chance to configure it.
- * For example, in a phase before [ApplicationCallPipeline.Plugins] or in a plugin installed before [Sessions] into
+ * For example, in a phase before [ServerCallPipeline.Plugins] or in a plugin installed before [Sessions] into
  * the same phase.
  */
 public class SessionNotYetConfiguredException :

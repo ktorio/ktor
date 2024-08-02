@@ -12,7 +12,7 @@ import kotlin.test.*
 
 @ExtendWith(RetrySupport::class)
 class TomcatWebSocketTest :
-    WebSocketEngineSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    WebSocketEngineSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
 
     @Ignore
     override fun testClientClosingFirst() {

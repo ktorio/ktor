@@ -25,12 +25,12 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     @Serializable
     data class Wrapper(val value: String)
 
-    fun startServer(testApplicationEngine: Application) {
-        testApplicationEngine.install(ContentNegotiation) {
+    fun startServer(testServerEngine: Server) {
+        testServerEngine.install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
 
-        testApplicationEngine.routing {
+        testServerEngine.routing {
             post("/") {
                 val wrapper = call.receive<Wrapper>()
                 call.respond(wrapper.value)
@@ -40,7 +40,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
 
     @Test
     open fun testBadlyFormattedJson(): Unit = withTestApplication {
-        startServer(application)
+        startServer(server)
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
@@ -52,7 +52,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
 
     @Test
     open fun testJsonWithNullValue(): Unit = withTestApplication {
-        startServer(application)
+        startServer(server)
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
@@ -64,7 +64,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
 
     @Test
     open fun testClearValidJson(): Unit = withTestApplication {
-        startServer(application)
+        startServer(server)
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
@@ -76,7 +76,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
 
     @Test
     open fun testValidJsonWithExtraFields(): Unit = withTestApplication {
-        startServer(application)
+        startServer(server)
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
@@ -87,7 +87,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringServer(): Unit = testApplication {
+    open fun testSendJsonStringServer(): Unit = testServer {
         routing {
             get("/") {
                 call.respond("abc")
@@ -104,7 +104,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringServer(): Unit = testApplication {
+    open fun testReceiveJsonStringServer(): Unit = testServer {
         install(ContentNegotiation) {
             clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
@@ -125,7 +125,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringClient(): Unit = testApplication {
+    open fun testReceiveJsonStringClient(): Unit = testServer {
         routing {
             get("/") {
                 call.respond(TextContent("\"abc\"", ContentType.Application.Json))
@@ -143,7 +143,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringClient(): Unit = testApplication {
+    open fun testSendJsonStringClient(): Unit = testServer {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -166,7 +166,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullServer(): Unit = testApplication {
+    open fun testJsonNullServer(): Unit = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -187,7 +187,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullClient(): Unit = testApplication {
+    open fun testJsonNullClient(): Unit = testServer {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -210,7 +210,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testNoCharsetIsAdded() = testApplication {
+    fun testNoCharsetIsAdded() = testServer {
         routing {
             post("/") {
                 assertNull(call.request.contentType().charset())
@@ -232,7 +232,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testRespondWithTypeInfoAny() = testApplication {
+    fun testRespondWithTypeInfoAny() = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -256,7 +256,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testRespondSealedWithTypeInfoAny() = testApplication {
+    fun testRespondSealedWithTypeInfoAny() = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -280,7 +280,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    fun testNoDuplicatedHeaders() = testApplication {
+    fun testNoDuplicatedHeaders() = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -299,7 +299,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testRespondNestedSealedWithTypeInfoAny() = testApplication {
+    open fun testRespondNestedSealedWithTypeInfoAny() = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }

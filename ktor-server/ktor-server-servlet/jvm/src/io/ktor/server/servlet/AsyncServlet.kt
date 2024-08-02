@@ -16,8 +16,11 @@ import java.lang.reflect.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-public open class AsyncServletApplicationCall(
-    application: Application,
+@Deprecated(message = "Renamed to AsyncServletServerCall", replaceWith = ReplaceWith("AsyncServletServerCall"))
+public typealias AsyncServletApplicationCall = AsyncServletServerCall
+
+public open class AsyncServletServerCall(
+    server: Server,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,
@@ -25,15 +28,15 @@ public open class AsyncServletApplicationCall(
     upgrade: ServletUpgrade,
     parentCoroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), CoroutineScope {
+) : BaseServerCall(server), CoroutineScope {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 
-    override val request: AsyncServletApplicationRequest =
-        AsyncServletApplicationRequest(this, servletRequest, parentCoroutineContext + engineContext)
+    override val request: AsyncServletServerRequest =
+        AsyncServletServerRequest(this, servletRequest, parentCoroutineContext + engineContext)
 
-    override val response: ServletApplicationResponse by lazy {
-        AsyncServletApplicationResponse(
+    override val response: ServletServerResponse by lazy {
+        AsyncServletServerResponse(
             this,
             servletRequest,
             servletResponse,
@@ -52,11 +55,14 @@ public open class AsyncServletApplicationCall(
     }
 }
 
-public class AsyncServletApplicationRequest(
+@Deprecated(message = "Renamed to AsyncServletServerRequest", replaceWith = ReplaceWith("AsyncServletServerRequest"))
+public typealias AsyncServletApplicationRequest = AsyncServletServerRequest
+
+public class AsyncServletServerRequest(
     call: PipelineCall,
     servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
-) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
+) : ServletServerRequest(call, servletRequest), CoroutineScope {
 
     private var upgraded = false
 
@@ -74,8 +80,11 @@ public class AsyncServletApplicationRequest(
     }
 }
 
-public open class AsyncServletApplicationResponse(
-    call: AsyncServletApplicationCall,
+@Deprecated(message = "Renamed to AsyncServletServerResponse", replaceWith = ReplaceWith("AsyncServletServerResponse"))
+public typealias AsyncServletApplicationResponse = AsyncServletServerResponse
+
+public open class AsyncServletServerResponse(
+    call: AsyncServletServerCall,
     protected val servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     private val engineContext: CoroutineContext,
@@ -83,7 +92,7 @@ public open class AsyncServletApplicationResponse(
     private val servletUpgradeImpl: ServletUpgrade,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
+) : ServletServerResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 
@@ -94,7 +103,7 @@ public open class AsyncServletApplicationResponse(
             throw ChannelWriteException("Cannot write HTTP upgrade response", e)
         }
 
-        (call.request as AsyncServletApplicationRequest).upgraded()
+        (call.request as AsyncServletServerRequest).upgraded()
         completed = true
 
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)

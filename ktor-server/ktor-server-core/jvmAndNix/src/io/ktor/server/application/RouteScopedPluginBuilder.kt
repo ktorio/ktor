@@ -14,7 +14,7 @@ public abstract class RouteScopedPluginBuilder<PluginConfig : Any>(key: Attribut
     PluginBuilder<PluginConfig>(key) {
 
     /**
-     * A [RoutingNode] to which this plugin was installed. Can be `null` if plugin in installed into [Application].
+     * A [RoutingNode] to which this plugin was installed. Can be `null` if plugin in installed into [Server].
      **/
     public abstract val route: RoutingNode?
 }

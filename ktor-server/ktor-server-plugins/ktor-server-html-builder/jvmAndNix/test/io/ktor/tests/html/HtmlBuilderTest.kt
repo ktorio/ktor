@@ -20,7 +20,7 @@ import kotlin.test.*
 class HtmlBuilderTest {
     @Test
     fun testName() = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
                 val name = call.parameters["name"]
                 call.respondHtml {
@@ -53,7 +53,7 @@ class HtmlBuilderTest {
 
     @Test
     fun testError() = withTestApplication {
-        application.install(StatusPages) {
+        server.install(StatusPages) {
             exception<NotImplementedError> { call, _ ->
                 call.respondHtml(HttpStatusCode.NotImplemented) {
                     body {
@@ -65,7 +65,7 @@ class HtmlBuilderTest {
             }
         }
 
-        application.routing {
+        server.routing {
             get("/") {
                 TODO()
             }
@@ -91,7 +91,7 @@ class HtmlBuilderTest {
     }
 
     @Test
-    fun testErrorInTemplate() = testApplication {
+    fun testErrorInTemplate() = testServer {
         install(StatusPages) {
             exception<RuntimeException> { call, cause ->
                 call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")

@@ -21,7 +21,7 @@ class SessionTestJvm {
     fun testSessionByValueMac() {
         val key = hex("03515606058610610561058")
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     transform(SessionTransportTransformerMessageAuthentication(key))
                 }
@@ -38,13 +38,13 @@ class SessionTestJvm {
         val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     transform(SessionTransportTransformerEncrypt(encryptKey, signKey, { forcedIvForTesting }))
                 }
             }
 
-            application.routing {
+            server.routing {
                 get("/3") {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
@@ -87,7 +87,7 @@ class SessionTestJvm {
         val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     serializer = reflectionSessionSerializer()
                     transform(
@@ -101,7 +101,7 @@ class SessionTestJvm {
                 }
             }
 
-            application.routing {
+            server.routing {
                 get("/3") {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
@@ -143,7 +143,7 @@ class SessionTestJvm {
         val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     serializer = reflectionSessionSerializer()
                     transform(
@@ -156,7 +156,7 @@ class SessionTestJvm {
                 }
             }
 
-            application.routing {
+            server.routing {
                 get("/3") {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
@@ -191,8 +191,8 @@ class SessionTestJvm {
         }
     }
 
-    private fun TestApplicationEngine.commonSignedChecks() {
-        application.routing {
+    private fun TestServerEngine.commonSignedChecks() {
+        server.routing {
             get("/1") {
                 call.sessions.set(TestUserSession("id 2", emptyList()))
                 call.respondText("ok")

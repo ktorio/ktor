@@ -14,7 +14,7 @@ import kotlin.jvm.*
 
 /**
  * Builds a route to match the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.route(path: String, build: Route.() -> Unit): Route =
@@ -22,7 +22,7 @@ public fun Route.route(path: String, build: Route.() -> Unit): Route =
 
 /**
  * Builds a route to match the specified HTTP [method] and [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit): Route {
@@ -32,7 +32,7 @@ public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit
 
 /**
  * Builds a route to match the specified HTTP [method].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
@@ -42,7 +42,7 @@ public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
 
 /**
  * Builds a route to match a parameter with the specified [name] and [value].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
@@ -52,7 +52,7 @@ public fun Route.param(name: String, value: String, build: Route.() -> Unit): Ro
 
 /**
  * Builds a route to match a parameter with the specified [name] and captures its value.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.param(name: String, build: Route.() -> Unit): Route {
@@ -62,7 +62,7 @@ public fun Route.param(name: String, build: Route.() -> Unit): Route {
 
 /**
  * Builds a route to capture an optional parameter with specified [name], if it exists.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
@@ -72,7 +72,7 @@ public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
 
 /**
  * Builds a route to match a header with the specified [name] and [value].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.header(name: String, value: String, build: Route.() -> Unit): Route {
@@ -82,7 +82,7 @@ public fun Route.header(name: String, value: String, build: Route.() -> Unit): R
 
 /**
  * Builds a route to match requests with the [HttpHeaders.Accept] header matching any of the specified [contentTypes].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Unit): Route {
@@ -92,7 +92,7 @@ public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Uni
 
 /**
  * Builds a route to match requests with the [HttpHeaders.ContentType] header matching the specified [contentType].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
@@ -102,7 +102,7 @@ public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit):
 
 /**
  * Builds a route to match `GET` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.get(path: String, body: RoutingHandler): Route {
@@ -111,7 +111,7 @@ public fun Route.get(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `GET` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.get(body: RoutingHandler): Route {
@@ -120,7 +120,7 @@ public fun Route.get(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.post(path: String, body: RoutingHandler): Route {
@@ -129,7 +129,7 @@ public fun Route.post(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("postTyped")
@@ -141,7 +141,7 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `POST` requests with the specified [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("postTypedPath")
@@ -154,7 +154,7 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `POST` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.post(body: RoutingHandler): Route {
@@ -163,7 +163,7 @@ public fun Route.post(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `HEAD` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.head(path: String, body: RoutingHandler): Route {
@@ -172,7 +172,7 @@ public fun Route.head(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `HEAD` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.head(body: RoutingHandler): Route {
@@ -181,7 +181,7 @@ public fun Route.head(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.put(path: String, body: RoutingHandler): Route {
@@ -190,7 +190,7 @@ public fun Route.put(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.put(body: RoutingHandler): Route {
@@ -199,7 +199,7 @@ public fun Route.put(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("putTyped")
@@ -211,7 +211,7 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PUT` requests with the specified [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("putTypedPath")
@@ -224,7 +224,7 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PATCH` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.patch(path: String, body: RoutingHandler): Route {
@@ -233,7 +233,7 @@ public fun Route.patch(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PATCH` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.patch(body: RoutingHandler): Route {
@@ -242,7 +242,7 @@ public fun Route.patch(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PATCH` requests receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("patchTyped")
@@ -254,7 +254,7 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `PATCH` requests with the specified [path] receiving a request body as content of the [R] type.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 @JvmName("patchTypedPath")
@@ -267,7 +267,7 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `DELETE` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.delete(path: String, body: RoutingHandler): Route {
@@ -276,7 +276,7 @@ public fun Route.delete(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `DELETE` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.delete(body: RoutingHandler): Route {
@@ -285,7 +285,7 @@ public fun Route.delete(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `OPTIONS` requests with the specified [path].
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.options(path: String, body: RoutingHandler): Route {
@@ -294,7 +294,7 @@ public fun Route.options(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `OPTIONS` requests.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
 @KtorDsl
 public fun Route.options(body: RoutingHandler): Route {

@@ -61,7 +61,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     }
     internal var contentType: (Resource) -> ContentType = defaultContentType
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
-    internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
+    internal var modifier: suspend (Resource, ServerCall) -> Unit = { _, _ -> }
     internal var exclude: (Resource) -> Boolean = { false }
     internal var extensions: List<String> = emptyList()
     internal var defaultPath: String? = null
@@ -122,13 +122,13 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
      */
-    public fun modify(block: suspend (Resource, ApplicationCall) -> Unit) {
+    public fun modify(block: suspend (Resource, ServerCall) -> Unit) {
         modifier = block
     }
 
     /**
      * Configures resources that should not be served.
-     * If this block returns `true` for [Resource], [Application] will respond with [HttpStatusCode.Forbidden].
+     * If this block returns `true` for [Resource], [Server] will respond with [HttpStatusCode.Forbidden].
      * Can be invoked multiple times.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
@@ -494,12 +494,12 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
 /**
  *  Checks if the application call is requesting static content
  */
-public fun ApplicationCall.isStaticContent(): Boolean = attributes.contains(StaticFileLocationProperty)
+public fun ServerCall.isStaticContent(): Boolean = attributes.contains(StaticFileLocationProperty)
 
 private fun Route.staticContentRoute(
     remotePath: String,
     autoHead: Boolean,
-    handler: suspend (ApplicationCall).() -> Unit
+    handler: suspend (ServerCall).() -> Unit
 ) = route(remotePath) {
     route("{$pathParameterName...}") {
         get {
@@ -516,13 +516,13 @@ private fun Route.staticContentRoute(
     }
 }
 
-private suspend fun ApplicationCall.respondStaticFile(
+private suspend fun ServerCall.respondStaticFile(
     index: String?,
     dir: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType,
     cacheControl: (File) -> List<CacheControl>,
-    modify: suspend (File, ApplicationCall) -> Unit,
+    modify: suspend (File, ServerCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: List<String>,
     defaultPath: String?
@@ -558,14 +558,14 @@ private suspend fun ApplicationCall.respondStaticFile(
     }
 }
 
-private suspend fun ApplicationCall.respondStaticPath(
+private suspend fun ServerCall.respondStaticPath(
     fileSystem: FileSystem,
     index: String?,
     basePath: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (Path) -> ContentType,
     cacheControl: (Path) -> List<CacheControl>,
-    modify: suspend (Path, ApplicationCall) -> Unit,
+    modify: suspend (Path, ServerCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: List<String>,
     defaultPath: String?
@@ -608,13 +608,13 @@ private suspend fun ApplicationCall.respondStaticPath(
     }
 }
 
-private suspend fun ApplicationCall.respondStaticResource(
+private suspend fun ServerCall.respondStaticResource(
     index: String?,
     basePackage: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType,
     cacheControl: (URL) -> List<CacheControl>,
-    modifier: suspend (URL, ApplicationCall) -> Unit,
+    modifier: suspend (URL, ServerCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: List<String>,
     defaultPath: String?

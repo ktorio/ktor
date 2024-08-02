@@ -6,6 +6,6 @@ package io.ktor.server.plugins
 
 import io.ktor.server.config.*
 
-internal class ConfigWithProperty(config: ApplicationConfig) {
+internal class ConfigWithProperty(config: ServerConfig) {
     var property: String = config.tryGetString("property") ?: "Default Value"
 }

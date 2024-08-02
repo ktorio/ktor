@@ -19,7 +19,7 @@ import io.ktor.server.plugins.callid.CallId as ServerCallId
 class CallIdTest {
 
     @Test
-    fun testCallIdChainingFromCoroutineContext() = testApplication {
+    fun testCallIdChainingFromCoroutineContext() = testServer {
         val client = createClient {
             install(CallId)
         }
@@ -41,7 +41,7 @@ class CallIdTest {
     }
 
     @Test
-    fun testCallIdAddGenerator() = testApplication {
+    fun testCallIdAddGenerator() = testServer {
         var counter = 0
         val client = createClient {
             install(CallId) {
@@ -67,7 +67,7 @@ class CallIdTest {
     }
 
     @Test
-    fun testRemoveCallIdFromCoroutineContext() = testApplication {
+    fun testRemoveCallIdFromCoroutineContext() = testServer {
         var counter = 0
         val client = createClient {
             install(CallId) {
@@ -94,7 +94,7 @@ class CallIdTest {
     }
 
     @Test
-    fun testSetCustomInterceptor() = testApplication {
+    fun testSetCustomInterceptor() = testServer {
         val client = createClient {
             install(CallId) {
                 intercept { request, callId -> request.parameter("callId", callId) }

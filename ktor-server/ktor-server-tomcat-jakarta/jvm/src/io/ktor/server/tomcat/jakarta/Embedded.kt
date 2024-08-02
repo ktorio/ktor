@@ -10,23 +10,23 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 
 /**
- * An [ApplicationEngineFactory] providing a Tomcat-based [ApplicationEngine]
+ * An [ServerEngineFactory] providing a Tomcat-based [ServerEngine]
  */
-public object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
+public object Tomcat : ServerEngineFactory<TomcatServerEngine, TomcatServerEngine.Configuration> {
 
     override fun configuration(
-        configure: TomcatApplicationEngine.Configuration.() -> Unit
-    ): TomcatApplicationEngine.Configuration {
-        return TomcatApplicationEngine.Configuration().apply(configure)
+        configure: TomcatServerEngine.Configuration.() -> Unit
+    ): TomcatServerEngine.Configuration {
+        return TomcatServerEngine.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: TomcatApplicationEngine.Configuration,
-        applicationProvider: () -> Application
-    ): TomcatApplicationEngine {
-        return TomcatApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
+        configuration: TomcatServerEngine.Configuration,
+        serverProvider: () -> Server
+    ): TomcatServerEngine {
+        return TomcatServerEngine(environment, monitor, developmentMode, configuration, serverProvider)
     }
 }

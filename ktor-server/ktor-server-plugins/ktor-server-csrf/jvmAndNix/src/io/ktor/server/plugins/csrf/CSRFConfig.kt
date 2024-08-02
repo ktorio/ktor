@@ -51,7 +51,7 @@ public class CSRFConfig {
      * @param predicate the condition to check on the value of the header
      * @see [CSRF Cheatsheet, Custom request headers](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#custom-request-headers)
      */
-    public fun checkHeader(header: String, predicate: ApplicationCall.(String) -> Boolean = { true }) {
+    public fun checkHeader(header: String, predicate: ServerCall.(String) -> Boolean = { true }) {
         headerChecks[header] = headerChecks[header]?.let { it and predicate } ?: predicate
     }
 
@@ -62,14 +62,14 @@ public class CSRFConfig {
      *
      * @param handleFailure handler for CSRF error conditions
      */
-    public fun onFailure(handleFailure: suspend ApplicationCall.(String) -> Unit) {
+    public fun onFailure(handleFailure: suspend ServerCall.(String) -> Unit) {
         this.handleFailure = handleFailure + respondBadRequestIfNotCommitted
     }
 }
 
-private typealias HeaderPredicate = ApplicationCall.(String) -> Boolean
+private typealias HeaderPredicate = ServerCall.(String) -> Boolean
 private infix fun HeaderPredicate.and(other: HeaderPredicate): HeaderPredicate = { this@and(it) && other(it) }
-internal typealias ErrorMessageHandler = suspend ApplicationCall.(String) -> Unit
+internal typealias ErrorMessageHandler = suspend ServerCall.(String) -> Unit
 
 internal val respondBadRequestIfNotCommitted: ErrorMessageHandler = { message ->
     if (!response.isCommitted) {

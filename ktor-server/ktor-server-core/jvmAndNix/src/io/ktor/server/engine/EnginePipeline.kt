@@ -19,12 +19,12 @@ public class EnginePipeline(
     /**
      * Pipeline for receiving content
      */
-    public val receivePipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(developmentMode)
+    public val receivePipeline: ServerReceivePipeline = ServerReceivePipeline(developmentMode)
 
     /**
      * Pipeline for sending content
      */
-    public val sendPipeline: ApplicationSendPipeline = ApplicationSendPipeline(developmentMode)
+    public val sendPipeline: ServerSendPipeline = ServerSendPipeline(developmentMode)
 
     public companion object {
         /**

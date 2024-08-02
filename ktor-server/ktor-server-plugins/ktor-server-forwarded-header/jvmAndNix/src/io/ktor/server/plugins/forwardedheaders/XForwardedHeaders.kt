@@ -213,7 +213,7 @@ public data class XForwardedHeaderValues(
  * To learn how to install and use [XForwardedHeaders], see
  * [Forwarded headers](https://ktor.io/docs/forward-headers.html).
  */
-public val XForwardedHeaders: ApplicationPlugin<XForwardedHeadersConfig> = createApplicationPlugin(
+public val XForwardedHeaders: ServerPlugin<XForwardedHeadersConfig> = createServerPlugin(
     "XForwardedHeaders",
     ::XForwardedHeadersConfig
 ) {

@@ -14,4 +14,4 @@ internal expect val Dispatchers.IOBridge: CoroutineDispatcher
 
 internal expect fun printError(message: Any?)
 
-internal expect fun configureShutdownUrl(config: ApplicationConfig, pipeline: EnginePipeline)
+internal expect fun configureShutdownUrl(config: ServerConfig, pipeline: EnginePipeline)

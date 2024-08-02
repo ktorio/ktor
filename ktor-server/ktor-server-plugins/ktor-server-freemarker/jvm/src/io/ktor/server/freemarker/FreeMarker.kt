@@ -32,7 +32,7 @@ public class FreeMarkerContent(
  * Provides the ability to respond with [FreeMarkerContent].
  * You can learn more from [FreeMarker](https://ktor.io/docs/freemarker.html).
  */
-public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugin(
+public val FreeMarker: ServerPlugin<Configuration> = createServerPlugin(
     "FreeMarker",
     { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
 ) {

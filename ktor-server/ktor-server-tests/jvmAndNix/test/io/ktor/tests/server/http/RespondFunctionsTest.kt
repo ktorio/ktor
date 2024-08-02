@@ -19,7 +19,7 @@ import kotlin.test.*
 class RespondFunctionsTest {
     @Test
     fun testRespondBytes(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
                 call.respondBytes(ByteArray(10) { it.toByte() })
             }
@@ -46,7 +46,7 @@ class RespondFunctionsTest {
     }
 
     @Test
-    fun testRespondWithTypeInfo() = testApplication {
+    fun testRespondWithTypeInfo() = testServer {
         routing {
             get("respond") {
                 call.respond("asd", typeInfo<String>())
@@ -57,7 +57,7 @@ class RespondFunctionsTest {
         }
         application {
             install(
-                createApplicationPlugin("checker") {
+                createServerPlugin("checker") {
                     onCallRespond { _ ->
                         transformBody {
                             assertEquals(typeInfo<String>().type, String::class)
@@ -73,7 +73,7 @@ class RespondFunctionsTest {
     }
 
     @Test
-    fun testRespondWithText() = testApplication {
+    fun testRespondWithText() = testServer {
         routing {
             get("json") {
                 call.respondText("Hello", contentType = ContentType.Application.Json)

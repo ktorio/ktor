@@ -10,10 +10,10 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 
 public class CommandLineConfig(
-    public val applicationProperties: ApplicationProperties,
-    public val engineConfig: BaseApplicationEngine.Configuration
+    public val serverParameters: ServerParameters,
+    public val engineConfig: BaseServerEngine.Configuration
 ) {
-    public val environment: ApplicationEnvironment = applicationProperties.environment
+    public val environment: ServerEnvironment = serverParameters.environment
 }
 
 public object ConfigKeys {
@@ -33,7 +33,7 @@ public object ConfigKeys {
 }
 
 /**
- * Creates an [ApplicationEnvironment] instance from command line arguments
+ * Creates an [ServerEnvironment] instance from command line arguments
  */
 public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }
@@ -42,7 +42,7 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     val applicationId = configuration.tryGetString(ConfigKeys.applicationIdPath) ?: "Application"
     val logger = KtorSimpleLogger(applicationId)
 
-    val environment = applicationEnvironment {
+    val environment = serverEnvironment {
         log = logger
 
         configurePlatformProperties(args)
@@ -50,7 +50,7 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
         config = configuration
     }
 
-    val applicationProperties = applicationProperties(environment) {
+    val applicationProperties = serverParams(environment) {
         rootPath = argumentsMap["-path"] ?: configuration.tryGetString(ConfigKeys.rootPathPath) ?: ""
         developmentMode = configuration.tryGetString(ConfigKeys.developmentModeKey)
             ?.let { it.toBoolean() } ?: PlatformUtils.IS_DEVELOPMENT_MODE
@@ -75,7 +75,7 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
         )
     }
 
-    val engineConfig = BaseApplicationEngine.Configuration()
+    val engineConfig = BaseServerEngine.Configuration()
     if (port != null) {
         engineConfig.connector {
             this.host = host
@@ -96,14 +96,14 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     return CommandLineConfig(applicationProperties, engineConfig)
 }
 
-internal fun buildApplicationConfig(args: List<Pair<String, String>>): ApplicationConfig {
+internal fun buildApplicationConfig(args: List<Pair<String, String>>): ServerConfig {
     val commandLineProperties = args
         .filter { it.first.startsWith("-P:") }
         .map { it.first.removePrefix("-P:") to it.second }
 
     val configPaths = args.filter { it.first == "-config" }.map { it.second }
 
-    val commandLineConfig = MapApplicationConfig(commandLineProperties)
+    val commandLineConfig = MapServerConfig(commandLineProperties)
     val environmentConfig = getConfigFromEnvironment()
 
     val fileConfig = when (configPaths.size) {
@@ -115,7 +115,7 @@ internal fun buildApplicationConfig(args: List<Pair<String, String>>): Applicati
     return fileConfig.mergeWith(environmentConfig).mergeWith(commandLineConfig)
 }
 
-internal expect fun ApplicationEngine.Configuration.configureSSLConnectors(
+internal expect fun ServerEngine.Configuration.configureSSLConnectors(
     host: String,
     sslPort: String,
     sslKeyStorePath: String?,
@@ -124,16 +124,16 @@ internal expect fun ApplicationEngine.Configuration.configureSSLConnectors(
     sslKeyAlias: String
 )
 
-internal expect fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
+internal expect fun ServerEnvironmentBuilder.configurePlatformProperties(args: Array<String>)
 
-internal expect fun getConfigFromEnvironment(): ApplicationConfig
+internal expect fun getConfigFromEnvironment(): ServerConfig
 
 /**
- * Loads common engine configuration parameters applicable to all engine types from the specified [ApplicationConfig].
+ * Loads common engine configuration parameters applicable to all engine types from the specified [ServerConfig].
  *
  * @param deploymentConfig The application configuration.
  */
-public fun ApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
+public fun ServerEngine.Configuration.loadCommonConfiguration(deploymentConfig: ServerConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
         callGroupSize = it
     }

@@ -19,25 +19,25 @@ import kotlin.test.*
 
 class NettyConfigurationTest {
     private fun server(
-        block: NettyApplicationEngine.Configuration.() -> Unit
-    ): EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
-        val config = MapApplicationConfig()
+        block: NettyServerEngine.Configuration.() -> Unit
+    ): EmbeddedServer<NettyServerEngine, NettyServerEngine.Configuration> {
+        val config = MapServerConfig()
         val events = Events()
 
-        val server = mockk<EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>>()
-        val application = mockk<Application>().apply {
+        val server = mockk<EmbeddedServer<NettyServerEngine, NettyServerEngine.Configuration>>()
+        val application = mockk<Server>().apply {
             every { coroutineContext } returns Job()
             every { developmentMode } returns false
             every { parentCoroutineContext } returns Dispatchers.Default
         }
-        val environment = mockk<ApplicationEnvironment>().apply {
+        val environment = mockk<ServerEnvironment>().apply {
             every { log } returns KtorSimpleLogger("test-logger")
             every { this@apply.config } returns config
         }
-        every { server.application } returns application
+        every { server.server } returns application
         every { server.environment } returns environment
         every { server.monitor } returns events
-        every { server.engineConfig } returns NettyApplicationEngine.Configuration()
+        every { server.engineConfig } returns NettyServerEngine.Configuration()
             .apply { connector { port = 0 } }
             .apply(block)
         return server
@@ -53,12 +53,12 @@ class NettyConfigurationTest {
             }
         }
 
-        val engine = NettyApplicationEngine(
+        val engine = NettyServerEngine(
             server.environment,
             server.monitor,
-            server.application.developmentMode,
+            server.server.developmentMode,
             server.engineConfig
-        ) { server.application }
+        ) { server.server }
 
         engine.start(wait = false)
         engine.stop(10, 10)
@@ -89,12 +89,12 @@ class NettyConfigurationTest {
             }
         }
 
-        val engine = NettyApplicationEngine(
+        val engine = NettyServerEngine(
             server.environment,
             server.monitor,
-            server.application.developmentMode,
+            server.server.developmentMode,
             server.engineConfig
-        ) { server.application }
+        ) { server.server }
 
         engine.start(wait = false)
         engine.stop(10, 10)

@@ -8,7 +8,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.hsts.*
@@ -19,7 +18,7 @@ import kotlin.test.*
 
 class HSTSTest {
     @Test
-    fun testHttp() = testApplication {
+    fun testHttp() = testServer {
         application {
             testApp()
         }
@@ -28,7 +27,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttps() = testApplication {
+    fun testHttps() = testServer {
         application {
             testApp()
         }
@@ -54,7 +53,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testSubrouteInstall() = testApplication {
+    fun testSubrouteInstall() = testServer {
         application {
             install(XForwardedHeaders)
             routing {
@@ -95,7 +94,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testCustomPort() = testApplication {
+    fun testCustomPort() = testServer {
         application {
             testApp()
         }
@@ -109,7 +108,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testSetCustomPort() = testApplication {
+    fun testSetCustomPort() = testServer {
         application {
             testApp {
                 filter { call ->
@@ -130,7 +129,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsCustomDirectiveNoValue() = testApplication {
+    fun testHttpsCustomDirectiveNoValue() = testServer {
         application {
             testApp {
                 customDirectives.clear()
@@ -149,7 +148,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsNoCustomDirectives() = testApplication {
+    fun testHttpsNoCustomDirectives() = testServer {
         application {
             testApp {
                 customDirectives.clear()
@@ -167,7 +166,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsMaxAgeOnly() = testApplication {
+    fun testHttpsMaxAgeOnly() = testServer {
         application {
             testApp {
                 customDirectives.clear()
@@ -184,7 +183,7 @@ class HSTSTest {
     }
 
     @Test
-    fun testHttpsHostOverride() = testApplication {
+    fun testHttpsHostOverride() = testServer {
         application {
             testApp {
                 customDirectives.clear()
@@ -217,7 +216,7 @@ class HSTSTest {
         }
     }
 
-    private fun Application.testApp(block: HSTSConfig.() -> Unit = {}) {
+    private fun Server.testApp(block: HSTSConfig.() -> Unit = {}) {
         install(XForwardedHeaders)
         install(HSTS) {
             maxAgeInSeconds = 10

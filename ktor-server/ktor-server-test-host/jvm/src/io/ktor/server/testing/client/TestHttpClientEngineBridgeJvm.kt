@@ -17,7 +17,7 @@ import kotlin.coroutines.*
 
 internal actual class TestHttpClientEngineBridge actual constructor(
     private val engine: TestHttpClientEngine,
-    private val app: TestApplicationEngine
+    private val app: TestServerEngine
 ) {
 
     actual val supportedCapabilities = setOf<HttpClientEngineCapability<*>>(WebSocketCapability, HttpTimeoutCapability)
@@ -27,7 +27,7 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         headers: Headers,
         content: OutgoingContent,
         callContext: CoroutineContext
-    ): Pair<TestApplicationCall, WebSocketSession> {
+    ): Pair<TestServerCall, WebSocketSession> {
         val sessionDeferred = CompletableDeferred<WebSocketSession>()
         val call = app.handleWebSocketConversationNonBlocking(
             url,

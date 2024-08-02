@@ -13,7 +13,7 @@ import io.ktor.server.response.*
  *
  * @see FreeMarkerContent
  */
-public suspend fun ApplicationCall.respondTemplate(
+public suspend fun ServerCall.respondTemplate(
     template: String,
     model: Any? = null,
     etag: String? = null,

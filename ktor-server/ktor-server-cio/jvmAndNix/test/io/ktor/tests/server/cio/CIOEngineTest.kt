@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
-class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOHttpServerTest : HttpServerCommonTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
 
     init {
         enableHttp2 = false

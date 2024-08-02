@@ -8,7 +8,7 @@ import io.ktor.server.cio.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
-class CIOClientCertTest : ClientCertTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOClientCertTest : ClientCertTestSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     @Test
     override fun `Server requesting Client Certificate from CIO Client`() {
         assertFailsWith<UnsupportedOperationException> {

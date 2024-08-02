@@ -13,7 +13,7 @@ import io.ktor.utils.io.*
 /**
  * Default outgoing content transformation
  */
-public fun transformDefaultContent(call: ApplicationCall, value: Any): OutgoingContent? = when (value) {
+public fun transformDefaultContent(call: ServerCall, value: Any): OutgoingContent? = when (value) {
     is OutgoingContent -> value
     is String -> {
         val contentType = call.defaultTextContentType(null)
@@ -31,4 +31,4 @@ public fun transformDefaultContent(call: ApplicationCall, value: Any): OutgoingC
     else -> platformTransformDefaultContent(call, value)
 }
 
-internal expect fun platformTransformDefaultContent(call: ApplicationCall, value: Any): OutgoingContent?
+internal expect fun platformTransformDefaultContent(call: ServerCall, value: Any): OutgoingContent?

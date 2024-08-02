@@ -19,7 +19,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -29,7 +28,7 @@ import kotlin.text.Charsets
 
 class FreeMarkerTest {
     @Test
-    fun testName() = testApplication {
+    fun testName() = testServer {
         application {
             setUpTestTemplates()
             install(ConditionalHeaders)
@@ -53,7 +52,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun testEmptyModel() = testApplication {
+    fun testEmptyModel() = testServer {
         application {
             setUpTestTemplates()
             routing {
@@ -72,7 +71,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun testCompression() = testApplication {
+    fun testCompression() = testServer {
         application {
             setUpTestTemplates()
             install(Compression) {
@@ -101,7 +100,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun testWithoutEtag() = testApplication {
+    fun testWithoutEtag() = testServer {
         application {
             setUpTestTemplates()
             install(ConditionalHeaders)
@@ -124,7 +123,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun canRespondAppropriately() = testApplication {
+    fun canRespondAppropriately() = testServer {
         application {
             setUpTestTemplates()
             install(ConditionalHeaders)
@@ -147,7 +146,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun testErrorInContent() = testApplication {
+    fun testErrorInContent() = testServer {
         application {
             setUpTestTemplates()
             install(StatusPages) {
@@ -167,7 +166,7 @@ class FreeMarkerTest {
     }
 
     @Test
-    fun testContentNegotiationInvokedAfter() = testApplication {
+    fun testContentNegotiationInvokedAfter() = testServer {
         application {
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, alwaysFailingConverter)
@@ -189,7 +188,7 @@ class FreeMarkerTest {
         assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
     }
 
-    private fun Application.setUpTestTemplates() {
+    private fun Server.setUpTestTemplates() {
         val bax = "$"
 
         install(FreeMarker) {

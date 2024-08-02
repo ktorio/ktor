@@ -15,7 +15,7 @@ import kotlin.test.*
 class RegexRoutingTest {
 
     @Test
-    fun testRoute() = testApplication {
+    fun testRoute() = testServer {
         application {
             routing {
                 route(Regex("/(?<number>\\d+)")) {
@@ -51,7 +51,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testGet() = testApplication {
+    fun testGet() = testServer {
         application {
             routing {
                 route("/hello") {
@@ -75,7 +75,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testPost() = testApplication {
+    fun testPost() = testServer {
         application {
             routing {
                 post(Regex("/tag/(?<name>.+)")) {
@@ -98,7 +98,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testPut() = testApplication {
+    fun testPut() = testServer {
         application {
             routing {
                 put(Regex("/tag/(?<name>.+)")) {
@@ -121,7 +121,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testPatch() = testApplication {
+    fun testPatch() = testServer {
         application {
             routing {
                 patch(Regex("/tag/(?<name>.+)")) {
@@ -144,7 +144,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testDelete() = testApplication {
+    fun testDelete() = testServer {
         application {
             routing {
                 delete(Regex("/tag/(?<name>.+)")) {
@@ -159,7 +159,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testHead() = testApplication {
+    fun testHead() = testServer {
         application {
             routing {
                 head(Regex("/tag/(?<name>.+)")) {
@@ -174,7 +174,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testOptions() = testApplication {
+    fun testOptions() = testServer {
         application {
             routing {
                 options(Regex("/tag/(?<name>.+)")) {
@@ -189,7 +189,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testOnlyValidGroups() = testApplication {
+    fun testOnlyValidGroups() = testServer {
         application {
             routing {
                 get(Regex("/\\(?<notGroup>")) {
@@ -212,7 +212,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testUnneededEscaping() = testApplication {
+    fun testUnneededEscaping() = testServer {
         application {
             routing {
                 get(Regex("""\/abc""")) {
@@ -233,7 +233,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testNestedRegex() = testApplication {
+    fun testNestedRegex() = testServer {
         application {
             routing {
                 route(Regex("/abc/")) {
@@ -279,7 +279,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testWithTrailingSlash() = testApplication {
+    fun testWithTrailingSlash() = testServer {
         application {
             install(IgnoreTrailingSlash)
 
@@ -308,7 +308,7 @@ class RegexRoutingTest {
     }
 
     @Test
-    fun testNotGroup() = testApplication {
+    fun testNotGroup() = testServer {
         application {
             routing {
                 get(Regex("""\(?<a>\)""")) {

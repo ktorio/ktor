@@ -25,20 +25,20 @@ import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
 public actual class EmbeddedServer<
-    TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration
+    TEngine : ServerEngine,
+    TConfiguration : ServerEngine.Configuration
     >
 actual constructor(
-    private val applicationProperties: ApplicationProperties,
-    engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    private val serverParameters: ServerParameters,
+    engineFactory: ServerEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
 
     public actual val monitor: Events = applicationProperties.environment.monitor
 
-    public actual val environment: ApplicationEnvironment = applicationProperties.environment
+    public actual val environment: ServerEnvironment = serverParameters.environment
 
-    public actual val application: Application
+    public actual val server: Server
         get() = currentApplication()
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
@@ -48,7 +48,7 @@ actual constructor(
     private var packageWatchKeys = emptyList<WatchKey>()
 
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
-    private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
+    private val watchPatterns: List<String> = configuredWatchPath + serverParameters.watchPaths
 
     private val configModulesNames: List<String> = run {
         environment.config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
@@ -56,19 +56,19 @@ actual constructor(
 
     private val modulesNames: List<String> = configModulesNames
 
-    private var _applicationInstance: Application? = Application(
+    private var _serverInstance: Server? = Server(
         environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
+        serverParameters.developmentMode,
+        serverParameters.rootPath,
         monitor,
-        applicationProperties.parentCoroutineContext,
+        serverParameters.parentCoroutineContext,
         ::engine
     )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
-        applicationProperties.developmentMode,
+        serverParameters.developmentMode,
         engineConfig,
         ::currentApplication
     )
@@ -88,15 +88,15 @@ actual constructor(
         applicationInstanceLock.write {
             destroyApplication()
             val (application, classLoader) = createApplication()
-            _applicationInstance = application
+            _serverInstance = application
             _applicationClassLoader = classLoader
         }
     }
 
-    private fun currentApplication(): Application = applicationInstanceLock.read {
-        val currentApplication = _applicationInstance ?: error("EmbeddedServer was stopped")
+    private fun currentApplication(): Server = applicationInstanceLock.read {
+        val currentApplication = _serverInstance ?: error("EmbeddedServer was stopped")
 
-        if (!applicationProperties.developmentMode) {
+        if (!serverParameters.developmentMode) {
             return@read currentApplication
         }
 
@@ -125,14 +125,14 @@ actual constructor(
         applicationInstanceLock.write {
             destroyApplication()
             val (application, classLoader) = createApplication()
-            _applicationInstance = application
+            _serverInstance = application
             _applicationClassLoader = classLoader
         }
 
-        return@read _applicationInstance ?: error("EmbeddedServer was stopped")
+        return@read _serverInstance ?: error("EmbeddedServer was stopped")
     }
 
-    private fun createApplication(): Pair<Application, ClassLoader> {
+    private fun createApplication(): Pair<Server, ClassLoader> {
         val classLoader = createClassLoader()
         val currentThread = Thread.currentThread()
         val oldThreadClassLoader = currentThread.contextClassLoader
@@ -148,7 +148,7 @@ actual constructor(
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = environment.classLoader
 
-        if (!applicationProperties.developmentMode) {
+        if (!serverParameters.developmentMode) {
             environment.log.info("Autoreload is disabled because the development mode is off.")
             return baseClassLoader
         }
@@ -168,7 +168,7 @@ actual constructor(
         // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
-            ApplicationEnvironment::class.java, // ktor-server
+            ServerEnvironment::class.java, // ktor-server
             Pipeline::class.java, // ktor-parsing
             HttpStatusCode::class.java, // ktor-http
             kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
@@ -194,18 +194,18 @@ actual constructor(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
-        monitor.raiseCatching(event, application)
+    private fun safeRaiseEvent(event: EventDefinition<Server>, server: Server) {
+        monitor.raiseCatching(event, server)
     }
 
     private fun destroyApplication() {
-        val currentApplication = _applicationInstance
+        val currentApplication = _serverInstance
         val applicationClassLoader = _applicationClassLoader
-        _applicationInstance = null
+        _serverInstance = null
         _applicationClassLoader = null
 
         if (currentApplication != null) {
-            safeRaiseEvent(ApplicationStopping, currentApplication)
+            safeRaiseEvent(ServerStopping, currentApplication)
             try {
                 currentApplication.dispose()
                 (applicationClassLoader as? OverridingClassLoader)?.close()
@@ -213,7 +213,7 @@ actual constructor(
                 environment.log.error("Failed to destroy application instance.", e)
             }
 
-            safeRaiseEvent(ApplicationStopped, currentApplication)
+            safeRaiseEvent(ServerStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
@@ -275,11 +275,11 @@ actual constructor(
 
                 throw cause
             }
-            _applicationInstance = application
+            _serverInstance = application
             _applicationClassLoader = classLoader
         }
 
-        CoroutineScope(application.coroutineContext).launch {
+        CoroutineScope(server.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
                 val host = escapeHostname(it.host)
                 environment.log.info(
@@ -306,29 +306,29 @@ actual constructor(
         stop(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
     }
 
-    private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
-        val newInstance = if (recreateInstance || _applicationInstance == null) {
-            Application(
+    private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Server {
+        val newInstance = if (recreateInstance || _serverInstance == null) {
+            Server(
                 environment,
-                applicationProperties.developmentMode,
-                applicationProperties.rootPath,
+                serverParameters.developmentMode,
+                serverParameters.rootPath,
                 monitor,
-                applicationProperties.parentCoroutineContext,
+                serverParameters.parentCoroutineContext,
                 ::engine
             )
         } else {
             recreateInstance = true
-            _applicationInstance!!
+            _serverInstance!!
         }
 
-        safeRaiseEvent(ApplicationStarting, newInstance)
+        safeRaiseEvent(ServerStarting, newInstance)
 
         avoidingDoubleStartup {
             modulesNames.forEach { name ->
                 launchModuleByName(name, currentClassLoader, newInstance)
             }
 
-            applicationProperties.modules.forEach { module ->
+            serverParameters.modules.forEach { module ->
                 val name = module.methodName()
 
                 try {
@@ -339,11 +339,11 @@ actual constructor(
             }
         }
 
-        safeRaiseEvent(ApplicationStarted, newInstance)
+        safeRaiseEvent(ServerStarted, newInstance)
         return newInstance
     }
 
-    private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
+    private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Server) {
         avoidingDoubleStartupFor(name) {
             executeModuleFunction(currentClassLoader, name, newInstance)
         }

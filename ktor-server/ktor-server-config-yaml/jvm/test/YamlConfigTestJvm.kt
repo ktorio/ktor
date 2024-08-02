@@ -28,7 +28,7 @@ class YamlConfigTestJvm {
     @Test
     fun testLoadWrongConfig() {
         val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-no-env.yaml").toURI().path
-        assertFailsWith<ApplicationConfigurationException> {
+        assertFailsWith<ServerConfigurationException> {
             YamlConfig(path)
         }
     }

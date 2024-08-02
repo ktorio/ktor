@@ -28,13 +28,13 @@ public abstract class AbstractServerSerializationTest {
     protected abstract fun simpleDeserializeList(t: ByteArray, charset: Charset = Charsets.UTF_8): List<MyEntity>
 
     private fun withTestSerializingApplication(
-        block: suspend TestApplicationEngine.() -> Unit
+        block: suspend TestServerEngine.() -> Unit
     ): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             configureContentNegotiation(defaultContentType)
         }
 
-        application.routing {
+        server.routing {
             get("/list") {
                 call.respond(testEntities)
             }
@@ -137,7 +137,7 @@ public abstract class AbstractServerSerializationTest {
         }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
     }
 
-    private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
+    private fun verifyListResponse(response: TestServerResponse, charset: Charset) {
         assertEquals(HttpStatusCode.OK, response.status())
         val bytes = response.byteContent
         assertNotNull(bytes)

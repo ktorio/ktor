@@ -19,9 +19,9 @@ import kotlin.random.*
 // RFC7233 sec 3.2
 internal suspend fun checkIfRangeHeader(
     content: OutgoingContent.ReadChannelContent,
-    call: ApplicationCall
+    call: ServerCall
 ): Boolean {
-    val conditionalHeadersPlugin = call.application.pluginOrNull(ConditionalHeaders)
+    val conditionalHeadersPlugin = call.server.pluginOrNull(ConditionalHeaders)
     val ifRange = try {
         call.request.headers.getAll(HttpHeaders.IfRange)
             ?.map { parseIfRangeHeader(it) }
@@ -126,9 +126,9 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
     transformBodyTo(PartialOutgoingContent.Multiple(coroutineContext, call.isGet(), content, ranges, length, boundary))
 }
 
-internal fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
+internal fun ServerCall.isGet() = request.local.method == HttpMethod.Get
 
-internal fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
+internal fun ServerCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
 
 internal fun List<LongRange>.isAscending(): Boolean =
     fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.first) to e.first }.first

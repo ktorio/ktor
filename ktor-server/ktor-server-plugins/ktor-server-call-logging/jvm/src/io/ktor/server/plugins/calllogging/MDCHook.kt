@@ -9,10 +9,10 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
-internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ApplicationCall, suspend () -> Unit) -> Unit> {
+internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ServerCall, suspend () -> Unit) -> Unit> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (ApplicationCall, suspend () -> Unit) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend (ServerCall, suspend () -> Unit) -> Unit
     ) {
         val mdcPhase = PipelinePhase("${phase.name}MDC")
         pipeline.insertPhaseBefore(phase, mdcPhase)
@@ -23,9 +23,9 @@ internal fun MDCHook(phase: PipelinePhase) = object : Hook<suspend (ApplicationC
     }
 }
 
-internal object ResponseSent : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Engine) {
+internal object ResponseSent : Hook<suspend (ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: suspend (ServerCall) -> Unit) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.Engine) {
             if (call.attributes.contains(responseSentMarker)) return@intercept
 
             call.attributes.put(responseSentMarker, Unit)

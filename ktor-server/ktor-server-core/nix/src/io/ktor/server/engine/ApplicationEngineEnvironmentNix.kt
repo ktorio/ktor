@@ -10,13 +10,12 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
 
 /**
  * Engine environment configuration builder
  */
 @KtorDsl
-public actual class ApplicationEnvironmentBuilder {
+public actual class ServerEnvironmentBuilder {
 
     /**
      * Application logger
@@ -26,23 +25,23 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Application config
      */
-    public actual var config: ApplicationConfig = MapApplicationConfig()
+    public actual var config: ServerConfig = MapServerConfig()
 
     /**
      * Build an application engine environment
      */
-    public actual fun build(): ApplicationEnvironment {
-        return ApplicationEnvironmentImplNix(log, config)
+    public actual fun build(): ServerEnvironment {
+        return ServerEnvironmentImplNix(log, config)
     }
 }
 
-public class ApplicationEnvironmentImplNix(
+public class ServerEnvironmentImplNix(
     override val log: Logger,
-    override val config: ApplicationConfig,
+    override val config: ServerConfig,
     @Deprecated(
-        "Moved to Application",
+        "Moved to Server",
         replaceWith = ReplaceWith("EmbeddedServer.monitor", "io.ktor.server.engine.EmbeddedServer"),
         level = DeprecationLevel.WARNING
     )
     override val monitor: Events = Events()
-) : ApplicationEnvironment
+) : ServerEnvironment

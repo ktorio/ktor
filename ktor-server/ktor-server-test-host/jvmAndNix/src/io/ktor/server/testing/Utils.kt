@@ -36,7 +36,7 @@ public inline fun On.it(description: String, body: It.() -> Unit): Unit = It.bod
 /**
  * Returns a parsed content type from a test response.
  */
-public fun TestApplicationResponse.contentType(): ContentType {
+public fun TestServerResponse.contentType(): ContentType {
     val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])
     return ContentType.parse(contentTypeHeader)
 }

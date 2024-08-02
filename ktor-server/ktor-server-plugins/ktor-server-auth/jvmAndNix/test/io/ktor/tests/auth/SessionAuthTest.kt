@@ -23,10 +23,10 @@ class SessionAuthTest {
     @Test
     fun testSessionOnly() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<MySession>("S")
             }
-            application.install(Authentication) {
+            server.install(Authentication) {
                 session<MySession> {
                     validate { it }
                     challenge {
@@ -35,7 +35,7 @@ class SessionAuthTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     get("/") { call.respondText("Secret info") }
                     get("/logout") {
@@ -93,10 +93,10 @@ class SessionAuthTest {
     @Test
     fun testSessionAndForm() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<MySession>("S")
             }
-            application.install(Authentication) {
+            server.install(Authentication) {
                 session<MySession> {
                     challenge {}
                     validate { session -> session }
@@ -107,7 +107,7 @@ class SessionAuthTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     authenticate("f") {
                         get("/") { call.respondText("Secret info") }
@@ -128,7 +128,7 @@ class SessionAuthTest {
     }
 
     @Test
-    fun testSessionWithEmptyValidateRespondsWith401() = testApplication {
+    fun testSessionWithEmptyValidateRespondsWith401() = testServer {
         application {
             install(Sessions) {
                 cookie<MySession>("cookie")

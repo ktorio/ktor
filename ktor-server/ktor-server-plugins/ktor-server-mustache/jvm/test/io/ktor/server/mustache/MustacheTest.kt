@@ -28,10 +28,10 @@ class MustacheTest {
     @Test
     fun `Fill template and expect correct rendered content`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(ConditionalHeaders)
+            server.setupMustache()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(MustacheContent(TemplateWithPlaceholder, DefaultModel, "e"))
                 }
@@ -50,10 +50,10 @@ class MustacheTest {
     @Test
     fun `Fill template and expect correct default content type`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(ConditionalHeaders)
+            server.setupMustache()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(MustacheContent(TemplateWithPlaceholder, DefaultModel, "e"))
                 }
@@ -70,10 +70,10 @@ class MustacheTest {
     @Test
     fun `Fill template and expect eTag set when it is provided`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(ConditionalHeaders)
+            server.setupMustache()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(MustacheContent(TemplateWithPlaceholder, DefaultModel, "e"))
                 }
@@ -86,10 +86,10 @@ class MustacheTest {
     @Test
     fun `Render empty model`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(ConditionalHeaders)
+            server.setupMustache()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(MustacheContent(TemplateWithoutPlaceholder, null, "e"))
                 }
@@ -108,13 +108,13 @@ class MustacheTest {
     @Test
     fun `Render template compressed with GZIP`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(Compression) {
+            server.setupMustache()
+            server.install(Compression) {
                 gzip { minimumSize(10) }
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTemplate(TemplateWithPlaceholder, DefaultModel, "e")
                 }
@@ -136,10 +136,10 @@ class MustacheTest {
     @Test
     fun `Render template without eTag`() {
         withTestApplication {
-            application.setupMustache()
-            application.install(ConditionalHeaders)
+            server.setupMustache()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(MustacheContent(TemplateWithPlaceholder, DefaultModel))
                 }
@@ -150,7 +150,7 @@ class MustacheTest {
     }
 
     @Test
-    fun `Content Negotiation invoked after`() = testApplication {
+    fun `Content Negotiation invoked after`() = testServer {
         application {
             install(ContentNegotiation) {
                 val alwaysFailingConverter = object : ContentConverter {
@@ -186,7 +186,7 @@ class MustacheTest {
         assertEquals("Template", response.bodyAsText().trim())
     }
 
-    private fun Application.setupMustache() {
+    private fun Server.setupMustache() {
         install(Mustache)
     }
 

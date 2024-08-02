@@ -7,7 +7,7 @@ package io.ktor.tests.server.cio
 import io.ktor.server.cio.*
 import io.ktor.server.testing.suites.*
 
-class CIOWebSocketTest : WebSocketEngineSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOWebSocketTest : WebSocketEngineSuite<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
     init {
         enableSsl = false
         enableHttp2 = false

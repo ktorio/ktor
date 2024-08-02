@@ -5,7 +5,6 @@
 package io.ktor.server.plugins.compression
 
 import io.ktor.http.*
-import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -15,7 +14,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.compression.Compression")
 
@@ -36,10 +34,10 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(PipelineC
     }
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
+        pipeline: ServerCallPipeline,
         handler: suspend Context.(PipelineCall) -> Unit
     ) {
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.ContentEncoding) {
             handler(Context(this), call)
         }
     }
@@ -54,7 +52,7 @@ private object ContentEncoding : Hook<suspend ContentEncoding.Context.(PipelineC
  * Note that if the request body was decompressed,
  * the plugin will remove [HttpHeaders.ContentEncoding] and [HttpHeaders.ContentLength] headers.
  * Also, it will add [HttpHeaders.TransferEncoding] header with `chunked` value.
- * Original encodings can be accessed through [ApplicationRequest.appliedDecoders] property.
+ * Original encodings can be accessed through [ServerRequest.appliedDecoders] property.
  *
  * The example below shows how to compress JavaScript content using `gzip` with the specified priority:
  * ```kotlin
@@ -185,7 +183,7 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
 /**
  * List of [ContentEncoder] names that were used to decode request body.
  */
-public val ApplicationRequest.appliedDecoders: List<String>
+public val ServerRequest.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
 
 private fun PipelineResponse.isSSEResponse(): Boolean {

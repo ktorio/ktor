@@ -45,8 +45,8 @@ public class DropwizardMetricsConfig {
  *
  * You can learn more from [Dropwizard metrics](https://ktor.io/docs/dropwizard-metrics.html).
  */
-public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
-    createApplicationPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
+public val DropwizardMetrics: ServerPlugin<DropwizardMetricsConfig> =
+    createServerPlugin("DropwizardMetrics", ::DropwizardMetricsConfig) {
         val registry = pluginConfig.registry
         val baseName = pluginConfig.baseName
         val duration = registry.timer(name(baseName, "duration"))
@@ -108,7 +108,7 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
         }
     }
 
-private val ApplicationRequest.routeName: String
+private val ServerRequest.routeName: String
     get() {
         val metricUri = uri.ifEmpty { "/" }.let { if (it.endsWith('/')) it else "$it/" }
         return "$metricUri(method:${httpMethod.value})"

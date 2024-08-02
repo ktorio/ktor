@@ -18,14 +18,14 @@ import java.net.*
 import kotlin.test.*
 import kotlin.test.Test
 
-abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+abstract class ConnectionTestSuite(val engine: ServerEngineFactory<*, *>) {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testNetworkAddresses() = runBlocking {
         val server = embeddedServer(
             engine,
-            applicationProperties {}
+            serverParams {}
         ) {
             connector { port = 0 }
             connector { port = ServerSocket(0).use { it.localPort } }
@@ -51,7 +51,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val server = embeddedServer(
             engine,
-            applicationProperties(applicationEnvironment()) {
+            serverParams(serverEnvironment()) {
                 module {
                     routing {
                         get("/") {
@@ -88,7 +88,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val server = embeddedServer(
             engine,
-            applicationProperties(applicationEnvironment()) {
+            serverParams(serverEnvironment()) {
                 module {
                     routing {
                         get("/") {

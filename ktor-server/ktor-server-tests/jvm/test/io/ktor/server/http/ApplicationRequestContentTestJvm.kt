@@ -11,12 +11,12 @@ import io.ktor.server.request.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class ApplicationRequestContentTest {
+class ServerRequestContentTest {
 
     @Test
     fun testInputStreamContent() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("bodyContent", call.receiveStream().reader(Charsets.UTF_8).readText())
             }
 
@@ -28,9 +28,9 @@ class ApplicationRequestContentTest {
 
     @Test
     fun testDoubleReceiveStreams(): Unit = withTestApplication {
-        application.install(DoubleReceive)
+        server.install(DoubleReceive)
 
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             assertEquals(11, call.receiveStream().readBytes().size)
             assertEquals(11, call.receiveStream().readBytes().size)
         }

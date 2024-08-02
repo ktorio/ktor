@@ -17,7 +17,7 @@ internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
 /**
  * Returns time in millis from the moment the call was received until now
  */
-public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
+public fun ServerCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
     val startTime = attributes[CALL_START_TIME]
     return clock() - startTime
 }
@@ -29,11 +29,11 @@ public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMil
  *
  * You can learn more from [Call logging](https://ktor.io/docs/call-logging.html).
  */
-public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplicationPlugin(
+public val CallLogging: ServerPlugin<CallLoggingConfig> = createServerPlugin(
     "CallLogging",
     ::CallLoggingConfig
 ) {
-    val log = pluginConfig.logger ?: application.log
+    val log = pluginConfig.logger ?: server.log
     val filters = pluginConfig.filters
     val formatCall = pluginConfig.formatCall
     val clock = pluginConfig.clock
@@ -47,7 +47,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
         Level.TRACE -> log.trace(message)
     }
 
-    fun logSuccess(call: ApplicationCall) {
+    fun logSuccess(call: ServerCall) {
         if ((ignoreStaticContent && call.isStaticContent()) || (filters.isNotEmpty() && filters.none { it(call) })) {
             return
         }
@@ -55,7 +55,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     }
 
     setupMDCProvider()
-    setupLogging(application.monitor, ::log)
+    setupLogging(server.monitor, ::log)
 
     on(CallSetup) { call ->
         call.attributes.put(CALL_START_TIME, clock())
@@ -63,26 +63,26 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
 
     if (pluginConfig.mdcEntries.isEmpty()) {
         logCompletedCalls(::logSuccess)
-        return@createApplicationPlugin
+        return@createServerPlugin
     }
 
     logCallsWithMDC(::logSuccess)
 }
 
-private fun PluginBuilder<CallLoggingConfig>.logCompletedCalls(logSuccess: (ApplicationCall) -> Unit) {
+private fun PluginBuilder<CallLoggingConfig>.logCompletedCalls(logSuccess: (ServerCall) -> Unit) {
     on(ResponseSent) { call ->
         logSuccess(call)
     }
 }
 
-private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (ApplicationCall) -> Unit) {
+private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (ServerCall) -> Unit) {
     val entries = pluginConfig.mdcEntries
 
-    on(MDCHook(ApplicationCallPipeline.Monitoring)) { call, proceed ->
+    on(MDCHook(ServerCallPipeline.Monitoring)) { call, proceed ->
         withMDC(entries, call, proceed)
     }
 
-    on(MDCHook(ApplicationCallPipeline.Call)) { call, proceed ->
+    on(MDCHook(ServerCallPipeline.Call)) { call, proceed ->
         withMDC(entries, call, proceed)
     }
 
@@ -94,21 +94,21 @@ private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (Applic
 }
 
 private fun setupLogging(events: Events, log: (String) -> Unit) {
-    val starting: (Application) -> Unit = { log("Application starting: $it") }
-    val started: (Application) -> Unit = { log("Application started: $it") }
-    val stopping: (Application) -> Unit = { log("Application stopping: $it") }
-    var stopped: (Application) -> Unit = {}
+    val starting: (Server) -> Unit = { log("Application starting: $it") }
+    val started: (Server) -> Unit = { log("Application started: $it") }
+    val stopping: (Server) -> Unit = { log("Application stopping: $it") }
+    var stopped: (Server) -> Unit = {}
 
     stopped = {
         log("Application stopped: $it")
-        events.unsubscribe(ApplicationStarting, starting)
-        events.unsubscribe(ApplicationStarted, started)
-        events.unsubscribe(ApplicationStopping, stopping)
-        events.unsubscribe(ApplicationStopped, stopped)
+        events.unsubscribe(ServerStarting, starting)
+        events.unsubscribe(ServerStarted, started)
+        events.unsubscribe(ServerStopping, stopping)
+        events.unsubscribe(ServerStopped, stopped)
     }
 
-    events.subscribe(ApplicationStarting, starting)
-    events.subscribe(ApplicationStarted, started)
-    events.subscribe(ApplicationStopping, stopping)
-    events.subscribe(ApplicationStopped, stopped)
+    events.subscribe(ServerStarting, starting)
+    events.subscribe(ServerStarted, started)
+    events.subscribe(ServerStopping, stopping)
+    events.subscribe(ServerStopped, stopped)
 }

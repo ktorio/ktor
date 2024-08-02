@@ -89,7 +89,7 @@ class OAuth1aFlowTest {
         testClient = createOAuthServer(
             object : TestingOAuthServer {
                 override fun requestToken(
-                    ctx: ApplicationCall,
+                    ctx: ServerCall,
                     callback: String?,
                     consumerKey: String,
                     nonce: String,
@@ -115,7 +115,7 @@ class OAuth1aFlowTest {
                     )
                 }
 
-                override suspend fun authorize(call: ApplicationCall, oauthToken: String) {
+                override suspend fun authorize(call: ServerCall, oauthToken: String) {
                     if (oauthToken != "token1") {
                         call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
                     }
@@ -126,7 +126,7 @@ class OAuth1aFlowTest {
                 }
 
                 override fun accessToken(
-                    ctx: ApplicationCall,
+                    ctx: ServerCall,
                     consumerKey: String,
                     nonce: String,
                     signature: String,
@@ -192,7 +192,7 @@ class OAuth1aFlowTest {
     @Test
     fun testRequestToken() {
         withTestApplication {
-            application.configureServer("http://localhost/login?redirected=true")
+            server.configureServer("http://localhost/login?redirected=true")
 
             val result = handleRequest(HttpMethod.Get, "/login")
 
@@ -211,7 +211,7 @@ class OAuth1aFlowTest {
     @Test
     fun testRequestTokenWrongConsumerKey() {
         withTestApplication {
-            application.configureServer(
+            server.configureServer(
                 "http://localhost/login?redirected=true",
                 mutateSettings = {
                     OAuthServerSettings.OAuth1aServerSettings(
@@ -236,7 +236,7 @@ class OAuth1aFlowTest {
     @Test
     fun testRequestTokenFailedRedirect() {
         withTestApplication {
-            application.configureServer("http://localhost/login")
+            server.configureServer("http://localhost/login")
 
             val result = handleRequest(HttpMethod.Get, "/login")
 
@@ -249,7 +249,7 @@ class OAuth1aFlowTest {
     @Test
     fun testAccessToken() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val result = handleRequest(
                 HttpMethod.Get,
@@ -267,7 +267,7 @@ class OAuth1aFlowTest {
     @Test
     fun testAccessTokenWrongVerifier() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val result = handleRequest(
                 HttpMethod.Get,
@@ -285,7 +285,7 @@ class OAuth1aFlowTest {
         }
     }
 
-    private fun Application.configureServer(
+    private fun Server.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
         OAuthServerSettings.OAuth1aServerSettings = { this }
@@ -322,7 +322,7 @@ class OAuth1aFlowTest {
 
 private interface TestingOAuthServer {
     fun requestToken(
-        ctx: ApplicationCall,
+        ctx: ServerCall,
         callback: String?,
         consumerKey: String,
         nonce: String,
@@ -331,10 +331,10 @@ private interface TestingOAuthServer {
         timestamp: Long
     ): TestOAuthTokenResponse
 
-    suspend fun authorize(call: ApplicationCall, oauthToken: String)
+    suspend fun authorize(call: ServerCall, oauthToken: String)
 
     fun accessToken(
-        ctx: ApplicationCall,
+        ctx: ServerCall,
         consumerKey: String,
         nonce: String,
         signature: String,
@@ -347,7 +347,7 @@ private interface TestingOAuthServer {
 
 private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = serverParams(environment) {
         module {
             routing {
                 post("/oauth/request_token") {
@@ -468,7 +468,7 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     }
 }
 
-private suspend fun ApplicationCall.fail(text: String?) {
+private suspend fun ServerCall.fail(text: String?) {
     val message = text ?: "Auth failed"
     response.status(HttpStatusCode.InternalServerError)
     respondText(message)

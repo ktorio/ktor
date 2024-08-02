@@ -10,23 +10,23 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 
 /**
- * An [ApplicationEngineFactory] providing a Jetty-based [ApplicationEngine]
+ * An [ServerEngineFactory] providing a Jetty-based [ServerEngine]
  */
-public object Jetty : ApplicationEngineFactory<JettyApplicationEngine, JettyApplicationEngineBase.Configuration> {
+public object Jetty : ServerEngineFactory<JettyServerEngine, JettyServerEngineBase.Configuration> {
 
     override fun configuration(
-        configure: JettyApplicationEngineBase.Configuration.() -> Unit
-    ): JettyApplicationEngineBase.Configuration {
-        return JettyApplicationEngineBase.Configuration().apply(configure)
+        configure: JettyServerEngineBase.Configuration.() -> Unit
+    ): JettyServerEngineBase.Configuration {
+        return JettyServerEngineBase.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: JettyApplicationEngineBase.Configuration,
-        applicationProvider: () -> Application
-    ): JettyApplicationEngine {
-        return JettyApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
+        configuration: JettyServerEngineBase.Configuration,
+        serverProvider: () -> Server
+    ): JettyServerEngine {
+        return JettyServerEngine(environment, monitor, developmentMode, configuration, serverProvider)
     }
 }

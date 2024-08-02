@@ -22,12 +22,12 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.statuspages.Status
 /**
  * Specifies how the exception should be handled.
  */
-public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwable) -> Unit
+public typealias HandlerFunction = suspend (call: ServerCall, cause: Throwable) -> Unit
 
 /**
  * A plugin that handles exceptions and status codes. Useful to configure default error pages.
  */
-public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplicationPlugin(
+public val StatusPages: ServerPlugin<StatusPagesConfig> = createServerPlugin(
     "StatusPages",
     ::StatusPagesConfig
 ) {
@@ -89,7 +89,7 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
         }
 
         call.attributes.put(statusPageMarker, Unit)
-        call.application.mdcProvider.withMDCBlock(call) {
+        call.server.mdcProvider.withMDCBlock(call) {
             LOGGER.trace("Executing $handler for exception $cause for call ${call.request.uri}")
             handler(call, cause)
         }
@@ -116,17 +116,17 @@ public class StatusPagesConfig {
      */
     public val statuses: MutableMap<
         HttpStatusCode,
-        suspend (call: ApplicationCall, content: OutgoingContent, code: HttpStatusCode) -> Unit
+        suspend (call: ServerCall, content: OutgoingContent, code: HttpStatusCode) -> Unit
         > =
         mutableMapOf()
 
-    internal var unhandled: suspend (ApplicationCall) -> Unit = {}
+    internal var unhandled: suspend (ServerCall) -> Unit = {}
 
     /**
      * Register an exception [handler] for the exception type [T] and its children.
      */
     public inline fun <reified T : Throwable> exception(
-        noinline handler: suspend (call: ApplicationCall, cause: T) -> Unit
+        noinline handler: suspend (call: ServerCall, cause: T) -> Unit
     ): Unit = exception(T::class, handler)
 
     /**
@@ -134,10 +134,10 @@ public class StatusPagesConfig {
      */
     public fun <T : Throwable> exception(
         klass: KClass<T>,
-        handler: suspend (call: ApplicationCall, T) -> Unit
+        handler: suspend (call: ServerCall, T) -> Unit
     ) {
         @Suppress("UNCHECKED_CAST")
-        val cast = handler as suspend (ApplicationCall, Throwable) -> Unit
+        val cast = handler as suspend (ServerCall, Throwable) -> Unit
 
         exceptions[klass] = cast
     }
@@ -147,7 +147,7 @@ public class StatusPagesConfig {
      */
     public fun status(
         vararg status: HttpStatusCode,
-        handler: suspend (ApplicationCall, HttpStatusCode) -> Unit
+        handler: suspend (ServerCall, HttpStatusCode) -> Unit
     ) {
         status.forEach {
             statuses[it] = { call, _, code -> handler(call, code) }
@@ -157,7 +157,7 @@ public class StatusPagesConfig {
     /**
      * Register a [handler] for the unhandled calls.
      */
-    public fun unhandled(handler: suspend (ApplicationCall) -> Unit) {
+    public fun unhandled(handler: suspend (ServerCall) -> Unit) {
         unhandled = handler
     }
 
@@ -178,7 +178,7 @@ public class StatusPagesConfig {
      * A context for [status] config method.
      */
     public class StatusContext(
-        public val call: ApplicationCall,
+        public val call: ServerCall,
         public val content: OutgoingContent
     )
 }

@@ -33,7 +33,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("CORS", "io.ktor.server.plugins.cors.routing.CORS")
 )
-public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS", ::CORSConfig) {
+public val CORS: ServerPlugin<CORSConfig> = createServerPlugin("CORS", ::CORSConfig) {
     buildPlugin()
 }
 
@@ -180,7 +180,7 @@ private fun checkOrigin(
     else -> OriginCheckResult.OK
 }
 
-private suspend fun ApplicationCall.respondPreflight(
+private suspend fun ServerCall.respondPreflight(
     origin: String,
     methodsListHeaderValue: String,
     headersList: List<String>,

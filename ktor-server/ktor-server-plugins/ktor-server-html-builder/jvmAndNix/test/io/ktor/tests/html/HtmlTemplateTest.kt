@@ -73,7 +73,7 @@ class MulticolumnTemplate(val main: MainTemplate) : Template<HTML> {
 class HtmlTemplateTest {
     @Test
     fun testTemplate() = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
                 val name = call.parameters["name"]
 

@@ -7,7 +7,6 @@
 package io.ktor.server.application
 
 import io.ktor.events.EventDefinition
-import kotlin.native.concurrent.*
 
 /**
  * Event definition for Application Starting event
@@ -15,29 +14,29 @@ import kotlin.native.concurrent.*
  * Note, that application itself cannot receive this event because it fires before application is created
  * It is meant to be used by engines.
  */
-public val ApplicationStarting: EventDefinition<Application> = EventDefinition()
+public val ServerStarting: EventDefinition<Server> = EventDefinition()
 
 /**
  * Event definition for Application Started event
  */
-public val ApplicationStarted: EventDefinition<Application> = EventDefinition()
+public val ServerStarted: EventDefinition<Server> = EventDefinition()
 
 /**
  * Fired when the server is ready to accept connections
  */
-public val ServerReady: EventDefinition<ApplicationEnvironment> = EventDefinition()
+public val ServerReady: EventDefinition<ServerEnvironment> = EventDefinition()
 
 /**
  * Event definition for an event that is fired when the application is going to stop
  */
-public val ApplicationStopPreparing: EventDefinition<ApplicationEnvironment> = EventDefinition()
+public val ServerStopPreparing: EventDefinition<ServerEnvironment> = EventDefinition()
 
 /**
  * Event definition for Application Stopping event
  */
-public val ApplicationStopping: EventDefinition<Application> = EventDefinition()
+public val ServerStopping: EventDefinition<Server> = EventDefinition()
 
 /**
  * Event definition for Application Stopped event
  */
-public val ApplicationStopped: EventDefinition<Application> = EventDefinition()
+public val ServerStopped: EventDefinition<Server> = EventDefinition()

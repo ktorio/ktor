@@ -17,8 +17,8 @@ class HttpsRedirectPluginTest {
     @Test
     fun testRedirect() {
         withTestApplication {
-            application.install(HttpsRedirect)
-            application.routing {
+            server.install(HttpsRedirect)
+            server.routing {
                 get("/") {
                     call.respond("ok")
                 }
@@ -34,9 +34,9 @@ class HttpsRedirectPluginTest {
     @Test
     fun testRedirectHttps() {
         withTestApplication {
-            application.install(XForwardedHeaders)
-            application.install(HttpsRedirect)
-            application.routing {
+            server.install(XForwardedHeaders)
+            server.install(HttpsRedirect)
+            server.routing {
                 get("/") {
                     call.respond("ok")
                 }
@@ -53,8 +53,8 @@ class HttpsRedirectPluginTest {
     @Test
     fun testDirectPathAndQuery() {
         withTestApplication {
-            application.install(HttpsRedirect)
-            application.intercept(ApplicationCallPipeline.Fallback) {
+            server.install(HttpsRedirect)
+            server.intercept(ServerCallPipeline.Fallback) {
                 call.respond("ok")
             }
 
@@ -68,10 +68,10 @@ class HttpsRedirectPluginTest {
     @Test
     fun testDirectPathAndQueryWithCustomPort() {
         withTestApplication {
-            application.install(HttpsRedirect) {
+            server.install(HttpsRedirect) {
                 sslPort = 8443
             }
-            application.intercept(ApplicationCallPipeline.Fallback) {
+            server.intercept(ServerCallPipeline.Fallback) {
                 call.respond("ok")
             }
 
@@ -85,10 +85,10 @@ class HttpsRedirectPluginTest {
     @Test
     fun testRedirectHttpsPrefixExemption() {
         withTestApplication {
-            application.install(HttpsRedirect) {
+            server.install(HttpsRedirect) {
                 excludePrefix("/exempted")
             }
-            application.routing {
+            server.routing {
                 get("/exempted/path") {
                     call.respond("ok")
                 }
@@ -107,10 +107,10 @@ class HttpsRedirectPluginTest {
     @Test
     fun testRedirectHttpsSuffixExemption() {
         withTestApplication {
-            application.install(HttpsRedirect) {
+            server.install(HttpsRedirect) {
                 excludeSuffix("exempted")
             }
-            application.routing {
+            server.routing {
                 get("/path/exempted") {
                     call.respond("ok")
                 }

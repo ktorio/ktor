@@ -16,7 +16,7 @@ class DefaultPushTest {
     @Test
     fun testDefaultPush() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 call.push {
                     url.path("push")
                 }
@@ -31,7 +31,7 @@ class DefaultPushTest {
     @Test
     fun testMultiPush() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 call.push {
                     url.path("push")
                 }

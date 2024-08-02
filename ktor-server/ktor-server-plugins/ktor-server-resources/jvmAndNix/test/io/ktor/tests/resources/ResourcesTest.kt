@@ -22,7 +22,7 @@ import kotlinx.serialization.*
 import kotlin.jvm.*
 import kotlin.test.*
 
-internal fun withResourcesApplication(test: ApplicationTestBuilder.() -> Unit) = testApplication {
+internal fun withResourcesApplication(test: ServerTestBuilder.() -> Unit) = testServer {
     install(Resources)
     test()
 }
@@ -32,11 +32,11 @@ class ResourcesTest {
     class index
 
     @Test
-    fun resourceWithoutURL() = testApplication {
+    fun resourceWithoutURL() = testServer {
         install(Resources)
         routing {
             get<index> { index ->
-                call.respond(call.application.href(index))
+                call.respond(call.server.href(index))
             }
         }
         urlShouldBeHandled(index(), "/")
@@ -50,7 +50,7 @@ class ResourcesTest {
         withResourcesApplication {
             routing {
                 get<indexLocal> { indexLocal ->
-                    call.respond(application.href(indexLocal))
+                    call.respond(server.href(indexLocal))
                 }
             }
             urlShouldBeHandled(indexLocal(), "/")
@@ -65,7 +65,7 @@ class ResourcesTest {
     fun resourceWithURL() = withResourcesApplication {
         routing {
             get<about> { about ->
-                call.respond(application.href(about))
+                call.respond(server.href(about))
             }
         }
         urlShouldBeHandled(about(), "/about")
@@ -80,7 +80,7 @@ class ResourcesTest {
         routing {
             get<user> { user ->
                 assertEquals(123, user.id)
-                call.respond(application.href(user))
+                call.respond(server.href(user))
             }
         }
 
@@ -97,7 +97,7 @@ class ResourcesTest {
             get<named> { named ->
                 assertEquals(123, named.id)
                 assertEquals("abc def", named.name)
-                call.respond(application.href(named))
+                call.respond(server.href(named))
             }
         }
         urlShouldBeHandled(named(123, "abc def"), "/user/123/abc%20def")
@@ -113,7 +113,7 @@ class ResourcesTest {
         routing {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
-                call.respond(application.href(favorite))
+                call.respond(server.href(favorite))
             }
         }
         urlShouldBeHandled(favorite(123), "/favorite?id=123")
@@ -133,7 +133,7 @@ class ResourcesTest {
         routing {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                call.respond(application.href(items))
+                call.respond(server.href(items))
             }
         }
         urlShouldBeHandled(pathContainer.items(c), "/container/123/items")
@@ -153,7 +153,7 @@ class ResourcesTest {
         routing {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                call.respond(application.href(items))
+                call.respond(server.href(items))
             }
         }
         urlShouldBeHandled(queryContainer.items(c), "/container/items?id=123")
@@ -170,7 +170,7 @@ class ResourcesTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(optionalName(123), "/container?id=123")
@@ -187,7 +187,7 @@ class ResourcesTest {
             get<optionalIndex> {
                 assertEquals(123, it.id)
                 assertEquals(42, it.optional)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(optionalIndex(123), "/container?id=123&optional=42")
@@ -201,7 +201,7 @@ class ResourcesTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(optionalName(123, "text"), "/container?id=123&optional=text")
@@ -220,11 +220,11 @@ class ResourcesTest {
         routing {
             get<optionalContainer> {
                 assertEquals(null, it.id)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
 
@@ -245,10 +245,10 @@ class ResourcesTest {
     fun resourceWithSimplePathContainerAndItems() = withResourcesApplication {
         routing {
             get<simpleContainer.items> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
             get<simpleContainer> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(simpleContainer.items(simpleContainer()), "/container/items")
@@ -263,7 +263,7 @@ class ResourcesTest {
     fun resourceWithTailcard() = withResourcesApplication {
         routing {
             get<tailCard> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(tailCard(emptyList()), "/container")
@@ -281,7 +281,7 @@ class ResourcesTest {
     fun `resource with multiple query values`() = withResourcesApplication {
         routing {
             get<multiquery> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(multiquery(listOf(1, 2, 3)), "/?value=1&value=2&value=3")
@@ -291,10 +291,10 @@ class ResourcesTest {
     fun resourceWithMultipleQueryValuesCanSelectByQueryParams() = withResourcesApplication {
         routing {
             get<multiquery> {
-                call.respond("1: ${application.href(it)}")
+                call.respond("1: ${server.href(it)}")
             }
             get<multiquery2> {
-                call.respond("2: ${application.href(it)}")
+                call.respond("2: ${server.href(it)}")
             }
         }
         urlShouldBeHandled(multiquery(listOf(1)), "1: /?value=1")
@@ -304,10 +304,10 @@ class ResourcesTest {
     fun resourceWithMultipleQueryValuesCanSelectByQueryParams2() = withResourcesApplication {
         routing {
             get<multiquery> {
-                call.respond("1: ${application.href(it)}")
+                call.respond("1: ${server.href(it)}")
             }
             get<multiquery2> {
-                call.respond("2: ${application.href(it)}")
+                call.respond("2: ${server.href(it)}")
             }
         }
         urlShouldBeHandled(multiquery2(listOf("john, mary")), "2: /?name=john%2C+mary")
@@ -320,7 +320,7 @@ class ResourcesTest {
     fun resourceWithMultipleQueryValuesAndDefault() = withResourcesApplication {
         routing {
             get<multiqueryWithDefault> {
-                call.respond("${application.href(it)} ${it.value}")
+                call.respond("${server.href(it)} ${it.value}")
             }
         }
         urlShouldBeHandled(multiqueryWithDefault(listOf()), "/ []")
@@ -333,7 +333,7 @@ class ResourcesTest {
     fun resourceRootByClass() = withResourcesApplication {
         routing {
             get<root> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(root(), "/")
@@ -347,7 +347,7 @@ class ResourcesTest {
     fun resourceByClass() = withResourcesApplication {
         routing {
             get<help> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(help(), "/help")
@@ -367,12 +367,12 @@ class ResourcesTest {
     fun resourceByClassInClass() = withResourcesApplication {
         routing {
             get<users.me> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
 
             get<users.user> {
                 assertEquals(123, it.id)
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
         urlShouldBeHandled(users.me(users()), "/users/me")
@@ -406,10 +406,10 @@ class ResourcesTest {
     fun overlappingPathsAreResolvedAsExpected() = withResourcesApplication {
         routing {
             get<OverlappingPath1> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
             get<OverlappingPath2> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
 
@@ -428,7 +428,7 @@ class ResourcesTest {
     fun resourceClassWithEnumValue() = withResourcesApplication {
         routing {
             get<resourceWithEnum> {
-                call.respondText(application.href(it))
+                call.respondText(server.href(it))
             }
         }
 
@@ -448,7 +448,7 @@ class ResourcesTest {
         routing {
             get<L> {
                 call.respondText(
-                    "href = ${application.href(it)} text = ${it.text}, " +
+                    "href = ${server.href(it)} text = ${it.text}, " +
                         "number = ${it.number}, longNumber = ${it.longNumber}"
                 )
             }
@@ -480,7 +480,7 @@ class ResourcesTest {
 
         routing {
             get<Request> {
-                call.respond(application.href(it))
+                call.respond(server.href(it))
             }
         }
 

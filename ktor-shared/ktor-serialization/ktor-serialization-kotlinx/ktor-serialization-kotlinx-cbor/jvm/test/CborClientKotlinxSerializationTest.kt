@@ -27,7 +27,7 @@ class CborClientKotlinxSerializationTest : AbstractClientContentNegotiationTest(
         cbor(contentType = contentType)
     }
 
-    override suspend fun <T : Any> ApplicationCall.respond(
+    override suspend fun <T : Any> ServerCall.respond(
         responseJson: String,
         contentType: ContentType,
         serializer: KSerializer<T>
@@ -37,7 +37,7 @@ class CborClientKotlinxSerializationTest : AbstractClientContentNegotiationTest(
         respondBytes(bytes, contentType)
     }
 
-    override suspend fun ApplicationCall.respondWithRequestBody(contentType: ContentType) {
+    override suspend fun ServerCall.respondWithRequestBody(contentType: ContentType) {
         respondBytes(receive(), contentType)
     }
 

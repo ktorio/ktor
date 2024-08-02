@@ -22,7 +22,7 @@ class AutoHeadResponseTest {
     @Test
     fun testSimple() {
         withHeadApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.response.header("M", "1")
                     call.respond("Hello")
@@ -46,7 +46,7 @@ class AutoHeadResponseTest {
     @Test
     fun testTextContent() {
         withHeadApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondText("Hello")
                 }
@@ -69,7 +69,7 @@ class AutoHeadResponseTest {
     @Test
     fun testCustomOutgoingContent() {
         withHeadApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(
                         object : OutgoingContent.ReadChannelContent() {
@@ -103,7 +103,7 @@ class AutoHeadResponseTest {
 
     @Test
     fun testWithStatusPages() = withHeadApplication {
-        application.install(StatusPages) {
+        server.install(StatusPages) {
             exception<IllegalStateException> { call, code ->
                 call.respondText("ISE: ${code.message}", status = HttpStatusCode.InternalServerError)
             }
@@ -115,7 +115,7 @@ class AutoHeadResponseTest {
             }
         }
 
-        application.routing {
+        server.routing {
             get("/page1") {
                 call.respondText("page1 OK")
             }
@@ -159,7 +159,7 @@ class AutoHeadResponseTest {
     }
 
     @Test
-    fun testDisposesContent() = testApplication {
+    fun testDisposesContent() = testServer {
         val channel = ByteChannel()
 
         install(AutoHeadResponse)
@@ -174,9 +174,9 @@ class AutoHeadResponseTest {
         assertTrue(channel.isClosedForWrite)
     }
 
-    private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
+    private fun withHeadApplication(block: TestServerEngine.() -> Unit) {
         withTestApplication {
-            application.install(AutoHeadResponse)
+            server.install(AutoHeadResponse)
             block()
         }
     }

@@ -151,7 +151,7 @@ class OAuth2Test {
     )
 
     val failures = ArrayList<Throwable>()
-    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+    fun Server.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
         install(Authentication) {
             oauth("login") {
                 client = testClient
@@ -371,7 +371,7 @@ class OAuth2Test {
 
     @Test
     fun testParamsInURL(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
+        server.apply {
             install(Authentication) {
                 oauth("login") {
                     client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
@@ -415,7 +415,7 @@ class OAuth2Test {
 
     @Test
     fun testExtraTokenParams(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
+        server.apply {
             install(Authentication) {
                 oauth("login") {
                     client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
@@ -459,7 +459,7 @@ class OAuth2Test {
 
     @Test
     fun testFailedNonce(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
+        server.apply {
             install(Authentication) {
                 oauth("login") {
                     client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
@@ -501,7 +501,7 @@ class OAuth2Test {
     }
 
     @Test
-    fun testApplicationState() = testApplication {
+    fun testApplicationState() = testServer {
         @Serializable
         class UserSession(val token: String)
 
@@ -580,7 +580,7 @@ class OAuth2Test {
     }
 }
 
-private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
+private fun TestServerEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
     handleRequest {
         uri = url
 
@@ -589,7 +589,7 @@ private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: Stri
         addHeader(HttpHeaders.Authorization, "Basic $encoded")
     }
 
-private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
+private fun assertWWWAuthenticateHeaderExist(response: ServerCall) {
     assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
     val header =
         parseAuthorizationHeader(
@@ -615,7 +615,7 @@ internal interface OAuth2Server {
 
 internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = serverParams(environment) {
         module {
             routing {
                 route("/oauth/access_token") {

@@ -13,10 +13,10 @@ import io.ktor.util.converters.DataConversion
  * Object for installing [io.ktor.util.converters.DataConversion] plugin
  */
 public object DataConversion :
-    BaseApplicationPlugin<ApplicationCallPipeline, DataConversion.Configuration, DataConversion> {
+    BaseServerPlugin<ServerCallPipeline, DataConversion.Configuration, DataConversion> {
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
+        pipeline: ServerCallPipeline,
         configure: DataConversion.Configuration.() -> Unit
     ): DataConversion {
         val configuration = DataConversion.Configuration().apply(configure)
@@ -30,5 +30,5 @@ public object DataConversion :
  * Lookup for a conversion service. Returns the default one if the plugin wasn't installed
  */
 @Suppress("DEPRECATION_ERROR")
-public val ApplicationCallPipeline.conversionService: ConversionService
+public val ServerCallPipeline.conversionService: ConversionService
     get() = pluginOrNull(DataConversion) ?: DefaultConversionService

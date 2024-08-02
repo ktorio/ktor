@@ -23,15 +23,15 @@ public class SessionTransportHeader(
         HttpHeaders.checkHeaderName(name)
     }
 
-    override fun receive(call: ApplicationCall): String? {
+    override fun receive(call: ServerCall): String? {
         return transformers.transformRead(call.request.headers[name])
     }
 
-    override fun send(call: ApplicationCall, value: String) {
+    override fun send(call: ServerCall, value: String) {
         call.response.header(name, transformers.transformWrite(value))
     }
 
-    override fun clear(call: ApplicationCall) {}
+    override fun clear(call: ServerCall) {}
 
     override fun toString(): String {
         return "SessionTransportHeader: $name"

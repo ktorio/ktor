@@ -11,7 +11,7 @@ import java.io.*
 import java.net.*
 import java.security.*
 
-internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
+internal actual fun ServerEngine.Configuration.configureSSLConnectors(
     host: String,
     sslPort: String,
     sslKeyStorePath: String?,
@@ -60,7 +60,7 @@ internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
     }
 }
 
-internal actual fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {
+internal actual fun ServerEnvironmentBuilder.configurePlatformProperties(args: Array<String>) {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }.toMap()
     val jar = argumentsPairs["-jar"]?.let {
         when {
@@ -69,11 +69,11 @@ internal actual fun ApplicationEnvironmentBuilder.configurePlatformProperties(ar
         }
     }
 
-    classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
-        ?: ApplicationEnvironment::class.java.classLoader
+    classLoader = jar?.let { URLClassLoader(arrayOf(jar), ServerEnvironment::class.java.classLoader) }
+        ?: ServerEnvironment::class.java.classLoader
 }
 
-internal actual fun getConfigFromEnvironment(): ApplicationConfig = System.getProperties()
+internal actual fun getConfigFromEnvironment(): ServerConfig = System.getProperties()
     .toMap()
     .filterKeys { (it as String).startsWith("ktor.") }
-    .let { env -> MapApplicationConfig(env.map { it.key as String to it.value as String }) }
+    .let { env -> MapServerConfig(env.map { it.key as String to it.value as String }) }

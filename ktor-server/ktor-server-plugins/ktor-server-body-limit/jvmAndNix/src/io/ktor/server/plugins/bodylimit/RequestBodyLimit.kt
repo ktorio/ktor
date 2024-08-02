@@ -15,13 +15,13 @@ import kotlinx.coroutines.*
  * A configuration for [RequestBodyLimit] plugin.
  */
 public class RequestBodyLimitConfig {
-    internal var bodyLimit: (ApplicationCall) -> Long = { Long.MAX_VALUE }
+    internal var bodyLimit: (ServerCall) -> Long = { Long.MAX_VALUE }
 
     /**
      * Sets a limit for the maximum allowed size for incoming request bodies.
      * The block should return [Long.MAX_VALUE] if the body size is unlimited.
      */
-    public fun bodyLimit(block: (ApplicationCall) -> Long) {
+    public fun bodyLimit(block: (ServerCall) -> Long) {
         bodyLimit = block
     }
 }
@@ -70,10 +70,10 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
 private object BeforeReceive : Hook<(PipelineCall, ByteReadChannel) -> ByteReadChannel?> {
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
+        pipeline: ServerCallPipeline,
         handler: (PipelineCall, ByteReadChannel) -> ByteReadChannel?
     ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.Before) {
             if (subject !is ByteReadChannel) return@intercept
             val result = handler(context, subject as ByteReadChannel)
             if (result != null) proceedWith(result)

@@ -17,7 +17,7 @@ internal actual fun printError(message: Any?) {
     System.err.print(message)
 }
 
-internal actual fun configureShutdownUrl(config: ApplicationConfig, pipeline: EnginePipeline) {
+internal actual fun configureShutdownUrl(config: ServerConfig, pipeline: EnginePipeline) {
     val url = config.propertyOrNull("ktor.deployment.shutdown.url")?.getString() ?: return
     pipeline.install(ShutDownUrl.EnginePlugin) {
         shutDownUrl = url

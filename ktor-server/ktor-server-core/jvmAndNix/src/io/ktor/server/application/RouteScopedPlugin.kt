@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
  * @param TPlugin is the instance type of the Plugin object
  */
 public interface BaseRouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
-    Plugin<ApplicationCallPipeline, TConfiguration, TPlugin>
+    Plugin<ServerCallPipeline, TConfiguration, TPlugin>
 
 /**
  * Defines a Plugin that can be installed into [RoutingNode]
@@ -38,7 +38,7 @@ public fun <F : Any> RoutingNode.findPluginInRoute(plugin: Plugin<*, *, F>): F? 
         current = current.parent!!
     }
     if (current is RoutingRoot) {
-        return application.pluginOrNull(plugin)
+        return server.pluginOrNull(plugin)
     }
     return null
 }

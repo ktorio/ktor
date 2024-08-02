@@ -19,7 +19,7 @@ private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
  * So [stop] block will be called once or never.
  */
 @OptIn(ExperimentalForeignApi::class)
-public actual fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
+public actual fun ServerEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
     shutdownHook.value = stop
 
     signal(

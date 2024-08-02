@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
 
 /**
  * Describes a node in a routing tree.
- * @see [Application.routing]
+ * @see [Server.routing]
  *
  * @param parent is a parent node in the tree, or null for root node.
  * @param selector is an instance of [RouteSelector] for this node.
@@ -27,8 +27,8 @@ public open class RoutingNode(
     public override val parent: RoutingNode?,
     public val selector: RouteSelector,
     developmentMode: Boolean = false,
-    environment: ApplicationEnvironment
-) : ApplicationCallPipeline(developmentMode, environment), Route {
+    environment: ServerEnvironment
+) : ServerCallPipeline(developmentMode, environment), Route {
 
     /**
      * List of child routes for this node.
@@ -37,7 +37,7 @@ public open class RoutingNode(
 
     private val childList: MutableList<RoutingNode> = mutableListOf()
 
-    private var cachedPipeline: ApplicationCallPipeline? = null
+    private var cachedPipeline: ServerCallPipeline? = null
 
     internal val handlers = mutableListOf<RoutingHandler>()
 
@@ -69,12 +69,12 @@ public open class RoutingNode(
         cachedPipeline = null
     }
 
-    override fun <F : Any> plugin(plugin: Plugin<*, *, F>): F = (this as ApplicationCallPipeline).plugin(plugin)
+    override fun <F : Any> plugin(plugin: Plugin<*, *, F>): F = (this as ServerCallPipeline).plugin(plugin)
 
     override fun <B : Any, F : Any> install(
-        plugin: Plugin<ApplicationCallPipeline, B, F>,
+        plugin: Plugin<ServerCallPipeline, B, F>,
         configure: B.() -> Unit
-    ): F = (this as ApplicationCallPipeline).install(plugin, configure)
+    ): F = (this as ServerCallPipeline).install(plugin, configure)
 
     override fun afterIntercepted() {
         // Adding an interceptor invalidates pipelines for all children
@@ -88,10 +88,10 @@ public open class RoutingNode(
         childList.forEach { it.invalidateCachesRecursively() }
     }
 
-    internal fun buildPipeline(): ApplicationCallPipeline = cachedPipeline ?: run {
+    internal fun buildPipeline(): ServerCallPipeline = cachedPipeline ?: run {
         var current: RoutingNode? = this
-        val pipeline = ApplicationCallPipeline(developmentMode, application.environment)
-        val routePipelines = mutableListOf<ApplicationCallPipeline>()
+        val pipeline = ServerCallPipeline(developmentMode, server.environment)
+        val routePipelines = mutableListOf<ServerCallPipeline>()
         while (current != null) {
             routePipelines.add(current)
             current = current.parent
@@ -143,7 +143,7 @@ public class RoutingRequest internal constructor(
     public val pathVariables: Parameters,
     internal val request: PipelineRequest,
     public override val call: RoutingCall
-) : ApplicationRequest {
+) : ServerRequest {
 
     public override val queryParameters: Parameters = request.queryParameters
     public override val rawQueryParameters: Parameters = request.rawQueryParameters
@@ -163,7 +163,7 @@ public class RoutingRequest internal constructor(
 public class RoutingResponse internal constructor(
     public override val call: RoutingCall,
     internal val applicationResponse: PipelineResponse
-) : ApplicationResponse {
+) : ServerResponse {
 
     override val isCommitted: Boolean
         get() = applicationResponse.isCommitted
@@ -187,15 +187,15 @@ public class RoutingResponse internal constructor(
 
 /**
  * A single act of communication between a client and server that is handled in [RoutingRoot].
- * @see [io.ktor.server.request.ApplicationRequest]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.request.ServerRequest]
+ * @see [io.ktor.server.response.ServerResponse]
  */
 public class RoutingCall internal constructor(
     /**
-     * The original [ApplicationCall] that is being handled.
+     * The original [ServerCall] that is being handled.
      */
     public val pipelineCall: RoutingPipelineCall
-) : ApplicationCall {
+) : ServerCall {
 
     public override lateinit var request: RoutingRequest
         internal set
@@ -203,7 +203,7 @@ public class RoutingCall internal constructor(
         internal set
 
     public override val attributes: Attributes = pipelineCall.attributes
-    public override val application: Application = pipelineCall.application
+    public override val server: Server = pipelineCall.server
     public override val parameters: Parameters = pipelineCall.parameters
     public val pathParameters: Parameters = pipelineCall.pathParameters
     public val queryParameters: Parameters = pipelineCall.engineCall.parameters
@@ -222,8 +222,8 @@ public class RoutingCall internal constructor(
 public class RoutingContext(
     public val call: RoutingCall
 ) {
-    public val application: Application
-        get() = call.application
+    public val server: Server
+        get() = call.server
 }
 
 /**
@@ -235,7 +235,7 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
  * A builder for a routing tree.
  */
 public interface Route {
-    public val environment: ApplicationEnvironment
+    public val environment: ServerEnvironment
     public val attributes: Attributes
     public val parent: Route?
 
@@ -250,9 +250,9 @@ public interface Route {
     public fun createChild(selector: RouteSelector): Route
 
     /**
-     * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
+     * Gets a plugin instance for this pipeline, or fails with [MissingServerPluginException]
      * if the plugin is not installed.
-     * @throws MissingApplicationPluginException
+     * @throws MissingServerPluginException
      * @param plugin [Plugin] to lookup
      * @return an instance of a plugin
      */
@@ -263,7 +263,7 @@ public interface Route {
      * @return an instance of a plugin
      */
     public fun <B : Any, F : Any> install(
-        plugin: Plugin<ApplicationCallPipeline, B, F>,
+        plugin: Plugin<ServerCallPipeline, B, F>,
         configure: B.() -> Unit = {}
     ): F
 }

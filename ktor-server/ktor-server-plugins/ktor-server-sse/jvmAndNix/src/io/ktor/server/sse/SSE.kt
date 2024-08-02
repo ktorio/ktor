@@ -25,4 +25,4 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
  * }
  * ```
  */
-public val SSE: ApplicationPlugin<Unit> = createApplicationPlugin("SSE") {}
+public val SSE: ServerPlugin<Unit> = createServerPlugin("SSE") {}

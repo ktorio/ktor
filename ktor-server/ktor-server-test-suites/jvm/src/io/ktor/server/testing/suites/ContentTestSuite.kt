@@ -24,8 +24,8 @@ import java.io.*
 import kotlin.test.*
 
 @ExtendWith(RetrySupport::class)
-abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class ContentTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @Test
     fun testTextContent() {

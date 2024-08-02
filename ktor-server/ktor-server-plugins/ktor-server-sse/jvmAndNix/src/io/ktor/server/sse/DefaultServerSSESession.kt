@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 
 internal class DefaultServerSSESession(
     private val output: ByteWriteChannel,
-    override val call: ApplicationCall,
+    override val call: ServerCall,
     override val coroutineContext: CoroutineContext
 ) : ServerSSESession {
     private val mutex = Mutex()

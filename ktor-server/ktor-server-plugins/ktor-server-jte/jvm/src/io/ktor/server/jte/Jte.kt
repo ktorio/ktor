@@ -41,7 +41,7 @@ public class JteConfig {
  * Provides the ability to respond with [JteContent].
  * You can learn more from [JTE](https://ktor.io/docs/jte.html).
  */
-public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::JteConfig) {
+public val Jte: ServerPlugin<JteConfig> = createServerPlugin("jte", ::JteConfig) {
 
     val templateEngine = pluginConfig.templateEngine
 

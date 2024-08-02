@@ -10,17 +10,16 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.utils.io.*
 import org.slf4j.*
-import kotlin.coroutines.*
 
 /**
  * Builder for configuring the environment of the Ktor application.
  */
 @KtorDsl
-public actual class ApplicationEnvironmentBuilder {
+public actual class ServerEnvironmentBuilder {
     /**
      * Root class loader.
      */
-    public var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
+    public var classLoader: ClassLoader = ServerEnvironmentBuilder::class.java.classLoader
 
     /**
      * Application logger.
@@ -30,24 +29,24 @@ public actual class ApplicationEnvironmentBuilder {
     /**
      * Configuration for the application.
      */
-    public actual var config: ApplicationConfig = MapApplicationConfig()
+    public actual var config: ServerConfig = MapServerConfig()
 
     /**
      * Builds and returns an instance of the application engine environment based on the configured settings.
      */
-    public actual fun build(): ApplicationEnvironment {
-        return ApplicationEnvironmentImplJvm(classLoader, log, config)
+    public actual fun build(): ServerEnvironment {
+        return ServerEnvironmentImplJvm(classLoader, log, config)
     }
 }
 
-internal class ApplicationEnvironmentImplJvm(
+internal class ServerEnvironmentImplJvm(
     override val classLoader: ClassLoader,
     override val log: Logger,
-    override val config: ApplicationConfig,
+    override val config: ServerConfig,
     @Deprecated(
-        "Moved to Application",
+        "Moved to Server",
         replaceWith = ReplaceWith("EmbeddedServer.monitor", "io.ktor.server.engine.EmbeddedServer"),
         level = DeprecationLevel.WARNING
     )
     override val monitor: Events = Events()
-) : ApplicationEnvironment
+) : ServerEnvironment

@@ -108,7 +108,7 @@ public class WebSockets private constructor(
     /**
      * Plugin installation object.
      */
-    public companion object Plugin : BaseApplicationPlugin<Application, WebSocketOptions, WebSockets> {
+    public companion object Plugin : BaseServerPlugin<Server, WebSocketOptions, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("WebSockets")
 
         /**
@@ -117,7 +117,7 @@ public class WebSockets private constructor(
         public val EXTENSIONS_KEY: AttributeKey<List<WebSocketExtension<*>>> =
             AttributeKey("WebSocket extensions")
 
-        override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
+        override fun install(pipeline: Server, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
                 val webSockets = WebSockets(
@@ -129,12 +129,12 @@ public class WebSockets private constructor(
                     contentConverter
                 )
 
-                pipeline.monitor.subscribe(ApplicationStopPreparing) {
+                pipeline.monitor.subscribe(ServerStopPreparing) {
                     LOGGER.trace("Shutdown WebSockets due to application stop")
                     webSockets.shutdown()
                 }
 
-                pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) {
+                pipeline.sendPipeline.intercept(ServerSendPipeline.Transform) {
                     if (it !is WebSocketUpgrade) return@intercept
                 }
 

@@ -28,7 +28,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     /**
      * Current application instance. Could be lazy
      */
-    protected abstract val application: Application
+    protected abstract val server: Server
 
     /**
      * Engine pipeline
@@ -55,7 +55,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     override fun init() {
         super.init()
-        application.attributes.put(ServletContextAttribute, servletContext!!)
+        server.attributes.put(ServletContextAttribute, servletContext!!)
     }
 
     /**
@@ -78,13 +78,13 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 blockingService(request, response)
             }
         } catch (ioError: ChannelIOException) {
-            application.log.debug("I/O error", ioError)
+            server.log.debug("I/O error", ioError)
         } catch (cancelled: CancellationException) {
             // could only happen in blockingService branch
-            application.log.debug("Request cancelled", cancelled)
+            server.log.debug("Request cancelled", cancelled)
             response.sendErrorIfNotCommitted("Cancelled")
         } catch (ex: Throwable) {
-            application.log.error("ServletApplicationEngine cannot service the request", ex)
+            server.log.error("ServletApplicationEngine cannot service the request", ex)
             response.sendErrorIfNotCommitted(ex.message ?: ex.toString())
         }
     }
@@ -104,8 +104,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
         }
 
         launch(Dispatchers.IO) {
-            val call = AsyncServletApplicationCall(
-                application,
+            val call = AsyncServletServerCall(
+                server,
                 request,
                 response,
                 engineContext = Dispatchers.IO,
@@ -124,7 +124,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 try {
                     asyncContext.complete()
                 } catch (alreadyCompleted: IllegalStateException) {
-                    application.log.debug(
+                    server.log.debug(
                         "AsyncContext is already completed due to previous I/O error",
                         alreadyCompleted
                     )
@@ -135,8 +135,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     private fun blockingService(request: HttpServletRequest, response: HttpServletResponse) {
         runBlocking(coroutineContext) {
-            val call = BlockingServletApplicationCall(
-                application,
+            val call = BlockingServletServerCall(
+                server,
                 request,
                 response,
                 this@runBlocking.coroutineContext,

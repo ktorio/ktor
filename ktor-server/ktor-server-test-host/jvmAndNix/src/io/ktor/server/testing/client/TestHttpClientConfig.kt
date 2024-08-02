@@ -8,5 +8,5 @@ import io.ktor.client.engine.*
 import io.ktor.server.testing.*
 
 public class TestHttpClientConfig : HttpClientEngineConfig() {
-    public lateinit var app: TestApplicationEngine
+    public lateinit var app: TestServerEngine
 }

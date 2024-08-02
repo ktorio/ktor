@@ -7,7 +7,7 @@ package io.ktor.server.auth
 import io.ktor.server.application.*
 import kotlinx.atomicfu.*
 
-public typealias ChallengeFunction = suspend (AuthenticationProcedureChallenge, ApplicationCall) -> Unit
+public typealias ChallengeFunction = suspend (AuthenticationProcedureChallenge, ServerCall) -> Unit
 
 /**
  * Represents an authentication challenging procedure requested by authentication mechanism.

@@ -24,11 +24,11 @@ class DropwizardMetricsTests {
     fun `meter is registered for a given path`(): Unit = withTestApplication {
         val testRegistry = MetricRegistry()
 
-        application.install(DropwizardMetrics) {
+        server.install(DropwizardMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 call.respond("hello")
             }
@@ -46,12 +46,12 @@ class DropwizardMetricsTests {
         val testRegistry = MetricRegistry()
         testRegistry.register("jvm.memory", MemoryUsageGaugeSet())
 
-        application.install(DropwizardMetrics) {
+        server.install(DropwizardMetrics) {
             registry = testRegistry
             baseName = ""
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 call.respond("hello")
             }
@@ -68,7 +68,7 @@ class DropwizardMetricsTests {
     fun `jvm metrics are not registered when disabled in config`(): Unit = withTestApplication {
         val testRegistry = MetricRegistry()
 
-        application.install(DropwizardMetrics) {
+        server.install(DropwizardMetrics) {
             registry = testRegistry
             registerJvmMetricSets = false
         }
@@ -80,13 +80,13 @@ class DropwizardMetricsTests {
     fun `should prefix all metrics with baseName`(): Unit = withTestApplication {
         val prefix = "foo.bar"
         val registry = MetricRegistry()
-        application.install(DropwizardMetrics) {
+        server.install(DropwizardMetrics) {
             baseName = prefix
             registerJvmMetricSets = false
             this.registry = registry
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 call.respond("hello")
             }
@@ -100,7 +100,7 @@ class DropwizardMetricsTests {
     }
 
     @Test
-    fun `with StatusPages plugin`() = testApplication {
+    fun `with StatusPages plugin`() = testServer {
         install(StatusPages) {
             exception<Throwable> { call, _ ->
                 call.respond(HttpStatusCode.InternalServerError)
@@ -125,7 +125,7 @@ class DropwizardMetricsTests {
     }
 
     @Test
-    fun `with CORS plugin`() = testApplication {
+    fun `with CORS plugin`() = testServer {
         val testRegistry = MetricRegistry()
         install(DropwizardMetrics) {
             registry = testRegistry

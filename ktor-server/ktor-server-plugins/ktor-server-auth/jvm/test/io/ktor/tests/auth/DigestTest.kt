@@ -22,7 +22,7 @@ class DigestTest {
     @Test
     fun createExampleChallengeFromRFC() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Plugins) {
+            server.intercept(ServerCallPipeline.Plugins) {
                 call.respond(
                     UnauthorizedResponse(
                         HttpAuthHeader.digestAuthChallenge(
@@ -54,7 +54,7 @@ class DigestTest {
         withTestApplication {
             val foundDigests = arrayListOf<DigestCredential>()
 
-            application.install(Authentication) {
+            server.install(Authentication) {
                 provider {
                     authenticate { context ->
                         context.call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
@@ -62,7 +62,7 @@ class DigestTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     get("/") {}
                 }
@@ -125,7 +125,7 @@ class DigestTest {
     }
 
     @Test
-    fun testValidateFunction() = testApplication {
+    fun testValidateFunction() = testServer {
         class TestPrincipal(val name: String) : Principal
         install(Authentication) {
             digest {
@@ -178,7 +178,7 @@ class DigestTest {
         assertEquals(HttpStatusCode.OK, responseCorrectAuth.status)
     }
 
-    private fun Application.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
+    private fun Server.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
         install(Authentication) {
             digest {
                 val p = "Circle Of Life"
@@ -203,7 +203,7 @@ class DigestTest {
     @Test
     fun testDigestFromRFCExample() {
         withTestApplication {
-            application.configureDigestServer()
+            server.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"
@@ -230,7 +230,7 @@ class DigestTest {
     @Test
     fun testDigestFromRFCExampleAuthFailedDueToWrongRealm() {
         withTestApplication {
-            application.configureDigestServer()
+            server.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"
@@ -256,7 +256,7 @@ class DigestTest {
     @Test
     fun testBadRequestOnInvalidHeader() {
         withTestApplication {
-            application.configureDigestServer()
+            server.configureDigestServer()
 
             val call = handleRequest { addHeader(HttpHeaders.Authorization, "D<gest code") }
 
@@ -267,7 +267,7 @@ class DigestTest {
     @Test
     fun testDigestFromRFCExampleAuthFailed() {
         withTestApplication {
-            application.configureDigestServer()
+            server.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"
@@ -293,7 +293,7 @@ class DigestTest {
     @Test
     fun testDigestFromRFCExampleAuthFailedDueToMissingUser() {
         withTestApplication {
-            application.configureDigestServer()
+            server.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"
@@ -322,7 +322,7 @@ class DigestTest {
         val nonceValue = "test-nonce"
 
         withTestApplication {
-            application.configureDigestServer(
+            server.configureDigestServer(
                 nonceManager = StatelessHmacNonceManager(
                     key,
                     nonceGenerator = { nonceValue }

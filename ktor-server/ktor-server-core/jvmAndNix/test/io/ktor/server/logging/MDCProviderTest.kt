@@ -14,16 +14,16 @@ import kotlin.test.*
 class MDCProviderTest {
 
     @Test
-    fun testLogErrorWithEmptyApplication() = testApplication {
+    fun testLogErrorWithEmptyApplication() = testServer {
         val monitor = Events()
         val environment = createTestEnvironment { }
-        val engine = object : ApplicationEngine {
+        val engine = object : ServerEngine {
             override suspend fun resolvedConnectors(): List<EngineConnectorConfig> = TODO("Not yet implemented")
-            override val environment: ApplicationEnvironment get() = TODO("Not yet implemented")
-            override fun start(wait: Boolean): ApplicationEngine = TODO("Not yet implemented")
+            override val environment: ServerEnvironment get() = TODO("Not yet implemented")
+            override fun start(wait: Boolean): ServerEngine = TODO("Not yet implemented")
             override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = TODO("Not yet implemented")
         }
-        val application = Application(environment, false, "/", monitor, EmptyCoroutineContext) { engine }
-        assertNotNull(application.mdcProvider)
+        val server = Server(environment, false, "/", monitor, EmptyCoroutineContext) { engine }
+        assertNotNull(server.mdcProvider)
     }
 }

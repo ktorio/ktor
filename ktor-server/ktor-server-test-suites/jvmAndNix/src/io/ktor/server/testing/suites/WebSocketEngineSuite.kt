@@ -28,15 +28,15 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
-abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class WebSocketEngineSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     private val errors = mutableListOf<Throwable>()
     override val timeout = 30.seconds
 
-    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        application.install(WebSockets)
-        super.plugins(application, routingConfig)
+    override fun plugins(server: Server, routingConfig: Route.() -> Unit) {
+        server.install(WebSockets)
+        super.plugins(server, routingConfig)
     }
 
     @Test

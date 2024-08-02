@@ -12,7 +12,7 @@ import kotlin.jvm.*
 
 /**
  * Builds a route to match the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -30,7 +30,7 @@ public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
 
 /**
  * Builds a route to match the specified HTTP [method] and regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -50,7 +50,7 @@ public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit)
 
 /**
  * Builds a route to match `GET` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -67,7 +67,7 @@ public fun Route.get(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -84,7 +84,7 @@ public fun Route.post(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -105,7 +105,7 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `HEAD` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -122,7 +122,7 @@ public fun Route.head(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -139,7 +139,7 @@ public fun Route.put(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -160,7 +160,7 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PATCH` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -177,7 +177,7 @@ public fun Route.patch(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PATCH` requests with the specified regex [path] receiving a request body as content of the [R] type.
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -198,7 +198,7 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `DELETE` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```
@@ -215,7 +215,7 @@ public fun Route.delete(path: Regex, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `OPTIONS` requests with the specified regex [path].
- * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ * Named parameters from regex can be accessed via [ServerCall.parameters].
  *
  * Example:
  * ```

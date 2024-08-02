@@ -13,12 +13,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
 import java.net.*
 import java.nio.*
 import java.time.*
@@ -29,8 +27,8 @@ import kotlin.test.Test
 import kotlin.text.toByteArray
 import kotlin.time.Duration.Companion.seconds
 
-abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class HttpServerJvmTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test

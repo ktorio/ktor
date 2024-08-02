@@ -17,8 +17,8 @@ import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
-import kotlin.test.assertFailsWith
 import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 class AuthTest : ClientLoader() {
 

@@ -16,7 +16,7 @@ import kotlin.test.*
 class RouteTest {
 
     @Test
-    fun testCanInstallPlugin() = testApplication {
+    fun testCanInstallPlugin() = testServer {
         val plugin = createRouteScopedPlugin("test") {
             onCall { call ->
                 call.response.header("X-Test", "test")
@@ -41,7 +41,7 @@ class RouteTest {
     }
 
     @Test
-    fun testCanIntercept() = testApplication {
+    fun testCanIntercept() = testServer {
         routing {
             route("a") {
                 get {
@@ -49,7 +49,7 @@ class RouteTest {
                 }
             }
             route("b") {
-                intercept(ApplicationCallPipeline.Call) {
+                intercept(ServerCallPipeline.Call) {
                     call.response.header("X-Test", "test")
                 }
                 get {
@@ -63,7 +63,7 @@ class RouteTest {
     }
 
     @Test
-    fun testCanInterceptBeforeAndAfterPhase() = testApplication {
+    fun testCanInterceptBeforeAndAfterPhase() = testServer {
         routing {
             route("a") {
                 get {
@@ -73,12 +73,12 @@ class RouteTest {
             route("b") {
                 val phaseBefore = PipelinePhase("phaseBefore")
                 val phaseAfter = PipelinePhase("phaseAfter")
-                insertPhaseBefore(ApplicationCallPipeline.Plugins, phaseBefore)
-                insertPhaseAfter(ApplicationCallPipeline.Plugins, phaseAfter)
+                insertPhaseBefore(ServerCallPipeline.Plugins, phaseBefore)
+                insertPhaseAfter(ServerCallPipeline.Plugins, phaseAfter)
                 intercept(phaseAfter) {
                     call.response.header("X-Test", "test-3")
                 }
-                intercept(ApplicationCallPipeline.Plugins) {
+                intercept(ServerCallPipeline.Plugins) {
                     call.response.header("X-Test", "test-2")
                 }
                 intercept(phaseBefore) {
@@ -95,7 +95,7 @@ class RouteTest {
     }
 
     @Test
-    fun testCanAccessPathAndQueryParameters() = testApplication {
+    fun testCanAccessPathAndQueryParameters() = testServer {
         routing {
             route("path/{id}") {
                 get {

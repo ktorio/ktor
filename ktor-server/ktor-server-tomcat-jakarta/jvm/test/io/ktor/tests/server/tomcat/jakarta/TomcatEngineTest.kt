@@ -21,7 +21,7 @@ import java.util.logging.*
 import kotlin.test.*
 
 class TomcatCompressionTest :
-    CompressionTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    CompressionTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -31,7 +31,7 @@ class TomcatCompressionTest :
     }
 }
 
-class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+class TomcatContentTest : ContentTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -53,7 +53,7 @@ class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplic
 }
 
 class TomcatHttpServerCommonTest :
-    HttpServerCommonTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    HttpServerCommonTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -66,7 +66,7 @@ class TomcatHttpServerCommonTest :
 }
 
 class TomcatHttpServerJvmTest :
-    HttpServerJvmTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    HttpServerJvmTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -96,7 +96,7 @@ class TomcatHttpServerJvmTest :
         }
     }
 
-    override fun configure(configuration: TomcatApplicationEngine.Configuration) {
+    override fun configure(configuration: TomcatServerEngine.Configuration) {
         super.configure(configuration)
         configuration.configureTomcat = {
             addAttributesFilter()
@@ -144,7 +144,7 @@ class TomcatHttpServerJvmTest :
 }
 
 class TomcatSustainabilityTestSuite :
-    SustainabilityTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    SustainabilityTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -174,7 +174,7 @@ class TomcatConfigTest : ConfigTestSuite(Tomcat)
 class TomcatConnectionTest : ConnectionTestSuite(Tomcat)
 
 class TomcatClientCertTest :
-    ClientCertTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    ClientCertTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
 
     override fun sslConnectorBuilder(): EngineSSLConnectorBuilder {
         val serverKeyStorePath = File.createTempFile("serverKeys", "jks")
@@ -196,7 +196,7 @@ class TomcatClientCertTest :
 }
 
 class TomcatServerPluginsTest :
-    ServerPluginsTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    ServerPluginsTestSuite<TomcatServerEngine, TomcatServerEngine.Configuration>(Tomcat) {
     init {
         enableSsl = false
         enableHttp2 = false

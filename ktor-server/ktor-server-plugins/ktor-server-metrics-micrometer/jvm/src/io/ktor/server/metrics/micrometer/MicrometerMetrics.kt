@@ -89,13 +89,13 @@ public class MicrometerMetricsConfig {
     public var distributionStatisticConfig: DistributionStatisticConfig =
         DistributionStatisticConfig.Builder().percentiles(0.5, 0.9, 0.95, 0.99).build()
 
-    internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
+    internal var timerBuilder: Timer.Builder.(ServerCall, Throwable?) -> Unit = { _, _ -> }
 
     /**
      * Configures micrometer timers.
      * Can be used to customize tags for each timer, configure individual SLAs, and so on.
      */
-    public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
+    public fun timers(block: Timer.Builder.(ServerCall, Throwable?) -> Unit) {
         timerBuilder = block
     }
 }
@@ -108,8 +108,8 @@ public class MicrometerMetricsConfig {
  *
  * You can learn more from [Micrometer metrics](https://ktor.io/docs/micrometer-metrics.html).
  */
-public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
-    createApplicationPlugin("MicrometerMetrics", ::MicrometerMetricsConfig) {
+public val MicrometerMetrics: ServerPlugin<MicrometerMetricsConfig> =
+    createServerPlugin("MicrometerMetrics", ::MicrometerMetricsConfig) {
 
         if (pluginConfig.metricName.isBlank()) {
             throw IllegalArgumentException("Metric name should be defined")
@@ -121,7 +121,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
         val measureKey = AttributeKey<CallMeasure>("micrometerMetrics")
 
-        fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
+        fun Timer.Builder.addDefaultTags(call: ServerCall, throwable: Throwable?): Timer.Builder {
             val route = call.attributes[measureKey].route
                 ?: if (pluginConfig.distinctNotRegisteredRoutes) call.request.path() else "n/a"
             tags(
@@ -164,7 +164,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
             throw cause
         }
 
-        application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
+        server.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
             call.attributes[measureKey].route = call.route.parent.toString()
         }
     }

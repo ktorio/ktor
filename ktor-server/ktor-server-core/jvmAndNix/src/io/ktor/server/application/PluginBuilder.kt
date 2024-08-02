@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
 import kotlin.random.*
 
 /**
- * A utility class to build an [ApplicationPlugin] instance.
+ * A utility class to build an [ServerPlugin] instance.
  **/
 @KtorDsl
 @Suppress("UNUSED_PARAMETER", "DEPRECATION")
@@ -24,9 +24,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
 ) {
 
     /**
-     * A reference to the [Application] where the plugin is installed.
+     * A reference to the [Server] where the plugin is installed.
      */
-    public abstract val application: Application
+    public abstract val server: Server
 
     /**
      * A configuration of the current plugin.
@@ -37,18 +37,18 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * A pipeline [PluginConfig] for the current plugin.
      * See [Pipelines](https://ktor.io/docs/pipelines.html) for more information.
      **/
-    internal abstract val pipeline: ApplicationCallPipeline
+    internal abstract val pipeline: ServerCallPipeline
 
     /**
      * Allows you to access the environment of the currently running application where the plugin is installed.
      **/
-    public val environment: ApplicationEnvironment get() = pipeline.environment
+    public val environment: ServerEnvironment get() = pipeline.environment
 
     /**
      * A configuration of your current application (incl. host, port and anything else you can define in
      * application.conf).
      **/
-    public val applicationConfig: ApplicationConfig get() = environment.config
+    public val serverConfig: ServerConfig get() = environment.config
 
     internal val callInterceptions: MutableList<CallInterception> = mutableListOf()
 
@@ -76,14 +76,14 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * }
      * ```
      *
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      **/
     public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
         onDefaultPhase(
             callInterceptions,
-            ApplicationCallPipeline.Plugins,
+            ServerCallPipeline.Plugins,
             PHASE_ON_CALL,
             ::OnCallContext
         ) { call, _ ->
@@ -94,7 +94,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
@@ -103,7 +103,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     ) {
         onDefaultPhase(
             onReceiveInterceptions,
-            ApplicationReceivePipeline.Transform,
+            ServerReceivePipeline.Transform,
             PHASE_ON_CALL_RECEIVE,
             ::OnCallReceiveContext,
         ) { call, body: Any -> block(call, body) }
@@ -112,7 +112,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to transform data before sending it to the client.
      * This handler is executed when the `call.respond` function is invoked in a route handler.
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/
@@ -121,7 +121,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     ) {
         onDefaultPhase(
             onResponseInterceptions,
-            ApplicationSendPipeline.Transform,
+            ServerSendPipeline.Transform,
             PHASE_ON_CALL_RESPOND,
             ::OnCallRespondContext,
             block
@@ -132,7 +132,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * Specifies a [handler] for a specific [hook].
      * A [hook] can be a specific place in time or event during the request
      * processing like application shutdown, an exception during call processing, etc.
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * Example:
      * ```kotlin
@@ -155,7 +155,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * @param block An action that needs to be executed when your application receives data from a client.
      **/
@@ -168,7 +168,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to transform data before sending it to the client.
      * This handler is executed when the `call.respond` function is invoked in a route handler.
-     * @see [createApplicationPlugin]
+     * @see [createServerPlugin]
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.
      **/

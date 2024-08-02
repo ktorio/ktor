@@ -22,7 +22,7 @@ import kotlin.coroutines.*
 @ChannelHandler.Sharable
 internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
-    private val application: Application,
+    private val server: Server,
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
@@ -72,7 +72,7 @@ internal class NettyHttp2Handler(
         )
 
         context.pipeline()?.apply {
-            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline))
+            addLast(callEventGroup, NettyServerCallHandler(userCoroutineContext, enginePipeline))
         }
         context.fireChannelActive()
     }
@@ -89,8 +89,8 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val call = NettyHttp2ApplicationCall(
-            application,
+        val call = NettyHttp2ServerCall(
+            server,
             context,
             headers,
             this,
@@ -212,9 +212,9 @@ internal class NettyHttp2Handler(
     }
 
     companion object {
-        private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
+        private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ServerCall>("ktor.ApplicationCall")
 
-        private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?
+        private var ChannelHandlerContext.applicationCall: NettyHttp2ServerCall?
             get() = channel().attr(ApplicationCallKey).get()
             set(newValue) {
                 channel().attr(ApplicationCallKey).set(newValue)

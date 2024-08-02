@@ -17,21 +17,21 @@ import org.eclipse.jetty.util.component.*
 import kotlin.test.*
 
 class JettyCompressionTest :
-    CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    CompressionTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
-class JettyContentTest : ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyContentTest : ContentTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
 class JettyHttpServerCommonTest :
-    HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    HttpServerCommonTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty) {
     override fun testFlushingHeaders() {
         // no op
     }
 }
 
-class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(
     Jetty
 ) {
-    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+    override fun configure(configuration: JettyServerEngineBase.Configuration) {
         super.configure(configuration)
         configuration.configureServer = {
             addAttributesHandler()
@@ -85,13 +85,13 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 }
 
 class JettySustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
 
 class JettyConnectionTest : ConnectionTestSuite(Jetty)
 
-class JettyServerPluginsTest : ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+class JettyServerPluginsTest : ServerPluginsTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(
     Jetty
 ) {
     init {

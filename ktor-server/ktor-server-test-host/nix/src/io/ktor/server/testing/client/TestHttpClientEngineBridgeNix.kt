@@ -15,7 +15,7 @@ import kotlin.coroutines.*
 
 internal actual class TestHttpClientEngineBridge actual constructor(
     engine: TestHttpClientEngine,
-    app: TestApplicationEngine
+    app: TestServerEngine
 ) {
 
     actual val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability)
@@ -25,7 +25,7 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         headers: Headers,
         content: OutgoingContent,
         callContext: CoroutineContext
-    ): Pair<TestApplicationCall, WebSocketSession> {
+    ): Pair<TestServerCall, WebSocketSession> {
         throw NotImplementedError("Websockets for native are not supported")
     }
 }

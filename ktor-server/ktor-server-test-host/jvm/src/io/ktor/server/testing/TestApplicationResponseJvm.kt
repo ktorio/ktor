@@ -10,6 +10,6 @@ import java.time.*
  * Wait for websocket session completion
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-public fun TestApplicationResponse.awaitWebSocket(duration: Duration) {
+public fun TestServerResponse.awaitWebSocket(duration: Duration) {
     awaitWebSocket(duration.toMillis())
 }

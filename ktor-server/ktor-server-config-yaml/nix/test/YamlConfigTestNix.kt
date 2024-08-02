@@ -64,7 +64,7 @@ class YamlConfigTestNix {
                     port: ${'$'}NON_EXISTING_VARIABLE
         """.trimIndent()
         withFile("application-no-env.yaml", content) {
-            assertFailsWith<ApplicationConfigurationException> {
+            assertFailsWith<ServerConfigurationException> {
                 YamlConfig("application-no-env.yaml")!!
             }
         }

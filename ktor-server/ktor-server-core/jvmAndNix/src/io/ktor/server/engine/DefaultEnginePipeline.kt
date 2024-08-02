@@ -15,7 +15,6 @@ import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
@@ -23,17 +22,17 @@ import kotlinx.io.IOException
 /**
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
-public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boolean): EnginePipeline {
+public fun defaultEnginePipeline(config: ServerConfig, developmentMode: Boolean): EnginePipeline {
     val pipeline = EnginePipeline(developmentMode)
 
     configureShutdownUrl(config, pipeline)
 
     pipeline.intercept(EnginePipeline.Call) {
         try {
-            call.application.execute(call)
+            call.server.execute(call)
         } catch (error: ChannelIOException) {
-            call.application.mdcProvider.withMDCBlock(call) {
-                call.application.environment.logFailure(call, error)
+            call.server.mdcProvider.withMDCBlock(call) {
+                call.server.environment.logFailure(call, error)
             }
         } catch (error: Throwable) {
             handleFailure(call, error)
@@ -51,7 +50,7 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
 /**
  * Logs the [error] and responds with an appropriate error status code.
  */
-public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
+public suspend fun handleFailure(call: ServerCall, error: Throwable) {
     logError(call, error)
     tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
 }
@@ -59,9 +58,9 @@ public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
 /**
  * Logs the [error] with MDC setup.
  */
-public suspend fun logError(call: ApplicationCall, error: Throwable) {
-    call.application.mdcProvider.withMDCBlock(call) {
-        call.application.environment.logFailure(call, error)
+public suspend fun logError(call: ServerCall, error: Throwable) {
+    call.server.mdcProvider.withMDCBlock(call) {
+        call.server.environment.logFailure(call, error)
     }
 }
 
@@ -79,14 +78,14 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     }
 }
 
-private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
+private suspend fun tryRespondError(call: ServerCall, statusCode: HttpStatusCode) {
     try {
         call.respond(statusCode)
-    } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+    } catch (ignore: BaseServerResponse.ResponseAlreadySentException) {
     }
 }
 
-private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Throwable) {
+private fun ServerEnvironment.logFailure(call: ServerCall, cause: Throwable) {
     try {
         val status = call.response.status() ?: "Unhandled"
         val logString = try {

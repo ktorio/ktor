@@ -15,12 +15,12 @@ class DataConversionTest {
     @Test
     fun testBigNumbers() = withTestApplication {
         val expected = "12345678901234567890"
-        val v = application.conversionService.toValues(BigDecimal(expected))
+        val v = server.conversionService.toValues(BigDecimal(expected))
         assertEquals(expected, v.single())
-        assertEquals(BigDecimal(expected), application.conversionService.fromValues(v, typeInfo<BigDecimal>()))
+        assertEquals(BigDecimal(expected), server.conversionService.fromValues(v, typeInfo<BigDecimal>()))
 
-        val v2 = application.conversionService.toValues(BigInteger(expected))
+        val v2 = server.conversionService.toValues(BigInteger(expected))
         assertEquals(expected, v2.single())
-        assertEquals(BigInteger(expected), application.conversionService.fromValues(v2, typeInfo<BigInteger>()))
+        assertEquals(BigInteger(expected), server.conversionService.fromValues(v2, typeInfo<BigInteger>()))
     }
 }

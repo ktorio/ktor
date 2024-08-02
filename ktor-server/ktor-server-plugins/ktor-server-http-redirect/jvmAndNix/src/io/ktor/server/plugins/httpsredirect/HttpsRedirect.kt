@@ -29,7 +29,7 @@ public class HttpsRedirectConfig {
     /**
      * Allows you to disable redirection for calls matching specified conditions.
      */
-    public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
+    public val excludePredicates: MutableList<(ServerCall) -> Boolean> = ArrayList()
 
     /**
      * Allows you to disable redirection for calls with a path matching [pathPrefix].
@@ -52,7 +52,7 @@ public class HttpsRedirectConfig {
     /**
      * Allows you to disable redirection for calls matching the specified [predicate].
      */
-    public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
+    public fun exclude(predicate: (call: ServerCall) -> Boolean) {
         excludePredicates.add(predicate)
     }
 }
@@ -71,7 +71,7 @@ public class HttpsRedirectConfig {
  *
  * You can learn more from [HttpsRedirect](https://ktor.io/docs/https-redirect.html).
  */
-public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplicationPlugin(
+public val HttpsRedirect: ServerPlugin<HttpsRedirectConfig> = createServerPlugin(
     "HttpsRedirect",
     ::HttpsRedirectConfig
 ) {

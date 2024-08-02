@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 @OptIn(InternalAPI::class)
-inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
+inline fun <reified T> ServerTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
     on("making get request to resource $resource") {
         val result = runBlocking {
             client.get(
@@ -36,7 +36,7 @@ inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, co
     }
 }
 
-fun ApplicationTestBuilder.urlShouldBeUnhandled(url: String) {
+fun ServerTestBuilder.urlShouldBeUnhandled(url: String) {
     on("making post request to $url") {
         it("should not be handled") {
             runBlocking {

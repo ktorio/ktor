@@ -25,7 +25,7 @@ class KotlinxContentNegotiationTest : JsonContentNegotiationTest(
 ) {
 
     @Test
-    override fun testRespondNestedSealedWithTypeInfoAny() = testApplication {
+    override fun testRespondNestedSealedWithTypeInfoAny() = testServer {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }

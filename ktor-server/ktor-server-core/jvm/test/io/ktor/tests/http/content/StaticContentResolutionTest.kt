@@ -11,7 +11,6 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -47,7 +46,7 @@ class StaticContentResolutionTest {
     }
 
     @Test
-    fun testNoPassTraversalAllowed() = testApplication {
+    fun testNoPassTraversalAllowed() = testServer {
         routing {
             get("/static/{staticPath...}") {
                 val path = call.parameters.getAll("staticPath")?.joinToString(File.separator) ?: return@get
@@ -71,7 +70,7 @@ class StaticContentResolutionTest {
     }
 
     @Test
-    fun resourceUrlsAreCached() = testApplication {
+    fun resourceUrlsAreCached() = testServer {
         application {
             var callCount = 0
             val countingClassLoader = object : ClassLoader(environment.classLoader) {

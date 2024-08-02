@@ -24,7 +24,7 @@ import kotlin.io.use
 import kotlin.test.*
 
 class NettyReadRequestTimeoutTest :
-    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    EngineTestBase<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
 
     companion object {
         private const val TEST_SERVER_HOST = "127.0.0.1"

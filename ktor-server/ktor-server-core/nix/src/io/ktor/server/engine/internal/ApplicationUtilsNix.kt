@@ -19,7 +19,7 @@ internal actual fun printError(message: Any?) {
     fprintf(stderr, "%s", message?.toString())
 }
 
-internal actual fun configureShutdownUrl(config: ApplicationConfig, pipeline: EnginePipeline) {
+internal actual fun configureShutdownUrl(config: ServerConfig, pipeline: EnginePipeline) {
     config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { _ ->
         error("Shutdown url is not supported on native")
     }
