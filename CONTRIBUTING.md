@@ -58,7 +58,7 @@ If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on
 **Windows**
 
 For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/) which will provide the necessary
-libaries such as `libncurses`.
+libraries such as `libncurses`.
 
 #### Referencing artifacts locally
 
