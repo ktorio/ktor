@@ -24,6 +24,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
@@ -63,7 +64,7 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testTopLevel() = runBlocking {
+    fun testTopLevel() = runTest {
         val response = testClient.get("a")
         assertEquals("OK", response.bodyAsText())
         assertEquals("value_1", response.headers["response_header"])
@@ -338,7 +339,7 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testConnectors(): Unit = testApplication {
+    fun testConnectors() = testApplication {
         engine {
             connector {
                 port = 8080
@@ -382,19 +383,17 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testCanPassCoroutineContextFromOutside() = runBlocking(MyElement("test")) {
-        testApplication(coroutineContext) {
+    fun testCanPassCoroutineContextFromOutside() = testApplication(MyElement("test")) {
+        assertEquals("test", coroutineContext[MyElement]!!.data)
+        withContext(Dispatchers.Unconfined) {
             assertEquals("test", coroutineContext[MyElement]!!.data)
-            withContext(Dispatchers.Unconfined) {
-                assertEquals("test", coroutineContext[MyElement]!!.data)
-            }
-            routing {
-                get {
-                    call.respond(coroutineContext[MyElement]!!.data)
-                }
-            }
-            assertEquals("test", client.get("/").bodyAsText())
         }
+        routing {
+            get {
+                call.respond(coroutineContext[MyElement]!!.data)
+            }
+        }
+        assertEquals("test", client.get("/").bodyAsText())
     }
 
     private fun testSocketTimeoutRead(timeout: Long, expectException: Boolean) = testApplication {
@@ -431,21 +430,15 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testSocketTimeoutReadElapsed() {
-        testSocketTimeoutRead(100, true)
-    }
+    fun testSocketTimeoutReadElapsed() = testSocketTimeoutRead(100, true)
 
     @Test
-    fun testSocketTimeoutReadNotElapsed() {
-        testSocketTimeoutRead(1000, false)
-    }
+    fun testSocketTimeoutReadNotElapsed() = testSocketTimeoutRead(1000, false)
 
     @Test
-    fun `configuration file is not loaded automatically`() {
-        testApplication {
-            application {
-                assertNull(environment.config.propertyOrNull("test.property"))
-            }
+    fun configuration_file_is_not_loaded_automatically() = testApplication {
+        application {
+            assertNull(environment.config.propertyOrNull("test.property"))
         }
     }
 

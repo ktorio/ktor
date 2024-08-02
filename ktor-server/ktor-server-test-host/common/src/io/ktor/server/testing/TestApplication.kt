@@ -14,10 +14,12 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.client.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.coroutines.*
 
 /**
@@ -70,7 +72,7 @@ public class TestApplication internal constructor(
     /**
      * Starts this [TestApplication] instance.
      */
-    public fun start() {
+    public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
                 builder.embeddedServer.start()
@@ -81,7 +83,7 @@ public class TestApplication internal constructor(
             }
         }
         if (state.value == State.Starting) {
-            runBlocking { applicationStarting.join() }
+            applicationStarting.join()
         }
     }
 
@@ -283,7 +285,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      *
      * After calling this method, no modification of the application is allowed.
      */
-    public fun startApplication() {
+    public suspend fun startApplication() {
         application.start()
     }
 
@@ -332,8 +334,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  */
 @KtorDsl
-public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
-    testApplication(EmptyCoroutineContext, block)
+public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
+    return testApplication(EmptyCoroutineContext, block)
 }
 
 /**
@@ -372,19 +374,26 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
+): TestResult = runTestWithRealTime {
+    runTestApplication(parentCoroutineContext, block)
+}
+
+// allows running multiple servers during one test
+// not really needed outside ktor probably
+@KtorDsl
+public suspend fun runTestApplication(
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    block: suspend ApplicationTestBuilder.() -> Unit
 ) {
     val builder = ApplicationTestBuilder()
-        .apply {
-            runBlocking(parentCoroutineContext) {
-                if (parentCoroutineContext != EmptyCoroutineContext) {
-                    testApplicationProperties {
-                        this.parentCoroutineContext = parentCoroutineContext
-                    }
-                }
-                block()
+    with(builder) {
+        if (parentCoroutineContext != EmptyCoroutineContext) {
+            testApplicationProperties {
+                this.parentCoroutineContext = parentCoroutineContext
             }
         }
-
+        withContext(parentCoroutineContext) { block() }
+    }
     val testApplication = builder.application
     testApplication.start()
     testApplication.stop()

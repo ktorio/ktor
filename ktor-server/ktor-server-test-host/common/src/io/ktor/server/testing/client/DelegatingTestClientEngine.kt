@@ -35,8 +35,8 @@ internal class DelegatingTestClientEngine(
     private val mainEngine by lazy {
         TestHttpClientEngine(TestHttpClientConfig().apply { app = appEngine })
     }
-    private val mainEngineHostWithPorts by lazy {
-        runBlocking { appEngine.resolvedConnectors().map { "${it.host}:${it.port}" } }
+    private val mainEngineHostWithPortsDeferred by lazy {
+        async { appEngine.resolvedConnectors().map { "${it.host}:${it.port}" } }
     }
 
     private val clientJob: CompletableJob = Job(config.parentJob)
@@ -46,6 +46,7 @@ internal class DelegatingTestClientEngine(
     @InternalAPI
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         config.testApplicationProvder().start()
+        val mainEngineHostWithPorts = mainEngineHostWithPortsDeferred.await()
         val authority = data.url.protocolWithAuthority
         val hostWithPort = data.url.hostWithPort
         return when {

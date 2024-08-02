@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 
 /**
  * [on] function receiver object
@@ -25,7 +26,7 @@ public object It
  * DSL for creating a test case
  */
 @Suppress("UNUSED_PARAMETER")
-public fun on(comment: String, body: On.() -> Unit): Unit = On.body()
+public inline fun on(comment: String, body: On.() -> Unit): Unit = On.body()
 
 /**
  * DSL function for a test case assertions
@@ -59,7 +60,7 @@ internal fun CoroutineScope.socketTimeoutKiller(socketTimeoutMillis: Long, job: 
             delay(socketTimeoutMillis)
             val next = extract()
             if (cur == next) {
-                throw io.ktor.network.sockets.SocketTimeoutException("Socket timeout elapsed")
+                throw NetworkSocketTimeoutException("Socket timeout elapsed")
             }
             cur = next
         }
@@ -70,14 +71,15 @@ internal fun CoroutineScope.socketTimeoutKiller(socketTimeoutMillis: Long, job: 
 }
 
 @OptIn(InternalAPI::class)
-internal fun Throwable.mapToKtor(data: HttpRequestData): Throwable {
-    return when {
-        this is io.ktor.network.sockets.SocketTimeoutException -> SocketTimeoutException(data, this)
-        cause?.rootCause is io.ktor.network.sockets.SocketTimeoutException -> SocketTimeoutException(
-            data,
-            cause?.rootCause
-        )
-
-        else -> this
-    }
+internal fun Throwable.mapToKtor(data: HttpRequestData): Throwable = when {
+    this is NetworkSocketTimeoutException -> SocketTimeoutException(data, this)
+    cause?.rootCause is NetworkSocketTimeoutException -> SocketTimeoutException(data, cause?.rootCause)
+    else -> this
 }
+
+// There are two SocketTimeoutException in ktor:
+// * io.ktor.network.sockets.SocketTimeoutException
+// * io.ktor.client.network.sockets.SocketTimeoutException
+// on JVM they both are java.net.SocketTimeoutException, but on other targets it's not true
+// additionally `network.sockets` exception is in `ktor-network` modules which don't have support for js/wasm target
+internal expect class NetworkSocketTimeoutException(message: String) : IOException

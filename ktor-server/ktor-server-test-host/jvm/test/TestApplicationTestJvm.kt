@@ -344,14 +344,10 @@ class TestApplicationTestJvm {
     }
 
     @Test
-    fun testSocketTimeoutWriteElapsed() {
-        testSocketTimeoutWrite(100, true)
-    }
+    fun testSocketTimeoutWriteElapsed() = testSocketTimeoutWrite(100, true)
 
     @Test
-    fun testSocketTimeoutWriteNotElapsed() {
-        testSocketTimeoutWrite(1000, false)
-    }
+    fun testSocketTimeoutWriteNotElapsed() = testSocketTimeoutWrite(1000, false)
 }
 
 class TestClass(val value: Int) : Serializable

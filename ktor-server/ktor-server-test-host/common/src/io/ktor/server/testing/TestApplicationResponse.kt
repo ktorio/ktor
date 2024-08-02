@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.testing.internal.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -46,7 +47,7 @@ public class TestApplicationResponse(
         get() = when {
             _byteContent.value != null -> _byteContent.value
             responseChannel == null -> null
-            else -> runBlocking { responseChannel!!.toByteArray() }
+            else -> maybeRunBlocking { responseChannel!!.toByteArray() }
         }
         private set(value) {
             _byteContent.value = value
@@ -142,7 +143,7 @@ public class TestApplicationResponse(
     /**
      * Waits for a websocket session completion.
      */
-    public fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
+    public fun awaitWebSocket(durationMillis: Long): Unit = maybeRunBlocking {
         withTimeout(durationMillis) {
             responseChannelDeferred.join()
             responseJob?.join()

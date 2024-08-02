@@ -8,4 +8,5 @@ import kotlinx.coroutines.*
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default
 
-internal actual fun <T> maybeRunBlocking(block: suspend CoroutineScope.() -> T): T = runBlocking(block = block)
+internal actual fun <T> maybeRunBlocking(block: suspend CoroutineScope.() -> T): T =
+    error("run blocking is not supported on JS/Wasm")

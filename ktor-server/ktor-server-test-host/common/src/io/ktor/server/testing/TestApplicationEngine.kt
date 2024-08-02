@@ -149,8 +149,9 @@ public class TestApplicationEngine(
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
         )
-        resolvedConnectorsDeferred.complete(runBlocking { resolvedConnectors() })
-
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            resolvedConnectorsDeferred.complete(resolvedConnectors())
+        }
         return this
     }
 
@@ -204,7 +205,7 @@ public class TestApplicationEngine(
             handleRequestNonBlocking(closeRequest, timeoutAttributes = null, setup)
         }
 
-        return runBlocking { callJob.await() }
+        return maybeRunBlocking { callJob.await() }
     }
 
     internal suspend fun handleRequestNonBlocking(
@@ -263,7 +264,7 @@ public class TestApplicationEngine(
         }
         processResponse(call)
 
-        runBlocking {
+        maybeRunBlocking {
             pipelineExecuted.join()
         }
 
