@@ -46,7 +46,7 @@ class WebResourcesTest {
     }
 
     @Test
-    fun testServeWebResources() = testApplication {
+    fun testServeWebResources() = testServer {
         application {
             attributes.put(ServletContextAttribute, TestContext())
             routing {

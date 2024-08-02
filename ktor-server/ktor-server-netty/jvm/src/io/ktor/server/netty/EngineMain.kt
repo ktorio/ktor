@@ -18,14 +18,14 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, Netty) {
+        val server = EmbeddedServer(config.serverParameters, Netty) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.serverParameters.environment.config)
         }
         server.start(true)
     }
 
-    internal fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+    internal fun NettyServerEngine.Configuration.loadConfiguration(config: ServerConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
         deploymentConfig.propertyOrNull("runningLimit")?.getString()?.toInt()?.let {

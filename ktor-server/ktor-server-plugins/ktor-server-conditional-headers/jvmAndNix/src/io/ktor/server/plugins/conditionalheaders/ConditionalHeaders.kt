@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
  */
 @KtorDsl
 public class ConditionalHeadersConfig {
-    internal val versionProviders = mutableListOf<suspend (ApplicationCall, OutgoingContent) -> List<Version>>()
+    internal val versionProviders = mutableListOf<suspend (ServerCall, OutgoingContent) -> List<Version>>()
 
     init {
         versionProviders.add { _, content -> content.versions }
@@ -28,23 +28,23 @@ public class ConditionalHeadersConfig {
     }
 
     /**
-     * Registers a function that can fetch a version list for a given [ApplicationCall] and [OutgoingContent].
+     * Registers a function that can fetch a version list for a given [ServerCall] and [OutgoingContent].
      *
      * @see [ConditionalHeaders]
      */
-    public fun version(provider: suspend (ApplicationCall, OutgoingContent) -> List<Version>) {
+    public fun version(provider: suspend (ServerCall, OutgoingContent) -> List<Version>) {
         versionProviders.add(provider)
     }
 }
 
-internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, OutgoingContent) -> List<Version>>> =
+internal val VersionProvidersKey: AttributeKey<List<suspend (ServerCall, OutgoingContent) -> List<Version>>> =
     AttributeKey("ConditionalHeadersKey")
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
  */
-public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
-    val versionProviders = application.attributes.getOrNull(VersionProvidersKey)
+public suspend fun ServerCall.versionsFor(content: OutgoingContent): List<Version> {
+    val versionProviders = server.attributes.getOrNull(VersionProvidersKey)
     return versionProviders?.flatMap { it(this, content) } ?: emptyList()
 }
 
@@ -78,9 +78,9 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 ) {
     val versionProviders = pluginConfig.versionProviders
 
-    application.attributes.put(VersionProvidersKey, versionProviders)
+    server.attributes.put(VersionProvidersKey, versionProviders)
 
-    fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
+    fun checkVersions(call: ServerCall, versions: List<Version>): VersionCheckResult {
         for (version in versions) {
             val result = version.check(call.request.headers)
             if (result != VersionCheckResult.OK) {

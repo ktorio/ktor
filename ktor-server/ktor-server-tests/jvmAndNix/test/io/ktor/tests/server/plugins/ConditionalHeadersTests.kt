@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class ETagsTest {
-    private fun withConditionalApplication(body: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
+    private fun withConditionalApplication(body: suspend ServerTestBuilder.() -> Unit) = testServer {
         application {
             install(ConditionalHeaders) {
                 version { _, _ -> listOf(EntityTagVersion("tag1")) }
@@ -53,7 +53,7 @@ class ETagsTest {
     }
 
     @Test
-    fun testNoDoubleHeader(): Unit = testApplication {
+    fun testNoDoubleHeader(): Unit = testServer {
         install(ConditionalHeaders) {
             version { _, _ -> listOf(EntityTagVersion("tag1")) }
         }

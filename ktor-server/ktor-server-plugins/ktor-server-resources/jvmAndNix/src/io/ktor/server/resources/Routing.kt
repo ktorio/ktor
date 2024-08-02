@@ -266,7 +266,7 @@ private class ResourceInstancePluginConfig {
 private val ResourceInstancePlugin = createRouteScopedPlugin("ResourceInstancePlugin", ::ResourceInstancePluginConfig) {
     val serializer = pluginConfig.serializer
     onCall { call ->
-        val resources = call.application.plugin(Resources)
+        val resources = call.server.plugin(Resources)
         try {
             val resource = resources.resourcesFormat.decodeFromParameters(serializer, call.parameters) as Any
             call.attributes.put(ResourceInstanceKey, resource)

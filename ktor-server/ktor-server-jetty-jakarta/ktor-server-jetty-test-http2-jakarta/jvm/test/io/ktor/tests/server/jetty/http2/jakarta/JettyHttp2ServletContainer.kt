@@ -16,51 +16,51 @@ import org.eclipse.jetty.servlet.*
 // you shouldn't use it for production code
 
 internal class Servlet(private val async: Boolean) :
-    ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+    ServerEngineFactory<JettyServletServerEngine, JettyServerEngineBase.Configuration> {
     override fun configuration(
-        configure: JettyApplicationEngineBase.Configuration.() -> Unit
-    ): JettyApplicationEngineBase.Configuration {
-        return JettyApplicationEngineBase.Configuration().apply(configure)
+        configure: JettyServerEngineBase.Configuration.() -> Unit
+    ): JettyServerEngineBase.Configuration {
+        return JettyServerEngineBase.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: JettyApplicationEngineBase.Configuration,
-        applicationProvider: () -> Application
-    ): JettyServletApplicationEngine {
-        return JettyServletApplicationEngine(
+        configuration: JettyServerEngineBase.Configuration,
+        serverProvider: () -> Server
+    ): JettyServletServerEngine {
+        return JettyServletServerEngine(
             environment,
             monitor,
             developmentMode,
             configuration,
-            applicationProvider,
+            serverProvider,
             async
         )
     }
 }
 
-internal class JettyServletApplicationEngine(
-    environment: ApplicationEnvironment,
+internal class JettyServletServerEngine(
+    environment: ServerEnvironment,
     monitor: Events,
     developmentMode: Boolean,
     configuration: Configuration,
-    applicationProvider: () -> Application,
+    serverProvider: () -> Server,
     async: Boolean
-) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
+) : JettyServerEngineBase(environment, monitor, developmentMode, configuration, serverProvider) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader
-            setAttribute(ServletApplicationEngine.EnvironmentAttributeKey, environment)
-            setAttribute(ServletApplicationEngine.ApplicationAttributeKey, applicationProvider)
-            setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
+            setAttribute(ServletServerEngine.EnvironmentAttributeKey, environment)
+            setAttribute(ServletServerEngine.ApplicationAttributeKey, serverProvider)
+            setAttribute(ServletServerEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(
                 ServletHandler().apply {
                     val holder = ServletHolder(
                         "ktor-servlet",
-                        ServletApplicationEngine::class.java
+                        ServletServerEngine::class.java
                     ).apply {
                         isAsyncSupported = async
                         registration.setLoadOnStartup(1)

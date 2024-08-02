@@ -9,23 +9,23 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 
 /**
- * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine]
+ * An [ServerEngineFactory] providing a CIO-based [ServerEngine]
  */
-public object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicationEngine.Configuration> {
+public object CIO : ServerEngineFactory<CIOServerEngine, CIOServerEngine.Configuration> {
 
     override fun configuration(
-        configure: CIOApplicationEngine.Configuration.() -> Unit
-    ): CIOApplicationEngine.Configuration {
-        return CIOApplicationEngine.Configuration().apply(configure)
+        configure: CIOServerEngine.Configuration.() -> Unit
+    ): CIOServerEngine.Configuration {
+        return CIOServerEngine.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: CIOApplicationEngine.Configuration,
-        applicationProvider: () -> Application
-    ): CIOApplicationEngine {
-        return CIOApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
+        configuration: CIOServerEngine.Configuration,
+        serverProvider: () -> Server
+    ): CIOServerEngine {
+        return CIOServerEngine(environment, monitor, developmentMode, configuration, serverProvider)
     }
 }

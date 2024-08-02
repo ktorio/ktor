@@ -22,8 +22,8 @@ import java.io.*
 import java.util.zip.*
 import kotlin.test.*
 
-abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class CompressionTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @OptIn(InternalAPI::class)

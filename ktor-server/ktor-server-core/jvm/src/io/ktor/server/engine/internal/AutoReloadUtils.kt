@@ -12,14 +12,14 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 internal val currentStartupModules = ThreadLocal<MutableList<String>>()
-internal val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
-internal val ApplicationClassInstance = Application::class.java
+internal val ServerEnvironmentClassInstance = ServerEnvironment::class.java
+internal val ServerClassInstance = Server::class.java
 
 internal fun isApplicationEnvironment(parameter: KParameter): Boolean =
-    isParameterOfType(parameter, ApplicationEnvironmentClassInstance)
+    isParameterOfType(parameter, ServerEnvironmentClassInstance)
 
 internal fun isApplication(parameter: KParameter): Boolean =
-    isParameterOfType(parameter, ApplicationClassInstance)
+    isParameterOfType(parameter, ServerClassInstance)
 
 internal fun ClassLoader.loadClassOrNull(name: String): Class<*>? = try {
     loadClass(name)

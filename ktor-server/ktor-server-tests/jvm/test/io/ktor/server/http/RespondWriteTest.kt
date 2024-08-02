@@ -17,7 +17,7 @@ class RespondWriteTest {
     @Test
     fun smoke() {
         withTestApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTextWriter { write("OK") }
                 }
@@ -32,7 +32,7 @@ class RespondWriteTest {
     @Test
     fun testFailureInside() {
         withTestApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTextWriter {
                         throw IllegalStateException("expected")
@@ -50,8 +50,8 @@ class RespondWriteTest {
     fun testSuspendInside() {
         withTestApplication {
             val executor = Executors.newSingleThreadExecutor()
-            application.monitor.subscribe(ApplicationStopped) { executor.shutdown() }
-            application.routing {
+            server.monitor.subscribe(ServerStopped) { executor.shutdown() }
+            server.routing {
                 get("/") {
                     call.respondTextWriter {
                         withContext(executor.asCoroutineDispatcher()) {
@@ -71,7 +71,7 @@ class RespondWriteTest {
     @Suppress("UNUSED")
     fun testFailureInsideUnresolvedCase() {
         withTestApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTextWriter {
                         close() // after that point the main pipeline is going to continue since the channel is closed

@@ -14,8 +14,8 @@ import io.ktor.utils.io.*
  */
 @KtorDsl
 public class DoubleReceiveConfig {
-    internal val filters = mutableListOf<(ApplicationCall, Any) -> Boolean>()
-    internal val shouldUseFileCache = mutableListOf<(ApplicationCall) -> Boolean>()
+    internal val filters = mutableListOf<(ServerCall, Any) -> Boolean>()
+    internal val shouldUseFileCache = mutableListOf<(ServerCall) -> Boolean>()
 
     /**
      * Caches a request before applying any transformations.
@@ -31,7 +31,7 @@ public class DoubleReceiveConfig {
      * Adds a filter to the [DoubleReceive] plugin.
      * Can be called multiple times; if any of [block]s returns `true`, a request body will not be cached in memory.
      */
-    public fun excludeFromCache(block: (call: ApplicationCall, body: Any) -> Boolean) {
+    public fun excludeFromCache(block: (call: ServerCall, body: Any) -> Boolean) {
         filters += block
     }
 
@@ -43,7 +43,7 @@ public class DoubleReceiveConfig {
      * Can be called multiple times; if any of [block]s returns `true`, the request body will be cached in file.
      * Otherwise, it will be cached in memory.
      */
-    public fun useFileForCache(block: (call: ApplicationCall) -> Boolean = { true }) {
+    public fun useFileForCache(block: (call: ServerCall) -> Boolean = { true }) {
         shouldUseFileCache += block
     }
 

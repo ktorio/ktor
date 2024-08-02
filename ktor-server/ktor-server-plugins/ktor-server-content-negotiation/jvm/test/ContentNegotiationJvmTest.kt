@@ -16,7 +16,6 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import java.io.*
@@ -40,7 +39,7 @@ class ContentNegotiationJvmTest {
     }
 
     @Test
-    fun testReceiveInputStreamTransformedByDefault(): Unit = testApplication {
+    fun testReceiveInputStreamTransformedByDefault(): Unit = testServer {
         application {
             install(ContentNegotiation) {
                 // Order here matters. The first registered content type matching the Accept header will be chosen.
@@ -96,7 +95,7 @@ class ContentNegotiationJvmTest {
     }
 
     @Test
-    fun testRespondInputStream() = testApplication {
+    fun testRespondInputStream() = testServer {
         application {
             routing {
                 install(ContentNegotiation) {

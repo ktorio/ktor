@@ -11,7 +11,7 @@ import kotlin.test.*
 class TestConnectorInterfaceUsed {
     @Test
     fun testConnectorListenHost() {
-        val server = embeddedServer(CIO, applicationEnvironment(), {
+        val server = embeddedServer(CIO, serverEnvironment(), {
             connector {
                 host = "some/illegal/host/name"
                 port = 9091

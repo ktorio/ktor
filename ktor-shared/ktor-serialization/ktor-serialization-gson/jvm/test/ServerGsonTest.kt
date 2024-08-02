@@ -41,12 +41,12 @@ class ServerGsonTest : AbstractServerSerializationTest() {
 
     @Test
     fun testGsonOnTextAny(): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             gson()
             register(contentType = ContentType.Text.Any, converter = GsonConverter())
         }
 
-        application.routing {
+        server.routing {
             post("/") {
                 val instance = call.receive<TextPlainData>()
                 assertEquals(TextPlainData(777), instance)
@@ -72,12 +72,12 @@ class ServerGsonTest : AbstractServerSerializationTest() {
 
     @Test
     fun testReceiveValuesMap() = withTestApplication {
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             gson()
             register(contentType = ContentType.Text.Any, converter = GsonConverter())
         }
 
-        application.routing {
+        server.routing {
             post("/") {
                 val json = call.receive<JsonObject>()
 

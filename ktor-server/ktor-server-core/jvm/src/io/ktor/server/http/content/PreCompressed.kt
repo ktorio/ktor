@@ -86,7 +86,7 @@ internal class CompressedResource(
 )
 
 internal fun bestCompressionFit(
-    call: ApplicationCall,
+    call: ServerCall,
     resource: String,
     packageName: String?,
     acceptEncoding: List<HeaderValue>,
@@ -100,7 +100,7 @@ internal fun bestCompressionFit(
         ?.filter { it.encoding in acceptedEncodings }
         ?.mapNotNull {
             val compressed = "$resource.${it.extension}"
-            val resolved = call.application.resolveResource(compressed, packageName) { url ->
+            val resolved = call.server.resolveResource(compressed, packageName) { url ->
                 val requestPath = url.path.replace(
                     Regex("${Regex.escapeReplacement(compressed.substringAfterLast(File.separator))}$"),
                     resource.substringAfterLast(File.separator)
@@ -112,12 +112,12 @@ internal fun bestCompressionFit(
         ?.firstOrNull()
 }
 
-internal suspend fun ApplicationCall.respondStaticFile(
+internal suspend fun ServerCall.respondStaticFile(
     requestedFile: File,
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
-    modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (File, ServerCall) -> Unit = { _, _ -> }
 ) {
     attributes.put(StaticFileLocationProperty, requestedFile.path)
     val bestCompressionFit = bestCompressionFit(requestedFile, request.acceptEncodingItems(), compressedTypes)
@@ -138,13 +138,13 @@ internal suspend fun ApplicationCall.respondStaticFile(
     respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
 }
 
-internal suspend fun ApplicationCall.respondStaticPath(
+internal suspend fun ServerCall.respondStaticPath(
     fileSystem: FileSystem,
     requestedPath: Path,
     compressedTypes: List<CompressedFileType>?,
     contentType: (Path) -> ContentType = { ContentType.defaultForPath(it) },
     cacheControl: (Path) -> List<CacheControl> = { emptyList() },
-    modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (Path, ServerCall) -> Unit = { _, _ -> }
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
     val bestCompressionFit =
@@ -166,13 +166,13 @@ internal suspend fun ApplicationCall.respondStaticPath(
     respond(PreCompressedResponse(localFileContent, compression.encoding))
 }
 
-internal suspend fun ApplicationCall.respondStaticResource(
+internal suspend fun ServerCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
-    modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
+    modifier: suspend (URL, ServerCall) -> Unit = { _, _ -> },
     exclude: (URL) -> Boolean = { false }
 ) {
     attributes.put(StaticFileLocationProperty, requestedResource)
@@ -198,7 +198,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         return
     }
 
-    val content = application.resolveResource(
+    val content = server.resolveResource(
         path = requestedResource,
         resourcePackage = packageName,
         mimeResolve = contentType

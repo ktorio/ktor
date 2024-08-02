@@ -29,11 +29,11 @@ class SessionTest {
     @Test
     fun testSessionCreateDelete() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName)
             }
 
-            application.routing {
+            server.routing {
                 get("/0") {
                     call.sessions.set(TestUserSession("a", emptyList()))
                     call.sessions.clear<TestUserSession>()
@@ -50,14 +50,14 @@ class SessionTest {
     @Test
     fun testSessionByValue() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     cookie.domain = "foo.bar"
                     cookie.maxAge = 1.hours
                 }
             }
 
-            application.routing {
+            server.routing {
                 get("/0") {
                     assertNull(call.sessions.get<TestUserSession>())
                     call.respondText("No session")
@@ -114,12 +114,12 @@ class SessionTest {
     @Test
     fun testSessionWithEncodedCookie() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
                     cookie.encoding = CookieEncoding.BASE64_ENCODING
                 }
             }
-            application.routing {
+            server.routing {
                 get("/1") {
                     var session: TestUserSession? = call.sessions.get()
                     assertNull(session)
@@ -159,10 +159,10 @@ class SessionTest {
     @Test
     fun testRoutes() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName)
             }
-            application.routing {
+            server.routing {
                 route("/") {
                     get("/0") {
                         assertNull(call.sessions.get<TestUserSession>())
@@ -220,7 +220,7 @@ class SessionTest {
         withTestApplication {
             val sessionA = TestUserSession("id1", listOf("a"))
             val sessionB = TestUserSessionB("id2", listOf("b"))
-            application.routing {
+            server.routing {
                 route("/a") {
                     install(Sessions) {
                         cookie<TestUserSession>(cookieName)
@@ -287,11 +287,11 @@ class SessionTest {
         val sessionStorage = SessionStorageMemory()
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage)
             }
 
-            application.routing {
+            server.routing {
                 get("/0") {
                     call.respondText("There should be no session started")
                 }
@@ -346,11 +346,11 @@ class SessionTest {
         val sessionStorage = SessionStorageMemory()
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage)
             }
 
-            application.routing {
+            server.routing {
                 get("/0") {
                     assertNull(call.sessionId, "There should be no session set by default")
                     assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
@@ -369,11 +369,11 @@ class SessionTest {
     fun testSessionByIdServer() {
         val sessionStorage = SessionStorageMemory()
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage)
             }
             var serverSessionId = "_invalid"
-            application.routing {
+            server.routing {
                 get("/0") {
                     assertNull(call.sessionId, "There should be no session set by default")
                     assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
@@ -411,13 +411,13 @@ class SessionTest {
     fun testSessionByIdServerWithBackwardCompatibleSerialization() {
         val sessionStorage = SessionStorageMemory()
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     serializer = KotlinxBackwardCompatibleSessionSerializer()
                 }
             }
             var serverSessionId = "_invalid"
-            application.routing {
+            server.routing {
                 get("/0") {
                     assertNull(call.sessionId, "There should be no session set by default")
                     assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
@@ -461,14 +461,14 @@ class SessionTest {
         val durationSeconds = 5L
 
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     cookie.maxAge = durationSeconds.seconds
                     identity { (id++).toString() }
                 }
             }
 
-            application.routing {
+            server.routing {
                 get("/1") {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
@@ -496,11 +496,11 @@ class SessionTest {
     @Test
     fun testSessionByInvalidId() {
         withTestApplication {
-            application.install(Sessions) {
+            server.install(Sessions) {
                 cookie<TestUserSession>(cookieName, SessionStorageMemory())
             }
 
-            application.routing {
+            server.routing {
                 get("/1") {
                     call.sessions.set(TestUserSession("id2", listOf("item1")))
                     call.respondText("ok")
@@ -544,13 +544,13 @@ class SessionTest {
         // test session cookie in terms of HTTP
         // that should be discarded on client exit
 
-        application.install(Sessions) {
+        server.install(Sessions) {
             cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
                 cookie.maxAge = null
             }
         }
 
-        application.routing {
+        server.routing {
             get("/set-cookie") {
                 call.sessions.set(TestUserSession("id2", listOf("item1")))
                 call.respondText("ok")
@@ -567,11 +567,11 @@ class SessionTest {
 
     @Test
     fun settingSessionAfterResponseTest(): Unit = withTestApplication {
-        application.install(Sessions) {
+        server.install(Sessions) {
             cookie<TestUserSession>(cookieName)
         }
 
-        application.routing {
+        server.routing {
             get("/after-response") {
                 call.respondText("OK")
                 call.sessions.set(TestUserSession("id", emptyList()))
@@ -623,7 +623,7 @@ class SessionTest {
 
     @Test
     fun testDuplicateProvidersDiagnostics(): Unit = withTestApplication {
-        application.install(Sessions) {
+        server.install(Sessions) {
             cookie<TestUserSession>("name1")
 
             assertFails("Registering the same provider twice should be prohibited") {
@@ -646,9 +646,9 @@ class SessionTest {
 
     @Test
     fun testMissingSessionsPlugin(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
-                val cause = assertFailsWith<MissingApplicationPluginException> {
+                val cause = assertFailsWith<MissingServerPluginException> {
                     call.sessions.get<EmptySession>()
                 }
                 call.respondText(cause.key.name)
@@ -661,7 +661,7 @@ class SessionTest {
     data class Token(val secret: Int)
 
     @Test
-    fun secureCookie() = testApplication {
+    fun secureCookie() = testServer {
         install(Sessions) {
             cookie<Token>("SESSION") {
                 cookie.path = "/token"
@@ -683,18 +683,18 @@ class SessionTest {
 
     @Test
     fun testMissingSession(): Unit = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Monitoring) {
+        server.intercept(ServerCallPipeline.Monitoring) {
             assertFailsWith<SessionNotYetConfiguredException> {
                 call.sessions.get<EmptySession>()
             }
             call.respondText("OK")
             finish()
         }
-        application.routing {
+        server.routing {
             get("/") {
             }
         }
-        application.install(Sessions) {
+        server.install(Sessions) {
             cookie<TestUserSession>("name1")
         }
 
@@ -702,7 +702,7 @@ class SessionTest {
     }
 
     @Test
-    fun testSetCookieNotAdded(): Unit = testApplication {
+    fun testSetCookieNotAdded(): Unit = testServer {
         application {
             install(Sessions) {
                 cookie<TestUserSession>(cookieName)

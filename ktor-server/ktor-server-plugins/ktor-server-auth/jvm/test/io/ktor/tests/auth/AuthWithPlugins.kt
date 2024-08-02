@@ -17,7 +17,7 @@ import kotlin.test.*
 class AuthWithPlugins {
 
     @Test
-    fun testFormAuthWithJackson() = testApplication {
+    fun testFormAuthWithJackson() = testServer {
         install(ContentNegotiation) {
             jackson()
         }

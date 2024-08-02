@@ -25,11 +25,11 @@ import kotlin.time.Duration.Companion.seconds
 private val TEST_SELECTOR_MANAGER = SelectorManager()
 
 actual abstract class EngineTestBase<
-    TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration
+    TEngine : ServerEngine,
+    TConfiguration : ServerEngine.Configuration
     >
 actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    actual val serverEngineFactory: ServerEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
     actual override val coroutineContext: CoroutineContext = testJob + Dispatchers.Default
@@ -75,10 +75,10 @@ actual constructor(
     protected open fun createServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
-        module: Application.() -> Unit
+        module: Server.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
-        val environment = applicationEnvironment {
+        val environment = serverEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(message: String, cause: Throwable) {
@@ -92,12 +92,12 @@ actual constructor(
                 }
             }
         }
-        val properties = applicationProperties(environment) {
+        val properties = serverParams(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }
 
-        return embeddedServer(applicationEngineFactory, properties) {
+        return embeddedServer(serverEngineFactory, properties) {
             connector { port = _port }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
@@ -127,8 +127,8 @@ actual constructor(
         }
     }
 
-    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        application.install(RoutingRoot, routingConfig)
+    protected actual open fun plugins(server: Server, routingConfig: Route.() -> Unit) {
+        server.install(RoutingRoot, routingConfig)
     }
 
     protected actual fun withUrl(

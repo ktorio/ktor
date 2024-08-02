@@ -10,7 +10,7 @@ import kotlin.test.*
 class OpenAPITest {
 
     @Test
-    fun testResolveOpenAPIFile() = testApplication {
+    fun testResolveOpenAPIFile() = testServer {
         routing {
             val content = readOpenAPIFile("openapi/documentation.yaml", environment.classLoader)
             assertEquals("hello:world".filter(Char::isLetterOrDigit), content.filter(Char::isLetterOrDigit))

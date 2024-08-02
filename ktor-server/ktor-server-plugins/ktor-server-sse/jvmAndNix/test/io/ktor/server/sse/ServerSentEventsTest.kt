@@ -18,7 +18,7 @@ import kotlin.test.*
 class ServerSentEventsTest {
 
     @Test
-    fun testSingleEvents() = testApplication {
+    fun testSingleEvents() = testServer {
         install(SSE)
         routing {
             sse("/hello") {
@@ -33,7 +33,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testEvents() = testApplication {
+    fun testEvents() = testServer {
         install(SSE)
         routing {
             sse("/events") {
@@ -52,7 +52,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testChannelsOfEvents() = testApplication {
+    fun testChannelsOfEvents() = testServer {
         install(SSE)
         routing {
             sse("/events") {
@@ -82,7 +82,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testSeveralClients() = testApplication {
+    fun testSeveralClients() = testServer {
         install(SSE)
         routing {
             sse("/events") {
@@ -106,7 +106,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testNoDuplicateHeader() = testApplication {
+    fun testNoDuplicateHeader() = testServer {
         install(SSE)
         routing {
             sse { }
@@ -120,7 +120,7 @@ class ServerSentEventsTest {
         }
     }
 
-    private fun ApplicationTestBuilder.createSseClient(): HttpClient {
+    private fun ServerTestBuilder.createSseClient(): HttpClient {
         val client = createClient {
             install(io.ktor.client.plugins.sse.SSE)
         }

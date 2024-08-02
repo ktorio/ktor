@@ -98,7 +98,7 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
          * Sets a validation function that checks a specified [UserPasswordCredential] instance and
          * returns [Principal] in a case of successful authentication or null if authentication fails.
          */
-        public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
+        public fun validate(body: suspend ServerCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
         }
 
@@ -122,7 +122,7 @@ public fun AuthenticationConfig.form(
 /**
  * A context for [FormAuthChallengeFunction].
  */
-public class FormAuthChallengeContext(public val call: ApplicationCall)
+public class FormAuthChallengeContext(public val call: ServerCall)
 
 /**
  * Specifies what to send back if form-based authentication fails.

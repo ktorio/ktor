@@ -154,7 +154,7 @@ public data class ForwardedHeaderValue(
  * To learn how to install and use [ForwardedHeaders], see
  * [Forwarded headers](https://ktor.io/docs/forward-headers.html).
  */
-public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createApplicationPlugin(
+public val ForwardedHeaders: ServerPlugin<ForwardedHeadersConfig> = createServerPlugin(
     "ForwardedHeaders",
     ::ForwardedHeadersConfig
 ) {
@@ -170,7 +170,7 @@ public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createA
         )
     }
 
-    fun ApplicationRequest.forwardedHeaders() =
+    fun ServerRequest.forwardedHeaders() =
         headers.getAll(HttpHeaders.Forwarded)
             ?.flatMap { it.split(',') }
             ?.flatMap { parseHeaderValue(";$it") }?.map {

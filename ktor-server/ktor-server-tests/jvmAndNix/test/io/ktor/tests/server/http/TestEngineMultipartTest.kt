@@ -97,7 +97,7 @@ class TestEngineMultipartTest {
     @Test
     fun testMultiPartShouldFail() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 try {
                     call.receiveMultipart().readAllParts()
                 } catch (error: Throwable) {
@@ -115,7 +115,7 @@ class TestEngineMultipartTest {
     fun testMultipartIsNotTruncated() {
         if (!PlatformUtils.IS_JVM) return
 
-        testApplication {
+        testServer {
             routing {
                 post {
                     val multipart = call.receiveMultipart(formFieldLimit = 60 * 1024 * 1024)
@@ -156,7 +156,7 @@ class TestEngineMultipartTest {
                 }
 
             if (response.status == HttpStatusCode.UnsupportedMediaType) {
-                return@testApplication
+                return@testServer
             }
         }
     }
@@ -165,7 +165,7 @@ class TestEngineMultipartTest {
     fun testMultipartBigger65536Fails() {
         if (!PlatformUtils.IS_JVM) return
 
-        testApplication {
+        testServer {
             routing {
                 post {
                     val multipart = call.receiveMultipart()
@@ -209,10 +209,10 @@ class TestEngineMultipartTest {
 
     private fun testMultiParts(
         asserts: suspend (MultiPartData?) -> Unit,
-        setup: TestApplicationRequest.() -> Unit
+        setup: TestServerRequest.() -> Unit
     ) {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 if (call.request.isMultipart()) {
                     asserts(call.receiveMultipart())
                 } else {

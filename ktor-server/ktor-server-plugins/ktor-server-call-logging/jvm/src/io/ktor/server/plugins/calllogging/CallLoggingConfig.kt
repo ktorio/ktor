@@ -19,9 +19,9 @@ import org.slf4j.event.*
 @KtorDsl
 public class CallLoggingConfig {
     internal var clock: () -> Long = { getTimeMillis() }
-    internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
+    internal val filters = mutableListOf<(ServerCall) -> Boolean>()
     internal val mdcEntries = mutableListOf<MDCEntry>()
-    internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
+    internal var formatCall: (ServerCall) -> String = ::defaultFormat
     internal var isColorsEnabled: Boolean = true
     internal var ignoreStaticContent: Boolean = false
 
@@ -33,7 +33,7 @@ public class CallLoggingConfig {
 
     /**
      * Specifies a [Logger] used to log requests.
-     * By default, uses [ApplicationEnvironment.log].
+     * By default, uses [ServerEnvironment.log].
      */
     public var logger: Logger? = null
 
@@ -48,17 +48,17 @@ public class CallLoggingConfig {
      *
      * @see [CallLogging]
      */
-    public fun filter(predicate: (ApplicationCall) -> Boolean) {
+    public fun filter(predicate: (ServerCall) -> Boolean) {
         filters.add(predicate)
     }
 
     /**
      * Puts a diagnostic context value to [MDC] with the specified [name] and computed using the [provider] function.
-     * A value is available in MDC only during [ApplicationCall] lifetime and is removed after a call processing.
+     * A value is available in MDC only during [ServerCall] lifetime and is removed after a call processing.
      *
      * @see [CallLogging]
      */
-    public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
+    public fun mdc(name: String, provider: (ServerCall) -> String?) {
         mdcEntries.add(MDCEntry(name, provider))
     }
 
@@ -67,7 +67,7 @@ public class CallLoggingConfig {
      *
      * @see [CallLogging]
      */
-    public fun format(formatter: (ApplicationCall) -> String) {
+    public fun format(formatter: (ServerCall) -> String) {
         formatCall = formatter
     }
 
@@ -94,7 +94,7 @@ public class CallLoggingConfig {
         ignoreStaticContent = true
     }
 
-    private fun defaultFormat(call: ApplicationCall): String =
+    private fun defaultFormat(call: ServerCall): String =
         when (val status = call.response.status() ?: "Unhandled") {
             HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: " +
                 "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
@@ -103,7 +103,7 @@ public class CallLoggingConfig {
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 
-    internal fun ApplicationRequest.toLogStringWithColors(): String =
+    internal fun ServerRequest.toLogStringWithColors(): String =
         "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()} in ${call.processingTimeMillis(clock)}ms"
 
     private fun colored(status: HttpStatusCode): String {

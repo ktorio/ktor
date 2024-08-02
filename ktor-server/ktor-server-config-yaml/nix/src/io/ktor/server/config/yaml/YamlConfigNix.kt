@@ -34,14 +34,14 @@ public actual fun YamlConfig(path: String?): YamlConfig? {
     } ?: return null
     val content = readFile(resolvedPath)
     val yaml = Yaml.decodeYamlFromString(content) as? YamlMap
-        ?: throw ApplicationConfigurationException("$resolvedPath should be a YAML dictionary")
+        ?: throw ServerConfigurationException("$resolvedPath should be a YAML dictionary")
 
     return YamlConfig(yaml).apply { checkEnvironmentVariables() }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private fun readFile(path: String): String {
-    val fileDescriptor = fopen(path, "rb") ?: throw ApplicationConfigurationException("Can not read $path")
+    val fileDescriptor = fopen(path, "rb") ?: throw ServerConfigurationException("Can not read $path")
     val bytes = ByteArrayPool.borrow()
     val size = bytes.size
     var read: Int
@@ -55,10 +55,10 @@ private fun readFile(path: String): String {
     val error = ferror(fileDescriptor)
     if (error != 0) {
         fclose(fileDescriptor)
-        throw ApplicationConfigurationException("Can not read $path. Error $error")
+        throw ServerConfigurationException("Can not read $path. Error $error")
     }
     if (fclose(fileDescriptor) != 0) {
-        throw ApplicationConfigurationException("Can not read $path", PosixException.forErrno())
+        throw ServerConfigurationException("Can not read $path", PosixException.forErrno())
     }
     return packet.readText()
 }

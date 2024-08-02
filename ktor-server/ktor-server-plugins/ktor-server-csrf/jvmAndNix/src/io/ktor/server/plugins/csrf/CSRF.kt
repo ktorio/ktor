@@ -39,7 +39,7 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     val onFailure = pluginConfig.handleFailure
 
     if (!checkHost && allowedOrigins.isEmpty() && headerChecks.isEmpty()) {
-        application.log.info("CSRF configuration is empty; defaulting to allow only local origins")
+        server.log.info("CSRF configuration is empty; defaulting to allow only local origins")
         allowedOrigins.addAll(
             listOf(
                 "localhost",
@@ -92,10 +92,10 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     }
 }
 
-private fun ApplicationCall.originOrReferrerUrl(expectedProtocol: URLProtocol? = null): Url? =
+private fun ServerCall.originOrReferrerUrl(expectedProtocol: URLProtocol? = null): Url? =
     request.originHeader() ?: request.referrerNormalized(expectedProtocol)
 
-private fun ApplicationRequest.originHeader(): Url? =
+private fun ServerRequest.originHeader(): Url? =
     headers[HttpHeaders.Origin]?.let(::Url)
 
 /**
@@ -104,7 +104,7 @@ private fun ApplicationRequest.originHeader(): Url? =
  *
  * @see [Checking the Referrer header](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#checking-the-referer-header)
  */
-private fun ApplicationRequest.referrerNormalized(expectedProtocol: URLProtocol? = null): Url? =
+private fun ServerRequest.referrerNormalized(expectedProtocol: URLProtocol? = null): Url? =
     headers[HttpHeaders.Referrer]?.let { referrer ->
         URLBuilder().takeFrom(referrer).apply {
             encodedPath = ""

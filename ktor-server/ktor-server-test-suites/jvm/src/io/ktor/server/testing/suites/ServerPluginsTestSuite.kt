@@ -15,8 +15,8 @@ import kotlinx.coroutines.sync.*
 import kotlin.test.*
 import kotlin.test.Test
 
-abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class ServerPluginsTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     private var semaphore = Semaphore(1)
@@ -56,7 +56,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    val plugin = createApplicationPlugin("F") {
+    val plugin = createServerPlugin("F") {
         onCall {
             sendEvent("onCall")
         }
@@ -70,10 +70,10 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
     val expectedEventsForCall = listOf("onCall", "onCallReceive", "onCallRespond")
 
-    override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        super.plugins(application, routingConfig)
+    override fun plugins(server: Server, routingConfig: Route.() -> Unit) {
+        super.plugins(server, routingConfig)
 
-        application.install(plugin)
+        server.install(plugin)
     }
 
     @Test

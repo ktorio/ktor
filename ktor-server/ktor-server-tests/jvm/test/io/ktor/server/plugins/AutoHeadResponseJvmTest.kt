@@ -17,7 +17,7 @@ class AutoHeadResponseJvmTest {
     @Test
     fun testTextRespond() {
         withHeadApplication {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTextWriter {
                         write("Hello")
@@ -37,9 +37,9 @@ class AutoHeadResponseJvmTest {
         }
     }
 
-    private fun withHeadApplication(block: TestApplicationEngine.() -> Unit) {
+    private fun withHeadApplication(block: TestServerEngine.() -> Unit) {
         withTestApplication {
-            application.install(AutoHeadResponse)
+            server.install(AutoHeadResponse)
             block()
         }
     }

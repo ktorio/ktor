@@ -15,7 +15,6 @@ import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.engine.DefaultTransform")
@@ -23,8 +22,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.engine.DefaultTransform")
 /**
  * Default send transformation
  */
-public fun ApplicationSendPipeline.installDefaultTransformations() {
-    intercept(ApplicationSendPipeline.Render) { value ->
+public fun ServerSendPipeline.installDefaultTransformations() {
+    intercept(ServerSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(call, value)
         if (transformed != null) proceedWith(transformed)
     }
@@ -33,8 +32,8 @@ public fun ApplicationSendPipeline.installDefaultTransformations() {
 /**
  * Default receive transformation
  */
-public fun ApplicationReceivePipeline.installDefaultTransformations() {
-    intercept(ApplicationReceivePipeline.Transform) { body ->
+public fun ServerReceivePipeline.installDefaultTransformations() {
+    intercept(ServerReceivePipeline.Transform) { body ->
         val channel = body as? ByteReadChannel ?: return@intercept
 
         val transformed: Any? = when (call.receiveType.type) {
@@ -79,7 +78,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
         }
     }
     val afterTransform = PipelinePhase("AfterTransform")
-    insertPhaseAfter(ApplicationReceivePipeline.Transform, afterTransform)
+    insertPhaseAfter(ServerReceivePipeline.Transform, afterTransform)
     intercept(afterTransform) { body ->
         val channel = body as? ByteReadChannel ?: return@intercept
         if (call.receiveType.type != String::class) return@intercept

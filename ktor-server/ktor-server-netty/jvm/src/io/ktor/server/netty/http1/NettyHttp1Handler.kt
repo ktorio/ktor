@@ -18,9 +18,9 @@ import java.io.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1Handler(
-    private val applicationProvider: () -> Application,
+    private val serverProvider: () -> Server,
     private val enginePipeline: EnginePipeline,
-    private val environment: ApplicationEnvironment,
+    private val environment: ServerEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
@@ -47,7 +47,7 @@ internal class NettyHttp1Handler(
         context.channel().read()
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
-            addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
+            addLast(callEventGroup, NettyServerCallHandler(userContext, enginePipeline))
         }
         context.fireChannelActive()
     }
@@ -82,7 +82,7 @@ internal class NettyHttp1Handler(
     }
 
     override fun channelInactive(context: ChannelHandlerContext) {
-        context.pipeline().remove(NettyApplicationCallHandler::class.java)
+        context.pipeline().remove(NettyServerCallHandler::class.java)
         context.fireChannelInactive()
     }
 
@@ -126,7 +126,7 @@ internal class NettyHttp1Handler(
     private fun prepareCallFromRequest(
         context: ChannelHandlerContext,
         message: HttpRequest
-    ): NettyHttp1ApplicationCall {
+    ): NettyHttp1ServerCall {
         val requestBodyChannel = when {
             message is LastHttpContent && !message.content().isReadable -> null
             message.method() === HttpMethod.GET &&
@@ -138,8 +138,8 @@ internal class NettyHttp1Handler(
             else -> prepareRequestContentChannel(context, message)
         }
 
-        return NettyHttp1ApplicationCall(
-            applicationProvider(),
+        return NettyHttp1ServerCall(
+            serverProvider(),
             context,
             message,
             requestBodyChannel,

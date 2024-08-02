@@ -39,8 +39,8 @@ class LastModifiedTest {
                 .map(Arguments::of)
     }
 
-    private fun withConditionalApplication(date: ZonedDateTime, body: suspend ApplicationTestBuilder.() -> Unit) =
-        testApplication {
+    private fun withConditionalApplication(date: ZonedDateTime, body: suspend ServerTestBuilder.() -> Unit) =
+        testServer {
             application {
                 install(ConditionalHeaders) {
                     version { _, _ -> listOf(LastModifiedVersion(date)) }
@@ -68,7 +68,7 @@ class LastModifiedTest {
 
     @ParameterizedTest
     @MethodSource("dateArguments")
-    fun testSubrouteInstall(date: ZonedDateTime): Unit = testApplication {
+    fun testSubrouteInstall(date: ZonedDateTime): Unit = testServer {
         application {
             routing {
                 route("1") {
@@ -97,7 +97,7 @@ class LastModifiedTest {
 
     @ParameterizedTest
     @MethodSource("dateArguments")
-    fun testUseHeadersFromResponse(date: ZonedDateTime): Unit = testApplication {
+    fun testUseHeadersFromResponse(date: ZonedDateTime): Unit = testServer {
         application {
             install(ConditionalHeaders)
             routing {
@@ -138,7 +138,7 @@ class LastModifiedTest {
 
     @ParameterizedTest
     @MethodSource("dateArguments")
-    fun testIfModifiedSinceEqZoned(date: ZonedDateTime) = testApplication {
+    fun testIfModifiedSinceEqZoned(date: ZonedDateTime) = testServer {
         application {
             install(ConditionalHeaders) {
                 version { _, _ -> listOf(LastModifiedVersion(date)) }

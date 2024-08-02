@@ -25,7 +25,7 @@ class StatusPagesTest {
     private val textPlainUtf8 = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
 
     @Test
-    fun testStatus404() = testApplication {
+    fun testStatus404() = testServer {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, code ->
@@ -62,7 +62,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testStatusWithContent() = testApplication {
+    fun testStatusWithContent() = testServer {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.NotFound) { _ ->
@@ -87,7 +87,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testStatus404CustomObject() = testApplication {
+    fun testStatus404CustomObject() = testServer {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, code ->
@@ -95,7 +95,7 @@ class StatusPagesTest {
                 }
             }
 
-            intercept(ApplicationCallPipeline.Call) {
+            intercept(ServerCallPipeline.Call) {
                 call.respond(
                     object : OutgoingContent.ReadChannelContent() {
                         override val status = HttpStatusCode.NotFound
@@ -116,7 +116,7 @@ class StatusPagesTest {
     fun testStatus404WithInterceptor() {
         class O
 
-        testApplication {
+        testServer {
             application {
                 install(StatusPages) {
                     status(HttpStatusCode.NotFound) { call, code ->
@@ -124,8 +124,8 @@ class StatusPagesTest {
                     }
                 }
 
-                intercept(ApplicationCallPipeline.Plugins) {
-                    call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
+                intercept(ServerCallPipeline.Plugins) {
+                    call.response.pipeline.intercept(ServerSendPipeline.Transform) { message ->
                         if (message is O) proceedWith(HttpStatusCode.NotFound)
                     }
                 }
@@ -145,7 +145,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testFailPage() = testApplication {
+    fun testFailPage() = testServer {
         application {
             install(StatusPages) {
                 exception<Throwable> { call, cause ->
@@ -178,10 +178,10 @@ class StatusPagesTest {
     fun testFailPageDuringInterceptor() {
         class O
 
-        testApplication {
+        testServer {
             application {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
+                intercept(ServerCallPipeline.Plugins) {
+                    call.response.pipeline.intercept(ServerSendPipeline.Transform) { message ->
                         if (message is O) {
                             throw IllegalStateException()
                         }
@@ -209,7 +209,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testErrorDuringStatus() = testApplication {
+    fun testErrorDuringStatus() = testServer {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.NotFound) { _, _ ->
@@ -228,7 +228,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testErrorShouldNotRecurse() = testApplication {
+    fun testErrorShouldNotRecurse() = testServer {
         application {
             install(StatusPages) {
                 exception<IllegalStateException> { _, _ ->
@@ -236,7 +236,7 @@ class StatusPagesTest {
                 }
             }
 
-            intercept(ApplicationCallPipeline.Fallback) {
+            intercept(ServerCallPipeline.Fallback) {
                 throw NullPointerException()
             }
         }
@@ -250,7 +250,7 @@ class StatusPagesTest {
     fun testErrorFromExceptionContent() {
         class ValidationException(val code: String) : RuntimeException()
 
-        testApplication {
+        testServer {
             application {
                 install(StatusPages) {
                     exception<ValidationException> { call, cause ->
@@ -274,7 +274,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testErrorInAsync(): Unit = testApplication {
+    fun testErrorInAsync(): Unit = testServer {
         class AsyncFailedException : Exception()
 
         application {
@@ -306,7 +306,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithoutPlugin(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithoutPlugin(): Unit = testServer {
         application {
             routing {
                 get("/bad-request") {
@@ -327,7 +327,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithPluginHandlingExceptions(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithPluginHandlingExceptions(): Unit = testServer {
         application {
             install(StatusPages) {
                 exception<BadRequestException> { call, _ ->
@@ -369,7 +369,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithPluginCustomStatusPages(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithPluginCustomStatusPages(): Unit = testServer {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.BadRequest) { call, _ ->
@@ -412,20 +412,20 @@ class StatusPagesTest {
 
     @Test
     fun testRoutingNotCalledAfterStatusPages() {
-        val ThrowingPlugin = createApplicationPlugin("ThrowingPlugin") {
+        val ThrowingPlugin = createServerPlugin("ThrowingPlugin") {
             onCall {
                 throw NotFoundException()
             }
         }
 
-        testApplication {
+        testServer {
             var exceptionHandled = false
             var routingHandled = false
 
             application {
                 install(ThrowingPlugin)
                 install(StatusPages) {
-                    exception<NotFoundException> { call: ApplicationCall, _ ->
+                    exception<NotFoundException> { call: ServerCall, _ ->
                         exceptionHandled = true
                         call.respond(HttpStatusCode.NotFound)
                     }
@@ -447,13 +447,13 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testVerify500OnException() = testApplication {
+    fun testVerify500OnException() = testServer {
         var exceptionHandled = false
         var routingHandled = false
 
         application {
             install(StatusPages) {
-                exception<Throwable> { call: ApplicationCall, _ ->
+                exception<Throwable> { call: ServerCall, _ ->
                     exceptionHandled = true
                     call.respond(HttpStatusCode.InternalServerError)
                 }
@@ -479,7 +479,7 @@ class StatusPagesTest {
     class SuperException : MyException()
 
     @Test
-    fun testHandleMoreSpecificException() = testApplication {
+    fun testHandleMoreSpecificException() = testServer {
         application {
             install(StatusPages) {
                 exception<IllegalStateException> { call, _ ->
@@ -511,7 +511,7 @@ class StatusPagesTest {
     class CustomException : Exception()
 
     @Test
-    fun testCallIdOnFailed() = testApplication {
+    fun testCallIdOnFailed() = testServer {
         val brokenPlugin = createRouteScopedPlugin("x") {
             onCallReceive { _ ->
                 throw CustomException()
@@ -541,7 +541,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testUnhandled() = testApplication {
+    fun testUnhandled() = testServer {
         install(StatusPages) {
             unhandled { call -> call.respond(HttpStatusCode.InternalServerError, "body") }
         }

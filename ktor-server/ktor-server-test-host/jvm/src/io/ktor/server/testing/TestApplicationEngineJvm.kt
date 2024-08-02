@@ -15,24 +15,24 @@ import kotlinx.coroutines.channels.*
  * Makes a test request that sets up a WebSocket session and invokes the [callback] function
  * that handles conversation with the server
  */
-public fun TestApplicationEngine.handleWebSocketConversation(
+public fun TestServerEngine.handleWebSocketConversation(
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {},
+    setup: TestServerRequest.() -> Unit = {},
     awaitCallback: Boolean = true,
-    callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
-): TestApplicationCall {
+    callback: suspend TestServerCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+): TestServerCall {
     return runBlocking {
         handleWebSocketConversationNonBlocking(uri, setup, awaitCallback, callback)
     }
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-internal suspend fun TestApplicationEngine.handleWebSocketConversationNonBlocking(
+internal suspend fun TestServerEngine.handleWebSocketConversationNonBlocking(
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {},
+    setup: TestServerRequest.() -> Unit = {},
     awaitCallback: Boolean = true,
-    callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
-): TestApplicationCall {
+    callback: suspend TestServerCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+): TestServerCall {
     val websocketChannel = ByteChannel(true)
     val call = createWebSocketCall(uri) {
         setup()

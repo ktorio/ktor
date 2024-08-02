@@ -24,8 +24,8 @@ import kotlin.test.Test
  * This tests uses a CA, which creates server and client certificates.
  */
 @ExtendWith(RetrySupport::class)
-abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
-    val engine: ApplicationEngineFactory<Engine, Configuration>
+abstract class ClientCertTestSuite<Engine : ServerEngine, Configuration : ServerEngine.Configuration>(
+    val engine: ServerEngineFactory<Engine, Configuration>
 ) {
     open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
         keyAlias = "mykey",

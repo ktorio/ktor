@@ -22,7 +22,7 @@ class HoconConfigTest {
 
         mapConfig["auth.data"] = mapOf("value1" to "1", "value2" to "2")
 
-        val config = HoconApplicationConfig(ConfigFactory.parseMap(mapConfig))
+        val config = HoconServerConfig(ConfigFactory.parseMap(mapConfig))
         val keys = config.keys()
         assertEquals(
             keys,
@@ -45,7 +45,7 @@ class HoconConfigTest {
         mapConfig["auth.nested.list"] = listOf("a", "b")
         mapConfig["auth.data1.value1"] = "1"
 
-        val config = HoconApplicationConfig(ConfigFactory.parseMap(mapConfig))
+        val config = HoconServerConfig(ConfigFactory.parseMap(mapConfig))
         val nestedConfig = config.config("auth.nested")
         val keys = nestedConfig.keys()
         assertEquals(keys, setOf("data.value1", "data.value2", "list"))
@@ -67,7 +67,7 @@ class HoconConfigTest {
             "listValues" to listOf("a", "b", "c"),
             "data" to mapOf("value1" to "1", "value2" to "2"),
         )
-        val config = HoconApplicationConfig(ConfigFactory.parseMap(configMap))
+        val config = HoconServerConfig(ConfigFactory.parseMap(configMap))
         val map = config.toMap()
 
         assertEquals(configMap, map)

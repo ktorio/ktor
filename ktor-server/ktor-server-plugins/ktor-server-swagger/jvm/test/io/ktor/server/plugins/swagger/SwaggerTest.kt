@@ -12,7 +12,7 @@ import kotlin.test.*
 
 class SwaggerTest {
     @Test
-    fun testSwaggerFromResources() = testApplication {
+    fun testSwaggerFromResources() = testServer {
         routing {
             swaggerUI("swagger")
         }
@@ -50,7 +50,7 @@ class SwaggerTest {
     }
 
     @Test
-    fun testSwaggerFromResourcesWithDocExpansion() = testApplication {
+    fun testSwaggerFromResourcesWithDocExpansion() = testServer {
         routing {
             swaggerUI("swagger")
         }
@@ -91,7 +91,7 @@ class SwaggerTest {
     }
 
     @Test
-    fun testSwaggerFileIsServed() = testApplication {
+    fun testSwaggerFileIsServed() = testServer {
         routing {
             swaggerUI("openapi")
         }

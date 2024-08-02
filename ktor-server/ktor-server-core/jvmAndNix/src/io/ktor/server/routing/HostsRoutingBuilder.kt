@@ -140,12 +140,12 @@ public data class HostRouteSelector(
 
     public companion object {
         /**
-         * A parameter name for [ApplicationCall.parameters] for a request host.
+         * A parameter name for [ServerCall.parameters] for a request host.
          */
         public const val HostNameParameter: String = "\$RequestHost"
 
         /**
-         * A parameter name for [ApplicationCall.parameters] for a request port.
+         * A parameter name for [ServerCall.parameters] for a request port.
          */
         public const val PortParameter: String = "\$RequestPort"
     }

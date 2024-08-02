@@ -50,7 +50,7 @@ internal fun velocityOutgoingContent(
  * Provides the ability to respond with [VelocityContent].
  * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
-public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin("Velocity", ::VelocityEngine) {
+public val Velocity: ServerPlugin<VelocityEngine> = createServerPlugin("Velocity", ::VelocityEngine) {
 
     pluginConfig.init()
 

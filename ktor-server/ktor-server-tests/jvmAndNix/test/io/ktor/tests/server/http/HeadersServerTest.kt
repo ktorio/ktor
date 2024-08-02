@@ -14,7 +14,7 @@ class HeadersServerTest {
 
     @Test
     fun headersReturnNullWhenEmpty(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
                 assertNull(call.request.headers["X-Nonexistent-Header"])
                 assertNull(call.request.headers.getAll("X-Nonexistent-Header"))
@@ -31,7 +31,7 @@ class HeadersServerTest {
 
     @Test
     fun returnConnectionHeaderSetByServer(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             get("/") {
                 call.response.header(name = HttpHeaders.Connection, value = "close")
                 call.respondText("OK")

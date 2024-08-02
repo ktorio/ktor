@@ -16,7 +16,7 @@ class NettySpecificTest {
     @Test
     fun testNoLeakWithoutStartAndStop() {
         repeat(100000) {
-            embeddedServer(Netty, applicationProperties { })
+            embeddedServer(Netty, serverParams { })
         }
     }
 
@@ -47,7 +47,7 @@ class NettySpecificTest {
         socket.close()
 
         socket2.use {
-            val environment = applicationEnvironment()
+            val environment = serverEnvironment()
 
             val server = embeddedServer(Netty, environment, {
                 connector {

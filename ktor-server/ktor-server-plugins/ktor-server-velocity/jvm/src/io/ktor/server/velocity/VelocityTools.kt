@@ -21,7 +21,7 @@ public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit)
  * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
  */
 @Suppress("UNCHECKED_CAST")
-public val VelocityTools: ApplicationPlugin<EasyFactoryConfiguration> = createApplicationPlugin(
+public val VelocityTools: ServerPlugin<EasyFactoryConfiguration> = createServerPlugin(
     "VelocityTools",
     ::EasyFactoryConfiguration
 ) {

@@ -9,11 +9,11 @@ import io.ktor.server.logging.*
 import io.ktor.util.*
 
 internal fun PluginBuilder<CallLoggingConfig>.setupMDCProvider() {
-    application.pluginRegistry.put(KtorMDCProvider.key, KtorMDCProvider(pluginConfig.mdcEntries))
+    server.pluginRegistry.put(KtorMDCProvider.key, KtorMDCProvider(pluginConfig.mdcEntries))
 }
 
 internal class KtorMDCProvider(private val entries: List<MDCEntry>) : MDCProvider {
-    override suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
+    override suspend fun withMDCBlock(call: ServerCall, block: suspend () -> Unit) {
         withMDC(entries, call, block)
     }
 

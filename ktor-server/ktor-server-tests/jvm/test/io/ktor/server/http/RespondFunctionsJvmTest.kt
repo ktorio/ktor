@@ -13,7 +13,7 @@ import kotlin.test.*
 class RespondFunctionsJvmTest {
     @Test
     fun testRespondBytes(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             get("/output-stream") {
                 call.respondOutputStream(contentLength = 2) { write(1); write(2) }
             }

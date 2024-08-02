@@ -23,10 +23,10 @@ class VelocityToolsTest {
     @Test
     fun testBareVelocity() {
         withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
+            server.setUpTestTemplates()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -51,13 +51,13 @@ class VelocityToolsTest {
     @Test
     fun testStandardTools() {
         withTestApplication {
-            application.setUpTestTemplates {
+            server.setUpTestTemplates {
                 addDefaultTools()
                 setProperty("locale", "en_US")
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -87,12 +87,12 @@ class VelocityToolsTest {
     @Test
     fun testCustomTool() {
         withTestApplication {
-            application.setUpTestTemplates {
+            server.setUpTestTemplates {
                 tool(DateTool::class.java)
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -117,13 +117,13 @@ class VelocityToolsTest {
     @Test
     fun testConfigureLocale() {
         withTestApplication {
-            application.setUpTestTemplates {
+            server.setUpTestTemplates {
                 addDefaultTools()
                 setProperty("locale", "fr_FR")
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -148,9 +148,9 @@ class VelocityToolsTest {
     @Test
     fun testNoVelocityConfig() {
         withTestApplication {
-            application.install(VelocityTools)
+            server.install(VelocityTools)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -174,7 +174,7 @@ class VelocityToolsTest {
         }
     }
 
-    private fun Application.setUpTestTemplates(config: EasyFactoryConfiguration.() -> Unit = {}) {
+    private fun Server.setUpTestTemplates(config: EasyFactoryConfiguration.() -> Unit = {}) {
         val bax = "$"
 
         install(VelocityTools) {

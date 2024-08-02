@@ -15,31 +15,34 @@ import io.ktor.utils.io.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
+@Deprecated(message = "Renamed to ServerCall", replaceWith = ReplaceWith("ServerCall"))
+public typealias ApplicationCall = ServerCall
+
 /**
  * A single act of communication between a client and server.
- * @see [io.ktor.server.request.ApplicationRequest]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.request.ServerRequest]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public interface ApplicationCall {
+public interface ServerCall {
     /**
      * [Attributes] attached to this call.
      */
     public val attributes: Attributes
 
     /**
-     * An [ApplicationRequest] that is a client request.
+     * An [ServerRequest] that is a client request.
      */
-    public val request: ApplicationRequest
+    public val request: ServerRequest
 
     /**
      * An [PipelineResponse] that is a server response.
      */
-    public val response: ApplicationResponse
+    public val response: ServerResponse
 
     /**
      * An application being called.
      */
-    public val application: Application
+    public val server: Server
 
     /**
      * Parameters associated with this call.
@@ -66,7 +69,7 @@ public interface ApplicationCall {
  * @see [io.ktor.server.request.PipelineRequest]
  * @see [io.ktor.server.response.PipelineResponse]
  */
-public interface PipelineCall : ApplicationCall {
+public interface PipelineCall : ServerCall {
 
     /**
      * An [PipelineRequest] that is a client request.
@@ -107,12 +110,12 @@ public interface PipelineCall : ApplicationCall {
 /**
  * Indicates if a response is sent.
  */
-public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
+public val ServerCall.isHandled: Boolean get() = response.isCommitted
 
 /**
  * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
  */
-public var ApplicationCall.receiveType: TypeInfo
+public var ServerCall.receiveType: TypeInfo
     get() = attributes[RECEIVE_TYPE_KEY]
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)

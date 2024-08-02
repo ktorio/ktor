@@ -41,8 +41,8 @@ import kotlin.test.*
 import kotlin.text.toByteArray
 
 @ExtendWith(RetrySupport::class)
-abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class SustainabilityTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
@@ -248,7 +248,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         var job: Job? = null
 
         createAndStartServer {
-            job = application.launch {
+            job = server.launch {
                 delay(10000000L)
             }
         }
@@ -663,8 +663,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 exceptions.add(cause!!)
             }
         }
-        ApplicationCallPipeline(environment = createTestEnvironment()).items
-            .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback } // fallback will reply with 404 and not 500
+        ServerCallPipeline(environment = createTestEnvironment()).items
+            .filter { it != ServerCallPipeline.ServerPhase.Fallback } // fallback will reply with 404 and not 500
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {
@@ -699,10 +699,10 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 exceptions.add(cause!!)
             }
         }
-        ApplicationReceivePipeline().items
+        ServerReceivePipeline().items
             .forEach { phase ->
                 val server = createServer(log = logger) {
-                    intercept(ApplicationCallPipeline.Setup) {
+                    intercept(ServerCallPipeline.Setup) {
                         call.request.pipeline.intercept(phase) { throw IllegalStateException("Failed in phase $phase") }
                     }
 
@@ -738,12 +738,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 exceptions.add(cause!!)
             }
         }
-        ApplicationSendPipeline().items
-            .filter { it != ApplicationSendPipeline.Engine }
+        ServerSendPipeline().items
+            .filter { it != ServerSendPipeline.Engine }
             .forEach { phase ->
                 var intercepted = false
                 val server = createServer(log = logger) {
-                    intercept(ApplicationCallPipeline.Setup) setup@{
+                    intercept(ServerCallPipeline.Setup) setup@{
                         call.response.pipeline.intercept(phase) {
                             if (intercepted) return@intercept
                             intercepted = true
@@ -789,7 +789,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
             }
         }
-        (server.engine as BaseApplicationEngine).pipeline.intercept(phase) {
+        (server.engine as BaseServerEngine).pipeline.intercept(phase) {
             throw IllegalStateException("Failed in engine pipeline")
         }
         startServer(server)

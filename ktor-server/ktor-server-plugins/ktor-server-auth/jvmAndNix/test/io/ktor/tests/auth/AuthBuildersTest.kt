@@ -25,11 +25,11 @@ class AuthBuildersTest {
         val username = "testuser"
 
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 form { validate { c -> UserIdPrincipal(c.name) } }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     route("/") {
                         handle {
@@ -49,12 +49,12 @@ class AuthBuildersTest {
     @Test
     fun testMultipleConfigurationsNested() {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
                 basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
             }
 
-            application.routing {
+            server.routing {
                 authenticate("first") {
                     authenticate("second") {
                         route("/both") {
@@ -114,7 +114,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testMultipleRequiredConfigurations() = testApplication {
+    fun testMultipleRequiredConfigurations() = testServer {
         class Principal1(val name: String) : Principal
         class Principal2(val name: String) : Principal
 
@@ -175,7 +175,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testMultipleRequiredConfigurationsAccessByName() = testApplication {
+    fun testMultipleRequiredConfigurationsAccessByName() = testServer {
         class UserNamePrincipal(val name: String) : Principal
 
         install(Authentication) {
@@ -236,7 +236,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testDefaultConfigurationOverwrittenWithRequired() = testApplication {
+    fun testDefaultConfigurationOverwrittenWithRequired() = testServer {
         class Principal1(val name: String) : Principal
         class Principal2(val name: String) : Principal
 
@@ -299,7 +299,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testRequiredAndDefaultConfigurations() = testApplication {
+    fun testRequiredAndDefaultConfigurations() = testServer {
         class Principal1(val name: String) : Principal
         class Principal2(val name: String) : Principal
 
@@ -361,7 +361,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testRequiredAndOptionalConfigurations() = testApplication {
+    fun testRequiredAndOptionalConfigurations() = testServer {
         class Principal1(val name: String) : Principal
         class Principal2(val name: String) : Principal
 
@@ -423,7 +423,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testOptionalAndDefaultConfigurations() = testApplication {
+    fun testOptionalAndDefaultConfigurations() = testServer {
         class Principal1(val name: String) : Principal
         class Principal2(val name: String) : Principal
 
@@ -488,12 +488,12 @@ class AuthBuildersTest {
     @Test
     fun testMultipleConfigurations() {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
                 basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
             }
 
-            application.routing {
+            server.routing {
                 authenticate("first", "second") {
                     route("/both") {
                         handle {
@@ -551,7 +551,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testMultipleConfigurationsInstallLevel() = testApplication {
+    fun testMultipleConfigurationsInstallLevel() = testServer {
         install(Authentication) {
             basic("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
             basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
@@ -613,13 +613,13 @@ class AuthBuildersTest {
     @Test
     fun testNoRouting() {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 form { validate { UserIdPrincipal(it.name) } }
             }
 
-            application.install(AuthenticationInterceptors)
+            server.install(AuthenticationInterceptors)
 
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 call.respondText("OK")
             }
 
@@ -638,14 +638,14 @@ class AuthBuildersTest {
 
     @Test
     fun testModifyingAuthentication() = withTestApplication {
-        application.authentication {
+        server.authentication {
             basic("1") {
                 validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
             }
         }
 
         on("add a new auth method") {
-            application.authentication {
+            server.authentication {
                 form("2") {
                     validate { it.name.takeIf { it == "bbb" }?.let { UserIdPrincipal(it) } }
                 }
@@ -653,14 +653,14 @@ class AuthBuildersTest {
         }
 
         on("auth method name conflict") {
-            application.authentication {
+            server.authentication {
                 assertFails {
                     basic("2") {}
                 }
             }
         }
 
-        application.routing {
+        server.routing {
             authenticate("1", "2") {
                 get("/") {
                     call.respondText(call.principal<UserIdPrincipal>()?.name ?: "?")
@@ -669,7 +669,7 @@ class AuthBuildersTest {
         }
 
         on("attempt to auth") {
-            fun TestApplicationRequest.addFormAuth(name: String) {
+            fun TestServerRequest.addFormAuth(name: String) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
                 setBody("user=$name&password=")
             }
@@ -698,7 +698,7 @@ class AuthBuildersTest {
     @Test
     fun testAuthenticateOptionally() {
         withTestApplication {
-            application.apply {
+            server.apply {
                 authentication {
                     basic {
                         validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
@@ -738,7 +738,7 @@ class AuthBuildersTest {
     fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication {
         class CustomErrorCause : AuthenticationFailedCause.Error("custom error")
 
-        application.apply {
+        server.apply {
             authentication {
                 provider("custom") {
                     authenticate { context ->
@@ -796,7 +796,7 @@ class AuthBuildersTest {
 
     @Test
     fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication {
-        application.apply {
+        server.apply {
             authentication {
                 provider("custom") {
                     authenticate { context ->
@@ -834,8 +834,8 @@ class AuthBuildersTest {
 
     @Test
     fun testAuthDoesntChangeRoutePriority(): Unit = withTestApplication {
-        application.apply {
-            application.install(Authentication) {
+        server.apply {
+            server.install(Authentication) {
                 form { validate { c -> UserIdPrincipal(c.name) } }
             }
 
@@ -875,9 +875,9 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testAuthInterceptorKeepCallParameters() = testApplication {
+    fun testAuthInterceptorKeepCallParameters() = testServer {
         application {
-            intercept(ApplicationCallPipeline.Monitoring) {
+            intercept(ServerCallPipeline.Monitoring) {
                 call.authentication
             }
 
@@ -911,7 +911,7 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testCompleteApplication() = testApplication {
+    fun testCompleteApplication() = testServer {
         install(Sessions) {
             cookie<TestSession>("S")
         }
@@ -1044,7 +1044,7 @@ class AuthBuildersTest {
         assertEquals("File doc1.txt for user tester.", response9.bodyAsText())
     }
 
-    private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
+    private fun TestServerRequest.addBasicAuth(name: String = "tester") {
         addHeader(
             HttpHeaders.Authorization,
             HttpAuthHeader.Single("basic", "$name:".encodeBase64()).render()

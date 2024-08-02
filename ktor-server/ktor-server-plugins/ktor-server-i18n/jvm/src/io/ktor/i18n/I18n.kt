@@ -34,7 +34,7 @@ public class I18nConfiguration {
  *    encoding = StandardCharsets.UTF_8
  * }
  */
-public val I18n: ApplicationPlugin<I18nConfiguration> = createApplicationPlugin(
+public val I18n: ServerPlugin<I18nConfiguration> = createServerPlugin(
     "I18n",
     ::I18nConfiguration
 ) {

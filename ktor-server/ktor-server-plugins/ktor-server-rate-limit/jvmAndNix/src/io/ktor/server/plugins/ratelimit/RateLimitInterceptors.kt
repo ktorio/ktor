@@ -13,10 +13,10 @@ import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
-private object BeforeCall : Hook<suspend (ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+private object BeforeCall : Hook<suspend (ServerCall) -> Unit> {
+    override fun install(pipeline: ServerCallPipeline, handler: suspend (ServerCall) -> Unit) {
         val beforeCallPhase = PipelinePhase("BeforeCall")
-        pipeline.insertPhaseBefore(ApplicationCallPipeline.Call, beforeCallPhase)
+        pipeline.insertPhaseBefore(ServerCallPipeline.Call, beforeCallPhase)
         pipeline.intercept(beforeCallPhase) { handler(call) }
     }
 }
@@ -26,21 +26,21 @@ internal val RateLimitInterceptors = createRouteScopedPlugin(
     ::RateLimitInterceptorsConfig,
     PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
 )
-internal val RateLimitApplicationInterceptors = createApplicationPlugin(
+internal val RateLimitApplicationInterceptors = createServerPlugin(
     "RateLimitApplicationInterceptors",
     ::RateLimitInterceptorsConfig,
     PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
 )
 
 private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder() {
-    val configs = application.attributes.getOrNull(RateLimiterConfigsRegistryKey) ?: emptyMap()
+    val configs = server.attributes.getOrNull(RateLimiterConfigsRegistryKey) ?: emptyMap()
     val providers = pluginConfig.providerNames.map { name ->
         configs[name] ?: throw IllegalStateException(
             "Rate limit provider with name $name is not configured. " +
                 "Make sure that you install RateLimit plugin before you use it in Routing"
         )
     }
-    val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
+    val registry = server.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
     val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
 
     on(BeforeCall) { call ->
@@ -72,7 +72,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 is RateLimiter.State.Available -> {
                     if (rateLimiterForCall != RateLimiter.Unlimited) {
                         clearOnRefillJobs[providerKey]?.cancel()
-                        clearOnRefillJobs[providerKey] = application.launch {
+                        clearOnRefillJobs[providerKey] = server.launch {
                             delay(state.refillAtTimeMillis - getTimeMillis())
                             registry.remove(providerKey, rateLimiterForCall)
                             clearOnRefillJobs.remove(providerKey)

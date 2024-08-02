@@ -30,9 +30,9 @@ class VelocityTest {
     @Test
     fun testName() {
         withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
-            application.routing {
+            server.setUpTestTemplates()
+            server.install(ConditionalHeaders)
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
@@ -55,13 +55,13 @@ class VelocityTest {
     @Test
     fun testCompression() {
         withTestApplication {
-            application.setUpTestTemplates()
-            application.install(Compression) {
+            server.setUpTestTemplates()
+            server.install(Compression) {
                 gzip { minimumSize(10) }
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
@@ -86,10 +86,10 @@ class VelocityTest {
     @Test
     fun testWithoutEtag() {
         withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
+            server.setUpTestTemplates()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
@@ -113,10 +113,10 @@ class VelocityTest {
     @Test
     fun canRespondAppropriately() {
         withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
+            server.setUpTestTemplates()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
@@ -138,7 +138,7 @@ class VelocityTest {
     }
 
     @Test
-    fun testContentNegotiationInvokedAfter() = testApplication {
+    fun testContentNegotiationInvokedAfter() = testServer {
         application {
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, alwaysFailingConverter)
@@ -160,7 +160,7 @@ class VelocityTest {
         assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
     }
 
-    private fun Application.setUpTestTemplates() {
+    private fun Server.setUpTestTemplates() {
         val bax = "$"
 
         install(Velocity) {

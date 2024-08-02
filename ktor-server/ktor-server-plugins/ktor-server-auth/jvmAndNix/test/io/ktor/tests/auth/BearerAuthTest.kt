@@ -17,7 +17,7 @@ import kotlin.test.*
 class BearerAuthTest {
 
     @Test
-    fun `unauthorized with no auth`() = testApplication {
+    fun `unauthorized with no auth`() = testServer {
         configureServer()
 
         val response = client.get("/")
@@ -28,7 +28,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `successful with valid token`() = testApplication {
+    fun `successful with valid token`() = testServer {
         configureServer()
 
         val response = client.get("/") {
@@ -40,7 +40,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `successful with different cased scheme`() = testApplication {
+    fun `successful with different cased scheme`() = testServer {
         configureServer()
 
         val response = client.get("/") {
@@ -52,7 +52,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `successful with additional scheme`() = testApplication {
+    fun `successful with additional scheme`() = testServer {
         install(Authentication) {
             bearer {
                 authSchemes(additionalSchemes = arrayOf("Custom"))
@@ -77,7 +77,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `unauthorized with wrong scheme`() = testApplication {
+    fun `unauthorized with wrong scheme`() = testServer {
         configureServer()
 
         val response = client.get("/") {
@@ -90,7 +90,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `unauthorized with no token`() = testApplication {
+    fun `unauthorized with no token`() = testServer {
         configureServer()
 
         val response = client.get("/")
@@ -101,7 +101,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `unauthorized with wrong token`() = testApplication {
+    fun `unauthorized with wrong token`() = testServer {
         configureServer()
 
         val response = client.get("/") {
@@ -114,7 +114,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `unauthorized with parameterized token`() = testApplication {
+    fun `unauthorized with parameterized token`() = testServer {
         configureServer()
 
         val response = client.get("/") {
@@ -127,7 +127,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `exception when auth not configured`() = testApplication {
+    fun `exception when auth not configured`() = testServer {
         configureServer(
             authenticate = { throw NotImplementedError() }
         )
@@ -140,7 +140,7 @@ class BearerAuthTest {
     }
 
     @Test
-    fun `unauthorized with custom realm and scheme`() = testApplication {
+    fun `unauthorized with custom realm and scheme`() = testServer {
         configureServer(
             realm = "serverland",
             defaultScheme = "Stuff"
@@ -159,7 +159,7 @@ class BearerAuthTest {
         header(HttpHeaders.Authorization, "${AuthScheme.Bearer} $token")
     }
 
-    private fun ApplicationTestBuilder.configureServer(
+    private fun ServerTestBuilder.configureServer(
         authenticate: AuthenticationFunction<BearerTokenCredential> = { token ->
             if (token.token == "letmein") UserIdPrincipal("admin") else null
         },

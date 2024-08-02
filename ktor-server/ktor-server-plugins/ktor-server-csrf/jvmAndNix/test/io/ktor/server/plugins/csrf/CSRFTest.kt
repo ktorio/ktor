@@ -17,7 +17,7 @@ class CSRFTest {
 
     @Test
     fun allowOrigin() {
-        testApplication {
+        testServer {
             configureCSRF {
                 allowOrigin("https://localhost:8080")
             }
@@ -55,7 +55,7 @@ class CSRFTest {
 
     @Test
     fun originMatchesHost() {
-        testApplication {
+        testServer {
             configureCSRF {
                 originMatchesHost()
             }
@@ -97,7 +97,7 @@ class CSRFTest {
 
     @Test
     fun customHeader() {
-        testApplication {
+        testServer {
             configureCSRF {
                 checkHeader("X-CSRF") { it == "1" }
             }
@@ -129,7 +129,7 @@ class CSRFTest {
     fun onFailureOverride() {
         val customErrorMessage = "Hands off mah cookies!"
 
-        testApplication {
+        testServer {
             configureCSRF {
                 checkHeader("X-CSRF") { csrfHeader ->
                     request.headers[HttpHeaders.Origin]?.let { origin ->
@@ -157,7 +157,7 @@ class CSRFTest {
 
     @Test
     fun ignoresSafeMethods() {
-        testApplication {
+        testServer {
             configureCSRF {
                 originMatchesHost()
             }
@@ -184,7 +184,7 @@ class CSRFTest {
     fun onFailureDefaultResponse() {
         var errorMessageVariable = ""
 
-        testApplication {
+        testServer {
             configureCSRF {
                 checkHeader("X-CSRF") { csrfHeader ->
                     request.headers[HttpHeaders.Origin]?.let { origin ->
@@ -214,7 +214,7 @@ class CSRFTest {
 
     @Test
     fun worksWithDefaultPort() {
-        testApplication {
+        testServer {
             configureCSRF {
                 originMatchesHost()
             }
@@ -237,7 +237,7 @@ class CSRFTest {
                 message.let(warnings::add)
             }
         }
-        testApplication {
+        testServer {
             environment {
                 log = testLogger
             }
@@ -269,7 +269,7 @@ class CSRFTest {
         )
     }
 
-    private fun ApplicationTestBuilder.configureCSRF(csrfOptions: CSRFConfig.() -> Unit) {
+    private fun ServerTestBuilder.configureCSRF(csrfOptions: CSRFConfig.() -> Unit) {
         routing {
             route("/csrf") {
                 install(CSRF) {

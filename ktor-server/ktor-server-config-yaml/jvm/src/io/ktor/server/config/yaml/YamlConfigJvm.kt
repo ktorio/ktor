@@ -34,7 +34,7 @@ public actual fun YamlConfig(path: String?): YamlConfig? {
 
 private fun configFromString(content: String): YamlConfig {
     val yaml = Yaml.decodeYamlFromString(content) as? YamlMap
-        ?: throw ApplicationConfigurationException("Config should be a YAML dictionary")
+        ?: throw ServerConfigurationException("Config should be a YAML dictionary")
 
     return YamlConfig(yaml).apply { checkEnvironmentVariables() }
 }

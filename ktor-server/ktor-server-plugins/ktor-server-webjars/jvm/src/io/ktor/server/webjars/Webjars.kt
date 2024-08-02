@@ -42,7 +42,7 @@ public class WebjarsConfig {
 
     /**
      * Specifies a value for [HttpHeaders.LastModified] to be used in the response.
-     * By default, it is the time when this [Application] instance started.
+     * By default, it is the time when this [Server] instance started.
      * Return `null` from this block to omit the header.
      *
      * Note: for this property to work, you need to install the [ConditionalHeaders] plugin.
@@ -80,7 +80,7 @@ public class WebjarsConfig {
  *
  * To learn more, see [Webjars](https://ktor.io/docs/webjars.html).
  */
-public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("Webjars", ::WebjarsConfig) {
+public val Webjars: ServerPlugin<WebjarsConfig> = createServerPlugin("Webjars", ::WebjarsConfig) {
     val webjarsPrefix = pluginConfig.path
     require(webjarsPrefix.startsWith("/"))
     require(webjarsPrefix.endsWith("/"))

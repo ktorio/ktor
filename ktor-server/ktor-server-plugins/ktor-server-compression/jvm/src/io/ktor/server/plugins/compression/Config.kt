@@ -21,7 +21,7 @@ public data class CompressionOptions(
     /**
      * Conditions for all encoders.
      */
-    val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean> = emptyList()
+    val conditions: List<ServerCall.(OutgoingContent) -> Boolean> = emptyList()
 )
 
 /**
@@ -35,7 +35,7 @@ public data class CompressionEncoderConfig(
     /**
      * Conditions for an encoder.
      */
-    val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean>,
+    val conditions: List<ServerCall.(OutgoingContent) -> Boolean>,
     /**
      * A priority of an encoder.
      */
@@ -62,7 +62,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
      */
     public val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
 
-    override val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
+    override val conditions: MutableList<ServerCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
      * Appends an [encoder] with the [block] configuration.
@@ -109,7 +109,7 @@ public interface ConditionsHolderBuilder {
     /**
      * Preconditions applied to every response object to check if it should be compressed.
      */
-    public val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
+    public val conditions: MutableList<ServerCall.(OutgoingContent) -> Boolean>
 }
 
 /**
@@ -124,7 +124,7 @@ public class CompressionEncoderBuilder internal constructor(
     /**
      * A list of conditions for this encoder
      */
-    override val conditions: ArrayList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
+    override val conditions: ArrayList<ServerCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
      * A priority for this encoder.
@@ -167,7 +167,7 @@ public fun CompressionConfig.identity(block: CompressionEncoderBuilder.() -> Uni
  *
  * Note that adding a single condition removes the default configuration.
  */
-public fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
+public fun ConditionsHolderBuilder.condition(predicate: ServerCall.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
 }
 

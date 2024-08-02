@@ -77,7 +77,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
-        public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
+        public val onStateCreated: suspend (call: ServerCall, state: String) -> Unit = { _, _ -> }
     ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 

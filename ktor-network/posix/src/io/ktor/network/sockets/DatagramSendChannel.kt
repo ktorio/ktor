@@ -15,7 +15,6 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
 import kotlinx.io.*
-import kotlinx.io.Buffer
 import kotlinx.io.IOException
 
 private val CLOSED: (Throwable?) -> Unit = {}

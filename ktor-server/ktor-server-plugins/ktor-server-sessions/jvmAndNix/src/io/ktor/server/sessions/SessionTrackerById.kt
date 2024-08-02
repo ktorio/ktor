@@ -15,7 +15,7 @@ import kotlin.reflect.*
  * @param SessionType to search ID for
  * @return session id or `null` if no session ID sent by the client
  */
-public inline fun <reified SessionType : Any> ApplicationCall.sessionId(): String? {
+public inline fun <reified SessionType : Any> ServerCall.sessionId(): String? {
     return sessionId(SessionType::class)
 }
 
@@ -26,7 +26,7 @@ public inline fun <reified SessionType : Any> ApplicationCall.sessionId(): Strin
  * @param SessionType to search ID for
  * @return session id or `null` if no session ID sent by the client
  */
-public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionType>): String? {
+public fun <SessionType : Any> ServerCall.sessionId(klass: KClass<SessionType>): String? {
     val name = sessions.findName(klass)
     return sessionId(name)
 }
@@ -39,9 +39,9 @@ public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionTy
  *
  * @return session id or `null` if no session ID sent by the client
  */
-public val ApplicationCall.sessionId: String?
+public val ServerCall.sessionId: String?
     get() {
-        val providers = application.attributes[SessionProvidersKey].filter { it.tracker is SessionTrackerById }
+        val providers = server.attributes[SessionProvidersKey].filter { it.tracker is SessionTrackerById }
         return when (providers.size) {
             0 -> null
             1 -> sessionId(providers[0].name)
@@ -50,8 +50,8 @@ public val ApplicationCall.sessionId: String?
     }
 
 @PublishedApi
-internal fun ApplicationCall.sessionId(name: String): String? {
-    val provider = application.attributes[SessionProvidersKey]
+internal fun ServerCall.sessionId(name: String): String? {
+    val provider = server.attributes[SessionProvidersKey]
         .firstOrNull { it.name == name }
         ?: error("No session provider $name found.")
 
@@ -77,7 +77,7 @@ public class SessionTrackerById<S : Any>(
 ) : SessionTracker<S> {
     internal val sessionIdKey: AttributeKey<String> = AttributeKey("SessionId")
 
-    override suspend fun load(call: ApplicationCall, transport: String?): S? {
+    override suspend fun load(call: ServerCall, transport: String?): S? {
         val sessionId = transport ?: return null
 
         call.attributes.put(sessionIdKey, sessionId)
@@ -85,7 +85,7 @@ public class SessionTrackerById<S : Any>(
             val serialized = storage.read(sessionId)
             return serializer.deserialize(serialized)
         } catch (notFound: NoSuchElementException) {
-            call.application.log.debug(
+            call.server.log.debug(
                 "Failed to lookup session: ${notFound.message ?: notFound.toString()}. " +
                     "The session id is wrong or outdated."
             )
@@ -97,14 +97,14 @@ public class SessionTrackerById<S : Any>(
         return null
     }
 
-    override suspend fun store(call: ApplicationCall, value: S): String {
+    override suspend fun store(call: ServerCall, value: S): String {
         val sessionId = call.attributes.computeIfAbsent(sessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(value)
         storage.write(sessionId, serialized)
         return sessionId
     }
 
-    override suspend fun clear(call: ApplicationCall) {
+    override suspend fun clear(call: ServerCall) {
         val sessionId = call.attributes.takeOrNull(sessionIdKey)
         if (sessionId != null) {
             storage.invalidate(sessionId)

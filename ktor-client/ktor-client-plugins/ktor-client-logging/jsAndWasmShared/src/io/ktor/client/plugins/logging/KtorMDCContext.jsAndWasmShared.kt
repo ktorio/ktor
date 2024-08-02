@@ -7,7 +7,6 @@ package io.ktor.client.plugins.logging
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
-
 @InternalAPI
 public actual fun MDCContext(): CoroutineContext.Element = MDCContextElement
 
@@ -17,5 +16,5 @@ internal object MDCContextElement : CoroutineContext.Element {
 
     override fun toString(): String = "MDCContext"
 
-    object MDCContextKey: CoroutineContext.Key<MDCContextElement>
+    object MDCContextKey : CoroutineContext.Key<MDCContextElement>
 }

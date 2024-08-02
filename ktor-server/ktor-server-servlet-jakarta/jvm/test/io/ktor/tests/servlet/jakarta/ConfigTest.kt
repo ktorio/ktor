@@ -7,9 +7,9 @@ package io.ktor.tests.servlet.jakarta
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.jakarta.*
-import io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.ApplicationAttributeKey
-import io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey
-import io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.EnvironmentAttributeKey
+import io.ktor.server.servlet.jakarta.ServletServerEngine.Companion.ApplicationAttributeKey
+import io.ktor.server.servlet.jakarta.ServletServerEngine.Companion.ApplicationEnginePipelineAttributeKey
+import io.ktor.server.servlet.jakarta.ServletServerEngine.Companion.EnvironmentAttributeKey
 import io.mockk.*
 import jakarta.servlet.*
 import jakarta.servlet.http.*
@@ -19,12 +19,12 @@ import kotlin.test.*
 class ConfigTest {
     @Test
     fun resolveParametersFromCustomConfig() {
-        val engine = ServletApplicationEngine()
+        val engine = ServletServerEngine()
         val pipeline = EnginePipeline()
 
         var interceptorCalled = false
         pipeline.intercept(EnginePipeline.Call) {
-            val value = call.application.environment.config.property("var").getString()
+            val value = call.server.environment.config.property("var").getString()
             assertEquals("test", value)
             interceptorCalled = true
         }
@@ -54,12 +54,12 @@ class ConfigTest {
 
     @Test
     fun resolveYamlFromCustomConfig() {
-        val engine = ServletApplicationEngine()
+        val engine = ServletServerEngine()
         val pipeline = EnginePipeline()
 
         var interceptorCalled = false
         pipeline.intercept(EnginePipeline.Call) {
-            val value = call.application.environment.config.property("property").getString()
+            val value = call.server.environment.config.property("property").getString()
             assertEquals("a-custom", value)
             interceptorCalled = true
         }

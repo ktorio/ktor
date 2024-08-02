@@ -20,7 +20,7 @@ import kotlin.test.*
 class ContentEncodingRequestBodyTest {
 
     @Test
-    fun testCompressRequestBody() = testApplication {
+    fun testCompressRequestBody() = testServer {
         routing {
             post("gzip") {
                 assertEquals("gzip", call.request.headers[HttpHeaders.ContentEncoding])

@@ -8,13 +8,16 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.utils.io.*
 
+@Deprecated(message = "Renamed to ServerRequest", replaceWith = ReplaceWith("ServerRequest"))
+public typealias ApplicationRequest = ServerRequest
+
 /**
  * A client's request.
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
- * @see [io.ktor.server.application.ApplicationCall]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.application.ServerCall]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public interface ApplicationRequest {
+public interface ServerRequest {
 
     /**
      * Provides access to headers for the current request.
@@ -24,9 +27,9 @@ public interface ApplicationRequest {
     public val headers: Headers
 
     /**
-     * An [ApplicationCall] instance this [ApplicationRequest] is attached to.
+     * An [ServerCall] instance this [ServerRequest] is attached to.
      */
-    public val call: ApplicationCall
+    public val call: ServerCall
 
     /**
      * Provides access to connection details such as a host name, port, scheme, etc.
@@ -57,12 +60,12 @@ public interface ApplicationRequest {
 }
 
 /**
- * A client's request that is used in [ApplicationPlugin].
+ * A client's request that is used in [ServerPlugin].
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
  * @see [PipelineCall]
  * @see [io.ktor.server.response.PipelineResponse]
  */
-public interface PipelineRequest : ApplicationRequest {
+public interface PipelineRequest : ServerRequest {
     /**
      * An [PipelineCall] instance this [PipelineRequest] is attached to.
      */
@@ -71,7 +74,7 @@ public interface PipelineRequest : ApplicationRequest {
     /**
      * A pipeline for receiving content.
      */
-    public val pipeline: ApplicationReceivePipeline
+    public val pipeline: ServerReceivePipeline
 
     /**
      * Overrides request headers. Will remove header [name] if passed [values] is `null` or set [values] otherwise.
@@ -89,7 +92,7 @@ public interface PipelineRequest : ApplicationRequest {
 /**
  * Internal helper function to encode raw parameters. Should not be used directly.
  */
-public fun ApplicationRequest.encodeParameters(parameters: Parameters): Parameters {
+public fun ServerRequest.encodeParameters(parameters: Parameters): Parameters {
     return ParametersBuilder().apply {
         rawQueryParameters.names().forEach { key ->
             val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()

@@ -20,19 +20,19 @@ public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
 
 /**
- * A root routing node of an [Application].
+ * A root routing node of an [Server].
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  *
- * @param application is an instance of [Application] for this routing node.
+ * @param server is an instance of [Server] for this routing node.
  */
 @KtorDsl
 public class RoutingRoot(
-    public val application: Application
+    public val server: Server
 ) : RoutingNode(
     parent = null,
-    selector = RootRouteSelector(application.rootPath),
-    application.developmentMode,
-    application.environment
+    selector = RootRouteSelector(server.rootPath),
+    server.developmentMode,
+    server.environment
 ),
     Routing {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
@@ -79,12 +79,12 @@ public class RoutingRoot(
         val receivePipeline = merge(
             context.call.request.pipeline,
             routingCallPipeline.receivePipeline
-        ) { ApplicationReceivePipeline(developmentMode) }
+        ) { ServerReceivePipeline(developmentMode) }
 
         val responsePipeline = merge(
             context.call.response.pipeline,
             routingCallPipeline.sendPipeline
-        ) { ApplicationSendPipeline(developmentMode) }
+        ) { ServerSendPipeline(developmentMode) }
 
         val routingApplicationCall = RoutingPipelineCall(
             context.call,
@@ -95,11 +95,11 @@ public class RoutingRoot(
             parameters
         )
         val routingCall = RoutingCall(routingApplicationCall)
-        application.monitor.raise(RoutingCallStarted, routingCall)
+        server.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
         } finally {
-            application.monitor.raise(RoutingCallFinished, routingCall)
+            server.monitor.raise(RoutingCallFinished, routingCall)
         }
     }
 
@@ -124,7 +124,7 @@ public class RoutingRoot(
      * An installation object of the [RoutingRoot] plugin.
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : BaseApplicationPlugin<Application, Routing, RoutingRoot> {
+    public companion object Plugin : BaseServerPlugin<Server, Routing, RoutingRoot> {
 
         /**
          * A definition for an event that is fired when routing-based call processing starts.
@@ -138,7 +138,7 @@ public class RoutingRoot(
 
         override val key: AttributeKey<RoutingRoot> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: Routing.() -> Unit): RoutingRoot {
+        override fun install(pipeline: Server, configure: Routing.() -> Unit): RoutingRoot {
             val routingRoot = RoutingRoot(pipeline).apply(configure)
             pipeline.intercept(Call) { routingRoot.interceptor(this) }
             return routingRoot
@@ -147,20 +147,20 @@ public class RoutingRoot(
 }
 
 /**
- * Gets an [Application] for this [RoutingNode] by scanning the hierarchy to the root.
+ * Gets an [Server] for this [RoutingNode] by scanning the hierarchy to the root.
  */
-public val Route.application: Application
+public val Route.server: Server
     get() = when (this) {
-        is RoutingRoot -> application
-        else -> parent?.application ?: throw UnsupportedOperationException(
+        is RoutingRoot -> server
+        else -> parent?.server ?: throw UnsupportedOperationException(
             "Cannot retrieve application from unattached routing entry"
         )
     }
 
 /**
- * Installs a [RoutingRoot] plugin for the this [Application] and runs a [configuration] script on it.
+ * Installs a [RoutingRoot] plugin for the this [Server] and runs a [configuration] script on it.
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
 @KtorDsl
-public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
+public fun Server.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)

@@ -23,7 +23,7 @@ class WebjarsTest {
 
     @Test
     fun resourceNotFound() {
-        testApplication {
+        testServer {
             install(Webjars)
             client.get("/webjars/foo.js").let { response ->
                 // Should be handled by some other routing
@@ -34,7 +34,7 @@ class WebjarsTest {
 
     @Test
     fun pathLike() {
-        testApplication {
+        testServer {
             install(Webjars)
             routing {
                 get("/webjars-something/jquery") {
@@ -50,7 +50,7 @@ class WebjarsTest {
 
     @Test
     fun nestedPath() {
-        testApplication {
+        testServer {
             install(Webjars) {
                 path = "/assets/webjars"
             }
@@ -63,7 +63,7 @@ class WebjarsTest {
 
     @Test
     fun rootPath() {
-        testApplication {
+        testServer {
             install(Webjars) {
                 path = "/"
             }
@@ -76,7 +76,7 @@ class WebjarsTest {
 
     @Test
     fun rootPath2() {
-        testApplication {
+        testServer {
             install(Webjars) {
                 path = "/"
             }
@@ -96,7 +96,7 @@ class WebjarsTest {
 
     @Test
     fun versionAgnostic() {
-        testApplication {
+        testServer {
             install(Webjars)
 
             client.get("/webjars/jquery/jquery.js").let { response ->
@@ -108,7 +108,7 @@ class WebjarsTest {
 
     @Test
     fun withGetParameters() {
-        testApplication {
+        testServer {
             install(Webjars)
 
             client.get("/webjars/jquery/jquery.js?param1=value1").let { response ->
@@ -120,7 +120,7 @@ class WebjarsTest {
 
     @Test
     fun withSpecificVersion() {
-        testApplication {
+        testServer {
             install(Webjars)
 
             client.get("/webjars/jquery/3.6.4/jquery.js").let { response ->
@@ -134,10 +134,10 @@ class WebjarsTest {
     fun isStaticContentReturnsTrue() {
         var isStatic = false
         var location = ""
-        testApplication {
+        testServer {
             install(Webjars)
             install(
-                createApplicationPlugin("TestResponseMeta") {
+                createServerPlugin("TestResponseMeta") {
                     onCallRespond { call ->
                         isStatic = call.isStaticContent()
                         location = call.attributes[StaticFileLocationProperty]
@@ -154,7 +154,7 @@ class WebjarsTest {
 
     @Test
     fun withConditionalAndCachingHeaders() {
-        testApplication {
+        testServer {
             install(Webjars)
             install(ConditionalHeaders)
             install(CachingHeaders)
@@ -170,7 +170,7 @@ class WebjarsTest {
 
     @Test
     fun withConditionalAndCachingHeadersCustom() {
-        testApplication {
+        testServer {
             val date = GMTDate()
             install(Webjars) {
                 maxAge { 5.seconds }
@@ -192,17 +192,17 @@ class WebjarsTest {
     @Test
     fun callHandledBeforeWebjars() {
         val alwaysRespondHello = object : Hook<Unit> {
-            override fun install(pipeline: ApplicationCallPipeline, handler: Unit) {
-                pipeline.intercept(ApplicationCallPipeline.Setup) {
+            override fun install(pipeline: ServerCallPipeline, handler: Unit) {
+                pipeline.intercept(ServerCallPipeline.Setup) {
                     call.respond("Hello")
                 }
             }
         }
-        val pluginBeforeWebjars = createApplicationPlugin("PluginBeforeWebjars") {
+        val pluginBeforeWebjars = createServerPlugin("PluginBeforeWebjars") {
             on(alwaysRespondHello, Unit)
         }
 
-        testApplication {
+        testServer {
             install(pluginBeforeWebjars)
             install(Webjars)
 

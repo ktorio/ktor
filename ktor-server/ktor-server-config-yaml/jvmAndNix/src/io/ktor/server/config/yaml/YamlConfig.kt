@@ -9,7 +9,7 @@ import net.mamoe.yamlkt.*
 internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
 /**
- * Loads [ApplicationConfig] from a YAML file.
+ * Loads [ServerConfig] from a YAML file.
  */
 public class YamlConfigLoader : ConfigLoader {
     /**
@@ -17,7 +17,7 @@ public class YamlConfigLoader : ConfigLoader {
      *
      * @return configuration or null if the path is not found or a configuration format is not supported.
      */
-    override fun load(path: String?): ApplicationConfig? {
+    override fun load(path: String?): ServerConfig? {
         return YamlConfig(path)?.apply { checkEnvironmentVariables() }
     }
 }
@@ -30,12 +30,12 @@ public class YamlConfigLoader : ConfigLoader {
 public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**
- * Implements [ApplicationConfig] by loading a configuration from a YAML file.
+ * Implements [ServerConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
  */
 public class YamlConfig internal constructor(
     private val yaml: YamlMap
-) : ApplicationConfig {
+) : ServerConfig {
 
     private var root: YamlConfig = this
 
@@ -46,11 +46,11 @@ public class YamlConfig internal constructor(
         this.root = root
     }
 
-    override fun property(path: String): ApplicationConfigValue {
-        return propertyOrNull(path) ?: throw ApplicationConfigurationException("Path $path not found.")
+    override fun property(path: String): ServerConfigValue {
+        return propertyOrNull(path) ?: throw ServerConfigurationException("Path $path not found.")
     }
 
-    override fun propertyOrNull(path: String): ApplicationConfigValue? {
+    override fun propertyOrNull(path: String): ServerConfigValue? {
         val parts = path.split('.')
         val yaml = parts.dropLast(1).fold(yaml) { yaml, part -> yaml[part] as? YamlMap ?: return null }
         val value = yaml[parts.last()] ?: return null
@@ -61,35 +61,35 @@ public class YamlConfig internal constructor(
             is YamlList -> {
                 val values = value.content.map { element ->
                     element.asLiteralOrNull()?.content?.let { resolveValue(it, root) }
-                        ?: throw ApplicationConfigurationException("Value at path $path can not be resolved.")
+                        ?: throw ServerConfigurationException("Value at path $path can not be resolved.")
                 }
                 ListConfigValue(key = path, values = values)
             }
 
-            else -> throw ApplicationConfigurationException(
+            else -> throw ServerConfigurationException(
                 "Expected primitive or list at path $path, but was ${value::class}"
             )
         }
     }
 
-    override fun config(path: String): ApplicationConfig {
+    override fun config(path: String): ServerConfig {
         val parts = path.split('.')
         val yaml = parts.fold(yaml) { yaml, part ->
-            yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
+            yaml[part] as? YamlMap ?: throw ServerConfigurationException("Path $path not found.")
         }
         return YamlConfig(yaml, root)
     }
 
-    override fun configList(path: String): List<ApplicationConfig> {
+    override fun configList(path: String): List<ServerConfig> {
         val parts = path.split('.')
         val yaml = parts.dropLast(1).fold(yaml) { yaml, part ->
-            yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
+            yaml[part] as? YamlMap ?: throw ServerConfigurationException("Path $path not found.")
         }
-        val value = yaml[parts.last()] as? YamlList ?: throw ApplicationConfigurationException("Path $path not found.")
+        val value = yaml[parts.last()] as? YamlList ?: throw ServerConfigurationException("Path $path not found.")
         return value.map {
             YamlConfig(
                 it as? YamlMap
-                    ?: throw ApplicationConfigurationException("Property $path is not a list of maps."),
+                    ?: throw ServerConfigurationException("Property $path is not a list of maps."),
                 root
             )
         }
@@ -136,16 +136,16 @@ public class YamlConfig internal constructor(
         check(yaml)
     }
 
-    private class LiteralConfigValue(private val key: String, private val value: String) : ApplicationConfigValue {
+    private class LiteralConfigValue(private val key: String, private val value: String) : ServerConfigValue {
         override fun getString(): String = value
 
         override fun getList(): List<String> =
-            throw ApplicationConfigurationException("Property $key is not a list of primitives.")
+            throw ServerConfigurationException("Property $key is not a list of primitives.")
     }
 
-    private class ListConfigValue(private val key: String, private val values: List<String>) : ApplicationConfigValue {
+    private class ListConfigValue(private val key: String, private val values: List<String>) : ServerConfigValue {
         override fun getString(): String =
-            throw ApplicationConfigurationException("Property $key doesn't exist or not a primitive.")
+            throw ServerConfigurationException("Property $key doesn't exist or not a primitive.")
 
         override fun getList(): List<String> = values
     }
@@ -172,7 +172,7 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
     return getEnvironmentValue(key) ?: if (isOptional) {
         null
     } else {
-        throw ApplicationConfigurationException(
+        throw ServerConfigurationException(
             "Required environment variable \"$key\" not found and no default value is present"
         )
     }

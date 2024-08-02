@@ -15,14 +15,14 @@ import io.ktor.utils.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.auth.Authentication")
 
-internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
+internal object AuthenticationHook : Hook<suspend (ServerCall) -> Unit> {
     internal val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (ApplicationCall) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend (ServerCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticatePhase)
+        pipeline.insertPhaseAfter(ServerCallPipeline.Plugins, AuthenticatePhase)
         pipeline.intercept(AuthenticatePhase) { handler(call) }
     }
 }
@@ -30,16 +30,16 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
 /**
  * A hook that is executed after authentication was checked.
  * Note that this hook is also executed for optional authentication or for routes without any authentication,
- * resulting in [ApplicationCall.principal] being `null`.
+ * resulting in [ServerCall.principal] being `null`.
  */
-public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
+public object AuthenticationChecked : Hook<suspend (ServerCall) -> Unit> {
     internal val AfterAuthenticationPhase: PipelinePhase = PipelinePhase("AfterAuthentication")
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (ApplicationCall) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend (ServerCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
+        pipeline.insertPhaseAfter(ServerCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
         pipeline.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, AfterAuthenticationPhase)
         pipeline.intercept(AfterAuthenticationPhase) { handler(call) }
     }
@@ -53,7 +53,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
     ::RouteAuthenticationConfig
 ) {
     val providers = pluginConfig.providers
-    val authConfig = application.plugin(Authentication).config
+    val authConfig = server.plugin(Authentication).config
 
     val requiredProviders = authConfig
         .findProviders(providers) { it == AuthenticationStrategy.Required }
@@ -124,7 +124,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
+private suspend fun AuthenticationContext.executeChallenges(call: ServerCall) {
     val challenges = challenge.challenges
 
     if (this.executeChallenges(challenges, call)) return
@@ -145,7 +145,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
 
 private suspend fun AuthenticationContext.executeChallenges(
     challenges: List<ChallengeFunction>,
-    call: ApplicationCall
+    call: ServerCall
 ): Boolean {
     for (challengeFunction in challenges) {
         challengeFunction(challenge, call)
@@ -198,7 +198,7 @@ public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
  * @param optional when set, if no authentication is provided by the client,
  * a call continues but with a null [Principal].
- * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
+ * @throws MissingServerPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(
@@ -226,7 +226,7 @@ public fun Route.authenticate(
  *  registered for this route
  *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for
  *  this route with this strategy
- * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
+ * @throws MissingServerPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(

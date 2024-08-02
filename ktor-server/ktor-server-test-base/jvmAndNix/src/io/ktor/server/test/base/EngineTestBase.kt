@@ -13,8 +13,8 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+expect abstract class EngineTestBase<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    serverEngineFactory: ServerEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest, CoroutineScope {
 
     override val coroutineContext: CoroutineContext
@@ -23,7 +23,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     @Retention
     protected annotation class Http2Only()
 
-    val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+    val serverEngineFactory: ServerEngineFactory<TEngine, TConfiguration>
 
     protected var enableHttp2: Boolean
     protected var enableSsl: Boolean
@@ -41,7 +41,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration>
 
-    protected open fun plugins(application: Application, routingConfig: Route.() -> Unit)
+    protected open fun plugins(server: Server, routingConfig: Route.() -> Unit)
 
     protected fun withUrl(
         path: String,

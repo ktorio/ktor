@@ -9,13 +9,13 @@ import io.ktor.server.testing.suites.*
 import kotlin.test.*
 
 class JettyHttp2AsyncServletContainerCompressionTest :
-    CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    CompressionTestSuite<JettyServerEngineBase, JettyServerEngineBase.Configuration>(Servlet(async = true))
 
 class JettyHttp2AsyncServletContainerContentTest :
-    ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    ContentTestSuite<JettyServerEngineBase, JettyServerEngineBase.Configuration>(Servlet(async = true))
 
 class JettyHttp2AsyncServletContainerHttpServerCommonTest :
-    HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+    HttpServerCommonTestSuite<JettyServerEngineBase, JettyServerEngineBase.Configuration>(
         Servlet(async = true)
     ) {
     override fun testFlushingHeaders() {
@@ -24,7 +24,7 @@ class JettyHttp2AsyncServletContainerHttpServerCommonTest :
 }
 
 class JettyHttp2AsyncServletContainerHttpServerJvmTest :
-    HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+    HttpServerJvmTestSuite<JettyServerEngineBase, JettyServerEngineBase.Configuration>(
         Servlet(async = true)
     ) {
     @Ignore
@@ -37,4 +37,4 @@ class JettyHttp2AsyncServletContainerHttpServerJvmTest :
 }
 
 class JettyHttp2AsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    SustainabilityTestSuite<JettyServerEngineBase, JettyServerEngineBase.Configuration>(Servlet(async = true))

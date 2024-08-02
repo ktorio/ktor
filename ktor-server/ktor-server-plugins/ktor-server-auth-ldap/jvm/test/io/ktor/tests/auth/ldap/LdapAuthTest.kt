@@ -29,7 +29,7 @@ class LdapAuthTest {
     @Test
     fun testLoginToServer(port: Int) {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 basic {
                     realm = "realm"
                     validate { credential ->
@@ -38,7 +38,7 @@ class LdapAuthTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     get("/") {
                         call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
@@ -100,7 +100,7 @@ class LdapAuthTest {
     @Test
     fun testCustomLogin(port: Int) {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 val ldapUrl = "ldap://$localhost:$port"
                 val configure: (MutableMap<String, Any?>) -> Unit = { env ->
                     env["java.naming.security.principal"] = "uid=admin,ou=system"
@@ -127,7 +127,7 @@ class LdapAuthTest {
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     get("/") {
                         call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")

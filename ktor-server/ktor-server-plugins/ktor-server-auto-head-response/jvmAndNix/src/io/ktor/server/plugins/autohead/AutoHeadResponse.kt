@@ -17,7 +17,7 @@ import io.ktor.util.*
  * on the client before getting the actual content.
  * You can learn more from [AutoHeadResponse](https://ktor.io/docs/autoheadresponse.html).
  */
-public val AutoHeadResponse: ApplicationPlugin<Unit> = createApplicationPlugin("AutoHeadResponse") {
+public val AutoHeadResponse: ServerPlugin<Unit> = createServerPlugin("AutoHeadResponse") {
     onCall { call ->
         if (call.request.local.method != HttpMethod.Head) return@onCall
         call.mutableOriginConnectionPoint.method = HttpMethod.Get

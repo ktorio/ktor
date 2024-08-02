@@ -17,7 +17,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.cio.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -29,7 +28,7 @@ import kotlin.text.Charsets
 
 class ThymeleafTest {
     @Test
-    fun testName() = testApplication {
+    fun testName() = testServer {
         application {
             setUpThymeleafStringTemplate()
             install(ConditionalHeaders)
@@ -54,7 +53,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testCompression() = testApplication {
+    fun testCompression() = testServer {
         application {
             setUpThymeleafStringTemplate()
             install(Compression) {
@@ -85,7 +84,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testWithoutEtag() = testApplication {
+    fun testWithoutEtag() = testServer {
         application {
             setUpThymeleafStringTemplate()
             install(ConditionalHeaders)
@@ -112,7 +111,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun canRespondAppropriately() = testApplication {
+    fun canRespondAppropriately() = testServer {
         application {
             setUpThymeleafStringTemplate()
             install(ConditionalHeaders)
@@ -136,7 +135,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testClassLoaderTemplateResolver() = testApplication {
+    fun testClassLoaderTemplateResolver() = testServer {
         application {
             install(Thymeleaf) {
                 val resolver = ClassLoaderTemplateResolver()
@@ -170,7 +169,7 @@ class ThymeleafTest {
             "es-419" to "Hola, mundo!",
             "default" to "Hello, world!"
         )
-        testApplication {
+        testServer {
             application {
                 install(Thymeleaf) {
                     val resolver = ClassLoaderTemplateResolver()
@@ -206,7 +205,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testFragmentReturn() = testApplication {
+    fun testFragmentReturn() = testServer {
         application {
             install(Thymeleaf) {
                 val resolver = ClassLoaderTemplateResolver()
@@ -227,7 +226,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testFragmentsInsert() = testApplication {
+    fun testFragmentsInsert() = testServer {
         application {
             install(Thymeleaf) {
                 val resolver = ClassLoaderTemplateResolver()
@@ -248,7 +247,7 @@ class ThymeleafTest {
     }
 
     @Test
-    fun testContentNegotiationInvokedAfter() = testApplication {
+    fun testContentNegotiationInvokedAfter() = testServer {
         application {
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, alwaysFailingConverter)
@@ -272,7 +271,7 @@ class ThymeleafTest {
         assertEquals("<div><p>Hello, first fragment</p></div>", response.bodyAsText())
     }
 
-    private fun Application.setUpThymeleafStringTemplate() {
+    private fun Server.setUpThymeleafStringTemplate() {
         install(Thymeleaf) {
             setTemplateResolver(StringTemplateResolver())
         }

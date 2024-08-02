@@ -14,19 +14,19 @@ import kotlin.coroutines.*
 
 /**
  * An application call handled by [RoutingRoot].
- * @property call original call from [io.ktor.server.engine.ApplicationEngine]
+ * @property call original call from [io.ktor.server.engine.ServerEngine]
  * @property route is the selected route
  */
 public class RoutingPipelineCall(
     public val engineCall: PipelineCall,
     public val route: RoutingNode,
     override val coroutineContext: CoroutineContext,
-    receivePipeline: ApplicationReceivePipeline,
-    responsePipeline: ApplicationSendPipeline,
+    receivePipeline: ServerReceivePipeline,
+    responsePipeline: ServerSendPipeline,
     public val pathParameters: Parameters
 ) : PipelineCall, CoroutineScope {
 
-    override val application: Application get() = engineCall.application
+    override val server: Server get() = engineCall.server
     override val attributes: Attributes get() = engineCall.attributes
 
     override val request: RoutingPipelineRequest =
@@ -50,7 +50,7 @@ public class RoutingPipelineCall(
  */
 public class RoutingPipelineRequest(
     override val call: RoutingPipelineCall,
-    override val pipeline: ApplicationReceivePipeline,
+    override val pipeline: ServerReceivePipeline,
     public val engineRequest: PipelineRequest
 ) : PipelineRequest by engineRequest
 
@@ -59,6 +59,6 @@ public class RoutingPipelineRequest(
  */
 public class RoutingPipelineResponse(
     override val call: RoutingPipelineCall,
-    override val pipeline: ApplicationSendPipeline,
+    override val pipeline: ServerSendPipeline,
     public val engineResponse: PipelineResponse
 ) : PipelineResponse by engineResponse

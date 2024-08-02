@@ -22,8 +22,8 @@ class WebSocketWithContentNegotiationTest {
 
     @Test
     fun test(): Unit = withTestApplication {
-        application.install(WebSockets)
-        application.install(ContentNegotiation) {
+        server.install(WebSockets)
+        server.install(ContentNegotiation) {
             val converter = object : ContentConverter {
                 override suspend fun serialize(
                     contentType: ContentType,
@@ -40,7 +40,7 @@ class WebSocketWithContentNegotiationTest {
             register(ContentType.Any, converter)
         }
 
-        application.routing {
+        server.routing {
             webSocket("/") {
                 outgoing.send(Frame.Text("OK"))
             }

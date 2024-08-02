@@ -29,14 +29,14 @@ class MultipleDispatchOnTimeout {
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {
         val callCount = AtomicInteger(0)
         val port = findFreePort()
-        val environment = applicationEnvironment {
+        val environment = serverEnvironment {
             log = LoggerFactory.getLogger("io.ktor.test")
         }
-        val props = applicationProperties(environment) {
+        val props = serverParams(environment) {
             module {
-                intercept(ApplicationCallPipeline.Call) {
+                intercept(ServerCallPipeline.Call) {
                     callCount.incrementAndGet()
-                    val timeout = (call.request as ServletApplicationRequest)
+                    val timeout = (call.request as ServletServerRequest)
                         .servletRequest.asyncContext.timeout.coerceAtLeast(0)
                     Thread.sleep(timeout + 1000)
                     call.respondTextWriter {

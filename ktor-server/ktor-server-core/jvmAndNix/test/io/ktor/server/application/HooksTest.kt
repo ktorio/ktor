@@ -23,16 +23,16 @@ class HooksTest {
         val currentHandler = HookHandler()
 
         val myHook = object : Hook<HookHandler.() -> Unit> {
-            override fun install(pipeline: ApplicationCallPipeline, handler: HookHandler.() -> Unit) {
+            override fun install(pipeline: ServerCallPipeline, handler: HookHandler.() -> Unit) {
                 currentHandler.apply(handler)
 
-                pipeline.intercept(ApplicationCallPipeline.Call) {
+                pipeline.intercept(ServerCallPipeline.Call) {
                     currentHandler.executed = true
                 }
             }
         }
 
-        val testPlugin = createApplicationPlugin("TestPlugin") {
+        val testPlugin = createServerPlugin("TestPlugin") {
             on(myHook) {
                 called = true
             }
@@ -40,7 +40,7 @@ class HooksTest {
 
         assertFalse(currentHandler.called)
 
-        testApplication {
+        testServer {
             install(testPlugin)
 
             routing {
@@ -66,16 +66,16 @@ class HooksTest {
         }
 
         val state = State()
-        val shutdownHandler = createApplicationPlugin("ShutdownHandler") {
-            on(MonitoringEvent(ApplicationStopped)) {
+        val shutdownHandler = createServerPlugin("ShutdownHandler") {
+            on(MonitoringEvent(ServerStopped)) {
                 state.shutdownCalled = true
             }
-            on(MonitoringEvent(ApplicationStarted)) {
+            on(MonitoringEvent(ServerStarted)) {
                 state.startCalled = true
             }
         }
 
-        testApplication {
+        testServer {
             install(shutdownHandler)
 
             routing {
@@ -100,13 +100,13 @@ class HooksTest {
 
         val state = State()
 
-        val failedHandler = createApplicationPlugin("FailedHandler") {
+        val failedHandler = createServerPlugin("FailedHandler") {
             on(CallFailed) { _, cause ->
                 state.fail = cause
             }
         }
 
-        testApplication {
+        testServer {
             install(failedHandler)
 
             routing {
@@ -129,8 +129,8 @@ class HooksTest {
     @Test
     fun testHookWithRoutingPlugin() {
         val OnCallHook = object : Hook<() -> Unit> {
-            override fun install(pipeline: ApplicationCallPipeline, handler: () -> Unit) {
-                pipeline.intercept(ApplicationCallPipeline.Call) {
+            override fun install(pipeline: ServerCallPipeline, handler: () -> Unit) {
+                pipeline.intercept(ServerCallPipeline.Call) {
                     handler()
                 }
             }
@@ -151,7 +151,7 @@ class HooksTest {
             }
         }
 
-        testApplication {
+        testServer {
             routing {
                 route("/1") {
                     install(MyRoutePlugin) {
@@ -174,7 +174,7 @@ class HooksTest {
                 }
             }
 
-            suspend fun ApplicationTestBuilder.assertOutput(requestPath: String, expectedOutput: List<Int>) {
+            suspend fun ServerTestBuilder.assertOutput(requestPath: String, expectedOutput: List<Int>) {
                 myOutput.clear()
                 runCatching {
                     client.get(requestPath)

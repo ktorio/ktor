@@ -177,7 +177,7 @@ class ServerURLBuilderTest {
     @Test
     fun testWithApplication() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("http://my-host/path%20/to?p=v", call.url())
                 assertEquals(
                     "http://my-host/path%20/to?p=v",
@@ -198,7 +198,7 @@ class ServerURLBuilderTest {
     @Test
     fun testWithApplication2() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 repeat(3) {
                     assertEquals("http://my-host/?p=v", call.url())
                 }
@@ -213,7 +213,7 @@ class ServerURLBuilderTest {
     @Test
     fun testWithApplicationAndPort() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("http://my-host:8080/path%20/to?p=v", call.url())
                 assertEquals(
                     "http://my-host:8080/path%20/to?p=v",
@@ -235,8 +235,8 @@ class ServerURLBuilderTest {
     @Test
     fun testWithProxy() {
         withTestApplication {
-            application.install(XForwardedHeaders)
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.install(XForwardedHeaders)
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("http://special-host:90/", call.url())
             }
 
@@ -249,8 +249,8 @@ class ServerURLBuilderTest {
     @Test
     fun testWithProxyHttps() {
         withTestApplication {
-            application.install(XForwardedHeaders)
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.install(XForwardedHeaders)
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("https://special-host:90/", call.url())
             }
 
@@ -264,8 +264,8 @@ class ServerURLBuilderTest {
     @Test
     fun testWithProxyHttpsDefaultPort() {
         withTestApplication {
-            application.install(XForwardedHeaders)
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.install(XForwardedHeaders)
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("https://special-host/", call.url())
             }
 
@@ -279,8 +279,8 @@ class ServerURLBuilderTest {
     @Test
     fun testWithProxyHttpsWithPortEqualToDefault() {
         withTestApplication {
-            application.install(XForwardedHeaders)
-            application.intercept(ApplicationCallPipeline.Call) {
+            server.install(XForwardedHeaders)
+            server.intercept(ServerCallPipeline.Call) {
                 assertEquals("https://special-host/", call.url())
             }
 

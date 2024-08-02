@@ -32,7 +32,7 @@ class CallIdTest {
 
     @Test
     fun customRetriever(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             retrieve { call ->
                 call.request.uri
             }
@@ -46,7 +46,7 @@ class CallIdTest {
 
     @Test
     fun headerRetriever(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             retrieveFromHeader(HttpHeaders.XRequestId)
         }
         handle {
@@ -64,7 +64,7 @@ class CallIdTest {
 
     @Test
     fun headerRetrieverWithGenerator(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             retrieveFromHeader(HttpHeaders.XRequestId)
             generate {
                 "generated-id"
@@ -88,7 +88,7 @@ class CallIdTest {
         val dictionary = "abc"
         val length = 64
 
-        application.install(CallId) {
+        server.install(CallId) {
             retrieveFromHeader(HttpHeaders.XRequestId)
             generate(length, dictionary)
         }
@@ -118,7 +118,7 @@ class CallIdTest {
         val dictionary = CALL_ID_DEFAULT_DICTIONARY
         val length = 64
 
-        application.install(CallId) {
+        server.install(CallId) {
             retrieveFromHeader(HttpHeaders.XRequestId)
             generate(length = length)
         }
@@ -146,7 +146,7 @@ class CallIdTest {
 
     @Test
     fun replyToHeader(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             header(HttpHeaders.XRequestId)
             generate { "generated-call-id" }
         }
@@ -169,7 +169,7 @@ class CallIdTest {
 
     @Test
     fun testDefaultVerifierForRetrieve(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             header(HttpHeaders.XRequestId)
         }
         handle {
@@ -194,7 +194,7 @@ class CallIdTest {
 
     @Test
     fun testDefaultVerifierForGenerate(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             generate { if (it.request.uri == "/valid") CALL_ID_DEFAULT_DICTIONARY else "\u1000" }
         }
         handle {
@@ -214,7 +214,7 @@ class CallIdTest {
 
     @Test
     fun testSubrouteInstall(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             route("1") {
                 install(CallId) {
                     generate { "test-id" }
@@ -242,7 +242,7 @@ class CallIdTest {
     }
 
     @Test
-    fun testCoroutineContextElement(): Unit = testApplication {
+    fun testCoroutineContextElement(): Unit = testServer {
         install(CallId) {
             generate { "test-id" }
         }
@@ -259,7 +259,7 @@ class CallIdTest {
 
     @Test
     fun testCustomVerifier(): Unit = withTestApplication {
-        application.install(CallId) {
+        server.install(CallId) {
             header(HttpHeaders.XRequestId)
             verify {
                 if (it.length < 3) throw RejectedCallIdException(it)
@@ -286,7 +286,7 @@ class CallIdTest {
         }
     }
 
-    private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, PipelineCall>) {
-        application.intercept(ApplicationCallPipeline.Call, block)
+    private fun TestServerEngine.handle(block: PipelineInterceptor<Unit, PipelineCall>) {
+        server.intercept(ServerCallPipeline.Call, block)
     }
 }

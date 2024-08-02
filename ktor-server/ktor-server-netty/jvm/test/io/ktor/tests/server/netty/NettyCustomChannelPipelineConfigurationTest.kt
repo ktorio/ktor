@@ -9,12 +9,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
 import io.netty.channel.*
 import kotlin.test.*
 
-abstract class NettyCustomChannelTest<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class NettyCustomChannelTest<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     var counter = 0
@@ -35,9 +34,9 @@ abstract class NettyCustomChannelTest<TEngine : ApplicationEngine, TConfiguratio
 }
 
 class NettyCustomChannelPipelineConfigurationTest :
-    NettyCustomChannelTest<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    NettyCustomChannelTest<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
         configuration.channelPipelineConfig = {
             addLast(

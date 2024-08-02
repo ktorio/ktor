@@ -22,7 +22,7 @@ class TranslationTest {
     )
 
     @Test
-    fun testTranslationToLanguageSpecifiedInAcceptLanguageHeader() = testApplication {
+    fun testTranslationToLanguageSpecifiedInAcceptLanguageHeader() = testServer {
         install(I18n) {
             availableLanguages = testAvailableLanguages
         }
@@ -45,7 +45,7 @@ class TranslationTest {
     }
 
     @Test
-    fun testTranslationToDefaultLanguage() = testApplication {
+    fun testTranslationToDefaultLanguage() = testServer {
         install(I18n) {
             availableLanguages = testAvailableLanguages
             defaultLanguage = "en-US"
@@ -66,7 +66,7 @@ class TranslationTest {
     }
 
     @Test
-    fun testDefaultBundleWhenDefaultLanguageIsNotConfigured() = testApplication {
+    fun testDefaultBundleWhenDefaultLanguageIsNotConfigured() = testServer {
         install(I18n) {
             availableLanguages = testAvailableLanguages
         }
@@ -86,7 +86,7 @@ class TranslationTest {
     }
 
     @Test
-    fun testTranslationToPreferredLanguage() = testApplication {
+    fun testTranslationToPreferredLanguage() = testServer {
         install(I18n) {
             availableLanguages = testAvailableLanguages
         }

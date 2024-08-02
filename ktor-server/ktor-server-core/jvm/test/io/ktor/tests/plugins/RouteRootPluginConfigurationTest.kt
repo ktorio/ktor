@@ -5,7 +5,6 @@
 package io.ktor.server.plugins
 
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.config.ConfigLoader.Companion.load
 import io.ktor.server.testing.*
 import kotlin.test.*
@@ -19,7 +18,7 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-        testApplication {
+        testServer {
             environment {
                 config = load("test-config.yaml")
             }
@@ -37,7 +36,7 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-        testApplication {
+        testServer {
             install(plugin)
         }
         assertEquals("Default Value", lastInstalledValue)
@@ -50,7 +49,7 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-        testApplication {
+        testServer {
             install(plugin)
 
             environment {
@@ -68,7 +67,7 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-        testApplication {
+        testServer {
             environment {
                 config = load("test-config.yaml")
             }

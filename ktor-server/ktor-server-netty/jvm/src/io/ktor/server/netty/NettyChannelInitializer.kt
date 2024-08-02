@@ -27,9 +27,9 @@ import kotlin.coroutines.*
  * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
  */
 public class NettyChannelInitializer(
-    private val applicationProvider: () -> Application,
+    private val serverProvider: () -> Server,
     private val enginePipeline: EnginePipeline,
-    private val environment: ApplicationEnvironment,
+    private val environment: ServerEnvironment,
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
@@ -109,7 +109,7 @@ public class NettyChannelInitializer(
             ApplicationProtocolNames.HTTP_2 -> {
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    applicationProvider(),
+                    serverProvider(),
                     callEventGroup,
                     userContext,
                     runningLimit
@@ -124,7 +124,7 @@ public class NettyChannelInitializer(
 
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val handler = NettyHttp1Handler(
-                    applicationProvider,
+                    serverProvider,
                     enginePipeline,
                     environment,
                     callEventGroup,

@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 class RateLimitTest {
 
     @Test
-    fun testLimitsAmountOfRequests() = testApplication {
+    fun testLimitsAmountOfRequests() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter(limit = 10, refillPeriod = 5.seconds)
@@ -47,7 +47,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testDefaultLimiterLimitsAmountOfRequestsWithoutRouteScopedInstall() = testApplication {
+    fun testDefaultLimiterLimitsAmountOfRequestsWithoutRouteScopedInstall() = testServer {
         install(RateLimit) {
             global { rateLimiter(limit = 10, refillPeriod = 5.seconds) }
         }
@@ -69,7 +69,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testLimitsAmountOfRequestsByName() = testApplication {
+    fun testLimitsAmountOfRequestsByName() = testServer {
         install(RateLimit) {
             register(RateLimitName("limit1")) {
                 rateLimiter(limit = 10, refillPeriod = 5.seconds)
@@ -128,7 +128,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testDefaultAndCustomLimiters() = testApplication {
+    fun testDefaultAndCustomLimiters() = testServer {
         var time = getTimeMillis()
         install(RateLimit) {
             global {
@@ -175,7 +175,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testNestedRateLimits() = testApplication {
+    fun testNestedRateLimits() = testServer {
         var time = getTimeMillis()
         install(RateLimit) {
             register(RateLimitName("limit1")) {
@@ -216,7 +216,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testNestedRateLimitsWithSameName() = testApplication {
+    fun testNestedRateLimitsWithSameName() = testServer {
         var time = getTimeMillis()
         install(RateLimit) {
             register(RateLimitName("limit1")) {
@@ -254,7 +254,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testRefreshLimitsAfterPeriodPassed() = testApplication {
+    fun testRefreshLimitsAfterPeriodPassed() = testServer {
         var time = getTimeMillis()
         install(RateLimit) {
             register {
@@ -291,7 +291,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testCanSetPreconfiguredLimiter() = testApplication {
+    fun testCanSetPreconfiguredLimiter() = testServer {
         var limiterCalled = false
         val limiter = object : RateLimiter {
             override suspend fun tryConsume(tokens: Int): RateLimiter.State {
@@ -317,7 +317,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testCanConfigureWeightOfRequest() = testApplication {
+    fun testCanConfigureWeightOfRequest() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter(limit = 10, refillPeriod = 5.seconds)
@@ -346,7 +346,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testSeparateLimitsForDifferentRequestKeys() = testApplication {
+    fun testSeparateLimitsForDifferentRequestKeys() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter(limit = 10, refillPeriod = 5.seconds)
@@ -380,7 +380,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testCanCreateSeparateLimitersBasedOnRequestKeys() = testApplication {
+    fun testCanCreateSeparateLimitersBasedOnRequestKeys() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter { _, key ->
@@ -416,7 +416,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testLimitersSharedForSubRoutesForOneRequestKey() = testApplication {
+    fun testLimitersSharedForSubRoutesForOneRequestKey() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
@@ -458,7 +458,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testAddsAdditionalHeadersToResponse() = testApplication {
+    fun testAddsAdditionalHeadersToResponse() = testServer {
         var time = getTimeMillis()
         install(RateLimit) {
             register {
@@ -494,7 +494,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testUnlimited() = testApplication {
+    fun testUnlimited() = testServer {
         install(RateLimit) {
             global {
                 rateLimiter { _, _ -> RateLimiter.Unlimited }
@@ -514,7 +514,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testThrowsOnNoLimiterSpecified() = testApplication {
+    fun testThrowsOnNoLimiterSpecified() = testServer {
         install(RateLimit)
 
         val error = assertFailsWith<IllegalStateException> {
@@ -524,7 +524,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testThrowsOnInvalidName() = testApplication {
+    fun testThrowsOnInvalidName() = testServer {
         install(RateLimit) {
             register(RateLimitName("name")) {
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
@@ -549,7 +549,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testThrowsOnMissingDefaultName() = testApplication {
+    fun testThrowsOnMissingDefaultName() = testServer {
         install(RateLimit) {
             register(RateLimitName("name")) {
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
@@ -574,7 +574,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testThrowsOnOnlyDefaultName() = testApplication {
+    fun testThrowsOnOnlyDefaultName() = testServer {
         install(RateLimit) {
             register {
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
@@ -599,7 +599,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testThrowsOnRegisteringProviderWithSameName() = testApplication {
+    fun testThrowsOnRegisteringProviderWithSameName() = testServer {
         install(RateLimit) {
             register(RateLimitName("name")) {
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
@@ -616,7 +616,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testRemovesUnusedRateLimitersOnRefill() = testApplication {
+    fun testRemovesUnusedRateLimitersOnRefill() = testServer {
         var createCount = 0
         install(RateLimit) {
             register {
@@ -661,7 +661,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testRemovesUnusedRateLimitersOnRefillWithRaceCondition() = testApplication {
+    fun testRemovesUnusedRateLimitersOnRefillWithRaceCondition() = testServer {
         var createCount = 0
         val key = AttributeKey<ConcurrentMap<ProviderKey, RateLimiter>>("RateLimiterInstancesRegistryKey")
         val rateLimitersRegistry: ConcurrentMap<ProviderKey, RateLimiter> = ConcurrentMap()
@@ -720,7 +720,7 @@ class RateLimitTest {
     }
 
     @Test
-    fun testCanAccessRateLimitersForCall() = testApplication {
+    fun testCanAccessRateLimitersForCall() = testServer {
         val key = AttributeKey<List<Pair<RateLimitName, RateLimiter>>>("RateLimitersForCallKey")
         install(RateLimit) {
             register(RateLimitName("limit1")) {

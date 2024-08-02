@@ -14,7 +14,7 @@ import java.io.*
  * Default outgoing content transformation
  */
 internal actual fun platformTransformDefaultContent(
-    call: ApplicationCall,
+    call: ServerCall,
     value: Any
 ): OutgoingContent? = when (value) {
     is URIFileContent -> {

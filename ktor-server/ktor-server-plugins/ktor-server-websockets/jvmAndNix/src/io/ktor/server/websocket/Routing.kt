@@ -158,7 +158,7 @@ public fun Route.webSocket(
 // these two functions could be potentially useful for users however it is not clear how to provide them better
 // so for now they are still private
 
-private suspend fun ApplicationCall.respondWebSocketRaw(
+private suspend fun ServerCall.respondWebSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketSession.() -> Unit
@@ -176,7 +176,7 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
 
 @OptIn(InternalAPI::class)
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
-    val webSockets = application.plugin(WebSockets)
+    val webSockets = server.plugin(WebSockets)
 
     val session = DefaultWebSocketSession(
         this,
@@ -196,7 +196,7 @@ private suspend fun CoroutineScope.joinSession() {
 }
 
 private suspend fun DefaultWebSocketSession.handleServerSession(
-    call: ApplicationCall,
+    call: ServerCall,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
     try {
@@ -210,7 +210,7 @@ private suspend fun DefaultWebSocketSession.handleServerSession(
         // don't log I/O exceptions
         throw io
     } catch (cause: Throwable) {
-        call.application.log.error("Websocket handler failed", cause)
+        call.server.log.error("Websocket handler failed", cause)
         throw cause
     }
 }

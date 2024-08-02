@@ -18,14 +18,14 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, CIO) {
+        val server = EmbeddedServer(config.serverParameters, CIO) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.serverParameters.environment.config)
         }
         server.start(true)
     }
 
-    private fun CIOApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+    private fun CIOServerEngine.Configuration.loadConfiguration(config: ServerConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
         deploymentConfig.propertyOrNull("connectionIdleTimeoutSeconds")?.getString()?.toInt()?.let {

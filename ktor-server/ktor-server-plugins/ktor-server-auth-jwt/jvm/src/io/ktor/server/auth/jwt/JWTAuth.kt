@@ -143,7 +143,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
     private val realm: String = config.realm
     private val schemes: JWTAuthSchemes = config.schemes
-    private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
+    private val authHeader: (ServerCall) -> HttpAuthHeader? = config.authHeader
     private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
     private val authenticationFunction = config.authenticationFunction
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
@@ -188,7 +188,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
         internal var schemes = JWTAuthSchemes("Bearer")
 
-        internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
+        internal var authHeader: (ServerCall) -> HttpAuthHeader? =
             { call -> call.request.parseAuthorizationHeaderOrNull() }
 
         internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
@@ -213,7 +213,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * Retrieves an HTTP authentication header.
          * By default, it parses the `Authorization` header content.
          */
-        public fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
+        public fun authHeader(block: (ServerCall) -> HttpAuthHeader?) {
             authHeader = block
         }
 
@@ -296,7 +296,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * Allows you to perform additional validations on the JWT payload.
          * @return a principal (usually an instance of [JWTPrincipal]) or `null`
          */
-        public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
+        public fun validate(validate: suspend ServerCall.(JWTCredential) -> Principal?) {
             authenticationFunction = validate
         }
 
@@ -329,7 +329,7 @@ public fun AuthenticationConfig.jwt(
  * A context for [JWTAuthChallengeFunction].
  */
 public class JWTChallengeContext(
-    public val call: ApplicationCall
+    public val call: ServerCall
 )
 
 /**

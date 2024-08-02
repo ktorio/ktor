@@ -28,15 +28,15 @@ class PartialContentTest {
     private val content = "test_string".repeat(100).toByteArray()
     private val lastModifiedTime = getTimeMillis()
 
-    private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.() -> Unit): Unit =
+    private fun withRangeApplication(maxRangeCount: Int? = null, test: TestServerEngine.() -> Unit): Unit =
         withTestApplication {
-            application.install(ConditionalHeaders)
-            application.install(CachingHeaders)
-            application.install(PartialContent) {
+            server.install(ConditionalHeaders)
+            server.install(CachingHeaders)
+            server.install(PartialContent) {
                 maxRangeCount?.let { this.maxRangeCount = it }
             }
-            application.install(AutoHeadResponse)
-            application.routing {
+            server.install(AutoHeadResponse)
+            server.routing {
                 route(localPath) {
                     handle {
                         val channel = ByteReadChannel(content)
@@ -85,7 +85,7 @@ class PartialContentTest {
         }
     }
 
-    private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
+    private fun assertMultipart(result: TestServerCall, block: (List<String>) -> Unit) {
         assertEquals(HttpStatusCode.PartialContent, result.response.status())
         assertNotNull(result.response.headers[HttpHeaders.LastModified])
         val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
@@ -186,7 +186,7 @@ class PartialContentTest {
         return String(result)
     }
 
-    private fun checkContentLength(result: TestApplicationCall) {
+    private fun checkContentLength(result: TestServerCall) {
         assertEquals(
             result.response.byteContent!!.size,
             result.response.headers[HttpHeaders.ContentLength]!!.toInt()

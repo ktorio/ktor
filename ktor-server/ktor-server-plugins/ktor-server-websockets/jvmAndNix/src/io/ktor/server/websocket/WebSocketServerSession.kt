@@ -20,7 +20,7 @@ public interface WebSocketServerSession : WebSocketSession {
     /**
      * Associated received [call] that originating this session
      */
-    public val call: ApplicationCall
+    public val call: ServerCall
 }
 
 /**
@@ -33,13 +33,13 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
 /**
  * An application that started this web socket session
  */
-public val WebSocketServerSession.application: Application get() = call.application
+public val WebSocketServerSession.server: Server get() = call.server
 
 /**
  * Converter for web socket session
  */
 public val WebSocketServerSession.converter: WebsocketContentConverter?
-    get() = application.plugin(WebSockets).contentConverter
+    get() = server.plugin(WebSockets).contentConverter
 
 /**
  * Serializes [data] to a frame and enqueues this frame.
@@ -97,18 +97,18 @@ public suspend fun <T> WebSocketServerSession.receiveDeserialized(typeInfo: Type
 public suspend inline fun <reified T> WebSocketServerSession.receiveDeserialized(): T =
     receiveDeserialized(typeInfo<T>())
 
-internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =
+internal fun WebSocketSession.toServerSession(call: ServerCall): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)
 
-internal fun DefaultWebSocketSession.toServerSession(call: ApplicationCall): DefaultWebSocketServerSession =
+internal fun DefaultWebSocketSession.toServerSession(call: ServerCall): DefaultWebSocketServerSession =
     DelegatedDefaultWebSocketServerSession(call, this)
 
 private class DelegatedWebSocketServerSession(
-    override val call: ApplicationCall,
+    override val call: ServerCall,
     val delegate: WebSocketSession
 ) : WebSocketServerSession, WebSocketSession by delegate
 
 private class DelegatedDefaultWebSocketServerSession(
-    override val call: ApplicationCall,
+    override val call: ServerCall,
     val delegate: DefaultWebSocketSession
 ) : DefaultWebSocketServerSession, DefaultWebSocketSession by delegate

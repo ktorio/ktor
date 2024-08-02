@@ -13,7 +13,7 @@ import kotlin.reflect.jvm.*
 internal fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
-    application: Application
+    server: Server
 ) {
     val name = fqName.lastIndexOfAny(".#".toCharArray())
 
@@ -33,7 +33,7 @@ internal fun executeModuleFunction(
 
     staticFunctions.bestFunction()?.let { moduleFunction ->
         if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
-            callFunctionWithInjection(null, moduleFunction, application)
+            callFunctionWithInjection(null, moduleFunction, server)
             return
         }
     }
@@ -47,8 +47,8 @@ internal fun executeModuleFunction(
 
             constructor.isAccessible = true
             @Suppress("UNCHECKED_CAST")
-            val function = constructor.newInstance() as Function1<Application, Unit>
-            function(application)
+            val function = constructor.newInstance() as Function1<Server, Unit>
+            function(server)
             return
         }
     } catch (_: NoSuchMethodError) {
@@ -61,8 +61,8 @@ internal fun executeModuleFunction(
     kclass.functions
         .filter { it.name == functionName && it.isApplicableFunction() }
         .bestFunction()?.let { moduleFunction ->
-            val instance = createModuleContainer(kclass, application)
-            callFunctionWithInjection(instance, moduleFunction, application)
+            val instance = createModuleContainer(kclass, server)
+            callFunctionWithInjection(instance, moduleFunction, server)
             return
         }
 
@@ -71,7 +71,7 @@ internal fun executeModuleFunction(
 
 private fun createModuleContainer(
     applicationEntryClass: KClass<*>,
-    application: Application
+    server: Server
 ): Any {
     val objectInstance = applicationEntryClass.objectInstance
     if (objectInstance != null) return objectInstance
@@ -83,28 +83,28 @@ private fun createModuleContainer(
     val constructor = constructors.bestFunction()
         ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
 
-    return callFunctionWithInjection(null, constructor, application)
+    return callFunctionWithInjection(null, constructor, server)
 }
 
 private fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
-    application: Application
+    server: Server
 ): R {
     val args = entryPoint.parameters.filterNot { it.isOptional }.associateBy(
         { it },
         { parameter ->
             when {
                 parameter.kind == KParameter.Kind.INSTANCE -> instance
-                isApplicationEnvironment(parameter) -> application.environment
-                isApplication(parameter) -> application
+                isApplicationEnvironment(parameter) -> server.environment
+                isApplication(parameter) -> server
                 parameter.type.toString().contains("Application") -> {
                     // It is possible that type is okay, but classloader is not
                     val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
                     throw IllegalArgumentException(
                         "Parameter type ${parameter.type}:{$classLoader} is not supported." +
                             "Application is loaded as " +
-                            "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                            "$ServerClassInstance:{${ServerClassInstance.classLoader}}"
                     )
                 }
 

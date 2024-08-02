@@ -25,7 +25,7 @@ class HandlerTest {
 
     @Test
     fun `application with transparent handler`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {}
+        server.intercept(ServerCallPipeline.Call) {}
         on("making a request") {
             val call = handleRequest { }
             it("should not be handled") {
@@ -36,7 +36,7 @@ class HandlerTest {
 
     @Test
     fun `application with handler returning true`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call.respond(HttpStatusCode.OK) }
+        server.intercept(ServerCallPipeline.Call) { call.respond(HttpStatusCode.OK) }
         on("making a request") {
             val call = handleRequest { }
             it("should be handled") {
@@ -47,7 +47,7 @@ class HandlerTest {
 
     @Test
     fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             if (call.request.httpMethod == HttpMethod.Post) {
                 assertEquals("Body", call.receive())
                 call.respond(HttpStatusCode.OK)
@@ -62,7 +62,7 @@ class HandlerTest {
 
     @Test
     fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             if (call.request.httpMethod == HttpMethod.Post) {
                 call.respond(HttpStatusCode.OK)
             }

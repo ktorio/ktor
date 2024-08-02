@@ -17,10 +17,10 @@ import io.ktor.util.logging.*
  * Creates an engine environment for a test application.
  */
 public fun createTestEnvironment(
-    configure: ApplicationEnvironmentBuilder.() -> Unit = {}
-): ApplicationEnvironment =
-    applicationEnvironment {
-        config = MapApplicationConfig("ktor.deployment.environment" to "test")
+    configure: ServerEnvironmentBuilder.() -> Unit = {}
+): ServerEnvironment =
+    serverEnvironment {
+        config = MapServerConfig("ktor.deployment.environment" to "test")
         log = KtorSimpleLogger("io.ktor.test")
         configure()
     }
@@ -28,11 +28,11 @@ public fun createTestEnvironment(
 /**
  * Makes a test request.
  */
-public fun TestApplicationEngine.handleRequest(
+public fun TestServerEngine.handleRequest(
     method: HttpMethod,
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {}
-): TestApplicationCall = handleRequest {
+    setup: TestServerRequest.() -> Unit = {}
+): TestServerCall = handleRequest {
     this.uri = uri
     this.method = method
     setup()
@@ -41,13 +41,13 @@ public fun TestApplicationEngine.handleRequest(
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated("Please use new `testServer` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withApplication(
-    environment: ApplicationEnvironment = createTestEnvironment(),
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
-    test: TestApplicationEngine.() -> R
+    environment: ServerEnvironment = createTestEnvironment(),
+    configure: TestServerEngine.Configuration.() -> Unit = {},
+    test: TestServerEngine.() -> R
 ): R {
-    val properties = applicationProperties(environment) {
+    val properties = serverParams(environment) {
         watchPaths = emptyList()
     }
     val embeddedServer = EmbeddedServer(properties, TestEngine, configure)
@@ -62,18 +62,18 @@ public fun <R> withApplication(
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
-public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
+@Deprecated("Please use new `testServer` API: https://ktor.io/docs/migrating-2.html#testing-api")
+public fun <R> withTestApplication(test: TestServerEngine.() -> R): R {
     return withApplication(createTestEnvironment(), test = test)
 }
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
-public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
+@Deprecated("Please use new `testServer` API: https://ktor.io/docs/migrating-2.html#testing-api")
+public fun <R> withTestApplication(moduleFunction: Server.() -> Unit, test: TestServerEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
-        moduleFunction(application)
+        moduleFunction(server)
         test()
     }
 }
@@ -81,36 +81,36 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated("Please use new `testServer` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withTestApplication(
-    moduleFunction: Application.() -> Unit,
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
-    test: TestApplicationEngine.() -> R
+    moduleFunction: Server.() -> Unit,
+    configure: TestServerEngine.Configuration.() -> Unit = {},
+    test: TestServerEngine.() -> R
 ): R {
     return withApplication(createTestEnvironment(), configure) {
-        moduleFunction(application)
+        moduleFunction(server)
         test()
     }
 }
 
 /**
- * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine].
+ * An [ServerEngineFactory] providing a CIO-based [ServerEngine].
  */
-public object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
+public object TestEngine : ServerEngineFactory<TestServerEngine, TestServerEngine.Configuration> {
 
     override fun configuration(
-        configure: TestApplicationEngine.Configuration.() -> Unit
-    ): TestApplicationEngine.Configuration {
-        return TestApplicationEngine.Configuration().apply(configure)
+        configure: TestServerEngine.Configuration.() -> Unit
+    ): TestServerEngine.Configuration {
+        return TestServerEngine.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: TestApplicationEngine.Configuration,
-        applicationProvider: () -> Application
-    ): TestApplicationEngine {
-        return TestApplicationEngine(environment, monitor, developmentMode, applicationProvider, configuration)
+        configuration: TestServerEngine.Configuration,
+        serverProvider: () -> Server
+    ): TestServerEngine {
+        return TestServerEngine(environment, monitor, developmentMode, serverProvider, configuration)
     }
 }

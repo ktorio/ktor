@@ -59,8 +59,8 @@ class WebSocketTest {
     @Test
     fun testSingleEcho() {
         withTestApplication {
-            application.install(WebSockets)
-            application.routing {
+            server.install(WebSockets)
+            server.routing {
                 webSocketRaw("/echo") {
                     incoming.consumeEach { frame ->
                         if (!frame.frameType.controlFrame) {
@@ -84,11 +84,11 @@ class WebSocketTest {
     @Test
     fun testJsonConverter() {
         withTestApplication {
-            application.install(WebSockets) {
+            server.install(WebSockets) {
                 contentConverter = customContentConverter
             }
 
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     val data = receiveDeserialized<Data>()
                     sendSerialized(data)
@@ -109,7 +109,7 @@ class WebSocketTest {
     }
 
     @Test
-    fun testJsonConverterWithExplicitTypeInfo() = testApplication {
+    fun testJsonConverterWithExplicitTypeInfo() = testServer {
         install(WebSockets) {
             contentConverter = customContentConverter
         }
@@ -138,9 +138,9 @@ class WebSocketTest {
     @Test
     fun testSerializationWithNoConverter() {
         withTestApplication {
-            application.install(WebSockets) {}
+            server.install(WebSockets) {}
 
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
                         receiveDeserialized<Data>()
@@ -179,11 +179,11 @@ class WebSocketTest {
     @Test
     fun testDeserializationWithOnClosedChannel() {
         withTestApplication {
-            application.install(WebSockets) {
+            server.install(WebSockets) {
                 contentConverter = customContentConverter
             }
 
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     assertFailsWith<ClosedReceiveChannelException> {
                         receiveDeserialized<Data>()
@@ -217,9 +217,9 @@ class WebSocketTest {
     @Test
     fun testFrameSize() {
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
-            application.routing {
+            server.routing {
                 webSocketRaw("/echo") {
                     outgoing.send(Frame.Text("+".repeat(0xc123)))
                     outgoing.send(Frame.Close())
@@ -254,8 +254,8 @@ class WebSocketTest {
     @Test
     fun testMasking() {
         withTestApplication {
-            application.install(WebSockets)
-            application.routing {
+            server.install(WebSockets)
+            server.routing {
                 webSocketRaw("/echo") {
                     masking = true
 
@@ -298,9 +298,9 @@ class WebSocketTest {
     @Test
     fun testSendClose() {
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     incoming.consumeEach { }
                 }
@@ -318,9 +318,9 @@ class WebSocketTest {
     @Test
     fun testParameters() {
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
-            application.routing {
+            server.routing {
                 webSocket("/{p}") {
                     val frame = Frame.Text(call.parameters["p"] ?: "null")
                     outgoing.send(frame)
@@ -366,9 +366,9 @@ class WebSocketTest {
         }
 
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
-            application.routing {
+            server.routing {
                 webSocket("/") {
                     val frame = incoming.receive()
                     val copied = frame.copy()
@@ -428,10 +428,10 @@ class WebSocketTest {
         }
 
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
             var receivedText: String? = null
-            application.routing {
+            server.routing {
                 webSocket("/") {
                     val frame = incoming.receive()
 
@@ -465,14 +465,14 @@ class WebSocketTest {
         }
 
         withTestApplication {
-            application.install(WebSockets) {
+            server.install(WebSockets) {
                 maxFrameSize = 1023
             }
 
             var exception: Throwable? = null
             val started = Job()
             val executed = Job()
-            application.routing {
+            server.routing {
                 webSocket("/") {
                     try {
                         started.complete()
@@ -518,12 +518,12 @@ class WebSocketTest {
         }
 
         withTestApplication {
-            application.install(WebSockets) {
+            server.install(WebSockets) {
                 maxFrameSize = 1025
             }
 
             var exception: Throwable? = null
-            application.routing {
+            server.routing {
                 webSocket("/") {
                     try {
                         incoming.receive()
@@ -555,13 +555,13 @@ class WebSocketTest {
         }
 
         withTestApplication {
-            application.install(WebSockets) {
+            server.install(WebSockets) {
                 maxFrameSize = 1025
             }
 
             var exception: Throwable? = null
             val executed = Job()
-            application.routing {
+            server.routing {
                 webSocket("/") {
                     try {
                         incoming.receive()
@@ -588,10 +588,10 @@ class WebSocketTest {
     @Test
     fun testConversation() {
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
             val received = arrayListOf<String>()
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     try {
                         while (true) {
@@ -623,16 +623,16 @@ class WebSocketTest {
     @Test
     fun testConversationWithInterceptors() {
         withTestApplication {
-            application.install(WebSockets)
+            server.install(WebSockets)
 
-            application.intercept(ApplicationCallPipeline.Monitoring) {
+            server.intercept(ServerCallPipeline.Monitoring) {
                 coroutineScope {
                     proceed()
                 }
             }
 
             val received = arrayListOf<String>()
-            application.routing {
+            server.routing {
                 webSocket("/echo") {
                     try {
                         while (true) {
@@ -663,10 +663,10 @@ class WebSocketTest {
 
     @Test
     fun testFlushClosed(): Unit = withTestApplication {
-        application.install(WebSockets)
+        server.install(WebSockets)
 
         val session = CompletableDeferred<Unit>()
-        application.routing {
+        server.routing {
             webSocket("/close/me") {
                 try {
                     close()
@@ -691,7 +691,7 @@ class WebSocketTest {
 
     private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
 
-    private fun validateCloseWithBigFrame(call: TestApplicationCall) = runBlocking {
+    private fun validateCloseWithBigFrame(call: TestServerCall) = runBlocking {
         withTimeout(Duration.ofSeconds(10).toMillis()) {
             val reader = WebSocketReader(
                 call.response.websocketChannel()!!,

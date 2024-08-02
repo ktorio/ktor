@@ -61,10 +61,10 @@ public value class RateLimitName(internal val name: String)
 @KtorDsl
 public class RateLimitProviderConfig(internal val name: RateLimitName) {
 
-    internal var requestKey: suspend (ApplicationCall) -> Any = { }
-    internal var requestWeight: suspend (ApplicationCall, key: Any) -> Int = { _, _ -> 1 }
+    internal var requestKey: suspend (ServerCall) -> Any = { }
+    internal var requestWeight: suspend (ServerCall, key: Any) -> Int = { _, _ -> 1 }
 
-    internal var modifyResponse: (ApplicationCall, RateLimiter.State) -> Unit = { call, state ->
+    internal var modifyResponse: (ServerCall, RateLimiter.State) -> Unit = { call, state ->
         when (state) {
             is RateLimiter.State.Available -> {
                 call.response.headers.appendIfAbsent("X-RateLimit-Limit", state.limit.toString())
@@ -80,12 +80,12 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         }
     }
 
-    internal var rateLimiterProvider: ((call: ApplicationCall, key: Any) -> RateLimiter)? = null
+    internal var rateLimiterProvider: ((call: ServerCall, key: Any) -> RateLimiter)? = null
 
     /**
-     * Sets [RateLimit] for this provider based on [ApplicationCall] and `key` of this request.
+     * Sets [RateLimit] for this provider based on [ServerCall] and `key` of this request.
      */
-    public fun rateLimiter(provider: (call: ApplicationCall, key: Any) -> RateLimiter) {
+    public fun rateLimiter(provider: (call: ServerCall, key: Any) -> RateLimiter) {
         rateLimiterProvider = provider
     }
 
@@ -98,7 +98,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         initialSize: Int = limit,
         clock: () -> Long = { getTimeMillis() }
     ) {
-        rateLimiter { _: ApplicationCall, _: Any ->
+        rateLimiter { _: ServerCall, _: Any ->
             RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
         }
     }
@@ -108,7 +108,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Keys should have good equals and hashCode implementations.
      * By default, the key is a [Unit], so all requests share the same Rate-Limit.
      */
-    public fun requestKey(block: suspend (ApplicationCall) -> Any) {
+    public fun requestKey(block: suspend (ServerCall) -> Any) {
         requestKey = block
     }
 
@@ -117,7 +117,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Weight is used to calculate how many tokens are consumed by a request.
      * By default, weight is always 1.
      */
-    public fun requestWeight(block: suspend (ApplicationCall, key: Any) -> Int) {
+    public fun requestWeight(block: suspend (ServerCall, key: Any) -> Int) {
         requestWeight = block
     }
 
@@ -137,7 +137,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      *
      *    `Retry-After` time to wait for next limit reset time in seconds
      */
-    public fun modifyResponse(block: (ApplicationCall, RateLimiter.State) -> Unit) {
+    public fun modifyResponse(block: (ServerCall, RateLimiter.State) -> Unit) {
         modifyResponse = block
     }
 }

@@ -10,23 +10,23 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 
 /**
- * An [ApplicationEngineFactory] providing a Netty-based [ApplicationEngine]
+ * An [ServerEngineFactory] providing a Netty-based [ServerEngine]
  */
-public object Netty : ApplicationEngineFactory<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
+public object Netty : ServerEngineFactory<NettyServerEngine, NettyServerEngine.Configuration> {
 
     override fun configuration(
-        configure: NettyApplicationEngine.Configuration.() -> Unit
-    ): NettyApplicationEngine.Configuration {
-        return NettyApplicationEngine.Configuration().apply(configure)
+        configure: NettyServerEngine.Configuration.() -> Unit
+    ): NettyServerEngine.Configuration {
+        return NettyServerEngine.Configuration().apply(configure)
     }
 
     override fun create(
-        environment: ApplicationEnvironment,
+        environment: ServerEnvironment,
         monitor: Events,
         developmentMode: Boolean,
-        configuration: NettyApplicationEngine.Configuration,
-        applicationProvider: () -> Application
-    ): NettyApplicationEngine {
-        return NettyApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
+        configuration: NettyServerEngine.Configuration,
+        serverProvider: () -> Server
+    ): NettyServerEngine {
+        return NettyServerEngine(environment, monitor, developmentMode, configuration, serverProvider)
     }
 }

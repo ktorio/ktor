@@ -25,7 +25,7 @@ fun resolve(
     return withTestApplication {
         RoutingResolveContext(
             routing,
-            TestApplicationCall(application, coroutineContext = coroutineContext).apply {
+            TestServerCall(server, coroutineContext = coroutineContext).apply {
                 request.method = HttpMethod.Get
                 request.uri = path + buildString {
                     if (!parameters.isEmpty()) {
@@ -759,7 +759,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashInLeafRoute() = withTestApplication {
-        application.routing {
+        server.routing {
             get("foo/") {
                 call.respondText("foo/")
             }
@@ -809,8 +809,8 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashInLeafRouteAndIgnoredTrailingSlash() = withTestApplication {
-        application.install(IgnoreTrailingSlash)
-        application.routing {
+        server.install(IgnoreTrailingSlash)
+        server.routing {
             get("foo/") {
                 call.respondText("foo/")
             }
@@ -860,7 +860,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithAndWithoutTrailingSlashInLeafRoute() = withTestApplication {
-        application.routing {
+        server.routing {
             get("foo/") {
                 call.respondText("foo/")
             }
@@ -891,7 +891,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithTrailingSlashInNonLeafRoute() = withTestApplication {
-        application.routing {
+        server.routing {
             route("foo/") {
                 get("bar/") {
                     call.respondText("foo/bar/")
@@ -935,8 +935,8 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithTrailingSlashInNonLeafRouteAndDoNotIgnoreTrailing() = withTestApplication {
-        application.install(IgnoreTrailingSlash)
-        application.routing {
+        server.install(IgnoreTrailingSlash)
+        server.routing {
             route("foo/") {
                 get("bar/") {
                     call.respondText("foo/bar/")
@@ -980,7 +980,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashWithParams() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/a{foo}b") {
                 call.respondText("foo")
             }
@@ -1011,7 +1011,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashWithOptionalParams() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/a{foo?}b") {
                 call.respondText("foo")
             }
@@ -1042,7 +1042,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashSingleCharacter() = withTestApplication {
-        application.routing {
+        server.routing {
             route("foo") {
                 get("/") {
                     call.respondText("foo/")
@@ -1103,7 +1103,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithSlashSingleCharacterInTheMiddle() = withTestApplication {
-        application.routing {
+        server.routing {
             route("/") {
                 get("/foo") {
                     call.respondText("foo")
@@ -1148,7 +1148,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingMatchesWithMethod() = withTestApplication {
-        application.routing {
+        server.routing {
             route("/") {
                 get {
                     call.respondText("foo")
@@ -1181,7 +1181,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithWildcardTrailingPathParameter() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/*") {
                 call.respondText("test")
             }
@@ -1217,7 +1217,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithWildcardPathParameter() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/*/foo") {
                 call.respondText("foo")
             }
@@ -1244,7 +1244,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithNonOptionalTrailingPathParameter() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/{foo}") {
                 call.respondText(call.parameters["foo"]!!)
             }
@@ -1271,7 +1271,7 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithOptionalTrailingPathParameter() = withTestApplication {
-        application.routing {
+        server.routing {
             get("test/{foo?}") {
                 call.respondText(call.parameters["foo"] ?: "null")
             }

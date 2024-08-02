@@ -7,24 +7,24 @@ package io.ktor.server.plugins.doublereceive
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 
-internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
+internal object ReceiveBytes : Hook<suspend (ServerCall, Any) -> Any> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (ApplicationCall, Any) -> Any
+        pipeline: ServerCallPipeline,
+        handler: suspend (ServerCall, Any) -> Any
     ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.Before) {
             val body = handler(call, it)
             proceedWith(body)
         }
     }
 }
 
-internal object ReceiveBodyTransformed : Hook<suspend (ApplicationCall, Any) -> Any> {
+internal object ReceiveBodyTransformed : Hook<suspend (ServerCall, Any) -> Any> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (call: ApplicationCall, state: Any) -> Any
+        pipeline: ServerCallPipeline,
+        handler: suspend (call: ServerCall, state: Any) -> Any
     ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.After) {
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.After) {
             val body = handler(call, it)
             proceedWith(body)
         }

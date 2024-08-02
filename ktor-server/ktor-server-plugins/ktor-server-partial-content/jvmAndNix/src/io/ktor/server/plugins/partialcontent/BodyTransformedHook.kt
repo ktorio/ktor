@@ -11,9 +11,9 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 
 internal object BodyTransformedHook :
-    Hook<suspend BodyTransformedHook.Context.(call: ApplicationCall, message: Any) -> Unit> {
+    Hook<suspend BodyTransformedHook.Context.(call: ServerCall, message: Any) -> Unit> {
     class Context(private val context: PipelineContext<Any, PipelineCall>) {
-        val call: ApplicationCall = context.call
+        val call: ServerCall = context.call
 
         fun transformBodyTo(newValue: Any) {
             context.subject = newValue
@@ -21,11 +21,11 @@ internal object BodyTransformedHook :
     }
 
     override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend Context.(call: ApplicationCall, message: Any) -> Unit
+        pipeline: ServerCallPipeline,
+        handler: suspend Context.(call: ServerCall, message: Any) -> Unit
     ) {
         val partialContentPhase = PipelinePhase("PartialContent")
-        pipeline.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, partialContentPhase)
+        pipeline.sendPipeline.insertPhaseAfter(ServerSendPipeline.ContentEncoding, partialContentPhase)
         pipeline.sendPipeline.intercept(partialContentPhase) { message ->
             Context(this).handler(call, message)
         }
@@ -34,7 +34,7 @@ internal object BodyTransformedHook :
 
 internal suspend fun BodyTransformedHook.Context.tryProcessRange(
     content: OutgoingContent.ReadChannelContent,
-    call: ApplicationCall,
+    call: ServerCall,
     rangesSpecifier: RangesSpecifier,
     length: Long,
     maxRangeCount: Int

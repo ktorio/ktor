@@ -19,7 +19,7 @@ import kotlin.test.*
 import io.ktor.client.engine.cio.CIO as CioClient
 import io.ktor.server.cio.CIO as CioServer
 
-class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CioServer) {
+class ClassCastExceptionTest : EngineTestBase<CIOServerEngine, CIOServerEngine.Configuration>(CioServer) {
     init {
         enableSsl = false
     }

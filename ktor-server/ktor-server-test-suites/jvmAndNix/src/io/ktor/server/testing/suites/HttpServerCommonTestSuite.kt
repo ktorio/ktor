@@ -32,8 +32,8 @@ import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+abstract class HttpServerCommonTestSuite<TEngine : ServerEngine, TConfiguration : ServerEngine.Configuration>(
+    hostFactory: ServerEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
@@ -52,7 +52,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testRedirectFromInterceptor() {
         createAndStartServer {
-            application.intercept(ApplicationCallPipeline.Plugins) {
+            server.intercept(ServerCallPipeline.Plugins) {
                 call.respondRedirect("/2", true)
             }
         }
@@ -103,7 +103,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     open fun testHeadRequest() {
         createAndStartServer {
-            application.install(AutoHeadResponse)
+            server.install(AutoHeadResponse)
             handle {
                 call.respondText("Hello")
             }
@@ -245,7 +245,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testStatusPages404() {
         createAndStartServer {
-            application.install(StatusPages) {
+            server.install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, _ ->
                     call.respondText(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
                         "Error string"
@@ -334,7 +334,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            application.install(XForwardedHeaders)
+            server.install(XForwardedHeaders)
             get("/") {
                 call.respond(call.url { })
             }
@@ -693,7 +693,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @Test
     fun testHSTSWithCustomPlugin() {
         createAndStartServer {
-            val plugin = createApplicationPlugin("plugin") {
+            val plugin = createServerPlugin("plugin") {
                 on(CallSetup) { call ->
                     call.mutableOriginConnectionPoint.scheme = "https"
                     call.mutableOriginConnectionPoint.serverPort = 443
@@ -704,8 +704,8 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 }
             }
             check(this is RoutingNode)
-            application.install(plugin)
-            application.install(HSTS)
+            server.install(plugin)
+            server.install(HSTS)
 
             get("/") {
                 call.respondText { "OK" }
@@ -722,7 +722,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     fun testErrorInBodyAndStatusIsSet() {
         var throwError = false
         createAndStartServer {
-            val plugin = createApplicationPlugin("plugin") {
+            val plugin = createServerPlugin("plugin") {
                 onCallRespond { _ ->
                     throwError = !throwError
                     if (throwError) {
@@ -730,7 +730,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     }
                 }
             }
-            application.install(plugin)
+            server.install(plugin)
 
             get("/") {
                 call.respond(HttpStatusCode.OK, "OK")

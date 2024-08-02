@@ -18,12 +18,12 @@ private val SHUTDOWN_HOOK_DISABLED = System.getProperty("io.ktor.server.engine.S
  * If the application has already stopped, the hook won't be registered, and invoking [stop] will have no effect.
  * Therefore, the [stop] block will be called either once or not at all.
  */
-public actual fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
+public actual fun ServerEngine.addShutdownHook(monitor: Events, stop: () -> Unit) {
     if (SHUTDOWN_HOOK_DISABLED) return
 
     val hook = ShutdownHook(stop)
-    monitor.subscribe(ApplicationStarting) {
-        monitor.subscribe(ApplicationStopping) {
+    monitor.subscribe(ServerStarting) {
+        monitor.subscribe(ServerStopping) {
             try {
                 Runtime.getRuntime().removeShutdownHook(hook)
             } catch (alreadyShuttingDown: IllegalStateException) {

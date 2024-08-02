@@ -16,6 +16,5 @@ internal object MDCContextElement : CoroutineContext.Element {
 
     override fun toString(): String = "MDCContext"
 
-    object MDCContextKey: CoroutineContext.Key<MDCContextElement>
+    object MDCContextKey : CoroutineContext.Key<MDCContextElement>
 }
-

@@ -75,7 +75,7 @@ class RouteTest {
     }
 
     @Test
-    fun testGetAllRoutes() = testApplication {
+    fun testGetAllRoutes() = testServer {
         application {
             val root = routing {
                 route("/shop") {

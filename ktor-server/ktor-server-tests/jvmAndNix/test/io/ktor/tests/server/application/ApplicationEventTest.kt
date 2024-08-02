@@ -14,14 +14,14 @@ class ApplicationEventTest {
         var c = 0
 
         withTestApplication {
-            application.monitor.subscribe(ApplicationStopPreparing) {
+            server.monitor.subscribe(ServerStopPreparing) {
                 c += 1
             }
         }
         assertEquals(1, c)
 
         withTestApplication {
-            application.monitor.subscribe(ApplicationStopPreparing) {
+            server.monitor.subscribe(ServerStopPreparing) {
                 c += 2
             }
         }
@@ -33,14 +33,14 @@ class ApplicationEventTest {
         var c = 0
 
         withTestApplication {
-            application.monitor.subscribe(ApplicationStopping) {
+            server.monitor.subscribe(ServerStopping) {
                 c += 1
             }
         }
         assertEquals(1, c)
 
         withTestApplication {
-            application.monitor.subscribe(ApplicationStopping) {
+            server.monitor.subscribe(ServerStopping) {
                 c += 2
             }
         }
@@ -52,14 +52,14 @@ class ApplicationEventTest {
         var c = 0
 
         withApplication {
-            application.monitor.subscribe(ApplicationStopPreparing) {
+            server.monitor.subscribe(ServerStopPreparing) {
                 c += 1
             }
         }
         assertEquals(1, c)
 
         withApplication {
-            application.monitor.subscribe(ApplicationStopPreparing) {
+            server.monitor.subscribe(ServerStopPreparing) {
                 c += 2
             }
         }

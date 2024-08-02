@@ -37,7 +37,7 @@ public class ThymeleafContent(
  * Provides the ability to respond with [ThymeleafContent].
  * You can learn more from [Thymeleaf](https://ktor.io/docs/thymeleaf.html).
  */
-public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugin(
+public val Thymeleaf: ServerPlugin<TemplateEngine> = createServerPlugin(
     "Thymeleaf",
     ::TemplateEngine
 ) {

@@ -22,72 +22,72 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
 
-class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyCompressionTest : CompressionTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
 }
 
-class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyContentTest : ContentTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
 }
 
 class NettyHttpServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+    HttpServerCommonTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty)
 
 class NettyHttpServerJvmTest :
-    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    HttpServerJvmTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
         configuration.tcpKeepAlive = true
     }
 }
 
 class NettyHttp2ServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+    HttpServerCommonTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty)
 
 class NettyHttp2ServerJvmTest :
-    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    HttpServerJvmTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
     init {
         enableSsl = true
         enableHttp2 = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
 }
 
 class NettyDisabledHttp2Test :
-    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    EngineTestBase<NettyServerEngine, NettyServerEngine.Configuration>(Netty) {
 
     init {
         enableSsl = true
         enableHttp2 = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.enableHttp2 = false
     }
 
     @Test
     fun testRequestWithDisabledHttp2() {
         createAndStartServer {
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondText("Hello, world")
                 }
@@ -101,21 +101,21 @@ class NettyDisabledHttp2Test :
     }
 }
 
-class NettySustainabilityTest : SustainabilityTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+class NettySustainabilityTest : SustainabilityTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(
     Netty
 ) {
     init {
         enableSsl = true
     }
 
-    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+    override fun configure(configuration: NettyServerEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
 
     @Test
     fun testRawWebSocketFreeze() {
         createAndStartServer {
-            application.install(WebSockets)
+            server.install(WebSockets)
             webSocket("/ws") {
                 repeat(10) {
                     send(Frame.Text("hi"))
@@ -143,9 +143,9 @@ class NettyConfigTest : ConfigTestSuite(Netty)
 
 class NettyConnectionTest : ConnectionTestSuite(Netty)
 
-class NettyClientCertTest : ClientCertTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+class NettyClientCertTest : ClientCertTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty)
 
-class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(
+class NettyServerPluginsTest : ServerPluginsTestSuite<NettyServerEngine, NettyServerEngine.Configuration>(
     Netty
 ) {
     init {

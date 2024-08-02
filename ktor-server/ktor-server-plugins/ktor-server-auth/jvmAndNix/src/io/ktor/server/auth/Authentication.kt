@@ -92,10 +92,10 @@ public class Authentication(internal var config: AuthenticationConfig) {
     /**
      * An installation object of the [Authentication] plugin.
      */
-    public companion object : BaseApplicationPlugin<Application, AuthenticationConfig, Authentication> {
+    public companion object : BaseServerPlugin<Server, AuthenticationConfig, Authentication> {
         override val key: AttributeKey<Authentication> = AttributeKey("AuthenticationHolder")
 
-        override fun install(pipeline: Application, configure: AuthenticationConfig.() -> Unit): Authentication {
+        override fun install(pipeline: Server, configure: AuthenticationConfig.() -> Unit): Authentication {
             val config = AuthenticationConfig().apply(configure)
             return Authentication(config)
         }
@@ -105,18 +105,18 @@ public class Authentication(internal var config: AuthenticationConfig) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call.
  */
-public val ApplicationCall.authentication: AuthenticationContext
+public val ServerCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call.
  */
-public inline fun <reified P : Principal> ApplicationCall.principal(): P? = principal(null)
+public inline fun <reified P : Principal> ServerCall.principal(): P? = principal(null)
 
 /**
  * Retrieves an authenticated [Principal] for `this` call from provider with name [provider]
  */
-public inline fun <reified P : Principal> ApplicationCall.principal(provider: String?): P? =
+public inline fun <reified P : Principal> ServerCall.principal(provider: String?): P? =
     authentication.principal(provider)
 
 /**
@@ -125,6 +125,6 @@ public inline fun <reified P : Principal> ApplicationCall.principal(provider: St
  * using the [Authentication.configure] function.
  * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
  */
-public fun Application.authentication(block: AuthenticationConfig.() -> Unit) {
+public fun Server.authentication(block: AuthenticationConfig.() -> Unit) {
     pluginOrNull(Authentication)?.configure(block) ?: install(Authentication, block)
 }

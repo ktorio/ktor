@@ -24,11 +24,11 @@ public class SessionTransportCookie(
     public val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
 
-    override fun receive(call: ApplicationCall): String? {
+    override fun receive(call: ServerCall): String? {
         return transformers.transformRead(call.request.cookies[name, configuration.encoding])
     }
 
-    override fun send(call: ApplicationCall, value: String) {
+    override fun send(call: ServerCall, value: String) {
         val now = GMTDate()
         val maxAge = configuration.maxAgeInSeconds
         val expires = when (maxAge) {
@@ -52,7 +52,7 @@ public class SessionTransportCookie(
         call.response.cookies.append(cookie)
     }
 
-    override fun clear(call: ApplicationCall) {
+    override fun clear(call: ServerCall) {
         call.response.cookies.append(clearCookie())
     }
 

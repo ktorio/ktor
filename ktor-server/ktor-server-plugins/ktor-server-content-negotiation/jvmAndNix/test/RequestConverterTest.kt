@@ -22,7 +22,7 @@ import kotlin.test.*
 class RequestConverterTest {
 
     @Test
-    fun testIgnoreType() = testApplication {
+    fun testIgnoreType() = testServer {
         var used = false
 
         install(ContentNegotiation) {

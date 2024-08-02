@@ -10,10 +10,13 @@ import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
+@Deprecated(message = "Renamed to ServerEnvironment", replaceWith = ReplaceWith("ServerEnvironment"))
+public typealias ApplicationEnvironment = ServerEnvironment
+
 /**
- * Represents an environment in which [Application] runs
+ * Represents an environment in which [Server] runs
  */
-public expect interface ApplicationEnvironment {
+public expect interface ServerEnvironment {
 
     /**
      * Instance of [Logger] to be used for logging.
@@ -21,23 +24,23 @@ public expect interface ApplicationEnvironment {
     public val log: Logger
 
     /**
-     * Configuration for the [Application]
+     * Configuration for the [Server]
      */
-    public val config: ApplicationConfig
+    public val config: ServerConfig
 
     /**
      * Provides events on Application lifecycle
      */
     @Deprecated(
-        message = "Moved to Application",
+        message = "Moved to Server",
         replaceWith = ReplaceWith("EmbeddedServer.monitor", "io.ktor.server.engine.EmbeddedServer"),
         level = DeprecationLevel.ERROR,
     )
     public val monitor: Events
 }
 
-internal expect class ApplicationPropertiesBridge(
-    applicationProperties: ApplicationProperties,
+internal expect class ServerParametersBridge(
+    serverParameters: ServerParameters,
     parentCoroutineContext: CoroutineContext
 ) {
     internal val parentCoroutineContext: CoroutineContext

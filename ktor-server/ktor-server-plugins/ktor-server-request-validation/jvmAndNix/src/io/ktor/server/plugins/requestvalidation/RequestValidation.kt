@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
 
 /**
@@ -87,7 +86,7 @@ public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = creat
     on(ReceiveRequestBytes) { call, body ->
         val contentLength = call.request.contentLength() ?: return@on body
 
-        return@on application.writer {
+        return@on server.writer {
             val count = body.copyTo(channel)
             if (count != contentLength) {
                 throw IOException("Content length mismatch. Actual $count, expected $contentLength.")
@@ -108,10 +107,10 @@ public class RequestValidationException(
 
 private object RequestBodyTransformed : Hook<suspend (content: Any) -> Unit> {
     override fun install(
-        pipeline: ApplicationCallPipeline,
+        pipeline: ServerCallPipeline,
         handler: suspend (content: Any) -> Unit
     ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.After) {
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.After) {
             handler(subject)
         }
     }

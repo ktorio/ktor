@@ -20,7 +20,7 @@ import io.ktor.utils.io.*
  *
  * To learn more, see [XHttpMethodOverride](https://ktor.io/docs/x-http-method-override.html).
  */
-public val XHttpMethodOverride: ApplicationPlugin<XHttpMethodOverrideConfig> = createApplicationPlugin(
+public val XHttpMethodOverride: ServerPlugin<XHttpMethodOverrideConfig> = createServerPlugin(
     "XHttpMethodOverride",
     ::XHttpMethodOverrideConfig
 ) {

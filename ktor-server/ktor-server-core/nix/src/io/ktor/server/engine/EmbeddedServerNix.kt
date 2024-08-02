@@ -11,51 +11,51 @@ import io.ktor.server.engine.internal.*
 import kotlinx.coroutines.*
 
 public actual class EmbeddedServer<
-    TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration
+    TEngine : ServerEngine,
+    TConfiguration : ServerEngine.Configuration
     >
 actual constructor(
-    applicationProperties: ApplicationProperties,
-    engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    serverParameters: ServerParameters,
+    engineFactory: ServerEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
     public actual val monitor: Events = applicationProperties.environment.monitor
 
-    public actual val environment: ApplicationEnvironment = applicationProperties.environment
+    public actual val environment: ServerEnvironment = serverParameters.environment
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
 
-    public actual val application: Application = Application(
+    public actual val server: Server = Server(
         environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
+        serverParameters.developmentMode,
+        serverParameters.rootPath,
         monitor,
-        applicationProperties.parentCoroutineContext,
+        serverParameters.parentCoroutineContext,
         ::engine
     )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
-        applicationProperties.developmentMode,
+        serverParameters.developmentMode,
         engineConfig,
-        ::application
+        ::server
     )
 
-    private val modules = applicationProperties.modules
+    private val modules = serverParameters.modules
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        safeRaiseEvent(ApplicationStarting, application)
+        safeRaiseEvent(ServerStarting, server)
         try {
-            modules.forEach { application.it() }
+            modules.forEach { server.it() }
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
-            destroy(application)
+            destroy(server)
             throw cause
         }
-        safeRaiseEvent(ApplicationStarted, application)
+        safeRaiseEvent(ServerStarted, server)
 
-        CoroutineScope(application.coroutineContext).launch {
+        CoroutineScope(server.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
                 val host = escapeHostname(it.host)
                 environment.log.info(
@@ -71,22 +71,22 @@ actual constructor(
 
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
-        destroy(application)
+        destroy(server)
     }
 
-    private fun destroy(application: Application) {
-        safeRaiseEvent(ApplicationStopping, application)
+    private fun destroy(server: Server) {
+        safeRaiseEvent(ServerStopping, server)
         try {
-            application.dispose()
+            server.dispose()
         } catch (e: Throwable) {
             environment.log.error("Failed to destroy application instance.", e)
         }
-        safeRaiseEvent(ApplicationStopped, application)
+        safeRaiseEvent(ServerStopped, server)
     }
 
-    private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
+    private fun safeRaiseEvent(event: EventDefinition<Server>, server: Server) {
         try {
-            monitor.raise(event, application)
+            monitor.raise(event, server)
         } catch (cause: Throwable) {
             environment.log.error("One or more of the handlers thrown an exception", cause)
         }

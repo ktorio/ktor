@@ -17,7 +17,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, app: TestApplicationEngine) {
+internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, app: TestServerEngine) {
     val supportedCapabilities: Set<HttpClientEngineCapability<*>>
 
     suspend fun runWebSocketRequest(
@@ -25,11 +25,11 @@ internal expect class TestHttpClientEngineBridge(engine: TestHttpClientEngine, a
         headers: Headers,
         content: OutgoingContent,
         callContext: CoroutineContext
-    ): Pair<TestApplicationCall, WebSocketSession>
+    ): Pair<TestServerCall, WebSocketSession>
 }
 
 public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
-    private val app: TestApplicationEngine = config.app
+    private val app: TestServerEngine = config.app
 
     private val bridge = TestHttpClientEngineBridge(this, app)
 
@@ -85,7 +85,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         content: OutgoingContent,
         protocol: URLProtocol,
         timeoutAttributes: HttpTimeoutConfig? = null
-    ): TestApplicationCall {
+    ): TestServerCall {
         return app.handleRequestNonBlocking(timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port
@@ -100,7 +100,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     }
 
     @OptIn(InternalAPI::class)
-    private suspend fun TestApplicationResponse.httpResponseData(body: Any) = HttpResponseData(
+    private suspend fun TestServerResponse.httpResponseData(body: Any) = HttpResponseData(
         statusOrNotFound(),
         GMTDate(),
         headers.allValues().takeUnless { it.isEmpty() } ?: Headers
@@ -111,7 +111,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     )
 
     @OptIn(InternalAPI::class)
-    internal fun TestApplicationRequest.appendRequestHeaders(
+    internal fun TestServerRequest.appendRequestHeaders(
         headers: Headers,
         content: OutgoingContent
     ) {
@@ -149,5 +149,5 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
         }
 
-    private fun TestApplicationResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
+    private fun TestServerResponse.statusOrNotFound() = status() ?: HttpStatusCode.NotFound
 }

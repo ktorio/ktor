@@ -40,11 +40,11 @@ class MicrometerMetricsTests {
     fun `time is measured for requests`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
                 call.respond("hello")
@@ -74,11 +74,11 @@ class MicrometerMetricsTests {
 
         installDefaultBehaviour()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
                 throw IllegalStateException("something went wrong")
@@ -107,11 +107,11 @@ class MicrometerMetricsTests {
     fun `parameter names are recorded instead of values`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        server.routing {
             get("/uri/{someParameter}") {
                 call.respond("some response")
             }
@@ -137,14 +137,14 @@ class MicrometerMetricsTests {
     fun `individual tags can be added per call`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
             timers { _, _ ->
                 tag("customTag", "customValue")
             }
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 call.respond("some response")
             }
@@ -172,14 +172,14 @@ class MicrometerMetricsTests {
     fun `histogram can be configured`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
             distributionStatisticConfig = DistributionStatisticConfig.Builder()
                 .percentiles(0.1, 0.2)
                 .build()
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 call.respond("hello")
             }
@@ -207,7 +207,7 @@ class MicrometerMetricsTests {
     fun `no handler results in status 404 and no exception by default`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
@@ -239,7 +239,7 @@ class MicrometerMetricsTests {
         withTestApplication {
             val testRegistry = SimpleMeterRegistry()
 
-            application.install(MicrometerMetrics) {
+            server.install(MicrometerMetrics) {
                 registry = testRegistry
                 distinctNotRegisteredRoutes = false
             }
@@ -267,10 +267,10 @@ class MicrometerMetricsTests {
             assertTrue(noHandlerHandledRequest)
         }
 
-    private fun TestApplicationEngine.installDefaultBehaviour() {
+    private fun TestServerEngine.installDefaultBehaviour() {
         this.callInterceptor = {
             try {
-                call.application.execute(call)
+                call.server.execute(call)
                 if (call.response.status() == HttpStatusCode.NotFound) {
                     noHandlerHandledRequest = true
                 }
@@ -331,7 +331,7 @@ class MicrometerMetricsTests {
     @Test
     fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
         assertFailsWith<IllegalArgumentException> {
-            application.install(MicrometerMetrics) {
+            server.install(MicrometerMetrics) {
                 metricName = "   "
             }
         }
@@ -341,7 +341,7 @@ class MicrometerMetricsTests {
     fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
         val newMetricName = "custom.metric.name"
         val registry = SimpleMeterRegistry()
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             this.registry = registry
             metricName = newMetricName
         }
@@ -355,11 +355,11 @@ class MicrometerMetricsTests {
     fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        server.routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
                 call.respond("hello")
@@ -382,7 +382,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `with DropwizardMetrics plugin`(): Unit = testApplication {
+    fun `with DropwizardMetrics plugin`(): Unit = testServer {
         application {
             install(MicrometerMetrics)
             install(DropwizardMetrics)
@@ -400,7 +400,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `test closes previous registry`(): Unit = testApplication {
+    fun `test closes previous registry`(): Unit = testServer {
         var closed = false
         val metrics = object : LoggingMeterRegistry() {
             override fun close() {
@@ -420,13 +420,13 @@ class MicrometerMetricsTests {
         assertTrue(closed)
     }
 
-    private fun TestApplicationEngine.metersAreRegistered(
+    private fun TestServerEngine.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
         vararg meterNames: String
     ) {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        server.install(MicrometerMetrics) {
             registry = testRegistry
         }
 

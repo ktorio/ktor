@@ -10,9 +10,9 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 
 /**
- * Generates a string representing this [ApplicationRequest] suitable for logging
+ * Generates a string representing this [ServerRequest] suitable for logging
  */
-public fun ApplicationRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
+public fun ServerRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
 
 /**
  * Base interface for plugins that can setup MDC. See [CallLogging] plugin.
@@ -21,18 +21,18 @@ public interface MDCProvider {
     /**
      * Executes [block] with [MDC] setup
      */
-    public suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit)
+    public suspend fun withMDCBlock(call: ServerCall, block: suspend () -> Unit)
 }
 
 private object EmptyMDCProvider : MDCProvider {
-    override suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) = block()
+    override suspend fun withMDCBlock(call: ServerCall, block: suspend () -> Unit) = block()
 }
 
 /**
  * Returns first instance of a plugin that implements [MDCProvider]
  * or default implementation with an empty context
  */
-public val Application.mdcProvider: MDCProvider
+public val Server.mdcProvider: MDCProvider
     @Suppress("UNCHECKED_CAST")
     get() = pluginRegistry.allKeys
         .firstNotNullOfOrNull { pluginRegistry.getOrNull(it as AttributeKey<Any>) as? MDCProvider }

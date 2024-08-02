@@ -32,7 +32,7 @@ class StaticContentTest {
 
     @Test
     fun testStaticContentBuilder() = withTestApplication {
-        application.routing {
+        server.routing {
             static("files") {
                 files(basedir)
             }
@@ -92,11 +92,11 @@ class StaticContentTest {
 
     @Test
     fun testStaticContent() = withTestApplication {
-        application.install(ConditionalHeaders)
-        application.install(PartialContent)
-        application.install(AutoHeadResponse)
+        server.install(ConditionalHeaders)
+        server.install(PartialContent)
+        server.install(AutoHeadResponse)
 
-        application.routing {
+        server.routing {
             static {
                 resources("io.ktor.server.plugins")
                 resources("java.util")
@@ -134,7 +134,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFiles() = testApplication {
+    fun testStaticFiles() = testServer {
         routing {
             staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
                 cacheControl {
@@ -184,7 +184,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesExtensions() = testApplication {
+    fun testStaticFilesExtensions() = testServer {
         routing {
             staticFiles("static", basedir) {
                 extensions("kt")
@@ -205,7 +205,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesExclude() = testApplication {
+    fun testStaticFilesExclude() = testServer {
         routing {
             staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
                 exclude { it.path.contains("CookiesTest") }
@@ -229,7 +229,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesPreCompressed() = testApplication {
+    fun testStaticFilesPreCompressed() = testServer {
         val filesDir = Files.createTempDirectory("assets").toFile()
         val tempFile = File(filesDir, "testServeEncodedFile.txt")
         val brFile = File(filesDir, "testServeEncodedFile.txt.br")
@@ -286,7 +286,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesAutoHead() = testApplication {
+    fun testStaticFilesAutoHead() = testServer {
         routing {
             staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
                 enableAutoHeadResponse()
@@ -312,7 +312,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesModifier() = testApplication {
+    fun testStaticFilesModifier() = testServer {
         routing {
             staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
                 modify { url, call ->
@@ -331,10 +331,10 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesWithIndexAndDefault() = testApplication {
+    fun testStaticFilesWithIndexAndDefault() = testServer {
         var respondCount = 0
         install(
-            createApplicationPlugin("test") {
+            createServerPlugin("test") {
                 onCallRespond { _ -> respondCount++ }
             }
         )
@@ -351,7 +351,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPath() = testApplication {
+    fun testStaticPath() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 cacheControl {
@@ -413,7 +413,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathExtensions() = testApplication {
+    fun testStaticPathExtensions() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 extensions("txt")
@@ -434,7 +434,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathExclude() = testApplication {
+    fun testStaticPathExclude() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 exclude { it.pathString.contains("ignore") }
@@ -456,7 +456,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathModifier() = testApplication {
+    fun testStaticPathModifier() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 modify { path, call ->
@@ -475,7 +475,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathAutoHead() = testApplication {
+    fun testStaticPathAutoHead() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 enableAutoHeadResponse()
@@ -502,7 +502,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathPreCompressed() = testApplication {
+    fun testStaticPathPreCompressed() = testServer {
         routing {
             staticFileSystem("static", "jvm/test-resources/public") {
                 preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
@@ -537,7 +537,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticPathFromZip() = testApplication {
+    fun testStaticPathFromZip() = testServer {
         routing {
             staticZip(
                 remotePath = "static",
@@ -569,7 +569,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResources() = testApplication {
+    fun testStaticResources() = testServer {
         routing {
             staticResources("static", "public") {
                 cacheControl {
@@ -623,7 +623,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResourcesExtensions() = testApplication {
+    fun testStaticResourcesExtensions() = testServer {
         routing {
             staticResources("static", "public") {
                 extensions("txt")
@@ -644,7 +644,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResourcesExclude() = testApplication {
+    fun testStaticResourcesExclude() = testServer {
         routing {
             staticResources("static", "public") {
                 exclude { it.path.contains("ignore") }
@@ -666,7 +666,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResourcesModifier() = testApplication {
+    fun testStaticResourcesModifier() = testServer {
         routing {
             staticResources("static", "public") {
                 modify { url, call -> call.response.headers.append(HttpHeaders.ETag, url.path.substringAfterLast('/')) }
@@ -683,7 +683,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResourcesAutoHead() = testApplication {
+    fun testStaticResourcesAutoHead() = testServer {
         routing {
             staticResources("static", "public") {
                 enableAutoHeadResponse()
@@ -710,7 +710,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticResourcesPreCompressed() = testApplication {
+    fun testStaticResourcesPreCompressed() = testServer {
         routing {
             staticResources("static", "public") {
                 preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
@@ -745,7 +745,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testNullJarFile() = testApplication {
+    fun testNullJarFile() = testServer {
         routing {
             static {
                 resources()
@@ -763,7 +763,7 @@ class StaticContentTest {
 
     @Test
     fun testStaticContentWrongPath() = withTestApplication {
-        application.routing {
+        server.routing {
             static {
                 files(basedir)
             }
@@ -789,7 +789,7 @@ class StaticContentTest {
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
 
-        application.routing {
+        server.routing {
             static {
                 preCompressed {
                     files(temp.parentFile)
@@ -813,7 +813,7 @@ class StaticContentTest {
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
 
-        application.routing {
+        server.routing {
             static {
                 preCompressed {
                     files(temp.parentFile)
@@ -833,13 +833,13 @@ class StaticContentTest {
     // a.k.a testServeEncodedFileGzWithCompressionNoRecompress
     @Test
     fun testSuppressCompressionIfAlreadyCompressed() = withTestApplication {
-        application.install(Compression)
+        server.install(Compression)
         val ext = "js"
         val temp = File.createTempFile("testServeEncodedFile", ".$ext.gz")
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
 
-        application.routing {
+        server.routing {
             static {
                 preCompressed {
                     files(temp.parentFile)
@@ -866,7 +866,7 @@ class StaticContentTest {
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(tempgz, true)
         tempgz.copyTo(File(tempgz.parentFile, "$publicFile.br"), true)
 
-        application.routing {
+        server.routing {
             static("firstgz") {
                 preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI) {
                     files(tempgz.parentFile)
@@ -906,7 +906,7 @@ class StaticContentTest {
             copyTo(File(brDir, "$publicFile.css.br"), true)
         }
 
-        application.routing {
+        server.routing {
             static("assets") {
                 preCompressed(CompressedFileType.GZIP) {
                     files(gzDir)
@@ -943,7 +943,7 @@ class StaticContentTest {
             copyTo(File(cssDir, "$publicFile.css.br"), true)
         }
 
-        application.routing {
+        server.routing {
             static("assets") {
                 preCompressed(CompressedFileType.GZIP) {
                     preCompressed(CompressedFileType.BROTLI) {
@@ -970,7 +970,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFile() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             call.respond(
                 LocalFileContent(
                     basedir,
@@ -989,7 +989,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFilePaths() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             call.respond(
                 LocalPathContent(
                     basedir.toPath(),
@@ -1008,7 +1008,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFileBadRelative() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             assertFailsWithSuspended<Exception> {
                 call.respond(
                     LocalFileContent(
@@ -1043,7 +1043,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFileBadRelativePaths() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             assertFailsWithSuspended<Exception> {
                 call.respond(
                     LocalPathContent(
@@ -1078,7 +1078,7 @@ class StaticContentTest {
 
     @Test
     fun testInterceptCacheControl() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Plugins) {
+        server.intercept(ServerCallPipeline.Plugins) {
             if (call.request.httpMethod == HttpMethod.Get ||
                 call.request.httpMethod == HttpMethod.Head
             ) {
@@ -1086,7 +1086,7 @@ class StaticContentTest {
             }
         }
 
-        application.intercept(ApplicationCallPipeline.Call) {
+        server.intercept(ServerCallPipeline.Call) {
             call.respond(LocalFileContent(File(basedir, "plugins/StaticContentTest.kt")))
         }
 
@@ -1101,7 +1101,7 @@ class StaticContentTest {
 
     @Test
     fun testStaticContentPriority() = withTestApplication {
-        application.routing {
+        server.routing {
             route("/before") {
                 get {
                     call.respond("before")
@@ -1128,7 +1128,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedResourceServeEncodedResource() = testApplication {
+    fun testPreCompressedResourceServeEncodedResource() = testServer {
         routing {
             static {
                 preCompressed {
@@ -1161,7 +1161,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedResourceSuppressCompressionIfAlreadyCompressed() = testApplication {
+    fun testPreCompressedResourceSuppressCompressionIfAlreadyCompressed() = testServer {
         install(Compression)
 
         routing {
@@ -1182,7 +1182,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedResourceTypesOrder() = testApplication {
+    fun testPreCompressedResourceTypesOrder() = testServer {
         routing {
             static("firstgz") {
                 preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI) {
@@ -1212,7 +1212,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testLocalPathContent() = testApplication {
+    fun testLocalPathContent() = testServer {
         routing {
             get("path") {
                 call.respond(
@@ -1254,7 +1254,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testCharset() = testApplication {
+    fun testCharset() = testServer {
         val fileName = "file"
         val extensions = mapOf(
             "js" to ContentType.Text.JavaScript,

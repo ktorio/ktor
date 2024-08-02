@@ -53,7 +53,7 @@ class CallLoggingTest {
             }
         }
     }
-    private val environment: ApplicationEnvironmentBuilder.() -> Unit = {
+    private val environment: ServerEnvironmentBuilder.() -> Unit = {
         log = logger
     }
 
@@ -66,7 +66,7 @@ class CallLoggingTest {
     fun `can log application lifecycle events`() {
         var hash: String? = null
 
-        testApplication {
+        testServer {
             environment { environment() }
             application {
                 install(CallLogging) { clock { 0 } }
@@ -96,7 +96,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log an unhandled get request`() = testApplication {
+    fun `can log an unhandled get request`() = testServer {
         environment { environment() }
         install(CallLogging) { clock { 0 } }
 
@@ -106,7 +106,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log a successful get request`() = testApplication {
+    fun `can log a successful get request`() = testServer {
         environment { environment() }
         install(CallLogging) { clock { 0 } }
         routing {
@@ -121,7 +121,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can customize message format`() = testApplication {
+    fun `can customize message format`() = testServer {
         environment {
             log = logger
         }
@@ -144,7 +144,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `logs request processing time`() = testApplication {
+    fun `logs request processing time`() = testServer {
         var time = 123L
         environment {
             log = logger
@@ -165,7 +165,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can filter calls to log`() = testApplication {
+    fun `can filter calls to log`() = testServer {
         environment {
             log = logger
         }
@@ -185,7 +185,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can change log level`() = testApplication {
+    fun `can change log level`() = testServer {
         environment {
             log = logger
         }
@@ -207,7 +207,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can fill MDC after call`() = testApplication {
+    fun `can fill MDC after call`() = testServer {
         environment {
             log = logger
         }
@@ -232,7 +232,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `reuses provider value`() = testApplication {
+    fun `reuses provider value`() = testServer {
         environment {
             log = logger
         }
@@ -258,9 +258,9 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can fill MDC before routing`() = testApplication {
+    fun `can fill MDC before routing`() = testServer {
         @Suppress("LocalVariableName")
-        val TestPlugin = createApplicationPlugin("TestPlugin") {
+        val TestPlugin = createServerPlugin("TestPlugin") {
             onCall { it.response.headers.append("test-header", "test-value") }
         }
         environment {
@@ -277,7 +277,7 @@ class CallLoggingTest {
         }
         routing {
             get("/*") {
-                application.log.info("test message")
+                server.log.info("test message")
                 call.respond("OK")
             }
         }
@@ -288,7 +288,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can fill MDC and survive context switch`() = testApplication {
+    fun `can fill MDC and survive context switch`() = testServer {
         var counter = 0
         val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
@@ -309,7 +309,7 @@ class CallLoggingTest {
             routing {
                 get("/*") {
                     withContext(dispatcher) {
-                        application.log.info("test message")
+                        server.log.info("test message")
                     }
                     call.respond("OK")
                 }
@@ -327,7 +327,7 @@ class CallLoggingTest {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() = testApplication {
+    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() = testServer {
         var counter = 0
 
         val dispatcher = newFixedThreadPoolContext(1, "test-dispatcher")
@@ -348,7 +348,7 @@ class CallLoggingTest {
             routing {
                 get("/*") {
                     withContext(dispatcher) {
-                        application.log.info("test message")
+                        server.log.info("test message")
                     }
                     call.respond("OK")
                 }
@@ -365,7 +365,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `will setup mdc provider and use in status pages plugin`() = testApplication {
+    fun `will setup mdc provider and use in status pages plugin`() = testServer {
         environment {
             log = logger
         }
@@ -376,7 +376,7 @@ class CallLoggingTest {
             }
             install(StatusPages) {
                 exception<Throwable> { call, _ ->
-                    call.application.log.info("test message")
+                    call.server.log.info("test message")
                     call.respond("OK")
                 }
             }
@@ -405,7 +405,7 @@ class CallLoggingTest {
         }
         lateinit var hash: String
 
-        testApplication {
+        testServer {
             application {
                 install(CallLogging) {
                     this.logger = customLogger
@@ -421,7 +421,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log without colors`() = testApplication {
+    fun `can log without colors`() = testServer {
         environment {
             log = logger
         }
@@ -437,7 +437,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `mdc exception does not crash request`() = testApplication {
+    fun `mdc exception does not crash request`() = testServer {
         var failed = 0
         install(CallLogging) {
             mdc("bar") {
@@ -463,7 +463,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `ignore static file request`() = testApplication {
+    fun `ignore static file request`() = testServer {
         environment {
             log = logger
         }
@@ -486,10 +486,10 @@ class CallLoggingTest {
     }
 
     @Test
-    fun logsErrorWithMdc() = testApplication {
+    fun logsErrorWithMdc() = testServer {
         environment {
             log = logger
-            config = MapApplicationConfig("ktor.test.throwOnException" to "false")
+            config = MapServerConfig("ktor.test.throwOnException" to "false")
         }
         install(CallLogging) {
             callIdMdc()
@@ -507,10 +507,10 @@ class CallLoggingTest {
     }
 
     @Test
-    fun logErrorMessage() = testApplication {
+    fun logErrorMessage() = testServer {
         environment {
             log = logger
-            config = MapApplicationConfig("ktor.test.throwOnException" to "false")
+            config = MapServerConfig("ktor.test.throwOnException" to "false")
         }
         install(CallLogging) {
             level = Level.DEBUG
@@ -533,7 +533,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `dont override MDC with configured entry`() = testApplication {
+    fun `dont override MDC with configured entry`() = testServer {
         environment {
             log = logger
         }
@@ -564,7 +564,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `no double logging when with Status Pages`() = testApplication {
+    fun `no double logging when with Status Pages`() = testServer {
         environment {
             log = logger
         }

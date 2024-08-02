@@ -12,7 +12,7 @@ import kotlin.test.*
 
 var count = 0
 
-abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
+abstract class ConfigTestSuite(val engine: ServerEngineFactory<*, *>) {
 
     @Test
     fun testStartOnceWhenException() {

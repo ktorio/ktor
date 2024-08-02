@@ -131,7 +131,7 @@ class YamlConfigTest {
         """.trimIndent()
         val yaml = Yaml.decodeYamlFromString(content)
         val config = YamlConfig(yaml as YamlMap)
-        assertFailsWith<ApplicationConfigurationException> {
+        assertFailsWith<ServerConfigurationException> {
             config.checkEnvironmentVariables()
         }
     }
@@ -167,7 +167,7 @@ class YamlConfigTest {
         """.trimIndent()
         val yaml = Yaml.decodeYamlFromString(content)
         val config = YamlConfig(yaml as YamlMap)
-        assertFailsWith<ApplicationConfigurationException> {
+        assertFailsWith<ServerConfigurationException> {
             config.checkEnvironmentVariables()
         }
     }

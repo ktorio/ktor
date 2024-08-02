@@ -28,12 +28,12 @@ class ServerGsonBlockingTest {
     }
 
     @Test
-    fun testReceive(): Unit = testApplication {
+    fun testReceive(): Unit = testServer {
         testApplicationProperties {
             parentCoroutineContext = dispatcher
         }
         application {
-            intercept(ApplicationCallPipeline.Setup) {
+            intercept(ServerCallPipeline.Setup) {
                 withContext(dispatcher) {
                     proceed()
                 }

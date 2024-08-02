@@ -22,7 +22,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testRoutingOnGETFooBar() = withTestApplication {
-        application.routing {
+        server.routing {
             get("/foo/bar") {
                 call.respond(HttpStatusCode.OK)
             }
@@ -52,7 +52,7 @@ class RoutingProcessingTest {
     @Test
     fun testRoutingOnGETUserWithParameter() = withTestApplication {
         var username = ""
-        application.routing {
+        server.routing {
             route("user") {
                 param("name") {
                     method(HttpMethod.Get) {
@@ -77,7 +77,7 @@ class RoutingProcessingTest {
     @Test
     fun testRoutingOnGETUserWithSurroundedParameter() = withTestApplication {
         var username = ""
-        application.routing {
+        server.routing {
             get("/user-{name}-get") {
                 username = call.parameters["name"] ?: ""
             }
@@ -96,7 +96,7 @@ class RoutingProcessingTest {
     @Test
     fun testRoutingOnParamRoute() = withTestApplication {
         var selectedRoute = SelectedRoute.None
-        application.routing {
+        server.routing {
             route("test") {
                 param("param") {
                     handle {
@@ -132,7 +132,7 @@ class RoutingProcessingTest {
     @Test
     fun testRoutingOnOptionalParamRoute() = withTestApplication {
         var selectedRoute = SelectedRoute.None
-        application.routing {
+        server.routing {
             route("test") {
                 optionalParam("param") {
                     handle {
@@ -169,7 +169,7 @@ class RoutingProcessingTest {
     fun testRoutingOnRoutesWithSameQualityShouldBeBasedOnOrder() = withTestApplication {
         // `accept {}` and `param {}` use quality = 1.0
         var selectedRoute = SelectedRoute.None
-        application.routing {
+        server.routing {
             route("paramFirst") {
                 param("param") {
                     handle {
@@ -220,7 +220,7 @@ class RoutingProcessingTest {
     @Test
     fun testMostSpecificSelected() = withTestApplication {
         var path = ""
-        application.routing {
+        server.routing {
             get("{path...}") {
                 path = call.parameters.getAll("path")?.joinToString("/") ?: "/"
             }
@@ -257,7 +257,7 @@ class RoutingProcessingTest {
             }
         }
 
-        override fun install(pipeline: ApplicationCallPipeline, handler: suspend Context.() -> Unit) {
+        override fun install(pipeline: ServerCallPipeline, handler: suspend Context.() -> Unit) {
             pipeline.intercept(phase) {
                 Context(this).handler()
             }
@@ -271,11 +271,11 @@ class RoutingProcessingTest {
         var userName = ""
         var userNameGotWithinInterceptor = false
 
-        application.routing {
+        server.routing {
             route("user") {
                 install(
                     createRouteScopedPlugin("test") {
-                        on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                        on(PluginsWithProceedHook(ServerCallPipeline.Plugins)) {
                             userIntercepted = true
                             wrappedWithInterceptor = true
                             proceed()
@@ -303,7 +303,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testRouteWithTypedBody(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             post<String> { answer ->
                 assertEquals("42", answer)
             }
@@ -334,10 +334,10 @@ class RoutingProcessingTest {
         var userName = ""
         var routingInterceptorWrapped = false
 
-        application.routing {
+        server.routing {
             install(
                 createRouteScopedPlugin("test") {
-                    on(PluginsWithProceedHook(ApplicationCallPipeline.Call)) {
+                    on(PluginsWithProceedHook(ServerCallPipeline.Call)) {
                         wrappedWithInterceptor = true
                         rootIntercepted = true
                         proceed()
@@ -381,10 +381,10 @@ class RoutingProcessingTest {
         var userName = ""
         var routingInterceptorWrapped = false
 
-        application.routing {
+        server.routing {
             install(
                 createRouteScopedPlugin("test") {
-                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                    on(PluginsWithProceedHook(ServerCallPipeline.Plugins)) {
                         wrappedWithInterceptor = true
                         rootIntercepted = true
                         proceed()
@@ -428,10 +428,10 @@ class RoutingProcessingTest {
         var instance: Foo? = null
         var routingInterceptorWrapped = false
 
-        application.routing {
+        server.routing {
             install(
                 createRouteScopedPlugin("test") {
-                    on(PluginsWithProceedHook(ApplicationCallPipeline.Plugins)) {
+                    on(PluginsWithProceedHook(ServerCallPipeline.Plugins)) {
                         wrappedWithInterceptor = true
                         rootIntercepted = true
                         proceed()
@@ -469,7 +469,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testAcceptHeaderProcessing() = testApplication {
+    fun testAcceptHeaderProcessing() = testServer {
         routing {
             route("/") {
                 accept(ContentType.Text.Plain) {
@@ -532,7 +532,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testContentTypeHeaderProcessing() = testApplication {
+    fun testContentTypeHeaderProcessing() = testServer {
         routing {
             route("/") {
                 contentType(ContentType.Text.Plain) {
@@ -595,7 +595,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testTransparentSelectorWithHandler() = withTestApplication {
-        application.routing {
+        server.routing {
             route("") {
                 transparent {
                     handle { call.respond("OK") }
@@ -610,7 +610,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testTransparentSelectorPriority() = withTestApplication {
-        application.routing {
+        server.routing {
             route("root") {
                 optionalParam("param") {
                     handle {
@@ -635,7 +635,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testHostAndPortRoutingProcessing(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             route("/") {
                 host("my-host", 8080) {
                     get("1") {
@@ -739,7 +739,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testLocalPortRouteProcessing(): Unit = withTestApplication {
-        application.routing {
+        server.routing {
             route("/") {
                 // TestApplicationRequest.local defaults to 80 in the absence of headers
                 // so connections paths to port 80 in tests should work, whereas other ports shouldn't
@@ -777,10 +777,10 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRoutingNotCalledForHandledRequests() = testApplication {
+    fun testRoutingNotCalledForHandledRequests() = testServer {
         var sideEffect = false
         application {
-            val handler = createApplicationPlugin("Handler") {
+            val handler = createServerPlugin("Handler") {
                 onCall { call ->
                     call.respond("plugin")
                 }
@@ -801,7 +801,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRouteWithParameterPrefixAndSuffixHasMorePriority() = testApplication {
+    fun testRouteWithParameterPrefixAndSuffixHasMorePriority() = testServer {
         application {
             routing {
                 get("/foo:{baz}") {
@@ -823,7 +823,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testDeepChildComparison() = withTestApplication {
-        application.routing {
+        server.routing {
             header("a", "a") {
                 optionalParam("a") {
                     handle {
@@ -875,7 +875,7 @@ class RoutingProcessingTest {
 
     @Test
     fun testRoutingErrorStatusCodes() = withTestApplication {
-        application.routing {
+        server.routing {
             route("header_param_method") {
                 param("param") {
                     handle {
@@ -947,7 +947,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRoutingSpecificErrorStatusCodeOnlyWhenPathMatched() = testApplication {
+    fun testRoutingSpecificErrorStatusCodeOnlyWhenPathMatched() = testServer {
         routing {
             route("a") {
                 get {
@@ -971,7 +971,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRoutingSpecificErrorStatusCodeOnlyForConstantQualityPath() = testApplication {
+    fun testRoutingSpecificErrorStatusCodeOnlyForConstantQualityPath() = testServer {
         routing {
             route("a") {
                 get {
@@ -994,7 +994,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRoutingSpecificErrorStatusNotForTailcard() = testApplication {
+    fun testRoutingSpecificErrorStatusNotForTailcard() = testServer {
         routing {
             route("a") {
                 post {

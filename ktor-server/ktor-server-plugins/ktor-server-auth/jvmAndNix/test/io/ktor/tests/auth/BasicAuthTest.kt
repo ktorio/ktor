@@ -21,7 +21,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthNoAuth() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val call = handleRequest {
                 uri = "/"
@@ -38,7 +38,7 @@ class BasicAuthTest {
     @Test
     fun testCharsetNull() {
         withTestApplication {
-            application.apply {
+            server.apply {
                 install(Authentication) {
                     basic {
                         realm = "ktor-test"
@@ -71,7 +71,7 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            application.intercept(ApplicationCallPipeline.Plugins) {
+            server.intercept(ServerCallPipeline.Plugins) {
                 val authInfo = call.request.basicAuthenticationCredentials()
                 assertNotNull(authInfo)
                 assertEquals(authInfo, call.request.basicAuthenticationCredentials())
@@ -93,7 +93,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthSuccess() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
             val user = "user1"
             val p = "user1"
 
@@ -107,7 +107,7 @@ class BasicAuthTest {
     @Test
     fun testBadRequestOnInvalidHeader() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val call = handleRequest { addHeader(HttpHeaders.Authorization, "B<sic code") }
 
@@ -121,7 +121,7 @@ class BasicAuthTest {
             val user = "Лира"
             val p = "Лира"
 
-            application.configureServer {
+            server.configureServer {
                 if (it.name == user && it.password == p) UserIdPrincipal(it.name) else null
             }
 
@@ -135,7 +135,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthFailed() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
             val user = "user1"
             val p = "wrong password"
 
@@ -151,7 +151,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthDifferentScheme() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val call = handleRequest {
                 uri = "/"
@@ -168,7 +168,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthInvalidBase64() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
 
             val call = handleRequest {
                 uri = "/"
@@ -185,7 +185,7 @@ class BasicAuthTest {
     @Test
     fun testBasicAuthFiltered() {
         withTestApplication {
-            application.configureServer()
+            server.configureServer()
             val user = "user1"
             val p = "wrong password"
 
@@ -199,14 +199,14 @@ class BasicAuthTest {
     @Test
     fun testSimplifiedFlow() {
         withTestApplication {
-            application.install(Authentication) {
+            server.install(Authentication) {
                 basic {
                     realm = "ktor-test"
                     validate { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
                 }
             }
 
-            application.routing {
+            server.routing {
                 authenticate {
                     get("/") { call.respondText("Secret info") }
                 }
@@ -228,11 +228,11 @@ class BasicAuthTest {
 
     @Test
     fun testNonConfiguredAuth(): Unit = withTestApplication {
-        application.install(Authentication) {
+        server.install(Authentication) {
             basic {}
         }
 
-        application.routing {
+        server.routing {
             authenticate {
                 get("/") {
                 }
@@ -244,7 +244,7 @@ class BasicAuthTest {
         }
     }
 
-    private fun TestApplicationEngine.handleRequestWithBasic(
+    private fun TestServerEngine.handleRequestWithBasic(
         url: String,
         user: String,
         pass: String,
@@ -258,7 +258,7 @@ class BasicAuthTest {
             addHeader(HttpHeaders.Authorization, "Basic $encoded")
         }
 
-    private fun assertWWWAuthenticateHeaderExist(call: ApplicationCall) {
+    private fun assertWWWAuthenticateHeaderExist(call: ServerCall) {
         assertNotNull(call.response.headers[HttpHeaders.WWWAuthenticate])
         val header = parseAuthorizationHeader(
             call.response.headers[HttpHeaders.WWWAuthenticate]!!
@@ -268,7 +268,7 @@ class BasicAuthTest {
         assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))
     }
 
-    private fun Application.configureServer(
+    private fun Server.configureServer(
         validate: suspend (UserPasswordCredential) -> Principal? = {
             if (it.name == it.password) UserIdPrincipal(it.name) else null
         }

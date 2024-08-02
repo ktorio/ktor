@@ -13,7 +13,7 @@ import kotlin.test.*
 class DataConversionTest {
     @Test
     fun testDefaultConversion() = withTestApplication {
-        val id = application.conversionService.fromValues(listOf("1"), typeInfo<Int>())
+        val id = server.conversionService.fromValues(listOf("1"), typeInfo<Int>())
         assertEquals(1, id)
     }
 
@@ -22,7 +22,7 @@ class DataConversionTest {
     @Test
     fun testDefaultConversionList() = withTestApplication {
         val type = typeInfo<List<Int>>()
-        val id = application.conversionService.fromValues(listOf("1", "2"), type)
+        val id = server.conversionService.fromValues(listOf("1", "2"), type)
         assertEquals(expectedList, id)
     }
 
@@ -30,7 +30,7 @@ class DataConversionTest {
 
     @Test
     fun testInstalledConversion() = withTestApplication {
-        application.install(DataConversion) {
+        server.install(DataConversion) {
             convert<EntityID> {
                 decode { values ->
                     val (typeId, entityId) = values.single().split('-').map { it.toInt() }
@@ -41,7 +41,7 @@ class DataConversionTest {
             }
         }
 
-        val id = application.conversionService.fromValues(listOf("42-999"), typeInfo<EntityID>())
+        val id = server.conversionService.fromValues(listOf("42-999"), typeInfo<EntityID>())
         assertEquals(EntityID(42, 999), id)
     }
 }

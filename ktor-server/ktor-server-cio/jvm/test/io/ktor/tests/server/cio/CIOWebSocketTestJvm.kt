@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.*
 import kotlin.test.*
 
 @ExtendWith(RetrySupport::class)
-class CIOWebSocketTestJvm : EngineTestBase<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOWebSocketTestJvm : EngineTestBase<CIOServerEngine, CIOServerEngine.Configuration>(CIO) {
 
     init {
         enableSsl = false

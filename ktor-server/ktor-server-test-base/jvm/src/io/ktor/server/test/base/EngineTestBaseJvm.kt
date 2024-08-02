@@ -36,10 +36,10 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 actual abstract class EngineTestBase<
-    TEngine : ApplicationEngine,
-    TConfiguration : ApplicationEngine.Configuration
+    TEngine : ServerEngine,
+    TConfiguration : ServerEngine.Configuration
     > actual constructor(
-    actual val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    actual val serverEngineFactory: ServerEngineFactory<TEngine, TConfiguration>,
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
@@ -110,10 +110,10 @@ actual abstract class EngineTestBase<
     protected open fun createServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
-        module: Application.() -> Unit
+        module: Server.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
-        val environment = applicationEnvironment {
+        val environment = serverEnvironment {
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
@@ -129,12 +129,12 @@ actual abstract class EngineTestBase<
                 }
             }
         }
-        val properties = applicationProperties(environment) {
+        val properties = serverParams(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }
 
-        return embeddedServer(applicationEngineFactory, properties) {
+        return embeddedServer(serverEngineFactory, properties) {
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
 
@@ -158,9 +158,9 @@ actual abstract class EngineTestBase<
         // Empty, intended to be override in derived types when necessary
     }
 
-    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        application.install(CallLogging)
-        application.install(RoutingRoot, routingConfig)
+    protected actual open fun plugins(server: Server, routingConfig: Route.() -> Unit) {
+        server.install(CallLogging)
+        server.install(RoutingRoot, routingConfig)
     }
 
     protected actual fun createAndStartServer(

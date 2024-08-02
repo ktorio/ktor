@@ -6,9 +6,9 @@ package io.ktor.server.jetty.jakarta
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.Server
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -30,11 +30,11 @@ private const val THREAD_KEEP_ALIVE_TIME = 1L
 
 @OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
-    val environment: ApplicationEnvironment,
+    val environment: ServerEnvironment,
     private val pipeline: () -> EnginePipeline,
     private val engineDispatcher: CoroutineDispatcher,
-    configuration: JettyApplicationEngineBase.Configuration,
-    private val applicationProvider: () -> Application
+    configuration: JettyServerEngineBase.Configuration,
+    private val serverProvider: () -> Server
 ) : AbstractHandler(), CoroutineScope {
     private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
     private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
@@ -50,10 +50,10 @@ internal class JettyKtorHandler(
     private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
-    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
+    private val handlerJob = SupervisorJob(serverProvider().parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext =
-        applicationProvider().parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
+        serverProvider().parentCoroutineContext + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
         try {
@@ -83,8 +83,8 @@ internal class JettyKtorHandler(
             baseRequest.isHandled = true
 
             launch(dispatcher + JettyCallHandlerCoroutineName) {
-                val call = JettyApplicationCall(
-                    applicationProvider(),
+                val call = JettyServerCall(
+                    serverProvider(),
                     baseRequest,
                     request,
                     response,

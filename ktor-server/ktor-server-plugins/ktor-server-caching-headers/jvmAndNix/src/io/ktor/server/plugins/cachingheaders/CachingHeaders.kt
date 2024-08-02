@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
  */
 @KtorDsl
 public class CachingHeadersConfig {
-    internal val optionsProviders = mutableListOf<(ApplicationCall, OutgoingContent) -> CachingOptions?>()
+    internal val optionsProviders = mutableListOf<(ServerCall, OutgoingContent) -> CachingOptions?>()
 
     init {
         optionsProviders.add { call, _ -> call.caching }
@@ -23,11 +23,11 @@ public class CachingHeadersConfig {
     }
 
     /**
-     * Provides caching options for a given [ApplicationCall] and [OutgoingContent].
+     * Provides caching options for a given [ServerCall] and [OutgoingContent].
      *
      * @see [CachingHeaders]
      */
-    public fun options(provider: (ApplicationCall, OutgoingContent) -> CachingOptions?) {
+    public fun options(provider: (ServerCall, OutgoingContent) -> CachingOptions?) {
         optionsProviders.add(provider)
     }
 }
@@ -55,7 +55,7 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
 ) {
     val optionsProviders = pluginConfig.optionsProviders.toList()
 
-    fun optionsFor(call: ApplicationCall, content: OutgoingContent): List<CachingOptions> {
+    fun optionsFor(call: ServerCall, content: OutgoingContent): List<CachingOptions> {
         return optionsProviders.mapNotNullTo(ArrayList(optionsProviders.size)) { it(call, content) }
     }
 
@@ -84,7 +84,7 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
 /**
  * Gets or sets the [CacheControl] for this call.
  */
-public var ApplicationCall.caching: CachingOptions?
+public var ServerCall.caching: CachingOptions?
     get() = attributes.getOrNull(CachingProperty)
     set(value) = when (value) {
         null -> attributes.remove(CachingProperty)

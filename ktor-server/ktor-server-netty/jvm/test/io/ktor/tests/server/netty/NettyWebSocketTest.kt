@@ -7,4 +7,4 @@ package io.ktor.tests.server.netty
 import io.ktor.server.netty.*
 import io.ktor.server.testing.suites.*
 
-class NettyWebSocketTest : WebSocketEngineSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+class NettyWebSocketTest : WebSocketEngineSuite<NettyServerEngine, NettyServerEngine.Configuration>(Netty)

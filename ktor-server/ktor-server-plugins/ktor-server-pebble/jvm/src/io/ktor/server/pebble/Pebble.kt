@@ -49,7 +49,7 @@ public class PebbleContent(
  * Provides the ability to respond with [PebbleContent].
  * You can learn more from [Pebble](https://ktor.io/docs/pebble.html).
  */
-public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlugin("Pebble", ::PebbleConfiguration) {
+public val Pebble: ServerPlugin<PebbleConfiguration> = createServerPlugin("Pebble", ::PebbleConfiguration) {
     val engine = pluginConfig.build()
     val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 

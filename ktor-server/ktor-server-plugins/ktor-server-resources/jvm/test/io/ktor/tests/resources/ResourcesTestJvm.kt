@@ -46,7 +46,7 @@ class ResourcesTestJvm {
                 assertEquals(bd, location.bd)
                 assertEquals(bi, location.bi)
 
-                call.respondText(application.href(location))
+                call.respondText(server.href(location))
             }
         }
 

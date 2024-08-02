@@ -29,10 +29,10 @@ class PebbleTest {
     @Test
     fun `Fill template and expect correct rendered content`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+            server.setupPebble()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
                 }
@@ -51,10 +51,10 @@ class PebbleTest {
     @Test
     fun `Fill template and expect correct default content type`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+            server.setupPebble()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
                 }
@@ -71,10 +71,10 @@ class PebbleTest {
     @Test
     fun `Fill template and expect eTag set when it is provided`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+            server.setupPebble()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
                 }
@@ -87,10 +87,10 @@ class PebbleTest {
     @Test
     fun `Render empty model`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+            server.setupPebble()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(PebbleContent(TemplateWithoutPlaceholder, emptyMap(), etag = "e"))
                 }
@@ -109,13 +109,13 @@ class PebbleTest {
     @Test
     fun `Render template compressed with GZIP`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(Compression) {
+            server.setupPebble()
+            server.install(Compression) {
                 gzip { minimumSize(10) }
             }
-            application.install(ConditionalHeaders)
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respondTemplate(TemplateWithPlaceholder, DefaultModel, etag = "e")
                 }
@@ -137,10 +137,10 @@ class PebbleTest {
     @Test
     fun `Render template without eTag`() {
         withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+            server.setupPebble()
+            server.install(ConditionalHeaders)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel))
                 }
@@ -152,7 +152,7 @@ class PebbleTest {
 
     @Test
     fun `Render template in Spanish with es accept language`() {
-        testApplication {
+        testServer {
             application {
                 setupPebble()
                 install(ConditionalHeaders)
@@ -173,7 +173,7 @@ class PebbleTest {
 
     @Test
     fun `Render template in English with en accept language`() {
-        testApplication {
+        testServer {
             application {
                 setupPebble()
                 install(ConditionalHeaders)
@@ -194,7 +194,7 @@ class PebbleTest {
 
     @Test
     fun `Render template in default language with no valid accept language header set`() {
-        testApplication {
+        testServer {
             application {
                 setupPebble()
                 install(ConditionalHeaders)
@@ -215,7 +215,7 @@ class PebbleTest {
 
     @Test
     fun `Render template in default language with no accept language header set`() {
-        testApplication {
+        testServer {
             application {
                 setupPebble()
                 install(ConditionalHeaders)
@@ -233,7 +233,7 @@ class PebbleTest {
     }
 
     @Test
-    fun `Content Negotiation invoked after`() = testApplication {
+    fun `Content Negotiation invoked after`() = testServer {
         application {
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, alwaysFailingConverter)
@@ -251,7 +251,7 @@ class PebbleTest {
         assertEquals("<p>Hola, mundo!</p>", response.bodyAsText())
     }
 
-    private fun Application.setupPebble() {
+    private fun Server.setupPebble() {
         install(Pebble) {
             loader(StringLoader())
             availableLanguages = mutableListOf("en", "es")

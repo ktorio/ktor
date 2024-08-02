@@ -16,7 +16,7 @@ import kotlin.test.*
 class TestApplicationRequestTest {
 
     @Test
-    fun testLongRequest() = testApplication {
+    fun testLongRequest() = testServer {
         application {
             routing {
                 post("/") {

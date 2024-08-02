@@ -49,7 +49,7 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Registers a custom accepted content types [contributor].
-     * A [contributor] function takes [io.ktor.server.application.ApplicationCall] and
+     * A [contributor] function takes [io.ktor.server.application.ServerCall] and
      * a list of content types accepted according to the [HttpHeaders.Accept] header or provided by the previous
      * contributor if exists.
      * The result of this [contributor] should be a list of accepted content types with a quality.

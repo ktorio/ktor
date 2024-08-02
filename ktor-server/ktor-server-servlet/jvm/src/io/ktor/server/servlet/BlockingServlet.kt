@@ -15,16 +15,16 @@ import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-internal class BlockingServletApplicationCall(
-    application: Application,
+internal class BlockingServletServerCall(
+    server: Server,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : BaseApplicationCall(application), CoroutineScope {
-    override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
-    override val response: BlockingServletApplicationResponse =
-        BlockingServletApplicationResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
+) : BaseServerCall(server), CoroutineScope {
+    override val request: BaseServerRequest = BlockingServletServerRequest(this, servletRequest)
+    override val response: BlockingServletServerResponse =
+        BlockingServletServerResponse(this, servletResponse, coroutineContext, managedByEngineHeaders)
 
     init {
         putResponseAttribute()
@@ -32,10 +32,10 @@ internal class BlockingServletApplicationCall(
     }
 }
 
-private class BlockingServletApplicationRequest(
+private class BlockingServletServerRequest(
     call: PipelineCall,
     servletRequest: HttpServletRequest
-) : ServletApplicationRequest(call, servletRequest) {
+) : ServletServerRequest(call, servletRequest) {
 
     private val inputStreamChannel by lazy {
         servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool)
@@ -44,12 +44,12 @@ private class BlockingServletApplicationRequest(
     override val engineReceiveChannel: ByteReadChannel get() = inputStreamChannel
 }
 
-internal class BlockingServletApplicationResponse(
+internal class BlockingServletServerResponse(
     call: PipelineCall,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,
     managedByEngineHeaders: Set<String> = emptySet()
-) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
+) : ServletServerResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         reader(UnsafeBlockingTrampoline, autoFlush = false) {
             val buffer = ArrayPool.borrow()

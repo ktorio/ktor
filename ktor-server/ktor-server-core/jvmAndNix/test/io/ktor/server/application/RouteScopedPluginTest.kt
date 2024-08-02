@@ -18,10 +18,10 @@ class RouteScopedPluginTest {
 
     @Test
     fun testPluginInstalledTopLevel(): Unit = withTestApplication {
-        application.install(TestPlugin)
+        server.install(TestPlugin)
 
         assertFailsWith<DuplicatePluginException> {
-            application.routing {
+            server.routing {
                 install(TestPlugin)
             }
         }
@@ -31,7 +31,7 @@ class RouteScopedPluginTest {
     fun testPluginInstalledInRoutingScope() = withTestApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        server.routing {
             route("root-no-plugin") {
                 route("first-plugin") {
                     install(TestPlugin) {
@@ -157,7 +157,7 @@ class RouteScopedPluginTest {
     fun testPluginDoNotReuseConfig() = withTestApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        server.routing {
             route("root") {
                 install(TestPlugin) {
                     name = "foo"
@@ -244,7 +244,7 @@ class RouteScopedPluginTest {
     @Test
     fun testMultiplePluginInstalledAtTheSameRoute(): Unit = withTestApplication {
         assertFailsWith<DuplicatePluginException> {
-            application.routing {
+            server.routing {
                 route("root") {
                     install(TestPlugin)
                 }
@@ -262,7 +262,7 @@ class RouteScopedPluginTest {
         val sendCallbackResults = mutableListOf<String>()
         val allCallbacks = listOf(callbackResults, receiveCallbackResults, sendCallbackResults)
 
-        application.routing {
+        server.routing {
             route("root-no-plugin") {
                 route("first-plugin") {
                     install(TestAllPipelinesPlugin) {
@@ -398,7 +398,7 @@ class RouteScopedPluginTest {
     fun testCustomPhase() = withTestApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        server.routing {
             route("root") {
                 install(TestPluginCustomPhase) {
                     name = "foo"
@@ -475,14 +475,14 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
     private val name = config.name
     private val desc = config.desc
 
-    fun install(pipeline: ApplicationCallPipeline) {
-        pipeline.intercept(ApplicationCallPipeline.Plugins) {
+    fun install(pipeline: ServerCallPipeline) {
+        pipeline.intercept(ServerCallPipeline.Plugins) {
             pipelineCallback("$name $desc")
         }
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+        pipeline.receivePipeline.intercept(ServerReceivePipeline.Before) {
             receivePipelineCallback("$name $desc")
         }
-        pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
+        pipeline.sendPipeline.intercept(ServerSendPipeline.Before) {
             sendPipelineCallback("$name $desc")
         }
     }
@@ -506,7 +506,7 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
 
         override val key: AttributeKey<TestAllPipelinesPlugin> = AttributeKey("TestPlugin")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): TestAllPipelinesPlugin {
+        override fun install(pipeline: ServerCallPipeline, configure: Config.() -> Unit): TestAllPipelinesPlugin {
             val config = Config().apply(configure)
             val plugin = TestAllPipelinesPlugin(config)
             return plugin.apply { install(pipeline) }
@@ -519,8 +519,8 @@ class TestPlugin private constructor(config: Config) {
     private val name = config.name
     private val desc = config.desc
 
-    fun install(pipeline: ApplicationCallPipeline) {
-        pipeline.intercept(ApplicationCallPipeline.Fallback) {
+    fun install(pipeline: ServerCallPipeline) {
+        pipeline.intercept(ServerCallPipeline.Fallback) {
             pipelineCallback("$name $desc")
         }
     }
@@ -540,7 +540,7 @@ class TestPlugin private constructor(config: Config) {
 
         override val key: AttributeKey<TestPlugin> = AttributeKey("TestPlugin")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): TestPlugin {
+        override fun install(pipeline: ServerCallPipeline, configure: Config.() -> Unit): TestPlugin {
             val config = Config().apply(configure)
             val plugin = TestPlugin(config)
             return plugin.apply { install(pipeline) }
@@ -553,9 +553,9 @@ class TestPluginCustomPhase private constructor(config: Config) {
     private val name = config.name
     private val desc = config.desc
 
-    fun install(pipeline: ApplicationCallPipeline) {
+    fun install(pipeline: ServerCallPipeline) {
         val phase = PipelinePhase("new phase")
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, phase)
+        pipeline.insertPhaseAfter(ServerCallPipeline.Plugins, phase)
         pipeline.intercept(phase) {
             callback("$name $desc")
         }
@@ -575,7 +575,7 @@ class TestPluginCustomPhase private constructor(config: Config) {
     companion object Plugin : BaseRouteScopedPlugin<Config, TestPluginCustomPhase> {
         override val key: AttributeKey<TestPluginCustomPhase> = AttributeKey("TestPlugin")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): TestPluginCustomPhase {
+        override fun install(pipeline: ServerCallPipeline, configure: Config.() -> Unit): TestPluginCustomPhase {
             val config = Config().apply(configure)
             val plugin = TestPluginCustomPhase(config)
             return plugin.apply { install(pipeline) }

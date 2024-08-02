@@ -10,12 +10,12 @@ import io.ktor.server.config.*
 import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
-public actual interface ApplicationEnvironment {
+public actual interface ServerEnvironment {
 
     /**
-     * Configuration for the [Application]
+     * Configuration for the [Server]
      */
-    public actual val config: ApplicationConfig
+    public actual val config: ServerConfig
 
     /**
      * Instance of [Logger] to be used for logging.
@@ -33,7 +33,7 @@ public actual interface ApplicationEnvironment {
     public actual val monitor: Events
 }
 
-internal actual class ApplicationPropertiesBridge actual constructor(
-    applicationProperties: ApplicationProperties,
+internal actual class ServerParametersBridge actual constructor(
+    serverParameters: ServerParameters,
     internal actual val parentCoroutineContext: CoroutineContext,
 )

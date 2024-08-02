@@ -19,11 +19,11 @@ class CORSTest {
     @Test
     fun testNoOriginHeader() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -40,11 +40,11 @@ class CORSTest {
     @Test
     fun testWrongOriginHeader() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -63,11 +63,11 @@ class CORSTest {
     @Test
     fun testWrongOriginHeaderIsEmpty() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -86,11 +86,11 @@ class CORSTest {
     @Test
     fun testSimpleRequest() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -114,7 +114,7 @@ class CORSTest {
     }
 
     @Test
-    fun testSimpleRequestSubrouteInstall() = testApplication {
+    fun testSimpleRequestSubrouteInstall() = testServer {
         routing {
             route("/1") {
                 install(CORS) {
@@ -165,11 +165,11 @@ class CORSTest {
     @Test
     fun testSimpleRequestPort1() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -196,11 +196,11 @@ class CORSTest {
     @Test
     fun testSimpleRequestPort2() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host:80")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -227,13 +227,13 @@ class CORSTest {
     @Test
     fun testSimpleRequestExposed() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host")
                 exposeHeader(HttpHeaders.ETag)
                 exposeHeader(HttpHeaders.Vary)
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -256,11 +256,11 @@ class CORSTest {
     @Test
     fun testSimpleRequestHttps() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -294,11 +294,11 @@ class CORSTest {
     @Test
     fun testSimpleRequestSubDomains() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host", subDomains = listOf("www"))
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -332,11 +332,11 @@ class CORSTest {
     @Test
     fun testSimpleStar() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -355,7 +355,7 @@ class CORSTest {
 
     @Test
     fun testSimpleNullAllowCredentials() {
-        testApplication {
+        testServer {
             application {
                 install(CORS) {
                     anyHost()
@@ -381,11 +381,11 @@ class CORSTest {
     @Test
     fun testSimpleNull() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -403,7 +403,7 @@ class CORSTest {
 
     @Test
     fun testSimpleStarCredentials() {
-        testApplication {
+        testServer {
             application {
                 install(CORS) {
                     anyHost()
@@ -431,9 +431,9 @@ class CORSTest {
     @Test
     fun testSameOriginEnabled() {
         withTestApplication {
-            application.install(CORS)
+            server.install(CORS)
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -469,11 +469,11 @@ class CORSTest {
     @Test
     fun testSameOriginDisabled() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowSameOrigin = false
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -497,11 +497,11 @@ class CORSTest {
     fun testMultipleDomainsOriginNotSupported() {
         // the specification is not clear whether we should support multiple domains Origin header and how do we validate them
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -520,11 +520,11 @@ class CORSTest {
     @Test
     fun testNonSimpleContentTypeNotAllowedByDefault() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
             }
 
-            application.routing {
+            server.routing {
                 post("/") {
                     call.respond("OK")
                 }
@@ -555,12 +555,12 @@ class CORSTest {
 
     @Test
     fun testPreFlightMultipleHeadersRegression(): Unit = withTestApplication {
-        application.install(CORS) {
+        server.install(CORS) {
             anyHost()
             allowHeader(HttpHeaders.Range)
         }
 
-        application.routing {
+        server.routing {
             get("/") {
                 call.respond("OK")
             }
@@ -582,12 +582,12 @@ class CORSTest {
     @Test
     fun testPreFlight() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeader(HttpHeaders.Range)
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -657,12 +657,12 @@ class CORSTest {
     @Test
     fun testPreFlightCustomMethod() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowMethod(HttpMethod.Delete)
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -700,12 +700,12 @@ class CORSTest {
     @Test
     fun testPreFlightAllowedContentTypes() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowNonSimpleContentTypes = true
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -737,12 +737,12 @@ class CORSTest {
     @Test
     fun testPreflightCustomHost() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowHost("my-host")
                 allowNonSimpleContentTypes = true
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -763,12 +763,12 @@ class CORSTest {
     @Test
     fun testPreflightCustomMaxAge() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 maxAgeInSeconds = 100
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -787,12 +787,12 @@ class CORSTest {
     @Test
     fun testAnyHeaderWithPrefix() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -813,7 +813,7 @@ class CORSTest {
     }
 
     @Test
-    fun testAnyHeaderWithPrefixRequestIgnoresCase() = testApplication {
+    fun testAnyHeaderWithPrefixRequestIgnoresCase() = testServer {
         install(CORS) {
             anyHost()
             allowHeadersPrefixed("Сustom1-")
@@ -845,13 +845,13 @@ class CORSTest {
     @Test
     fun testAnyHeaderWithPrefixMergesHeadersWithConfiguration() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
                 allowHeader(HttpHeaders.Range)
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -874,13 +874,13 @@ class CORSTest {
     @Test
     fun testAnyHeaderWithPrefixWithNoControlRequestHeaders() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
                 allowHeader(HttpHeaders.Range)
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -899,12 +899,12 @@ class CORSTest {
     @Test
     fun testAnyHeaderWithPrefixRequestIsRejectedWhenHeaderDoesNotMatchPrefix() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom-")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -923,13 +923,13 @@ class CORSTest {
     @Test
     fun testAnyHeaderSupportsMultipleHeaderPrefixes() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeadersPrefixed("custom1-")
                 allowHeadersPrefixed("custom2-")
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -952,12 +952,12 @@ class CORSTest {
     @Test
     fun testAnyHeaderCanSpecifyACustomPredicate() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 anyHost()
                 allowHeaders { name -> name.startsWith("custom-matcher") }
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -977,7 +977,7 @@ class CORSTest {
     @Test
     fun testEmptyAccessControlRequestHeaders() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowMethod(HttpMethod.Options)
                 allowHeader(HttpHeaders.XForwardedProto)
                 allowHost("host")
@@ -986,7 +986,7 @@ class CORSTest {
                 allowNonSimpleContentTypes = true
             }
 
-            application.routing {
+            server.routing {
                 post("/") {
                     call.respond("OK")
                 }
@@ -1007,9 +1007,9 @@ class CORSTest {
     }
 
     @Test
-    fun testCorsValidationWithTrailingSlashOrigin () = testApplication {
+    fun testCorsValidationWithTrailingSlashOrigin() = testServer {
         application {
-            install(CORS){}
+            install(CORS) {}
             routing {
                 get {
                     call.respond(HttpStatusCode.OK)
@@ -1018,7 +1018,7 @@ class CORSTest {
         }
 
         client.get("/") {
-             header(HttpHeaders.Origin, "http://localhost:3000/")
+            header(HttpHeaders.Origin, "http://localhost:3000/")
         }.let {
             assertEquals(HttpStatusCode.Forbidden, it.status)
         }
@@ -1031,7 +1031,7 @@ class CORSTest {
     }
 
     @Test
-    fun originValidation() = testApplication {
+    fun originValidation() = testServer {
         install(CORS) {
             allowSameOrigin = false
             anyHost()
@@ -1069,7 +1069,7 @@ class CORSTest {
     }
 
     @Test
-    fun originWithWildcard() = testApplication {
+    fun originWithWildcard() = testServer {
         install(CORS) {
             allowSameOrigin = true
             allowHost("domain.com")
@@ -1115,7 +1115,7 @@ class CORSTest {
     }
 
     @Test
-    fun originWithWildcardAndSubdomain() = testApplication {
+    fun originWithWildcardAndSubdomain() = testServer {
         install(CORS) {
             allowSameOrigin = true
             allowHost("domain.com", subDomains = listOf("foo", "*.bar"))
@@ -1164,7 +1164,7 @@ class CORSTest {
             val exception = assertFailsWith<IllegalArgumentException>(
                 "Expected this message '$expectedMessage' for this host '$host'"
             ) {
-                testApplication {
+                testServer {
                     install(CORS) { allowHost(host) }
                 }
             }
@@ -1184,7 +1184,7 @@ class CORSTest {
             val exception = assertFailsWith<IllegalArgumentException>(
                 "Expected this message '$expectedMessage' for sub domains $subDomains"
             ) {
-                testApplication {
+                testServer {
                     install(CORS) { allowHost("domain.com", subDomains = subDomains) }
                 }
             }
@@ -1206,7 +1206,7 @@ class CORSTest {
             val exception = assertFailsWith<IllegalArgumentException>(
                 "Expected this message '$expectedMessage' for sub domains $subDomains"
             ) {
-                testApplication {
+                testServer {
                     install(CORS) { allowHost("*.domain.com", subDomains = subDomains) }
                 }
             }
@@ -1217,11 +1217,11 @@ class CORSTest {
     @Test
     fun testOriginPredicatesSimpleRequest() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowOrigins { it == "https://allowed-host" }
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }
@@ -1254,11 +1254,11 @@ class CORSTest {
     @Test
     fun testOriginPredicatesRegex() {
         withTestApplication {
-            application.install(CORS) {
+            server.install(CORS) {
                 allowOrigins { it.matches(Regex("^https?://host\\.(?:com|org)$")) }
             }
 
-            application.routing {
+            server.routing {
                 get("/") {
                     call.respond("OK")
                 }

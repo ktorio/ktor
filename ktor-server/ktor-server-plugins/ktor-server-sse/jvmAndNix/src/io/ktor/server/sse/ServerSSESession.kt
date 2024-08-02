@@ -18,7 +18,7 @@ public interface ServerSSESession : CoroutineScope {
     /**
      * Associated received [call] that originating this session.
      */
-    public val call: ApplicationCall
+    public val call: ServerCall
 
     /**
      * Sends a [ServerSentEvent] to the client.

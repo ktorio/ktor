@@ -17,37 +17,37 @@ import kotlin.jvm.*
 
 /**
  * Sends a [message] as a response.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
+public suspend inline fun <reified T : Any> ServerCall.respond(message: T) {
     // KT-42913
     respond(message, runCatching { typeInfo<T>() }.getOrNull())
 }
 
 /**
  * Sends a [message] as a response.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
+public suspend inline fun <reified T> ServerCall.respondNullable(message: T) {
     // KT-42913
     respond(message, runCatching { typeInfo<T>() }.getOrNull())
 }
 
 /**
  * Sends a [message] as a response with the specified [status] code.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
 @JvmName("respondWithType")
-public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T : Any> ServerCall.respond(status: HttpStatusCode, message: T) {
     response.status(status)
     respond(message)
 }
 
 /**
  * Sends a [message] of type [messageType] as a response with the specified [status] code.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend fun ApplicationCall.respond(
+public suspend fun ServerCall.respond(
     status: HttpStatusCode,
     message: Any?,
     messageType: TypeInfo
@@ -58,46 +58,46 @@ public suspend fun ApplicationCall.respond(
 
 /**
  * Sends a [message] as a response with the specified [status] code.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend inline fun <reified T> ApplicationCall.respondNullable(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T> ServerCall.respondNullable(status: HttpStatusCode, message: T) {
     response.status(status)
     respondNullable(message)
 }
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
+public suspend fun ServerCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend fun ApplicationCall.respondRedirect(url: Url, permanent: Boolean = false) {
+public suspend fun ServerCall.respondRedirect(url: Url, permanent: Boolean = false) {
     respondRedirect(url.toString(), permanent)
 }
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
  * Unlike the other [respondRedirect], it provides a way to build a URL based on current call using the [block] function.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  */
-public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
+public suspend inline fun ServerCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
     respondRedirect(url(block), permanent)
 }
 
 /**
  * Responds to a client with a plain [text] response.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondText(
+public suspend fun ServerCall.respondText(
     text: String,
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
@@ -109,11 +109,11 @@ public suspend fun ApplicationCall.respondText(
 
 /**
  * Responds to a client with a plain text response, using the specified [provider] to build a text.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondText(
+public suspend fun ServerCall.respondText(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     provider: suspend () -> String
@@ -124,11 +124,11 @@ public suspend fun ApplicationCall.respondText(
 
 /**
  * Responds to a client with a raw bytes response, using the specified [provider] to build a byte array.
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondBytes(
+public suspend fun ServerCall.respondBytes(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     provider: suspend () -> ByteArray
@@ -138,11 +138,11 @@ public suspend fun ApplicationCall.respondBytes(
 
 /**
  * Responds to a client with a raw bytes response, using specified [bytes].
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [io.ktor.server.response.ServerResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
-public suspend fun ApplicationCall.respondBytes(
+public suspend fun ServerCall.respondBytes(
     bytes: ByteArray,
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
@@ -157,7 +157,7 @@ public suspend fun ApplicationCall.respondBytes(
  * The [producer] parameter will be called later when an engine is ready to produce content. You don't need to close it.
  * The provided [ByteWriteChannel] will be closed automatically.
  */
-public suspend fun ApplicationCall.respondBytesWriter(
+public suspend fun ServerCall.respondBytesWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
     contentLength: Long? = null,
@@ -175,7 +175,7 @@ public suspend fun ApplicationCall.respondBytesWriter(
  * Additionally, if a content type is `Text` and a charset is not set for a content type,
  * it appends `; charset=UTF-8` to the content type.
  */
-public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
+public fun ServerCall.defaultTextContentType(contentType: ContentType?): ContentType {
     val result = when (contentType) {
         null -> {
             val headersContentType = response.headers[HttpHeaders.ContentType]

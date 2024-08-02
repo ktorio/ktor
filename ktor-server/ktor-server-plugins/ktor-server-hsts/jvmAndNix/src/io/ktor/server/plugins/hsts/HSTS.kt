@@ -52,7 +52,7 @@ public class HSTSConfig : HSTSHostConfig() {
      */
     internal val hostSpecific: MutableMap<String, HSTSHostConfig> = HashMap()
 
-    internal var filter: ((ApplicationCall) -> Boolean)? = null
+    internal var filter: ((ServerCall) -> Boolean)? = null
 
     /**
      * Set specific configuration for a [host].
@@ -64,7 +64,7 @@ public class HSTSConfig : HSTSHostConfig() {
     /**
      * Sets a filter that determines whether the plugin should be applied to a specific call.
      */
-    public fun filter(block: (ApplicationCall) -> Boolean) {
+    public fun filter(block: (ServerCall) -> Boolean) {
         this.filter = block
     }
 }

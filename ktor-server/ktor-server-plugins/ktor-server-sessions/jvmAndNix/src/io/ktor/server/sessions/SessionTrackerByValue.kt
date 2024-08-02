@@ -18,18 +18,18 @@ public class SessionTrackerByValue<S : Any>(
     public val type: KClass<S>,
     public val serializer: SessionSerializer<S>
 ) : SessionTracker<S> {
-    override suspend fun load(call: ApplicationCall, transport: String?): S? {
+    override suspend fun load(call: ServerCall, transport: String?): S? {
         return transport?.let { serialized ->
             try {
                 serializer.deserialize(serialized)
             } catch (t: Throwable) {
-                call.application.log.debug("Failed to deserialize session: $serialized", t)
+                call.server.log.debug("Failed to deserialize session: $serialized", t)
                 null
             }
         }
     }
 
-    override suspend fun store(call: ApplicationCall, value: S): String {
+    override suspend fun store(call: ServerCall, value: S): String {
         return serializer.serialize(value)
     }
 
@@ -39,7 +39,7 @@ public class SessionTrackerByValue<S : Any>(
         }
     }
 
-    override suspend fun clear(call: ApplicationCall) {
+    override suspend fun clear(call: ServerCall) {
         // it's stateless, so nothing to clear
     }
 

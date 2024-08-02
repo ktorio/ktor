@@ -9,7 +9,7 @@ import io.ktor.util.*
 
 private val IgnoreTrailingSlashAttributeKey: AttributeKey<Unit> = AttributeKey("IgnoreTrailingSlashAttributeKey")
 
-internal var ApplicationCall.ignoreTrailingSlash: Boolean
+internal var ServerCall.ignoreTrailingSlash: Boolean
     get() = attributes.contains(IgnoreTrailingSlashAttributeKey)
     private set(value) = if (value) {
         attributes.put(IgnoreTrailingSlashAttributeKey, Unit)
@@ -19,9 +19,9 @@ internal var ApplicationCall.ignoreTrailingSlash: Boolean
 
 /**
  * A plugin that enables ignoring a trailing slash when resolving URLs.
- * @see [Application.routing]
+ * @see [Server.routing]
  */
-public val IgnoreTrailingSlash: ApplicationPlugin<Unit> = createApplicationPlugin("IgnoreTrailingSlash") {
+public val IgnoreTrailingSlash: ServerPlugin<Unit> = createServerPlugin("IgnoreTrailingSlash") {
     onCall { call ->
         call.ignoreTrailingSlash = true
     }

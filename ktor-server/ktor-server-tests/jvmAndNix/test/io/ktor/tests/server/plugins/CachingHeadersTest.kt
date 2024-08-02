@@ -83,7 +83,7 @@ class CachingHeadersTest {
     )
 
     @Test
-    fun testSetInCall() = testApplication {
+    fun testSetInCall() = testServer {
         install(CachingHeaders)
         routing {
             get("/") {
@@ -97,7 +97,7 @@ class CachingHeadersTest {
     }
 
     @Test
-    fun testSetInCallAndContent() = testApplication {
+    fun testSetInCallAndContent() = testServer {
         install(CachingHeaders)
         routing {
             get("/") {
@@ -113,7 +113,7 @@ class CachingHeadersTest {
     }
 
     @Test
-    fun testSubrouteInstall() = testApplication {
+    fun testSubrouteInstall() = testServer {
         application {
             routing {
                 route("/1") {
@@ -148,9 +148,9 @@ class CachingHeadersTest {
     }
 
     private fun test(
-        configure: Application.() -> Unit,
+        configure: Server.() -> Unit,
         test: (HttpResponse) -> Unit
-    ): Unit = testApplication {
+    ): Unit = testServer {
         application {
             configure(this)
 

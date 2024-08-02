@@ -7,4 +7,4 @@ package io.ktor.tests.server.jetty.jakarta
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 
-class JettyClientCertTest : ClientCertTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyClientCertTest : ClientCertTestSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)

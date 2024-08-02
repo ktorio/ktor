@@ -16,7 +16,7 @@ import kotlin.test.*
 class BodyLimitTest {
 
     @Test
-    fun testBodyLimitPerCall() = testApplication {
+    fun testBodyLimitPerCall() = testServer {
         install(RequestBodyLimit) {
             bodyLimit { call ->
                 when {
@@ -63,7 +63,7 @@ class BodyLimitTest {
     }
 
     @Test
-    fun testBodyLimitWithContentLength() = testApplication {
+    fun testBodyLimitWithContentLength() = testServer {
         install(RequestBodyLimit) {
             bodyLimit { 15 }
         }
@@ -86,7 +86,7 @@ class BodyLimitTest {
     }
 
     @Test
-    fun testBodyLimitSubRouteInstall() = testApplication {
+    fun testBodyLimitSubRouteInstall() = testServer {
         routing {
             route("a") {
                 install(RequestBodyLimit) {

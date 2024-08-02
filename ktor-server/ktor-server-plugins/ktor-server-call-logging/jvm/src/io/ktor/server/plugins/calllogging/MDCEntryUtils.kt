@@ -10,11 +10,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.*
 import org.slf4j.*
 
-internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
+internal class MDCEntry(val name: String, val provider: (ServerCall) -> String?)
 
 internal suspend inline fun withMDC(
     mdcEntries: List<MDCEntry>,
-    call: ApplicationCall,
+    call: ServerCall,
     crossinline block: suspend () -> Unit
 ) {
     withContext(MDCContext(mdcEntries.setup(call))) {
@@ -26,7 +26,7 @@ internal suspend inline fun withMDC(
     }
 }
 
-internal fun List<MDCEntry>.setup(call: ApplicationCall): Map<String, String> {
+internal fun List<MDCEntry>.setup(call: ServerCall): Map<String, String> {
     val result = MDC.getCopyOfContextMap() ?: mutableMapOf()
 
     val savedEntries = call.attributes.computeIfAbsent(MdcEntriesKey) { mutableMapOf() }

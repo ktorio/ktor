@@ -15,7 +15,7 @@ class EngineMainTest {
 
     @Test
     fun testNettyCodecConfiguration() {
-        val config = HoconApplicationConfig(
+        val config = HoconServerConfig(
             ConfigFactory.parseString(
                 """
                     ktor {
@@ -29,7 +29,7 @@ class EngineMainTest {
             )
         )
 
-        val configuration = NettyApplicationEngine.Configuration().apply { loadConfiguration(config) }
+        val configuration = NettyServerEngine.Configuration().apply { loadConfiguration(config) }
 
         assertEquals(2048, configuration.maxInitialLineLength)
         assertEquals(1024, configuration.maxHeaderSize)
@@ -38,7 +38,7 @@ class EngineMainTest {
 
     @Test
     fun testNettyCodecDefaultConfiguration() {
-        val config = HoconApplicationConfig(
+        val config = HoconServerConfig(
             ConfigFactory.parseString(
                 """
                     ktor {
@@ -49,7 +49,7 @@ class EngineMainTest {
             )
         )
 
-        val configuration = NettyApplicationEngine.Configuration().apply { loadConfiguration(config) }
+        val configuration = NettyServerEngine.Configuration().apply { loadConfiguration(config) }
 
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH, configuration.maxInitialLineLength)
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE, configuration.maxHeaderSize)

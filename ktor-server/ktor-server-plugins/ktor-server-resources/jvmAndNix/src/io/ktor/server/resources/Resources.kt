@@ -44,11 +44,11 @@ import io.ktor.resources.Resources as ResourcesCore
  *
  * @see Resource
  */
-public object Resources : BaseApplicationPlugin<Application, ResourcesCore.Configuration, ResourcesCore> {
+public object Resources : BaseServerPlugin<Server, ResourcesCore.Configuration, ResourcesCore> {
 
     override val key: AttributeKey<ResourcesCore> = AttributeKey("Resources")
 
-    override fun install(pipeline: Application, configure: ResourcesCore.Configuration.() -> Unit): ResourcesCore {
+    override fun install(pipeline: Server, configure: ResourcesCore.Configuration.() -> Unit): ResourcesCore {
         val configuration = ResourcesCore.Configuration().apply(configure)
         return ResourcesCore(configuration)
     }
@@ -59,7 +59,7 @@ public object Resources : BaseApplicationPlugin<Application, ResourcesCore.Confi
  *
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
-public inline fun <reified T : Any> Application.href(resource: T): String {
+public inline fun <reified T : Any> Server.href(resource: T): String {
     return href(plugin(Resources).resourcesFormat, resource)
 }
 
@@ -68,6 +68,6 @@ public inline fun <reified T : Any> Application.href(resource: T): String {
  *
  * The class of the [resource] instance **must** be annotated with [Resource].
  */
-public inline fun <reified T : Any> Application.href(resource: T, urlBuilder: URLBuilder) {
+public inline fun <reified T : Any> Server.href(resource: T, urlBuilder: URLBuilder) {
     href(plugin(Resources).resourcesFormat, resource, urlBuilder)
 }

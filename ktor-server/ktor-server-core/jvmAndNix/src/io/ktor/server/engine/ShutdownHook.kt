@@ -13,7 +13,7 @@ import io.ktor.events.*
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-public expect fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit)
+public expect fun ServerEngine.addShutdownHook(monitor: Events, stop: () -> Unit)
 
 /**
  * Adds automatic application shutdown hooks management. Should be used **before** starting the server.

@@ -17,7 +17,7 @@ import kotlin.test.*
 class DefaultHeadersTest {
 
     @Test
-    fun addsServerHeaderWithFallbackPackageNameAndVersion() = testApplication {
+    fun addsServerHeaderWithFallbackPackageNameAndVersion() = testServer {
         install(DefaultHeaders)
         routing {
             get { call.respond("OK") }
@@ -31,7 +31,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun serverHeaderIsNotModifiedIfPresent() = testApplication {
+    fun serverHeaderIsNotModifiedIfPresent() = testServer {
         install(DefaultHeaders) {
             header(HttpHeaders.Server, "xserver/1.0")
         }
@@ -44,7 +44,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testSubrouteInstall(): Unit = testApplication {
+    fun testSubrouteInstall(): Unit = testServer {
         routing {
             route("1") {
                 install(DefaultHeaders) {}
@@ -63,14 +63,14 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testDate(): Unit = testApplication {
+    fun testDate(): Unit = testServer {
         var now = 1569882841014
         install(DefaultHeaders) {
             clock = DefaultHeadersConfig.Clock { now }
         }
 
         application {
-            intercept(ApplicationCallPipeline.Call) {
+            intercept(ServerCallPipeline.Call) {
                 call.respondText("OK")
             }
         }
@@ -87,7 +87,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomHeader(): Unit = testApplication {
+    fun testCustomHeader(): Unit = testServer {
         install(DefaultHeaders) {
             header("X-Test", "123")
         }
@@ -96,7 +96,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testDefaultServerHeader(): Unit = testApplication {
+    fun testDefaultServerHeader(): Unit = testServer {
         install(DefaultHeaders)
 
         client.get("/").let { response ->
@@ -107,7 +107,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomServerHeader(): Unit = testApplication {
+    fun testCustomServerHeader(): Unit = testServer {
         install(DefaultHeaders) {
             header(HttpHeaders.Server, "MyServer")
         }
@@ -116,9 +116,9 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomServerHeaderDoesntDuplicate(): Unit = testApplication {
+    fun testCustomServerHeaderDoesntDuplicate(): Unit = testServer {
         install(
-            createApplicationPlugin("test") {
+            createServerPlugin("test") {
                 on(CallSetup) {
                     it.response.header(HttpHeaders.Server, "MyServer")
                 }

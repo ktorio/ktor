@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
  * @param handle function that is started once SSE session created.
  */
 public class SSEServerContent(
-    public val call: ApplicationCall,
+    public val call: ServerCall,
     public val handle: suspend ServerSSESession.() -> Unit
 ) : OutgoingContent.WriteChannelContent() {
     override val contentType: ContentType = ContentType.Text.EventStream

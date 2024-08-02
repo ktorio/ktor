@@ -7,4 +7,4 @@ package io.ktor.tests.server.jetty.jakarta
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 
-class JettyStressTest : EngineStressSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyStressTest : EngineStressSuite<JettyServerEngine, JettyServerEngineBase.Configuration>(Jetty)

@@ -15,7 +15,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.nio.charset.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()
@@ -41,10 +40,10 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
     @Test
     fun testWithUTF16() = withTestApplication {
         val uc = "\u0422"
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             register(ContentType.Application.Json, JacksonConverter())
         }
-        application.routing {
+        server.routing {
             val model = mapOf("id" to 1, "title" to "Hello, World!", "unicode" to uc)
             get("/") {
                 call.respond(model)
@@ -82,13 +81,13 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
 
     @Test
     fun testPrettyPrinter() = withTestApplication {
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             jackson {
                 configure(SerializationFeature.INDENT_OUTPUT, true)
             }
         }
 
-        application.routing {
+        server.routing {
             get("/") {
                 call.respond(mapOf("a" to 1, "b" to 2))
             }
@@ -103,7 +102,7 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
 
     @Test
     fun testCustomKotlinModule() = withTestApplication {
-        application.install(ContentNegotiation) {
+        server.install(ContentNegotiation) {
             jackson {
                 registerModule(
                     KotlinModule.Builder()
@@ -118,7 +117,7 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
             }
         }
 
-        application.routing {
+        server.routing {
             post("/") {
                 call.respond(call.receive<WithDefaultValueEntity>())
             }
