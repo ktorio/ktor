@@ -5,14 +5,13 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
+import kotlinx.io.*
+import kotlinx.io.unsafe.*
 import java.nio.*
 import java.nio.channels.*
 
@@ -48,41 +47,40 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @OptIn(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class, InternalIoApi::class, UnsafeIoApi::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
 
-        var result = false
-
         try {
-            DefaultDatagramByteBufferPool.useInstance { buffer ->
-                element.packet.copy().readAvailable(buffer)
-                result = channel.send(buffer, element.address.toJavaAddress()) == 0
+            UnsafeBufferOperations.readFromHead(element.packet.buffer) { buffer ->
+                val result = channel.send(buffer, element.address.toJavaAddress()) == 0
+                if (result) {
+                    buffer.position(buffer.limit()) // consume all data
+                } else {
+                    buffer.position(0)
+                }
             }
         } finally {
             lock.unlock()
         }
 
-        if (result) {
-            element.packet.close()
-        }
-
         return ChannelResult.success(Unit)
     }
 
+    @OptIn(InternalIoApi::class, UnsafeIoApi::class)
     override suspend fun send(element: Datagram) {
         lock.withLock {
             withContext(Dispatchers.IO) {
-                DefaultDatagramByteBufferPool.useInstance { buffer ->
-                    element.writeMessageTo(buffer)
-
+                UnsafeBufferOperations.readFromHead(element.packet.buffer) { buffer ->
                     val rc = channel.send(buffer, element.address.toJavaAddress())
                     if (rc != 0) {
                         socket.interestOp(SelectInterest.WRITE, false)
-                        return@useInstance
+                        buffer.position(buffer.limit()) // consume all data
+                        return@readFromHead
                     }
 
                     sendSuspend(buffer, element.address)
+                    buffer.position(buffer.limit()) // consume all data
                 }
             }
         }
@@ -144,9 +142,4 @@ private fun failInvokeOnClose(handler: ((cause: Throwable?) -> Unit)?) {
     }
 
     throw IllegalStateException(message)
-}
-
-private fun Datagram.writeMessageTo(buffer: ByteBuffer) {
-    packet.readAvailable(buffer)
-    buffer.flip()
 }
