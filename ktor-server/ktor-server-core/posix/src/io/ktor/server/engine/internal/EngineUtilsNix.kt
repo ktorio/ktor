@@ -4,4 +4,12 @@
 
 package io.ktor.server.engine.internal
 
-internal actual fun escapeHostname(value: String): String = value
+import kotlin.experimental.*
+
+@OptIn(ExperimentalNativeApi::class)
+internal actual fun escapeHostname(value: String): String {
+    if (Platform.osFamily != OsFamily.WINDOWS) return value
+    if (value != "0.0.0.0") return value
+
+    return "127.0.0.1"
+}

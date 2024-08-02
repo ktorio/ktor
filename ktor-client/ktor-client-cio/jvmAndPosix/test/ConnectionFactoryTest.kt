@@ -102,6 +102,6 @@ class ConnectionFactoryTest {
     }
 
     companion object {
-        private const val TEST_SERVER_SOCKET_HOST = "0.0.0.0"
+        private const val TEST_SERVER_SOCKET_HOST = "127.0.0.1"
     }
 }

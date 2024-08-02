@@ -244,7 +244,7 @@ class CIOEngineTest {
     }
 
     companion object {
-        private const val TEST_SERVER_SOCKET_HOST = "0.0.0.0"
+        private const val TEST_SERVER_SOCKET_HOST = "127.0.0.1"
         private const val EXPECT_HEADER = "Expect: 100-continue"
     }
 }
