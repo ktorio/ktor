@@ -7,6 +7,7 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.jvm.*
 
@@ -278,6 +279,12 @@ public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSele
     override fun toString(): String = "Regex(${regex.pattern})"
 
     public companion object {
-        private val GROUP_NAME_MATCHER = Regex("""(^|[^\\])\(\?<(\p{Alpha}\p{Alnum}*)>(.*?[^\\])?\)""")
+        // JS doesn't support `Alpha`/`Alnum`
+        // Wasm/native doesn't support `L`/`N`
+        // the only difference between regexes is in it
+        private val GROUP_NAME_MATCHER = when {
+            PlatformUtils.IS_JS -> Regex("""(^|[^\\])\(\?<(\p{L}[\p{L}\p{N}]*)>(.*?[^\\])?\)""")
+            else -> Regex("""(^|[^\\])\(\?<(\p{Alpha}\p{Alnum}*)>(.*?[^\\])?\)""")
+        }
     }
 }
