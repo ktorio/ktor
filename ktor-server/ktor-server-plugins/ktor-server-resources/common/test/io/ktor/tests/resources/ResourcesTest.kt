@@ -17,12 +17,11 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlin.jvm.*
 import kotlin.test.*
 
-internal fun withResourcesApplication(test: ApplicationTestBuilder.() -> Unit) = testApplication {
+internal fun testResourcesApplication(test: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
     install(Resources)
     test()
 }
@@ -32,8 +31,7 @@ class ResourcesTest {
     class index
 
     @Test
-    fun resourceWithoutURL() = testApplication {
-        install(Resources)
+    fun resourceWithoutURL() = testResourcesApplication {
         routing {
             get<index> { index ->
                 call.respond(call.application.href(index))
@@ -44,25 +42,24 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceLocal() {
+    fun resourceLocal() = testResourcesApplication {
         @Resource("/")
         class indexLocal
-        withResourcesApplication {
-            routing {
-                get<indexLocal> { indexLocal ->
-                    call.respond(application.href(indexLocal))
-                }
+
+        routing {
+            get<indexLocal> { indexLocal ->
+                call.respond(application.href(indexLocal))
             }
-            urlShouldBeHandled(indexLocal(), "/")
-            urlShouldBeUnhandled("/index")
         }
+        urlShouldBeHandled(indexLocal(), "/")
+        urlShouldBeUnhandled("/index")
     }
 
     @Resource("/about")
     class about
 
     @Test
-    fun resourceWithURL() = withResourcesApplication {
+    fun resourceWithURL() = testResourcesApplication {
         routing {
             get<about> { about ->
                 call.respond(application.href(about))
@@ -76,7 +73,7 @@ class ResourcesTest {
     class user(val id: Int)
 
     @Test
-    fun resourceWithPathParam() = withResourcesApplication {
+    fun resourceWithPathParam() = testResourcesApplication {
         routing {
             get<user> { user ->
                 assertEquals(123, user.id)
@@ -92,7 +89,7 @@ class ResourcesTest {
     class named(val id: Int, val name: String)
 
     @Test
-    fun resourceWithUrlencodedPathParam() = withResourcesApplication {
+    fun resourceWithUrlencodedPathParam() = testResourcesApplication {
         routing {
             get<named> { named ->
                 assertEquals(123, named.id)
@@ -109,7 +106,7 @@ class ResourcesTest {
     class favorite(val id: Int)
 
     @Test
-    fun resourceWithQueryParam() = withResourcesApplication {
+    fun resourceWithQueryParam() = testResourcesApplication {
         routing {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
@@ -128,7 +125,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithPathParameterAndNestedData() = withResourcesApplication {
+    fun resourceWithPathParameterAndNestedData() = testResourcesApplication {
         val c = pathContainer(123)
         routing {
             get<pathContainer.items> { items ->
@@ -148,7 +145,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithQueryParameterAndNestedData() = withResourcesApplication {
+    fun resourceWithQueryParameterAndNestedData() = testResourcesApplication {
         val c = queryContainer(123)
         routing {
             get<queryContainer.items> { items ->
@@ -165,7 +162,7 @@ class ResourcesTest {
     class optionalName(val id: Int, val optional: String? = null)
 
     @Test
-    fun resourceWithMissingOptionalStringParameter() = withResourcesApplication {
+    fun resourceWithMissingOptionalStringParameter() = testResourcesApplication {
         routing {
             get<optionalName> {
                 assertEquals(123, it.id)
@@ -182,7 +179,7 @@ class ResourcesTest {
     class optionalIndex(val id: Int, val optional: Int = 42)
 
     @Test
-    fun resourceWithMissingOptionalIntParameter() = withResourcesApplication {
+    fun resourceWithMissingOptionalIntParameter() = testResourcesApplication {
         routing {
             get<optionalIndex> {
                 assertEquals(123, it.id)
@@ -196,7 +193,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithSpecifiedOptionalQueryParameter() = withResourcesApplication {
+    fun resourceWithSpecifiedOptionalQueryParameter() = testResourcesApplication {
         routing {
             get<optionalName> {
                 assertEquals(123, it.id)
@@ -216,7 +213,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithOptionalPathAndQueryParameter() = withResourcesApplication {
+    fun resourceWithOptionalPathAndQueryParameter() = testResourcesApplication {
         routing {
             get<optionalContainer> {
                 assertEquals(null, it.id)
@@ -242,7 +239,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithSimplePathContainerAndItems() = withResourcesApplication {
+    fun resourceWithSimplePathContainerAndItems() = testResourcesApplication {
         routing {
             get<simpleContainer.items> {
                 call.respond(application.href(it))
@@ -260,7 +257,7 @@ class ResourcesTest {
     class tailCard(val path: List<String>)
 
     @Test
-    fun resourceWithTailcard() = withResourcesApplication {
+    fun resourceWithTailcard() = testResourcesApplication {
         routing {
             get<tailCard> {
                 call.respond(application.href(it))
@@ -278,7 +275,7 @@ class ResourcesTest {
     class multiquery2(val name: List<String>)
 
     @Test
-    fun `resource with multiple query values`() = withResourcesApplication {
+    fun resource_with_multiple_query_values() = testResourcesApplication {
         routing {
             get<multiquery> {
                 call.respond(application.href(it))
@@ -288,7 +285,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithMultipleQueryValuesCanSelectByQueryParams() = withResourcesApplication {
+    fun resourceWithMultipleQueryValuesCanSelectByQueryParams() = testResourcesApplication {
         routing {
             get<multiquery> {
                 call.respond("1: ${application.href(it)}")
@@ -301,7 +298,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceWithMultipleQueryValuesCanSelectByQueryParams2() = withResourcesApplication {
+    fun resourceWithMultipleQueryValuesCanSelectByQueryParams2() = testResourcesApplication {
         routing {
             get<multiquery> {
                 call.respond("1: ${application.href(it)}")
@@ -317,7 +314,7 @@ class ResourcesTest {
     class multiqueryWithDefault(val value: List<Int> = emptyList())
 
     @Test
-    fun resourceWithMultipleQueryValuesAndDefault() = withResourcesApplication {
+    fun resourceWithMultipleQueryValuesAndDefault() = testResourcesApplication {
         routing {
             get<multiqueryWithDefault> {
                 call.respond("${application.href(it)} ${it.value}")
@@ -330,7 +327,7 @@ class ResourcesTest {
     class root
 
     @Test
-    fun resourceRootByClass() = withResourcesApplication {
+    fun resourceRootByClass() = testResourcesApplication {
         routing {
             get<root> {
                 call.respond(application.href(it))
@@ -344,7 +341,7 @@ class ResourcesTest {
     class help
 
     @Test
-    fun resourceByClass() = withResourcesApplication {
+    fun resourceByClass() = testResourcesApplication {
         routing {
             get<help> {
                 call.respond(application.href(it))
@@ -364,7 +361,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceByClassInClass() = withResourcesApplication {
+    fun resourceByClassInClass() = testResourcesApplication {
         routing {
             get<users.me> {
                 call.respond(application.href(it))
@@ -386,12 +383,10 @@ class ResourcesTest {
     class items
 
     @Test
-    fun resourceByClassHasBindArgument() {
+    fun resourceByClassHasBindArgument() = testResourcesApplication {
         assertFailsWith<IllegalArgumentException> {
-            withResourcesApplication {
-                HttpRequestBuilder().apply {
-                    href(ResourcesFormat(), items, url)
-                }
+            HttpRequestBuilder().apply {
+                href(ResourcesFormat(), items, url)
             }
         }
     }
@@ -403,7 +398,7 @@ class ResourcesTest {
     class OverlappingPath2(val extra: String)
 
     @Test
-    fun overlappingPathsAreResolvedAsExpected() = withResourcesApplication {
+    fun overlappingPathsAreResolvedAsExpected() = testResourcesApplication {
         routing {
             get<OverlappingPath1> {
                 call.respond(application.href(it))
@@ -425,7 +420,7 @@ class ResourcesTest {
     class resourceWithEnum(val e: resourceEnum)
 
     @Test
-    fun resourceClassWithEnumValue() = withResourcesApplication {
+    fun resourceClassWithEnumValue() = testResourcesApplication {
         routing {
             get<resourceWithEnum> {
                 call.respondText(application.href(it))
@@ -435,13 +430,11 @@ class ResourcesTest {
         urlShouldBeHandled(resourceWithEnum(resourceEnum.A), "/?e=A")
         urlShouldBeHandled(resourceWithEnum(resourceEnum.B), "/?e=B")
 
-        runBlocking {
-            assertFalse(client.get("/?e=x").status.isSuccess())
-        }
+        assertFalse(client.get("/?e=x").status.isSuccess())
     }
 
     @Test
-    fun resourceParameterMismatchShouldLeadToBadRequestStatus() = withResourcesApplication {
+    fun resourceParameterMismatchShouldLeadToBadRequestStatus() = testResourcesApplication {
         @Resource("/")
         data class L(val text: String, val number: Int, val longNumber: Long)
 
@@ -459,14 +452,13 @@ class ResourcesTest {
             "href = /?text=abc&number=1&longNumber=2 text = abc, number = 1, longNumber = 2"
         )
 
-        runBlocking {
-            assertEquals(HttpStatusCode.BadRequest, client.get("/?number=1&longNumber=2").status)
-            assertEquals(HttpStatusCode.BadRequest, client.get("/?text=abc&number=z&longNumber=2").status)
-            assertEquals(
-                HttpStatusCode.BadRequest,
-                client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").status
-            )
-        }
+
+        assertEquals(HttpStatusCode.BadRequest, client.get("/?number=1&longNumber=2").status)
+        assertEquals(HttpStatusCode.BadRequest, client.get("/?text=abc&number=z&longNumber=2").status)
+        assertEquals(
+            HttpStatusCode.BadRequest,
+            client.get("/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").status
+        )
     }
 
     @JvmInline
@@ -474,7 +466,7 @@ class ResourcesTest {
     value class ValueClass(val value: String)
 
     @Test
-    fun resourceWithUInt() = withResourcesApplication {
+    fun resourceWithUInt() = testResourcesApplication {
         @Resource("/{id}/{valueParam}")
         data class Request(val id: UInt, val query: ULong, val valueParam: ValueClass, val valueQuery: ValueClass)
 
@@ -488,7 +480,7 @@ class ResourcesTest {
     }
 
     @Test
-    fun resourceShouldReturnHttpMethodRouteObject() = withResourcesApplication {
+    fun resourceShouldReturnHttpMethodRouteObject() = testResourcesApplication {
         @Resource("/resource")
         class someResource
 
@@ -514,7 +506,7 @@ class ResourcesTest {
     object resourceWithBody
 
     @Test
-    fun resourceWithBody() = withResourcesApplication {
+    fun resourceWithBodyTest() = testResourcesApplication {
         routing {
             post<resourceWithBody, String> { _, body ->
                 call.respondText(body)
@@ -529,10 +521,8 @@ class ResourcesTest {
 
         val body = "test"
 
-        runBlocking {
-            assertEquals(client.post("/body") { setBody(body) }.bodyAsText(), body)
-            assertEquals(client.put("/body") { setBody(body) }.bodyAsText(), body)
-            assertEquals(client.patch("/body") { setBody(body) }.bodyAsText(), body)
-        }
+        assertEquals(client.post("/body") { setBody(body) }.bodyAsText(), body)
+        assertEquals(client.put("/body") { setBody(body) }.bodyAsText(), body)
+        assertEquals(client.patch("/body") { setBody(body) }.bodyAsText(), body)
     }
 }

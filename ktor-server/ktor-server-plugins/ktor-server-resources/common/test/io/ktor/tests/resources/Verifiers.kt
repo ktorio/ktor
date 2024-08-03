@@ -10,38 +10,31 @@ import io.ktor.resources.*
 import io.ktor.resources.serialization.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
 @OptIn(InternalAPI::class)
-inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
+suspend inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
     on("making get request to resource $resource") {
-        val result = runBlocking {
-            client.get(
-                HttpRequestBuilder().apply {
-                    href(ResourcesFormat(), resource, url)
-                }
-            )
-        }
+        val result = client.get(
+            HttpRequestBuilder().apply {
+                href(ResourcesFormat(), resource, url)
+            }
+        )
         it("should have a response with OK status") {
             assertEquals(HttpStatusCode.OK, result.status)
         }
         if (content != null) {
             it("should have a response with content '$content'") {
-                runBlocking {
-                    assertEquals(content, result.content.readRemaining().readText())
-                }
+                assertEquals(content, result.content.readRemaining().readText())
             }
         }
     }
 }
 
-fun ApplicationTestBuilder.urlShouldBeUnhandled(url: String) {
+suspend fun ApplicationTestBuilder.urlShouldBeUnhandled(url: String) {
     on("making post request to $url") {
         it("should not be handled") {
-            runBlocking {
-                assertFalse(client.post(url).status.isSuccess())
-            }
+            assertFalse(client.post(url).status.isSuccess())
         }
     }
 }
