@@ -7,7 +7,6 @@ package io.ktor.tests.html
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
@@ -19,8 +18,8 @@ import kotlin.test.*
 
 class HtmlBuilderTest {
     @Test
-    fun testName() = withTestApplication {
-        application.routing {
+    fun testName() = testApplication {
+        routing {
             get("/") {
                 val name = call.parameters["name"]
                 call.respondHtml {
@@ -33,9 +32,8 @@ class HtmlBuilderTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
-            assertNotNull(response.content)
-            val lines = response.content!!
+        client.get("/?name=John").let { response ->
+            val lines = response.bodyAsText()
             assertEquals(
                 """<!DOCTYPE html>
 <html>
@@ -52,8 +50,8 @@ class HtmlBuilderTest {
     }
 
     @Test
-    fun testError() = withTestApplication {
-        application.install(StatusPages) {
+    fun testError() = testApplication {
+        install(StatusPages) {
             exception<NotImplementedError> { call, _ ->
                 call.respondHtml(HttpStatusCode.NotImplemented) {
                     body {
@@ -65,16 +63,15 @@ class HtmlBuilderTest {
             }
         }
 
-        application.routing {
+        routing {
             get("/") {
                 TODO()
             }
         }
 
-        handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
-            assertNotNull(response.content)
-            assertEquals(HttpStatusCode.NotImplemented, response.status())
-            val lines = response.content!!
+        client.get("/?name=John").let { response ->
+            assertEquals(HttpStatusCode.NotImplemented, response.status)
+            val lines = response.bodyAsText()
             assertEquals(
                 """<!DOCTYPE html>
 <html>

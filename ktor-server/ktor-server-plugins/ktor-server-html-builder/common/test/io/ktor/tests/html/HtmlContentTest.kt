@@ -2,21 +2,21 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
+@file:Suppress("DEPRECATION_ERROR")
 
 package io.ktor.tests.html
 
 import io.ktor.http.*
 import io.ktor.server.html.HtmlContent
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlinx.html.*
 import kotlin.test.*
 
 class HtmlContentTest {
 
     @Test
-    fun testChannelIsCancelledAfterException() = runBlocking {
+    fun testChannelIsCancelledAfterException() = runTest {
         val content = HtmlContent(HttpStatusCode.OK) {
             body {
                 p { +"Hello, world!" }

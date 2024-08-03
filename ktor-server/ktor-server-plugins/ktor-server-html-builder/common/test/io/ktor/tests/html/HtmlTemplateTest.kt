@@ -4,6 +4,8 @@
 
 package io.ktor.tests.html
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.html.*
 import io.ktor.server.routing.*
@@ -72,8 +74,8 @@ class MulticolumnTemplate(val main: MainTemplate) : Template<HTML> {
 
 class HtmlTemplateTest {
     @Test
-    fun testTemplate() = withTestApplication {
-        application.routing {
+    fun testTemplate() = testApplication {
+        routing {
             get("/") {
                 val name = call.parameters["name"]
 
@@ -88,9 +90,8 @@ class HtmlTemplateTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
-            assertNotNull(response.content)
-            val lines = response.content!!
+        client.get("/?name=John").let { response ->
+            val lines = response.bodyAsText()
             assertEquals(
                 """<!DOCTYPE html>
 <html>
