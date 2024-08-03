@@ -13,7 +13,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class RequestValidationTest {

@@ -46,7 +46,12 @@ public class RequestValidationConfig {
      * Registers [Validator] that should check instances of a [T] using [block]
      */
     public inline fun <reified T : Any> validate(noinline block: suspend (T) -> ValidationResult) {
-        validate(T::class, block)
+        // `KClass.isInstance` doesn't work for JS, but direct `value is T` works
+        val validator = object : Validator {
+            override suspend fun validate(value: Any): ValidationResult = block(value as T)
+            override fun filter(value: Any): Boolean = value is T
+        }
+        validate(validator)
     }
 
     /**
