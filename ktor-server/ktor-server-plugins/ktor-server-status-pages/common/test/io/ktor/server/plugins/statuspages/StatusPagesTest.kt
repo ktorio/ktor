@@ -77,12 +77,22 @@ class StatusPagesTest {
             }
         }
 
-        client.get("/missing").let { response ->
-            assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response.bodyAsText())
+        client.get("/missing").bodyAsText().let { response ->
+            try {
+                assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response)
+            } catch (cause: Throwable) {
+                // for JS/Wasm
+                assertEquals("class HttpStatusCodeContent", response)
+            }
         }
 
-        client.get("/notFound").let { response ->
-            assertEquals("class io.ktor.http.content.TextContent", response.bodyAsText())
+        client.get("/notFound").bodyAsText().let { response ->
+            try {
+                assertEquals("class io.ktor.http.content.TextContent", response)
+            } catch (cause: Throwable) {
+                // for JS/Wasm
+                assertEquals("class TextContent", response)
+            }
         }
     }
 
@@ -113,34 +123,31 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testStatus404WithInterceptor() {
+    fun testStatus404WithInterceptor() = testApplication {
         class O
-
-        testApplication {
-            application {
-                install(StatusPages) {
-                    status(HttpStatusCode.NotFound) { call, code ->
-                        call.respondText("${code.value} ${code.description}", status = code)
-                    }
-                }
-
-                intercept(ApplicationCallPipeline.Plugins) {
-                    call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
-                        if (message is O) proceedWith(HttpStatusCode.NotFound)
-                    }
-                }
-
-                routing {
-                    get("/") {
-                        call.respond(O())
-                    }
+        application {
+            install(StatusPages) {
+                status(HttpStatusCode.NotFound) { call, code ->
+                    call.respondText("${code.value} ${code.description}", status = code)
                 }
             }
 
-            client.get("/").let { response ->
-                assertEquals(HttpStatusCode.NotFound, response.status)
-                assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
+            intercept(ApplicationCallPipeline.Plugins) {
+                call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
+                    if (message is O) proceedWith(HttpStatusCode.NotFound)
+                }
             }
+
+            routing {
+                get("/") {
+                    call.respond(O())
+                }
+            }
+        }
+
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.NotFound, response.status)
+            assertEquals("404 ${HttpStatusCode.NotFound.description}", response.bodyAsText())
         }
     }
 
@@ -175,36 +182,35 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testFailPageDuringInterceptor() {
+    fun testFailPageDuringInterceptor() = testApplication {
         class O
 
-        testApplication {
-            application {
-                intercept(ApplicationCallPipeline.Plugins) {
-                    call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
-                        if (message is O) {
-                            throw IllegalStateException()
-                        }
-                    }
-                }
 
-                install(StatusPages) {
-                    exception<IllegalStateException> { call, cause ->
-                        call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
-                    }
-                }
-
-                routing {
-                    get("/") {
-                        call.respond(O())
+        application {
+            intercept(ApplicationCallPipeline.Plugins) {
+                call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
+                    if (message is O) {
+                        throw IllegalStateException()
                     }
                 }
             }
 
-            client.get("/").let { response ->
-                assertEquals(HttpStatusCode.InternalServerError, response.status)
-                assertEquals("IllegalStateException", response.bodyAsText())
+            install(StatusPages) {
+                exception<IllegalStateException> { call, cause ->
+                    call.respondText(cause::class.simpleName!!, status = HttpStatusCode.InternalServerError)
+                }
             }
+
+            routing {
+                get("/") {
+                    call.respond(O())
+                }
+            }
+        }
+
+        client.get("/").let { response ->
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("IllegalStateException", response.bodyAsText())
         }
     }
 
@@ -247,34 +253,33 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testErrorFromExceptionContent() {
+    fun testErrorFromExceptionContent() = testApplication {
         class ValidationException(val code: String) : RuntimeException()
 
-        testApplication {
-            application {
-                install(StatusPages) {
-                    exception<ValidationException> { call, cause ->
-                        // Can access `cause.code` without casting
-                        call.respondText(cause.code, status = HttpStatusCode.InternalServerError)
-                    }
-                }
 
-                routing {
-                    get("/ve") {
-                        throw ValidationException("code")
-                    }
+        application {
+            install(StatusPages) {
+                exception<ValidationException> { call, cause ->
+                    // Can access `cause.code` without casting
+                    call.respondText(cause.code, status = HttpStatusCode.InternalServerError)
                 }
             }
 
-            client.get("/ve").let { response ->
-                assertEquals(HttpStatusCode.InternalServerError, response.status)
-                assertEquals("code", response.bodyAsText())
+            routing {
+                get("/ve") {
+                    throw ValidationException("code")
+                }
             }
+        }
+
+        client.get("/ve").let { response ->
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("code", response.bodyAsText())
         }
     }
 
     @Test
-    fun testErrorInAsync(): Unit = testApplication {
+    fun testErrorInAsync() = testApplication {
         class AsyncFailedException : Exception()
 
         application {
@@ -306,7 +311,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithoutPlugin(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithoutPlugin() = testApplication {
         application {
             routing {
                 get("/bad-request") {
@@ -327,7 +332,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithPluginHandlingExceptions(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithPluginHandlingExceptions() = testApplication {
         application {
             install(StatusPages) {
                 exception<BadRequestException> { call, _ ->
@@ -369,7 +374,7 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testDefaultKtorExceptionWithPluginCustomStatusPages(): Unit = testApplication {
+    fun testDefaultKtorExceptionWithPluginCustomStatusPages() = testApplication {
         application {
             install(StatusPages) {
                 status(HttpStatusCode.BadRequest) { call, _ ->
@@ -411,39 +416,38 @@ class StatusPagesTest {
     }
 
     @Test
-    fun testRoutingNotCalledAfterStatusPages() {
+    fun testRoutingNotCalledAfterStatusPages() = testApplication {
         val ThrowingPlugin = createApplicationPlugin("ThrowingPlugin") {
             onCall {
                 throw NotFoundException()
             }
         }
 
-        testApplication {
-            var exceptionHandled = false
-            var routingHandled = false
 
-            application {
-                install(ThrowingPlugin)
-                install(StatusPages) {
-                    exception<NotFoundException> { call: ApplicationCall, _ ->
-                        exceptionHandled = true
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                }
+        var exceptionHandled = false
+        var routingHandled = false
 
-                routing {
-                    get("/") {
-                        routingHandled = true
-                        call.respond(HttpStatusCode.OK)
-                    }
+        application {
+            install(ThrowingPlugin)
+            install(StatusPages) {
+                exception<NotFoundException> { call: ApplicationCall, _ ->
+                    exceptionHandled = true
+                    call.respond(HttpStatusCode.NotFound)
                 }
             }
 
-            val response = client.get("/")
-            assertEquals(HttpStatusCode.NotFound, response.status)
-            assertFalse(routingHandled)
-            assertTrue(exceptionHandled)
+            routing {
+                get("/") {
+                    routingHandled = true
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
         }
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertFalse(routingHandled)
+        assertTrue(exceptionHandled)
     }
 
     @Test
