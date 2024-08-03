@@ -44,7 +44,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testSubrouteInstall(): Unit = testApplication {
+    fun testSubrouteInstall() = testApplication {
         routing {
             route("1") {
                 install(DefaultHeaders) {}
@@ -63,7 +63,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testDate(): Unit = testApplication {
+    fun testDate() = testApplication {
         var now = 1569882841014
         install(DefaultHeaders) {
             clock = DefaultHeadersConfig.Clock { now }
@@ -87,7 +87,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomHeader(): Unit = testApplication {
+    fun testCustomHeader() = testApplication {
         install(DefaultHeaders) {
             header("X-Test", "123")
         }
@@ -96,7 +96,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testDefaultServerHeader(): Unit = testApplication {
+    fun testDefaultServerHeader() = testApplication {
         install(DefaultHeaders)
 
         client.get("/").let { response ->
@@ -107,7 +107,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomServerHeader(): Unit = testApplication {
+    fun testCustomServerHeader() = testApplication {
         install(DefaultHeaders) {
             header(HttpHeaders.Server, "MyServer")
         }
@@ -116,7 +116,7 @@ class DefaultHeadersTest {
     }
 
     @Test
-    fun testCustomServerHeaderDoesntDuplicate(): Unit = testApplication {
+    fun testCustomServerHeaderDoesntDuplicate() = testApplication {
         install(
             createApplicationPlugin("test") {
                 on(CallSetup) {

@@ -69,12 +69,6 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
     "DefaultHeaders",
     ::DefaultHeadersConfig
 ) {
-    val ktorVersion = if (pluginConfig.headers.getAll(HttpHeaders.Server) == null) {
-        readKtorVersion(this)
-    } else {
-        "debug"
-    }
-
     val headers = pluginConfig.headers.build()
     val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
     var cachedDateTimeStamp = 0L
@@ -89,7 +83,6 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
         return pluginConfig.cachedDateText
     }
 
-    val serverHeader = "Ktor/$ktorVersion"
     onCallRespond { call, _ ->
         headers.forEach { name, value ->
             if (!call.response.headers.contains(name)) value.forEach { call.response.header(name, it) }
@@ -99,9 +92,7 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
             call.response.header(HttpHeaders.Date, calculateDateHeader())
         }
         if (!call.response.headers.contains(HttpHeaders.Server)) {
-            call.response.header(HttpHeaders.Server, serverHeader)
+            call.response.header(HttpHeaders.Server, "Ktor/$KTOR_VERSION")
         }
     }
 }
-
-internal expect fun <T : Any> readKtorVersion(plugin: RouteScopedPluginBuilder<T>): String
