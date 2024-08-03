@@ -30,11 +30,9 @@ kotlin {
             }
         }
 
-        jvmAndPosixTest {
+        commonTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-test-host"))
-                api(libs.logback.classic)
-                api(project(":ktor-network"))
             }
         }
 

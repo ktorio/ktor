@@ -4,6 +4,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,21 +18,23 @@ import kotlin.test.*
 class RouteScopedPluginTest {
 
     @Test
-    fun testPluginInstalledTopLevel(): Unit = withTestApplication {
-        application.install(TestPlugin)
-
-        assertFailsWith<DuplicatePluginException> {
-            application.routing {
+    fun testPluginInstalledTopLevel() = testApplication {
+        application {
+            install(TestPlugin)
+            routing {
                 install(TestPlugin)
             }
+        }
+        assertFailsWith<DuplicatePluginException> {
+            startApplication()
         }
     }
 
     @Test
-    fun testPluginInstalledInRoutingScope() = withTestApplication {
+    fun testPluginInstalledInRoutingScope() = testApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        routing {
             route("root-no-plugin") {
                 route("first-plugin") {
                     install(TestPlugin) {
@@ -75,13 +78,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should not be invoked") {
                 assertEquals(0, callbackResults.size)
@@ -89,13 +90,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -105,13 +104,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -121,13 +118,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner/new-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner/new-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner/new-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -137,13 +132,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner/new-plugin/inner") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner/new-plugin/inner"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner/new-plugin/inner") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -154,10 +147,10 @@ class RouteScopedPluginTest {
     }
 
     @Test
-    fun testPluginDoNotReuseConfig() = withTestApplication {
+    fun testPluginDoNotReuseConfig() = testApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        routing {
             route("root") {
                 install(TestPlugin) {
                     name = "foo"
@@ -193,13 +186,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root") {
-            val result = handleRequest {
-                uri = "/root"
-                method = HttpMethod.Post
+            val result = client.post("/root") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -209,13 +200,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root/plugin1") {
-            val result = handleRequest {
-                uri = "/root/plugin1"
-                method = HttpMethod.Post
+            val result = client.post("/root/plugin1") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -225,13 +214,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root/plugin1/plugin2") {
-            val result = handleRequest {
-                uri = "/root/plugin1/plugin2"
-                method = HttpMethod.Post
+            val result = client.post("/root/plugin1/plugin2") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -242,27 +229,28 @@ class RouteScopedPluginTest {
     }
 
     @Test
-    fun testMultiplePluginInstalledAtTheSameRoute(): Unit = withTestApplication {
-        assertFailsWith<DuplicatePluginException> {
-            application.routing {
-                route("root") {
-                    install(TestPlugin)
-                }
-                route("root") {
-                    install(TestPlugin)
-                }
+    fun testMultiplePluginInstalledAtTheSameRoute() = testApplication {
+        routing {
+            route("root") {
+                install(TestPlugin)
             }
+            route("root") {
+                install(TestPlugin)
+            }
+        }
+        assertFailsWith<DuplicatePluginException> {
+            startApplication()
         }
     }
 
     @Test
-    fun testAllPipelinesPlugin() = withTestApplication {
+    fun testAllPipelinesPlugin() = testApplication {
         val callbackResults = mutableListOf<String>()
         val receiveCallbackResults = mutableListOf<String>()
         val sendCallbackResults = mutableListOf<String>()
         val allCallbacks = listOf(callbackResults, receiveCallbackResults, sendCallbackResults)
 
-        application.routing {
+        routing {
             route("root-no-plugin") {
                 route("first-plugin") {
                     install(TestAllPipelinesPlugin) {
@@ -306,13 +294,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should not be invoked") {
                 allCallbacks.forEach {
@@ -322,13 +308,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 allCallbacks.forEach {
@@ -340,13 +324,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 allCallbacks.forEach {
@@ -358,13 +340,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner/new-plugin") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner/new-plugin"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner/new-plugin") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 allCallbacks.forEach {
@@ -376,13 +356,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root-no-plugin/first-plugin/inner/new-plugin/inner") {
-            val result = handleRequest {
-                uri = "/root-no-plugin/first-plugin/inner/new-plugin/inner"
-                method = HttpMethod.Post
+            val result = client.post("/root-no-plugin/first-plugin/inner/new-plugin/inner") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("callback should be invoked") {
                 allCallbacks.forEach {
@@ -395,10 +373,10 @@ class RouteScopedPluginTest {
     }
 
     @Test
-    fun testCustomPhase() = withTestApplication {
+    fun testCustomPhase() = testApplication {
         val callbackResults = mutableListOf<String>()
 
-        application.routing {
+        routing {
             route("root") {
                 install(TestPluginCustomPhase) {
                     name = "foo"
@@ -424,13 +402,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root") {
-            val result = handleRequest {
-                uri = "/root"
-                method = HttpMethod.Get
+            val result = client.get("/root") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("second callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -440,13 +416,11 @@ class RouteScopedPluginTest {
         }
 
         on("making get request to /root/a") {
-            val result = handleRequest {
-                uri = "/root/a"
-                method = HttpMethod.Get
+            val result = client.get("/root/a") {
                 setBody("test")
             }
             it("should be handled") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(HttpStatusCode.OK, result.status)
             }
             it("second callback should be invoked") {
                 assertEquals(1, callbackResults.size)
@@ -489,18 +463,12 @@ class TestAllPipelinesPlugin private constructor(config: Config) {
 
     @KtorDsl
     class Config(
-        name: String = "defaultName",
-        desc: String = "defaultDesc",
-        pipelineCallback: (String) -> Unit = {},
-        receivePipelineCallback: (String) -> Unit = {},
-        sendPipelineCallback: (String) -> Unit = {},
-    ) {
-        var name: String = name
-        var desc: String = desc
-        var pipelineCallback = pipelineCallback
-        var receivePipelineCallback = receivePipelineCallback
-        var sendPipelineCallback = sendPipelineCallback
-    }
+        var name: String = "defaultName",
+        var desc: String = "defaultDesc",
+        var pipelineCallback: (String) -> Unit = {},
+        var receivePipelineCallback: (String) -> Unit = {},
+        var sendPipelineCallback: (String) -> Unit = {},
+    )
 
     companion object Plugin : BaseRouteScopedPlugin<Config, TestAllPipelinesPlugin> {
 
@@ -527,14 +495,10 @@ class TestPlugin private constructor(config: Config) {
 
     @KtorDsl
     class Config(
-        name: String = "defaultName",
-        desc: String = "defaultDesc",
-        pipelineCallback: (String) -> Unit = {}
-    ) {
-        var name = name
-        var desc = desc
-        var pipelineCallback = pipelineCallback
-    }
+        var name: String = "defaultName",
+        var desc: String = "defaultDesc",
+        var pipelineCallback: (String) -> Unit = {}
+    )
 
     companion object Plugin : BaseRouteScopedPlugin<Config, TestPlugin> {
 
@@ -563,14 +527,10 @@ class TestPluginCustomPhase private constructor(config: Config) {
 
     @KtorDsl
     class Config(
-        name: String = "defaultName",
-        desc: String = "defaultDesc",
-        callback: (String) -> Unit = {},
-    ) {
-        var name = name
-        var desc = desc
-        var callback = callback
-    }
+        var name: String = "defaultName",
+        var desc: String = "defaultDesc",
+        var callback: (String) -> Unit = {},
+    )
 
     companion object Plugin : BaseRouteScopedPlugin<Config, TestPluginCustomPhase> {
         override val key: AttributeKey<TestPluginCustomPhase> = AttributeKey("TestPlugin")

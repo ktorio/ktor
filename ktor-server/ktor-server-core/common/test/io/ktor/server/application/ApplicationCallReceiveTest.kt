@@ -39,7 +39,12 @@ class ApplicationCallReceiveTest {
             }
         }
 
-        val response = client.post("/")
-        assertEquals("Cannot transform this request's content to kotlin.String", response.bodyAsText())
+        val response = client.post("/").bodyAsText()
+        try {
+            assertEquals("Cannot transform this request's content to kotlin.String", response)
+        } catch (cause: Throwable) {
+            // on JS/Wasm there is no package name
+            assertEquals("Cannot transform this request's content to String", response)
+        }
     }
 }

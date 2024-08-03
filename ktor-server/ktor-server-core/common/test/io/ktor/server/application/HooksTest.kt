@@ -9,12 +9,13 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class HooksTest {
 
     @Test
-    fun testCustomHookExecuted() {
+    fun testCustomHookExecuted() = runTest {
         class HookHandler {
             var called: Boolean = false
             var executed: Boolean = false
@@ -40,7 +41,7 @@ class HooksTest {
 
         assertFalse(currentHandler.called)
 
-        testApplication {
+        runTestApplication {
             install(testPlugin)
 
             routing {
@@ -59,7 +60,7 @@ class HooksTest {
     }
 
     @Test
-    fun testMonitoringEventHook() {
+    fun testMonitoringEventHook() = runTest {
         class State {
             var startCalled = false
             var shutdownCalled = false
@@ -75,7 +76,7 @@ class HooksTest {
             }
         }
 
-        testApplication {
+        runTestApplication {
             install(shutdownHandler)
 
             routing {
@@ -87,13 +88,14 @@ class HooksTest {
             client.get("/")
             assertTrue(state.startCalled)
             assertFalse(state.shutdownCalled)
+
         }
 
         assertTrue(state.shutdownCalled)
     }
 
     @Test
-    fun testOnCallFailedHook() {
+    fun testOnCallFailedHook() = testApplication {
         class State {
             var fail: Throwable? = null
         }
@@ -106,28 +108,26 @@ class HooksTest {
             }
         }
 
-        testApplication {
-            install(failedHandler)
+        install(failedHandler)
 
-            routing {
-                handle {
-                    error("Failure")
-                }
+        routing {
+            handle {
+                error("Failure")
             }
-
-            assertNull(state.fail)
-
-            runCatching {
-                client.get("/")
-            }
-
-            assertNotNull(state.fail)
-            assertEquals("Failure", state.fail?.message)
         }
+
+        assertNull(state.fail)
+
+        runCatching {
+            client.get("/")
+        }
+
+        assertNotNull(state.fail)
+        assertEquals("Failure", state.fail?.message)
     }
 
     @Test
-    fun testHookWithRoutingPlugin() {
+    fun testHookWithRoutingPlugin() = testApplication {
         val OnCallHook = object : Hook<() -> Unit> {
             override fun install(pipeline: ApplicationCallPipeline, handler: () -> Unit) {
                 pipeline.intercept(ApplicationCallPipeline.Call) {
@@ -151,41 +151,39 @@ class HooksTest {
             }
         }
 
-        testApplication {
-            routing {
-                route("/1") {
-                    install(MyRoutePlugin) {
-                        myValue = 1
-                    }
-                    get {
-                        call.respond("Hello-1")
-                    }
+        routing {
+            route("/1") {
+                install(MyRoutePlugin) {
+                    myValue = 1
                 }
-                route("/2") {
-                    install(MyRoutePlugin) {
-                        myValue = 2
-                    }
-                    get {
-                        call.respond("Hello-2")
-                    }
-                }
-                get("/3") {
-                    call.respond("Hello-3")
+                get {
+                    call.respond("Hello-1")
                 }
             }
-
-            suspend fun ApplicationTestBuilder.assertOutput(requestPath: String, expectedOutput: List<Int>) {
-                myOutput.clear()
-                runCatching {
-                    client.get(requestPath)
+            route("/2") {
+                install(MyRoutePlugin) {
+                    myValue = 2
                 }
-
-                assertContentEquals(expectedOutput.toTypedArray(), myOutput.toTypedArray())
+                get {
+                    call.respond("Hello-2")
+                }
             }
-
-            assertOutput("/1", listOf(1))
-            assertOutput("/2", listOf(2))
-            assertOutput("/3", emptyList())
+            get("/3") {
+                call.respond("Hello-3")
+            }
         }
+
+        suspend fun ApplicationTestBuilder.assertOutput(requestPath: String, expectedOutput: List<Int>) {
+            myOutput.clear()
+            runCatching {
+                client.get(requestPath)
+            }
+
+            assertContentEquals(expectedOutput.toTypedArray(), myOutput.toTypedArray())
+        }
+
+        assertOutput("/1", listOf(1))
+        assertOutput("/2", listOf(2))
+        assertOutput("/3", emptyList())
     }
 }
