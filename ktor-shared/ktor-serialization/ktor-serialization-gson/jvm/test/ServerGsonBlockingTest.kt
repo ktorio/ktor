@@ -28,7 +28,7 @@ class ServerGsonBlockingTest {
     }
 
     @Test
-    fun testReceive(): Unit = testApplication {
+    fun testReceive() = testApplication {
         testApplicationProperties {
             parentCoroutineContext = dispatcher
         }
