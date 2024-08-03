@@ -140,7 +140,7 @@ public actual object Charsets {
     public actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
 }
 
-private data class CharsetImpl(val name: String) : Charset(name) {
+private class CharsetImpl(name: String) : Charset(name) {
     override fun newEncoder(): CharsetEncoder = CharsetEncoderImpl(this)
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
