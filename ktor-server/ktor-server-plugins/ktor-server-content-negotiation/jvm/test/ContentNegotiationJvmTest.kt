@@ -16,12 +16,10 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import java.io.*
 import kotlin.test.*
-import kotlin.text.toByteArray
 
 class ContentNegotiationJvmTest {
     private val alwaysFailingConverter = object : ContentConverter {
@@ -40,7 +38,7 @@ class ContentNegotiationJvmTest {
     }
 
     @Test
-    fun testReceiveInputStreamTransformedByDefault(): Unit = testApplication {
+    fun testReceiveInputStreamTransformedByDefault() = testApplication {
         application {
             install(ContentNegotiation) {
                 // Order here matters. The first registered content type matching the Accept header will be chosen.

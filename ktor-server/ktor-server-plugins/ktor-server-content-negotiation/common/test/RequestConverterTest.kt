@@ -75,12 +75,20 @@ class RequestConverterTest {
 
         val responseFoo = client.post("/foo") {
             contentType(ContentType.Application.Json)
-        }
+        }.bodyAsText()
 
-        assertEquals(
-            "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass",
-            responseFoo.bodyAsText()
-        )
+        try {
+            assertEquals(
+                "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass",
+                responseFoo
+            )
+        } catch (cause: Throwable) {
+            // because of JS/Wasm
+            assertEquals(
+                "Cannot transform this request's content to NonSerializableClass",
+                responseFoo
+            )
+        }
         assertFalse(used)
 
         val responseBar = client.post("/bar") {
