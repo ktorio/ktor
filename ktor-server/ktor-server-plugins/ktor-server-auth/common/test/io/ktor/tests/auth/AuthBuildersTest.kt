@@ -21,95 +21,92 @@ import kotlin.test.*
 class AuthBuildersTest {
 
     @Test
-    fun testPrincipalsAccess() {
+    fun testPrincipalsAccess() = testApplication {
         val username = "testuser"
 
-        withTestApplication {
-            application.install(Authentication) {
-                form { validate { c -> UserIdPrincipal(c.name) } }
-            }
+        install(Authentication) {
+            form { validate { c -> UserIdPrincipal(c.name) } }
+        }
 
-            application.routing {
-                authenticate {
-                    route("/") {
-                        handle {
-                            assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
-                        }
+        routing {
+            authenticate {
+                route("/") {
+                    handle {
+                        assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
                     }
                 }
             }
+        }
 
-            handleRequest(HttpMethod.Post, "/") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=$username&password=p")
-            }
+        client.post("/") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=$username&password=p")
         }
     }
 
     @Test
-    fun testMultipleConfigurationsNested() {
-        withTestApplication {
-            application.install(Authentication) {
-                form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
-                basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
-            }
+    fun testMultipleConfigurationsNested() = testApplication {
 
-            application.routing {
-                authenticate("first") {
-                    authenticate("second") {
-                        route("/both") {
-                            handle {
-                                assertEquals("first", call.authentication.principal<UserIdPrincipal>()?.name)
-                                call.respondText("OK")
-                            }
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
+        }
+
+        routing {
+            authenticate("first") {
+                authenticate("second") {
+                    route("/both") {
+                        handle {
+                            assertEquals("first", call.authentication.principal<UserIdPrincipal>()?.name)
+                            call.respondText("OK")
                         }
-                        route("/{name}") {
-                            handle {
-                                assertEquals(
-                                    call.parameters["name"],
-                                    call.authentication.principal<UserIdPrincipal>()?.name
-                                )
-                                call.respondText("OK")
-                            }
+                    }
+                    route("/{name}") {
+                        handle {
+                            assertEquals(
+                                call.parameters["name"],
+                                call.authentication.principal<UserIdPrincipal>()?.name
+                            )
+                            call.respondText("OK")
                         }
                     }
                 }
             }
+        }
 
-            handleRequest(HttpMethod.Post, "/nobody") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=nobody&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
-            }
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
+        }
 
-            handleRequest(HttpMethod.Post, "/first") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=first&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+        }
 
-            handleRequest(HttpMethod.Get, "/second") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
-                )
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.get("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+        }
 
-            handleRequest(HttpMethod.Post, "/both") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
-                )
-                setBody("user=first&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
         }
     }
 
@@ -486,67 +483,65 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testMultipleConfigurations() {
-        withTestApplication {
-            application.install(Authentication) {
-                form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
-                basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
-            }
+    fun testMultipleConfigurations() = testApplication {
+        install(Authentication) {
+            form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
+            basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }
+        }
 
-            application.routing {
-                authenticate("first", "second") {
-                    route("/both") {
-                        handle {
-                            assertEquals("first", call.authentication.principal<UserIdPrincipal>()?.name)
-                            call.respondText("OK")
-                        }
+        routing {
+            authenticate("first", "second") {
+                route("/both") {
+                    handle {
+                        assertEquals("first", call.authentication.principal<UserIdPrincipal>()?.name)
+                        call.respondText("OK")
                     }
-                    route("/{name}") {
-                        handle {
-                            assertEquals(
-                                call.parameters["name"],
-                                call.authentication.principal<UserIdPrincipal>()?.name
-                            )
-                            call.respondText("OK")
-                        }
+                }
+                route("/{name}") {
+                    handle {
+                        assertEquals(
+                            call.parameters["name"],
+                            call.authentication.principal<UserIdPrincipal>()?.name
+                        )
+                        call.respondText("OK")
                     }
                 }
             }
+        }
 
-            handleRequest(HttpMethod.Post, "/nobody") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=nobody&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
-            }
+        client.post("/nobody") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=nobody&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
+        }
 
-            handleRequest(HttpMethod.Post, "/first") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=first&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.post("/first") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=first&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+        }
 
-            handleRequest(HttpMethod.Get, "/second") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
-                )
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.get("/second") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+        }
 
-            handleRequest(HttpMethod.Post, "/both") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
-                )
-                setBody("user=first&password=p")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+            )
+            setBody("user=first&password=p")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
         }
     }
 
@@ -611,56 +606,58 @@ class AuthBuildersTest {
     }
 
     @Test
-    fun testNoRouting() {
-        withTestApplication {
-            application.install(Authentication) {
-                form { validate { UserIdPrincipal(it.name) } }
-            }
+    fun testNoRouting() = testApplication {
+        install(Authentication) {
+            form { validate { UserIdPrincipal(it.name) } }
+        }
 
-            application.install(AuthenticationInterceptors)
+        install(AuthenticationInterceptors)
 
-            application.intercept(ApplicationCallPipeline.Call) {
+        application {
+            intercept(ApplicationCallPipeline.Call) {
                 call.respondText("OK")
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").let { call ->
-                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
-            }
+        client.get("/").let { call ->
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
+        }
 
-            handleRequest(HttpMethod.Post, "/") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                setBody("user=any&password=")
-            }.let { call ->
-                assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            }
+        client.post("/") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=any&password=")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
         }
     }
 
     @Test
-    fun testModifyingAuthentication() = withTestApplication {
-        application.authentication {
-            basic("1") {
-                validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
+    fun testModifyingAuthentication() = testApplication {
+        application {
+            authentication {
+                basic("1") {
+                    validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
+                }
             }
-        }
 
-        on("add a new auth method") {
-            application.authentication {
-                form("2") {
-                    validate { it.name.takeIf { it == "bbb" }?.let { UserIdPrincipal(it) } }
+            on("add a new auth method") {
+                authentication {
+                    form("2") {
+                        validate { it.name.takeIf { it == "bbb" }?.let { UserIdPrincipal(it) } }
+                    }
+                }
+            }
+
+            on("auth method name conflict") {
+                authentication {
+                    assertFails {
+                        basic("2") {}
+                    }
                 }
             }
         }
 
-        on("auth method name conflict") {
-            application.authentication {
-                assertFails {
-                    basic("2") {}
-                }
-            }
-        }
-
-        application.routing {
+        routing {
             authenticate("1", "2") {
                 get("/") {
                     call.respondText(call.principal<UserIdPrincipal>()?.name ?: "?")
@@ -669,76 +666,73 @@ class AuthBuildersTest {
         }
 
         on("attempt to auth") {
-            fun TestApplicationRequest.addFormAuth(name: String) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            fun HttpRequestBuilder.addFormAuth(name: String) {
+                header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
                 setBody("user=$name&password=")
             }
 
             on("try first auth provider") {
-                val call = handleRequest(HttpMethod.Get, "/") {
+                val call = client.get("/") {
                     addBasicAuth("aaa")
                 }
-                assertEquals("aaa", call.response.content)
+                assertEquals("aaa", call.bodyAsText())
             }
             on("try second auth provider") {
-                val call = handleRequest(HttpMethod.Get, "/") {
+                val call = client.get("/") {
                     addFormAuth("bbb")
                 }
-                assertEquals("bbb", call.response.content)
+                assertEquals("bbb", call.bodyAsText())
             }
             on("try invalid user name") {
-                val call = handleRequest(HttpMethod.Get, "/") {
+                val call = client.get("/") {
                     addBasicAuth("unknown")
                 }
-                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+                assertEquals(HttpStatusCode.Unauthorized, call.status)
             }
         }
     }
 
     @Test
-    fun testAuthenticateOptionally() {
-        withTestApplication {
-            application.apply {
-                authentication {
-                    basic {
-                        validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
-                    }
-                }
-                routing {
-                    authenticate(optional = true) {
-                        get("/auth") {
-                            call.respond("OK:${call.authentication.principal<UserIdPrincipal>()?.name}")
-                        }
-                    }
-                }
-
-                on("try call with authentication") {
-                    val call = handleRequest(HttpMethod.Get, "/auth") {
-                        addBasicAuth("aaa")
-                    }
-                    assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-                    assertEquals("OK:aaa", call.response.content)
-                }
-                on("try call with bad authentication") {
-                    val call = handleRequest(HttpMethod.Get, "/auth") {
-                        addBasicAuth("unknown")
-                    }
-                    assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
-                }
-                on("try call without authentication") {
-                    val call = handleRequest(HttpMethod.Get, "/auth") {}
-                    assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-                    assertEquals("OK:null", call.response.content)
+    fun testAuthenticateOptionally() = testApplication {
+        application {
+            authentication {
+                basic {
+                    validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
                 }
             }
+            routing {
+                authenticate(optional = true) {
+                    get("/auth") {
+                        call.respond("OK:${call.authentication.principal<UserIdPrincipal>()?.name}")
+                    }
+                }
+            }
+        }
+        on("try call with authentication") {
+            val call = client.get("/auth") {
+                addBasicAuth("aaa")
+            }
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("OK:aaa", call.bodyAsText())
+        }
+        on("try call with bad authentication") {
+            val call = client.get("/auth") {
+                addBasicAuth("unknown")
+            }
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
+        }
+        on("try call without authentication") {
+            val call = client.get("/auth") {}
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("OK:null", call.bodyAsText())
         }
     }
 
     @Test
-    fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication {
+    fun testAuthProviderFailureNoChallenge() = testApplication {
         class CustomErrorCause : AuthenticationFailedCause.Error("custom error")
 
-        application.apply {
+        application {
             authentication {
                 provider("custom") {
                     authenticate { context ->
@@ -775,28 +769,28 @@ class AuthBuildersTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/fail").let { call ->
-            assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+        client.get("/fail").let { call ->
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
         }
 
-        handleRequest(HttpMethod.Get, "/pass").let { call ->
-            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            assertEquals("OK", call.response.content)
+        client.get("/pass").let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("OK", call.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/fail-inheritance").let { call ->
-            assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+        client.get("/fail-inheritance").let { call ->
+            assertEquals(HttpStatusCode.Unauthorized, call.status)
         }
 
-        handleRequest(HttpMethod.Get, "/pass-inheritance").let { call ->
-            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            assertEquals("OK", call.response.content)
+        client.get("/pass-inheritance").let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
     @Test
-    fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication {
-        application.apply {
+    fun testAuthProviderFailureWithChallenge() = testApplication {
+        application {
             authentication {
                 provider("custom") {
                     authenticate { context ->
@@ -821,21 +815,21 @@ class AuthBuildersTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/fail").let { call ->
-            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            assertEquals("Challenge", call.response.content)
+        client.get("/fail").let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("Challenge", call.bodyAsText())
         }
 
-        handleRequest(HttpMethod.Get, "/pass").let { call ->
-            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
-            assertEquals("OK", call.response.content)
+        client.get("/pass").let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
     @Test
-    fun testAuthDoesntChangeRoutePriority(): Unit = withTestApplication {
-        application.apply {
-            application.install(Authentication) {
+    fun testAuthDoesntChangeRoutePriority() = testApplication {
+        application {
+            install(Authentication) {
                 form { validate { c -> UserIdPrincipal(c.name) } }
             }
 
@@ -854,23 +848,23 @@ class AuthBuildersTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/foo:asd") {
-            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+        client.get("/foo:asd") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody("user=username&password=p")
         }.let { call ->
-            assertEquals("foo", call.response.content)
+            assertEquals("foo", call.bodyAsText())
         }
-        handleRequest(HttpMethod.Get, "/bar:asd") {
-            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+        client.get("/bar:asd") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody("user=username&password=p")
         }.let { call ->
-            assertEquals("bar", call.response.content)
+            assertEquals("bar", call.bodyAsText())
         }
-        handleRequest(HttpMethod.Get, "/baz") {
-            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+        client.get("/baz") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody("user=username&password=p")
         }.let { call ->
-            assertEquals("baz", call.response.content)
+            assertEquals("baz", call.bodyAsText())
         }
     }
 
@@ -1042,13 +1036,6 @@ class AuthBuildersTest {
             addBasicAuth()
         }
         assertEquals("File doc1.txt for user tester.", response9.bodyAsText())
-    }
-
-    private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
-        addHeader(
-            HttpHeaders.Authorization,
-            HttpAuthHeader.Single("basic", "$name:".encodeBase64()).render()
-        )
     }
 
     private fun HttpRequestBuilder.addBasicAuth(name: String = "tester") {

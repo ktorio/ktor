@@ -19,7 +19,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -28,6 +27,8 @@ import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class OAuth2Test {
+
+    private fun ApplicationTestBuilder.noRedirectsClient() = createClient { followRedirects = false }
 
     private val DefaultSettings = OAuthServerSettings.OAuth2ServerSettings(
         name = "oauth2",
@@ -126,6 +127,7 @@ class OAuth2Test {
                             state
                         )
                     }
+
                     OAuthGrantTypes.Password -> {
                         if (userName != "user1") {
                             throw OAuth2Exception.InvalidGrant("Wrong username $userName")
@@ -142,6 +144,7 @@ class OAuth2Test {
 
                         return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
                     }
+
                     else -> {
                         throw OAuth2Exception.UnsupportedGrantType(grantType)
                     }
@@ -193,15 +196,14 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRedirect() = withTestApplication({ module() }) {
-        val result = handleRequest {
-            uri = "/login"
-        }
+    fun testRedirect() = testApplication {
+        application { module() }
+        val result = noRedirectsClient().get("/login")
 
-        assertEquals(HttpStatusCode.Found, result.response.status())
+        assertEquals(HttpStatusCode.Found, result.status)
 
         val url = Url(
-            result.response.headers[HttpHeaders.Location]
+            result.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
         assertEquals("/authorize", url.encodedPath)
@@ -215,15 +217,14 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRedirectWithScopes() = withTestApplication({ module(DefaultSettingsWithScopes) }) {
-        val result = handleRequest {
-            uri = "/login"
-        }
+    fun testRedirectWithScopes() = testApplication {
+        application { module(DefaultSettingsWithScopes) }
+        val result = noRedirectsClient().get("/login")
 
-        assertEquals(HttpStatusCode.Found, result.response.status())
+        assertEquals(HttpStatusCode.Found, result.status)
 
         val url = Url(
-            result.response.headers[HttpHeaders.Location]
+            result.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
         assertEquals("/authorize", url.encodedPath)
@@ -238,15 +239,14 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRedirectWithExtraParameters() = withTestApplication({ module(DefaultSettingsWithExtraParameters) }) {
-        val result = handleRequest {
-            uri = "/login"
-        }
+    fun testRedirectWithExtraParameters() = testApplication {
+        application { module(DefaultSettingsWithExtraParameters) }
+        val result = noRedirectsClient().get("/login")
 
-        assertEquals(HttpStatusCode.Found, result.response.status())
+        assertEquals(HttpStatusCode.Found, result.status)
 
         val url = Url(
-            result.response.headers[HttpHeaders.Location]
+            result.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
         assertEquals("/authorize", url.encodedPath)
@@ -262,15 +262,14 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRedirectCustomizedByInterceptor() = withTestApplication({ module(DefaultSettingsWithInterceptor) }) {
-        val result = handleRequest {
-            uri = "/login"
-        }
+    fun testRedirectCustomizedByInterceptor() = testApplication {
+        application { module(DefaultSettingsWithInterceptor) }
+        val result = noRedirectsClient().get("/login")
 
-        assertEquals(HttpStatusCode.Found, result.response.status())
+        assertEquals(HttpStatusCode.Found, result.status)
 
         val url = Url(
-            result.response.headers[HttpHeaders.Location]
+            result.headers[HttpHeaders.Location]
                 ?: throw IllegalStateException("No location header in the response")
         )
         assertEquals("/authorize", url.encodedPath)
@@ -285,35 +284,36 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRequestToken() = withTestApplication({ module() }) {
-        val result = handleRequest {
-            uri = "/login?" + listOf(
+    fun testRequestToken() = testApplication {
+        application { module() }
+        val result = client.get(
+            "/login?" + listOf(
                 OAuth2RequestParameters.Code to "code1",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
-        }
+        )
 
-        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals(HttpStatusCode.OK, result.status)
     }
 
     @Test
-    fun testRequestTokenMethodPost() = withTestApplication({ module(DefaultSettingsWithMethodPost) }) {
-        val result = handleRequest {
-            uri = "/login?" + listOf(
+    fun testRequestTokenMethodPost() = testApplication {
+        application { module(DefaultSettingsWithMethodPost) }
+        val result = client.get(
+            "/login?" + listOf(
                 OAuth2RequestParameters.Code to "code1",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
-        }
+        )
 
-        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals(HttpStatusCode.OK, result.status)
     }
 
     @Test
-    fun testRequestTokenFormPost() = withTestApplication({ module() }) {
-        val result = handleRequest {
-            method = HttpMethod.Post
-            uri = "/login"
-            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+    fun testRequestTokenFormPost() = testApplication {
+        application { module() }
+        val result = client.post("/login") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody(
                 listOf(
                     OAuth2RequestParameters.Code to "code1",
@@ -322,182 +322,178 @@ class OAuth2Test {
             )
         }
 
-        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals(HttpStatusCode.OK, result.status)
     }
 
     @Test
-    fun testRequestTokenBadCode() = withTestApplication({ module() }) {
-        val call = handleRequest {
-            uri = "/login?" + listOf(
+    fun testRequestTokenBadCode() = testApplication {
+        application { module() }
+        val call = noRedirectsClient().get(
+            "/login?" + listOf(
                 OAuth2RequestParameters.Code to "code2",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
-        }
+        )
 
-        assertEquals(HttpStatusCode.Found, call.response.status())
-        assertNotNull(call.response.headers[HttpHeaders.Location])
-        assertTrue { call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize") }
+        assertEquals(HttpStatusCode.Found, call.status)
+        assertNotNull(call.headers[HttpHeaders.Location])
+        assertTrue { call.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize") }
     }
 
     @Test
-    fun testRequestTokenErrorRedirect() = withTestApplication({ module() }) {
-        val call = handleRequest {
-            uri = "/login?" + listOf(
+    fun testRequestTokenErrorRedirect() = testApplication {
+        application {
+            module()
+            intercept(ApplicationCallPipeline.Call) {
+                assertTrue { call.authentication.allFailures.all { it is OAuth2RedirectError && it.error == "access_denied" } }
+            }
+        }
+        val call = noRedirectsClient().get(
+            "/login?" + listOf(
                 OAuth2RequestParameters.Error to "access_denied",
                 OAuth2RequestParameters.ErrorDescription to "User denied access"
             ).formUrlEncode()
-        }
+        )
 
-        assertTrue { call.authentication.allFailures.all { it is OAuth2RedirectError && it.error == "access_denied" } }
-
-        assertEquals(HttpStatusCode.Found, call.response.status())
-        assertNotNull(call.response.headers[HttpHeaders.Location])
+        assertEquals(HttpStatusCode.Found, call.status)
+        assertNotNull(call.headers[HttpHeaders.Location])
         assertTrue {
-            call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize")
+            call.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize")
         }
     }
 
     @Test
-    fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
+    fun testResourceOwnerPasswordCredentials() = testApplication {
+        application { module() }
         handleRequestWithBasic("/resource", "user", "pass").let { result ->
             assertWWWAuthenticateHeaderExist(result)
         }
 
         handleRequestWithBasic("/resource", "user1", "password1").let { result ->
             assertFailures()
-            assertEquals("ok", result.response.content)
+            assertEquals("ok", result.bodyAsText())
         }
     }
 
     @Test
-    fun testParamsInURL(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
-            install(Authentication) {
-                oauth("login") {
-                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
-                    urlProvider = { "http://localhost/login" }
-                    providerLookup = {
-                        OAuthServerSettings.OAuth2ServerSettings(
-                            name = "oauth2",
-                            authorizeUrl = "http://localhost/authorize",
-                            accessTokenUrl = "http://localhost/oauth/access_token",
-                            clientId = "clientId1",
-                            clientSecret = "clientSecret1",
-                            requestMethod = HttpMethod.Post,
-                            passParamsInURL = true
-                        )
-                    }
+    fun testParamsInURL() = testApplication {
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://localhost/authorize",
+                        accessTokenUrl = "http://localhost/oauth/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        passParamsInURL = true
+                    )
                 }
             }
-            routing {
-                post("/oauth/access_token") {
-                    // If these fail, you will see '401 Unauthorized' in test logs.
-                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
-                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
-                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
-                }
-                authenticate("login") {
-                    get("/login") {
-                        call.respond("We're in.")
-                    }
+        }
+        routing {
+            post("/oauth/access_token") {
+                // If these fail, you will see '401 Unauthorized' in test logs.
+                assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
+                assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
                 }
             }
         }
 
-        handleRequest {
-            uri = "/login?code=mow&state=wow"
-        }.also {
+        client.get("/login?code=mow&state=wow").also {
             // Usually 401 here means, that tests above failed.
-            assertEquals(it.response.status(), HttpStatusCode.OK)
-            assertEquals(it.response.content, "We're in.")
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText(), "We're in.")
         }
     }
 
     @Test
-    fun testExtraTokenParams(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
-            install(Authentication) {
-                oauth("login") {
-                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
-                    urlProvider = { "http://localhost/login" }
-                    providerLookup = {
-                        OAuthServerSettings.OAuth2ServerSettings(
-                            name = "oauth2",
-                            authorizeUrl = "http://localhost/authorize",
-                            accessTokenUrl = "http://localhost/oauth/access_token",
-                            clientId = "clientId1",
-                            clientSecret = "clientSecret1",
-                            requestMethod = HttpMethod.Post,
-                            extraTokenParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1")
-                        )
-                    }
+    fun testExtraTokenParams() = testApplication {
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://localhost/authorize",
+                        accessTokenUrl = "http://localhost/oauth/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        extraTokenParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1")
+                    )
                 }
             }
-            routing {
-                post("/oauth/access_token") {
-                    val parameters = call.receiveParameters()
-                    assertEquals(listOf("a1", "a2"), parameters.getAll("a"))
-                    assertEquals(listOf("b1"), parameters.getAll("b"))
-                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
-                }
-                authenticate("login") {
-                    get("/login") {
-                        call.respond("We're in.")
-                    }
+        }
+        routing {
+            post("/oauth/access_token") {
+                val parameters = call.receiveParameters()
+                assertEquals(listOf("a1", "a2"), parameters.getAll("a"))
+                assertEquals(listOf("b1"), parameters.getAll("b"))
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
                 }
             }
         }
 
-        handleRequest {
-            uri = "/login?code=code&state=state"
-        }.also {
+        client.get("/login?code=code&state=state").also {
             // Usually 401 here means, that tests above failed.
-            assertEquals(it.response.status(), HttpStatusCode.OK)
-            assertEquals(it.response.content, "We're in.")
+            assertEquals(it.status, HttpStatusCode.OK)
+            assertEquals(it.bodyAsText(), "We're in.")
         }
     }
 
     @Test
-    fun testFailedNonce(): Unit = withApplication(createTestEnvironment()) {
-        application.apply {
-            install(Authentication) {
-                oauth("login") {
-                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
-                    urlProvider = { "http://localhost/login" }
-                    providerLookup = {
-                        OAuthServerSettings.OAuth2ServerSettings(
-                            name = "oauth2",
-                            authorizeUrl = "http://localhost/authorize",
-                            accessTokenUrl = "http://localhost/oauth/access_token",
-                            clientId = "clientId1",
-                            clientSecret = "clientSecret1",
-                            requestMethod = HttpMethod.Post,
-                            nonceManager = object : NonceManager {
-                                override suspend fun newNonce(): String = "some_nonce"
-                                override suspend fun verifyNonce(nonce: String): Boolean = false
-                            }
-                        )
-                    }
+    fun testFailedNonce() = testApplication {
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://localhost/authorize",
+                        accessTokenUrl = "http://localhost/oauth/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        nonceManager = object : NonceManager {
+                            override suspend fun newNonce(): String = "some_nonce"
+                            override suspend fun verifyNonce(nonce: String): Boolean = false
+                        }
+                    )
                 }
             }
-            routing {
-                post("/oauth/access_token") {
-                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
-                }
-                authenticate("login") {
-                    get("/login") {
-                        call.respond("We're in.")
-                    }
+        }
+        routing {
+            post("/oauth/access_token") {
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
                 }
             }
         }
 
-        val authorizeResponse = handleRequest { uri = "/login" }
-        val redirectUrl = Url(authorizeResponse.response.headers[HttpHeaders.Location]!!)
+        val authorizeResponse = noRedirectsClient().get("/login")
+        val redirectUrl = Url(authorizeResponse.headers[HttpHeaders.Location]!!)
         val state = redirectUrl.parameters["state"]!!
         assertEquals("some_nonce", state)
-        val failedNonceResponse = handleRequest { uri = "/login?code=some_code&state=$state" }
-        assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.response.status())
+        val failedNonceResponse = client.get("/login?code=some_code&state=$state")
+        assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.status)
     }
 
     @Test
@@ -580,21 +576,17 @@ class OAuth2Test {
     }
 }
 
-private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
-    handleRequest {
-        uri = url
-
+private suspend fun ApplicationTestBuilder.handleRequestWithBasic(url: String, user: String, pass: String) =
+    client.get(url) {
         val up = "$user:$pass"
         val encoded = up.toByteArray(Charsets.ISO_8859_1).encodeBase64()
-        addHeader(HttpHeaders.Authorization, "Basic $encoded")
+        header(HttpHeaders.Authorization, "Basic $encoded")
     }
 
-private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
-    assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
+private fun assertWWWAuthenticateHeaderExist(response: HttpResponse) {
+    assertNotNull(response.headers[HttpHeaders.WWWAuthenticate])
     val header =
-        parseAuthorizationHeader(
-            response.response.headers[HttpHeaders.WWWAuthenticate]!!
-        ) as HttpAuthHeader.Parameterized
+        parseAuthorizationHeader(response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
     assertEquals(AuthScheme.Basic, header.authScheme)
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))
