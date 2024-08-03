@@ -37,6 +37,7 @@ fun isAvailableForPublication(publication: Publication): Boolean {
         "watchosArm32",
         "watchosArm64",
         "watchosSimulatorArm64",
+        "watchosDeviceArm64",
 
         "tvosX64",
         "tvosArm64",

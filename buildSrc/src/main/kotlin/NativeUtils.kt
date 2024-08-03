@@ -38,6 +38,7 @@ fun Project.watchosTargets(): List<String> = with(kotlin) {
         watchosArm32(),
         watchosArm64(),
         watchosSimulatorArm64(),
+        watchosDeviceArm64(),
     ).map { it.name }
 }
 
