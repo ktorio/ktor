@@ -16,7 +16,7 @@ import kotlin.coroutines.*
 @KtorDsl
 internal class DebugPipelineContext<TSubject : Any, TContext : Any>(
     context: TContext,
-    private val interceptors: List<PipelineInterceptorFunction<TSubject, TContext>>,
+    private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject,
     override val coroutineContext: CoroutineContext
 ) : PipelineContext<TSubject, TContext>(context) {
@@ -76,7 +76,7 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any>(
             }
             val executeInterceptor = interceptors[index]
             this.index = index + 1
-            executeInterceptor.toInterceptor().invoke(this, subject)
+            executeInterceptor.invoke(this, subject)
         } while (true)
 
         return subject

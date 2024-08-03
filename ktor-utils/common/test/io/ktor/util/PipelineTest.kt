@@ -2,44 +2,44 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.utils
+package io.ktor.util
 
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class PipelineTest {
     val phase = PipelinePhase("Phase")
     fun pipeline(): Pipeline<String, Unit> = Pipeline(phase)
     fun Pipeline<String, Unit>.intercept(block: PipelineInterceptor<String, Unit>) = intercept(phase, block)
-    fun <T : Any> Pipeline<T, Unit>.executeBlocking(subject: T) = runBlocking { execute(Unit, subject) }
 
     @Test
-    fun emptyPipeline() {
-        pipeline().executeBlocking("some")
+    fun emptyPipeline() = runTest {
+        pipeline().execute(Unit, "some")
     }
 
     @Test
-    fun singleActionPipeline() {
+    fun singleActionPipeline() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject -> events.add("intercept $subject") }
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept some"), events)
     }
 
     @Test
-    fun implicitProceed() {
+    fun implicitProceed() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject -> events.add("intercept1 $subject") }
         pipeline.intercept { subject -> events.add("intercept2 $subject") }
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some"), events)
     }
 
     @Test
-    fun singleActionPipelineWithFail() {
+    fun singleActionPipelineWithFail() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -50,12 +50,12 @@ class PipelineTest {
                 events.add("fail $subject")
             }
         }
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept some", "fail some"), events)
     }
 
     @Test
-    fun actionFinishOrder() {
+    fun actionFinishOrder() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -77,12 +77,12 @@ class PipelineTest {
                 events.add("fail2 $subject")
             }
         }
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "success2 some", "success1 some"), events)
     }
 
     @Test
-    fun actionFinishAllOrder() {
+    fun actionFinishAllOrder() = runTest {
         val events = mutableListOf<String>()
         val p1 = pipeline()
 
@@ -122,7 +122,7 @@ class PipelineTest {
             proceed()
         }
 
-        p1.executeBlocking("p1")
+        p1.execute(Unit, "p1")
         assertEquals(
             listOf(
                 "intercept-p1-1 p1",
@@ -138,7 +138,7 @@ class PipelineTest {
     }
 
     @Test
-    fun actionFailOrder() {
+    fun actionFailOrder() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -161,12 +161,12 @@ class PipelineTest {
             }
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
     }
 
     @Test
-    fun actionFinishFailOrder() {
+    fun actionFinishFailOrder() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -189,12 +189,12 @@ class PipelineTest {
             }
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
     }
 
     @Test
-    fun actionFailFailOrder() {
+    fun actionFailFailOrder() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -217,12 +217,12 @@ class PipelineTest {
             }
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
     }
 
     @Test
-    fun forkSuccess() {
+    fun forkSuccess() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -246,12 +246,12 @@ class PipelineTest {
             events.add("intercept4 $subject")
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "intercept4 some"), events)
     }
 
     @Test
-    fun forkFailMain() {
+    fun forkFailMain() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -278,7 +278,7 @@ class PipelineTest {
         }
 
         assertFailsWith<UnsupportedOperationException> {
-            pipeline.executeBlocking("some")
+            pipeline.execute(Unit, "some")
         }
         assertEquals(
             listOf(
@@ -293,7 +293,7 @@ class PipelineTest {
     }
 
     @Test
-    fun forkFailNested() {
+    fun forkFailNested() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -322,13 +322,13 @@ class PipelineTest {
         }
 
         assertFailsWith<UnsupportedOperationException> {
-            pipeline.executeBlocking("some")
+            pipeline.execute(Unit, "some")
         }
         assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "fail1 some"), events)
     }
 
     @Test
-    fun asyncPipeline() {
+    fun asyncPipeline() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -344,12 +344,12 @@ class PipelineTest {
             events.add("intercept2 $subject")
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 some", "success1 some"), events)
     }
 
     @Test
-    fun asyncFork() {
+    fun asyncFork() = runTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { subject ->
@@ -372,11 +372,11 @@ class PipelineTest {
             proceed()
         }
 
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 another", "success1 some"), events)
     }
 
-    private fun checkBeforeAfterPipeline(
+    private suspend fun checkBeforeAfterPipeline(
         after: PipelinePhase,
         before: PipelinePhase,
         pipeline: Pipeline<String, Unit>
@@ -390,12 +390,12 @@ class PipelineTest {
             assertFalse(value)
             proceed()
         }
-        pipeline.executeBlocking("some")
+        pipeline.execute(Unit, "some")
         assertTrue(value)
     }
 
     @Test
-    fun phased() {
+    fun phased() = runTest {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         val pipeline = Pipeline<String, Unit>(before, after)
@@ -403,7 +403,7 @@ class PipelineTest {
     }
 
     @Test
-    fun phasedNotRegistered() {
+    fun phasedNotRegistered() = runTest {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         val pipeline = Pipeline<String, Unit>(before)
@@ -413,7 +413,7 @@ class PipelineTest {
     }
 
     @Test
-    fun phasedBefore() {
+    fun phasedBefore() = runTest {
         val pipeline = Pipeline<String, Unit>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
@@ -423,7 +423,7 @@ class PipelineTest {
     }
 
     @Test
-    fun phasedAfter() {
+    fun phasedAfter() = runTest {
         val pipeline = Pipeline<String, Unit>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
