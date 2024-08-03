@@ -27,8 +27,8 @@ private fun locationOrigin(): String = js(
  *
  * It uses "localhost" for all platforms except js.
  */
-public actual val URLBuilder.Companion.origin: String get() =
-    when (PlatformUtils.platform) {
-        Platform.Browser -> locationOrigin()
+public actual val URLBuilder.Companion.origin: String
+    get() = when {
+        PlatformUtils.IS_BROWSER -> locationOrigin()
         else -> "http://localhost"
     }
