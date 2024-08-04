@@ -15,7 +15,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.nio.charset.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()

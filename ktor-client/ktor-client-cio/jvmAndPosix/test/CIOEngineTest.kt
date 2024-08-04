@@ -16,7 +16,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
 class CIOEngineTest {

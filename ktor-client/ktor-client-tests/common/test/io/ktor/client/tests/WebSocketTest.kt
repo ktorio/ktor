@@ -17,7 +17,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
