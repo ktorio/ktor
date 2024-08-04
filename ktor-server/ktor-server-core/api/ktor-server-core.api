@@ -432,7 +432,7 @@ public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/serv
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	protected final fun getMonitor ()Lio/ktor/events/Events;
 	public final fun getPipeline ()Lio/ktor/server/engine/EnginePipeline;
-	protected final fun getResolvedConnectors ()Lkotlinx/coroutines/CompletableDeferred;
+	protected final fun getResolvedConnectorsDeferred ()Lkotlinx/coroutines/CompletableDeferred;
 	public fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
