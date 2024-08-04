@@ -13,19 +13,16 @@ import io.ktor.server.test.base.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import kotlin.test.*
-import kotlin.test.Test
 
 abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     private var semaphore = Semaphore(1)
-    private fun setNumberOfEvents(n: Int) {
+    private suspend fun setNumberOfEvents(n: Int) {
         semaphore = Semaphore(n)
-        runBlocking {
-            repeat(n) {
-                semaphore.acquire()
-            }
+        repeat(n) {
+            semaphore.acquire()
         }
     }
 
@@ -41,17 +38,19 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
         semaphore.release()
     }
 
-    private fun assertEvents(events: List<String>, timeoutMillis: Long, withUrlBlock: (suspend () -> Unit) -> Unit) {
+    private suspend fun assertEvents(
+        events: List<String>,
+        timeoutMillis: Long,
+        withUrlBlock: suspend (suspend () -> Unit) -> Unit
+    ) {
         eventsList.clear()
         setNumberOfEvents(events.size)
 
-        runBlocking {
-            withTimeout(timeoutMillis) {
-                withUrlBlock {
-                    expectNumberOfEvents(events.size)
+        withTimeout(timeoutMillis) {
+            withUrlBlock {
+                expectNumberOfEvents(events.size)
 
-                    assertEquals(events, eventsList.toList())
-                }
+                assertEquals(events, eventsList.toList())
             }
         }
     }
@@ -77,7 +76,7 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
     }
 
     @Test
-    fun testCoroutineContextIsCreatedForSingleCallOnly() {
+    fun testCoroutineContextIsCreatedForSingleCallOnly() = runTest {
         createAndStartServer {
             get("/request") {
                 val data = call.receive<String>()

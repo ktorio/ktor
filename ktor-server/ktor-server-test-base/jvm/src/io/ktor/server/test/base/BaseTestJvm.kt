@@ -6,8 +6,10 @@
 package io.ktor.server.test.base
 
 import io.ktor.junit.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.*
+import kotlinx.coroutines.test.*
 import org.junit.jupiter.api.*
 import java.lang.reflect.*
 import java.util.*
@@ -40,7 +42,6 @@ actual abstract class BaseTest actual constructor() {
         errorCollector += error
     }
 
-    actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
-        runBlocking(CoroutineName("test-$testName"), block)
-    }
+    actual fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult =
+        runTestWithRealTime(CoroutineName("test-$testName"), timeout, block)
 }

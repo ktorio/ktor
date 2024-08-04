@@ -33,9 +33,9 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     protected var sslPort: Int
     protected var server: EmbeddedServer<TEngine, TConfiguration>?
 
-    protected fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable>
+    protected suspend fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable>
 
-    protected fun createAndStartServer(
+    protected suspend fun createAndStartServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         routingConfigurer: Route.() -> Unit
@@ -43,7 +43,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected open fun plugins(application: Application, routingConfig: Route.() -> Unit)
 
-    protected fun withUrl(
+    protected suspend fun withUrl(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit = {},
         block: suspend HttpResponse.(Int) -> Unit

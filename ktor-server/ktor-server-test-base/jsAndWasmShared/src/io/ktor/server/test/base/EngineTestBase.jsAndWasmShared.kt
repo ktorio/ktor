@@ -5,13 +5,10 @@
 package io.ktor.server.test.base
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.network.selector.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
@@ -21,8 +18,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.time.Duration.Companion.seconds
-
-private val TEST_SELECTOR_MANAGER = SelectorManager()
 
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
@@ -38,11 +33,7 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
-        val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
-        inetAddress.port
-    }
-
+    protected actual var port: Int = 0
     protected actual var sslPort: Int = 0
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
@@ -133,9 +124,7 @@ actual constructor(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ) {
-        withUrl("http://127.0.0.1:$port$path", port, builder, block)
-    }
+    ): Unit = withUrl("http://127.0.0.1:$port$path", port, builder, block)
 
     private suspend fun withUrl(
         urlString: String,
@@ -143,7 +132,7 @@ actual constructor(
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient(CIO) {
+        HttpClient {
             followRedirects = false
             expectSuccess = false
 

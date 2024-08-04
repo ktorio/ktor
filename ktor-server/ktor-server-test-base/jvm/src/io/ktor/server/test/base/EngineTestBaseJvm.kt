@@ -99,7 +99,7 @@ actual abstract class EngineTestBase<
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            server?.stop(0, 200, TimeUnit.MILLISECONDS)
+            server?.stop(0, 500, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
@@ -163,7 +163,7 @@ actual abstract class EngineTestBase<
         application.install(RoutingRoot, routingConfig)
     }
 
-    protected actual fun createAndStartServer(
+    protected actual suspend fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
@@ -198,7 +198,7 @@ actual abstract class EngineTestBase<
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected actual fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+    protected actual suspend fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -214,11 +214,9 @@ actual abstract class EngineTestBase<
         }
 
         return try {
-            runBlocking {
-                starting.join()
-                @OptIn(ExperimentalCoroutinesApi::class)
-                starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-            }
+            starting.join()
+            @OptIn(ExperimentalCoroutinesApi::class)
+            starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
         } catch (t: Throwable) { // InterruptedException?
             starting.cancel()
             listOf(t)
@@ -246,7 +244,7 @@ actual abstract class EngineTestBase<
 
     protected fun findFreePort(): Int = FreePorts.select()
 
-    protected actual fun withUrl(
+    protected actual suspend fun withUrl(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
@@ -272,12 +270,12 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private fun withUrl(
+    private suspend fun withUrl(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ) = runBlocking {
+    ) {
         HttpClient(CIO) {
             engine {
                 https.trustManager = trustManager
@@ -296,12 +294,12 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private fun withHttp2(
+    private suspend fun withHttp2(
         url: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ): Unit = runBlocking {
+    ) {
         HttpClient(Apache) {
             followRedirects = false
             expectSuccess = false

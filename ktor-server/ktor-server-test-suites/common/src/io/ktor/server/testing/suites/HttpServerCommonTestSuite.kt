@@ -37,7 +37,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    fun testRedirect() {
+    fun testRedirect() = runTest {
         createAndStartServer {
             handle {
                 call.respondRedirect(Url("http://localhost:${call.request.port()}/page"), true)
@@ -50,7 +50,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRedirectFromInterceptor() {
+    fun testRedirectFromInterceptor() = runTest {
         createAndStartServer {
             application.intercept(ApplicationCallPipeline.Plugins) {
                 call.respondRedirect("/2", true)
@@ -65,7 +65,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHeader() {
+    fun testHeader() = runTest {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
@@ -82,7 +82,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testAllHeaders() {
+    fun testAllHeaders() = runTest {
         createAndStartServer {
             handle {
                 call.response.headers.append("Name-1", "value-1")
@@ -101,7 +101,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testHeadRequest() {
+    open fun testHeadRequest() = runTest {
         createAndStartServer {
             application.install(AutoHeadResponse)
             handle {
@@ -117,7 +117,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testCookie() {
+    fun testCookie() = runTest {
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
@@ -132,7 +132,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testPathComponentsDecoding() {
+    fun testPathComponentsDecoding() = runTest {
         createAndStartServer {
             get("/a%20b") {
                 call.respondText("space")
@@ -153,7 +153,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testFormUrlEncoded() {
+    fun testFormUrlEncoded() = runTest {
         createAndStartServer {
             post("/") {
                 call.respondText("${call.parameters["urlp"]},${call.receiveParameters()["formp"]}")
@@ -173,7 +173,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestTwiceNoKeepAlive() {
+    fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -200,7 +200,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestTwiceWithKeepAlive() {
+    fun testRequestTwiceWithKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText("Text")
@@ -229,7 +229,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun test404() {
+    fun test404() = runTest {
         createAndStartServer {
         }
 
@@ -243,7 +243,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusPages404() {
+    fun testStatusPages404() = runTest {
         createAndStartServer {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) { call, _ ->
@@ -261,7 +261,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRemoteAddress() {
+    fun testRemoteAddress() = runTest {
         createAndStartServer {
             handle {
                 call.respondText {
@@ -282,7 +282,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestParameters() {
+    fun testRequestParameters() = runTest {
         createAndStartServer {
             get("/*") {
                 call.respond(call.request.queryParameters.getAll(call.request.path().removePrefix("/")).toString())
@@ -301,7 +301,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusCodeDirect() {
+    fun testStatusCodeDirect() = runTest {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Found)
@@ -316,7 +316,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testStatusCodeViaResponseObject() {
+    fun testStatusCodeViaResponseObject() = runTest {
         var completed = false
         createAndStartServer {
             get("/") {
@@ -332,7 +332,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testProxyHeaders() {
+    fun testProxyHeaders() = runTest {
         createAndStartServer {
             application.install(XForwardedHeaders)
             get("/") {
@@ -382,7 +382,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRequestParts() {
+    fun testRequestParts() = runTest {
         createAndStartServer {
             get("/path/1") {
                 call.respond(call.request.path())
@@ -442,7 +442,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @OptIn(UseHttp2Push::class)
     @Test
     @Http2Only
-    fun testServerPush() {
+    fun testServerPush() = runTest {
         createAndStartServer {
             get("/child") {
                 call.respondText("child")
@@ -466,7 +466,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHeadersReturnCorrectly() {
+    fun testHeadersReturnCorrectly() = runTest {
         createAndStartServer {
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
@@ -495,7 +495,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testParentContextPropagates() {
+    fun testParentContextPropagates() = runTest {
         createAndStartServer(
             parent = TestData("parent")
         ) {
@@ -512,7 +512,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testNoRespond() {
+    fun testNoRespond() = runTest {
         createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Accepted)
@@ -527,7 +527,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun queryParameterContainingSemicolon() {
+    fun queryParameterContainingSemicolon() = runTest {
         createAndStartServer {
             handle {
                 assertEquals("01;21", call.request.queryParameters["code"])
@@ -549,7 +549,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRawAndDecodedQueryParameter() {
+    fun testRawAndDecodedQueryParameter() = runTest {
         createAndStartServer {
             handle {
                 assertEquals("value&1+2 3", call.request.queryParameters["key"])
@@ -569,7 +569,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testFlushingHeaders() {
+    open fun testFlushingHeaders() = runTest {
         createAndStartServer {
             route("/timed") {
                 post {
@@ -589,32 +589,30 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        runBlocking {
-            val client = HttpClient()
-            val requestBody = ByteChannel(true)
+        val client = HttpClient()
+        val requestBody = ByteChannel(true)
 
-            client.preparePost("http://127.0.0.1:$port/timed") {
-                setBody(requestBody)
-            }.execute { httpResponse ->
-                assertEquals(httpResponse.status, HttpStatusCode.OK)
-                assertEquals(httpResponse.contentType(), ContentType.Text.Plain)
+        client.preparePost("http://127.0.0.1:$port/timed") {
+            setBody(requestBody)
+        }.execute { httpResponse ->
+            assertEquals(httpResponse.status, HttpStatusCode.OK)
+            assertEquals(httpResponse.contentType(), ContentType.Text.Plain)
 
-                val channel: ByteReadChannel = httpResponse.body()
-                assertEquals(0, channel.availableForRead)
+            val channel: ByteReadChannel = httpResponse.body()
+            assertEquals(0, channel.availableForRead)
 
-                val content = ByteArray(5) { it.toByte() }
-                requestBody.writeFully(content)
-                requestBody.close(null)
+            val content = ByteArray(5) { it.toByte() }
+            requestBody.writeFully(content)
+            requestBody.close(null)
 
-                assertContentEquals(channel.readRemaining().readByteArray(), content)
-            }
-            client.close()
+            assertContentEquals(channel.readRemaining().readByteArray(), content)
         }
+        client.close()
     }
 
     @OptIn(InternalAPI::class)
     @Test
-    open fun testCanModifyRequestHeaders() {
+    open fun testCanModifyRequestHeaders() = runTest {
         createAndStartServer {
             install(
                 createRouteScopedPlugin("plugin") {
@@ -634,26 +632,24 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        runBlocking {
-            HttpClient().use { client ->
-                val requestBody = ByteChannel(true)
-                requestBody.writeStringUtf8("test")
+        HttpClient().use { client ->
+            val requestBody = ByteChannel(true)
+            requestBody.writeStringUtf8("test")
 
-                val response = client.post("http://127.0.0.1:$port/") {
-                    headers.append("original", "old")
-                    headers.append("deleted", "old")
-                    headers.append("changed", "old")
-                    setBody("test")
-                }
-
-                assertEquals("test", response.bodyAsText())
+            val response = client.post("http://127.0.0.1:$port/") {
+                headers.append("original", "old")
+                headers.append("deleted", "old")
+                headers.append("changed", "old")
+                setBody("test")
             }
+
+            assertEquals("test", response.bodyAsText())
         }
     }
 
     @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
     @Test
-    open fun testCanModifyRequestBody() {
+    open fun testCanModifyRequestBody() = runTest {
         createAndStartServer {
             install(
                 createRouteScopedPlugin("plugin") {
@@ -675,23 +671,21 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        runBlocking {
-            HttpClient().use { client ->
-                val requestBody = ByteChannel(true)
-                requestBody.writeStringUtf8("test")
-                requestBody.close()
+        HttpClient().use { client ->
+            val requestBody = ByteChannel(true)
+            requestBody.writeStringUtf8("test")
+            requestBody.close()
 
-                val response = client.post("http://127.0.0.1:$port/") {
-                    setBody(requestBody)
-                }
-
-                assertEquals("starttestfinish", response.bodyAsText())
+            val response = client.post("http://127.0.0.1:$port/") {
+                setBody(requestBody)
             }
+
+            assertEquals("starttestfinish", response.bodyAsText())
         }
     }
 
     @Test
-    fun testHSTSWithCustomPlugin() {
+    fun testHSTSWithCustomPlugin() = runTest {
         createAndStartServer {
             val plugin = createApplicationPlugin("plugin") {
                 on(CallSetup) { call ->
@@ -719,7 +713,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testErrorInBodyAndStatusIsSet() {
+    fun testErrorInBodyAndStatusIsSet() = runTest {
         var throwError = false
         createAndStartServer {
             val plugin = createApplicationPlugin("plugin") {
@@ -744,7 +738,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testErrorInBodyClosesConnection() {
+    fun testErrorInBodyClosesConnection() = runTest {
         createAndStartServer {
             get("/") {
                 call.respond(
@@ -769,7 +763,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testErrorInBodyClosesConnectionWithContentLength() {
+    open fun testErrorInBodyClosesConnectionWithContentLength() = runTest {
         createAndStartServer {
             get("/") {
                 call.respond(

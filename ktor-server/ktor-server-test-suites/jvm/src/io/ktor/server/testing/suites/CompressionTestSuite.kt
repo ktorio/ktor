@@ -28,7 +28,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testLocalFileContentWithCompression() {
+    fun testLocalFileContentWithCompression() = runTest {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -48,7 +48,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testStreamingContentWithCompression() {
+    fun testStreamingContentWithCompression() = runTest {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -73,7 +73,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testLocalFileContentRangeWithCompression() {
+    fun testLocalFileContentRangeWithCompression() = runTest {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -106,7 +106,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testCompressionWriteToLarge() {
+    fun testCompressionWriteToLarge() = runTest {
         val count = 655350
         fun Appendable.produceText() {
             for (i in 1..count) {

@@ -27,7 +27,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testChunkedResponse() {
+    fun testChunkedResponse() = runTest {
         createAndStartServer {
             get("/") {
                 val byteStream = ByteChannel(autoFlush = true)

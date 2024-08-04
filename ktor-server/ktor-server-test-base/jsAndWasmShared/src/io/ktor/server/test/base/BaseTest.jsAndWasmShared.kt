@@ -5,8 +5,6 @@
 package io.ktor.server.test.base
 
 import io.ktor.test.dispatcher.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.locks.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
 import kotlin.test.*
@@ -19,14 +17,8 @@ actual abstract class BaseTest actual constructor() {
 
     private val errors = mutableListOf<Throwable>()
 
-    @OptIn(InternalAPI::class)
-    private val errorsLock = SynchronizedObject()
-
-    @OptIn(InternalAPI::class)
     actual fun collectUnhandledException(error: Throwable) {
-        synchronized(errorsLock) {
-            errors.add(error)
-        }
+        errors.add(error)
     }
 
     @AfterTest

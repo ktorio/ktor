@@ -14,6 +14,7 @@ class ConfigJvmTest {
 
     @Test
     fun testLoadFromResources() {
+        System.clearProperty("config.file")
         System.setProperty("config.resource", "custom.config.conf")
         val config = ConfigLoader.load()
 
@@ -22,6 +23,7 @@ class ConfigJvmTest {
 
     @Test
     fun testLoadYamlFromResources() {
+        System.clearProperty("config.file")
         System.setProperty("config.resource", "custom.config.yaml")
         val config = ConfigLoader.load()
 
@@ -41,6 +43,7 @@ class ConfigJvmTest {
             """.trimIndent()
         )
 
+        System.clearProperty("config.resource")
         System.setProperty("config.file", file.absolutePathString())
         val config = ConfigLoader.load()
 
