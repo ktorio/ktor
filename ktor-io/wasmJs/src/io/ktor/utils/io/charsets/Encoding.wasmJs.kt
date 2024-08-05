@@ -14,7 +14,7 @@ public actual abstract class Charset(internal val _name: String) {
 
     actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        return other is Charset && (_name != other._name)
+        return other is Charset && (_name == other._name)
     }
 
     actual override fun hashCode(): Int = _name.hashCode()
@@ -89,7 +89,7 @@ public actual fun CharsetDecoder.decode(
     return result.length
 }
 
-private data class CharsetImpl(val name: String) : Charset(name) {
+private class CharsetImpl(name: String) : Charset(name) {
     override fun newEncoder(): CharsetEncoder = object : CharsetEncoder(this) {}
     override fun newDecoder(): CharsetDecoder = object : CharsetDecoder(this) {}
 }

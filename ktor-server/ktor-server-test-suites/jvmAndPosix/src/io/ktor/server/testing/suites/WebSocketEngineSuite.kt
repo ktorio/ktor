@@ -70,16 +70,13 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                closeReasonJob.join()
-                contextJob.join()
-            }
+
+        withTimeout(5000) {
+            closeReasonJob.join()
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
     }
 
     @Test
@@ -116,16 +113,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                closeReasonJob.join()
-                contextJob.join()
-            }
+        withTimeout(5000) {
+            closeReasonJob.join()
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
     }
 
     @Test
@@ -159,16 +152,14 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                closeReasonJob.join()
-                contextJob.join()
-            }
+
+        withTimeout(5000) {
+            closeReasonJob.join()
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
+
         delay(5000)
     }
 
@@ -194,15 +185,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                contextJob.join()
-            }
+
+        withTimeout(5000) {
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
     }
 
     @Ignore // fails process on native
@@ -231,15 +219,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                contextJob.join()
-            }
+
+        withTimeout(5000) {
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
     }
 
     @Ignore // For now we assume that without any network interactions the socket will remain open.
@@ -265,15 +250,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-        runBlocking {
-            withTimeout(5000) {
-                contextJob.join()
-            }
+
+        withTimeout(5000) {
+            contextJob.join()
         }
 
-        runBlocking {
-            result.await()
-        }
+        result.await()
     }
 
     @Test

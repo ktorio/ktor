@@ -258,24 +258,63 @@ public final class io/ktor/util/PathKt {
 	public static final fun normalizeAndRelativize (Ljava/io/File;)Ljava/io/File;
 }
 
-public final class io/ktor/util/Platform : java/lang/Enum {
-	public static final field Browser Lio/ktor/util/Platform;
-	public static final field Jvm Lio/ktor/util/Platform;
-	public static final field Native Lio/ktor/util/Platform;
-	public static final field Node Lio/ktor/util/Platform;
+public abstract class io/ktor/util/Platform {
+}
+
+public final class io/ktor/util/Platform$Js : io/ktor/util/Platform {
+	public fun <init> (Lio/ktor/util/Platform$JsPlatform;)V
+	public final fun component1 ()Lio/ktor/util/Platform$JsPlatform;
+	public final fun copy (Lio/ktor/util/Platform$JsPlatform;)Lio/ktor/util/Platform$Js;
+	public static synthetic fun copy$default (Lio/ktor/util/Platform$Js;Lio/ktor/util/Platform$JsPlatform;ILjava/lang/Object;)Lio/ktor/util/Platform$Js;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getJsPlatform ()Lio/ktor/util/Platform$JsPlatform;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/Platform$JsPlatform : java/lang/Enum {
+	public static final field Browser Lio/ktor/util/Platform$JsPlatform;
+	public static final field Node Lio/ktor/util/Platform$JsPlatform;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/Platform;
-	public static fun values ()[Lio/ktor/util/Platform;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/Platform$JsPlatform;
+	public static fun values ()[Lio/ktor/util/Platform$JsPlatform;
+}
+
+public final class io/ktor/util/Platform$Jvm : io/ktor/util/Platform {
+	public static final field INSTANCE Lio/ktor/util/Platform$Jvm;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/Platform$Native : io/ktor/util/Platform {
+	public static final field INSTANCE Lio/ktor/util/Platform$Native;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/Platform$WasmJs : io/ktor/util/Platform {
+	public fun <init> (Lio/ktor/util/Platform$JsPlatform;)V
+	public final fun component1 ()Lio/ktor/util/Platform$JsPlatform;
+	public final fun copy (Lio/ktor/util/Platform$JsPlatform;)Lio/ktor/util/Platform$WasmJs;
+	public static synthetic fun copy$default (Lio/ktor/util/Platform$WasmJs;Lio/ktor/util/Platform$JsPlatform;ILjava/lang/Object;)Lio/ktor/util/Platform$WasmJs;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getJsPlatform ()Lio/ktor/util/Platform$JsPlatform;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/PlatformUtils {
 	public static final field INSTANCE Lio/ktor/util/PlatformUtils;
 	public final fun getIS_BROWSER ()Z
 	public final fun getIS_DEVELOPMENT_MODE ()Z
+	public final fun getIS_JS ()Z
 	public final fun getIS_JVM ()Z
 	public final fun getIS_NATIVE ()Z
 	public final fun getIS_NEW_MM_ENABLED ()Z
 	public final fun getIS_NODE ()Z
+	public final fun getIS_WASM_JS ()Z
 }
 
 public final class io/ktor/util/PlatformUtilsJvmKt {

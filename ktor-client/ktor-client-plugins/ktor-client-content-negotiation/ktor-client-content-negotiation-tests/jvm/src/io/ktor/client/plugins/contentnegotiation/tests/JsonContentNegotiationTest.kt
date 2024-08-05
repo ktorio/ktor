@@ -87,7 +87,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringServer(): Unit = testApplication {
+    open fun testSendJsonStringServer() = testApplication {
         routing {
             get("/") {
                 call.respond("abc")
@@ -104,7 +104,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringServer(): Unit = testApplication {
+    open fun testReceiveJsonStringServer() = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
@@ -125,7 +125,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringClient(): Unit = testApplication {
+    open fun testReceiveJsonStringClient() = testApplication {
         routing {
             get("/") {
                 call.respond(TextContent("\"abc\"", ContentType.Application.Json))
@@ -143,7 +143,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringClient(): Unit = testApplication {
+    open fun testSendJsonStringClient() = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -166,7 +166,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullServer(): Unit = testApplication {
+    open fun testJsonNullServer() = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -187,7 +187,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullClient(): Unit = testApplication {
+    open fun testJsonNullClient() = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()

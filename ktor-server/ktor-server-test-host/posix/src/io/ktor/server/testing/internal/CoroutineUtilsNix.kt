@@ -7,3 +7,5 @@ package io.ktor.server.testing.internal
 import kotlinx.coroutines.*
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default
+
+internal actual fun <T> maybeRunBlocking(block: suspend CoroutineScope.() -> T): T = runBlocking(block = block)

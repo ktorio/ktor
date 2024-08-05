@@ -1,10 +1,10 @@
 kotlin.sourceSets {
-    jvmAndPosixMain {
+    commonMain {
         dependencies {
             api(libs.kotlinx.html)
         }
     }
-    jvmAndPosixTest {
+    commonTest {
         dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
         }

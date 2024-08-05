@@ -19,7 +19,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     data class User(val name: String, val id: Int)
 
     @Test
-    open fun testJsonNullWithWebsocketsClient(): Unit = testApplication {
+    open fun testJsonNullWithWebsocketsClient() = testApplication {
         install(io.ktor.server.websocket.WebSockets)
         routing {
             webSocket("/") {
@@ -43,7 +43,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithNullWebsocketsServer(): Unit = testApplication {
+    open fun testJsonWithNullWebsocketsServer() = testApplication {
         install(io.ktor.server.websocket.WebSockets) {
             contentConverter = this@JsonWebsocketsTest.converter
         }
@@ -67,7 +67,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithWebsocketsClient(): Unit = testApplication {
+    open fun testJsonWithWebsocketsClient() = testApplication {
         install(io.ktor.server.websocket.WebSockets)
         routing {
             webSocket("/") {
@@ -91,7 +91,7 @@ abstract class JsonWebsocketsTest(private val converter: WebsocketContentConvert
     }
 
     @Test
-    open fun testJsonWithWebsocketsServer(): Unit = testApplication {
+    open fun testJsonWithWebsocketsServer() = testApplication {
         install(io.ktor.server.websocket.WebSockets) {
             contentConverter = this@JsonWebsocketsTest.converter
         }

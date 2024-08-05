@@ -50,7 +50,7 @@ actual constructor(
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
 
-    protected actual fun createAndStartServer(
+    protected actual suspend fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
@@ -105,7 +105,7 @@ actual constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected actual fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+    protected actual suspend fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -116,11 +116,9 @@ actual constructor(
         }
 
         return try {
-            runBlocking {
-                starting.join()
-                @OptIn(ExperimentalCoroutinesApi::class)
-                starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-            }
+            starting.join()
+            @OptIn(ExperimentalCoroutinesApi::class)
+            starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
         } catch (t: Throwable) { // InterruptedException?
             starting.cancel()
             listOf(t)
@@ -131,7 +129,7 @@ actual constructor(
         application.install(RoutingRoot, routingConfig)
     }
 
-    protected actual fun withUrl(
+    protected actual suspend fun withUrl(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
@@ -139,12 +137,12 @@ actual constructor(
         withUrl("http://127.0.0.1:$port$path", port, builder, block)
     }
 
-    private fun withUrl(
+    private suspend fun withUrl(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ): Unit = runTest {
+    ) {
         HttpClient(CIO) {
             followRedirects = false
             expectSuccess = false

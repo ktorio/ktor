@@ -8,6 +8,7 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.locks.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
@@ -43,10 +44,9 @@ actual abstract class BaseTest actual constructor() {
         throw error // suppressed exceptions print wrong in idea
     }
 
-    actual fun runTest(block: suspend CoroutineScope.() -> Unit) {
-        testSuspend(timeoutMillis = timeout.inWholeMilliseconds, block = block)
-    }
+    actual fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult =
+        runTestWithRealTime(timeout = timeout, testBody = block)
 }
 
 private class UnhandledErrorsException(override val message: String) : Exception()
-private class TestTimeoutException(override val message: String, override val cause: Throwable?) : Exception()
+

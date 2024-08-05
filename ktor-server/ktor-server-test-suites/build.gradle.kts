@@ -1,10 +1,8 @@
 description = ""
 
 kotlin.sourceSets {
-    jvmAndPosixMain {
+    commonMain {
         dependencies {
-            api(kotlin("test"))
-
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))

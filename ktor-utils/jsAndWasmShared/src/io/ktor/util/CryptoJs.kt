@@ -13,8 +13,8 @@ import kotlin.js.*
  */
 public actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES).toJsArray()
-    when (PlatformUtils.platform) {
-        Platform.Node -> _crypto.randomFillSync(buffer)
+    when {
+        PlatformUtils.IS_NODE -> _crypto.randomFillSync(buffer)
         else -> _crypto.getRandomValues(buffer)
     }
     return hex(buffer.toByteArray())
@@ -47,8 +47,8 @@ private fun windowCrypto(): Crypto = js("(window ? (window.crypto ? window.crypt
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
 private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable due to evaluation order
-    when (PlatformUtils.platform) {
-        Platform.Node -> requireCrypto()
+    when {
+        PlatformUtils.IS_NODE -> requireCrypto()
         else -> windowCrypto()
     }
 }

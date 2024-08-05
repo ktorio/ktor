@@ -14,7 +14,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.Volatile
 
@@ -182,7 +181,7 @@ public class CIOApplicationEngine(
         val userDispatcher = userDispatcher
         val stopRequest = stopRequest
         val startupJob = startupJob
-        val cioConnectors = resolvedConnectors
+        val cioConnectors = resolvedConnectorsDeferred
 
         return CoroutineScope(
             applicationProvider().parentCoroutineContext + engineDispatcher

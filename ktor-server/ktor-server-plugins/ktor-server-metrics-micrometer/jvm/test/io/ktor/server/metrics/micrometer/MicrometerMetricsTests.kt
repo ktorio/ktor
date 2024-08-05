@@ -382,7 +382,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `with DropwizardMetrics plugin`(): Unit = testApplication {
+    fun `with DropwizardMetrics plugin`() = testApplication {
         application {
             install(MicrometerMetrics)
             install(DropwizardMetrics)
@@ -400,7 +400,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `test closes previous registry`(): Unit = testApplication {
+    fun `test closes previous registry`() = testApplication {
         var closed = false
         val metrics = object : LoggingMeterRegistry() {
             override fun close() {

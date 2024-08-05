@@ -22,14 +22,12 @@ import io.ktor.server.sse.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import java.time.*
 import java.util.zip.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.text.toByteArray
 
 class CompressionTest {
     private val textToCompress = "text to be compressed\n".repeat(100)
@@ -667,7 +665,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testResponseShouldBeSentAfterCompression(): Unit = testApplication {
+    fun testResponseShouldBeSentAfterCompression() = testApplication {
         install(Compression)
         routing {
             get("/isSent") {
@@ -746,7 +744,7 @@ class CompressionTest {
     }
 
     @Test
-    fun testSkipCompressionForSSEResponse(): Unit = testApplication {
+    fun testSkipCompressionForSSEResponse() = testApplication {
         install(Compression) {
             deflate {
                 minimumSize(1024)

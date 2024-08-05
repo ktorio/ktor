@@ -49,7 +49,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis).seconds
 
     @Test
-    fun singleConnectionSingleThreadNoPipelining() {
+    fun singleConnectionSingleThreadNoPipelining() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -88,7 +88,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun singleConnectionSingleThreadWithPipelining() {
+    fun singleConnectionSingleThreadWithPipelining() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -156,7 +156,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun singleConnectionHighPressure() {
+    fun singleConnectionHighPressure() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -173,7 +173,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun multipleConnectionsHighPressure() {
+    fun multipleConnectionsHighPressure() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -190,7 +190,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun highLoadStressTest() {
+    fun highLoadStressTest() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -207,7 +207,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testHttpUpgrade() {
+    fun testHttpUpgrade() = runTest {
         createAndStartServer {
             handle {
                 call.respond(
@@ -260,7 +260,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testRespondWrite() {
+    fun testRespondWrite() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter {
@@ -279,7 +279,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun test404() {
+    fun test404() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText("OK")
@@ -294,7 +294,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testLongResponse() {
+    fun testLongResponse() = runTest {
         createAndStartServer {
             get("/ll") {
                 call.respond(

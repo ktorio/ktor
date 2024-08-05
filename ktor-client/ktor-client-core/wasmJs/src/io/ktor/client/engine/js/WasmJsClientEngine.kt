@@ -16,7 +16,6 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
@@ -89,8 +88,8 @@ internal class JsClientEngine(
             headerName.equals("sec-websocket-protocol", true)
         }
         val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
-        return when (PlatformUtils.platform) {
-            Platform.Browser -> createBrowserWebSocket(urlString, *protocols)
+        return when {
+            PlatformUtils.IS_BROWSER -> createBrowserWebSocket(urlString, *protocols)
             else -> {
                 val ws_capturingHack = makeRequire<JsAny>("ws")
                 val headers_capturingHack = makeJsObject<JsAny>()

@@ -10,7 +10,7 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndPosixMain {
+        commonMain {
             dependencies {
                 api(project(":ktor-utils"))
                 api(project(":ktor-http"))
@@ -30,11 +30,9 @@ kotlin {
             }
         }
 
-        jvmAndPosixTest {
+        commonTest {
             dependencies {
-                api(project(":ktor-server:ktor-server-test-base"))
-                api(libs.logback.classic)
-                api(project(":ktor-network"))
+                api(project(":ktor-server:ktor-server-test-host"))
             }
         }
 

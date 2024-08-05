@@ -21,6 +21,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.logging.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.*
+import kotlinx.coroutines.test.*
 import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
@@ -63,10 +64,10 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can log application lifecycle events`() {
+    fun `can log application lifecycle events`() = runTest {
         var hash: String? = null
 
-        testApplication {
+        runTestApplication {
             environment { environment() }
             application {
                 install(CallLogging) { clock { 0 } }
@@ -394,7 +395,7 @@ class CallLoggingTest {
     }
 
     @Test
-    fun `can configure custom logger`() {
+    fun `can configure custom logger`() = runTest {
         val customMessages = ArrayList<String>()
         val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
             override fun info(message: String?) {
@@ -405,7 +406,7 @@ class CallLoggingTest {
         }
         lateinit var hash: String
 
-        testApplication {
+        runTestApplication {
             application {
                 install(CallLogging) {
                     this.logger = customLogger

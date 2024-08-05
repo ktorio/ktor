@@ -28,7 +28,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @Test
-    fun testTextContent() {
+    fun testTextContent() = runTest {
         createAndStartServer {
             handle {
                 call.respondText("test")
@@ -56,7 +56,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStream() {
+    fun testStream() = runTest {
         createAndStartServer {
             handle {
                 call.respondTextWriter {
@@ -75,7 +75,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testBinary() {
+    fun testBinary() = runTest {
         createAndStartServer {
             handle {
                 call.respondOutputStream {
@@ -94,7 +94,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testBinaryUsingChannel() {
+    fun testBinaryUsingChannel() = runTest {
         createAndStartServer {
             handle {
                 call.respondBytesWriter {
@@ -113,7 +113,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testLocalFileContent() {
+    fun testLocalFileContent() = runTest {
         val file =
             listOf(File("jvm"), File("ktor-server/ktor-server/jvm"))
                 .filter { it.exists() }
@@ -135,7 +135,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testLocalFileContentRange() {
+    fun testLocalFileContentRange() = runTest {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -175,7 +175,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testJarFileContent() {
+    fun testJarFileContent() = runTest {
         createAndStartServer {
             handle {
                 call.respond(call.resolveResource("/ArrayList.class", "java.util")!!)
@@ -197,7 +197,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testURIContent() {
+    fun testURIContent() = runTest {
         createAndStartServer {
             handle {
                 call.respond(
@@ -226,7 +226,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testURIContentLocalFile() {
+    fun testURIContentLocalFile() = runTest {
         val file =
             File("build/classes/")
                 .walkBottomUp()
@@ -255,7 +255,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentFormData() {
+    fun testRequestContentFormData() = runTest {
         createAndStartServer {
             handle {
                 val parameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
@@ -285,7 +285,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    open fun testChunked() {
+    open fun testChunked() = runTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val size = data.size.toLong()
 
@@ -387,7 +387,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStreamNoFlush() {
+    fun testStreamNoFlush() = runTest {
         createAndStartServer {
             handle {
                 call.respondTextWriter {
@@ -404,7 +404,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testSendTextWithContentType() {
+    fun testSendTextWithContentType() = runTest {
         createAndStartServer {
             handle {
                 call.respondText("Hello")
@@ -423,7 +423,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @RetryableTest
     @Test
-    fun testStaticServe() {
+    fun testStaticServe() = runTest {
         createAndStartServer {
             staticResources("/files/", "io/ktor/server/testing/suites")
         }
@@ -452,7 +452,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStaticServeFromDir() {
+    fun testStaticServeFromDir() = runTest {
         val targetClasses = File(classesDir)
 
         val file =
@@ -490,7 +490,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestBodyAsyncEcho() {
+    fun testRequestBodyAsyncEcho() = runTest {
         createAndStartServer {
             route("/echo") {
                 handle {
@@ -526,7 +526,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testEchoBlocking() {
+    fun testEchoBlocking() = runTest {
         createAndStartServer {
             post("/") {
                 val text = withContext(Dispatchers.IO) { call.receiveStream().bufferedReader().readText() }
@@ -548,7 +548,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentString() {
+    fun testRequestContentString() = runTest {
         createAndStartServer {
             post("/") {
                 call.respond(call.receiveText())
@@ -569,7 +569,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    open fun testMultipartFileUpload() {
+    open fun testMultipartFileUpload() = runTest {
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
@@ -642,7 +642,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    open fun testMultipartFileUploadLarge() {
+    open fun testMultipartFileUploadLarge() = runTest {
         val numberOfLines = 10000
 
         createAndStartServer {
@@ -719,7 +719,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testReceiveInputStream() {
+    fun testReceiveInputStream() = runTest {
         createAndStartServer {
             post("/") {
                 call.respond(withContext(Dispatchers.IO) { call.receive<InputStream>().reader().readText() })
@@ -739,7 +739,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentInputStream() {
+    fun testRequestContentInputStream() = runTest {
         createAndStartServer {
             post("/") {
                 call.respond(withContext(Dispatchers.IO) { call.receiveStream().reader().readText() })
@@ -759,7 +759,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testReceivingBodyWithContentLengthMoreThanMaxInt() {
+    fun testReceivingBodyWithContentLengthMoreThanMaxInt() = runTest {
         createAndStartServer {
             post("/") {
                 call.receiveChannel()
@@ -780,7 +780,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testAccessingQueryParameterWithoutValue() {
+    fun testAccessingQueryParameterWithoutValue() = runTest {
         createAndStartServer {
             get("/") {
                 call.respondText(call.request.queryParameters["auto"].toString())

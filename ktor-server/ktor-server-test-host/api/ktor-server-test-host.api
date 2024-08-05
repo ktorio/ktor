@@ -2,7 +2,7 @@ public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/serve
 	public fun <init> ()V
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
-	public final fun startApplication ()V
+	public final fun startApplication (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/testing/ClientProvider {
@@ -29,7 +29,7 @@ public final class io/ktor/server/testing/On {
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
-	public final fun start ()V
+	public final fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun stop ()V
 }
 
@@ -97,6 +97,8 @@ public final class io/ktor/server/testing/TestApplicationEngineKt {
 
 public final class io/ktor/server/testing/TestApplicationKt {
 	public static final fun TestApplication (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/testing/TestApplication;
+	public static final fun runTestApplication (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runTestApplication$default (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun testApplication (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)V
 	public static final fun testApplication (Lkotlin/jvm/functions/Function2;)V
 	public static synthetic fun testApplication$default (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V

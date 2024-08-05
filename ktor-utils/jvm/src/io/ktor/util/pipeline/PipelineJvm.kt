@@ -4,12 +4,12 @@
 
 package io.ktor.util.pipeline
 
-@Suppress("UNCHECKED_CAST")
-internal actual fun <TSubject : Any, TContext : Any>
-    PipelineInterceptor<TSubject, TContext>.toFunction(): PipelineInterceptorFunction<TSubject, TContext> =
-    this as PipelineInterceptorFunction<TSubject, TContext>
+import kotlin.coroutines.*
 
 @Suppress("UNCHECKED_CAST")
-internal actual fun <TSubject : Any, TContext : Any>
-    PipelineInterceptorFunction<TSubject, TContext>.toInterceptor(): PipelineInterceptor<TSubject, TContext> =
-    this as PipelineInterceptor<TSubject, TContext>
+internal actual fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUninterceptedOrReturn(
+    interceptor: PipelineInterceptor<TSubject, TContext>,
+    context: PipelineContext<TSubject, TContext>,
+    subject: TSubject,
+    continuation: Continuation<Unit>
+): Any? = (interceptor as PipelineInterceptorCoroutine<TSubject, TContext>)(context, subject, continuation)
