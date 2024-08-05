@@ -189,12 +189,8 @@ private fun failInvokeOnClose(handler: ((cause: Throwable?) -> Unit)?) {
 }
 
 private fun Source.writeMessageTo(buffer: ByteBuffer) {
-    readTo(buffer)
-    buffer.flip()
-}
-
-private fun Source.readTo(buffer: ByteBuffer) {
     while (!exhausted()) {
         readAvailable(buffer)
     }
+    buffer.flip()
 }
