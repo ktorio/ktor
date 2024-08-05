@@ -21,5 +21,5 @@ kotlin {
 }
 
 // tests need server, so can't be run in browser
-tasks.named("jsBrowserTest") { enabled = false }
-tasks.named("wasmJsBrowserTest") { enabled = false }
+tasks.named("jsBrowserTest") { onlyIf { false } }
+tasks.named("wasmJsBrowserTest") { onlyIf { false } }
