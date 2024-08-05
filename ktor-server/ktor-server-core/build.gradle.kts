@@ -43,7 +43,6 @@ kotlin {
                 implementation(project(":ktor-server:ktor-server-config-yaml"))
                 implementation(project(":ktor-server:ktor-server-test-base"))
                 implementation(project(":ktor-server:ktor-server-test-suites"))
-                implementation(project(":ktor-server:ktor-server-config-yaml"))
                 
                 api(libs.logback.classic)
                 implementation(libs.mockk)

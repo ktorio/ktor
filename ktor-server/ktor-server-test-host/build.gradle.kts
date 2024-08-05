@@ -37,13 +37,8 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api(kotlin("test"))
-        }
-    }
-
-    jvmAndPosixTest {
-        dependencies {
             api(project(":ktor-server:ktor-server-config-yaml"))
+            api(kotlin("test"))
         }
     }
 }
