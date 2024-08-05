@@ -18,7 +18,9 @@ public fun Source.readAvailable(buffer: ByteBuffer): Int {
 }
 
 public fun Source.readFully(buffer: ByteBuffer) {
-    readAtMostTo(buffer)
+    while (!exhausted()) {
+        readAtMostTo(buffer)
+    }
 }
 
 @OptIn(UnsafeIoApi::class, InternalIoApi::class)
