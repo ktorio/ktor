@@ -10,7 +10,6 @@ import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 
 class OkHttpWebsocketSessionTest {
 

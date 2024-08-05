@@ -21,7 +21,6 @@ import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
-import kotlin.test.assertFailsWith
 import kotlin.test.*
 
 class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
