@@ -229,18 +229,18 @@ class UDPSocketTest {
 
         aSocket(selector)
             .udp()
-            .bind(InetSocketAddress("127.0.0.1", 8000)) {
+            .bind(InetSocketAddress("127.0.0.1", 8001)) {
                 reuseAddress = true
                 sendBufferSize = 65535
                 receiveBufferSize = 65535
             }
             .use { socket ->
                 val localAddress = socket.localAddress as? InetSocketAddress
-                assertEquals(8000, localAddress?.port)
+                assertEquals(8001, localAddress?.port)
 
                 // Send messages to localhost
                 launch {
-                    val address = InetSocketAddress("127.0.0.1", 8000)
+                    val address = InetSocketAddress("127.0.0.1", 8001)
                     repeat(10) {
                         val bytePacket = buildPacket { write(largeData) }
                         val data = Datagram(bytePacket, address)
