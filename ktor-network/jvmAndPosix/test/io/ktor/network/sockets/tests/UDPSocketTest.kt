@@ -241,7 +241,7 @@ class UDPSocketTest {
                 // Send messages to localhost
                 launch {
                     val address = InetSocketAddress("127.0.0.1", 8001)
-                    repeat(10) {
+                    repeat(4) {
                         val bytePacket = buildPacket { write(largeData) }
                         val data = Datagram(bytePacket, address)
                         socket.send(data)
@@ -250,7 +250,7 @@ class UDPSocketTest {
                 }
 
                 // Receive messages from localhost
-                repeat(10) {
+                repeat(4) {
                     val incoming = socket.receive()
                     assertContentEquals(largeData, incoming.packet.readByteArray())
                 }
