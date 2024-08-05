@@ -5,12 +5,12 @@
 description = ""
 
 kotlin {
-    createCInterop("host_common", nixTargets()) {
-        definitionFile = projectDir.resolve("nix/interop/host_common.def")
+    createCInterop("host_common", posixTargets()) {
+        definitionFile = projectDir.resolve("posix/interop/host_common.def")
     }
 
     sourceSets {
-        jvmAndNixMain {
+        jvmAndPosixMain {
             dependencies {
                 api(project(":ktor-utils"))
                 api(project(":ktor-http"))
@@ -30,7 +30,7 @@ kotlin {
             }
         }
 
-        jvmAndNixTest {
+        jvmAndPosixTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-test-base"))
                 api(libs.logback.classic)

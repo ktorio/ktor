@@ -6,22 +6,22 @@ description = ""
 
 kotlin {
     sourceSets {
-        jvmAndNixMain {
+        jvmAndPosixMain {
             dependencies {
                 api(libs.kotlinx.datetime)
             }
         }
     }
 
-    createCInterop("utils", nixTargets()) {
-        definitionFile = File(projectDir, "nix/interop/utils.def")
+    createCInterop("utils", posixTargets()) {
+        definitionFile = File(projectDir, "posix/interop/utils.def")
     }
 }
 
 val configuredVersion: String by rootProject.extra
 
 val writeKtorVersionDefFile by tasks.registering {
-    File(projectDir, "nix/interop/utils.def").apply {
+    File(projectDir, "posix/interop/utils.def").apply {
         parentFile.mkdirs()
         createNewFile()
     }.writer().buffered().use { writer ->
