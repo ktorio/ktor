@@ -6,7 +6,9 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -60,8 +62,16 @@ internal class DatagramSendChannel(
         }
 
         try {
+            val packetSize = element.packet.remaining
+            var writeWithPool = false
             UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
                 val length = endIndex - startIndex
+                if (length < packetSize) {
+                    // Packet is too large to read directly.
+                    writeWithPool = true
+                    return@readFromHead 0
+                }
+
                 val bytesWritten = sendto(element, bytes, startIndex, length)
 
                 when (bytesWritten) {
@@ -75,6 +85,28 @@ internal class DatagramSendChannel(
                     }
 
                     else -> length
+                }
+            }
+            if (writeWithPool) {
+                DefaultDatagramByteArrayPool.useInstance { buffer ->
+                    val length = element.packet.remaining.toInt()
+                    element.packet.peek().readTo(buffer, endIndex = length)
+
+                    val bytesWritten = sendto(element, buffer, 0, length)
+
+                    when (bytesWritten) {
+                        0 -> throw IOException("Failed writing to closed socket")
+                        -1 -> {
+                            if (isWouldBlockError(getSocketError())) {
+                            } else {
+                                throw PosixException.forSocketError()
+                            }
+                        }
+
+                        else -> {
+                            element.packet.discard()
+                        }
+                    }
                 }
             }
         } finally {
@@ -94,19 +126,34 @@ internal class DatagramSendChannel(
 
         lock.withLock {
             withContext(Dispatchers.IO) {
+                val packetSize = element.packet.remaining
+                var writeWithPool = false
                 UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
                     val length = endIndex - startIndex
+                    if (length < packetSize) {
+                        // Packet is too large to read directly.
+                        writeWithPool = true
+                        return@readFromHead 0
+                    }
                     sendSuspend(element, bytes, startIndex, length)
                     length
+                }
+                if (writeWithPool) {
+                    DefaultDatagramByteArrayPool.useInstance { buffer ->
+                        val length = element.packet.remaining.toInt()
+                        element.packet.readTo(buffer, endIndex = length)
+
+                        sendSuspend(element, buffer, 0, length)
+                    }
                 }
             }
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun sendto(datagram: Datagram, bytes: ByteArray, offset: Int, length: Int): Int {
+    private fun sendto(datagram: Datagram, buffer: ByteArray, offset: Int, length: Int): Int {
         var bytesWritten: Int? = null
-        bytes.usePinned { pinned ->
+        buffer.usePinned { pinned ->
             if (remote == null) {
                 datagram.address.address.nativeAddress { address, addressSize ->
                     bytesWritten = ktor_sendto(
@@ -134,18 +181,18 @@ internal class DatagramSendChannel(
 
     private tailrec suspend fun sendSuspend(
         datagram: Datagram,
-        bytes: ByteArray,
+        buffer: ByteArray,
         offset: Int,
         length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, bytes, offset, length)
+        val bytesWritten: Int = sendto(datagram, buffer, offset, length)
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (isWouldBlockError(getSocketError())) {
                     socket.selector.select(socket.selectable, SelectInterest.WRITE)
-                    sendSuspend(datagram, bytes, offset, length)
+                    sendSuspend(datagram, buffer, offset, length)
                 } else {
                     throw PosixException.forSocketError()
                 }

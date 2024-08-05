@@ -224,13 +224,15 @@ class UDPSocketTest {
 
     @Test
     fun testSendReceiveLarge(): Unit = testSockets { selector ->
-        val datagramSize = 10000
+        val datagramSize = 10000 // must be larger than Segment.SIZE (8192) for this test
         val largeData = Random.nextBytes(datagramSize)
 
         aSocket(selector)
             .udp()
             .bind(InetSocketAddress("127.0.0.1", 8000)) {
                 reuseAddress = true
+                sendBufferSize = 65535
+                receiveBufferSize = 65535
             }
             .use { socket ->
                 val localAddress = socket.localAddress as? InetSocketAddress

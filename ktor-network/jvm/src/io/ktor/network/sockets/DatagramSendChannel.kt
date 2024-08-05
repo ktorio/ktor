@@ -5,6 +5,9 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.network.util.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -52,12 +55,31 @@ internal class DatagramSendChannel(
         if (!lock.tryLock()) return ChannelResult.failure()
 
         try {
+            val packetSize = element.packet.remaining
+            var writeWithPool = false
             UnsafeBufferOperations.readFromHead(element.packet.buffer) { buffer ->
+                val length = buffer.remaining()
+                if (length < packetSize) {
+                    // Packet is too large to read directly.
+                    writeWithPool = true
+                    return@readFromHead
+                }
+
                 val result = channel.send(buffer, element.address.toJavaAddress()) == 0
                 if (result) {
-                    buffer.position(buffer.limit()) // consume all data
+                    buffer.position(buffer.limit())
                 } else {
                     buffer.position(0)
+                }
+            }
+            if (writeWithPool) {
+                DefaultDatagramByteBufferPool.useInstance { buffer ->
+                    element.packet.peek().writeMessageTo(buffer)
+
+                    val result = channel.send(buffer, element.address.toJavaAddress()) == 0
+                    if (result) {
+                        element.packet.discard()
+                    }
                 }
             }
         } finally {
@@ -71,7 +93,16 @@ internal class DatagramSendChannel(
     override suspend fun send(element: Datagram) {
         lock.withLock {
             withContext(Dispatchers.IO) {
+                val packetSize = element.packet.remaining
+                var writeWithPool = false
                 UnsafeBufferOperations.readFromHead(element.packet.buffer) { buffer ->
+                    val length = buffer.remaining()
+                    if (length < packetSize) {
+                        // Packet is too large to read directly.
+                        writeWithPool = true
+                        return@readFromHead
+                    }
+
                     val rc = channel.send(buffer, element.address.toJavaAddress())
                     if (rc != 0) {
                         socket.interestOp(SelectInterest.WRITE, false)
@@ -81,6 +112,19 @@ internal class DatagramSendChannel(
 
                     sendSuspend(buffer, element.address)
                     buffer.position(buffer.limit()) // consume all data
+                }
+                if (writeWithPool) {
+                    DefaultDatagramByteBufferPool.useInstance { buffer ->
+                        element.packet.writeMessageTo(buffer)
+
+                        val rc = channel.send(buffer, element.address.toJavaAddress())
+                        if (rc != 0) {
+                            socket.interestOp(SelectInterest.WRITE, false)
+                            return@useInstance
+                        }
+
+                        sendSuspend(buffer, element.address)
+                    }
                 }
             }
         }
@@ -142,4 +186,15 @@ private fun failInvokeOnClose(handler: ((cause: Throwable?) -> Unit)?) {
     }
 
     throw IllegalStateException(message)
+}
+
+private fun Source.writeMessageTo(buffer: ByteBuffer) {
+    readTo(buffer)
+    buffer.flip()
+}
+
+private fun Source.readTo(buffer: ByteBuffer) {
+    while (!exhausted()) {
+        readAvailable(buffer)
+    }
 }
