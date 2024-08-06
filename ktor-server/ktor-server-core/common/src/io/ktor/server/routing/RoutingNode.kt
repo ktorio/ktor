@@ -12,6 +12,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlin.coroutines.*
 
 /**
  * Describes a node in a routing tree.
@@ -196,6 +197,9 @@ public class RoutingCall internal constructor(
      */
     public val pipelineCall: RoutingPipelineCall
 ) : ApplicationCall {
+
+    override val coroutineContext: CoroutineContext
+        get() = pipelineCall.coroutineContext
 
     public override lateinit var request: RoutingRequest
         internal set
