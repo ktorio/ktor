@@ -30,24 +30,7 @@ public class HttpCallValidatorConfig {
     /**
      * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
      */
-
-    @Deprecated(
-        "This property is ignored. Please use `expectSuccess` property in HttpClientConfig. " +
-            "This is going to become internal."
-    )
-    public var expectSuccess: Boolean = true
-
-    /**
-     * Add [CallExceptionHandler].
-     * Last added handler executes first.
-     */
-    @Deprecated(
-        "Consider using the callback with request parameter",
-        level = DeprecationLevel.ERROR
-    )
-    public fun handleResponseException(block: CallExceptionHandler) {
-        responseExceptionHandlers += ExceptionHandlerWrapper(block)
-    }
+    internal var expectSuccess: Boolean = true
 
     /**
      * Add [CallRequestExceptionHandler].
