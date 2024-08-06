@@ -53,8 +53,9 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
             var total = 0L
             ByteArrayPool.useInstance { array ->
                 while (!content.isClosedForRead) {
-                    content.awaitContent()
                     val read = content.readAvailable(array, 0, array.size)
+                    if (read <= 0)
+                        continue
                     channel.writeFully(array, 0, read)
                     total += read
                     if (total > limit) {
