@@ -18,7 +18,7 @@ public fun Source.readAvailable(buffer: ByteBuffer): Int {
 }
 
 public fun Source.readFully(buffer: ByteBuffer) {
-    while (!exhausted()) {
+    while (!exhausted() && buffer.hasRemaining()) {
         readAtMostTo(buffer)
     }
 }
