@@ -309,7 +309,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             inputStream.read(ByteArray(100))
         } // send FIN + RST
 
-
         withTimeout(5000L) {
             completed.join()
         }
@@ -372,7 +371,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             }
 
             val ch = ByteChannel(true)
-
 
             launch {
                 val s = inputStream

@@ -42,7 +42,6 @@ class RoutingTracingTest {
     fun testRoutingBarX() = tracingApplication { trace ->
         assertEquals("/{param}/x", client.get("/bar/x").bodyAsText())
 
-
         assertEquals(
             """
     Trace for [bar, x]
@@ -70,7 +69,6 @@ class RoutingTracingTest {
     @Test
     fun testRoutingBazX() = tracingApplication { trace ->
         assertEquals("/baz/x", client.get("/baz/x").bodyAsText())
-
 
         assertEquals(
             """
@@ -100,7 +98,6 @@ class RoutingTracingTest {
     fun testRoutingBazDoo() = tracingApplication { trace ->
         assertEquals("/baz/{y}", client.get("/baz/doo").bodyAsText())
 
-
         assertEquals(
             """
     Trace for [baz, doo]
@@ -128,7 +125,6 @@ class RoutingTracingTest {
     @Test
     fun testRoutingBazXZ() = tracingApplication { trace ->
         assertEquals("/baz/x/{optional?}", client.get("/baz/x/z").bodyAsText())
-
 
         assertEquals(
             """
@@ -159,7 +155,6 @@ class RoutingTracingTest {
     fun testRoutingBazXValue() = tracingApplication { trace ->
         assertEquals("/baz/x/{optional?}", client.get("/baz/x/value").bodyAsText())
 
-
         assertEquals(
             """
     Trace for [baz, x, value]
@@ -189,7 +184,6 @@ class RoutingTracingTest {
     fun testRoutingP() = tracingApplication { trace ->
         assertEquals("/{param}", client.get("/p").bodyAsText())
 
-
         assertEquals(
             """
     Trace for [p]
@@ -214,7 +208,6 @@ class RoutingTracingTest {
     @Test
     fun testRoutingPX() = tracingApplication { trace ->
         assertEquals("/{param}/x", client.get("/p/x").bodyAsText())
-
 
         assertEquals(
             """
@@ -248,7 +241,6 @@ class RoutingTracingTest {
         }
 
         assertEquals("a", response.bodyAsText())
-
 
         assertEquals(
             """

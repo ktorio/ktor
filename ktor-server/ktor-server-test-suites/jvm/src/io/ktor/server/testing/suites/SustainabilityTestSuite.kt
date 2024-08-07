@@ -274,7 +274,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         parent.cancel()
 
-
         val timeMillis = 15000L
         try {
             withTimeout(timeMillis) {

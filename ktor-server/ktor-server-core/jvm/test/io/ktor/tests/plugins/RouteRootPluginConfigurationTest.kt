@@ -18,7 +18,6 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-
         environment {
             config = load("test-config.yaml")
         }
@@ -49,7 +48,6 @@ class RouteRootPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-
         install(plugin)
 
         environment {
@@ -66,7 +64,6 @@ class RouteRootPluginConfigurationTest {
         val plugin = createRouteScopedPlugin("PluginWithProperty", "db.myplugin", ::ConfigWithProperty) {
             lastInstalledValue = pluginConfig.property
         }
-
 
         environment {
             config = load("test-config.yaml")

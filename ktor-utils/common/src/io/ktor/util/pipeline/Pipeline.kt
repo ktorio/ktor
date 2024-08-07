@@ -11,7 +11,7 @@ import kotlin.coroutines.*
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
 internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =
-        (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
+    (PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?
 
 // Overall, it does the same as `startCoroutineUninterceptedOrReturn` from stdlib.
 // Stdlib even has `(suspend R.(P) -> T).startCoroutineUninterceptedOrReturn`, but it's internal.

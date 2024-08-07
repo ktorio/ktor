@@ -46,7 +46,6 @@ class AuthBuildersTest {
 
     @Test
     fun testMultipleConfigurationsNested() = testApplication {
-
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") UserIdPrincipal(c.name) else null } }
             basic("second") { validate { c -> if (c.name == "second") UserIdPrincipal(c.name) else null } }

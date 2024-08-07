@@ -108,9 +108,12 @@ class ApplicationPluginTest {
                 call.respondText("response")
             }
         }
-        assertEquals("custom data", client.get("/request") {
-            header("F", "custom data")
-        }.bodyAsText())
+        assertEquals(
+            "custom data",
+            client.get("/request") {
+                header("F", "custom data")
+            }.bodyAsText()
+        )
     }
 
     class FConfig {
@@ -267,7 +270,6 @@ class ApplicationPluginTest {
         assertEquals("no route", response2.headers["PATH-1"])
         assertEquals("/a", response2.headers["PATH-2"])
     }
-
 
     @Test
     fun test_side_effect_of_install_called_on_every_installation() = testApplication {

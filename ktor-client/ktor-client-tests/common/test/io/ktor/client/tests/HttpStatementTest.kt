@@ -47,11 +47,26 @@ class HttpStatementTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_SERVER/compression/gzip")
-            assertTrue(!response.coroutineContext[Job]!!.isCompleted)
+            assertTrue(response.coroutineContext[Job]!!.isCompleted)
 
             val content = response.body<String>()
             assertEquals("Compressed response!", content)
-            assertTrue(response.coroutineContext[Job]!!.isCompleted)
+        }
+    }
+
+    @Test
+    fun testJobFinishedAfterResponseRead() = clientTests {
+        test { client ->
+            client.prepareGet("$TEST_SERVER/content/hello").execute().apply {
+                assertTrue(call.coroutineContext.job.isCompleted)
+            }
+
+            client.prepareGet("$TEST_SERVER/content/hello").execute {
+                assertFalse(it.call.coroutineContext.job.isCompleted)
+                it
+            }.apply {
+                assertTrue(call.coroutineContext.job.isCompleted)
+            }
         }
     }
 }

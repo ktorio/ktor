@@ -7,9 +7,9 @@ package io.ktor.network.tls.certificates
 import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
 import kotlinx.io.Sink
 import kotlinx.io.writeUByte
-import kotlinx.io.*
 import java.io.*
 import java.math.*
 import java.net.*

@@ -13,10 +13,8 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import kotlinx.io.IOException
+import kotlinx.io.*
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
@@ -224,26 +222,27 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Js")) {
-        config {
-            install(HttpTimeout)
-        }
+    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() =
+        clientTests(listOf("Js", "Curl", "Darwin", "DarwinLegacy")) {
+            config {
+                install(HttpTimeout)
+            }
 
-        test { client ->
-            val response = client.prepareRequest("$TEST_URL/with-stream") {
-                method = HttpMethod.Get
-                parameter("delay", 10000)
+            test { client ->
+                val response = client.prepareRequest("$TEST_URL/with-stream") {
+                    method = HttpMethod.Get
+                    parameter("delay", 10000)
 
-                timeout { requestTimeoutMillis = 1000 }
-            }.body<ByteReadChannel>()
-            assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                    timeout { requestTimeoutMillis = 1000 }
+                }.body<ByteReadChannel>()
+                assertFailsWith<CancellationException> {
+                    response.readUTF8Line()
+                }
             }
         }
-    }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js")) {
+    fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js", "Darwin", "DarwinLegacy")) {
         config {
             install(HttpTimeout)
         }

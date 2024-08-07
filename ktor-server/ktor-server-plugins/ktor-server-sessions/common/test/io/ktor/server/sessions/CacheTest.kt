@@ -124,20 +124,17 @@ class CacheTest {
         }
         val storage = CacheStorage(memoryStorage, 100)
 
-
         storage.write("id", "123")
         assertEquals("123", storage.read("id"))
 
         assertEquals(2, readCount) // compute + read
         assertEquals(1, writeCount)
 
-
         storage.write("id", "123")
         assertEquals("123", storage.read("id"))
 
         assertEquals(2, readCount) // no additional read
         assertEquals(1, writeCount)
-
 
         storage.write("id", "234")
         assertEquals("234", storage.read("id"))

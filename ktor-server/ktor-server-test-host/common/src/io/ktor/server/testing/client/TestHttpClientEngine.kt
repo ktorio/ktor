@@ -37,7 +37,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = clientJob + dispatcher
+    override val coroutineContext: CoroutineContext = clientJob + dispatcher + CoroutineExceptionHandler { _, _ -> }
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {

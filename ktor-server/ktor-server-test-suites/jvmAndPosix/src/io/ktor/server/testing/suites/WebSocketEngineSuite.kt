@@ -70,7 +70,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-
         withTimeout(5000) {
             closeReasonJob.join()
             contextJob.join()
@@ -152,7 +151,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-
         withTimeout(5000) {
             closeReasonJob.join()
             contextJob.join()
@@ -184,7 +182,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 delay(1000)
             }
         }
-
 
         withTimeout(5000) {
             contextJob.join()
@@ -219,7 +216,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
         }
 
-
         withTimeout(5000) {
             contextJob.join()
         }
@@ -249,7 +245,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 delay(10000)
             }
         }
-
 
         withTimeout(5000) {
             contextJob.join()
