@@ -345,7 +345,11 @@ class OAuth2Test {
         application {
             module()
             intercept(ApplicationCallPipeline.Call) {
-                assertTrue { call.authentication.allFailures.all { it is OAuth2RedirectError && it.error == "access_denied" } }
+                assertTrue {
+                    call.authentication.allFailures.all {
+                        it is OAuth2RedirectError && it.error == "access_denied"
+                    }
+                } // ktlint-disable max-line-length
             }
         }
         val call = noRedirectsClient().get(

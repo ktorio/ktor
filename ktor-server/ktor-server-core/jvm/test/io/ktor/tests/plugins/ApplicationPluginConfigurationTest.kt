@@ -34,7 +34,6 @@ class ApplicationPluginConfigurationTest {
             lastInstalledValue = pluginConfig.property
         }
 
-
         install(plugin)
         startApplication()
         assertEquals("Default Value", lastInstalledValue)
@@ -46,7 +45,6 @@ class ApplicationPluginConfigurationTest {
         val plugin = createApplicationPlugin("PluginWithProperty", "myplugin", ::ConfigWithProperty) {
             lastInstalledValue = pluginConfig.property
         }
-
 
         install(plugin)
 
@@ -64,7 +62,6 @@ class ApplicationPluginConfigurationTest {
         val plugin = createApplicationPlugin("PluginWithProperty", "db.myplugin", ::ConfigWithProperty) {
             lastInstalledValue = pluginConfig.property
         }
-
 
         environment {
             config = ConfigLoader.load("test-config.yaml")

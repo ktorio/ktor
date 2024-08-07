@@ -123,7 +123,6 @@ class CSRFTest {
     fun onFailureOverride() = testApplication {
         val customErrorMessage = "Hands off mah cookies!"
 
-
         configureCSRF {
             checkHeader("X-CSRF") { csrfHeader ->
                 request.headers[HttpHeaders.Origin]?.let { origin ->
@@ -174,7 +173,6 @@ class CSRFTest {
     @Test
     fun onFailureDefaultResponse() = testApplication {
         var errorMessageVariable = ""
-
 
         configureCSRF {
             checkHeader("X-CSRF") { csrfHeader ->

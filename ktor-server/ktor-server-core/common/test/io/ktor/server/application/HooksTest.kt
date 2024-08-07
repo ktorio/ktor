@@ -88,7 +88,6 @@ class HooksTest {
             client.get("/")
             assertTrue(state.startCalled)
             assertFalse(state.shutdownCalled)
-
         }
 
         assertTrue(state.shutdownCalled)

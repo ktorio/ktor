@@ -57,7 +57,6 @@ class SessionAuthTest {
             assertEquals(HttpStatusCode.OK, call.status)
         }
 
-
         val cookieStorage = AcceptAllCookiesStorage()
 
         client.config {

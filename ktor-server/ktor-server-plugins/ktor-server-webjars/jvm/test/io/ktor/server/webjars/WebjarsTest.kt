@@ -180,7 +180,6 @@ class WebjarsTest {
             on(alwaysRespondHello, Unit)
         }
 
-
         install(pluginBeforeWebjars)
         install(Webjars)
 

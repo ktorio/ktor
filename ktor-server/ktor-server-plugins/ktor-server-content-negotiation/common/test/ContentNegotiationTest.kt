@@ -411,7 +411,6 @@ class ContentNegotiationTest {
     fun testMultiple() = testApplication {
         val textContentConverter: ContentConverter = textContentConverter
 
-
         install(ContentNegotiation) {
             // Order here matters. The first registered content type matching the Accept header will be chosen.
             register(customContentType, customContentConverter)

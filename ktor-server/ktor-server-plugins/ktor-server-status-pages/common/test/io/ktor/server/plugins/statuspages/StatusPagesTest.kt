@@ -185,7 +185,6 @@ class StatusPagesTest {
     fun testFailPageDuringInterceptor() = testApplication {
         class O
 
-
         application {
             intercept(ApplicationCallPipeline.Plugins) {
                 call.response.pipeline.intercept(ApplicationSendPipeline.Transform) { message ->
@@ -255,7 +254,6 @@ class StatusPagesTest {
     @Test
     fun testErrorFromExceptionContent() = testApplication {
         class ValidationException(val code: String) : RuntimeException()
-
 
         application {
             install(StatusPages) {
@@ -422,7 +420,6 @@ class StatusPagesTest {
                 throw NotFoundException()
             }
         }
-
 
         var exceptionHandled = false
         var routingHandled = false

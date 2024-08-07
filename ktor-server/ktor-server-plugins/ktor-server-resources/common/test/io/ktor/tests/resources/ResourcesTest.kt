@@ -452,7 +452,6 @@ class ResourcesTest {
             "href = /?text=abc&number=1&longNumber=2 text = abc, number = 1, longNumber = 2"
         )
 
-
         assertEquals(HttpStatusCode.BadRequest, client.get("/?number=1&longNumber=2").status)
         assertEquals(HttpStatusCode.BadRequest, client.get("/?text=abc&number=z&longNumber=2").status)
         assertEquals(

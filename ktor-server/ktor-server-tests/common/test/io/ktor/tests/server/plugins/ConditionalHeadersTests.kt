@@ -143,7 +143,6 @@ class ETagsTest {
 
     @Test
     fun testIfMatchListConditionAccepted() = withConditionalApplication {
-
         val result = client.get {
             header(HttpHeaders.IfMatch, "tag0,tag1,tag3")
         }

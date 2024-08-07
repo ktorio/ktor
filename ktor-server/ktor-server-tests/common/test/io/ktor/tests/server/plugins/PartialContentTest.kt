@@ -340,5 +340,4 @@ class PartialContentTest {
         assertContentEquals(expected, bytes)
         assertEquals(expected.size, response.headers[HttpHeaders.ContentLength]!!.toInt())
     }
-
 }

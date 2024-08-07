@@ -14,7 +14,6 @@ internal actual val CONFIG_PATH: List<String>
         getEnvironmentProperty("config.url"),
     )
 
-
 public actual val configLoaders: List<ConfigLoader> = ConfigLoader::class.java.let {
     ServiceLoader.load(it, it.classLoader).toList()
 }

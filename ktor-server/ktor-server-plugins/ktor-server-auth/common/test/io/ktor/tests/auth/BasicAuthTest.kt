@@ -35,7 +35,6 @@ class BasicAuthTest {
 
     @Test
     fun testCharsetNull() = testApplication {
-
         install(Authentication) {
             basic {
                 realm = "ktor-test"

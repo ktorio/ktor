@@ -79,7 +79,7 @@ class RequestConverterTest {
 
         try {
             assertEquals(
-                "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass",
+                "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass", // ktlint-disable max-line-length
                 responseFoo
             )
         } catch (cause: Throwable) {
