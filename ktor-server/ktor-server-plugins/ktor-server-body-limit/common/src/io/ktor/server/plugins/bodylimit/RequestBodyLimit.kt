@@ -48,25 +48,29 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
         val limit = bodyLimit(call)
         if (limit == Long.MAX_VALUE) return@on null
 
-        @OptIn(DelicateCoroutinesApi::class)
-        GlobalScope.writer {
-            var total = 0L
-            ByteArrayPool.useInstance { array ->
-                while (!content.isClosedForRead) {
-                    val read = content.readAvailable(array, 0, array.size)
-                    if (read <= 0)
-                        continue
-                    channel.writeFully(array, 0, read)
-                    total += read
-                    if (total > limit) {
-                        throw PayloadTooLargeException(limit)
-                    }
-                }
-                content.closedCause?.let { throw it }
-            }
-        }.channel
+        content.applyLimit(limit)
     }
 }
+
+@OptIn(DelicateCoroutinesApi::class)
+internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel =
+    GlobalScope.writer {
+        var total = 0L
+        ByteArrayPool.useInstance { array ->
+            while (!isClosedForRead) {
+                val read = readAvailable(array, 0, array.size)
+                if (read <= 0)
+                    continue
+                channel.writeFully(array, 0, read)
+                total += read
+                if (total > limit) {
+                    throw PayloadTooLargeException(limit)
+                }
+            }
+            closedCause?.let { throw it }
+        }
+    }.channel
+
 
 private object BeforeReceive : Hook<(PipelineCall, ByteReadChannel) -> ByteReadChannel?> {
 
