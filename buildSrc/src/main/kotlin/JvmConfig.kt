@@ -16,8 +16,8 @@ fun Project.configureJvm() {
     }
 
     val kotlinVersion = project.findProperty("kotlin_version") as? String
-    val slf4jVersion = rootProject.versionCatalog.findVersion("slf4j-version").get().requiredVersion
-    val junitVersion = rootProject.versionCatalog.findVersion("junit-version").get().requiredVersion
+    val slf4jVersion = rootProject.findProperty("slf4j-version") as? String
+    val junitVersion = rootProject.findProperty("junit-version") as? String
     val coroutinesVersion = project.findProperty("coroutines_version") as? String
 
     val configuredVersion: String by rootProject.extra
