@@ -28,6 +28,18 @@ if (CACHE_USER != null) {
     }
 }
 
+dependencyResolutionManagement {
+    versionCatalogs {
+        val libs by creating {
+            if (extra.has("kotlin_version")) {
+                val kotlinVersion = extra["kotlin_version"].toString()
+                version("kotlin-version", kotlinVersion)
+                println("using kotlin version $kotlinVersion")
+            }
+        }
+    }
+}
+
 val fullVersion = System.getProperty("java.version", "8.0.0")
 val versionComponents = fullVersion
     .split(".")
