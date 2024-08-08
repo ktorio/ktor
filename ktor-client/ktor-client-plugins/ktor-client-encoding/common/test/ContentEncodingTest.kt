@@ -4,10 +4,13 @@
 
 package io.ktor.client.plugins.compression
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
@@ -109,4 +112,17 @@ class ContentEncodingTest : ClientLoader() {
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
         }
     }
+
+    @Test
+    fun testNoEncoding() = clientTests(listOf("OkHttp")) {
+        config {
+            install(ContentEncoding)
+        }
+
+        test { client ->
+            val response = client.get("$TEST_URL/plain-text")
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
 }
