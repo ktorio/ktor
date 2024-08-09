@@ -152,7 +152,7 @@ public class CIOApplicationEngine(
     }
 
     private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
-        withContext(userDispatcher) {
+        withContext(userDispatcher) requestContext@{
             val call = CIOApplicationCall(
                 applicationProvider(),
                 request,
@@ -163,6 +163,7 @@ public class CIOApplicationEngine(
                 upgraded,
                 remoteAddress,
                 localAddress,
+                this@requestContext.coroutineContext
             )
 
             try {

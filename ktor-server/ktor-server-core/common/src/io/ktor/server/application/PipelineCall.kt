@@ -12,6 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
@@ -20,7 +22,7 @@ private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType
  * @see [io.ktor.server.request.ApplicationRequest]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
-public interface ApplicationCall {
+public interface ApplicationCall : CoroutineScope {
     /**
      * [Attributes] attached to this call.
      */

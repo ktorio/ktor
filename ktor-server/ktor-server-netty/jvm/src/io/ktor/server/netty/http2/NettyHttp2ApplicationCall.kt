@@ -20,6 +20,8 @@ internal class NettyHttp2ApplicationCall(
     userContext: CoroutineContext
 ) : NettyApplicationCall(application, context, headers) {
 
+    override val coroutineContext: CoroutineContext = userContext
+
     override val request = NettyHttp2ApplicationRequest(this, engineContext, context, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, engineContext, userContext)
 

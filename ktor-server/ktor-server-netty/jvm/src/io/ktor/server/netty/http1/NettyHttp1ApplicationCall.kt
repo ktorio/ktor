@@ -10,6 +10,7 @@ import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1ApplicationCall(
@@ -18,8 +19,10 @@ internal class NettyHttp1ApplicationCall(
     httpRequest: HttpRequest,
     requestBodyChannel: ByteReadChannel?,
     engineContext: CoroutineContext,
-    userContext: CoroutineContext
-) : NettyApplicationCall(application, context, httpRequest) {
+    userContext: CoroutineContext,
+) : NettyApplicationCall(application, context, httpRequest), CoroutineScope {
+
+    override val coroutineContext: CoroutineContext = userContext
 
     override val request = NettyHttp1ApplicationRequest(
         this,

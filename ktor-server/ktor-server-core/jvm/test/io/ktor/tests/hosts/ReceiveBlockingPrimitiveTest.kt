@@ -128,6 +128,9 @@ class ReceiveBlockingPrimitiveTest {
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
 
+        override val coroutineContext: CoroutineContext
+            get() = TODO("Not yet implemented")
+
         fun close() {
             application.dispose()
         }
