@@ -102,7 +102,15 @@ internal actual class SelectorHelper {
                 try {
                     selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet).check()
                 } catch (_: PosixException.BadFileDescriptorException) {
-                    // Thrown if the descriptor was closed.
+                    // Thrown if any of the descriptors was closed.
+                    // This means the sets are undefined so do not rely on their contents.
+                    watchSet.forEach { event ->
+                        if (!isDescriptorValid(event.descriptor)) {
+                            event.fail(IOException("Bad descriptor ${event.descriptor} for ${event.interest}"))
+                            watchSet.remove(event)
+                        }
+                    }
+                    continue
                 }
 
                 processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
@@ -234,5 +242,9 @@ internal actual class SelectorHelper {
 
     private fun closeDescriptor(descriptor: Int) {
         close(descriptor)
+    }
+
+    private fun isDescriptorValid(descriptor: Int): Boolean {
+        return fcntl(descriptor, F_GETFL) != -1 || errno != EBADF
     }
 }

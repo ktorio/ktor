@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import platform.posix.*
 import kotlin.test.*
 
@@ -66,5 +67,58 @@ class TcpSocketTestNix {
 
         val isClientDescriptorValid = fcntl(clientDescriptor, F_GETFL) != -1 || errno != EBADF
         check(!isClientDescriptorValid) { "Client descriptor was not closed" }
+    }
+
+    @Test
+    fun testDescriptorError() = testSockets { selector ->
+        val socket = aSocket(selector)
+            .tcp()
+            .bind(InetSocketAddress("127.0.0.1", 0))
+        val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
+
+        launch {
+            // Closing the descriptor here while accept is busy in select, should fail the accept.
+            close(descriptor)
+        }
+
+        assertFailsWith<IOException> {
+            socket.accept()
+        }
+
+        socket.close()
+    }
+
+    @Test
+    fun testDescriptorErrorDoesNotFailOtherSockets() = testSockets { selector ->
+        val socket = aSocket(selector)
+            .tcp()
+            .bind(InetSocketAddress("127.0.0.1", 0))
+        val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
+
+        val socket2 = aSocket(selector)
+            .tcp()
+            .bind(InetSocketAddress("127.0.0.1", 0))
+
+        launch {
+            launch {
+                // Closing the descriptor here while accept is busy in select, should fail the accept.
+                // Other sockets (in this case socket2) should not fail.
+                close(descriptor)
+            }
+
+            assertFailsWith<IOException> {
+                socket.accept()
+            }
+
+            socket.close()
+        }
+
+        // As socket2 should not fail, the timeout is expected.
+        withTimeoutOrNull(500) {
+            socket2.accept()
+        }
+
+        socket.close()
+        socket2.close()
     }
 }
