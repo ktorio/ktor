@@ -140,7 +140,6 @@ internal actual class SelectorHelper {
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
-        println("proce")
         while (true) {
             val event = closeQueue.removeFirstOrNull() ?: break
             closeSet.add(event)
