@@ -4,6 +4,9 @@ kotlin {
     createCInterop("network", nixTargets()) {
         definitionFile = projectDir.resolve("nix/interop/network.def")
     }
+    createCInterop("un", iosTargets() + tvosTargets() + watchosTargets()) {
+        defFile = projectDir.resolve("nix/interop/un.def")
+    }
 
     sourceSets {
         jvmAndPosixMain {
