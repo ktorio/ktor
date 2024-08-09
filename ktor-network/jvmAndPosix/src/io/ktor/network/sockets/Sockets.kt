@@ -44,7 +44,7 @@ public suspend fun ASocket.awaitClosed() {
 /**
  * Represent a connected socket
  */
-public interface AConnectedSocket : AWritable {
+public interface AConnectedSocket {
     /**
      * Remote socket address. Could throw an exception if the peer is not yet connected or already disconnected.
      */

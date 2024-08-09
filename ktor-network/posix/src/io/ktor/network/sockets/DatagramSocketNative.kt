@@ -6,7 +6,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
@@ -22,7 +21,7 @@ internal class DatagramSocketNative(
     val selectable: Selectable,
     private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
-) : BoundDatagramSocket, ConnectedDatagramSocket, Socket, CoroutineScope {
+) : BoundDatagramSocket, ConnectedDatagramSocket, CoroutineScope {
     private val _context: CompletableJob = Job(parent[Job])
 
     override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _context
@@ -69,12 +68,6 @@ internal class DatagramSocketNative(
         }
         sender.close()
     }
-
-    override fun attachForReading(channel: ByteChannel): WriterJob =
-        attachForReadingImpl(channel, descriptor, selectable, selector)
-
-    override fun attachForWriting(channel: ByteChannel): ReaderJob =
-        attachForWritingImpl(channel, descriptor, selectable, selector)
 
     private suspend fun readDatagram(): Datagram {
         while (true) {
