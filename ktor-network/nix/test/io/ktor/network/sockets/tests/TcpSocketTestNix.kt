@@ -73,7 +73,7 @@ class TcpSocketTestNix {
     fun testDescriptorError() = testSockets { selector ->
         val socket = aSocket(selector)
             .tcp()
-            .bind(InetSocketAddress("127.0.0.1", 8004))
+            .bind(InetSocketAddress("127.0.0.1", 0))
         val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
 
         launch {
@@ -92,12 +92,12 @@ class TcpSocketTestNix {
     fun testDescriptorErrorDoesNotFailOtherSockets() = testSockets { selector ->
         val socket = aSocket(selector)
             .tcp()
-            .bind(InetSocketAddress("127.0.0.1", 8005))
+            .bind(InetSocketAddress("127.0.0.1", 0))
         val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
 
         val socket2 = aSocket(selector)
             .tcp()
-            .bind(InetSocketAddress("127.0.0.1", 8006))
+            .bind(InetSocketAddress("127.0.0.1", 0))
 
         launch {
             launch {
