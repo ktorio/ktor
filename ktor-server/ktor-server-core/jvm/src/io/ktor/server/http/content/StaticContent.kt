@@ -14,6 +14,8 @@ import io.ktor.util.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
+import java.nio.file.attribute.*
+import java.nio.file.spi.*
 import kotlin.io.path.*
 
 /**
@@ -238,7 +240,8 @@ public fun Route.staticResources(
  * Sets up [RoutingRoot] to serve contents of [zip] as static content.
  * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
  * If requested path doesn't exist and [index] is not `null`,
- * then response will be [index] path in the requested package.
+ * then response will be [index] path in the requested package,
+ * If [reloadOnRequest] set to true, then content of [zip] will be actual at the moment of request.
  *
  * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
@@ -249,14 +252,58 @@ public fun Route.staticZip(
     basePath: String?,
     zip: Path,
     index: String? = "index.html",
+    reloadOnRequest: Boolean = false,
     block: StaticContentConfig<Path>.() -> Unit = {}
 ): Route = staticFileSystem(
     remotePath = remotePath,
     basePath = basePath,
     index = index,
-    fileSystem = FileSystems.newFileSystem(zip, environment.classLoader),
+    fileSystem = if (reloadOnRequest) {
+        ChangingZip(zip, environment.classLoader)
+    } else {
+        getFileSystem(zip, environment.classLoader)
+    },
     block = block
 )
+
+private fun getFileSystem(zip: Path, classLoader: ClassLoader): FileSystem = FileSystems.newFileSystem(zip, classLoader)
+
+/**
+ * Allow to serve changing [FileSystem]. Returns [FileSystem], which will be recreated on each request.
+ */
+private class ChangingZip(val zip: Path, val classLoader: ClassLoader) : FileSystem() {
+    private var delegate = getFileSystem(zip, classLoader)
+
+    private fun getDelegate(): FileSystem {
+        delegate.close()
+        delegate = getFileSystem(zip, classLoader)
+        return delegate
+    }
+
+    override fun close() = delegate.close()
+
+    override fun provider(): FileSystemProvider = getDelegate().provider()
+
+    override fun isOpen(): Boolean = getDelegate().isOpen
+
+    override fun isReadOnly(): Boolean = getDelegate().isReadOnly
+
+    override fun getSeparator(): String = getDelegate().separator
+
+    override fun getRootDirectories(): MutableIterable<Path> = getDelegate().rootDirectories
+
+    override fun getFileStores(): MutableIterable<FileStore> = getDelegate().fileStores
+
+    override fun supportedFileAttributeViews(): MutableSet<String> = getDelegate().supportedFileAttributeViews()
+
+    override fun getPath(first: String, vararg more: String?): Path = getDelegate().getPath(first, *more)
+
+    override fun getPathMatcher(syntaxAndPattern: String?): PathMatcher = getDelegate().getPathMatcher(syntaxAndPattern)
+
+    override fun getUserPrincipalLookupService(): UserPrincipalLookupService = getDelegate().userPrincipalLookupService
+
+    override fun newWatchService(): WatchService = getDelegate().newWatchService()
+}
 
 /**
  * Sets up [RoutingRoot] to serve [fileSystem] as static content.

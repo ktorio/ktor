@@ -19,6 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import java.io.*
 import java.nio.file.*
+import java.util.zip.*
 import kotlin.io.path.*
 import kotlin.test.*
 
@@ -1272,6 +1273,53 @@ class StaticContentTest {
                 assertEquals(contentType.withCharset(Charsets.UTF_8), contentType())
             }
         }
+    }
+
+    @Test
+    fun testStaticPathFromChangingZip() = testApplication {
+        val path = "jvm/test-resources/dynamic.zip"
+        val firstFileName = "firstFile.txt"
+        val secondFileName = "secondFile.txt"
+        val firstContent = "Hello"
+        val secondContent = "World"
+        val firstZipFile = createZipFile(path, firstFileName, firstContent)
+
+        routing {
+            staticZip(
+                remotePath = "static",
+                basePath = null,
+                zip = Paths.get(path),
+                reloadOnRequest = true
+            )
+        }
+
+        val firstResponse = client.get("static/$firstFileName")
+        assertEquals(HttpStatusCode.OK, firstResponse.status)
+        assertEquals(firstContent, firstResponse.bodyAsText())
+
+        firstZipFile.delete()
+        val secondZipFile = createZipFile(path, secondFileName, secondContent)
+
+        val secondResponse = client.get("static/$secondFileName")
+        assertEquals(HttpStatusCode.OK, secondResponse.status)
+        assertEquals(secondContent, secondResponse.bodyAsText())
+
+        val firstNotFound = client.get("static/$firstFileName")
+        assertEquals(HttpStatusCode.NotFound, firstNotFound.status)
+
+        secondZipFile.delete()
+    }
+
+    private fun createZipFile(zipFileName: String, fileName: String, content: String): File {
+        FileOutputStream(zipFileName).use { fos ->
+            ZipOutputStream(fos).use { zos ->
+                val zipEntry = ZipEntry(fileName)
+                zos.putNextEntry(zipEntry)
+                zos.write(content.toByteArray())
+                zos.closeEntry()
+            }
+        }
+        return File(zipFileName)
     }
 }
 
