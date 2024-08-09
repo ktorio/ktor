@@ -17,7 +17,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
-class ContentEncodingRequestBodyTest {
+class ContentEncodingRequestChannelResponseBodyTest {
 
     @Test
     fun testCompressRequestBody() = testApplication {

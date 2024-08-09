@@ -150,7 +150,6 @@ public class HttpClient(
         with(userConfig) {
             config.install(HttpRequestLifecycle)
             config.install(BodyProgress)
-            config.install(SaveBodyPlugin)
 
             if (useDefaultTransformers) {
                 config.install("DefaultTransformers") { defaultTransformers() }

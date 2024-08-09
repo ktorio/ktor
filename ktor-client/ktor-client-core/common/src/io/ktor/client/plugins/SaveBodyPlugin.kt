@@ -5,7 +5,6 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.internal.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -17,7 +16,7 @@ private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
 private val RESPONSE_BODY_SAVED = AttributeKey<Unit>("ResponseBodySaved")
 
 /**
- * Configuration for [SaveBodyPlugin]
+ * Configuration for [SaveBody]
  */
 public class SaveBodyPluginConfig {
     /**
@@ -34,7 +33,7 @@ public class SaveBodyPluginConfig {
 }
 
 /**
- * [SaveBodyPlugin] saving the whole body in memory, so it can be received multiple times.
+ * [SaveBody] saving the whole body in memory, so it can be received multiple times.
  *
  * It may be useful to prevent saving body in case of big size or streaming. To do so use [HttpRequestBuilder.skipSavingBody]:
  * ```kotlin
@@ -42,19 +41,10 @@ public class SaveBodyPluginConfig {
  *     skipSavingBody()
  * }
  * ```
- *
- * The plugin is installed by default, if you need to disable it use:
- * ```kotlin
- * val client = HttpClient {
- *     install(SaveBodyPlugin) {
- *         disabled = true
- *     }
- * }
- * ```
  */
 @OptIn(InternalAPI::class)
-public val SaveBodyPlugin: ClientPlugin<SaveBodyPluginConfig> = createClientPlugin(
-    "DoubleReceivePlugin",
+public val SaveBody: ClientPlugin<SaveBodyPluginConfig> = createClientPlugin(
+    "SaveBody",
     ::SaveBodyPluginConfig
 ) {
     val disabled: Boolean = this@createClientPlugin.pluginConfig.disabled
@@ -65,10 +55,11 @@ public val SaveBodyPlugin: ClientPlugin<SaveBodyPluginConfig> = createClientPlug
         val attributes = response.call.attributes
         if (attributes.contains(SKIP_SAVE_BODY)) return@intercept
 
-        val buffer = response.content.readBuffer()
-        val call = response.call.wrapWithContent { ByteReadChannel(buffer.copy()) }
-        call.attributes.put(RESPONSE_BODY_SAVED, Unit)
-        proceedWith(call.response)
+        val buffer = response.body.read { readBuffer() }
+        val repeatableBody = HttpResponseBody.repeatable(buffer)
+        val newCall = response.call.withResponseBody(repeatableBody)
+        response.call.attributes.put(RESPONSE_BODY_SAVED, Unit)
+        proceedWith(newCall.response)
     }
 }
 

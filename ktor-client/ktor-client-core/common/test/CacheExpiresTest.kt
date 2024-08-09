@@ -119,7 +119,7 @@ class CacheExpiresTest {
     private class Response(
         override val headers: Headers,
         override val requestTime: GMTDate = GMTDate()
-    ) : HttpResponse() {
+    ) : HttpResponse {
         override val call: HttpClientCall get() = error("Shouldn't be used")
         override val status: HttpStatusCode
             get() = error("Shouldn't be used")
@@ -129,7 +129,7 @@ class CacheExpiresTest {
             get() = error("Shouldn't be used")
 
         @OptIn(InternalAPI::class)
-        override val content: ByteReadChannel
+        override val body: HttpResponseBody
             get() = error("Shouldn't be used")
         override val coroutineContext: CoroutineContext
             get() = error("Shouldn't be used")

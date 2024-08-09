@@ -9,7 +9,6 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -221,15 +220,28 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     if (!level.body) return@createClientPlugin
 
     @OptIn(InternalAPI::class)
-    val observer: ResponseHandler = observer@{
-        if (level == LogLevel.NONE || it.call.attributes.contains(DisableLogging)) {
+    val observer: ResponseHandler = observer@{ response ->
+        if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) {
             return@observer
         }
 
-        val callLogger = it.call.attributes[ClientCallLogger]
+        val callLogger = response.call.attributes[ClientCallLogger]
         val log = StringBuilder()
         try {
-            logResponseBody(log, it.contentType(), it.content)
+            val contentType = response.contentType()
+            val content = try {
+                response.body.readText(contentType?.charset() ?: Charsets.UTF_8)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                "[request body omitted]"
+            }
+
+            with(log) {
+                appendLine("BODY Content-Type: $contentType")
+                appendLine("BODY START")
+                appendLine(content)
+                append("BODY END")
+            }
         } catch (_: Throwable) {
         } finally {
             callLogger.logResponseBody(log.toString().trim())

@@ -40,7 +40,7 @@ class ExceptionsTest {
 
 @OptIn(InternalAPI::class)
 private fun createResponseException(): ResponseException = ResponseException(
-    object : HttpResponse() {
+    object : HttpResponse {
         override val call: HttpClientCall
             get() = TODO("Not yet implemented")
         override val status: HttpStatusCode
@@ -51,7 +51,7 @@ private fun createResponseException(): ResponseException = ResponseException(
             get() = TODO("Not yet implemented")
         override val responseTime: GMTDate
             get() = TODO("Not yet implemented")
-        override val content: ByteReadChannel
+        override val body: HttpResponseBody
             get() = TODO("Not yet implemented")
         override val headers: Headers
             get() = TODO("Not yet implemented")

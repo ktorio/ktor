@@ -64,7 +64,7 @@ public open class HttpClientCall(
     protected open val allowDoubleReceive: Boolean = false
 
     @OptIn(InternalAPI::class)
-    protected open suspend fun getResponseContent(): ByteReadChannel = response.content
+    protected open suspend fun getResponseContent(): ByteReadChannel = response.body.toChannel()
 
     /**
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
