@@ -72,7 +72,14 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 val defaultRequest = DefaultRequestBuilder().apply {
                     headers.appendAll(this@intercept.context.headers)
                     plugin.block(this)
+
+                    // override the default content type if set by client
+                    val contentType: String? = this@intercept.context.headers[HttpHeaders.ContentType]
+                    if (!contentType.isNullOrEmpty()) {
+                        headers[HttpHeaders.ContentType] = contentType
+                    }
                 }
+
                 val defaultUrl = defaultRequest.url.build()
                 mergeUrls(defaultUrl, context.url)
                 defaultRequest.attributes.allKeys.forEach {
