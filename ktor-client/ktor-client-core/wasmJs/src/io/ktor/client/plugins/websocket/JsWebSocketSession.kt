@@ -14,13 +14,12 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
-private fun tryGetEventDataAsString(data: JsAny): String =
+private fun tryGetEventDataAsString(data: JsAny): String? =
     js("typeof(data) === 'string' ? data : null")
 
-private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer =
+private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
     js("data instanceof ArrayBuffer ? data : null")
 
-@Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
     private val websocket: WebSocket

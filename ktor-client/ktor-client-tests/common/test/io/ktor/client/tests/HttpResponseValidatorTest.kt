@@ -29,14 +29,12 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     firstHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
 
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     secondHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
@@ -80,8 +78,7 @@ class HttpResponseValidatorTest {
                 addHandler { throw CallValidatorTestException() }
             }
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     assertTrue(cause is CallValidatorTestException)
                     firstHandler++
                 }
@@ -110,8 +107,7 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
@@ -135,8 +131,7 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
@@ -160,16 +155,14 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     firstHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
             }
 
             HttpResponseValidator {
-                @Suppress("DEPRECATION_ERROR")
-                handleResponseException { cause ->
+                handleResponseException { cause, _ ->
                     secondHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
