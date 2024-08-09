@@ -14,15 +14,30 @@ internal fun assignOptions(descriptor: Int, options: SocketOptions) {
     if (options is SocketOptions.UDPSocketOptions) {
         setSocketFlag(descriptor, SO_BROADCAST, options.broadcast)
     }
+
+    if (options is SocketOptions.UDPSocketOptions) {
+        options.receiveBufferSize.takeIf { it > 0 }?.let {
+            setSocketOption(descriptor, SO_RCVBUF, it)
+        }
+        options.sendBufferSize.takeIf { it > 0 }?.let {
+            setSocketOption(descriptor, SO_SNDBUF, it)
+        }
+    }
 }
 
-@OptIn(ExperimentalForeignApi::class)
-internal fun setSocketFlag(
+private fun setSocketFlag(
     descriptor: Int,
     optionName: Int,
     optionValue: Boolean
+) = setSocketOption(descriptor, optionName, if (optionValue) 1 else 0)
+
+@OptIn(ExperimentalForeignApi::class)
+private fun setSocketOption(
+    descriptor: Int,
+    optionName: Int,
+    optionValue: Int
 ) = memScoped {
-    val flag = alloc<IntVar>()
-    flag.value = if (optionValue) 1 else 0
-    ktor_setsockopt(descriptor, SOL_SOCKET, optionName, flag.ptr, sizeOf<IntVar>().convert()).check()
+    val optval = alloc<IntVar>()
+    optval.value = optionValue
+    ktor_setsockopt(descriptor, SOL_SOCKET, optionName, optval.ptr, sizeOf<IntVar>().convert()).check()
 }

@@ -8,6 +8,8 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
+import kotlin.random.*
 import kotlin.test.*
 
 class UDPSocketTest {
@@ -208,6 +210,7 @@ class UDPSocketTest {
                         val bytePacket = buildPacket { append("hello") }
                         val data = Datagram(bytePacket, address)
                         socket.send(data)
+                        assertTrue(data.packet.exhausted())
                     }
                 }
 
@@ -215,6 +218,37 @@ class UDPSocketTest {
                 repeat(10) {
                     val incoming = socket.receive()
                     assertEquals("hello", incoming.packet.readText())
+                }
+            }
+    }
+
+    @Test
+    fun testSendReceiveLarge(): Unit = testSockets { selector ->
+        val datagramSize = 10000 // must be larger than Segment.SIZE (8192) for this test
+        val largeData = Random.nextBytes(datagramSize)
+
+        aSocket(selector)
+            .udp()
+            .bind(InetSocketAddress("127.0.0.1", 0)) {
+                reuseAddress = true
+                sendBufferSize = 65535
+                receiveBufferSize = 65535
+            }
+            .use { socket ->
+                // Send messages to localhost
+                launch {
+                    repeat(4) {
+                        val bytePacket = buildPacket { write(largeData) }
+                        val data = Datagram(bytePacket, socket.localAddress)
+                        socket.send(data)
+                        assertTrue(data.packet.exhausted())
+                    }
+                }
+
+                // Receive messages from localhost
+                repeat(4) {
+                    val incoming = socket.receive()
+                    assertContentEquals(largeData, incoming.packet.readByteArray())
                 }
             }
     }

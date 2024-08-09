@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -16,6 +17,7 @@ import kotlinx.coroutines.selects.*
 import kotlinx.coroutines.sync.*
 import kotlinx.io.*
 import kotlinx.io.IOException
+import kotlinx.io.unsafe.*
 
 private val CLOSED: (Throwable?) -> Unit = {}
 private val CLOSED_INVOKED: (Throwable?) -> Unit = {}
@@ -50,7 +52,7 @@ internal class DatagramSendChannel(
         return true
     }
 
-    @OptIn(InternalCoroutinesApi::class, UnsafeNumber::class)
+    @OptIn(InternalCoroutinesApi::class, InternalIoApi::class, UnsafeIoApi::class)
     override fun trySend(element: Datagram): ChannelResult<Unit> {
         if (!lock.tryLock()) return ChannelResult.failure()
         if (remote != null) {
@@ -59,35 +61,62 @@ internal class DatagramSendChannel(
             }
         }
 
-        val result: Boolean
-
         try {
-            val bytes = element.packet.copy().readByteArray()
-            val bytesWritten = sendto(element, bytes)
-
-            result = when (bytesWritten) {
-                0 -> throw IOException("Failed writing to closed socket")
-                -1 -> {
-                    if (isWouldBlockError(getSocketError())) {
-                        false
-                    } else {
-                        throw PosixException.forSocketError()
-                    }
+            val packetSize = element.packet.remaining
+            var writeWithPool = false
+            UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
+                val length = endIndex - startIndex
+                if (length < packetSize) {
+                    // Packet is too large to read directly.
+                    writeWithPool = true
+                    return@readFromHead 0
                 }
 
-                else -> true
+                val bytesWritten = sendto(element, bytes, startIndex, length)
+
+                when (bytesWritten) {
+                    0 -> throw IOException("Failed writing to closed socket")
+                    -1 -> {
+                        if (isWouldBlockError(getSocketError())) {
+                            0
+                        } else {
+                            throw PosixException.forSocketError()
+                        }
+                    }
+
+                    else -> length
+                }
+            }
+            if (writeWithPool) {
+                DefaultDatagramByteArrayPool.useInstance { buffer ->
+                    val length = element.packet.remaining.toInt()
+                    element.packet.peek().readTo(buffer, endIndex = length)
+
+                    val bytesWritten = sendto(element, buffer, 0, length)
+
+                    when (bytesWritten) {
+                        0 -> throw IOException("Failed writing to closed socket")
+                        -1 -> {
+                            if (isWouldBlockError(getSocketError())) {
+                            } else {
+                                throw PosixException.forSocketError()
+                            }
+                        }
+
+                        else -> {
+                            element.packet.discard()
+                        }
+                    }
+                }
             }
         } finally {
             lock.unlock()
         }
 
-        if (result) {
-            element.packet.close()
-        }
-
         return ChannelResult.success(Unit)
     }
 
+    @OptIn(InternalIoApi::class, UnsafeIoApi::class)
     override suspend fun send(element: Datagram) {
         if (remote != null) {
             check(element.address == remote) {
@@ -96,20 +125,41 @@ internal class DatagramSendChannel(
         }
 
         lock.withLock {
-            sendImpl(element)
+            withContext(Dispatchers.IO) {
+                val packetSize = element.packet.remaining
+                var writeWithPool = false
+                UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
+                    val length = endIndex - startIndex
+                    if (length < packetSize) {
+                        // Packet is too large to read directly.
+                        writeWithPool = true
+                        return@readFromHead 0
+                    }
+                    sendSuspend(element, bytes, startIndex, length)
+                    length
+                }
+                if (writeWithPool) {
+                    DefaultDatagramByteArrayPool.useInstance { buffer ->
+                        val length = element.packet.remaining.toInt()
+                        element.packet.readTo(buffer, endIndex = length)
+
+                        sendSuspend(element, buffer, 0, length)
+                    }
+                }
+            }
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
-    private fun sendto(datagram: Datagram, bytes: ByteArray): Int {
+    @OptIn(ExperimentalForeignApi::class)
+    private fun sendto(datagram: Datagram, buffer: ByteArray, offset: Int, length: Int): Int {
         var bytesWritten: Int? = null
-        bytes.usePinned { pinned ->
+        buffer.usePinned { pinned ->
             if (remote == null) {
                 datagram.address.address.nativeAddress { address, addressSize ->
                     bytesWritten = ktor_sendto(
                         descriptor,
-                        pinned.addressOf(0),
-                        bytes.size.convert(),
+                        pinned.addressOf(offset),
+                        length.convert(),
                         0,
                         address,
                         addressSize
@@ -118,8 +168,8 @@ internal class DatagramSendChannel(
             } else {
                 bytesWritten = ktor_sendto(
                     descriptor,
-                    pinned.addressOf(0),
-                    bytes.size.convert(),
+                    pinned.addressOf(offset),
+                    length.convert(),
                     0,
                     null,
                     0.convert()
@@ -129,18 +179,20 @@ internal class DatagramSendChannel(
         return bytesWritten ?: error("bytesWritten cannot be null")
     }
 
-    private tailrec suspend fun sendImpl(
+    private tailrec suspend fun sendSuspend(
         datagram: Datagram,
-        bytes: ByteArray = datagram.packet.readByteArray()
+        buffer: ByteArray,
+        offset: Int,
+        length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, bytes)
+        val bytesWritten: Int = sendto(datagram, buffer, offset, length)
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (isWouldBlockError(getSocketError())) {
                     socket.selector.select(socket.selectable, SelectInterest.WRITE)
-                    sendImpl(datagram, bytes)
+                    sendSuspend(datagram, buffer, offset, length)
                 } else {
                     throw PosixException.forSocketError()
                 }
