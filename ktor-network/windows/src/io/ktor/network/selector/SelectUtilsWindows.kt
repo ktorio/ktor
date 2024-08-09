@@ -7,6 +7,7 @@ package io.ktor.network.selector
 import io.ktor.network.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -115,6 +116,9 @@ internal actual class SelectorHelper {
                 val wsaEvent = allWsaEvents.computeIfAbsent(descriptor) {
                     WSACreateEvent()
                 }
+                if (wsaEvent == WSA_INVALID_EVENT) {
+                    throw PosixException.forSocketError()
+                }
 
                 var lNetworkEvents = events.fold(0) { acc, event ->
                     acc or descriptorSetByInterestKind(event)
@@ -126,7 +130,7 @@ internal actual class SelectorHelper {
                     s = descriptor.convert(),
                     hEventObject = wsaEvent,
                     lNetworkEvents = lNetworkEvents
-                )
+                ).check { it == 0 }
 
                 wsaEvent
             }
