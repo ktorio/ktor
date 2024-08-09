@@ -6,6 +6,7 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.network.util.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -18,7 +19,8 @@ class TcpSocketTestNix {
         val selector = SelectorManager()
         val socket = aSocket(selector)
             .tcp()
-            .bind(InetSocketAddress("127.0.0.1", 8002))
+            .bind(InetSocketAddress("127.0.0.1", 0))
+
         val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
 
         socket.close()
@@ -35,14 +37,15 @@ class TcpSocketTestNix {
         val selector = SelectorManager()
         val tcp = aSocket(selector).tcp()
 
-        val server = tcp.bind(InetSocketAddress("127.0.0.1", 8002))
+        val server = tcp.bind(InetSocketAddress("127.0.0.1", 0))
         val serverDescriptor = (server as TCPServerSocketNative).selectable.descriptor
 
         val serverConnectionPromise = async {
             server.accept()
         }
 
-        val clientConnection = tcp.connect("127.0.0.1", 8002)
+        val port = (server.localAddress as InetSocketAddress).port
+        val clientConnection = tcp.connect("127.0.0.1", port)
         val clientDescriptor = (clientConnection as TCPSocketNative).selectable.descriptor
 
         val serverConnection = serverConnectionPromise.await()
