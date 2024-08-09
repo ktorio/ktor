@@ -73,7 +73,7 @@ internal actual class SelectorHelper {
             val index = memScoped {
                 val length = wsaEvents.size + 1
                 val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
-                    wsaEvents.forEachIndexed { index, wsaEvent ->
+                    wsaEvents.values.forEachIndexed { index, wsaEvent ->
                         this[index] = wsaEvent
                     }
                     this[length - 1] = wakeupSignal.event
@@ -103,7 +103,7 @@ internal actual class SelectorHelper {
     @OptIn(ExperimentalForeignApi::class)
     private fun fillHandlers(
         watchSet: MutableSet<EventInfo>
-    ): List<COpaquePointer?> {
+    ): Map<Int, COpaquePointer?> {
         while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
@@ -111,7 +111,7 @@ internal actual class SelectorHelper {
 
         return watchSet
             .groupBy { it.descriptor }
-            .map { (descriptor, events) ->
+            .mapValues { (descriptor, events) ->
                 val wsaEvent = allWsaEvents.computeIfAbsent(descriptor) {
                     WSACreateEvent()
                 }
@@ -138,19 +138,20 @@ internal actual class SelectorHelper {
         closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
         wsaIndex: Int,
-        wsaEvents: List<COpaquePointer?>
+        wsaEvents: Map<Int, COpaquePointer?>
     ) {
+        println("proce")
         while (true) {
             val event = closeQueue.removeFirstOrNull() ?: break
             closeSet.add(event)
         }
 
-        watchSet.forEachIndexed { index, event ->
+        watchSet.forEach { event ->
             if (event.descriptor in closeSet) {
                 completed.add(event)
-                return@forEachIndexed
+                return@forEach
             }
-            val wsaEvent = wsaEvents[index]
+            val wsaEvent = wsaEvents.getValue(event.descriptor)
             val networkEvents = memScoped {
                 val networkEvents = alloc<WSANETWORKEVENTS>()
                 WSAEnumNetworkEvents(event.descriptor.convert(), wsaEvent, networkEvents.ptr).check()
@@ -162,14 +163,16 @@ internal actual class SelectorHelper {
             val isClosed = networkEvents and FD_CLOSE != 0
 
             if (networkEvents and set == 0 && !isClosed) {
-                return@forEachIndexed
+                return@forEach
             }
 
             completed.add(event)
             event.complete()
         }
 
-        if (wsaIndex == wsaEvents.lastIndex + 1) {
+        // The wake-up signal was added as the last event, so wsaIndex should be 1 higher than
+        // the last index of wsaEvents.
+        if (wsaIndex == wsaEvents.size) {
             wakeupSignal.check()
         }
 
