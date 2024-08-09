@@ -259,15 +259,8 @@ class CacheLegacyStorageTest : ClientLoader() {
                             .forEach(::appendAll)
                     }
                     proceedWith(
-                        object : HttpResponse() {
-                            override val call get() = response.call
-                            override val content get() = response.content
-                            override val coroutineContext get() = response.coroutineContext
+                        object : HttpResponse by response {
                             override val headers = headers
-                            override val requestTime get() = response.requestTime
-                            override val responseTime get() = response.responseTime
-                            override val status get() = response.status
-                            override val version get() = response.version
                         }
                     )
                 }

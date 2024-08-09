@@ -55,21 +55,17 @@ public val ResponseObserver: ClientPlugin<ResponseObserverConfig> = createClient
     on(AfterReceiveHook) { response ->
         if (filter?.invoke(response.call) == false) return@on
 
-        val (loggingContent, responseContent) = response.content.split(response)
-
-        val newResponse = response.call.wrapWithContent(responseContent).response
-        val sideResponse = response.call.wrapWithContent(loggingContent).response
+        // requires a deep copy because it is read asynchronously
+        val copiedBody = response.body.copy(deep = true)
+        val copiedResponse = response.withResponseBody(copiedBody)
 
         client.launch(getResponseObserverContext()) {
-            runCatching { responseHandler(sideResponse) }
-
-            val content = sideResponse.content
-            if (!content.isClosedForRead) {
-                runCatching { content.discard() }
+            runCatching {
+                responseHandler(copiedResponse)
             }
         }
 
-        proceedWith(newResponse)
+        proceedWith(response)
     }
 }
 

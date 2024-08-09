@@ -116,7 +116,10 @@ public suspend fun CacheStorage.store(
     isShared: Boolean = false
 ): CachedResponseData {
     val url = response.call.request.url
-    val body = response.content.readRemaining().readBytes()
+    val body = response.body.read {
+        readRemaining().readBytes()
+    }
+    response.complete()
     val data = CachedResponseData(
         url = response.call.request.url,
         statusCode = response.status,
@@ -137,7 +140,7 @@ internal fun CachedResponseData.createResponse(
     request: HttpRequest,
     responseContext: CoroutineContext
 ): HttpResponse {
-    val response = object : HttpResponse() {
+    val response = object : HttpResponse {
         override val call: HttpClientCall get() = throw IllegalStateException("This is a fake response")
         override val status: HttpStatusCode = statusCode
         override val version: HttpProtocolVersion = this@createResponse.version
@@ -145,7 +148,7 @@ internal fun CachedResponseData.createResponse(
         override val responseTime: GMTDate = this@createResponse.responseTime
 
         @InternalAPI
-        override val content: ByteReadChannel get() = throw IllegalStateException("This is a fake response")
+        override val body: HttpResponseBody get() = throw IllegalStateException("This is a fake response")
         override val headers: Headers = this@createResponse.headers
         override val coroutineContext: CoroutineContext = responseContext
     }

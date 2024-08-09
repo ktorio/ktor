@@ -42,23 +42,15 @@ internal class SavedHttpRequest(
 
 internal class SavedHttpResponse(
     override val call: SavedHttpCall,
-    private val body: ByteArray,
+    body: ByteArray,
     origin: HttpResponse
-) : HttpResponse() {
-    override val status: HttpStatusCode = origin.status
+) : HttpResponse by origin {
+    private val context = Job()
 
-    override val version: HttpProtocolVersion = origin.version
-
-    override val requestTime: GMTDate = origin.requestTime
-
-    override val responseTime: GMTDate = origin.responseTime
-
-    override val headers: Headers = origin.headers
-
-    override val coroutineContext: CoroutineContext = origin.coroutineContext
+    override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
     @OptIn(InternalAPI::class)
-    override val content: ByteReadChannel get() = ByteReadChannel(body)
+    override val body = HttpResponseBody.create(body)
 }
 
 /**
@@ -67,7 +59,9 @@ internal class SavedHttpResponse(
 
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
-    val responseBody = response.content.readRemaining().readByteArray()
+    val responseBody = response.body.copy().read {
+        readRemaining().readByteArray()
+    }
 
     return SavedHttpCall(client, request, response, responseBody)
 }

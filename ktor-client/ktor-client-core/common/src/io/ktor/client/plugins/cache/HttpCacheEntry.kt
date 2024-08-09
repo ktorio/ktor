@@ -15,7 +15,10 @@ import kotlin.collections.*
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
-    val body = response.content.readRemaining().readByteArray()
+    val body = response.body.read {
+        readRemaining().readByteArray()
+    }
+    response.complete()
     return HttpCacheEntry(response.cacheExpires(isShared), response.varyKeys(), response, body)
 }
 

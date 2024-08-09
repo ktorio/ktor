@@ -15,7 +15,7 @@ import kotlin.coroutines.*
 public class DefaultHttpResponse(
     override val call: HttpClientCall,
     responseData: HttpResponseData
-) : HttpResponse() {
+) : HttpResponse {
     override val coroutineContext: CoroutineContext = responseData.callContext
 
     override val status: HttpStatusCode = responseData.statusCode
@@ -26,8 +26,10 @@ public class DefaultHttpResponse(
 
     override val responseTime: GMTDate = responseData.responseTime
 
-    override val content: ByteReadChannel = responseData.body as? ByteReadChannel
-        ?: ByteReadChannel.Empty
+    override val body: HttpResponseBody =
+        (responseData.body as? ByteReadChannel)?.let {
+            HttpResponseBody.create(it)
+        } ?: HttpResponseBody.empty()
 
     override val headers: Headers = responseData.headers
 }

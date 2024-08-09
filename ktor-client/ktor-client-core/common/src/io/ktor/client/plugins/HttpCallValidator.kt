@@ -7,6 +7,7 @@ package io.ktor.client.plugins
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -127,7 +128,7 @@ public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClie
 
     on(Send) { request ->
         val call = proceed(request)
-        validateResponse(call.response)
+        validateResponse(call.response.copied())
         call
     }
 

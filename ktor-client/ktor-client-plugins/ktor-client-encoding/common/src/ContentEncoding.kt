@@ -108,7 +108,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> =
             }
         }
 
-        fun CoroutineScope.decode(response: HttpResponse, content: ByteReadChannel): HttpResponse {
+        fun CoroutineScope.decode(response: HttpResponse): HttpResponse {
             val encodings = response.headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() }
                 ?: run {
                     LOGGER.trace(
@@ -118,7 +118,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> =
                     return response
                 }
 
-            var current = content
+            var current = response.body.toChannel()
             for (encoding in encodings.reversed()) {
                 val encoder: Encoder = encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
 
@@ -139,7 +139,10 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> =
                 }
             }
             response.call.attributes.put(DecompressionListAttribute, encodings)
-            return response.call.wrap(current, headers).response
+            return response.call.withBodyAndHeaders(
+                HttpResponseBody.create(current),
+                headers
+            ).response
         }
 
         onRequest { request, _ ->
@@ -177,7 +180,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> =
             if (contentLength == 0L) return@on null
             if (contentLength == null && method == HttpMethod.Head) return@on null
 
-            return@on response.call.decode(response, response.content)
+            return@on response.call.decode(response)
         }
     }
 

@@ -87,7 +87,7 @@ private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
             append(HttpHeaders.Warning, "110")
         },
         version = cachedCall.response.version,
-        body = cachedCall.response.content,
+        body = cachedCall.response.body,
         callContext = cachedCall.response.coroutineContext
     )
     val call = HttpClientCall(scope, request, response)
