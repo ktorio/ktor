@@ -20,7 +20,7 @@ public actual open class InterruptedIOException : IOException()
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
 public actual class SocketTimeoutException internal constructor(
-    override val message: String,
+    override val message: String?,
     override val cause: Throwable?,
     unit: Unit
 ) : InterruptedIOException()

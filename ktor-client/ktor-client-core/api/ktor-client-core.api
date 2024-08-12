@@ -227,6 +227,11 @@ public final class io/ktor/client/network/sockets/SocketTimeoutException : java/
 	public fun getCause ()Ljava/lang/Throwable;
 }
 
+public final class io/ktor/client/network/sockets/TimeoutExceptionsKt {
+	public static final fun SocketTimeoutException (Ljava/lang/String;Ljava/lang/Throwable;)Ljava/net/SocketTimeoutException;
+	public static synthetic fun SocketTimeoutException$default (Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ljava/net/SocketTimeoutException;
+}
+
 public final class io/ktor/client/plugins/BodyProgressKt {
 	public static final fun getBodyProgress ()Lio/ktor/client/plugins/api/ClientPlugin;
 	public static final fun onDownload (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/client/content/ProgressListener;)V
@@ -295,11 +300,8 @@ public final class io/ktor/client/plugins/DoubleReceivePluginKt {
 
 public final class io/ktor/client/plugins/HttpCallValidatorConfig {
 	public fun <init> ()V
-	public final fun getExpectSuccess ()Z
-	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
 	public final fun handleResponseException (Lkotlin/jvm/functions/Function3;)V
 	public final fun handleResponseExceptionWithRequest (Lkotlin/jvm/functions/Function3;)V
-	public final fun setExpectSuccess (Z)V
 	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
 }
 
@@ -473,8 +475,8 @@ public final class io/ktor/client/plugins/HttpTimeoutKt {
 	public static final fun ConnectTimeoutException (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Throwable;)Lio/ktor/client/network/sockets/ConnectTimeoutException;
 	public static synthetic fun ConnectTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/client/network/sockets/ConnectTimeoutException;
 	public static synthetic fun ConnectTimeoutException$default (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/client/network/sockets/ConnectTimeoutException;
-	public static final fun SocketTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Lio/ktor/client/network/sockets/SocketTimeoutException;
-	public static synthetic fun SocketTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/client/network/sockets/SocketTimeoutException;
+	public static final fun SocketTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Ljava/net/SocketTimeoutException;
+	public static synthetic fun SocketTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Ljava/net/SocketTimeoutException;
 	public static final fun convertLongTimeoutToIntWithInfiniteAsZero (J)I
 	public static final fun convertLongTimeoutToLongWithInfiniteAsZero (J)J
 	public static final fun getHttpTimeout ()Lio/ktor/client/plugins/api/ClientPlugin;
