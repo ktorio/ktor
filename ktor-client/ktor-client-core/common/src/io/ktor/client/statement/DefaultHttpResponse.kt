@@ -27,9 +27,9 @@ public class DefaultHttpResponse(
     override val responseTime: GMTDate = responseData.responseTime
 
     override val body: HttpResponseBody =
-        (responseData.body as? ByteReadChannel)?.let {
-            HttpResponseBody.create(it)
-        } ?: HttpResponseBody.empty()
+        (responseData.body as? ByteReadChannel)
+            ?.let(HttpResponseBody::create)
+            ?: HttpResponseBody.empty()
 
     override val headers: Headers = responseData.headers
 }

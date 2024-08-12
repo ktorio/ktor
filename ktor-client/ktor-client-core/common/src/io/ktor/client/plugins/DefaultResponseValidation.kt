@@ -11,7 +11,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultResponseValidation")
@@ -32,16 +31,14 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             }
 
             val statusCode = response.status.value
-            val originCall = response.call
-            if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) {
+            val call = response.call
+            if (statusCode < 300 || call.attributes.contains(ValidateMark)) {
                 return@validateResponse
             }
 
-            val exceptionCall = originCall.save().apply {
-                attributes.put(ValidateMark, Unit)
-            }
+            call.attributes.put(ValidateMark, Unit)
 
-            val exceptionResponse = exceptionCall.response
+            val exceptionResponse = call.response
             val exceptionResponseText = try {
                 exceptionResponse.bodyAsText()
             } catch (_: MalformedInputException) {

@@ -128,7 +128,7 @@ public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClie
 
     on(Send) { request ->
         val call = proceed(request)
-        validateResponse(call.response.copied())
+        validateResponse(call.response)
         call
     }
 
