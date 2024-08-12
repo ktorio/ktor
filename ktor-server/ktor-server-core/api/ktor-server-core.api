@@ -747,6 +747,15 @@ public final class io/ktor/server/http/content/DefaultTransformKt {
 	public static final fun transformDefaultContent (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 }
 
+public abstract interface class io/ktor/server/http/content/FileSystemPaths {
+	public static final field Companion Lio/ktor/server/http/content/FileSystemPaths$Companion;
+	public abstract fun getPath (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
+}
+
+public final class io/ktor/server/http/content/FileSystemPaths$Companion {
+	public final fun paths (Ljava/nio/file/FileSystem;)Lio/ktor/server/http/content/FileSystemPaths;
+}
+
 public final class io/ktor/server/http/content/HttpStatusCodeContent : io/ktor/http/content/OutgoingContent$NoContent {
 	public fun <init> (Lio/ktor/http/HttpStatusCode;)V
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
@@ -859,8 +868,8 @@ public final class io/ktor/server/http/content/StaticContentKt {
 	public static final fun setStaticRootFolder (Lio/ktor/server/routing/Route;Ljava/io/File;)V
 	public static final fun static (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun static (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
-	public static final fun staticFileSystem (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/nio/file/FileSystem;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
-	public static synthetic fun staticFileSystem$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/nio/file/FileSystem;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static final fun staticFileSystem (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/http/content/FileSystemPaths;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun staticFileSystem$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/http/content/FileSystemPaths;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 	public static final fun staticFiles (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static synthetic fun staticFiles$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 	public static final fun staticResources (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;

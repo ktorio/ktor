@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.FileSystemPaths.Companion.paths
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -254,7 +255,7 @@ public fun Route.staticZip(
     remotePath = remotePath,
     basePath = basePath,
     index = index,
-    fileSystem = FileSystems.newFileSystem(zip, environment.classLoader),
+    fileSystem = FileSystems.newFileSystem(zip, environment.classLoader).paths(),
     block = block
 )
 
@@ -272,7 +273,7 @@ public fun Route.staticFileSystem(
     remotePath: String,
     basePath: String?,
     index: String? = "index.html",
-    fileSystem: FileSystem = FileSystems.getDefault(),
+    fileSystem: FileSystemPaths = FileSystems.getDefault().paths(),
     block: StaticContentConfig<Path>.() -> Unit = {}
 ): Route {
     val staticRoute = StaticContentConfig<Path>().apply(block)
@@ -559,7 +560,7 @@ private suspend fun ApplicationCall.respondStaticFile(
 }
 
 private suspend fun ApplicationCall.respondStaticPath(
-    fileSystem: FileSystem,
+    fileSystem: FileSystemPaths,
     index: String?,
     basePath: String?,
     compressedTypes: List<CompressedFileType>?,
@@ -665,4 +666,24 @@ private suspend fun ApplicationCall.respondStaticResource(
         cacheControl = cacheControl,
         modifier = modifier
     )
+}
+
+/**
+ * Wrapper on [FileSystem] for more specific delegation since we use only [getPath] method from it.
+ */
+public interface FileSystemPaths {
+    public companion object {
+        /**
+         * Creates a [FileSystemPaths] instance from a [FileSystem].
+         */
+        public fun FileSystem.paths(): FileSystemPaths = object : FileSystemPaths {
+            override fun getPath(first: String, vararg more: String): Path = this@paths.getPath(first, *more)
+        }
+    }
+
+    /**
+     * Converts a path string, or a sequence of strings that when joined form a path string, to a Path.
+     * Equal to [FileSystem.getPath].
+     */
+    public fun getPath(first: String, vararg more: String): Path
 }
