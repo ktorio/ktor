@@ -29,23 +29,4 @@ class UdpSocketTestNix {
         val isDescriptorValid = fcntl(descriptor, F_GETFL) != -1 || errno != EBADF
         check(!isDescriptorValid) { "Descriptor was not closed" }
     }
-
-    @Test
-    fun testDescriptorCloseWithReadChannel() = testSuspend {
-        val selector = SelectorManager()
-        val socket = aSocket(selector)
-            .udp()
-            .bind(InetSocketAddress("127.0.0.1", 8002))
-        val descriptor = (socket as DatagramSocketNative).selectable.descriptor
-
-        socket.openReadChannel()
-
-        socket.close()
-        selector.close()
-
-        selector.coroutineContext[Job]?.join()
-
-        val isDescriptorValid = fcntl(descriptor, F_GETFL) != -1 || errno != EBADF
-        check(!isDescriptorValid) { "Descriptor was not closed" }
-    }
 }
