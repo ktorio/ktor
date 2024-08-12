@@ -36,8 +36,8 @@ public fun mergeHeaders(
     block: (key: String, value: String) -> Unit
 ) {
     buildHeaders {
-        appendAll(requestHeaders)
         appendAll(content.headers)
+        appendAll(requestHeaders) 
     }.forEach { key, values ->
         if (HttpHeaders.ContentLength == key) return@forEach // set later
         if (HttpHeaders.ContentType == key) return@forEach // set later
@@ -58,12 +58,12 @@ public fun mergeHeaders(
         block(HttpHeaders.UserAgent, KTOR_DEFAULT_USER_AGENT)
     }
 
-    val type = content.contentType?.toString()
-        ?: content.headers[HttpHeaders.ContentType]
+    val type = content.headers[HttpHeaders.ContentType]
+        ?: content.contentType?.toString()
         ?: requestHeaders[HttpHeaders.ContentType]
 
-    val length = content.contentLength?.toString()
-        ?: content.headers[HttpHeaders.ContentLength]
+    val length = content.headers[HttpHeaders.ContentLength]
+        ?: content.contentLength?.toString()
         ?: requestHeaders[HttpHeaders.ContentLength]
 
     type?.let { block(HttpHeaders.ContentType, it) }
