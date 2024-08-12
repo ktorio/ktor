@@ -66,10 +66,10 @@ public interface DatagramReadWriteChannel : DatagramReadChannel, DatagramWriteCh
 /**
  * Represents a bound datagram socket
  */
-public interface BoundDatagramSocket : ASocket, ABoundSocket, AReadable, DatagramReadWriteChannel
+public interface BoundDatagramSocket : ASocket, ABoundSocket, DatagramReadWriteChannel
 
 /**
  * Represents a connected datagram socket.
  */
 public interface ConnectedDatagramSocket :
-    ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel
+    ASocket, ABoundSocket, AConnectedSocket, DatagramReadWriteChannel
