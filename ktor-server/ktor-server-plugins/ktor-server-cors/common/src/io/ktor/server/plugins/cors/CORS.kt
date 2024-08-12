@@ -38,7 +38,6 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
 }
 
 internal fun PluginBuilder<CORSConfig>.buildPlugin() {
-    val numberRegex = "[0-9]+".toRegex()
     val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
     val allowCredentials: Boolean = pluginConfig.allowCredentials
@@ -65,13 +64,13 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val hostsNormalized = HashSet(
         pluginConfig.hosts
             .filterNot { it.contains('*') }
-            .map { normalizeOrigin(it, numberRegex) }
+            .map { normalizeOrigin(it) }
     )
     val hostsWithWildcard = HashSet(
         pluginConfig.hosts
             .filter { it.contains('*') }
             .map {
-                val normalizedOrigin = normalizeOrigin(it, numberRegex)
+                val normalizedOrigin = normalizeOrigin(it)
                 val (prefix, suffix) = normalizedOrigin.split('*')
                 prefix to suffix
             }
@@ -95,8 +94,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             allowsAnyHost,
             hostsNormalized,
             hostsWithWildcard,
-            originPredicates,
-            numberRegex
+            originPredicates
         )
         when (checkOrigin) {
             OriginCheckResult.OK -> {
@@ -163,18 +161,16 @@ private fun checkOrigin(
     allowsAnyHost: Boolean,
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
-    originPredicates: List<(String) -> Boolean>,
-    numberRegex: Regex
+    originPredicates: List<(String) -> Boolean>
 ): OriginCheckResult = when {
     !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
-    allowSameOrigin && isSameOrigin(origin, point, numberRegex) -> OriginCheckResult.SkipCORS
+    allowSameOrigin && isSameOrigin(origin, point) -> OriginCheckResult.SkipCORS
     !corsCheckOrigins(
         origin,
         allowsAnyHost,
         hostsNormalized,
         hostsWithWildcard,
-        originPredicates,
-        numberRegex
+        originPredicates
     ) -> OriginCheckResult.Failed
 
     else -> OriginCheckResult.OK

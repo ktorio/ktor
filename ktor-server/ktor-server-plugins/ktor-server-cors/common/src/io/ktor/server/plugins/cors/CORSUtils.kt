@@ -9,6 +9,8 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 
+private val NUMBER_REGEX = "[0-9]+".toRegex()
+
 internal fun ApplicationCall.accessControlAllowOrigin(
     origin: String,
     allowsAnyHost: Boolean,
@@ -36,9 +38,9 @@ internal fun ApplicationCall.accessControlMaxAge(maxAgeHeaderValue: String?) {
     }
 }
 
-internal fun isSameOrigin(origin: String, point: RequestConnectionPoint, numberRegex: Regex): Boolean {
+internal fun isSameOrigin(origin: String, point: RequestConnectionPoint): Boolean {
     val requestOrigin = "${point.scheme}://${point.serverHost}:${point.serverPort}"
-    return normalizeOrigin(requestOrigin, numberRegex) == normalizeOrigin(origin, numberRegex)
+    return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
 }
 
 internal fun corsCheckOrigins(
@@ -47,9 +49,8 @@ internal fun corsCheckOrigins(
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
     originPredicates: List<(String) -> Boolean>,
-    numberRegex: Regex
 ): Boolean {
-    val normalizedOrigin = normalizeOrigin(origin, numberRegex)
+    val normalizedOrigin = normalizeOrigin(origin)
     return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
         normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
     } || originPredicates.any { it(origin) }
@@ -109,7 +110,7 @@ internal fun isValidOrigin(origin: String): Boolean {
     return true
 }
 
-internal fun normalizeOrigin(origin: String, numberRegex: Regex): String {
+internal fun normalizeOrigin(origin: String): String {
     if (origin == "null" || origin == "*") return origin
 
     val builder = StringBuilder(origin.length)
@@ -118,7 +119,7 @@ internal fun normalizeOrigin(origin: String, numberRegex: Regex): String {
     } else {
         builder.append(origin)
     }
-    if (!builder.toString().substringAfterLast(":", "").matches(numberRegex)) {
+    if (!builder.toString().substringAfterLast(":", "").matches(NUMBER_REGEX)) {
         val port = when (builder.toString().substringBefore(':')) {
             "http" -> "80"
             "https" -> "443"
