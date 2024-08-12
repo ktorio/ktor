@@ -221,12 +221,6 @@ public final class io/ktor/client/network/sockets/ConnectTimeoutException : java
 	public fun getCause ()Ljava/lang/Throwable;
 }
 
-public final class io/ktor/client/network/sockets/SocketTimeoutException : java/net/SocketTimeoutException {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getCause ()Ljava/lang/Throwable;
-}
-
 public final class io/ktor/client/network/sockets/TimeoutExceptionsKt {
 	public static final fun SocketTimeoutException (Ljava/lang/String;Ljava/lang/Throwable;)Ljava/net/SocketTimeoutException;
 	public static synthetic fun SocketTimeoutException$default (Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Ljava/net/SocketTimeoutException;
