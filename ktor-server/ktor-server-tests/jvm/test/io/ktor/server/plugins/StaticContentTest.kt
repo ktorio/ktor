@@ -1316,6 +1316,7 @@ class StaticContentTest {
 
         // Wait for the watch service to detect the change
         testWatchService.take()
+        delay(3000)
 
         val secondResponse = client.get("static/$secondFileName")
         assertEquals(HttpStatusCode.OK, secondResponse.status)
