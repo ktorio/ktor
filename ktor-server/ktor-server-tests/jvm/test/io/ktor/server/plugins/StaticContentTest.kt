@@ -4,6 +4,7 @@
 
 package io.ktor.server.plugins
 
+import com.sun.nio.file.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -17,8 +18,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.file.*
+import java.util.zip.*
 import kotlin.io.path.*
 import kotlin.test.*
 
@@ -1272,6 +1275,68 @@ class StaticContentTest {
                 assertEquals(contentType.withCharset(Charsets.UTF_8), contentType())
             }
         }
+    }
+
+    @Test
+    fun testStaticPathFromChangingZip() = testApplication {
+        val stringPath = "jvm/test-resources/dynamic.zip"
+        val path = Paths.get(stringPath)
+        val firstFileName = "firstFile.txt"
+        val secondFileName = "secondFile.txt"
+        val firstContent = "Hello"
+        val secondContent = "World"
+        val firstZipFile = createZipFile(stringPath, firstFileName, firstContent)
+
+        routing {
+            staticZip(
+                remotePath = "static",
+                basePath = null,
+                zip = path,
+            )
+        }
+
+        val testWatchService = FileSystems.getDefault().newWatchService()
+        path.parent.register(
+            testWatchService,
+            arrayOf(
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE,
+                StandardWatchEventKinds.ENTRY_MODIFY,
+                StandardWatchEventKinds.OVERFLOW
+            ),
+            SensitivityWatchEventModifier.HIGH
+        )
+
+        val firstResponse = client.get("static/$firstFileName")
+        assertEquals(HttpStatusCode.OK, firstResponse.status)
+        assertEquals(firstContent, firstResponse.bodyAsText())
+
+        firstZipFile.delete()
+        val secondZipFile = createZipFile(stringPath, secondFileName, secondContent)
+
+        // Wait for the watch service to detect the change
+        testWatchService.take()
+
+        val secondResponse = client.get("static/$secondFileName")
+        assertEquals(HttpStatusCode.OK, secondResponse.status)
+        assertEquals(secondContent, secondResponse.bodyAsText())
+
+        val firstNotFound = client.get("static/$firstFileName")
+        assertEquals(HttpStatusCode.NotFound, firstNotFound.status)
+
+        secondZipFile.delete()
+    }
+
+    private fun createZipFile(zipFileName: String, fileName: String, content: String): File {
+        FileOutputStream(zipFileName).use { fos ->
+            ZipOutputStream(fos).use { zos ->
+                val zipEntry = ZipEntry(fileName)
+                zos.putNextEntry(zipEntry)
+                zos.write(content.toByteArray())
+                zos.closeEntry()
+            }
+        }
+        return File(zipFileName)
     }
 }
 

@@ -4,6 +4,7 @@
 
 package io.ktor.server.http.content
 
+import com.sun.nio.file.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -255,9 +256,52 @@ public fun Route.staticZip(
     remotePath = remotePath,
     basePath = basePath,
     index = index,
-    fileSystem = FileSystems.newFileSystem(zip, environment.classLoader).paths(),
+    fileSystem = ReloadingZipFileSystem(
+        zip,
+        environment.classLoader,
+        getFileSystem(zip, environment.classLoader).paths()
+    ),
     block = block
 )
+
+private fun getFileSystem(zip: Path, classLoader: ClassLoader): FileSystem = FileSystems.newFileSystem(zip, classLoader)
+
+/**
+ * Allow to serve changing [FileSystem]. Returns [FileSystemPaths],
+ * which will be recreated on each request if there were any file changes.
+ */
+private class ReloadingZipFileSystem(
+    private val zip: Path,
+    private val classLoader: ClassLoader,
+    private var delegate: FileSystemPaths
+) : FileSystemPaths {
+    private val watchService = FileSystems.getDefault().newWatchService()
+
+    init {
+        zip.parent.register(
+            watchService,
+            arrayOf(
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE,
+                StandardWatchEventKinds.ENTRY_MODIFY,
+                StandardWatchEventKinds.OVERFLOW
+            ),
+            SensitivityWatchEventModifier.HIGH
+        )
+    }
+
+    override fun getPath(first: String, vararg more: String): Path {
+        val key = watchService.poll() ?: return delegate.getPath(first, *more)
+
+        val events = key.pollEvents()
+        if (events.isNotEmpty()) {
+            delegate = getFileSystem(zip, classLoader).paths()
+        }
+        key.reset()
+
+        return delegate.getPath(first, *more)
+    }
+}
 
 /**
  * Sets up [RoutingRoot] to serve [fileSystem] as static content.
