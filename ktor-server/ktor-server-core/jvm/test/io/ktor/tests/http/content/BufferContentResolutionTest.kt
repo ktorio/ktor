@@ -11,16 +11,15 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
 import kotlin.test.*
 
-class StaticContentResolutionTest {
+class BufferContentResolutionTest {
 
-    private val baseUrl = StaticContentResolutionTest::class.java.classLoader.getResource("testjar.jar")
+    private val baseUrl = BufferContentResolutionTest::class.java.classLoader.getResource("testjar.jar")
 
     @OptIn(InternalAPI::class)
     @Test

@@ -109,7 +109,7 @@ public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClie
 
     suspend fun validateResponse(response: HttpResponse) {
         LOGGER.trace("Validating response for request ${response.call.request.url}")
-        responseValidators.forEach { it(response) }
+        responseValidators.forEach { it(response.lazyCopy()) }
     }
 
     suspend fun processException(cause: Throwable, request: HttpRequest) {

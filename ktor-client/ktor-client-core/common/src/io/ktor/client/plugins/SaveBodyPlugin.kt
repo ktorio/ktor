@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.io.*
 
 private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
 
@@ -55,8 +56,8 @@ public val SaveBody: ClientPlugin<SaveBodyPluginConfig> = createClientPlugin(
         val attributes = response.call.attributes
         if (attributes.contains(SKIP_SAVE_BODY)) return@intercept
 
-        val buffer = response.body.read { readBuffer() }
-        val repeatableBody = HttpResponseBody.repeatable(buffer)
+        val bytes = response.body.read { readRemaining().readByteArray() }
+        val repeatableBody = HttpResponseBody.create(bytes)
         val newCall = response.call.withResponseBody(repeatableBody)
         response.call.attributes.put(RESPONSE_BODY_SAVED, Unit)
         proceedWith(newCall.response)

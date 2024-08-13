@@ -232,7 +232,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             val content = try {
                 response.body.readText(contentType?.charset() ?: Charsets.UTF_8)
             } catch (e: Throwable) {
-                e.printStackTrace()
                 "[request body omitted]"
             }
 

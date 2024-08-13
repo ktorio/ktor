@@ -105,4 +105,4 @@ public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.U
  * Reads the [HttpResponse.body] as a [ByteReadChannel].
  */
 @OptIn(InternalAPI::class)
-public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body.toChannel()
+public fun HttpResponse.bodyAsChannel(): ByteReadChannel = body.toChannel()

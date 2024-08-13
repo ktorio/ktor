@@ -15,6 +15,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
@@ -26,8 +27,6 @@ import kotlin.reflect.*
 public open class HttpClientCall(
     public val client: HttpClient
 ) : CoroutineScope {
-    private val received: AtomicBoolean = atomic(false)
-
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
     /**
@@ -61,11 +60,6 @@ public open class HttpClientCall(
         }
     }
 
-    protected open val allowDoubleReceive: Boolean = false
-
-    @OptIn(InternalAPI::class)
-    protected open suspend fun getResponseContent(): ByteReadChannel = response.body.toChannel()
-
     /**
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
@@ -77,27 +71,39 @@ public open class HttpClientCall(
     public suspend fun bodyNullable(info: TypeInfo): Any? {
         try {
             if (response.instanceOf(info.type)) return response
-            if (!allowDoubleReceive && !response.isSaved && !received.compareAndSet(false, true)) {
-                throw DoubleReceiveException(this)
+
+            val transformBody: suspend (Any) -> Any? = { responseData ->
+                if (responseData is ByteReadChannel && responseData.closedCause != null) {
+                    throw responseData.closedCause!!
+                }
+                val subject = HttpResponseContainer(info, responseData)
+                client.responsePipeline.execute(this, subject).response
+                    .takeIf { it != NullBody }
+                    .also {
+                        if (it != null && !it.instanceOf(info.type)) {
+                            val from = it::class
+                            val to = info.type
+                            throw NoTransformationFoundException(response, from, to)
+                        }
+                    }
             }
-
-            val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
-
-            val subject = HttpResponseContainer(info, responseData)
-            val result = client.responsePipeline.execute(this, subject).response.takeIf { it != NullBody }
-
-            if (result != null && !result.instanceOf(info.type)) {
-                val from = result::class
-                val to = info.type
-                throw NoTransformationFoundException(response, from, to)
-            }
-
-            return result
+            return attributes.getOrNull(CustomResponse)
+                ?.let { transformBody(it) }
+                ?: response.body.read(
+                    consume = !info.isStreamingType(),
+                    operation = transformBody
+                )
         } catch (cause: Throwable) {
             response.cancel("Receive failed", cause)
             throw cause
         }
     }
+
+    /**
+     * We do not close the body after reading when providing streaming data.
+     */
+    private fun TypeInfo.isStreamingType() =
+        type in setOf(Source::class, ByteReadChannel::class) || type.qualifiedName?.contains("java.io") == true
 
     /**
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
@@ -153,10 +159,11 @@ public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.bodyNulla
 /**
  * Exception representing that the response payload has already been received.
  */
-
-public class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
-    override val message: String = "Response already received: $call"
+public class DoubleReceiveException(initialReceive: InitialReceiveEvent) : IllegalStateException(initialReceive) {
+    override val message: String = "Response already received; see cause stack for previous invocation"
 }
+
+public class InitialReceiveEvent: Throwable()
 
 /**
  * Exception representing fail of the response pipeline

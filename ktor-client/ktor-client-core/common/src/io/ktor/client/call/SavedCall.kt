@@ -7,9 +7,8 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.coroutines.*
 
@@ -17,22 +16,13 @@ internal class SavedHttpCall(
     client: HttpClient,
     request: HttpRequest,
     response: HttpResponse,
-    private val responseBody: ByteArray
+    responseBody: ByteArray
 ) : HttpClientCall(client) {
 
     init {
         this.request = SavedHttpRequest(this, request)
         this.response = SavedHttpResponse(this, responseBody, response)
     }
-
-    /**
-     * Returns a channel with [responseBody] data.
-     */
-    override suspend fun getResponseContent(): ByteReadChannel {
-        return ByteReadChannel(responseBody)
-    }
-
-    override val allowDoubleReceive: Boolean = true
 }
 
 internal class SavedHttpRequest(
@@ -56,12 +46,8 @@ internal class SavedHttpResponse(
 /**
  * Fetch data for [HttpClientCall] and close the origin.
  */
-
 @OptIn(InternalAPI::class)
-public suspend fun HttpClientCall.save(): HttpClientCall {
-    val responseBody = response.body.copy().read {
+public suspend fun HttpClientCall.save(): HttpClientCall =
+    SavedHttpCall(client, request, response, response.body.read {
         readRemaining().readByteArray()
-    }
-
-    return SavedHttpCall(client, request, response, responseBody)
-}
+    })

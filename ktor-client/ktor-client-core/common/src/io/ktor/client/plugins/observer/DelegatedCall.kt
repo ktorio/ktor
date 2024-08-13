@@ -21,7 +21,9 @@ internal class DelegatedResponse @InternalAPI constructor(
     @InternalAPI
     override val body: HttpResponseBody = origin.body,
     override val headers: Headers = origin.headers,
-) : HttpResponse by origin
+) : HttpResponse by origin {
+    override fun toString(): String = "HttpResponse[${request.url}, $status]"
+}
 
 @InternalAPI
 internal class DelegatedCall @OptIn(InternalAPI::class) constructor(
@@ -52,6 +54,6 @@ public fun HttpResponse.withResponseBody(body: HttpResponseBody): HttpResponse =
     DelegatedCall(call, body).response
 
 @OptIn(InternalAPI::class)
-public suspend fun HttpResponse.copied(): HttpResponse =
-    DelegatedCall(call, body.copy()).response
+public fun HttpResponse.lazyCopy(): HttpResponse =
+    DelegatedCall(call, body.lazyCopy()).response
 

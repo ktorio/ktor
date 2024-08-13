@@ -436,13 +436,10 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFails {
-                try {
-                    client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) {
-                    /* Ignore. */
-                }
+            val e = assertFails {
+                client.get("http://192.0.2.0:11").body<String>()
             }
+            assertTrue(e !is TimeoutCancellationException, "Expected IOException but was timeout exception")
         }
     }
 

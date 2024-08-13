@@ -4,11 +4,11 @@
 
 package io.ktor.client.statement
 
+import io.ktor.client.call.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.sync.*
 import kotlinx.io.*
-import kotlinx.io.Buffer
 
 /**
  * Interface for referencing HttpResponse body.
@@ -20,18 +20,20 @@ import kotlinx.io.Buffer
  */
 public interface HttpResponseBody {
     public companion object {
+        /**
+         * Create from a streaming source.
+         */
         public fun create(channel: ByteReadChannel): HttpResponseBody =
             ChannelResponseBody(BodySource.Stream(channel))
 
+        /**
+         * Create from a byte array.  This type of body can be read repeatedly.
+         */
         public fun create(bytes: ByteArray): HttpResponseBody =
-            ChannelResponseBody(BodySource.Static(Buffer().apply { write(bytes) }))
+            ChannelResponseBody(BodySource.ByteArray(bytes))
 
         public fun empty(): HttpResponseBody =
             ChannelResponseBody(BodySource.Stream(ByteReadChannel.Empty))
-
-        public fun repeatable(bytes: Buffer): HttpResponseBody =
-            RepeatableResponseBody(BodySource.Static(bytes))
-
     }
 
     /**
@@ -47,7 +49,7 @@ public interface HttpResponseBody {
     /**
      * Consumes the body with the given operation on the byte channel.
      */
-    public suspend fun <T> read(operation: suspend ByteReadChannel.() -> T): T
+    public suspend fun <T> read(consume: Boolean = true, operation: suspend ByteReadChannel.() -> T): T
 
     /**
      * Get the backing ByteReadChannel
@@ -66,11 +68,24 @@ public interface HttpResponseBody {
 
 }
 
+public fun HttpResponseBody.lazyCopy(): HttpResponseBody =
+    LazyCopyResponseBody(this)
+
+private class LazyCopyResponseBody(private val delegate: HttpResponseBody): HttpResponseBody by delegate {
+
+    override suspend fun <T> read(consume: Boolean, operation: suspend ByteReadChannel.() -> T): T =
+        delegate.copy().read(consume, operation)
+
+    override fun toChannel(): ByteReadChannel =
+        delegate.toChannel()
+}
+
 /**
  * Implementation for a response body that allows for copying as needed.
  */
 private class ChannelResponseBody(private var source: BodySource): HttpResponseBody {
     private val mutex = Mutex()
+    private var consumed: InitialReceiveEvent? = null
 
     /**
      * Reads in the response to a buffer, then replaces the current source and returns a new pointer.
@@ -83,17 +98,20 @@ private class ChannelResponseBody(private var source: BodySource): HttpResponseB
             }
         }
 
-    override suspend fun <T> read(operation: suspend (ByteReadChannel) -> T): T =
-        mutex.withLock {
-            source.toChannel().let { channel ->
-                try {
-                    operation(channel)
-                } finally {
-                    source.discard()
-                }
+    override suspend fun <T> read(consume: Boolean, operation: suspend (ByteReadChannel) -> T): T =
+        consumed?.let {
+            throw DoubleReceiveException(it)
+        } ?: with(source) {
+            try {
+                operation(toChannel())
+            } finally {
+                if (consume && discard())
+                    consumed = InitialReceiveEvent()
             }
         }
 
+    // TODO remove this
+    @InternalAPI
     override fun toChannel(): ByteReadChannel =
         source.toChannel()
 
@@ -106,63 +124,28 @@ private class ChannelResponseBody(private var source: BodySource): HttpResponseB
     }
 }
 
-/**
- * Implementation that can be read multiple times.
- *
- * This is used for the SaveBodyPlugin.
- *
- * It is better to instead use `body.copy()` when inspecting the body without consuming, because then
- * buffer references are cleaned up after the copied body is consumed.
- */
-private class RepeatableResponseBody(private var buffer: BodySource.Static): HttpResponseBody {
-    /**
-     * Copies are not reusable.
-     */
-    override suspend fun copy(deep: Boolean): HttpResponseBody =
-        ChannelResponseBody(buffer.copy(deep))
-
-    /**
-     * Read always operates on a new pointer to the buffer, never consuming.
-     */
-    override suspend fun <T> read(operation: suspend ByteReadChannel.() -> T): T =
-        buffer.copy(deep = false).toChannel().let { channel ->
-            operation(channel)
-        }
-
-    override fun toChannel(): ByteReadChannel =
-        buffer.copy(deep = false).toChannel()
-
-    /**
-     * Explicit calls to discard will actually consume the buffer.
-     */
-    override suspend fun discard() {
-        buffer.discard()
-    }
-
-    /**
-     * Explicit calls to cancel will actually close the buffer.
-     */
-    override suspend fun cancel(cause: Throwable?) {
-        buffer.cancel(cause)
-    }
-}
-
 private sealed interface BodySource {
 
     /**
      * Reads stream into an in-memory buffer, so it can be re-read.
      *
      * If the source is already static, this returns itself.
+     *
+     * @return a source that may be read independently from the original stream
      */
     suspend fun toStatic(): BodySource
 
     /**
      * Delegates discarding to the source, ensuring everything is cleaned up.
+     *
+     * @return true if the response is consumed
      */
-    suspend fun discard()
+    suspend fun discard(): Boolean
 
     /**
      * Cancels the underlying source.
+     *
+     * @param cause the initial cause for cancellation
      */
     suspend fun cancel(cause: Throwable?)
 
@@ -173,20 +156,21 @@ private sealed interface BodySource {
         @OptIn(InternalAPI::class)
         override suspend fun toStatic() =
             if (channel.isClosedForRead)
-                Static(channel.readBuffer)
-            else Static(channel.readBuffer())
+                Buffer(channel.readBuffer)
+            else Buffer(channel.readBuffer())
 
         override fun copy(deep: Boolean): BodySource =
             throw IllegalStateException("Stream body cannot be copied")
 
         override fun toChannel(): ByteReadChannel = channel
 
-        override suspend fun discard() {
+        override suspend fun discard(): Boolean {
             if (!channel.isClosedForRead) {
                 runCatching {
                     channel.discard()
                 }
             }
+            return true
         }
 
         override suspend fun cancel(cause: Throwable?) {
@@ -194,15 +178,30 @@ private sealed interface BodySource {
         }
     }
 
-    class Static(val source: Source): BodySource {
+    class ByteArray(val bytes: kotlin.ByteArray): BodySource {
 
-        override suspend fun toStatic(): Static = this
+        override suspend fun toStatic(): BodySource = this
+
+        override fun toChannel(): ByteReadChannel =
+            ByteReadChannel(bytes)
+
+        override suspend fun discard() = false
+
+        override suspend fun cancel(cause: Throwable?) {}
+
+        override fun copy(deep: Boolean): BodySource = this
+    }
+
+    class Buffer(val source: Source): BodySource {
+
+        override suspend fun toStatic(): Buffer = this
 
         override fun toChannel(): ByteReadChannel =
             ByteReadChannel(source)
 
-        override suspend fun discard() {
+        override suspend fun discard(): Boolean {
             source.discard()
+            return true
         }
 
         override suspend fun cancel(cause: Throwable?) {
@@ -210,7 +209,7 @@ private sealed interface BodySource {
         }
 
         override fun copy(deep: Boolean): BodySource =
-            Static(
+            Buffer(
                 if (deep) source.copy()
                 else source.peek()
             )

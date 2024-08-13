@@ -25,5 +25,5 @@ public operator fun HttpRequestBuilder.Companion.invoke(url: java.net.URL): Http
  * Convert response body to input stream.
  */
 @InternalAPI
-public suspend fun HttpResponseBody.toInputStream(): InputStream =
+public fun HttpResponseBody.toInputStream(): InputStream =
     toChannel().toInputStream()
