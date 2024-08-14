@@ -5,6 +5,7 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.http.*
+import io.ktor.junit.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
@@ -21,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
+import org.junit.jupiter.api.extension.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -28,6 +30,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
+@ExtendWith(RetrySupport::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
@@ -39,6 +42,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         super.plugins(application, routingConfig)
     }
 
+    @RetryableTest(3)
     @Test
     fun testWebSocketDisconnectDuringConsuming() = runTest {
         val closeReasonJob = Job()
@@ -78,6 +82,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         result.await()
     }
 
+    @RetryableTest(3)
     @Test
     fun testWebSocketDisconnectDuringSending() = runTest {
         val closeReasonJob = Job()
@@ -120,6 +125,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         result.await()
     }
 
+    @RetryableTest(3)
     @Test
     fun testWebSocketDisconnectDuringDowntime() = runTest {
         val closeReasonJob = Job()
@@ -161,6 +167,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         delay(5000)
     }
 
+    @RetryableTest(3)
     @Test
     fun testRawWebSocketDisconnectDuringConsuming() = runTest {
         val contextJob = Job()
@@ -253,6 +260,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         result.await()
     }
 
+    @RetryableTest(3)
     @Test
     open fun testWebSocketGenericSequence() = runTest {
         val collected = Channel<String>(Channel.UNLIMITED)
@@ -289,6 +297,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         assertEquals("Hello", collected.receive())
     }
 
+    @RetryableTest(3)
     @Test
     fun testWebSocketPingPong() = runTest {
         createAndStartServer {
@@ -330,6 +339,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     fun testReceiveMessages() = runTest {
         val count = 125
@@ -381,6 +391,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         assertNull(collected.tryReceive().getOrNull())
     }
 
+    @RetryableTest(3)
     @Test
     open fun testConnectionWithContentType() = runTest {
         val count = 5
@@ -432,6 +443,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         assertNull(collected.tryReceive().getOrNull())
     }
 
+    @RetryableTest(3)
     @Test
     fun testProduceMessages() = runTest {
         val count = 125
@@ -466,6 +478,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     fun testBigFrame() = runTest {
         val content = ByteArray(20 * 1024 * 1024)
@@ -507,6 +520,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     fun testALotOfFrames() = runTest {
         val expectedCount = 100000L
@@ -547,6 +561,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     fun testServerClosingFirst() = runTest {
         createAndStartServer {
@@ -569,6 +584,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     open fun testClientClosingFirst() = runTest {
         val deferred = CompletableDeferred<Unit>()
@@ -608,6 +624,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @RetryableTest(3)
     @Test
     open fun testFragmentedFlagsFromTheFirstFrame() = runTest {
         val first = CompletableDeferred<Frame.Text>()

@@ -293,7 +293,11 @@ actual constructor(
     }
 
     public fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long, timeUnit: TimeUnit) {
-        engine.stop(timeUnit.toMillis(shutdownGracePeriod), timeUnit.toMillis(shutdownTimeout))
+        try {
+            engine.stop(timeUnit.toMillis(shutdownGracePeriod), timeUnit.toMillis(shutdownTimeout))
+        } catch (e: Exception) {
+            environment.log.warn("Exception occurred during engine shutdown", e)
+        }
         applicationInstanceLock.write {
             destroyApplication()
         }

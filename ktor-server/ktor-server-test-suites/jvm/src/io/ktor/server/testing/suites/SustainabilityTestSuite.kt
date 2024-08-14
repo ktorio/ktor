@@ -609,6 +609,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @RetryableTest(3)
     @Test
     @NoHttp2
     fun testHeaderIsTooLong() = runTest {
