@@ -15,11 +15,12 @@ public actual class ConnectTimeoutException actual constructor(
     override val cause: Throwable?
 ) : ConnectException(message)
 
+internal actual typealias InterruptedIOException = java.io.InterruptedIOException
+
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-public actual class SocketTimeoutException actual constructor(
-    message: String,
-    override val cause: Throwable?
-) : java.net.SocketTimeoutException(message)
+public actual typealias SocketTimeoutException = java.net.SocketTimeoutException
+
+public actual fun SocketTimeoutException(message: String, cause: Throwable?): SocketTimeoutException =
+    SocketTimeoutException(message).apply { initCause(cause) }

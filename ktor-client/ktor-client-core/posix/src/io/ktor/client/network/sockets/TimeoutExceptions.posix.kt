@@ -4,9 +4,6 @@
 
 package io.ktor.client.network.sockets
 
-import io.ktor.client.request.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
 
 /**
@@ -17,10 +14,17 @@ public actual class ConnectTimeoutException actual constructor(
     cause: Throwable?
 ) : IOException(message, cause)
 
+public actual open class InterruptedIOException : IOException()
+
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-public actual class SocketTimeoutException actual constructor(
-    message: String,
-    cause: Throwable?
-) : IOException(message, cause)
+public actual class SocketTimeoutException internal constructor(
+    override val message: String?,
+    override val cause: Throwable?,
+    unit: Unit
+) : InterruptedIOException()
+
+public actual fun SocketTimeoutException(message: String, cause: Throwable?): SocketTimeoutException {
+    return SocketTimeoutException(message, cause, Unit)
+}
