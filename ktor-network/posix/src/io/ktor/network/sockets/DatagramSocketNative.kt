@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -40,7 +41,7 @@ internal class DatagramSocketNative(
     override fun toString(): String = "DatagramSocketNative(descriptor=$descriptor)"
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val receiver: ReceiveChannel<Datagram> = produce {
+    private val receiver: ReceiveChannel<Datagram> = produce(Dispatchers.IO) {
         try {
             while (true) {
                 val received = readDatagram()
@@ -83,41 +84,32 @@ internal class DatagramSocketNative(
         val clientAddressLength: UIntVarOf<UInt> = alloc()
         clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
-        val buffer = BytePacketBuilder()
-
-        try {
-            val count = buffer.write { memory, startIndex, endIndex ->
-                val bufferStart = memory + startIndex
-                val size = endIndex - startIndex
-                val bytesRead = ktor_recvfrom(
+        DefaultDatagramByteArrayPool.useInstance { buffer ->
+            val bytesRead = buffer.usePinned { pinned ->
+                ktor_recvfrom(
                     descriptor,
-                    bufferStart,
-                    size.convert(),
+                    pinned.addressOf(0),
+                    buffer.size.convert(),
                     0,
                     clientAddress.ptr.reinterpret(),
                     clientAddressLength.ptr
                 ).toLong()
+            }
 
-                when (bytesRead) {
-                    0L -> throw IOException("Failed reading from closed socket")
-                    -1L -> {
-                        if (isWouldBlockError(getSocketError())) return@write 0
-                        throw PosixException.forSocketError()
-                    }
-
-                    else -> bytesRead
+            when (bytesRead) {
+                0L -> throw IOException("Failed reading from closed socket")
+                -1L -> {
+                    if (isWouldBlockError(getSocketError())) return null
+                    throw PosixException.forSocketError()
                 }
             }
 
-            if (count <= 0) return null
             val address = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
-            return Datagram(
-                buffer.build(),
+            Datagram(
+                buildPacket { writeFully(buffer, length = bytesRead.toInt()) },
                 address.toSocketAddress()
             )
-        } finally {
-            buffer.close()
         }
     }
 }
