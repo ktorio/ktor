@@ -23,6 +23,7 @@ internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl",
 
 private const val TEST_SIZE: Int = 100
 
+// TODO this is a test
 class WebSocketTest : ClientLoader() {
 
     data class Data(val stringValue: String)
