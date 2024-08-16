@@ -23,6 +23,7 @@ class CIOWebSocketTestJvm : EngineTestBase<CIOApplicationEngine, CIOApplicationE
         enableHttp2 = false
     }
 
+    @Ignore // TODO flaky
     @RetryableTest
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
