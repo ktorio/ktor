@@ -27,10 +27,12 @@ fun Project.configureJs() {
 private fun Project.configureJsTasks() {
     kotlin {
         js {
-            nodejs {
-                testTask {
-                    useMocha {
-                        timeout = "10000"
+            if (project.targetIsEnabled("js.nodeJs")) {
+                nodejs {
+                    testTask {
+                        useMocha {
+                            timeout = "10000"
+                        }
                     }
                 }
             }

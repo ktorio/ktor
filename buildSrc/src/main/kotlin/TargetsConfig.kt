@@ -32,7 +32,7 @@ fun Project.configureTargets() {
     kotlin {
         if (hasJs) {
             js {
-                nodejs()
+                if (project.targetIsEnabled("js.nodeJs")) nodejs()
                 // we don't test `server` modules in a browser.
                 // there are 2 explanations why:
                 // * logical - we don't need server in browser
@@ -353,4 +353,15 @@ fun Project.configureTargets() {
             }
         }
     }
+}
+
+/**
+ * By default, all targets are enabled. To disable specific target,
+ * disable the corresponding flag in `gradle.properties` of the target project.
+ *
+ * Targets that could be disabled:
+ * - `target.js.nodeJs`
+ */
+internal fun Project.targetIsEnabled(target: String): Boolean {
+    return findProperty("target.$target") != "false"
 }
