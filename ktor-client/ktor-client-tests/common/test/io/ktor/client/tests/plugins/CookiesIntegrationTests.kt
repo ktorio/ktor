@@ -116,6 +116,7 @@ class CookiesIntegrationTests : ClientLoader() {
             assertEquals("OK", client.get("$TEST_HOST/withPath/something").body())
         }
     }
+
     @Test
     fun caseSensitive() = clientTests(listOf("Js", "Darwin", "DarwinLegacy")) {
         config {
