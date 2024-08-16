@@ -70,9 +70,14 @@ class CookiesMockTest {
 
             engine {
                 addHandler {
-                    respond("OK", HttpStatusCode.OK, headersOf(
-                        HttpHeaders.SetCookie, "myServer=value; Domain=.vk.com; secure"
-                    ))
+                    respond(
+                        "OK",
+                        HttpStatusCode.OK,
+                        headersOf(
+                            HttpHeaders.SetCookie,
+                            "myServer=value; Domain=.vk.com; secure"
+                        )
+                    )
                 }
             }
         }
@@ -87,5 +92,4 @@ class CookiesMockTest {
             assertTrue(client.cookies("https://google.com").isEmpty())
         }
     }
-
 }

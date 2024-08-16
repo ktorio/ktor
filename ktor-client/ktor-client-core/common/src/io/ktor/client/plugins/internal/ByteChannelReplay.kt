@@ -81,8 +81,9 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
         }
 
         suspend fun awaitImpatiently(): ByteArray {
-            if (!writerJob.isCompleted)
+            if (!writerJob.isCompleted) {
                 writerJob.channel.cancel(SaveBodyAbandonedReadException())
+            }
             return savedResponse.await()
         }
     }
@@ -91,4 +92,4 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
 /**
  * Thrown when a second attempt to read the body is made while the first call is blocked.
  */
-public class SaveBodyAbandonedReadException: RuntimeException("Save body abandoned")
+public class SaveBodyAbandonedReadException : RuntimeException("Save body abandoned")

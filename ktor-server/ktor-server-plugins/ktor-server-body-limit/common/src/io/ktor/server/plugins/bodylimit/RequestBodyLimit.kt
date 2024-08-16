@@ -59,8 +59,9 @@ internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel =
         ByteArrayPool.useInstance { array ->
             while (!isClosedForRead) {
                 val read = readAvailable(array, 0, array.size)
-                if (read <= 0)
+                if (read <= 0) {
                     continue
+                }
                 channel.writeFully(array, 0, read)
                 total += read
                 if (total > limit) {
@@ -70,7 +71,6 @@ internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel =
             closedCause?.let { throw it }
         }
     }.channel
-
 
 private object BeforeReceive : Hook<(PipelineCall, ByteReadChannel) -> ByteReadChannel?> {
 
