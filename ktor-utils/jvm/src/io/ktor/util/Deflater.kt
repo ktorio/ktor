@@ -94,6 +94,7 @@ private suspend fun ByteReadChannel.deflateTo(
         deflater.end()
         pool.recycle(input)
         pool.recycle(compressed)
+        destination.flushAndClose()
     }
 }
 
