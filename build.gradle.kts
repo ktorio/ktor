@@ -112,12 +112,12 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.20" apply false
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.16.3"
     id("org.jetbrains.kotlinx.atomicfu") version "0.25.0" apply false
-    id("com.osacky.doctor") version "0.10.0"
+    //id("com.osacky.doctor") version "0.10.0"
 }
 
-doctor {
-    enableTestCaching = false
-}
+//doctor {
+//    enableTestCaching = false
+//}
 
 val kotlinVersion = libs.versions.kotlin.version.get()
 
