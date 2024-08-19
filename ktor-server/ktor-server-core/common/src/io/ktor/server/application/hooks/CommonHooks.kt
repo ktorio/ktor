@@ -53,14 +53,14 @@ public object CallFailed : Hook<suspend (call: ApplicationCall, cause: Throwable
 }
 
 /**
- * A shortcut hook for [Application.monitor] subscription.
+ * A shortcut hook for [HttpServer.monitor] subscription.
  */
 public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
     private val event: Event
 ) : Hook<(Param) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: (Param) -> Unit) {
         val application = when (pipeline) {
-            is Application -> pipeline
+            is HttpServer -> pipeline
             is Route -> pipeline.application
             else -> error("Unsupported pipeline: $pipeline")
         }

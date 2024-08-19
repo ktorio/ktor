@@ -28,7 +28,7 @@ internal class Servlet(private val async: Boolean) :
         monitor: Events,
         developmentMode: Boolean,
         configuration: JettyApplicationEngineBase.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): JettyServletApplicationEngine {
         return JettyServletApplicationEngine(
             environment,
@@ -46,7 +46,7 @@ internal class JettyServletApplicationEngine(
     monitor: Events,
     developmentMode: Boolean,
     configuration: Configuration,
-    applicationProvider: () -> Application,
+    applicationProvider: () -> HttpServer,
     async: Boolean
 ) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
     init {

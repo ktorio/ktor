@@ -28,7 +28,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     /**
      * Current application instance. Could be lazy
      */
-    protected abstract val application: Application
+    protected abstract val application: HttpServer
 
     /**
      * Engine pipeline

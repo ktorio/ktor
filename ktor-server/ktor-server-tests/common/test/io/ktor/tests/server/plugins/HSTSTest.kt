@@ -216,7 +216,7 @@ class HSTSTest {
         }
     }
 
-    private fun Application.testApp(block: HSTSConfig.() -> Unit = {}) {
+    private fun HttpServer.testApp(block: HSTSConfig.() -> Unit = {}) {
         install(XForwardedHeaders)
         install(HSTS) {
             maxAgeInSeconds = 10

@@ -9,7 +9,7 @@ import io.ktor.server.netty.http2.*
 import io.netty.handler.codec.http2.*
 import kotlin.test.*
 
-class NettyHttp2ApplicationResponseTest {
+class NettyHttp2HttpServerResponseTest {
 
     @Test
     fun testAllHeadersSkipPseudoHeaders() {

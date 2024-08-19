@@ -31,7 +31,7 @@ public class NettyApplicationEngine(
     monitor: Events,
     developmentMode: Boolean,
     public val configuration: Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> HttpServer
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**

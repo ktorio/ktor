@@ -27,7 +27,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
-class TestApplicationTestJvm {
+class TestHttpServerTestJvm {
 
     @Test
     fun testDefaultConfigDoesNotLoad() = testApplication {
@@ -288,7 +288,7 @@ class TestApplicationTestJvm {
         override fun toString(): String = "=====$data====="
     }
 
-    fun Application.module() {
+    fun HttpServer.module() {
         routing {
             get { call.respond("OK FROM MODULE") }
         }

@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -34,7 +33,7 @@ internal class JettyKtorHandler(
     private val pipeline: EnginePipeline,
     private val engineDispatcher: CoroutineDispatcher,
     configuration: JettyApplicationEngineBase.Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> HttpServer
 ) : AbstractHandler(), CoroutineScope {
     private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
     private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()

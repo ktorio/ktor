@@ -46,7 +46,7 @@ public fun ApplicationCall.resolveResource(
 private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
 
 @OptIn(InternalAPI::class)
-internal fun Application.resolveResource(
+internal fun HttpServer.resolveResource(
     path: String,
     resourcePackage: String? = null,
     classLoader: ClassLoader = environment.classLoader,

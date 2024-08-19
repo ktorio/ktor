@@ -20,7 +20,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -189,7 +188,7 @@ class JteTest {
         assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
     }
 
-    private fun Application.setUpTestTemplates() {
+    private fun HttpServer.setUpTestTemplates() {
         val bax = "$"
 
         install(Jte) {

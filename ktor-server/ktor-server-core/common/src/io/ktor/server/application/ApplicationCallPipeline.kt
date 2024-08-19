@@ -81,4 +81,4 @@ public inline val PipelineContext<*, PipelineCall>.call: PipelineCall get() = co
 /**
  * Current application for the context
  */
-public val PipelineContext<*, PipelineCall>.application: Application get() = call.application
+public val PipelineContext<*, PipelineCall>.application: HttpServer get() = call.application

@@ -11,7 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class ApplicationRequestContentTest {
+class HttpServerRequestContentTest {
 
     @Test
     fun testInputStreamContent() {

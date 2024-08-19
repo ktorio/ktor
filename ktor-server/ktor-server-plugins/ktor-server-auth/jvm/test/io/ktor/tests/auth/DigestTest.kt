@@ -178,7 +178,7 @@ class DigestTest {
         assertEquals(HttpStatusCode.OK, responseCorrectAuth.status)
     }
 
-    private fun Application.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
+    private fun HttpServer.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
         install(Authentication) {
             digest {
                 val p = "Circle Of Life"

@@ -24,9 +24,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
 ) {
 
     /**
-     * A reference to the [Application] where the plugin is installed.
+     * A reference to the [HttpServer] where the plugin is installed.
      */
-    public abstract val application: Application
+    public abstract val application: HttpServer
 
     /**
      * A configuration of the current plugin.

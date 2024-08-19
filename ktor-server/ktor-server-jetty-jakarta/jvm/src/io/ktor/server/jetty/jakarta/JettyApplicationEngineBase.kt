@@ -23,7 +23,7 @@ public open class JettyApplicationEngineBase(
      * Application engine configuration specifying engine-specific options such as parallelism level.
      */
     public val configuration: Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> HttpServer
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**

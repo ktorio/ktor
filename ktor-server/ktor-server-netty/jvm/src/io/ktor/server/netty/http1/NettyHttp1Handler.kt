@@ -18,7 +18,7 @@ import java.io.*
 import kotlin.coroutines.*
 
 internal class NettyHttp1Handler(
-    private val applicationProvider: () -> Application,
+    private val applicationProvider: () -> HttpServer,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
     private val callEventGroup: EventExecutorGroup,

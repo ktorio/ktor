@@ -25,7 +25,7 @@ public class CIOApplicationEngine(
     monitor: Events,
     developmentMode: Boolean,
     public val configuration: Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> io.ktor.server.application.HttpServer
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
     /**

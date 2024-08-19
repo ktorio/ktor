@@ -32,7 +32,7 @@ private object EmptyMDCProvider : MDCProvider {
  * Returns first instance of a plugin that implements [MDCProvider]
  * or default implementation with an empty context
  */
-public val Application.mdcProvider: MDCProvider
+public val HttpServer.mdcProvider: MDCProvider
     @Suppress("UNCHECKED_CAST")
     get() = pluginRegistry.allKeys
         .firstNotNullOfOrNull { pluginRegistry.getOrNull(it as AttributeKey<Any>) as? MDCProvider }

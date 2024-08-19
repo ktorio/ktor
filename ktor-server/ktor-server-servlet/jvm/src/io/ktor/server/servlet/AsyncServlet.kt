@@ -17,7 +17,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.*
 
 public open class AsyncServletApplicationCall(
-    application: Application,
+    application: HttpServer,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,

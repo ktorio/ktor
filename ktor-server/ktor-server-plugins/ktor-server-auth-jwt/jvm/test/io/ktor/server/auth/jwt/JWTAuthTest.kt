@@ -477,7 +477,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwk(mock: Boolean = false, challenge: Boolean = false) = configureServer {
+    private fun HttpServer.configureServerJwk(mock: Boolean = false, challenge: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             if (mock) {
@@ -506,7 +506,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwkNoIssuer(mock: Boolean = false) = configureServer {
+    private fun HttpServer.configureServerJwkNoIssuer(mock: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             if (mock) {
@@ -524,7 +524,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwtWithLeeway(mock: Boolean = false) = configureServer {
+    private fun HttpServer.configureServerJwtWithLeeway(mock: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             if (mock) {
@@ -545,7 +545,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Config.() -> Unit = {}) =
+    private fun HttpServer.configureServerJwt(extra: JWTAuthenticationProvider.Config.() -> Unit = {}) =
         configureServer {
             jwt {
                 this@jwt.realm = this@JWTAuthTest.realm
@@ -560,7 +560,7 @@ class JWTAuthTest {
             }
         }
 
-    private fun Application.configureServer(authBlock: (AuthenticationConfig.() -> Unit)) {
+    private fun HttpServer.configureServer(authBlock: (AuthenticationConfig.() -> Unit)) {
         install(Authentication) {
             authBlock(this)
         }

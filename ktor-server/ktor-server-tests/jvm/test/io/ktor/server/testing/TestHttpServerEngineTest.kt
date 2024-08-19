@@ -25,7 +25,7 @@ import kotlin.system.*
 import kotlin.test.*
 import kotlin.text.Charsets
 
-class TestApplicationEngineTest {
+class TestHttpServerEngineTest {
     @Test
     fun testCustomDispatcher() {
         @OptIn(InternalCoroutinesApi::class)
@@ -154,7 +154,7 @@ class TestApplicationEngineTest {
         val numberOfRequestsProcessed = AtomicInteger(0)
         val numberOfResponsesProcessed = AtomicInteger(0)
 
-        val dummyApplication: Application.() -> Unit = {
+        val dummyApplication: ServerModule = {
             routing {
                 get("/") {
                     call.respond(HttpStatusCode.NoContent)

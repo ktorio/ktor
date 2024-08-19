@@ -34,7 +34,7 @@ public class TestApplicationEngine(
     environment: ApplicationEnvironment = createTestEnvironment(),
     monitor: Events,
     developmentMode: Boolean = true,
-    private val applicationProvider: () -> Application,
+    private val applicationProvider: () -> HttpServer,
     internal val configuration: Configuration
 ) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
@@ -44,7 +44,7 @@ public class TestApplicationEngine(
     override val coroutineContext: CoroutineContext =
         applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
 
-    public val application: Application
+    public val application: HttpServer
         get() = applicationProvider()
 
     /**

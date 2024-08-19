@@ -148,7 +148,7 @@ class CachingHeadersTest {
     }
 
     private fun test(
-        configure: Application.() -> Unit,
+        configure: ServerModule,
         test: (HttpResponse) -> Unit
     ) = testApplication {
         application {

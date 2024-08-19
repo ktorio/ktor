@@ -47,7 +47,7 @@ public final class io/ktor/server/websocket/WebSocketServerSession$DefaultImpls 
 }
 
 public final class io/ktor/server/websocket/WebSocketServerSessionKt {
-	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/Application;
+	public static final fun getApplication (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/server/application/HttpServer;
 	public static final fun getConverter (Lio/ktor/server/websocket/WebSocketServerSession;)Lio/ktor/serialization/WebsocketContentConverter;
 	public static final fun receiveDeserialized (Lio/ktor/server/websocket/WebSocketServerSession;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun sendSerialized (Lio/ktor/server/websocket/WebSocketServerSession;Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -85,7 +85,7 @@ public final class io/ktor/server/websocket/WebSockets : kotlinx/coroutines/Coro
 public final class io/ktor/server/websocket/WebSockets$Plugin : io/ktor/server/application/BaseApplicationPlugin {
 	public final fun getEXTENSIONS_KEY ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/websocket/WebSockets;
+	public fun install (Lio/ktor/server/application/HttpServer;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/websocket/WebSockets;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

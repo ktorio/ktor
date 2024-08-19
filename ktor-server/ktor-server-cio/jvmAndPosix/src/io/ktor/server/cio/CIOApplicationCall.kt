@@ -5,7 +5,7 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
-import io.ktor.server.application.*
+import io.ktor.server.application.HttpServer
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal class CIOApplicationCall(
-    application: Application,
+    application: HttpServer,
     _request: Request,
     input: ByteReadChannel,
     output: ByteWriteChannel,

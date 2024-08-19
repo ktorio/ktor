@@ -15,34 +15,34 @@ public actual class EmbeddedServer<
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    applicationProperties: ApplicationProperties,
+    applicationRuntimeConfig: ApplicationRuntimeConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
     public actual val monitor: Events = Events()
 
-    public actual val environment: ApplicationEnvironment = applicationProperties.environment
+    public actual val environment: ApplicationEnvironment = applicationRuntimeConfig.environment
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
 
-    public actual val application: Application = Application(
+    public actual val application: HttpServer = HttpServer(
         environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
+        applicationRuntimeConfig.developmentMode,
+        applicationRuntimeConfig.rootPath,
         monitor,
-        applicationProperties.parentCoroutineContext,
+        applicationRuntimeConfig.parentCoroutineContext,
         ::engine
     )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
-        applicationProperties.developmentMode,
+        applicationRuntimeConfig.developmentMode,
         engineConfig,
         ::application
     )
 
-    private val modules = applicationProperties.modules
+    private val modules = applicationRuntimeConfig.modules
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         safeRaiseEvent(ApplicationStarting, application)
@@ -74,7 +74,7 @@ actual constructor(
         destroy(application)
     }
 
-    private fun destroy(application: Application) {
+    private fun destroy(application: HttpServer) {
         safeRaiseEvent(ApplicationStopping, application)
         try {
             application.dispose()
@@ -84,7 +84,7 @@ actual constructor(
         safeRaiseEvent(ApplicationStopped, application)
     }
 
-    private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
+    private fun safeRaiseEvent(event: EventDefinition<HttpServer>, application: HttpServer) {
         try {
             monitor.raise(event, application)
         } catch (cause: Throwable) {

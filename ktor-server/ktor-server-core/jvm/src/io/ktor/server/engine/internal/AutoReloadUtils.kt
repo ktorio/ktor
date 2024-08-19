@@ -13,7 +13,7 @@ import kotlin.reflect.jvm.*
 
 internal val currentStartupModules = ThreadLocal<MutableList<String>>()
 internal val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
-internal val ApplicationClassInstance = Application::class.java
+internal val ApplicationClassInstance = HttpServer::class.java
 
 internal fun isApplicationEnvironment(parameter: KParameter): Boolean =
     isParameterOfType(parameter, ApplicationEnvironmentClassInstance)

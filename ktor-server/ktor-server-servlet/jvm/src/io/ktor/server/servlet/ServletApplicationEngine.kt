@@ -61,7 +61,7 @@ public open class ServletApplicationEngine : KtorServlet() {
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
         }
-        val applicationProperties = applicationProperties(environment) {
+        val applicationProperties = applicationRuntimeConfig(environment) {
             rootPath = servletContext.contextPath ?: "/"
         }
         val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)
@@ -80,8 +80,8 @@ public open class ServletApplicationEngine : KtorServlet() {
             ?: embeddedServer!!.environment
 
     @Suppress("UNCHECKED_CAST")
-    override val application: Application
-        get() = servletContext.getAttribute(ApplicationAttributeKey)?.let { it as () -> Application }?.invoke()
+    override val application: HttpServer
+        get() = servletContext.getAttribute(ApplicationAttributeKey)?.let { it as () -> HttpServer }?.invoke()
             ?: embeddedServer!!.application
 
     override val logger: Logger get() = environment.log
@@ -155,7 +155,7 @@ private object EmptyEngineFactory : ApplicationEngineFactory<ApplicationEngine, 
         monitor: Events,
         developmentMode: Boolean,
         configuration: ApplicationEngine.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): ApplicationEngine {
         return object : ApplicationEngine {
             override val environment: ApplicationEnvironment = environment

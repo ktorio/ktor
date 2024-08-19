@@ -91,7 +91,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
         /**
          * An installation object of the [ShutDownUrl] plugin.
          */
-        public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
+        public val ApplicationCallPlugin: BaseApplicationPlugin<HttpServer, Config, PluginInstance> =
             createApplicationPlugin("shutdown.url", ::Config) {
                 val plugin = ShutDownUrl(pluginConfig.shutDownUrl, pluginConfig.exitCodeSupplier)
 

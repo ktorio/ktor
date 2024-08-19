@@ -41,7 +41,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration>
 
-    protected open fun plugins(application: Application, routingConfig: Route.() -> Unit)
+    protected open fun plugins(application: HttpServer, routingConfig: Route.() -> Unit)
 
     protected suspend fun withUrl(
         path: String,

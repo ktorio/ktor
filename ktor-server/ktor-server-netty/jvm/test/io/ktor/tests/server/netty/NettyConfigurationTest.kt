@@ -25,7 +25,7 @@ class NettyConfigurationTest {
         val events = Events()
 
         val server = mockk<EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>>()
-        val application = mockk<Application>().apply {
+        val application = mockk<HttpServer>().apply {
             every { coroutineContext } returns Job()
             every { developmentMode } returns false
             every { parentCoroutineContext } returns Dispatchers.Default

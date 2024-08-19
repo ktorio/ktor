@@ -51,7 +51,7 @@ public interface BaseApplicationPlugin<
  * @param TConfiguration is the configuration object type for this Plugin
  */
 public interface ApplicationPlugin<out TConfiguration : Any> :
-    BaseApplicationPlugin<Application, TConfiguration, PluginInstance>
+    BaseApplicationPlugin<HttpServer, TConfiguration, PluginInstance>
 
 internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegistry")
 

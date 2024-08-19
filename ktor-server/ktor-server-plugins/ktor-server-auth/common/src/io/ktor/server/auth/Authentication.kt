@@ -92,10 +92,10 @@ public class Authentication(internal var config: AuthenticationConfig) {
     /**
      * An installation object of the [Authentication] plugin.
      */
-    public companion object : BaseApplicationPlugin<Application, AuthenticationConfig, Authentication> {
+    public companion object : BaseApplicationPlugin<HttpServer, AuthenticationConfig, Authentication> {
         override val key: AttributeKey<Authentication> = AttributeKey("AuthenticationHolder")
 
-        override fun install(pipeline: Application, configure: AuthenticationConfig.() -> Unit): Authentication {
+        override fun install(pipeline: HttpServer, configure: AuthenticationConfig.() -> Unit): Authentication {
             val config = AuthenticationConfig().apply(configure)
             return Authentication(config)
         }
@@ -125,6 +125,6 @@ public inline fun <reified P : Principal> ApplicationCall.principal(provider: St
  * using the [Authentication.configure] function.
  * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
  */
-public fun Application.authentication(block: AuthenticationConfig.() -> Unit) {
+public fun HttpServer.authentication(block: AuthenticationConfig.() -> Unit) {
     pluginOrNull(Authentication)?.configure(block) ?: install(Authentication, block)
 }

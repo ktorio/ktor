@@ -39,7 +39,7 @@ public interface ApplicationCall {
     /**
      * An application being called.
      */
-    public val application: Application
+    public val application: HttpServer
 
     /**
      * Parameters associated with this call.

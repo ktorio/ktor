@@ -6,6 +6,7 @@ package io.ktor.server.cio
 
 import io.ktor.events.*
 import io.ktor.server.application.*
+import io.ktor.server.application.HttpServer
 import io.ktor.server.engine.*
 
 /**
@@ -24,7 +25,7 @@ public object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicatio
         monitor: Events,
         developmentMode: Boolean,
         configuration: CIOApplicationEngine.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): CIOApplicationEngine {
         return CIOApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
     }

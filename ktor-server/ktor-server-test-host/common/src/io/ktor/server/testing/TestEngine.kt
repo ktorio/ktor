@@ -47,7 +47,7 @@ public fun <R> withApplication(
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
-    val properties = applicationProperties(environment) {
+    val properties = applicationRuntimeConfig(environment) {
         watchPaths = emptyList()
     }
     val embeddedServer = EmbeddedServer(properties, TestEngine, configure)
@@ -71,7 +71,7 @@ public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
 @Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
-public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
+public fun <R> withTestApplication(moduleFunction: ServerModule, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
         test()
@@ -83,7 +83,7 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
  */
 @Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
 public fun <R> withTestApplication(
-    moduleFunction: Application.() -> Unit,
+    moduleFunction: ServerModule,
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
@@ -109,7 +109,7 @@ public object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestA
         monitor: Events,
         developmentMode: Boolean,
         configuration: TestApplicationEngine.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): TestApplicationEngine {
         return TestApplicationEngine(environment, monitor, developmentMode, applicationProvider, configuration)
     }

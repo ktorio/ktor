@@ -186,7 +186,7 @@ class MustacheTest {
         assertEquals("Template", response.bodyAsText().trim())
     }
 
-    private fun Application.setupMustache() {
+    private fun HttpServer.setupMustache() {
         install(Mustache)
     }
 

@@ -25,7 +25,7 @@ public object Netty : ApplicationEngineFactory<NettyApplicationEngine, NettyAppl
         monitor: Events,
         developmentMode: Boolean,
         configuration: NettyApplicationEngine.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): NettyApplicationEngine {
         return NettyApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
     }

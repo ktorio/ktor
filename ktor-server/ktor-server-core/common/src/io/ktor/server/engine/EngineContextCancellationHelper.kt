@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
  */
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(
-    application: Application,
+    application: HttpServer,
     gracePeriodMillis: Long = 50,
     timeoutMillis: Long = 5000
 ): CompletableJob =

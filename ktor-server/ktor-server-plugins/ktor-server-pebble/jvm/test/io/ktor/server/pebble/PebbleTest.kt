@@ -243,7 +243,7 @@ class PebbleTest {
         assertEquals("<p>Hola, mundo!</p>", response.bodyAsText())
     }
 
-    private fun Application.setupPebble() {
+    private fun HttpServer.setupPebble() {
         install(Pebble) {
             loader(StringLoader())
             availableLanguages = mutableListOf("en", "es")

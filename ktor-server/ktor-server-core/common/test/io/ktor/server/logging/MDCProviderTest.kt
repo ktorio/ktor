@@ -23,7 +23,7 @@ class MDCProviderTest {
             override fun start(wait: Boolean): ApplicationEngine = TODO("Not yet implemented")
             override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) = TODO("Not yet implemented")
         }
-        val application = Application(environment, false, "/", monitor, EmptyCoroutineContext) { engine }
+        val application = HttpServer(environment, false, "/", monitor, EmptyCoroutineContext) { engine }
         assertNotNull(application.mdcProvider)
     }
 }

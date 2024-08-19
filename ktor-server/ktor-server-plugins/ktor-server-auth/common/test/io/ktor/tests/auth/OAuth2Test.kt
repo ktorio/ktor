@@ -154,7 +154,7 @@ class OAuth2Test {
     )
 
     val failures = ArrayList<Throwable>()
-    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+    fun HttpServer.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
         install(Authentication) {
             oauth("login") {
                 client = testClient
@@ -611,7 +611,7 @@ internal interface OAuth2Server {
 
 internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = applicationRuntimeConfig(environment) {
         module {
             routing {
                 route("/oauth/access_token") {

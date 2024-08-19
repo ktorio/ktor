@@ -14,7 +14,7 @@ import kotlin.coroutines.*
 
 @InternalAPI
 public class JettyApplicationCall(
-    application: Application,
+    application: HttpServer,
     request: Request,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,

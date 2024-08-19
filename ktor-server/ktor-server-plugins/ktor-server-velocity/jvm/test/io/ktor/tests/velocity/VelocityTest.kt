@@ -160,7 +160,7 @@ class VelocityTest {
         assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
     }
 
-    private fun Application.setUpTestTemplates() {
+    private fun HttpServer.setUpTestTemplates() {
         val bax = "$"
 
         install(Velocity) {

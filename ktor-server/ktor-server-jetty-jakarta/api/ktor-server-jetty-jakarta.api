@@ -12,7 +12,7 @@ public final class io/ktor/server/jetty/jakarta/Jetty : io/ktor/server/engine/Ap
 }
 
 public final class io/ktor/server/jetty/jakarta/JettyApplicationCall : io/ktor/server/servlet/jakarta/AsyncServletApplicationCall {
-	public fun <init> (Lio/ktor/server/application/Application;Lorg/eclipse/jetty/server/Request;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
+	public fun <init> (Lio/ktor/server/application/HttpServer;Lorg/eclipse/jetty/server/Request;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/jetty/jakarta/JettyApplicationResponse;
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;

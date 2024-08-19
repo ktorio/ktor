@@ -270,7 +270,7 @@ class ThymeleafTest {
         assertEquals("<div><p>Hello, first fragment</p></div>", response.bodyAsText())
     }
 
-    private fun Application.setUpThymeleafStringTemplate() {
+    private fun HttpServer.setUpThymeleafStringTemplate() {
         install(Thymeleaf) {
             setTemplateResolver(StringTemplateResolver())
         }

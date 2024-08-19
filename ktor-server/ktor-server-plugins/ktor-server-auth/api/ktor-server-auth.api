@@ -6,7 +6,7 @@ public final class io/ktor/server/auth/Authentication {
 
 public final class io/ktor/server/auth/Authentication$Companion : io/ktor/server/application/BaseApplicationPlugin {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/Authentication;
+	public fun install (Lio/ktor/server/application/HttpServer;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/Authentication;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
@@ -76,7 +76,7 @@ public final class io/ktor/server/auth/AuthenticationInterceptorsKt {
 }
 
 public final class io/ktor/server/auth/AuthenticationKt {
-	public static final fun authentication (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
+	public static final fun authentication (Lio/ktor/server/application/HttpServer;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getAuthentication (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/auth/AuthenticationContext;
 }
 

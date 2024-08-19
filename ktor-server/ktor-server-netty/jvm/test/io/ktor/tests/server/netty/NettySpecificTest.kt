@@ -16,7 +16,7 @@ class NettySpecificTest {
     @Test
     fun testNoLeakWithoutStartAndStop() {
         repeat(100000) {
-            embeddedServer(Netty, applicationProperties { })
+            embeddedServer(Netty, applicationRuntimeConfig { })
         }
     }
 

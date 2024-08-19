@@ -31,7 +31,7 @@ public class TomcatApplicationEngine(
     monitor: Events,
     developmentMode: Boolean,
     public val configuration: Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> HttpServer
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
     /**
      * Tomcat engine specific configuration builder
@@ -53,7 +53,7 @@ public class TomcatApplicationEngine(
             get() = setOf(HttpHeaders.TransferEncoding)
         override val enginePipeline: EnginePipeline
             get() = this@TomcatApplicationEngine.pipeline
-        override val application: Application
+        override val application: HttpServer
             get() = this@TomcatApplicationEngine.applicationProvider()
         override val upgrade: ServletUpgrade
             get() = DefaultServletUpgrade

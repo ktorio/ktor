@@ -13,13 +13,13 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A builder for [ApplicationProperties].
+ * A builder for [ApplicationRuntimeConfig].
  */
-public class ApplicationPropertiesBuilder(
+public class ApplicationRuntimeConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
 
-    internal val modules: MutableList<Application.() -> Unit> = mutableListOf()
+    internal val modules: MutableList<ServerModule> = mutableListOf()
 
     /**
      * Paths to wait for application reload.
@@ -44,20 +44,20 @@ public class ApplicationPropertiesBuilder(
     /**
      * Installs an application module.
      */
-    public fun module(body: Application.() -> Unit) {
+    public fun module(body: ServerModule) {
         modules.add(body)
     }
 
-    internal fun build(): ApplicationProperties =
-        ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
+    internal fun build(): ApplicationRuntimeConfig =
+        ApplicationRuntimeConfig(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
 /**
  * An application config with which the application is running.
  */
-public class ApplicationProperties internal constructor(
+public class ApplicationRuntimeConfig internal constructor(
     public val environment: ApplicationEnvironment,
-    internal val modules: MutableList<Application.() -> Unit>,
+    internal val modules: MutableList<ServerModule>,
     internal val watchPaths: List<String>,
     public val rootPath: String,
     public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,
@@ -68,22 +68,32 @@ public class ApplicationProperties internal constructor(
 }
 
 /**
- * Creates an [ApplicationProperties] instance.
+ * Creates an [ApplicationRuntimeConfig] instance.
  */
-public fun applicationProperties(
+public fun applicationRuntimeConfig(
     environment: ApplicationEnvironment = applicationEnvironment {},
-    block: ApplicationPropertiesBuilder.() -> Unit = {}
-): ApplicationProperties {
-    return ApplicationPropertiesBuilder(environment).apply(block).build()
+    block: ApplicationRuntimeConfigBuilder.() -> Unit = {}
+): ApplicationRuntimeConfig {
+    return ApplicationRuntimeConfigBuilder(environment).apply(block).build()
 }
 
 /**
- * Represents configured and running web application, capable of handling requests.
+ * Typealias for compatibility.
+ */
+public typealias Application = HttpServer
+
+/**
+ * Cleaner name for modules supplied to the server.
+ */
+public typealias ServerModule = HttpServer.() -> Unit
+
+/**
+ * Represents configured and running http server, capable of handling requests.
  * It is also the application coroutine scope that is cancelled immediately at application stop so useful
  * for launching background coroutines.
  */
 @KtorDsl
-public class Application internal constructor(
+public class HttpServer internal constructor(
     environment: ApplicationEnvironment,
     developmentMode: Boolean,
     public var rootPath: String,
@@ -99,7 +109,7 @@ public class Application internal constructor(
     override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
 
     /**
-     * Called by [ApplicationEngine] when [Application] is terminated.
+     * Called by [ApplicationEngine] when [HttpServer] is terminated.
      */
     @Suppress("DEPRECATION_ERROR")
     public fun dispose() {
@@ -111,4 +121,4 @@ public class Application internal constructor(
 /**
  * Convenience property to access log from application
  */
-public val Application.log: Logger get() = environment.log
+public val HttpServer.log: Logger get() = environment.log

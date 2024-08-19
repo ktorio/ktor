@@ -9,7 +9,7 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class ApplicationPluginConfigurationTest {
+class HttpServerPluginConfigurationTest {
 
     @Test
     fun testReadPropertyFromFile() = testApplication {

@@ -25,7 +25,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     @Serializable
     data class Wrapper(val value: String)
 
-    fun startServer(testApplicationEngine: Application) {
+    fun startServer(testApplicationEngine: HttpServer) {
         testApplicationEngine.install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }

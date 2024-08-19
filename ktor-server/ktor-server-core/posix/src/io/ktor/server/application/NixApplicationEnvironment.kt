@@ -13,7 +13,7 @@ import kotlin.coroutines.*
 public actual interface ApplicationEnvironment {
 
     /**
-     * Configuration for the [Application]
+     * Configuration for the [HttpServer]
      */
     public actual val config: ApplicationConfig
 
@@ -34,6 +34,6 @@ public actual interface ApplicationEnvironment {
 }
 
 internal actual class ApplicationPropertiesBridge actual constructor(
-    applicationProperties: ApplicationProperties,
+    applicationRuntimeConfig: ApplicationRuntimeConfig,
     internal actual val parentCoroutineContext: CoroutineContext,
 )

@@ -13,7 +13,7 @@ import kotlin.reflect.jvm.*
 internal fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
-    application: Application
+    application: HttpServer
 ) {
     val name = fqName.lastIndexOfAny(".#".toCharArray())
 
@@ -22,22 +22,37 @@ internal fun executeModuleFunction(
     }
 
     val className = fqName.substring(0, name)
-    val functionName = fqName.substring(name + 1)
+    val moduleName = fqName.substring(name + 1)
     val clazz = classLoader.loadClassOrNull(className)
         ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
-    val staticFunctions = clazz.methods
-        .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+    // Get from static function like `fun Application.module()`
+    clazz.methods
+        .filter { it.name == moduleName && Modifier.isStatic(it.modifiers) }
         .mapNotNull { it.kotlinFunction }
         .filter { it.isApplicableFunction() }
-
-    staticFunctions.bestFunction()?.let { moduleFunction ->
-        if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
-            callFunctionWithInjection(null, moduleFunction, application)
-            return
-        }
+        .bestFunction()
+        ?.let { moduleFunction ->
+            if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
+                callFunctionWithInjection(null, moduleFunction, application)
+                return
+            }
     }
 
+    // Get from lambda property like `val module: ServerModule = {}`
+    clazz.methods
+        .filter { it.name == moduleName.getterName && Modifier.isStatic(it.modifiers) }
+        .firstNotNullOfOrNull {
+            runCatching {
+                val module = it.invoke(null) as? ServerModule
+                module?.invoke(application)
+            }.getOrNull()
+        }
+        ?.let {
+            return
+        }
+
+    // Get from function type `class Module: Function1`
     try {
         if (Function1::class.java.isAssignableFrom(clazz)) {
             val constructor = clazz.declaredConstructors.single()
@@ -47,7 +62,7 @@ internal fun executeModuleFunction(
 
             constructor.isAccessible = true
             @Suppress("UNCHECKED_CAST")
-            val function = constructor.newInstance() as Function1<Application, Unit>
+            val function = constructor.newInstance() as Function1<HttpServer, Unit>
             function(application)
             return
         }
@@ -55,23 +70,25 @@ internal fun executeModuleFunction(
         // Skip this case for the Android device
     }
 
+    // Get from a member function of a class
     val kclass = clazz.takeIfNotFacade()
         ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
     kclass.functions
-        .filter { it.name == functionName && it.isApplicableFunction() }
+        .filter { it.name == moduleName && it.isApplicableFunction() }
         .bestFunction()?.let { moduleFunction ->
             val instance = createModuleContainer(kclass, application)
             callFunctionWithInjection(instance, moduleFunction, application)
             return
         }
 
+
     throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
 }
 
 private fun createModuleContainer(
     applicationEntryClass: KClass<*>,
-    application: Application
+    application: HttpServer
 ): Any {
     val objectInstance = applicationEntryClass.objectInstance
     if (objectInstance != null) return objectInstance
@@ -86,10 +103,13 @@ private fun createModuleContainer(
     return callFunctionWithInjection(null, constructor, application)
 }
 
+private val String.getterName: String get() =
+    "get${get(0).uppercase()}${substring(1)}"
+
 private fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
-    application: Application
+    application: HttpServer
 ): R {
     val args = entryPoint.parameters.filterNot { it.isOptional }.associateBy(
         { it },

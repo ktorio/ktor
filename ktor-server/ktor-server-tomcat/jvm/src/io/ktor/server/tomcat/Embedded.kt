@@ -25,7 +25,7 @@ public object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatA
         monitor: Events,
         developmentMode: Boolean,
         configuration: TomcatApplicationEngine.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): TomcatApplicationEngine {
         return TomcatApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
     }

@@ -174,7 +174,7 @@ class VelocityToolsTest {
         }
     }
 
-    private fun Application.setUpTestTemplates(config: EasyFactoryConfiguration.() -> Unit = {}) {
+    private fun HttpServer.setUpTestTemplates(config: EasyFactoryConfiguration.() -> Unit = {}) {
         val bax = "$"
 
         install(VelocityTools) {

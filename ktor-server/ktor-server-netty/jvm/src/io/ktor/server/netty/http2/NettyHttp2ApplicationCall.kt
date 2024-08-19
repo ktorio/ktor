@@ -12,7 +12,7 @@ import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
 internal class NettyHttp2ApplicationCall(
-    application: Application,
+    application: HttpServer,
     context: ChannelHandlerContext,
     val headers: Http2Headers,
     handler: NettyHttp2Handler,

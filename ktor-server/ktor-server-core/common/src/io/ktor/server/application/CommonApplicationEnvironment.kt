@@ -11,7 +11,7 @@ import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
 /**
- * Represents an environment in which [Application] runs
+ * Represents an environment in which [HttpServer] runs
  */
 public expect interface ApplicationEnvironment {
 
@@ -21,7 +21,7 @@ public expect interface ApplicationEnvironment {
     public val log: Logger
 
     /**
-     * Configuration for the [Application]
+     * Configuration for the [HttpServer]
      */
     public val config: ApplicationConfig
 
@@ -37,7 +37,7 @@ public expect interface ApplicationEnvironment {
 }
 
 internal expect class ApplicationPropertiesBridge(
-    applicationProperties: ApplicationProperties,
+    applicationRuntimeConfig: ApplicationRuntimeConfig,
     parentCoroutineContext: CoroutineContext
 ) {
     internal val parentCoroutineContext: CoroutineContext

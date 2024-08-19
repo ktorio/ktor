@@ -1,6 +1,6 @@
 public class io/ktor/server/servlet/jakarta/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/Application;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/jakarta/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
-	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/jakarta/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/application/HttpServer;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/jakarta/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
+	public synthetic fun <init> (Lio/ktor/server/application/HttpServer;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/jakarta/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
@@ -48,7 +48,7 @@ public final class io/ktor/server/servlet/jakarta/JAASBridgeKt {
 public abstract class io/ktor/server/servlet/jakarta/KtorServlet : jakarta/servlet/http/HttpServlet, kotlinx/coroutines/CoroutineScope {
 	public fun <init> ()V
 	public fun destroy ()V
-	protected abstract fun getApplication ()Lio/ktor/server/application/Application;
+	protected abstract fun getApplication ()Lio/ktor/server/application/HttpServer;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected abstract fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
 	protected fun getLogger ()Lorg/slf4j/Logger;
@@ -69,7 +69,7 @@ public class io/ktor/server/servlet/jakarta/ServletApplicationEngine : io/ktor/s
 	public static final field EnvironmentAttributeKey Ljava/lang/String;
 	public fun <init> ()V
 	public fun destroy ()V
-	protected fun getApplication ()Lio/ktor/server/application/Application;
+	protected fun getApplication ()Lio/ktor/server/application/HttpServer;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
 	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;

@@ -108,7 +108,7 @@ public class WebSockets private constructor(
     /**
      * Plugin installation object.
      */
-    public companion object Plugin : BaseApplicationPlugin<Application, WebSocketOptions, WebSockets> {
+    public companion object Plugin : BaseApplicationPlugin<HttpServer, WebSocketOptions, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("WebSockets")
 
         /**
@@ -117,7 +117,7 @@ public class WebSockets private constructor(
         public val EXTENSIONS_KEY: AttributeKey<List<WebSocketExtension<*>>> =
             AttributeKey("WebSocket extensions")
 
-        override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
+        override fun install(pipeline: HttpServer, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
                 val webSockets = WebSockets(

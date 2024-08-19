@@ -27,7 +27,7 @@ import kotlin.coroutines.*
  * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
  */
 public class NettyChannelInitializer(
-    private val applicationProvider: () -> Application,
+    private val applicationProvider: () -> HttpServer,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
     private val callEventGroup: EventExecutorGroup,

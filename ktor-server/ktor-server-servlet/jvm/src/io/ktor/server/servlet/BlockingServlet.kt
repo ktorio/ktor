@@ -16,7 +16,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.*
 
 internal class BlockingServletApplicationCall(
-    application: Application,
+    application: HttpServer,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext,

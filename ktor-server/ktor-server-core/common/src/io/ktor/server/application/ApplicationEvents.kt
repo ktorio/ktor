@@ -5,7 +5,7 @@
 package io.ktor.server.application
 
 /**
- * Provides events for [Application] lifecycle.
+ * Provides events for [HttpServer] lifecycle.
  */
 @Deprecated(
     "ApplicationEvents has been renamed to Events.",

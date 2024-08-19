@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
 
 /**
  * Describes a node in a routing tree.
- * @see [Application.routing]
+ * @see [HttpServer.routing]
  *
  * @param parent is a parent node in the tree, or null for root node.
  * @param selector is an instance of [RouteSelector] for this node.
@@ -203,7 +203,7 @@ public class RoutingCall internal constructor(
         internal set
 
     public override val attributes: Attributes = pipelineCall.attributes
-    public override val application: Application = pipelineCall.application
+    public override val application: HttpServer = pipelineCall.application
     public override val parameters: Parameters = pipelineCall.parameters
     public val pathParameters: Parameters = pipelineCall.pathParameters
     public val queryParameters: Parameters = pipelineCall.engineCall.parameters
@@ -222,7 +222,7 @@ public class RoutingCall internal constructor(
 public class RoutingContext(
     public val call: RoutingCall
 ) {
-    public val application: Application
+    public val application: HttpServer
         get() = call.application
 }
 

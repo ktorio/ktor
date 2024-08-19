@@ -285,7 +285,7 @@ class OAuth1aFlowTest {
         }
     }
 
-    private fun Application.configureServer(
+    private fun HttpServer.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
         OAuthServerSettings.OAuth1aServerSettings = { this }
@@ -347,7 +347,7 @@ private interface TestingOAuthServer {
 
 private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = applicationRuntimeConfig(environment) {
         module {
             routing {
                 post("/oauth/request_token") {

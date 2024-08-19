@@ -20,14 +20,14 @@ public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
 
 /**
- * A root routing node of an [Application].
+ * A root routing node of an [HttpServer].
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  *
- * @param application is an instance of [Application] for this routing node.
+ * @param application is an instance of [HttpServer] for this routing node.
  */
 @KtorDsl
 public class RoutingRoot(
-    public val application: Application
+    public val application: HttpServer
 ) : RoutingNode(
     parent = null,
     selector = RootRouteSelector(application.rootPath),
@@ -124,7 +124,7 @@ public class RoutingRoot(
      * An installation object of the [RoutingRoot] plugin.
      */
     @Suppress("PublicApiImplicitType")
-    public companion object Plugin : BaseApplicationPlugin<Application, Routing, RoutingRoot> {
+    public companion object Plugin : BaseApplicationPlugin<HttpServer, Routing, RoutingRoot> {
 
         /**
          * A definition for an event that is fired when routing-based call processing starts.
@@ -138,7 +138,7 @@ public class RoutingRoot(
 
         override val key: AttributeKey<RoutingRoot> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: Routing.() -> Unit): RoutingRoot {
+        override fun install(pipeline: HttpServer, configure: Routing.() -> Unit): RoutingRoot {
             val routingRoot = RoutingRoot(pipeline).apply(configure)
             pipeline.intercept(Call) { routingRoot.interceptor(this) }
             return routingRoot
@@ -147,9 +147,9 @@ public class RoutingRoot(
 }
 
 /**
- * Gets an [Application] for this [RoutingNode] by scanning the hierarchy to the root.
+ * Gets an [HttpServer] for this [RoutingNode] by scanning the hierarchy to the root.
  */
-public val Route.application: Application
+public val Route.application: HttpServer
     get() = when (this) {
         is RoutingRoot -> application
         else -> parent?.application ?: throw UnsupportedOperationException(
@@ -158,9 +158,9 @@ public val Route.application: Application
     }
 
 /**
- * Installs a [RoutingRoot] plugin for the this [Application] and runs a [configuration] script on it.
+ * Installs a [RoutingRoot] plugin for the this [HttpServer] and runs a [configuration] script on it.
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  */
 @KtorDsl
-public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
+public fun HttpServer.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)

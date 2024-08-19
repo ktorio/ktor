@@ -52,7 +52,7 @@ class ReceiveBlockingPrimitiveTest {
     }
 
     private class TestCall : BaseApplicationCall(
-        Application(
+        HttpServer(
             applicationEnvironment {},
             false,
             "/",

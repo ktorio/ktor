@@ -89,7 +89,7 @@ private class StartupInfo {
 }
 
 @OptIn(InternalAPI::class)
-private fun Application.installDefaultInterceptors() {
+private fun HttpServer.installDefaultInterceptors() {
     intercept(ApplicationCallPipeline.Fallback) {
         if (call.isHandled) return@intercept
 
@@ -105,7 +105,7 @@ private fun Application.installDefaultInterceptors() {
     }
 }
 
-private fun Application.installDefaultTransformationChecker() {
+private fun HttpServer.installDefaultTransformationChecker() {
     // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
     intercept(ApplicationCallPipeline.Plugins) {
         try {

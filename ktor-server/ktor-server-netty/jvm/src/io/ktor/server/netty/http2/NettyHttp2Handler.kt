@@ -22,7 +22,7 @@ import kotlin.coroutines.*
 @ChannelHandler.Sharable
 internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
-    private val application: Application,
+    private val application: HttpServer,
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int

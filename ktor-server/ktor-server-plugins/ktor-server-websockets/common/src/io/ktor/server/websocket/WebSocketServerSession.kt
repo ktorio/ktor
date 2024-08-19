@@ -33,7 +33,7 @@ public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSoc
 /**
  * An application that started this web socket session
  */
-public val WebSocketServerSession.application: Application get() = call.application
+public val WebSocketServerSession.application: HttpServer get() = call.application
 
 /**
  * Converter for web socket session

@@ -66,7 +66,7 @@ actual constructor(
     protected open fun createServer(
         log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
-        module: Application.() -> Unit
+        module: ServerModule
     ): EmbeddedServer<TEngine, TConfiguration> {
         val _port = this.port
         val environment = applicationEnvironment {
@@ -83,7 +83,7 @@ actual constructor(
                 }
             }
         }
-        val properties = applicationProperties(environment) {
+        val properties = applicationRuntimeConfig(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }
@@ -116,7 +116,7 @@ actual constructor(
         }
     }
 
-    protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
+    protected actual open fun plugins(application: HttpServer, routingConfig: Route.() -> Unit) {
         application.install(RoutingRoot, routingConfig)
     }
 

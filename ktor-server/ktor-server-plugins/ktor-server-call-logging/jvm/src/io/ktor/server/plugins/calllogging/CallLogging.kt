@@ -94,10 +94,10 @@ private fun PluginBuilder<CallLoggingConfig>.logCallsWithMDC(logSuccess: (Applic
 }
 
 private fun setupLogging(events: Events, log: (String) -> Unit) {
-    val starting: (Application) -> Unit = { log("Application starting: $it") }
-    val started: (Application) -> Unit = { log("Application started: $it") }
-    val stopping: (Application) -> Unit = { log("Application stopping: $it") }
-    var stopped: (Application) -> Unit = {}
+    val starting: (HttpServer) -> Unit = { log("Application starting: $it") }
+    val started: (HttpServer) -> Unit = { log("Application started: $it") }
+    val stopping: (HttpServer) -> Unit = { log("Application stopping: $it") }
+    var stopped: (HttpServer) -> Unit = {}
 
     stopped = {
         log("Application stopped: $it")

@@ -14,7 +14,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 
 public abstract class NettyApplicationCall(
-    application: Application,
+    application: HttpServer,
     public val context: ChannelHandlerContext,
     private val requestMessage: Any,
 ) : BaseApplicationCall(application) {

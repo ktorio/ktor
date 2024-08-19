@@ -17,7 +17,7 @@ public class JettyApplicationEngine(
     monitor: Events,
     developmentMode: Boolean,
     configuration: Configuration,
-    private val applicationProvider: () -> Application
+    private val applicationProvider: () -> HttpServer
 ) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
 
     private val dispatcher = server.threadPool.asCoroutineDispatcher()

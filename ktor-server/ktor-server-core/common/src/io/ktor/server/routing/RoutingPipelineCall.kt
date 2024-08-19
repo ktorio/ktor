@@ -26,7 +26,7 @@ public class RoutingPipelineCall(
     public val pathParameters: Parameters
 ) : PipelineCall, CoroutineScope {
 
-    override val application: Application get() = engineCall.application
+    override val application: HttpServer get() = engineCall.application
     override val attributes: Attributes get() = engineCall.attributes
 
     override val request: RoutingPipelineRequest =

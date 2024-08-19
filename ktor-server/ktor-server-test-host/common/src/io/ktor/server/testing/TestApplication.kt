@@ -129,7 +129,7 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
      * @see [testApplication]
      */
     @KtorDsl
-    public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
+    public fun hosts(vararg hosts: String, block: HttpServer.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
         hosts.forEach {
@@ -153,10 +153,10 @@ public open class TestApplicationBuilder {
     private var built = false
 
     internal val externalServices = ExternalServicesBuilder(this)
-    internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal val applicationModules = mutableListOf<ServerModule>()
     internal var engineConfig: TestApplicationEngine.Configuration.() -> Unit = {}
     internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
-    internal var applicationProperties: ApplicationPropertiesBuilder.() -> Unit = {}
+    internal var applicationProperties: ApplicationRuntimeConfigBuilder.() -> Unit = {}
     internal val job = Job()
 
     internal val properties by lazy {
@@ -168,7 +168,7 @@ public open class TestApplicationBuilder {
                 config = MapApplicationConfig()
             }
         }
-        applicationProperties(environment) {
+        applicationRuntimeConfig(environment) {
             this@TestApplicationBuilder.applicationModules.forEach { module(it) }
             parentCoroutineContext += this@TestApplicationBuilder.job
             watchPaths = emptyList()
@@ -207,11 +207,11 @@ public open class TestApplicationBuilder {
     }
 
     /**
-     * Adds a configuration block for the [ApplicationProperties].
+     * Adds a configuration block for the [ApplicationRuntimeConfig].
      * @see [testApplication]
      */
     @KtorDsl
-    public fun testApplicationProperties(block: ApplicationPropertiesBuilder.() -> Unit) {
+    public fun testApplicationProperties(block: ApplicationRuntimeConfigBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = applicationProperties
         applicationProperties = { oldBuilder(); block() }
@@ -233,7 +233,7 @@ public open class TestApplicationBuilder {
      * @see [testApplication]
      */
     @KtorDsl
-    public fun application(block: Application.() -> Unit) {
+    public fun application(block: ServerModule) {
         checkNotBuilt()
         applicationModules.add(block)
     }

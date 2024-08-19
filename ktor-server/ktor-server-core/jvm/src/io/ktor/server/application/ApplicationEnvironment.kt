@@ -10,7 +10,7 @@ import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
 /**
- * Represents an environment in which [Application] runs
+ * Represents an environment in which [HttpServer] runs
  */
 public actual interface ApplicationEnvironment {
 
@@ -27,7 +27,7 @@ public actual interface ApplicationEnvironment {
     public actual val log: Logger
 
     /**
-     * Configuration for the [Application]
+     * Configuration for the [HttpServer]
      */
     public actual val config: ApplicationConfig
 
@@ -43,11 +43,11 @@ public actual interface ApplicationEnvironment {
 }
 
 internal actual class ApplicationPropertiesBridge actual constructor(
-    applicationProperties: ApplicationProperties,
+    applicationRuntimeConfig: ApplicationRuntimeConfig,
     parentCoroutineContext: CoroutineContext,
 ) {
     actual val parentCoroutineContext: CoroutineContext = when {
-        applicationProperties.developmentMode && applicationProperties.watchPaths.isNotEmpty() ->
+        applicationRuntimeConfig.developmentMode && applicationRuntimeConfig.watchPaths.isNotEmpty() ->
             parentCoroutineContext + ClassLoaderAwareContinuationInterceptor
 
         else -> parentCoroutineContext

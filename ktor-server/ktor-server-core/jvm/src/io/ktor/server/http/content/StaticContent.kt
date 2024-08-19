@@ -130,7 +130,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures resources that should not be served.
-     * If this block returns `true` for [Resource], [Application] will respond with [HttpStatusCode.Forbidden].
+     * If this block returns `true` for [Resource], [HttpServer] will respond with [HttpStatusCode.Forbidden].
      * Can be invoked multiple times.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.

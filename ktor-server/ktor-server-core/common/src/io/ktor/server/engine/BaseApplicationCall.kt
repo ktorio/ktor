@@ -11,7 +11,7 @@ import io.ktor.util.*
 /**
  * Base class for implementing an [PipelineCall].
  */
-public abstract class BaseApplicationCall(final override val application: Application) : PipelineCall {
+public abstract class BaseApplicationCall(final override val application: HttpServer) : PipelineCall {
     public final override val attributes: Attributes = Attributes()
     override val parameters: Parameters get() = request.queryParameters
 

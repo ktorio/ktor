@@ -25,7 +25,7 @@ public object Jetty : ApplicationEngineFactory<JettyApplicationEngine, JettyAppl
         monitor: Events,
         developmentMode: Boolean,
         configuration: JettyApplicationEngineBase.Configuration,
-        applicationProvider: () -> Application
+        applicationProvider: () -> HttpServer
     ): JettyApplicationEngine {
         return JettyApplicationEngine(environment, monitor, developmentMode, configuration, applicationProvider)
     }
