@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -27,6 +26,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @OptIn(InternalAPI::class)
     private val mutex = SynchronizedObject()
+
+    // Awaiting Slot
+    private val suspensionSlot: AtomicRef<Slot> = atomic(Slot.Empty)
 
     private val _readBuffer = Buffer()
     private val _writeBuffer = Buffer()
@@ -133,15 +135,10 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
-    // Awaiting Slot
-    private val suspensionSlot: AtomicRef<Continuation<Unit>?> = atomic(null)
-
     private suspend fun sleepForRead(min: Int) {
         while (flushBufferSize + _readBuffer.size < min && _closedCause.value == null) {
             suspendCancellableCoroutine {
-//                readContinuation.init(it.intercepted())
-                trySuspendSlot(it) { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
-//                readContinuation.getOrThrow()
+                trySuspendSlot(Slot.Read(it)) { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
             }
         }
     }
@@ -150,9 +147,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     private suspend fun sleepForWrite() {
         while (flushBufferSize >= CHANNEL_MAX_SIZE) {
             suspendCancellableCoroutine {
-//                writeContinuation.init(it.intercepted())
-                trySuspendSlot(it) { flushBufferSize >= CHANNEL_MAX_SIZE }
-//                writeContinuation.getOrThrow()
+                trySuspendSlot(Slot.Write(it)) { flushBufferSize >= CHANNEL_MAX_SIZE }
             }
         }
     }
@@ -162,36 +157,60 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
      */
     private fun resumeSlot() {
         val continuation = suspensionSlot.getAndUpdate {
-            it as? ClosedSlot
+            it as? Slot.Closed ?: Slot.Empty
         }
 
-        continuation?.resume(Unit)
+        continuation.resume()
     }
 
     /**
      * Cancel waiter.
      */
     private fun closeSlot(cause: Throwable?) {
-        val closeContinuation = if (cause != null) ClosedSlot(cause) else io.ktor.utils.io.internal.CLOSED
-        val continuation = suspensionSlot.getAndSet(closeContinuation) ?: return
-        if (continuation is ClosedSlot) return
+        val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
+        val continuation = suspensionSlot.getAndSet(closeContinuation)
+        if (continuation is Slot.Closed) return
 
         if (cause != null) {
             continuation.resumeWithException(cause)
         } else {
-            continuation.resume(Unit)
+            continuation.resume()
         }
     }
 
-    private inline fun trySuspendSlot(continuation: Continuation<Unit>, crossinline sleepCondition: () -> Boolean) {
-        val published = suspensionSlot.compareAndSet(null, continuation)
+    private inline fun trySuspendSlot(slot: Slot, crossinline sleepCondition: () -> Boolean) {
+        val published = suspensionSlot.compareAndSet(Slot.Empty, slot)
         if (!published) {
-            continuation.resume(Unit)
+            check(!slot::class.isInstance(suspensionSlot.value)) {
+                "Multiple ${slot::class.simpleName?.lowercase()} attempts"
+            }
+            slot.resume()
             return
         }
 
         if (!sleepCondition()) {
-            suspensionSlot.getAndSet(null)?.resume(Unit)
+            suspensionSlot.getAndSet(Slot.Empty).resume()
         }
+    }
+
+    private sealed class Slot {
+        companion object {
+            val CLOSED = Closed(null)
+        }
+
+        open fun resume() {}
+        open fun resumeWithException(throwable: Throwable) {}
+
+        data object Empty : Slot()
+        data class Closed(val cause: Throwable?) : Slot()
+        abstract class TaskSlot : Slot() {
+            abstract val continuation: Continuation<Unit>
+            override fun resume() =
+                continuation.resume(Unit)
+            override fun resumeWithException(throwable: Throwable) =
+                continuation.resumeWithException(throwable)
+        }
+        data class Read(override val continuation: Continuation<Unit>) : TaskSlot()
+        data class Write(override val continuation: Continuation<Unit>) : TaskSlot()
     }
 }
