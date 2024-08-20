@@ -84,7 +84,7 @@ public enum class Month(public val value: String) {
  *
  * @property timestamp is a number of epoch milliseconds
  */
-public data class GMTDate internal constructor(
+public data class GMTDate constructor(
     val seconds: Int,
     val minutes: Int,
     val hours: Int,
