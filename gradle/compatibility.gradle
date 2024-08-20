@@ -38,4 +38,8 @@ apiValidation {
 
     ignoredProjects += excludeList
     ignoredProjects += project.allprojects.collect { it.name }.findAll { !projectNames.contains(it) }
+
+    klib {
+        enabled = true
+    }
 }
