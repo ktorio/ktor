@@ -58,7 +58,7 @@ internal class SavedHttpResponse(
     override val coroutineContext: CoroutineContext = origin.coroutineContext
 
     @OptIn(InternalAPI::class)
-    override val content: ByteReadChannel get() = ByteReadChannel(body)
+    override val rawContent: ByteReadChannel get() = ByteReadChannel(body)
 }
 
 /**
@@ -67,7 +67,7 @@ internal class SavedHttpResponse(
 
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
-    val responseBody = response.content.readRemaining().readByteArray()
+    val responseBody = response.rawContent.readRemaining().readByteArray()
 
     return SavedHttpCall(client, request, response, responseBody)
 }

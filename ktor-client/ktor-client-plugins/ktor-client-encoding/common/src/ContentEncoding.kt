@@ -118,7 +118,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> =
                     return response
                 }
 
-            var current = response.content
+            var current = response.rawContent
             for (encoding in encodings.reversed()) {
                 val encoder: Encoder = encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
 
