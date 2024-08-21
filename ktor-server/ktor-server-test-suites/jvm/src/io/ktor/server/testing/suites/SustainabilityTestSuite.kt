@@ -354,7 +354,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             launch(dispatcher) {
                 try {
                     withUrl("/$i") {
-                        content.toInputStream().reader().use { reader ->
+                        rawContent.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 fail("Premature end of response stream at iteration $i")
@@ -416,7 +416,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1WithSize, content.toInputStream().crcWithSize())
+            assertEquals(originalSha1WithSize, rawContent.toInputStream().crcWithSize())
         }
     }
 
@@ -823,7 +823,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         withUrl("/blocking/large") {
             assertEquals(HttpStatusCode.OK, status)
             assertEquals(ContentType.Text.Plain, contentType()?.withoutParameters())
-            val result = content.toInputStream().crcWithSize()
+            val result = rawContent.toInputStream().crcWithSize()
             assertEquals(10000 * 13L, result.second)
         }
     }

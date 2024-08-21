@@ -402,7 +402,7 @@ class ContentTest : ClientLoader(5 * 60) {
             val responseText = client.config {
                 HttpResponseValidator {
                     validateResponse { response ->
-                        val channel = response.content
+                        val channel = response.rawContent
                         for (i in 0..100)
                             assertEquals(expected, channel.readByteArray(expected.length).decodeToString())
                     }

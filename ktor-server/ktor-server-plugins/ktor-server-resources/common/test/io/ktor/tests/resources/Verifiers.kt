@@ -25,7 +25,7 @@ suspend inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resourc
         }
         if (content != null) {
             it("should have a response with content '$content'") {
-                assertEquals(content, result.content.readRemaining().readText())
+                assertEquals(content, result.rawContent.readRemaining().readText())
             }
         }
     }

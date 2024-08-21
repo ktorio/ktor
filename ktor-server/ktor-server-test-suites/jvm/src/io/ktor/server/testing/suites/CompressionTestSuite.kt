@@ -41,7 +41,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
         withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
+            assertEquals(file.readText(), GZIPInputStream(rawContent.toInputStream()).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }
@@ -67,7 +67,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
         withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
-            assertEquals("Hello!", GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
+            assertEquals("Hello!", GZIPInputStream(rawContent.toInputStream()).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }

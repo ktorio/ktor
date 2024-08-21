@@ -740,6 +740,10 @@ public final class io/ktor/client/plugins/cookies/HttpCookiesKt {
 	public static final fun get (Ljava/util/List;Ljava/lang/String;)Lio/ktor/http/Cookie;
 }
 
+public final class io/ktor/client/plugins/internal/SaveBodyAbandonedReadException : java/lang/RuntimeException {
+	public fun <init> ()V
+}
+
 public final class io/ktor/client/plugins/observer/DelegatedCallKt {
 	public static final fun wrap (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/Headers;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/client/call/HttpClientCall;
@@ -1354,9 +1358,9 @@ public final class io/ktor/client/request/forms/MultiPartFormDataContent : io/kt
 public final class io/ktor/client/statement/DefaultHttpResponse : io/ktor/client/statement/HttpResponse {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpResponseData;)V
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
-	public fun getContent ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getRawContent ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
@@ -1380,7 +1384,7 @@ public final class io/ktor/client/statement/HttpReceivePipeline$Phases {
 public abstract class io/ktor/client/statement/HttpResponse : io/ktor/http/HttpMessage, kotlinx/coroutines/CoroutineScope {
 	public fun <init> ()V
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
-	public abstract fun getContent ()Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun getRawContent ()Lio/ktor/utils/io/ByteReadChannel;
 	public abstract fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getResponseTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getStatus ()Lio/ktor/http/HttpStatusCode;
@@ -1402,10 +1406,12 @@ public final class io/ktor/client/statement/HttpResponseContainer {
 }
 
 public final class io/ktor/client/statement/HttpResponseKt {
+	public static final fun bodyAsBytes (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun bodyAsChannel (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun bodyAsText (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun bodyAsText$default (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun complete (Lio/ktor/client/statement/HttpResponse;)V
+	public static final fun getContent (Lio/ktor/client/statement/HttpResponse;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun getRequest (Lio/ktor/client/statement/HttpResponse;)Lio/ktor/client/request/HttpRequest;
 }
 
@@ -1440,6 +1446,7 @@ public final class io/ktor/client/statement/ReadersKt {
 	public static final fun discardRemaining (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readBytes (Lio/ktor/client/statement/HttpResponse;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readBytes (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readRawBytes (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/utils/CIOJvmKt {

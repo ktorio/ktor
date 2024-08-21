@@ -9,7 +9,6 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -229,7 +228,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val callLogger = it.call.attributes[ClientCallLogger]
         val log = StringBuilder()
         try {
-            logResponseBody(log, it.contentType(), it.content)
+            logResponseBody(log, it.contentType(), it.rawContent)
         } catch (_: Throwable) {
         } finally {
             callLogger.logResponseBody(log.toString().trim())
