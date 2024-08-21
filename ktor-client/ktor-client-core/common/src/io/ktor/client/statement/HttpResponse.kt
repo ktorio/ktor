@@ -113,7 +113,7 @@ public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.U
 public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body()
 
 /**
- * Reads the response body as a byte array. All the plugins will be applied to the response body, so it may be
+ * Reads the response body as a byte array. Note that all plugins will be applied to the response body, which may be
  * decompressed or decoded.
  *
  * If you need to read the raw payload of the HTTP response as a byte array, use the [rawContent] property instead.
