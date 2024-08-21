@@ -22,7 +22,7 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * The raw payload is the content
  * of the response that hasn't gone through any interceptors from the HttpResponsePipeline.
  * The content will keep
- * compression or encoding as it was received from the server.
+ * compression or encoding as received from the server.
  *
  * @return the raw payload of the HTTP response as a byte array
  */
