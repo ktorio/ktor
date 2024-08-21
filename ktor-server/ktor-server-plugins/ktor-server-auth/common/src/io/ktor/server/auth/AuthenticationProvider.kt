@@ -14,7 +14,7 @@ public typealias ApplicationCallPredicate = (ApplicationCall) -> Boolean
 /**
  * An authentication function that accepts and verifies credentials and returns a principal when verification is successful.
  */
-public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Principal?
+public typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Any?
 
 /**
  * An authentication provider with the specified name.

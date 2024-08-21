@@ -9,22 +9,24 @@ import kotlin.reflect.*
 /**
  * A marker interface indicating that a class represents credentials for authentication.
  */
+@Deprecated("This interface can be safely removed")
 public interface Credential
 
 /**
  * A marker interface indicating that a class represents an authenticated principal.
  */
+@Deprecated("This interface can be safely removed")
 public interface Principal
 
-internal class CombinedPrincipal : Principal {
-    val principals: MutableList<Pair<String?, Principal>> = mutableListOf()
+internal class CombinedPrincipal {
+    val principals: MutableList<Pair<String?, Any>> = mutableListOf()
 
-    inline fun <reified T : Principal> get(provider: String?): T? {
+    inline fun <reified T : Any> get(provider: String?): T? {
         return get(provider, T::class)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Principal> get(provider: String?, klass: KClass<T>): T? {
+    fun <T : Any> get(provider: String?, klass: KClass<T>): T? {
         return principals
             .firstOrNull { (name, principal) ->
                 if (provider != null) {
@@ -33,7 +35,7 @@ internal class CombinedPrincipal : Principal {
             }?.second as? T
     }
 
-    fun add(provider: String?, principal: Principal) {
+    fun add(provider: String?, principal: Any) {
         principals.add(Pair(provider, principal))
     }
 }

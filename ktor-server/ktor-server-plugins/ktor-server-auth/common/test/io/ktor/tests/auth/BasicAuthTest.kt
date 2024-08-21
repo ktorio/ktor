@@ -240,7 +240,7 @@ class BasicAuthTest {
     }
 
     private fun ApplicationTestBuilder.configureServer(
-        validate: suspend (UserPasswordCredential) -> Principal? = {
+        validate: suspend (UserPasswordCredential) -> Any? = {
             if (it.name == it.password) UserIdPrincipal(it.name) else null
         }
     ) {

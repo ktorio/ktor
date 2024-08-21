@@ -85,10 +85,10 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
 
         /**
-         * Sets a validation function that checks a given [T] session instance and returns [Principal],
+         * Sets a validation function that checks a given [T] session instance and returns [Any],
          * or null if the session does not correspond to an authenticated principal.
          */
-        public fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
+        public fun validate(block: suspend ApplicationCall.(T) -> Any?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
             validator = block
         }
@@ -107,7 +107,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     }
 
     public companion object {
-        private val UninitializedValidator: suspend ApplicationCall.(Any) -> Principal? = {
+        private val UninitializedValidator: suspend ApplicationCall.(Any) -> Any? = {
             error("It should be a validator supplied to a session auth provider")
         }
     }
@@ -119,7 +119,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
  */
-public inline fun <reified T : Principal> AuthenticationConfig.session(
+public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null
 ) {
     session(name, T::class)
@@ -131,7 +131,7 @@ public inline fun <reified T : Principal> AuthenticationConfig.session(
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
  */
-public fun <T : Principal> AuthenticationConfig.session(
+public fun <T : Any> AuthenticationConfig.session(
     name: String? = null,
     kClass: KClass<T>
 ) {

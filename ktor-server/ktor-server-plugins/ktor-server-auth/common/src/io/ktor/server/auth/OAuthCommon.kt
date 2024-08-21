@@ -110,7 +110,7 @@ public sealed class OAuthCallback {
 /**
  * An OAuth access token acquired from the server.
  */
-public sealed class OAuthAccessTokenResponse : Principal {
+public sealed class OAuthAccessTokenResponse {
     /**
      * OAuth1a access token acquired from the server
      * @property token itself

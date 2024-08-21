@@ -144,5 +144,5 @@ class SessionAuthTest {
     }
 
     @Serializable
-    data class MySession(val id: Int) : Principal
+    data class MySession(val id: Int)
 }

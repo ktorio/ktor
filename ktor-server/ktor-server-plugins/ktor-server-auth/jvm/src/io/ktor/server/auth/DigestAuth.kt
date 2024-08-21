@@ -97,7 +97,7 @@ public class DigestAuthenticationProvider internal constructor(
             }
         }
 
-        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdPrincipal(it.userName) }
+        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdAny(it.userName) }
 
         /**
          * Specifies a realm to be passed in the `WWW-Authenticate` header.
@@ -116,7 +116,7 @@ public class DigestAuthenticationProvider internal constructor(
 
         /**
          * Sets a validation function that checks a specified [DigestCredential] instance and
-         * returns [Principal] in a case of successful authentication or null if authentication fails.
+         * returns [Any] in a case of successful authentication or null if authentication fails.
          */
         public fun validate(body: AuthenticationFunction<DigestCredential>) {
             authenticationFunction = body
@@ -177,7 +177,7 @@ public data class DigestCredential(
     val response: String,
     val cnonce: String?,
     val qop: String?
-) : Credential
+)
 
 /**
  * Retrieves [DigestCredential] for this call.
