@@ -34,7 +34,7 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemai
  *
  * This method reads the raw payload of the HTTP response as a byte array.
  * The raw payload is the content of the response that hasn't gone through any interceptors.
- * The content will keep compression or encoding as it was received from the server.
+ * The content will retain its original compression or encoding as received from the server.
  *
  * If you need to read the content as decoded bytes, use the [bodyAsBytes()] method instead.
  *
