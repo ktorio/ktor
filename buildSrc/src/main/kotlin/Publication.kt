@@ -49,6 +49,16 @@ fun isAvailableForPublication(publication: Publication): Boolean {
 
     result = result || (HOST_NAME == "macos" && name in macPublications)
 
+    // can be published from any host
+    val androidNativePublication = setOf(
+        "androidNativeArm32",
+        "androidNativeArm64",
+        "androidNativeX64",
+        "androidNativeX86"
+    )
+
+    result = result || name in androidNativePublication
+
     return result
 }
 

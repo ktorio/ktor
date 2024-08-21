@@ -7,7 +7,7 @@ plugins {
 }
 
 kotlin {
-    createCInterop("threadUtils", nixTargets()) {
+    createCInterop("threadUtils", nixTargets() - androidNativeTargets()) {
         definitionFile = File(projectDir, "nix/interop/threadUtils.def")
     }
 

@@ -7,15 +7,6 @@ package io.ktor.network.util
 import kotlinx.cinterop.*
 import platform.posix.*
 
-
-// !!!NOTE!!!
-// this file is copied to `androidNative**` with minimal changes.
-// if you are doing any changes to it, those files should also be updated
-// this is because Kotlin commonizer doesn't work well here now
-// probably because of:
-// https://youtrack.jetbrains.com/issue/KT-41509/Commonizer-Commonize-numeric-types-with-different-bit-width
-
-
 internal actual fun initSocketsIfNeeded() {}
 
 @OptIn(ExperimentalForeignApi::class)
@@ -122,7 +113,7 @@ internal actual fun ktor_sendto(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: UInt
 ): Int {
-    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).convert()
+    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len.convert()).convert()
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
@@ -134,7 +125,7 @@ internal actual fun ktor_recvfrom(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: CPointer<UIntVar>?
 ): Int {
-    return recvfrom(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).convert()
+    return recvfrom(__fd, __buf, __n.convert(), __flags, __addr, __addr_len?.reinterpret()).convert()
 }
 
 internal actual fun ktor_socket(__domain: Int, __type: Int, __protocol: Int): Int {
@@ -143,17 +134,17 @@ internal actual fun ktor_socket(__domain: Int, __type: Int, __protocol: Int): In
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_bind(__fd: Int, __addr: CValuesRef<sockaddr>?, __len: UInt): Int {
-    return bind(__fd, __addr, __len)
+    return bind(__fd, __addr, __len.convert())
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_connect(__fd: Int, __addr: CValuesRef<sockaddr>?, __len: UInt): Int {
-    return connect(__fd, __addr, __len)
+    return connect(__fd, __addr, __len.convert())
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_accept(__fd: Int, __addr: CValuesRef<sockaddr>?, __addr_len: CPointer<UIntVar>?): Int {
-    return accept(__fd, __addr, __addr_len)
+    return accept(__fd, __addr, __addr_len?.reinterpret())
 }
 
 internal actual fun ktor_listen(__fd: Int, __n: Int): Int {
@@ -168,7 +159,7 @@ internal actual fun ktor_setsockopt(
     __optval: CPointer<*>?,
     __optlen: UInt
 ): Int {
-    return setsockopt(__fd, __level, __optname, __optval, __optlen)
+    return setsockopt(__fd, __level, __optname, __optval, __optlen.convert())
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -179,7 +170,7 @@ internal actual fun ktor_getsockopt(
     __optval: CPointer<*>?,
     __optlen: CPointer<UIntVar>?
 ): Int {
-    return getsockopt(__fd, __level, __optname, __optval, __optlen)
+    return getsockopt(__fd, __level, __optname, __optval, __optlen?.reinterpret())
 }
 
 @OptIn(ExperimentalForeignApi::class)
