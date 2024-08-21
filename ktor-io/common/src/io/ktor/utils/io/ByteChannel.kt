@@ -78,7 +78,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
             flushBufferSize = 0
         }
 
-        resumeSlot()
+        resumeSlot<Slot.Write>()
     }
 
     @OptIn(InternalAPI::class)
@@ -101,7 +101,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
             flushBufferSize += count
         }
 
-        resumeSlot()
+        resumeSlot<Slot.Read>()
     }
 
     @OptIn(InternalAPI::class)
@@ -145,22 +145,27 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @OptIn(InternalAPI::class)
     private suspend fun sleepForWrite() {
-        while (flushBufferSize >= CHANNEL_MAX_SIZE) {
+        while (flushBufferSize >= CHANNEL_MAX_SIZE && _closedCause.value == null) {
             suspendCancellableCoroutine {
-                trySuspendSlot(Slot.Write(it)) { flushBufferSize >= CHANNEL_MAX_SIZE }
+                trySuspendSlot(Slot.Write(it)) { flushBufferSize >= CHANNEL_MAX_SIZE && _closedCause.value == null }
             }
         }
     }
 
     /**
-     * Resume waiter.
+     * Clears and resumes expected slot.
+     *
+     * For example, after flushing the write buffer, we can resume reads.
      */
-    private fun resumeSlot() {
-        val continuation = suspensionSlot.getAndUpdate {
-            it as? Slot.Closed ?: Slot.Empty
-        }
+    private inline fun <reified Expected : Slot> resumeSlot() {
+        val expectedSlot = suspensionSlot.getAndUpdate { slot ->
+            when (slot) {
+                is Expected -> Slot.Empty
+                else -> slot
+            }
+        } as? Expected ?: return
 
-        continuation.resume()
+        expectedSlot.resume()
     }
 
     /**
@@ -178,18 +183,30 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
     }
 
-    private inline fun trySuspendSlot(slot: Slot, crossinline sleepCondition: () -> Boolean) {
-        val published = suspensionSlot.compareAndSet(Slot.Empty, slot)
-        if (!published) {
-            check(!slot::class.isInstance(suspensionSlot.value)) {
-                "Multiple ${slot::class.simpleName?.lowercase()} attempts"
+    private inline fun <reified TaskType : Slot> trySuspendSlot(
+        slot: TaskType,
+        crossinline sleepCondition: () -> Boolean
+    ) {
+        // When the slot is full, try resuming the current task
+        if (!suspensionSlot.compareAndSet(Slot.Empty, slot)) {
+            val currentSlot = suspensionSlot.value as? Slot.TaskSlot ?: run {
+                slot.resume()
+                return
+            }
+            if (suspensionSlot.compareAndSet(currentSlot, Slot.Empty)) {
+                when (currentSlot) {
+                    // If the current task is the same, cancel it
+                    is TaskType -> currentSlot.resumeWithException(
+                        IllegalStateException("Concurrent ${slot::class.simpleName?.lowercase()} attempts")
+                    )
+                    else -> currentSlot.resume()
+                }
             }
             slot.resume()
-            return
-        }
-
-        if (!sleepCondition()) {
+        } else if (!sleepCondition()) {
             suspensionSlot.getAndSet(Slot.Empty).resume()
+        } else {
+            // suspend the coroutine until another thread resumes
         }
     }
 
@@ -210,7 +227,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
             override fun resumeWithException(throwable: Throwable) =
                 continuation.resumeWithException(throwable)
         }
-        data class Read(override val continuation: Continuation<Unit>) : TaskSlot()
-        data class Write(override val continuation: Continuation<Unit>) : TaskSlot()
+        class Read(override val continuation: Continuation<Unit>) : TaskSlot()
+        class Write(override val continuation: Continuation<Unit>) : TaskSlot()
     }
 }
