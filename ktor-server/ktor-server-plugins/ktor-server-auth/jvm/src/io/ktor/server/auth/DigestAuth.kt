@@ -116,7 +116,7 @@ public class DigestAuthenticationProvider internal constructor(
 
         /**
          * Sets a validation function that checks a specified [DigestCredential] instance and
-         * returns [Any] in a case of successful authentication or null if authentication fails.
+         * returns principal [Any] in a case of successful authentication or null if authentication fails.
          */
         public fun validate(body: AuthenticationFunction<DigestCredential>) {
             authenticationFunction = body

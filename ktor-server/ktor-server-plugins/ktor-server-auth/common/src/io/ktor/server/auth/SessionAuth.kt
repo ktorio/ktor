@@ -85,7 +85,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
 
         /**
-         * Sets a validation function that checks a given [T] session instance and returns [Any],
+         * Sets a validation function that checks a given [T] session instance and returns principal [Any],
          * or null if the session does not correspond to an authenticated principal.
          */
         public fun validate(block: suspend ApplicationCall.(T) -> Any?) {

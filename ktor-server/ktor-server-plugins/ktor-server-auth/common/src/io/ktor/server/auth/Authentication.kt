@@ -109,12 +109,12 @@ public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
- * Retrieves an authenticated [Any] for `this` call.
+ * Retrieves an authenticated principal [Any] for `this` call.
  */
 public inline fun <reified P : Any> ApplicationCall.principal(): P? = principal(null)
 
 /**
- * Retrieves an authenticated [Any] for `this` call from provider with name [provider]
+ * Retrieves an authenticated principal [Any] for `this` call from provider with name [provider]
  */
 public inline fun <reified P : Any> ApplicationCall.principal(provider: String?): P? =
     authentication.principal(provider)
