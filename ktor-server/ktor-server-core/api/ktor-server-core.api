@@ -97,6 +97,27 @@ public final class io/ktor/server/application/ApplicationPropertiesBuilder {
 	public final fun setWatchPaths (Ljava/util/List;)V
 }
 
+public final class io/ktor/server/application/ApplicationRuntimeConfig {
+	public final fun getDevelopmentMode ()Z
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getRootPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/application/ApplicationRuntimeConfigBuilder {
+	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;)V
+	public final fun getDevelopmentMode ()Z
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getRootPath ()Ljava/lang/String;
+	public final fun getWatchPaths ()Ljava/util/List;
+	public final fun module (Lkotlin/jvm/functions/Function1;)V
+	public final fun setDevelopmentMode (Z)V
+	public final fun setParentCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setRootPath (Ljava/lang/String;)V
+	public final fun setWatchPaths (Ljava/util/List;)V
+}
+
 public abstract interface class io/ktor/server/application/BaseApplicationPlugin : io/ktor/server/application/Plugin {
 }
 
@@ -136,6 +157,22 @@ public final class io/ktor/server/application/DuplicatePluginException : io/ktor
 
 public abstract interface class io/ktor/server/application/Hook {
 	public abstract fun install (Lio/ktor/server/application/ApplicationCallPipeline;Ljava/lang/Object;)V
+}
+
+public final class io/ktor/server/application/HttpServer : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
+	public final fun dispose ()V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getEngine ()Lio/ktor/server/engine/ApplicationEngine;
+	public final fun getMonitor ()Lio/ktor/events/Events;
+	public final fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getRootPath ()Ljava/lang/String;
+	public final fun setRootPath (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/application/HttpServerKt {
+	public static final fun applicationRuntimeConfig (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationRuntimeConfig;
+	public static synthetic fun applicationRuntimeConfig$default (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ApplicationRuntimeConfig;
+	public static final fun getLog (Lio/ktor/server/application/HttpServer;)Lorg/slf4j/Logger;
 }
 
 public final class io/ktor/server/application/InvalidBodyException : java/lang/Exception {
