@@ -4,11 +4,11 @@
 
 package io.ktor.tests.utils
 
+import io.ktor.junit.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import io.ktor.junit.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.*
 import org.junit.jupiter.api.extension.*
