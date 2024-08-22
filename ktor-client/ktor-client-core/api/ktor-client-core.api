@@ -360,8 +360,8 @@ public final class io/ktor/client/plugins/HttpRequestRetryConfig {
 	public final fun delay (Lkotlin/jvm/functions/Function2;)V
 	public final fun delayMillis (ZLkotlin/jvm/functions/Function2;)V
 	public static synthetic fun delayMillis$default (Lio/ktor/client/plugins/HttpRequestRetryConfig;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
-	public final fun exponentialDelay (DJJZ)V
-	public static synthetic fun exponentialDelay$default (Lio/ktor/client/plugins/HttpRequestRetryConfig;DJJZILjava/lang/Object;)V
+	public final fun exponentialDelay (DJJJZ)V
+	public static synthetic fun exponentialDelay$default (Lio/ktor/client/plugins/HttpRequestRetryConfig;DJJJZILjava/lang/Object;)V
 	public final fun getMaxRetries ()I
 	public final fun modifyRequest (Lkotlin/jvm/functions/Function2;)V
 	public final fun noRetry ()V
