@@ -11,6 +11,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.reflect.*
 
 /**
  * A configuration for the [ConditionalHeaders] plugin.
@@ -38,7 +39,7 @@ public class ConditionalHeadersConfig {
 }
 
 internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, OutgoingContent) -> List<Version>>> =
-    AttributeKey("ConditionalHeadersKey")
+    AttributeKey("ConditionalHeadersKey", typeOf<List<*>>())
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
