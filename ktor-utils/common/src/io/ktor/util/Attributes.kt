@@ -19,7 +19,8 @@ public inline fun <reified T : Any> AttributeKey(name: String): AttributeKey<T> 
 /**
  * Specifies a key for an attribute in [Attributes]
  * @param T is a type of the value stored in the attribute
- * @param name is a name of the attribute for diagnostic purposes. Can't be blank
+ * @property name is a name of the attribute for diagnostic purposes. Can't be blank
+ * @property type the recorded kotlin type of T
  */
 public data class AttributeKey<T : Any> @JvmOverloads constructor(
     public val name: String,
