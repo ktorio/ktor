@@ -97,7 +97,7 @@ public class DigestAuthenticationProvider internal constructor(
             }
         }
 
-        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdAny(it.userName) }
+        internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdPrincipal(it.userName) }
 
         /**
          * Specifies a realm to be passed in the `WWW-Authenticate` header.
