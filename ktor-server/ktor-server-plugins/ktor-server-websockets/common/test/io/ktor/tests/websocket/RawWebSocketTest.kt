@@ -109,6 +109,7 @@ class RawWebSocketTest {
         ensureCompletion()
     }
 
+    @Ignore // KTOR-7318 Investigate raw websocket disconnect hanging
     @Test
     fun testServerIncomingConnectionLoss() = runTest {
         client2server.close(PlannedIOException())

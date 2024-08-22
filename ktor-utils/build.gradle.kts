@@ -14,5 +14,10 @@ kotlin {
                 api(project(":ktor-test-dispatcher"))
             }
         }
+        jvmTest {
+            dependencies {
+                implementation(project(":ktor-shared:ktor-junit"))
+            }
+        }
     }
 }
