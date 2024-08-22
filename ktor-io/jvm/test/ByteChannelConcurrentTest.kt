@@ -4,7 +4,6 @@
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 import kotlinx.coroutines.test.*
 import kotlin.test.*
 
@@ -32,6 +31,7 @@ class ByteChannelConcurrentTest {
     @Test
     fun cannotSubscribeTwiceForFlush() = runTest {
         val channel = ByteChannel()
+        var contentReady = false
         val exceptionHandler = CoroutineExceptionHandler { _, cause ->
             assertTrue(cause is IllegalStateException)
             assertEquals("Concurrent write attempts", cause.message)
@@ -40,13 +40,17 @@ class ByteChannelConcurrentTest {
             channel.writeByteArray(ByteArray(CHANNEL_MAX_SIZE))
         }
         val write2 = GlobalScope.launch(exceptionHandler) {
-            // concurrent writes can also cause NPEs
-            delay(100)
+            channel.awaitContent()
+            contentReady = true
             channel.writeByteArray(ByteArray(CHANNEL_MAX_SIZE))
         }
         val read = GlobalScope.async {
-            delay(100)
+            // ensure the first write has finished before reading
+            while (!contentReady) {
+                delay(100)
+            }
             channel.readBuffer(CHANNEL_MAX_SIZE * 2)
+            channel.close()
         }
 
         joinAll(write1, write2, read)
