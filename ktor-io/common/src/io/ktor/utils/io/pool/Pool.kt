@@ -2,6 +2,7 @@ package io.ktor.utils.io.pool
 
 import kotlinx.atomicfu.*
 
+@OptIn(ExperimentalStdlibApi::class)
 public interface ObjectPool<T : Any> : AutoCloseable {
     /**
      * Pool capacity

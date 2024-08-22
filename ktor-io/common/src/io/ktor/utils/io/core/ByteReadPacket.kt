@@ -71,12 +71,12 @@ public fun Source.readFully(out: ByteArray, offset: Int = 0, length: Int = out.s
     readTo(out, offset, offset + length)
 }
 
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, ExperimentalStdlibApi::class)
 public fun <T> Source.preview(function: (Source) -> T): T {
     return buffer.peek().use(function)
 }
 
-@OptIn(InternalIoApi::class)
+@OptIn(InternalIoApi::class, ExperimentalStdlibApi::class)
 public fun <T> Sink.preview(function: (Source) -> T): T {
     return buffer.peek().use(function)
 }
