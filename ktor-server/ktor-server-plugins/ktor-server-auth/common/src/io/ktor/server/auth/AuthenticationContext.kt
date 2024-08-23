@@ -25,7 +25,7 @@ public class AuthenticationContext(call: ApplicationCall) {
      * Retrieves an authenticated principal, or returns `null` if a user isn't authenticated.
      */
     @Deprecated("Use accessor methods instead", level = DeprecationLevel.ERROR)
-    public var principal: Principal?
+    public var principal: Any?
         get() = _principal.principals.firstOrNull()?.second
         set(value) {
             check(value != null)
@@ -59,28 +59,28 @@ public class AuthenticationContext(call: ApplicationCall) {
     /**
      * Sets an authenticated principal for this context.
      */
-    public fun principal(principal: Principal) {
+    public fun principal(principal: Any) {
         _principal.add(null, principal)
     }
 
     /**
      * Sets an authenticated principal for this context from provider with name [provider].
      */
-    public fun principal(provider: String? = null, principal: Principal) {
+    public fun principal(provider: String? = null, principal: Any) {
         _principal.add(provider, principal)
     }
 
     /**
      * Retrieves a principal of the type [T] from provider with name [provider], if any.
      */
-    public inline fun <reified T : Principal> principal(provider: String? = null): T? {
+    public inline fun <reified T : Any> principal(provider: String? = null): T? {
         return principal(provider, T::class)
     }
 
     /**
      * Retrieves a principal of the type [T], if any.
      */
-    public fun <T : Principal> principal(provider: String?, klass: KClass<T>): T? {
+    public fun <T : Any> principal(provider: String?, klass: KClass<T>): T? {
         return _principal.get(provider, klass)
     }
 

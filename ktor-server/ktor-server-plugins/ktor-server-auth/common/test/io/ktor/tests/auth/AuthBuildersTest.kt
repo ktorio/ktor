@@ -111,8 +111,8 @@ class AuthBuildersTest {
 
     @Test
     fun testMultipleRequiredConfigurations() = testApplication {
-        class Principal1(val name: String) : Principal
-        class Principal2(val name: String) : Principal
+        class Principal1(val name: String)
+        class Principal2(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
@@ -172,7 +172,7 @@ class AuthBuildersTest {
 
     @Test
     fun testMultipleRequiredConfigurationsAccessByName() = testApplication {
-        class UserNamePrincipal(val name: String) : Principal
+        class UserNamePrincipal(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") UserNamePrincipal(c.name) else null } }
@@ -233,8 +233,8 @@ class AuthBuildersTest {
 
     @Test
     fun testDefaultConfigurationOverwrittenWithRequired() = testApplication {
-        class Principal1(val name: String) : Principal
-        class Principal2(val name: String) : Principal
+        class Principal1(val name: String)
+        class Principal2(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
@@ -296,8 +296,8 @@ class AuthBuildersTest {
 
     @Test
     fun testRequiredAndDefaultConfigurations() = testApplication {
-        class Principal1(val name: String) : Principal
-        class Principal2(val name: String) : Principal
+        class Principal1(val name: String)
+        class Principal2(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
@@ -358,8 +358,8 @@ class AuthBuildersTest {
 
     @Test
     fun testRequiredAndOptionalConfigurations() = testApplication {
-        class Principal1(val name: String) : Principal
-        class Principal2(val name: String) : Principal
+        class Principal1(val name: String)
+        class Principal2(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }
@@ -420,8 +420,8 @@ class AuthBuildersTest {
 
     @Test
     fun testOptionalAndDefaultConfigurations() = testApplication {
-        class Principal1(val name: String) : Principal
-        class Principal2(val name: String) : Principal
+        class Principal1(val name: String)
+        class Principal2(val name: String)
 
         install(Authentication) {
             form("first") { validate { c -> if (c.name == "first") Principal1(c.name) else null } }

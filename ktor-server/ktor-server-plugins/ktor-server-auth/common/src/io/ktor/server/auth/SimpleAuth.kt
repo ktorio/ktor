@@ -10,7 +10,7 @@ package io.ktor.server.auth
  * @see [Authentication]
  * @property name of user
  */
-public data class UserIdPrincipal(val name: String) : Principal
+public data class UserIdPrincipal(val name: String)
 
 /**
  * A user's credentials identified by [name] and [password].
@@ -19,9 +19,9 @@ public data class UserIdPrincipal(val name: String) : Principal
  * @property name
  * @property password
  */
-public data class UserPasswordCredential(val name: String, val password: String) : Credential
+public data class UserPasswordCredential(val name: String, val password: String)
 
-public data class BearerTokenCredential(val token: String) : Credential
+public data class BearerTokenCredential(val token: String)
 
 /**
  * An in-memory table that keeps usernames and password hashes.

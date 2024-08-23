@@ -71,7 +71,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
          * Exchanges the token for a Principal.
          * @return a principal or `null`
          */
-        public fun authenticate(authenticate: suspend ApplicationCall.(BearerTokenCredential) -> Principal?) {
+        public fun authenticate(authenticate: suspend ApplicationCall.(BearerTokenCredential) -> Any?) {
             this.authenticate = authenticate
         }
 

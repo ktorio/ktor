@@ -69,7 +69,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         if (call.isHandled) return@on
 
         val authenticationContext = AuthenticationContext.from(call)
-        if (authenticationContext.principal<Principal>() != null) return@on
+        if (authenticationContext.principal<Any>() != null) return@on
 
         var count = 0
         for (provider in requiredProviders) {

@@ -15,7 +15,7 @@ import javax.naming.directory.*
  *
  * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
-public fun <K : Credential, P : Any> ldapAuthenticate(
+public fun <K : Any, P : Any> ldapAuthenticate(
     credential: K,
     ldapServerURL: String,
     ldapEnvironmentBuilder: (MutableMap<String, Any?>) -> Unit = {},
@@ -39,7 +39,7 @@ public fun <K : Credential, P : Any> ldapAuthenticate(
  *
  * To learn more about LDAP authentication in Ktor, see [LDAP](https://ktor.io/docs/ldap.html).
  */
-public fun <P : Principal> ldapAuthenticate(
+public fun <P : Any> ldapAuthenticate(
     credential: UserPasswordCredential,
     ldapServerURL: String,
     userDNFormat: String,
