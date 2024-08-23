@@ -8,6 +8,7 @@ package io.ktor.server.test.base
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -276,21 +277,11 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient(CIO) {
-            engine {
-                https.trustManager = trustManager
-                https.serverName = "localhost"
-                requestTimeout = 0
-            }
-            followRedirects = false
-            expectSuccess = false
-        }.use { client ->
-            client.prepareRequest {
-                url.takeFrom(urlString)
-                builder()
-            }.execute { response ->
-                block(response, port)
-            }
+        client.prepareRequest {
+            url.takeFrom(urlString)
+            builder()
+        }.execute { response ->
+            block(response, port)
         }
     }
 
@@ -323,6 +314,7 @@ actual abstract class EngineTestBase<
         lateinit var keyStore: KeyStore
         lateinit var sslContext: SSLContext
         lateinit var trustManager: X509TrustManager
+        lateinit var client: HttpClient
 
         @BeforeAll
         @JvmStatic
@@ -333,6 +325,25 @@ actual abstract class EngineTestBase<
             sslContext = SSLContext.getInstance("TLS")
             sslContext.init(null, tmf.trustManagers, null)
             trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+
+            client = HttpClient(CIO) {
+                engine {
+                    https.trustManager = trustManager
+                    https.serverName = "localhost"
+                    requestTimeout = 0
+                }
+
+                followRedirects = false
+                expectSuccess = false
+
+                install(HttpRequestRetry)
+            }
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun cleanup() {
+            client.close()
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
