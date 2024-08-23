@@ -230,11 +230,13 @@ final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.util.collections/CopyOnWrit
 }
 
 final class <#A: kotlin/Any> io.ktor.util/AttributeKey { // io.ktor.util/AttributeKey|null[0]
-    constructor <init>(kotlin/String, kotlin/String) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin.reflect/KType = ...) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;kotlin.reflect.KType){}[0]
 
     final val name // io.ktor.util/AttributeKey.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.util/AttributeKey.name.<get-name>|<get-name>(){}[0]
 
+    final fun component1(): kotlin/String // io.ktor.util/AttributeKey.component1|component1(){}[0]
+    final fun copy(kotlin/String = ..., kotlin.reflect/KType = ...): io.ktor.util/AttributeKey<#A> // io.ktor.util/AttributeKey.copy|copy(kotlin.String;kotlin.reflect.KType){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.util/AttributeKey.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.util/AttributeKey.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.util/AttributeKey.toString|toString(){}[0]
