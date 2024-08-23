@@ -36,7 +36,7 @@ slf4j-version = "2.0.16"
 logback-version = "1.3.5"
 
 dropwizard-version = "4.2.27"
-micrometer-version = "1.13.2"
+micrometer-version = "1.13.3"
 
 jansi-version = "2.4.1"
 typesafe-version = "1.4.3"
