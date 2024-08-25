@@ -1,9 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util.date
 
+import kotlinx.serialization.*
 import kotlin.time.*
 
 /**
@@ -84,6 +85,7 @@ public enum class Month(public val value: String) {
  *
  * @property timestamp is a number of epoch milliseconds
  */
+@Serializable
 public data class GMTDate internal constructor(
     val seconds: Int,
     val minutes: Int,

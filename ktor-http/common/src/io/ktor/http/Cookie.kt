@@ -1,11 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlinx.serialization.*
 import kotlin.jvm.*
 
 /**
@@ -23,6 +24,7 @@ import kotlin.jvm.*
  * @property httpOnly only transfer cookie over HTTP, no access from JavaScript
  * @property extensions additional cookie extensions
  */
+@Serializable
 public data class Cookie(
     val name: String,
     val value: String,

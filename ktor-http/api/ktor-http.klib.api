@@ -579,6 +579,21 @@ final class io.ktor.http/Cookie { // io.ktor.http/Cookie|null[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http/Cookie.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.http/Cookie.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.http/Cookie.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.http/Cookie> { // io.ktor.http/Cookie.$serializer|null[0]
+        final val descriptor // io.ktor.http/Cookie.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.http/Cookie.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.http/Cookie.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/Cookie // io.ktor.http/Cookie.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/Cookie) // io.ktor.http/Cookie.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.Cookie){}[0]
+    }
+
+    final object Companion { // io.ktor.http/Cookie.Companion|null[0]
+        final val $childSerializers // io.ktor.http/Cookie.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.http/Cookie> // io.ktor.http/Cookie.Companion.serializer|serializer(){}[0]
+    }
 }
 
 final class io.ktor.http/HeaderValue { // io.ktor.http/HeaderValue|null[0]

@@ -675,8 +675,20 @@ public final class io/ktor/util/date/GMTDate : java/lang/Comparable {
 	public fun toString ()Ljava/lang/String;
 }
 
+public synthetic class io/ktor/util/date/GMTDate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/util/date/GMTDate$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/util/date/GMTDate;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/util/date/GMTDate;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
 public final class io/ktor/util/date/GMTDate$Companion {
 	public final fun getSTART ()Lio/ktor/util/date/GMTDate;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/util/date/GMTDateParser {

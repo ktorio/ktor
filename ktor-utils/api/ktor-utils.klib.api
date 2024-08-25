@@ -230,11 +230,13 @@ final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.util.collections/CopyOnWrit
 }
 
 final class <#A: kotlin/Any> io.ktor.util/AttributeKey { // io.ktor.util/AttributeKey|null[0]
-    constructor <init>(kotlin/String, kotlin/String) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin.reflect/KType = ...) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;kotlin.reflect.KType){}[0]
 
     final val name // io.ktor.util/AttributeKey.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.util/AttributeKey.name.<get-name>|<get-name>(){}[0]
 
+    final fun component1(): kotlin/String // io.ktor.util/AttributeKey.component1|component1(){}[0]
+    final fun copy(kotlin/String = ..., kotlin.reflect/KType = ...): io.ktor.util/AttributeKey<#A> // io.ktor.util/AttributeKey.copy|copy(kotlin.String;kotlin.reflect.KType){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.util/AttributeKey.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.util/AttributeKey.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.util/AttributeKey.toString|toString(){}[0]
@@ -363,9 +365,21 @@ final class io.ktor.util.date/GMTDate : kotlin/Comparable<io.ktor.util.date/GMTD
     final fun hashCode(): kotlin/Int // io.ktor.util.date/GMTDate.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.util.date/GMTDate.toString|toString(){}[0]
 
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.util.date/GMTDate> { // io.ktor.util.date/GMTDate.$serializer|null[0]
+        final val descriptor // io.ktor.util.date/GMTDate.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.util.date/GMTDate.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.util.date/GMTDate.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.util.date/GMTDate) // io.ktor.util.date/GMTDate.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.util.date.GMTDate){}[0]
+    }
+
     final object Companion { // io.ktor.util.date/GMTDate.Companion|null[0]
+        final val $childSerializers // io.ktor.util.date/GMTDate.Companion.$childSerializers|{}$childSerializers[0]
         final val START // io.ktor.util.date/GMTDate.Companion.START|{}START[0]
             final fun <get-START>(): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate.Companion.START.<get-START>|<get-START>(){}[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.util.date/GMTDate> // io.ktor.util.date/GMTDate.Companion.serializer|serializer(){}[0]
     }
 }
 
