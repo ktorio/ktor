@@ -20,7 +20,7 @@ class ByteChannelConcurrentTest {
         val read1 = GlobalScope.async { channel.readByte() }
         val read2 = GlobalScope.async { channel.readByte() }
 
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<ConcurrentIOException> {
             awaitAll(read1, read2)
         }.also {
             assertEquals("Concurrent read attempts", it.message)
@@ -33,7 +33,7 @@ class ByteChannelConcurrentTest {
         val channel = ByteChannel()
         var contentReady = false
         val exceptionHandler = CoroutineExceptionHandler { _, cause ->
-            assertTrue(cause is IllegalStateException)
+            assertTrue(cause is ConcurrentIOException)
             assertEquals("Concurrent write attempts", cause.message)
         }
         val write1 = GlobalScope.launch(exceptionHandler) {
