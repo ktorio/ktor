@@ -7,6 +7,6 @@ import org.jetbrains.kotlin.gradle.tasks.*
 fun KotlinCompilationTask<*>.configureCompilerOptions() {
     compilerOptions {
         progressiveMode.set(true)
-        freeCompilerArgs.addAll("-opt-in=kotlin.RequiresOptIn", "-Xexpect-actual-classes")
+        freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 }
