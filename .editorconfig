@@ -10,6 +10,10 @@ max_line_length = 120
 indent_size = 2
 
 [*.{kt,kts}]
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_name_count_to_use_star_import = 1
+ij_kotlin_name_count_to_use_star_import_for_members = 1
+
 ktlint_standard_no-wildcard-imports = disabled
 ktlint_standard_trailing-comma-on-call-site = disabled
 ktlint_standard_trailing-comma-on-declaration-site = disabled
