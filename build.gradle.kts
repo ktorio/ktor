@@ -190,10 +190,9 @@ fun Project.setupJvmToolchain() {
 }
 
 subprojects {
-    val compileKotlin = tasks.findByName("compileKotlin") as? KotlinCompilationTask<*>
-        ?: return@subprojects
-
-    compileKotlin.configureCompilerOptions()
+    tasks.withType<KotlinCompilationTask<*>>().configureEach {
+        configureCompilerOptions()
+    }
 }
 
 fun KotlinMultiplatformExtension.configureSourceSets() {
