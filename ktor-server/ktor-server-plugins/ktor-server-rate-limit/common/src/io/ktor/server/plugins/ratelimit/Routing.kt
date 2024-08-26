@@ -41,7 +41,7 @@ public fun Route.rateLimit(
  * @param name of rate-limit provider to be applied to this route.
  */
 public class RateLimitRouteSelector(public val name: RateLimitName) : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation.Transparent
     }
 

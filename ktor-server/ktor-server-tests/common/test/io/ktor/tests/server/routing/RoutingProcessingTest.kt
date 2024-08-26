@@ -969,7 +969,10 @@ class RoutingProcessingTest {
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {
-                override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                override suspend fun evaluate(
+                    context: RoutingResolveContext,
+                    segmentIndex: Int,
+                ): RouteSelectorEvaluation {
                     return RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityTransparent)
                 }
             }

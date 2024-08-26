@@ -102,7 +102,7 @@ public class io/ktor/server/auth/AuthenticationProvider$Config {
 
 public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/server/routing/RouteSelector {
 	public fun <init> (Ljava/util/List;)V
-	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;I)Lio/ktor/server/routing/RouteSelectorEvaluation;
+	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getNames ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
 }

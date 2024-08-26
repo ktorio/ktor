@@ -79,7 +79,7 @@ public class RoutingResolveContext(
     /**
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
      */
-    public fun resolve(): RoutingResolveResult {
+    public suspend fun resolve(): RoutingResolveResult {
         handleRoute(routing, 0, ArrayList(), MIN_QUALITY)
 
         val resolveResult = findBestRoute()
@@ -89,7 +89,7 @@ public class RoutingResolveContext(
         return resolveResult
     }
 
-    private fun handleRoute(
+    private suspend fun handleRoute(
         entry: RoutingNode,
         segmentIndex: Int,
         trait: ArrayList<RoutingResolveResult.Success>,
