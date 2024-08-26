@@ -331,6 +331,8 @@ final class io.ktor.util.converters/DelegatingConversionService : io.ktor.util.c
 }
 
 final class io.ktor.util.date/GMTDate : kotlin/Comparable<io.ktor.util.date/GMTDate> { // io.ktor.util.date/GMTDate|null[0]
+    constructor <init>(kotlin/Int, kotlin/Int, kotlin/Int, io.ktor.util.date/WeekDay, kotlin/Int, kotlin/Int, io.ktor.util.date/Month, kotlin/Int, kotlin/Long) // io.ktor.util.date/GMTDate.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int;io.ktor.util.date.WeekDay;kotlin.Int;kotlin.Int;io.ktor.util.date.Month;kotlin.Int;kotlin.Long){}[0]
+
     final val dayOfMonth // io.ktor.util.date/GMTDate.dayOfMonth|{}dayOfMonth[0]
         final fun <get-dayOfMonth>(): kotlin/Int // io.ktor.util.date/GMTDate.dayOfMonth.<get-dayOfMonth>|<get-dayOfMonth>(){}[0]
     final val dayOfWeek // io.ktor.util.date/GMTDate.dayOfWeek|{}dayOfWeek[0]
@@ -360,6 +362,7 @@ final class io.ktor.util.date/GMTDate : kotlin/Comparable<io.ktor.util.date/GMTD
     final fun component7(): io.ktor.util.date/Month // io.ktor.util.date/GMTDate.component7|component7(){}[0]
     final fun component8(): kotlin/Int // io.ktor.util.date/GMTDate.component8|component8(){}[0]
     final fun component9(): kotlin/Long // io.ktor.util.date/GMTDate.component9|component9(){}[0]
+    final fun copy(): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate.copy|copy(){}[0]
     final fun copy(kotlin/Int = ..., kotlin/Int = ..., kotlin/Int = ..., io.ktor.util.date/WeekDay = ..., kotlin/Int = ..., kotlin/Int = ..., io.ktor.util.date/Month = ..., kotlin/Int = ..., kotlin/Long = ...): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate.copy|copy(kotlin.Int;kotlin.Int;kotlin.Int;io.ktor.util.date.WeekDay;kotlin.Int;kotlin.Int;io.ktor.util.date.Month;kotlin.Int;kotlin.Long){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.util.date/GMTDate.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.util.date/GMTDate.hashCode|hashCode(){}[0]
@@ -770,8 +773,6 @@ open class io.ktor.util/StringValuesSingleImpl : io.ktor.util/StringValues { // 
 }
 
 sealed class io.ktor.util/Platform { // io.ktor.util/Platform|null[0]
-    constructor <init>() // io.ktor.util/Platform.<init>|<init>(){}[0]
-
     final enum class JsPlatform : kotlin/Enum<io.ktor.util/Platform.JsPlatform> { // io.ktor.util/Platform.JsPlatform|null[0]
         enum entry Browser // io.ktor.util/Platform.JsPlatform.Browser|null[0]
         enum entry Node // io.ktor.util/Platform.JsPlatform.Node|null[0]

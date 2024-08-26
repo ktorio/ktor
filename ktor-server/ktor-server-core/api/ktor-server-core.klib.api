@@ -1412,8 +1412,6 @@ open class io.ktor.server.routing/RoutingResolveTraceEntry { // io.ktor.server.r
 }
 
 sealed class io.ktor.server.routing/RouteSelectorEvaluation { // io.ktor.server.routing/RouteSelectorEvaluation|null[0]
-    constructor <init>(kotlin/Boolean) // io.ktor.server.routing/RouteSelectorEvaluation.<init>|<init>(kotlin.Boolean){}[0]
-
     final val succeeded // io.ktor.server.routing/RouteSelectorEvaluation.succeeded|{}succeeded[0]
         final fun <get-succeeded>(): kotlin/Boolean // io.ktor.server.routing/RouteSelectorEvaluation.succeeded.<get-succeeded>|<get-succeeded>(){}[0]
 
@@ -1502,8 +1500,6 @@ sealed class io.ktor.server.routing/RouteSelectorEvaluation { // io.ktor.server.
 }
 
 sealed class io.ktor.server.routing/RoutingResolveResult { // io.ktor.server.routing/RoutingResolveResult|null[0]
-    constructor <init>(io.ktor.server.routing/RoutingNode) // io.ktor.server.routing/RoutingResolveResult.<init>|<init>(io.ktor.server.routing.RoutingNode){}[0]
-
     abstract val parameters // io.ktor.server.routing/RoutingResolveResult.parameters|{}parameters[0]
         abstract fun <get-parameters>(): io.ktor.http/Parameters // io.ktor.server.routing/RoutingResolveResult.parameters.<get-parameters>|<get-parameters>(){}[0]
     final val route // io.ktor.server.routing/RoutingResolveResult.route|{}route[0]

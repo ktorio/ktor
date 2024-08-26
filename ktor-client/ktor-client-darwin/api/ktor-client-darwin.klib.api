@@ -176,6 +176,8 @@ final fun io.ktor.client.engine.darwin/KtorNSURLSessionDelegate(): io.ktor.clien
 
 // Targets: [ios, macos, tvos, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 final class io.ktor.client.engine.darwin.certificates/CertificatePinner : kotlin/Function4<platform.Foundation/NSURLSession, platform.Foundation/NSURLSessionTask, platform.Foundation/NSURLAuthenticationChallenge, kotlin/Function2<kotlin/Long, platform.Foundation/NSURLCredential?, kotlin/Unit>, kotlin/Unit> { // io.ktor.client.engine.darwin.certificates/CertificatePinner|null[0]
+    constructor <init>(kotlin.collections/Set<io.ktor.client.engine.darwin.certificates/PinnedCertificate>, kotlin/Boolean) // io.ktor.client.engine.darwin.certificates/CertificatePinner.<init>|<init>(kotlin.collections.Set<io.ktor.client.engine.darwin.certificates.PinnedCertificate>;kotlin.Boolean){}[0]
+
     final fun copy(kotlin.collections/Set<io.ktor.client.engine.darwin.certificates/PinnedCertificate> = ..., kotlin/Boolean = ...): io.ktor.client.engine.darwin.certificates/CertificatePinner // io.ktor.client.engine.darwin.certificates/CertificatePinner.copy|copy(kotlin.collections.Set<io.ktor.client.engine.darwin.certificates.PinnedCertificate>;kotlin.Boolean){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.engine.darwin.certificates/CertificatePinner.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.client.engine.darwin.certificates/CertificatePinner.hashCode|hashCode(){}[0]
@@ -197,6 +199,8 @@ final class io.ktor.client.engine.darwin.certificates/CertificatePinner : kotlin
 
 // Targets: [watchosArm32, watchosArm64]
 final class io.ktor.client.engine.darwin.certificates/CertificatePinner : kotlin/Function4<platform.Foundation/NSURLSession, platform.Foundation/NSURLSessionTask, platform.Foundation/NSURLAuthenticationChallenge, kotlin/Function2<kotlin/Int, platform.Foundation/NSURLCredential?, kotlin/Unit>, kotlin/Unit> { // io.ktor.client.engine.darwin.certificates/CertificatePinner|null[0]
+    constructor <init>(kotlin.collections/Set<io.ktor.client.engine.darwin.certificates/PinnedCertificate>, kotlin/Boolean) // io.ktor.client.engine.darwin.certificates/CertificatePinner.<init>|<init>(kotlin.collections.Set<io.ktor.client.engine.darwin.certificates.PinnedCertificate>;kotlin.Boolean){}[0]
+
     final fun copy(kotlin.collections/Set<io.ktor.client.engine.darwin.certificates/PinnedCertificate> = ..., kotlin/Boolean = ...): io.ktor.client.engine.darwin.certificates/CertificatePinner // io.ktor.client.engine.darwin.certificates/CertificatePinner.copy|copy(kotlin.collections.Set<io.ktor.client.engine.darwin.certificates.PinnedCertificate>;kotlin.Boolean){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.engine.darwin.certificates/CertificatePinner.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.client.engine.darwin.certificates/CertificatePinner.hashCode|hashCode(){}[0]

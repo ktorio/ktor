@@ -313,8 +313,6 @@ final class io.ktor.server.auth/UserPasswordCredential { // io.ktor.server.auth/
 }
 
 sealed class io.ktor.server.auth/AuthenticationFailedCause { // io.ktor.server.auth/AuthenticationFailedCause|null[0]
-    constructor <init>() // io.ktor.server.auth/AuthenticationFailedCause.<init>|<init>(){}[0]
-
     open class Error : io.ktor.server.auth/AuthenticationFailedCause { // io.ktor.server.auth/AuthenticationFailedCause.Error|null[0]
         constructor <init>(kotlin/String) // io.ktor.server.auth/AuthenticationFailedCause.Error.<init>|<init>(kotlin.String){}[0]
 
@@ -336,8 +334,6 @@ sealed class io.ktor.server.auth/AuthenticationFailedCause { // io.ktor.server.a
 }
 
 sealed class io.ktor.server.auth/OAuth2Exception : kotlin/Exception { // io.ktor.server.auth/OAuth2Exception|null[0]
-    constructor <init>(kotlin/String, kotlin/String?) // io.ktor.server.auth/OAuth2Exception.<init>|<init>(kotlin.String;kotlin.String?){}[0]
-
     final val errorCode // io.ktor.server.auth/OAuth2Exception.errorCode|{}errorCode[0]
         final fun <get-errorCode>(): kotlin/String? // io.ktor.server.auth/OAuth2Exception.errorCode.<get-errorCode>|<get-errorCode>(){}[0]
 
@@ -370,8 +366,6 @@ sealed class io.ktor.server.auth/OAuth2Exception : kotlin/Exception { // io.ktor
 }
 
 sealed class io.ktor.server.auth/OAuthAccessTokenResponse { // io.ktor.server.auth/OAuthAccessTokenResponse|null[0]
-    constructor <init>() // io.ktor.server.auth/OAuthAccessTokenResponse.<init>|<init>(){}[0]
-
     final class OAuth1a : io.ktor.server.auth/OAuthAccessTokenResponse { // io.ktor.server.auth/OAuthAccessTokenResponse.OAuth1a|null[0]
         constructor <init>(kotlin/String, kotlin/String, io.ktor.http/Parameters = ...) // io.ktor.server.auth/OAuthAccessTokenResponse.OAuth1a.<init>|<init>(kotlin.String;kotlin.String;io.ktor.http.Parameters){}[0]
 
@@ -422,8 +416,6 @@ sealed class io.ktor.server.auth/OAuthAccessTokenResponse { // io.ktor.server.au
 }
 
 sealed class io.ktor.server.auth/OAuthCallback { // io.ktor.server.auth/OAuthCallback|null[0]
-    constructor <init>() // io.ktor.server.auth/OAuthCallback.<init>|<init>(){}[0]
-
     final class Error : io.ktor.server.auth/OAuthCallback { // io.ktor.server.auth/OAuthCallback.Error|null[0]
         constructor <init>(kotlin/String, kotlin/String?) // io.ktor.server.auth/OAuthCallback.Error.<init>|<init>(kotlin.String;kotlin.String?){}[0]
 
@@ -474,8 +466,6 @@ sealed class io.ktor.server.auth/OAuthCallback { // io.ktor.server.auth/OAuthCal
 }
 
 sealed class io.ktor.server.auth/OAuthServerSettings { // io.ktor.server.auth/OAuthServerSettings|null[0]
-    constructor <init>(kotlin/String, io.ktor.server.auth/OAuthVersion) // io.ktor.server.auth/OAuthServerSettings.<init>|<init>(kotlin.String;io.ktor.server.auth.OAuthVersion){}[0]
-
     final val name // io.ktor.server.auth/OAuthServerSettings.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.server.auth/OAuthServerSettings.name.<get-name>|<get-name>(){}[0]
     final val version // io.ktor.server.auth/OAuthServerSettings.version|{}version[0]

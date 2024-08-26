@@ -502,8 +502,6 @@ open class io.ktor.utils.io.locks/SynchronizedObject { // io.ktor.utils.io.locks
 
 // Targets: [native]
 sealed class io.ktor.utils.io.errors/PosixException : kotlin/Exception { // io.ktor.utils.io.errors/PosixException|null[0]
-    constructor <init>(kotlin/Int, kotlin/String) // io.ktor.utils.io.errors/PosixException.<init>|<init>(kotlin.Int;kotlin.String){}[0]
-
     final val errno // io.ktor.utils.io.errors/PosixException.errno|{}errno[0]
         final fun <get-errno>(): kotlin/Int // io.ktor.utils.io.errors/PosixException.errno.<get-errno>|<get-errno>(){}[0]
 

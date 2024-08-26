@@ -2,11 +2,9 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.gradle.api.Project
 import org.jetbrains.dokka.gradle.*
-import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.*
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
@@ -135,7 +133,6 @@ allprojects {
     kotlin {
         if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
 
-        setCompilationOptions()
         configureSourceSets()
         setupJvmToolchain()
     }
@@ -192,12 +189,11 @@ fun Project.setupJvmToolchain() {
     }
 }
 
-fun KotlinMultiplatformExtension.setCompilationOptions() {
-    targets.all {
-        compilations.all {
-            configureCompilation()
-        }
-    }
+subprojects {
+    val compileKotlin = tasks.findByName("compileKotlin") as? KotlinCompilationTask<*>
+        ?: return@subprojects
+
+    compileKotlin.configureCompilerOptions()
 }
 
 fun KotlinMultiplatformExtension.configureSourceSets() {

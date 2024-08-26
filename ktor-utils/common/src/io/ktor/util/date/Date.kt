@@ -86,7 +86,7 @@ public enum class Month(public val value: String) {
  * @property timestamp is a number of epoch milliseconds
  */
 @Serializable
-public data class GMTDate internal constructor(
+public data class GMTDate(
     val seconds: Int,
     val minutes: Int,
     val hours: Int,
@@ -102,6 +102,8 @@ public data class GMTDate internal constructor(
 ) : Comparable<GMTDate> {
 
     override fun compareTo(other: GMTDate): Int = timestamp.compareTo(other.timestamp)
+
+    public fun copy(): GMTDate = GMTDate()
 
     public companion object {
         /**

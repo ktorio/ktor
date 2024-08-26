@@ -10,8 +10,6 @@ abstract interface io.ktor.server.plugins.ratelimit/RateLimiter { // io.ktor.ser
     abstract suspend fun tryConsume(kotlin/Int = ...): io.ktor.server.plugins.ratelimit/RateLimiter.State // io.ktor.server.plugins.ratelimit/RateLimiter.tryConsume|tryConsume(kotlin.Int){}[0]
 
     sealed class State { // io.ktor.server.plugins.ratelimit/RateLimiter.State|null[0]
-        constructor <init>() // io.ktor.server.plugins.ratelimit/RateLimiter.State.<init>|<init>(){}[0]
-
         final class Available : io.ktor.server.plugins.ratelimit/RateLimiter.State { // io.ktor.server.plugins.ratelimit/RateLimiter.State.Available|null[0]
             constructor <init>(kotlin/Int, kotlin/Int, kotlin/Long) // io.ktor.server.plugins.ratelimit/RateLimiter.State.Available.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Long){}[0]
 

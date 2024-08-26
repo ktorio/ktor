@@ -223,13 +223,9 @@ final value class io.ktor.network.sockets/TypeOfService { // io.ktor.network.soc
     }
 }
 
-sealed class io.ktor.network.sockets/SocketAddress { // io.ktor.network.sockets/SocketAddress|null[0]
-    constructor <init>() // io.ktor.network.sockets/SocketAddress.<init>|<init>(){}[0]
-}
+sealed class io.ktor.network.sockets/SocketAddress // io.ktor.network.sockets/SocketAddress|null[0]
 
 sealed class io.ktor.network.sockets/SocketOptions { // io.ktor.network.sockets/SocketOptions|null[0]
-    constructor <init>(kotlin.collections/MutableMap<kotlin/Any, kotlin/Any?>) // io.ktor.network.sockets/SocketOptions.<init>|<init>(kotlin.collections.MutableMap<kotlin.Any,kotlin.Any?>){}[0]
-
     final val customOptions // io.ktor.network.sockets/SocketOptions.customOptions|{}customOptions[0]
         final fun <get-customOptions>(): kotlin.collections/MutableMap<kotlin/Any, kotlin/Any?> // io.ktor.network.sockets/SocketOptions.customOptions.<get-customOptions>|<get-customOptions>(){}[0]
 

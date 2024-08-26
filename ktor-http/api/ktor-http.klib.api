@@ -1097,8 +1097,6 @@ final class io.ktor.http/Url { // io.ktor.http/Url|null[0]
 }
 
 sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHeader|null[0]
-    constructor <init>(kotlin/String) // io.ktor.http.auth/HttpAuthHeader.<init>|<init>(kotlin.String){}[0]
-
     final val authScheme // io.ktor.http.auth/HttpAuthHeader.authScheme|{}authScheme[0]
         final fun <get-authScheme>(): kotlin/String // io.ktor.http.auth/HttpAuthHeader.authScheme.<get-authScheme>|<get-authScheme>(){}[0]
 
@@ -1173,8 +1171,6 @@ sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHea
 }
 
 sealed class io.ktor.http.content/OutgoingContent { // io.ktor.http.content/OutgoingContent|null[0]
-    constructor <init>() // io.ktor.http.content/OutgoingContent.<init>|<init>(){}[0]
-
     open val contentLength // io.ktor.http.content/OutgoingContent.contentLength|{}contentLength[0]
         open fun <get-contentLength>(): kotlin/Long? // io.ktor.http.content/OutgoingContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]
     open val contentType // io.ktor.http.content/OutgoingContent.contentType|{}contentType[0]
@@ -1240,8 +1236,6 @@ sealed class io.ktor.http.content/OutgoingContent { // io.ktor.http.content/Outg
 }
 
 sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|null[0]
-    constructor <init>(kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.<init>|<init>(kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
-
     final val contentDisposition // io.ktor.http.content/PartData.contentDisposition|{}contentDisposition[0]
         final fun <get-contentDisposition>(): io.ktor.http/ContentDisposition? // io.ktor.http.content/PartData.contentDisposition.<get-contentDisposition>|<get-contentDisposition>(){}[0]
     final val contentType // io.ktor.http.content/PartData.contentType|{}contentType[0]
@@ -1285,8 +1279,6 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
 }
 
 sealed class io.ktor.http/ContentRange { // io.ktor.http/ContentRange|null[0]
-    constructor <init>() // io.ktor.http/ContentRange.<init>|<init>(){}[0]
-
     final class Bounded : io.ktor.http/ContentRange { // io.ktor.http/ContentRange.Bounded|null[0]
         constructor <init>(kotlin/Long, kotlin/Long) // io.ktor.http/ContentRange.Bounded.<init>|<init>(kotlin.Long;kotlin.Long){}[0]
 
