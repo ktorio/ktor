@@ -33,7 +33,7 @@ jackson-version = "2.17.2"
 
 junit-version = "5.10.3"
 slf4j-version = "2.0.16"
-logback-version = "1.3.5"
+logback-version = "1.5.7"
 
 dropwizard-version = "4.2.27"
 micrometer-version = "1.13.3"
