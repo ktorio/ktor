@@ -134,8 +134,8 @@ final class io.ktor.server.auth/AuthenticationRouteSelector : io.ktor.server.rou
     final val names // io.ktor.server.auth/AuthenticationRouteSelector.names|{}names[0]
         final fun <get-names>(): kotlin.collections/List<kotlin/String?> // io.ktor.server.auth/AuthenticationRouteSelector.names.<get-names>|<get-names>(){}[0]
 
-    final fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.auth/AuthenticationRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
     final fun toString(): kotlin/String // io.ktor.server.auth/AuthenticationRouteSelector.toString|toString(){}[0]
+    final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.auth/AuthenticationRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
 final class io.ktor.server.auth/BasicAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth/BasicAuthenticationProvider|null[0]

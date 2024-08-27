@@ -60,8 +60,8 @@ final class io.ktor.server.plugins.ratelimit/RateLimitRouteSelector : io.ktor.se
     final val name // io.ktor.server.plugins.ratelimit/RateLimitRouteSelector.name|{}name[0]
         final fun <get-name>(): io.ktor.server.plugins.ratelimit/RateLimitName // io.ktor.server.plugins.ratelimit/RateLimitRouteSelector.name.<get-name>|<get-name>(){}[0]
 
-    final fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.plugins.ratelimit/RateLimitRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
     final fun toString(): kotlin/String // io.ktor.server.plugins.ratelimit/RateLimitRouteSelector.toString|toString(){}[0]
+    final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.plugins.ratelimit/RateLimitRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
 final value class io.ktor.server.plugins.ratelimit/RateLimitName { // io.ktor.server.plugins.ratelimit/RateLimitName|null[0]
