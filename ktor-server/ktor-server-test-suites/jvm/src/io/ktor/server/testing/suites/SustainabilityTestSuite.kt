@@ -5,6 +5,7 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -35,9 +36,7 @@ import java.net.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
-import kotlin.io.use
 import kotlin.test.*
-import kotlin.text.toByteArray
 
 @ExtendWith(RetrySupport::class)
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -680,7 +679,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
                 startServer(server)
 
-                withUrl("/") {
+                withUrl("/", {
+                    retry {
+                        noRetry()
+                    }
+                }) {
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
@@ -718,7 +721,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl(
                     "/",
-                    { method = HttpMethod.Post; setBody("body") }
+                    {
+                        method = HttpMethod.Post
+                        setBody("body")
+                        retry { noRetry() }
+                    }
                 ) {
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
@@ -760,7 +767,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 }
                 startServer(server)
 
-                withUrl("/", { intercepted = false }) {
+                withUrl("/", {
+                    retry {
+                        noRetry()
+                    }
+
+                    intercepted = false
+                }) {
                     body<String>()
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
@@ -795,7 +808,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
         startServer(server)
 
-        withUrl("/req") {
+        withUrl("/req", {
+            retry {
+                noRetry()
+            }
+        }) {
             assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
             assertEquals(exceptions.size, 1, "Failed in phase $phase")
             assertEquals("Failed in engine pipeline", exceptions[0].message)
