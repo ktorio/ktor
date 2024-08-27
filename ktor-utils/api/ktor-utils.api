@@ -648,6 +648,7 @@ public final class io/ktor/util/date/DateKt {
 
 public final class io/ktor/util/date/GMTDate : java/lang/Comparable {
 	public static final field Companion Lio/ktor/util/date/GMTDate$Companion;
+	public fun <init> (IIILio/ktor/util/date/WeekDay;IILio/ktor/util/date/Month;IJ)V
 	public fun compareTo (Lio/ktor/util/date/GMTDate;)I
 	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public final fun component1 ()I
@@ -659,6 +660,7 @@ public final class io/ktor/util/date/GMTDate : java/lang/Comparable {
 	public final fun component7 ()Lio/ktor/util/date/Month;
 	public final fun component8 ()I
 	public final fun component9 ()J
+	public final fun copy ()Lio/ktor/util/date/GMTDate;
 	public final fun copy (IIILio/ktor/util/date/WeekDay;IILio/ktor/util/date/Month;IJ)Lio/ktor/util/date/GMTDate;
 	public static synthetic fun copy$default (Lio/ktor/util/date/GMTDate;IIILio/ktor/util/date/WeekDay;IILio/ktor/util/date/Month;IJILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
 	public fun equals (Ljava/lang/Object;)Z

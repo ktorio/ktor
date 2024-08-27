@@ -178,8 +178,6 @@ final class io.ktor.websocket/WebSocketExtensionsConfig { // io.ktor.websocket/W
 }
 
 sealed class io.ktor.websocket/Frame { // io.ktor.websocket/Frame|null[0]
-    constructor <init>(kotlin/Boolean, io.ktor.websocket/FrameType, kotlin/ByteArray, kotlinx.coroutines/DisposableHandle = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // io.ktor.websocket/Frame.<init>|<init>(kotlin.Boolean;io.ktor.websocket.FrameType;kotlin.ByteArray;kotlinx.coroutines.DisposableHandle;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
-
     final val data // io.ktor.websocket/Frame.data|{}data[0]
         final fun <get-data>(): kotlin/ByteArray // io.ktor.websocket/Frame.data.<get-data>|<get-data>(){}[0]
     final val disposableHandle // io.ktor.websocket/Frame.disposableHandle|{}disposableHandle[0]
