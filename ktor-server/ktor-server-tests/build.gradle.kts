@@ -8,6 +8,7 @@ kotlin.sourceSets {
     commonTest {
         dependencies {
             api(project(":ktor-server"))
+            api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-rate-limit"))
             api(project(":ktor-server:ktor-server-test-host"))
         }

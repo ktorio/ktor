@@ -7,6 +7,7 @@ package io.ktor.tests.server.routing
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -41,13 +42,13 @@ fun RoutingNode.handle(selector: RouteSelector) = createChild(selector).apply { 
 
 fun testRouting(
     rootPath: String = "",
-    test: suspend Application.(RouteNode) -> Unit,
+    test: suspend Application.(RoutingNode) -> Unit,
 ) = testApplication {
-    var root: RouteNode? = null
+    var root: RoutingNode? = null
     var application: Application? = null
     application {
         application = this
-        root = RouteNode(parent = null, selector = RootRouteSelector(rootPath), environment = environment)
+        root = RoutingNode(parent = null, selector = RootRouteSelector(rootPath), environment = environment)
     }
     startApplication()
     application!!.test(root!!)
