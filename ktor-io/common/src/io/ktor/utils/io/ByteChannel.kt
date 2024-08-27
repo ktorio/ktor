@@ -140,7 +140,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
-    private suspend inline fun <reified TaskType: Slot.Task> sleepWhile(
+    private suspend inline fun <reified TaskType : Slot.Task> sleepWhile(
         crossinline createTask: (Continuation<Unit>) -> TaskType,
         crossinline shouldSleep: () -> Boolean
     ) {
@@ -158,8 +158,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
      */
     private inline fun <reified Expected : Slot.Task> resumeSlot() {
         val current = suspensionSlot.value
-        if (current is Expected && suspensionSlot.compareAndSet(current, Slot.Empty))
+        if (current is Expected && suspensionSlot.compareAndSet(current, Slot.Empty)) {
             current.resume()
+        }
     }
 
     /**
@@ -200,8 +201,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
 
         // Suspend if buffer unchanged
-        if (!shouldSleep())
+        if (!shouldSleep()) {
             resumeSlot<TaskType>()
+        }
     }
 
     private sealed interface Slot {
