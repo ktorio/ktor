@@ -87,10 +87,10 @@ class ChannelTest {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelFirstReader() = testSuspend {
-        val data = ByteArray(16 * CHANNEL_MAX_SIZE) { it.toByte() }
+        val data = ByteArray(16 * 1024 * 1024) { it.toByte() }
         val source = ByteChannel()
         val first = ByteChannel()
         val second = ByteChannel()
@@ -122,7 +122,7 @@ class ChannelTest {
     @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
     @Test
     fun testCopyToBothCancelSecondReader() = testSuspend {
-        val data = ByteArray(16 * CHANNEL_MAX_SIZE) { it.toByte() }
+        val data = ByteArray(16 * 1024 * 1024) { it.toByte() }
         val source = ByteChannel()
         val first = ByteChannel()
         val second = ByteChannel()
