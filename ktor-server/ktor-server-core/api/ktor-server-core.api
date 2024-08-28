@@ -8,7 +8,7 @@ public final class io/ktor/server/application/Application : io/ktor/server/appli
 	public final fun setRootPath (Ljava/lang/String;)V
 }
 
-public abstract interface class io/ktor/server/application/ApplicationCall {
+public abstract interface class io/ktor/server/application/ApplicationCall : kotlinx/coroutines/CoroutineScope {
 	public abstract fun getApplication ()Lio/ktor/server/application/Application;
 	public abstract fun getAttributes ()Lio/ktor/util/Attributes;
 	public abstract fun getParameters ()Lio/ktor/http/Parameters;
@@ -1629,6 +1629,7 @@ public final class io/ktor/server/routing/RoutingBuilderKt {
 public final class io/ktor/server/routing/RoutingCall : io/ktor/server/application/ApplicationCall {
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getParameters ()Lio/ktor/http/Parameters;
 	public final fun getPathParameters ()Lio/ktor/http/Parameters;
 	public final fun getPipelineCall ()Lio/ktor/server/routing/RoutingPipelineCall;
