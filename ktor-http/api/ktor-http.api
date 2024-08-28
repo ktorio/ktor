@@ -1043,6 +1043,8 @@ public final class io/ktor/http/Url {
 	public final fun getPort ()I
 	public final fun getProtocol ()Lio/ktor/http/URLProtocol;
 	public final fun getProtocolOrNull ()Lio/ktor/http/URLProtocol;
+	public final fun getRawSegments ()Ljava/util/List;
+	public final fun getSegments ()Ljava/util/List;
 	public final fun getSpecifiedPort ()I
 	public final fun getTrailingQuery ()Z
 	public final fun getUser ()Ljava/lang/String;

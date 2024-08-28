@@ -22,7 +22,7 @@ public class Url internal constructor(
     protocol: URLProtocol?,
     public val host: String,
     public val specifiedPort: Int,
-    public val pathSegments: List<String>,
+    pathSegments: List<String>,
     public val parameters: Parameters,
     public val fragment: String,
     public val user: String?,
@@ -34,6 +34,111 @@ public class Url internal constructor(
         require(specifiedPort in 0..65535) {
             "Port must be between 0 and 65535, or $DEFAULT_PORT if not set. Provided: $specifiedPort"
         }
+    }
+
+    /**
+     * A list containing the segments of the URL path.
+     *
+     * This property was designed to be distinguishing between an absolute and relative path,
+     * so it will have an empty segment at the beginning for URLs with a hostname
+     * and an empty segment at the end for URLs with a trailing slash.
+     *
+     * ```kotlin
+     * val fullUrl = Url("http://ktor.io/docs/")
+     * fullUrl.pathSegments == listOf("", "docs", "")
+     *
+     * val absolute = Url("/docs/")
+     * absolute.pathSegments == listOf("", "docs", "")
+     *
+     * val relative = Url("docs")
+     * relative.pathSegments = listOf("docs")
+     * ```
+     *
+     * It may be not comfortable if you're working only with full urls.
+     * If you don't need empty segments specific behavior, please consider using [segments] property:
+     *
+     * ```kotlin
+     * val fullUrl = Url("http://ktor.io/docs/")
+     * fullUrl.segments == listOf("docs")
+     *
+     * val absolute = Url("/docs/")
+     * absolute.segments == listOf("docs")
+     *
+     * val relative = Url("docs")
+     * relative.segments = listOf("docs")
+     * ```
+     *
+     * To address this issue, current [pathSegments] property will be renamed to the [rawSegments].
+     */
+    @Deprecated(
+        """
+        Path segments is deprecated.
+
+        This property will contain empty path segment at the beginning for the segment for the url with hostname,
+        and empty path segment at the end for the urls with trailing slash. If you need to keep this behaviour please
+        consider using [rawSegments]. If you only need to access meaningful parts of the path, use [segments] instead.
+             
+        Please decide if you need [rawSegments] or [segments] explicitly.
+        """,
+        replaceWith = ReplaceWith("rawSegments")
+    )
+    public val pathSegments: List<String> = pathSegments
+
+    /**
+     * A list containing the segments of the URL path.
+     *
+     * This property was designed to be distinguishing between an absolute and relative path,
+     * so it will have an empty segment at the beginning for URLs with a hostname
+     * and an empty segment at the end for URLs with a trailing slash.
+     *
+     * ```kotlin
+     * val fullUrl = Url("http://ktor.io/docs/")
+     * fullUrl.rawSegments == listOf("", "docs", "")
+     *
+     * val absolute = Url("/docs/")
+     * absolute.rawSegments == listOf("", "docs", "")
+     *
+     * val relative = Url("docs")
+     * relative.rawSegments = listOf("docs")
+     * ```
+     *
+     * It may be not comfortable if you're working only with full urls.
+     * If you don't need empty segments specific behavior, please consider using [segments] property:
+     *
+     * ```kotlin
+     * val fullUrl = Url("http://ktor.io/docs/")
+     * fullUrl.segments == listOf("docs")
+     *
+     * val absolute = Url("/docs/")
+     * absolute.segments == listOf("docs")
+     *
+     * val relative = Url("docs")
+     * relative.segments = listOf("docs")
+     * ```
+     */
+    public val rawSegments: List<String> = pathSegments
+
+    /**
+     * A list of path segments derived from the URL, excluding any leading
+     * and trailing empty segments.
+     *
+     * ```kotlin
+     * val fullUrl = Url("http://ktor.io/docs/")
+     * fullUrl.segments == listOf("docs")
+     *
+     * val absolute = Url("/docs/")
+     * absolute.segments == listOf("docs")
+     * val relative = Url("docs")
+     * relative.segments = listOf("docs")
+     * ```
+     *
+     * If you need to check for trailing slash and relative/absolute paths, please check the [rawSegments] property.
+     **/
+    public val segments: List<String> by lazy {
+        if (pathSegments.isEmpty()) return@lazy emptyList()
+        val start = if (pathSegments.first().isEmpty()) 1 else 0
+        val end = if (pathSegments.last().isEmpty()) pathSegments.lastIndex else pathSegments.lastIndex + 1
+        pathSegments.subList(start, end)
     }
 
     public val protocolOrNull: URLProtocol? = protocol
