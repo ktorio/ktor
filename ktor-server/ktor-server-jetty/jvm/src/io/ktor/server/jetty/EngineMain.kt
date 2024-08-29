@@ -10,6 +10,10 @@ import io.ktor.server.engine.*
 /**
  * Jetty engine
  */
+@Deprecated(
+    "The ktor-server-jetty module is deprecated and will be removed in the next major release as it " +
+        "references an outdated version of Jetty. Please use the ktor-server-jetty-jakarta module instead."
+)
 public object EngineMain {
     /**
      * Main function for starting EngineMain with Jetty
