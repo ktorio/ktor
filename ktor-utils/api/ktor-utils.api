@@ -947,6 +947,7 @@ public final class io/ktor/util/logging/LoggerJvmKt {
 
 public final class io/ktor/util/logging/LoggerKt {
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
+	public static final fun trace (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 }
 
 public final class io/ktor/util/network/NetworkAddressJvmKt {

@@ -125,10 +125,10 @@ internal class DefaultWebSocketSessionImpl(
             error("WebSocket session $this is already started.")
         }
 
-        LOGGER.trace(
+        LOGGER.trace {
             "Starting default WebSocketSession($this) " +
                 "with negotiated extensions: ${negotiatedExtensions.joinToString()}"
-        )
+        }
 
         _extensions.addAll(negotiatedExtensions)
         runOrCancelPinger()
@@ -167,7 +167,7 @@ internal class DefaultWebSocketSessionImpl(
         try {
             @OptIn(DelicateCoroutinesApi::class)
             raw.incoming.consumeEach { frame ->
-                LOGGER.trace("WebSocketSession($this) receiving frame $frame")
+                LOGGER.trace { "WebSocketSession($this) receiving frame $frame" }
                 when (frame) {
                     is Frame.Close -> {
                         if (!outgoing.isClosedForSend) {
@@ -251,7 +251,7 @@ internal class DefaultWebSocketSessionImpl(
 
     private suspend fun outgoingProcessorLoop() {
         for (frame in outgoingToBeProcessed) {
-            LOGGER.trace("Sending $frame from session $this")
+            LOGGER.trace { "Sending $frame from session $this" }
             val processedFrame: Frame = when (frame) {
                 is Frame.Close -> {
                     sendCloseSequence(frame.readReason())
@@ -271,7 +271,7 @@ internal class DefaultWebSocketSessionImpl(
     @OptIn(InternalAPI::class)
     private suspend fun sendCloseSequence(reason: CloseReason?, exception: Throwable? = null) {
         if (!tryClose()) return
-        LOGGER.trace("Sending Close Sequence for session $this with reason $reason and exception $exception")
+        LOGGER.trace { "Sending Close Sequence for session $this with reason $reason and exception $exception" }
         context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
