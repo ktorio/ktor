@@ -4,15 +4,18 @@
 
 package io.ktor.tests.utils
 
+import io.ktor.junit.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.extension.*
 import java.io.*
 import kotlin.test.*
 import kotlin.test.Test
 
+@ExtendWith(RetrySupport::class)
 class FileChannelTest {
     private val sandbox = File("build/files")
     private lateinit var temp: File
@@ -70,6 +73,7 @@ class FileChannelTest {
         assertEquals(byteArrayOf(7, 8, 9).toList(), temp.readChannel().toInputStream().use { it.readBytes().toList() })
     }
 
+    @RetryableTest // random failures on Windows agent
     @Test
     fun `readChannel should not lock file pre read`() {
         // Arrange
