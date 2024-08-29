@@ -165,10 +165,10 @@ class RequestProducerTest {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testProducingWriteChannelContentOnScale() = runTest {
-        val sampleSize = 1024 * 1024
-        repeat(1) {
-            val expected = (0 until sampleSize).map { it.toByte() }.toByteArray()
+    fun testProducingWriteChannelContentOnScale() = runBlocking {
+        val sampleSize = 4 * 1024 * 1024
+        val expected = (0 until sampleSize).map { it.toByte() }.toByteArray()
+        repeat(1000) {
             val body = ChannelWriterContent(
                 body = {
                     for (i in 0 until sampleSize)
