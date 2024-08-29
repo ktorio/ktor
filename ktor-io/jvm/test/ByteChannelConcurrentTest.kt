@@ -27,7 +27,7 @@ class ByteChannelConcurrentTest {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun cannotSubscribeTwiceForFlush() = runTest {
         val channel = ByteChannel()
