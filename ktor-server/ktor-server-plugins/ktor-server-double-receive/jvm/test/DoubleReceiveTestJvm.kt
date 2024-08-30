@@ -1,5 +1,4 @@
 import io.ktor.server.plugins.doublereceive.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -22,8 +21,11 @@ class DoubleReceiveTestJvm {
         )
 
         repeat(3) {
-            val received = cache.read().readRemaining().readByteArray().encodeBase64()
-            assertEquals(content.encodeBase64(), received)
+            val received = cache.read().readRemaining().readByteArray()
+            assertEquals(content.size, received.size, "Received content size should match")
+            for (i in content.indices) {
+                assertEquals(content[i], received[i], "Content mismatch at position $i")
+            }
         }
     }
 }
