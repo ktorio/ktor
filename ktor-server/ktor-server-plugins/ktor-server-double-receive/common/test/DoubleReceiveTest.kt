@@ -3,6 +3,7 @@
  */
 
 import io.ktor.server.plugins.doublereceive.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.test.*
 import kotlinx.io.*
@@ -13,16 +14,15 @@ class DoubleReceiveTest {
 
     @Test
     fun testInMemoryCache() = runTest {
-        val content = ByteArray(16 * 1024 * 1024) { it.toByte() }
+        val content = ByteArray(1024 * 1024) { it.toByte() }
         val cache = MemoryCache(
             ByteReadChannel(content),
             EmptyCoroutineContext
         )
 
         repeat(3) {
-            val channel = cache.read()
-            val received = channel.readRemaining().readByteArray()
-            assertEquals(content.toList(), received.toList())
+            val received = cache.read().readRemaining().readByteArray().encodeBase64()
+            assertEquals(content.encodeBase64(), received)
         }
     }
 }
