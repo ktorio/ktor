@@ -152,18 +152,6 @@ class ChannelTest {
     }
 }
 
-private inline fun assertFailsWithMessage(message: String, block: () -> Unit) {
-    var fail = false
-    try {
-        block()
-    } catch (cause: Throwable) {
-        assertEquals(message, cause.message)
-        fail = true
-    }
-
-    assertTrue(fail)
-}
-
 private fun assertArrayEquals(expected: ByteArray, actual: ByteArray) {
     assertTrue { expected.contentEquals(actual) }
 }

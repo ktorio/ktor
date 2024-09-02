@@ -86,7 +86,6 @@ class ByteChannelTest {
         job.join()
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testChannelMaxSize() = testSuspend(timeoutMillis = 1000) {
         val channel = ByteChannel()
@@ -101,7 +100,6 @@ class ByteChannelTest {
         job.join()
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testChannelMaxSizeWithException() = testSuspend {
         val channel = ByteChannel()

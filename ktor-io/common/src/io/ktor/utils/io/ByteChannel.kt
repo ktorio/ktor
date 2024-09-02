@@ -216,8 +216,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
         data object Empty : Slot
 
-        @JvmInline
-        value class Closed(val cause: Throwable?) : Slot
+        data class Closed(val cause: Throwable?) : Slot
 
         sealed interface Task : Slot {
             val continuation: Continuation<Unit>
@@ -231,13 +230,11 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
                 continuation.resumeWith(throwable?.let { Result.failure(it) } ?: RESUME)
         }
 
-        @JvmInline
-        value class Read(override val continuation: Continuation<Unit>) : Task {
+        class Read(override val continuation: Continuation<Unit>) : Task {
             override fun taskName(): String = "read"
         }
 
-        @JvmInline
-        value class Write(override val continuation: Continuation<Unit>) : Task {
+        class Write(override val continuation: Continuation<Unit>) : Task {
             override fun taskName(): String = "write"
         }
     }
