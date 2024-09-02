@@ -72,7 +72,7 @@ public class Url internal constructor(
      */
     @Deprecated(
         """
-        Path segments is deprecated.
+        `pathSegments` is deprecated.
 
         This property will contain empty path segment at the beginning for the segment for the url with hostname,
         and empty path segment at the end for the urls with trailing slash. If you need to keep this behaviour please
