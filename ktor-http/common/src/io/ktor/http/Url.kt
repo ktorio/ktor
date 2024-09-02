@@ -82,6 +82,7 @@ public class Url internal constructor(
         """,
         replaceWith = ReplaceWith("rawSegments")
     )
+    @Suppress("CanBePrimaryConstructorProperty")
     public val pathSegments: List<String> = pathSegments
 
     /**
