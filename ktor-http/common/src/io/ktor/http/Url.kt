@@ -54,7 +54,7 @@ public class Url internal constructor(
      * relative.pathSegments = listOf("docs")
      * ```
      *
-     * It may be not comfortable if you're working only with full urls.
+     * This behaviour may not be ideal if you're working only with full URLs.
      * If you don't need empty segments specific behavior, please consider using [segments] property:
      *
      * ```kotlin
