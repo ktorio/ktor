@@ -68,7 +68,7 @@ public class Url internal constructor(
      * relative.segments = listOf("docs")
      * ```
      *
-     * To address this issue, current [pathSegments] property will be renamed to the [rawSegments].
+     * To address this issue, the current [pathSegments] property will be renamed to [rawSegments].
      */
     @Deprecated(
         """
