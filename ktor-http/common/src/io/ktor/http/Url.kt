@@ -100,7 +100,7 @@ public class Url internal constructor(
      * absolute.rawSegments == listOf("", "docs", "")
      *
      * val relative = Url("docs")
-     * relative.rawSegments = listOf("docs")
+     * relative.rawSegments == listOf("docs")
      * ```
      *
      * This behaviour may not be ideal if you're working only with full URLs.
