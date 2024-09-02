@@ -65,7 +65,7 @@ public class Url internal constructor(
      * absolute.segments == listOf("docs")
      *
      * val relative = Url("docs")
-     * relative.segments = listOf("docs")
+     * relative.segments == listOf("docs")
      * ```
      *
      * To address this issue, the current [pathSegments] property will be renamed to [rawSegments].
