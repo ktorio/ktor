@@ -113,7 +113,7 @@ public class Url internal constructor(
      * absolute.segments == listOf("docs")
      *
      * val relative = Url("docs")
-     * relative.segments = listOf("docs")
+     * relative.segments == listOf("docs")
      * ```
      */
     public val rawSegments: List<String> = pathSegments
