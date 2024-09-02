@@ -129,7 +129,7 @@ public class Url internal constructor(
      * val absolute = Url("/docs/")
      * absolute.segments == listOf("docs")
      * val relative = Url("docs")
-     * relative.segments = listOf("docs")
+     * relative.segments == listOf("docs")
      * ```
      *
      * If you need to check for trailing slash and relative/absolute paths, please check the [rawSegments] property.
