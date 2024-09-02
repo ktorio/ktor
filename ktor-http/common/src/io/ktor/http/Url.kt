@@ -74,7 +74,7 @@ public class Url internal constructor(
         """
         `pathSegments` is deprecated.
 
-        This property will contain empty path segment at the beginning for the segment for the url with hostname,
+        This property will contain an empty path segment at the beginning for URLs with a hostname,
         and empty path segment at the end for the urls with trailing slash. If you need to keep this behaviour please
         consider using [rawSegments]. If you only need to access meaningful parts of the path, use [segments] instead.
              
