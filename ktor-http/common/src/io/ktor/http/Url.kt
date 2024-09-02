@@ -87,7 +87,7 @@ public class Url internal constructor(
     /**
      * A list containing the segments of the URL path.
      *
-     * This property was designed to be distinguishing between an absolute and relative path,
+     * This property is designed to distinguish between absolute and relative paths,
      * so it will have an empty segment at the beginning for URLs with a hostname
      * and an empty segment at the end for URLs with a trailing slash.
      *
