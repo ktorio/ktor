@@ -27,6 +27,25 @@ class UrlTest {
     }
 
     @Test
+    fun testSegments() {
+        val full = Url("https://ktor.io/docs")
+        val absoluteWithTrailing = Url("/docs/")
+        val absolute = Url("/docs")
+        val relative = Url("docs")
+        val relativeWithTrailing = Url("docs/")
+        val empty = Url("https://ktor.io")
+
+
+        val expected = listOf("docs")
+        assertContentEquals(expected, full.segments)
+        assertContentEquals(expected, absolute.segments)
+        assertContentEquals(expected, absoluteWithTrailing.segments)
+        assertContentEquals(expected, relative.segments)
+        assertContentEquals(expected, relativeWithTrailing.segments)
+        assertContentEquals(emptyList<String>(), empty.segments)
+    }
+
+    @Test
     fun testUrlWithSpaceAtStart() {
         val urlString = " http://google.com"
         val url = Url(urlString)
