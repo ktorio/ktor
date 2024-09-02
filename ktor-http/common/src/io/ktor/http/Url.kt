@@ -76,7 +76,7 @@ public class Url internal constructor(
 
         This property will contain an empty path segment at the beginning for URLs with a hostname,
         and an empty path segment at the end for the URLs with a trailing slash. If you need to keep this behaviour please
-        consider using [rawSegments]. If you only need to access meaningful parts of the path, use [segments] instead.
+        use [rawSegments]. If you only need to access the meaningful parts of the path, consider using [segments] instead.
              
         Please decide if you need [rawSegments] or [segments] explicitly.
         """,
