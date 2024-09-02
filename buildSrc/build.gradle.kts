@@ -81,9 +81,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
     if (kotlin_language_version != null) {
         println("Using Kotlin Language Version 1.9")
-        kotlinOptions.languageVersion = "1.9"
+        kotlinOptions.languageVersion = "2.0"
     }
     if (kotlin_language_version != null) {
-        kotlinOptions.apiVersion = "1.9"
+        kotlinOptions.apiVersion = "2.0"
     }
 }
