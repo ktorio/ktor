@@ -45,7 +45,7 @@ abstract interface <#A: out io.ktor.server.engine/ApplicationEngine, #B: io.ktor
 
 abstract interface <#A: out kotlin/Any> io.ktor.server.application/ApplicationPlugin : io.ktor.server.application/BaseApplicationPlugin<io.ktor.server.application/Application, #A, io.ktor.server.application/PluginInstance> // io.ktor.server.application/ApplicationPlugin|null[0]
 
-abstract interface io.ktor.server.application/ApplicationCall { // io.ktor.server.application/ApplicationCall|null[0]
+abstract interface io.ktor.server.application/ApplicationCall : kotlinx.coroutines/CoroutineScope { // io.ktor.server.application/ApplicationCall|null[0]
     abstract val application // io.ktor.server.application/ApplicationCall.application|{}application[0]
         abstract fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.application/ApplicationCall.application.<get-application>|<get-application>(){}[0]
     abstract val attributes // io.ktor.server.application/ApplicationCall.attributes|{}attributes[0]
@@ -1007,6 +1007,8 @@ final class io.ktor.server.routing/RoutingCall : io.ktor.server.application/Appl
         final fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/RoutingCall.application.<get-application>|<get-application>(){}[0]
     final val attributes // io.ktor.server.routing/RoutingCall.attributes|{}attributes[0]
         final fun <get-attributes>(): io.ktor.util/Attributes // io.ktor.server.routing/RoutingCall.attributes.<get-attributes>|<get-attributes>(){}[0]
+    final val coroutineContext // io.ktor.server.routing/RoutingCall.coroutineContext|{}coroutineContext[0]
+        final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.routing/RoutingCall.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
     final val parameters // io.ktor.server.routing/RoutingCall.parameters|{}parameters[0]
         final fun <get-parameters>(): io.ktor.http/Parameters // io.ktor.server.routing/RoutingCall.parameters.<get-parameters>|<get-parameters>(){}[0]
     final val pathParameters // io.ktor.server.routing/RoutingCall.pathParameters|{}pathParameters[0]
