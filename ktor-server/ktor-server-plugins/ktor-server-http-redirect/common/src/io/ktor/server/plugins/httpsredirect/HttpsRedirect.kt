@@ -76,6 +76,8 @@ public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplica
     ::HttpsRedirectConfig
 ) {
     onCall { call ->
+        if (call.response.isCommitted) return@onCall
+
         if (call.request.origin.scheme == "http" &&
             pluginConfig.excludePredicates.none { predicate -> predicate(call) }
         ) {

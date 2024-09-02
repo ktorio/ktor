@@ -52,6 +52,7 @@ public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF",
     }
 
     onCall { call ->
+        if (call.response.isCommitted) return@onCall
 
         if (call.request.httpMethod in setOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options)) {
             return@onCall
