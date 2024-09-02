@@ -117,7 +117,7 @@ class DeflaterReadChannelTest : CoroutineScope {
     @RetryableTest(3)
     fun testFaultyGzippedBiggerThan8k() {
         val text = buildString {
-            for (i in 1..65536) {
+            for (i in 1..16 * 1024 * 1024) {
                 append(' ' + Random.nextInt(32, 126) % 32)
             }
         }
@@ -176,6 +176,9 @@ class DeflaterReadChannelTest : CoroutineScope {
             }
         }
 
-        assertFailsWith(IOException::class) { throw deflateInputChannel!!.closedCause!! }
+        deflateInputChannel.let { channel ->
+            assertNotNull(channel)
+            assertIs<IOException>(channel.closedCause)
+        }
     }
 }
