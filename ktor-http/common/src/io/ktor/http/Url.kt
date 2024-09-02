@@ -103,7 +103,7 @@ public class Url internal constructor(
      * ```
      *
      * It may be not comfortable if you're working only with full urls.
-     * If you don't need empty segments specific behavior, please consider using [segments] property:
+     * If you don't require the specific handling of empty segments, consider using the [segments] property instead:
      *
      * ```kotlin
      * val fullUrl = Url("http://ktor.io/docs/")
