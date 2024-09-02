@@ -102,7 +102,7 @@ public class Url internal constructor(
      * relative.rawSegments = listOf("docs")
      * ```
      *
-     * It may be not comfortable if you're working only with full urls.
+     * This behaviour may not be ideal if you're working only with full URLs.
      * If you don't require the specific handling of empty segments, consider using the [segments] property instead:
      *
      * ```kotlin
