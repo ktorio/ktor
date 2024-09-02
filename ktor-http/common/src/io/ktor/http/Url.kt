@@ -51,7 +51,7 @@ public class Url internal constructor(
      * absolute.pathSegments == listOf("", "docs", "")
      *
      * val relative = Url("docs")
-     * relative.pathSegments = listOf("docs")
+     * relative.pathSegments == listOf("docs")
      * ```
      *
      * This behaviour may not be ideal if you're working only with full URLs.
