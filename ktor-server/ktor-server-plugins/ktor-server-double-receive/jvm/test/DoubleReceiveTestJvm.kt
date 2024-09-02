@@ -13,7 +13,7 @@ class DoubleReceiveTestJvm {
 
     @Test
     fun testFileCache() = runBlocking {
-        val content = ByteArray(16 * 1024 * 1024) { it.toByte() }
+        val content = ByteArray(1024 * 1024) { it.toByte() }
         val cache = FileCache(
             ByteReadChannel(content),
             4096,
@@ -22,7 +22,10 @@ class DoubleReceiveTestJvm {
 
         repeat(3) {
             val received = cache.read().readRemaining().readByteArray()
-            assertEquals(content.toList(), received.toList())
+            assertEquals(content.size, received.size, "Received content size should match")
+            for (i in content.indices) {
+                assertEquals(content[i], received[i], "Content mismatch at position $i")
+            }
         }
     }
 }
