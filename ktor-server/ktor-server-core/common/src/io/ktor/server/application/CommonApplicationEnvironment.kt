@@ -36,8 +36,8 @@ public expect interface ApplicationEnvironment {
     public val monitor: Events
 }
 
-internal expect class ApplicationPropertiesBridge(
-    applicationProperties: ApplicationProperties,
+internal expect class ApplicationRootConfigBridge(
+    rootConfig: ApplicationRootConfig,
     parentCoroutineContext: CoroutineContext
 ) {
     internal val parentCoroutineContext: CoroutineContext

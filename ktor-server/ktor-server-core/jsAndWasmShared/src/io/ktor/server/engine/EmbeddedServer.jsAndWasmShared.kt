@@ -15,34 +15,34 @@ public actual class EmbeddedServer<
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    applicationProperties: ApplicationProperties,
+    rootConfig: ApplicationRootConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
     public actual val monitor: Events = Events()
 
-    public actual val environment: ApplicationEnvironment = applicationProperties.environment
+    public actual val environment: ApplicationEnvironment = rootConfig.environment
 
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
 
     public actual val application: Application = Application(
         environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
+        rootConfig.developmentMode,
+        rootConfig.rootPath,
         monitor,
-        applicationProperties.parentCoroutineContext,
+        rootConfig.parentCoroutineContext,
         ::engine
     )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
-        applicationProperties.developmentMode,
+        rootConfig.developmentMode,
         engineConfig,
         ::application
     )
 
-    private val modules = applicationProperties.modules
+    private val modules = rootConfig.modules
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         safeRaiseEvent(ApplicationStarting, application)

@@ -32,7 +32,7 @@ class MultipleDispatchOnTimeout {
         val environment = applicationEnvironment {
             log = LoggerFactory.getLogger("io.ktor.test")
         }
-        val props = applicationProperties(environment) {
+        val props = rootConfig(environment) {
             module {
                 intercept(ApplicationCallPipeline.Call) {
                     callCount.incrementAndGet()

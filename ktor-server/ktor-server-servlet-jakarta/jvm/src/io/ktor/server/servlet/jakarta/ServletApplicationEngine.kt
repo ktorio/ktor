@@ -61,7 +61,7 @@ public open class ServletApplicationEngine : KtorServlet() {
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
         }
-        val applicationProperties = applicationProperties(environment) {
+        val applicationProperties = rootConfig(environment) {
             rootPath = servletContext.contextPath ?: "/"
         }
         val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)

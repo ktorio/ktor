@@ -33,7 +33,7 @@ public actual interface ApplicationEnvironment {
     public actual val monitor: Events
 }
 
-internal actual class ApplicationPropertiesBridge actual constructor(
-    applicationProperties: ApplicationProperties,
+internal actual class ApplicationRootConfigBridge actual constructor(
+    rootConfig: ApplicationRootConfig,
     internal actual val parentCoroutineContext: CoroutineContext,
 )

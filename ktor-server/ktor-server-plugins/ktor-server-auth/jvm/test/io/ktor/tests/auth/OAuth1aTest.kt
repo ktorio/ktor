@@ -333,7 +333,7 @@ private interface TestingOAuthServer {
 
 private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = rootConfig(environment) {
         module {
             routing {
                 post("/oauth/request_token") {

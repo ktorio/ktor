@@ -13,9 +13,9 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A builder for [ApplicationProperties].
+ * A builder for [ApplicationRootConfig].
  */
-public class ApplicationPropertiesBuilder(
+public class ApplicationRootConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
 
@@ -48,14 +48,15 @@ public class ApplicationPropertiesBuilder(
         modules.add(body)
     }
 
-    internal fun build(): ApplicationProperties =
-        ApplicationProperties(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
+    internal fun build(): ApplicationRootConfig =
+        ApplicationRootConfig(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
 /**
- * An application config with which the application is running.
+ * Core configuration for a running server.
+ * Contains modules, paths, and environment details.
  */
-public class ApplicationProperties internal constructor(
+public class ApplicationRootConfig internal constructor(
     public val environment: ApplicationEnvironment,
     internal val modules: MutableList<Application.() -> Unit>,
     internal val watchPaths: List<String>,
@@ -63,18 +64,18 @@ public class ApplicationProperties internal constructor(
     public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,
     parentCoroutineContext: CoroutineContext
 ) {
-    private val bridge = ApplicationPropertiesBridge(this, parentCoroutineContext)
+    private val bridge = ApplicationRootConfigBridge(this, parentCoroutineContext)
     public val parentCoroutineContext: CoroutineContext = bridge.parentCoroutineContext
 }
 
 /**
- * Creates an [ApplicationProperties] instance.
+ * Creates an [ApplicationRootConfig] instance.
  */
-public fun applicationProperties(
+public fun rootConfig(
     environment: ApplicationEnvironment = applicationEnvironment {},
-    block: ApplicationPropertiesBuilder.() -> Unit = {}
-): ApplicationProperties {
-    return ApplicationPropertiesBuilder(environment).apply(block).build()
+    block: ApplicationRootConfigBuilder.() -> Unit = {}
+): ApplicationRootConfig {
+    return ApplicationRootConfigBuilder(environment).apply(block).build()
 }
 
 /**

@@ -611,7 +611,7 @@ internal interface OAuth2Server {
 
 internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = rootConfig(environment) {
         module {
             routing {
                 route("/oauth/access_token") {
