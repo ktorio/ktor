@@ -192,6 +192,28 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testRoutingAcceptContentSubtypeWildcard() = testApplication {
+
+        routing {
+            route("getImage") {
+                accept(ContentType.Image.Any) {
+                    get { call.respondText { "Image" } }
+                }
+            }
+        }
+
+        on("making request to /getImage with Accept image/png") {
+            client.get("/getImage") {
+                header(HttpHeaders.Accept, "image/png")
+            }
+            .let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Image", it.bodyAsText())
+            }
+        }
+    }
+
+    @Test
     fun testMostSpecificSelected() = testApplication {
         var path = ""
         routing {
