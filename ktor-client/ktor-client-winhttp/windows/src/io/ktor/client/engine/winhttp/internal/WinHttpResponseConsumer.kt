@@ -25,6 +25,7 @@ internal fun WinHttpRequest.readBody(callContext: CoroutineContext): ByteReadCha
                     readData(dst, bytesToRead)
                 }
                 channel.writeFully(readBuffer, 0, readBytes)
+                channel.flush()
             }
         } finally {
             ByteArrayPool.recycle(readBuffer)
