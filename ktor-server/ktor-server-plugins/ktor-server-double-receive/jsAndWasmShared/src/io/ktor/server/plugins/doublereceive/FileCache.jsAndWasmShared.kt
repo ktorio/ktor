@@ -17,7 +17,7 @@ internal actual class FileCache actual constructor(
         error("File cache is not supported on nix")
     }
 
-    actual override fun read(): ByteReadChannel {
+    actual override suspend fun read(): ByteReadChannel {
         error("File cache is not supported on nix")
     }
 

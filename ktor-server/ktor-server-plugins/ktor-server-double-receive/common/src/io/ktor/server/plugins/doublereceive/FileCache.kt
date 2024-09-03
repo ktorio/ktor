@@ -12,6 +12,6 @@ internal expect class FileCache(
     bufferSize: Int = 4096,
     context: CoroutineContext = EmptyCoroutineContext
 ) : DoubleReceiveCache {
-    override fun read(): ByteReadChannel
+    override suspend fun read(): ByteReadChannel
     override fun dispose()
 }
