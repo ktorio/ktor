@@ -32,25 +32,26 @@ for other platforms, the corresponding tests for these should also be run. To se
 `./gradlew tasks`
 
 For Ktor to build correctly, a series of additional libraries/tools need to be installed, based on the operating
-system you're using for development:
+system you use for development:
 
 **Linux**
 
 Run the following commands to install `libcurl` and `libncurses`:
 
-```
-        sudo apt-get update
-        sudo apt-get install libncurses5 libncursesw5 libtinfo5
-        sudo apt-get install libcurl4-openssl-dev
+```bash
+sudo apt-get update
+sudo apt-get install libncurses5 libncursesw5 libtinfo5
+sudo apt-get install libcurl4-openssl-dev
 ```
 
 **macOS** 
 
-The easiest way to install `libcurl` and 'libncurses` on macOS is to use [Homebrew](https://brew.sh). Run the following commands:
+The easiest way to install `libcurl` and `libncurses` on macOS is to use [Homebrew](https://brew.sh).
+Run the following commands:
 
-```
-    brew install curl
-    brew install ncurses
+```bash
+brew install curl
+brew install ncurses
 ```
 
 If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
@@ -68,7 +69,7 @@ used for debugging purposes. One of these is to publish to [Maven Local](https:/
 by adding the following line to your `settings.gradle(.kts)` file:
 
 ```groovy
-    includeBuild("/PATH/TO/KTOR")
+includeBuild("/PATH/TO/KTOR")
 ```
 
 #### Importing into IntelliJ IDEA
