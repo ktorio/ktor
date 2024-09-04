@@ -38,8 +38,13 @@ fun Project.watchosTargets(): List<String> = with(kotlin) {
         watchosArm32(),
         watchosArm64(),
         watchosSimulatorArm64(),
-        // because of dependency on YAML library: https://github.com/Him188/yamlkt/issues/67
-        if (project.name != "ktor-server-config-yaml") watchosDeviceArm64() else null,
+        // ktor-server-config-yaml: because of dependency on YAML library: https://github.com/Him188/yamlkt/issues/67
+        // ktor-serialization-kotlinx-xml: because of dependency on xmlutil library: https://repo.maven.apache.org/maven2/io/github/pdvrieze/xmlutil/ // ktlint-disable max-line-length
+        if ((project.name != "ktor-server-config-yaml") && (project.name != "ktor-serialization-kotlinx-xml")) {
+            watchosDeviceArm64()
+        } else {
+            null
+        },
     ).map { it.name }
 }
 

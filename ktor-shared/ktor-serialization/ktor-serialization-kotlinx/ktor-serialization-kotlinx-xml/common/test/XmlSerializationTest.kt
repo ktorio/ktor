@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import io.ktor.http.*
@@ -9,6 +9,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.xml.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -45,6 +46,14 @@ class XmlSerializationTest {
 
     private suspend inline fun <reified T : Any> ContentConverter.testSerialize(data: T): String {
         val content = serialize(ContentType.Application.Xml, Charsets.UTF_8, typeInfo<T>(), data)
-        return (content as? TextContent)?.text ?: error("Failed to get serialized $data")
+        val xml = checkNotNull((content as? TextContent)?.text) { "Failed to get serialized $data" }
+        return xml.normalizeXml()
     }
+
+    // Output of XML serializer differs on different targets, so we should normalize it before comparison.
+    // See: https://github.com/pdvrieze/xmlutil/blob/v0.90.1/serialization/src/commonTest/kotlin/nl/adaptivity/xml/serialization/TestCommon.kt#L43-L46
+    private fun String.normalizeXml(): String = replace(" />", "/>")
+        .replace(" ?>", "?>")
+        .replace("\r\n", "\n")
+        .replace("&gt;", ">")
 }

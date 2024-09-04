@@ -32,13 +32,8 @@ fun Project.configureTargets() {
     kotlin {
         if (hasJs) {
             js {
-                nodejs()
-                // we don't test `server` modules in a browser.
-                // there are 2 explanations why:
-                // * logical - we don't need server in browser
-                // * technical - we don't have access to files, os, etc.
-                // Also, because of the ` origin ` URL in a browser, special support in `test-host` need to be implemented
-                if (!project.name.startsWith("ktor-server")) browser()
+                if (project.targetIsEnabled("js.nodeJs")) nodejs()
+                if (project.targetIsEnabled("js.browser")) browser()
             }
 
             configureJs()
@@ -48,8 +43,7 @@ fun Project.configureTargets() {
             @OptIn(ExperimentalWasmDsl::class)
             wasmJs {
                 nodejs()
-                // we don't test `server` modules in a browser.
-                if (!project.name.startsWith("ktor-server")) browser()
+                if (project.targetIsEnabled("wasmJs.browser")) browser()
             }
 
             configureWasm()
@@ -353,4 +347,17 @@ fun Project.configureTargets() {
             }
         }
     }
+}
+
+/**
+ * By default, all targets are enabled. To disable specific target,
+ * disable the corresponding flag in `gradle.properties` of the target project.
+ *
+ * Targets that could be disabled:
+ * - `target.js.nodeJs`
+ * - `target.js.browser`
+ * - `target.wasmJs.browser`
+ */
+internal fun Project.targetIsEnabled(target: String): Boolean {
+    return findProperty("target.$target") != "false"
 }
