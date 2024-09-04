@@ -1268,9 +1268,11 @@ class CORSTest {
             }
         }
 
-        assertEquals(HttpStatusCode.OK, client.get("/") {
-            header(HttpHeaders.Origin, "http://host.org")
-        }.status)
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get("/") {
+                header(HttpHeaders.Origin, "http://host.org")
+            }.status
+        )
     }
-
 }
