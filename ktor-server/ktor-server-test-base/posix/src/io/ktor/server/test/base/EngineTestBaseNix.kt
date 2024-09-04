@@ -57,16 +57,21 @@ actual constructor(
     ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
-            val server = createServer(log, parent) {
-                plugins(this, routingConfigurer)
-            }
+            try {
+                val server = createServer(log, parent) {
+                    plugins(this, routingConfigurer)
+                }
 
-            lastFailures = startServer(server)
-            if (lastFailures.isEmpty()) {
-                return server
-            }
+                lastFailures = startServer(server)
+                if (lastFailures.isEmpty()) {
+                    return server
+                } else {
+                    server.stop(500L, 3000L)
+                }
 
-            server.stop(500L, 3000L)
+            } catch (e: Exception) {
+                lastFailures = listOf(e)
+            }
 
             // The server will sometimes fail from port exhaustion, so we need to wait for the OS to clear some up
             delay(attempt * 500L)
