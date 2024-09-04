@@ -58,18 +58,22 @@ actual constructor(
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
             try {
+                log?.info("Starting server attempt $attempt...")
                 val server = createServer(log, parent) {
                     plugins(this, routingConfigurer)
                 }
 
                 lastFailures = startServer(server)
                 if (lastFailures.isEmpty()) {
+                    log?.info("Server started successfully on port $port")
                     return server
                 } else {
+                    log?.warn("Stopping server after failures", lastFailures.first())
                     server.stop(500L, 3000L)
                 }
 
             } catch (e: Exception) {
+                log?.warn("Exception occurred while starting server", e)
                 lastFailures = listOf(e)
             }
 
