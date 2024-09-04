@@ -7,6 +7,6 @@ package io.ktor.server.plugins.doublereceive
 import io.ktor.utils.io.*
 
 internal interface DoubleReceiveCache {
-    fun read(): ByteReadChannel
+    suspend fun read(): ByteReadChannel
     fun dispose()
 }

@@ -30,10 +30,6 @@ public final class io/ktor/utils/io/ByteChannelCtorKt {
 	public static synthetic fun ByteReadChannel$default ([BIIILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
-public final class io/ktor/utils/io/ByteChannelKt {
-	public static final fun getCHANNEL_MAX_SIZE ()I
-}
-
 public final class io/ktor/utils/io/ByteChannelUtilsKt {
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lio/ktor/utils/io/ChannelJob;)V
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lkotlinx/coroutines/Job;)V
@@ -171,6 +167,10 @@ public final class io/ktor/utils/io/ByteWriteChannelOperations_jvmKt {
 
 public abstract interface class io/ktor/utils/io/ChannelJob {
 	public abstract fun getJob ()Lkotlinx/coroutines/Job;
+}
+
+public final class io/ktor/utils/io/ConcurrentIOException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
 }
 
 public final class io/ktor/utils/io/CountedByteReadChannel : io/ktor/utils/io/ByteReadChannel {

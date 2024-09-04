@@ -22,10 +22,7 @@ class DoubleReceiveTestJvm {
 
         repeat(3) {
             val received = cache.read().readRemaining().readByteArray()
-            assertEquals(content.size, received.size, "Received content size should match")
-            for (i in content.indices) {
-                assertEquals(content[i], received[i], "Content mismatch at position $i")
-            }
+            assertContentEquals(content, received)
         }
     }
 }

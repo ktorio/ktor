@@ -211,6 +211,10 @@ final class io.ktor.utils.io/ByteChannel : io.ktor.utils.io/BufferedByteWriteCha
     final suspend fun flushAndClose() // io.ktor.utils.io/ByteChannel.flushAndClose|flushAndClose(){}[0]
 }
 
+final class io.ktor.utils.io/ConcurrentIOException : kotlin/IllegalStateException { // io.ktor.utils.io/ConcurrentIOException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.utils.io/ConcurrentIOException.<init>|<init>(kotlin.String){}[0]
+}
+
 final class io.ktor.utils.io/CountedByteReadChannel : io.ktor.utils.io/ByteReadChannel { // io.ktor.utils.io/CountedByteReadChannel|null[0]
     constructor <init>(io.ktor.utils.io/ByteReadChannel) // io.ktor.utils.io/CountedByteReadChannel.<init>|<init>(io.ktor.utils.io.ByteReadChannel){}[0]
 
@@ -323,8 +327,6 @@ final val io.ktor.utils.io.core/size // io.ktor.utils.io.core/size|@kotlinx.io.S
     final fun (kotlinx.io/Sink).<get-size>(): kotlin/Int // io.ktor.utils.io.core/size.<get-size>|<get-size>@kotlinx.io.Sink(){}[0]
 final val io.ktor.utils.io.pool/ByteArrayPool // io.ktor.utils.io.pool/ByteArrayPool|{}ByteArrayPool[0]
     final fun <get-ByteArrayPool>(): io.ktor.utils.io.pool/ObjectPool<kotlin/ByteArray> // io.ktor.utils.io.pool/ByteArrayPool.<get-ByteArrayPool>|<get-ByteArrayPool>(){}[0]
-final val io.ktor.utils.io/CHANNEL_MAX_SIZE // io.ktor.utils.io/CHANNEL_MAX_SIZE|{}CHANNEL_MAX_SIZE[0]
-    final fun <get-CHANNEL_MAX_SIZE>(): kotlin/Int // io.ktor.utils.io/CHANNEL_MAX_SIZE.<get-CHANNEL_MAX_SIZE>|<get-CHANNEL_MAX_SIZE>(){}[0]
 final val io.ktor.utils.io/availableForRead // io.ktor.utils.io/availableForRead|@io.ktor.utils.io.ByteReadChannel{}availableForRead[0]
     final fun (io.ktor.utils.io/ByteReadChannel).<get-availableForRead>(): kotlin/Int // io.ktor.utils.io/availableForRead.<get-availableForRead>|<get-availableForRead>@io.ktor.utils.io.ByteReadChannel(){}[0]
 final val io.ktor.utils.io/availableForWrite // io.ktor.utils.io/availableForWrite|@io.ktor.utils.io.ByteWriteChannel{}availableForWrite[0]

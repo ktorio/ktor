@@ -4,32 +4,34 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
-import kotlin.concurrent.*
+import kotlin.concurrent.Volatile
 import kotlin.coroutines.*
+import kotlin.jvm.*
 
-@InternalAPI
-public val CHANNEL_MAX_SIZE: Int = 4096
+internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
 
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
 public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
-    private val _closedCause = atomic<CloseToken?>(null)
     private val flushBuffer: Buffer = Buffer()
 
     @Volatile
     private var flushBufferSize = 0
 
     @OptIn(InternalAPI::class)
-    private val mutex = SynchronizedObject()
+    private val flushBufferMutex = SynchronizedObject()
+
+    // Awaiting slot, handles suspension when waiting for I/O
+    private val suspensionSlot: AtomicRef<Slot> = atomic(Slot.Empty)
 
     private val _readBuffer = Buffer()
     private val _writeBuffer = Buffer()
+    private val _closedCause = atomic<CloseToken?>(null)
 
     @InternalAPI
     override val readBuffer: Source
@@ -63,7 +65,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         rethrowCloseCauseIfNeeded()
         if (flushBufferSize + _readBuffer.size >= min) return true
 
-        sleepForRead(min)
+        sleepWhile(Slot::Read) {
+            flushBufferSize + _readBuffer.size < min && _closedCause.value == null
+        }
 
         if (_readBuffer.size < CHANNEL_MAX_SIZE) moveFlushToReadBuffer()
         return _closedCause.value == null
@@ -71,12 +75,12 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @OptIn(InternalAPI::class)
     private fun moveFlushToReadBuffer() {
-        synchronized(mutex) {
+        synchronized(flushBufferMutex) {
             flushBuffer.transferTo(_readBuffer)
             flushBufferSize = 0
         }
 
-        resumeSlot()
+        resumeSlot<Slot.Write>()
     }
 
     @OptIn(InternalAPI::class)
@@ -86,20 +90,22 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         flushWriteBuffer()
         if (flushBufferSize < CHANNEL_MAX_SIZE) return
 
-        sleepForWrite()
+        sleepWhile(Slot::Write) {
+            flushBufferSize >= CHANNEL_MAX_SIZE && _closedCause.value == null
+        }
     }
 
     @InternalAPI
     public override fun flushWriteBuffer() {
         if (_writeBuffer.exhausted()) return
 
-        synchronized(mutex) {
+        synchronized(flushBufferMutex) {
             val count = _writeBuffer.size.toInt()
             flushBuffer.transferFrom(_writeBuffer)
             flushBufferSize += count
         }
 
-        resumeSlot()
+        resumeSlot<Slot.Read>()
     }
 
     @OptIn(InternalAPI::class)
@@ -133,65 +139,108 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
-    // Awaiting Slot
-    private val suspensionSlot: AtomicRef<Continuation<Unit>?> = atomic(null)
-
-    private suspend fun sleepForRead(min: Int) {
-        while (flushBufferSize + _readBuffer.size < min && _closedCause.value == null) {
-            suspendCancellableCoroutine {
-//                readContinuation.init(it.intercepted())
-                trySuspendSlot(it) { flushBufferSize + _readBuffer.size < min && _closedCause.value == null }
-//                readContinuation.getOrThrow()
-            }
-        }
-    }
-
-    @OptIn(InternalAPI::class)
-    private suspend fun sleepForWrite() {
-        while (flushBufferSize >= CHANNEL_MAX_SIZE) {
-            suspendCancellableCoroutine {
-//                writeContinuation.init(it.intercepted())
-                trySuspendSlot(it) { flushBufferSize >= CHANNEL_MAX_SIZE }
-//                writeContinuation.getOrThrow()
+    private suspend inline fun <reified TaskType : Slot.Task> sleepWhile(
+        crossinline createTask: (Continuation<Unit>) -> TaskType,
+        crossinline shouldSleep: () -> Boolean
+    ) {
+        while (shouldSleep()) {
+            suspendCancellableCoroutine { continuation ->
+                trySuspend<TaskType>(createTask(continuation), shouldSleep)
             }
         }
     }
 
     /**
-     * Resume waiter.
+     * Clears and resumes expected slot.
+     *
+     * For example, after flushing the write buffer, we can resume reads.
      */
-    private fun resumeSlot() {
-        val continuation = suspensionSlot.getAndUpdate {
-            it as? ClosedSlot
+    private inline fun <reified Expected : Slot.Task> resumeSlot() {
+        val current = suspensionSlot.value
+        if (current is Expected && suspensionSlot.compareAndSet(current, Slot.Empty)) {
+            current.resume()
         }
-
-        continuation?.resume(Unit)
     }
 
     /**
      * Cancel waiter.
      */
     private fun closeSlot(cause: Throwable?) {
-        val closeContinuation = if (cause != null) ClosedSlot(cause) else io.ktor.utils.io.internal.CLOSED
-        val continuation = suspensionSlot.getAndSet(closeContinuation) ?: return
-        if (continuation is ClosedSlot) return
+        val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
+        val continuation = suspensionSlot.getAndSet(closeContinuation)
+        if (continuation !is Slot.Task) return
 
-        if (cause != null) {
-            continuation.resumeWithException(cause)
-        } else {
-            continuation.resume(Unit)
+        continuation.resume(cause)
+    }
+
+    private inline fun <reified TaskType : Slot.Task> trySuspend(
+        slot: TaskType,
+        crossinline shouldSleep: () -> Boolean,
+    ) {
+        // Replace the previous task
+        val previous = suspensionSlot.value
+        if (previous !is Slot.Closed) {
+            if (!suspensionSlot.compareAndSet(previous, slot)) {
+                slot.resume()
+                return
+            }
+        }
+
+        // Resume the previous task
+        when (previous) {
+            is TaskType ->
+                previous.resume(ConcurrentIOException(slot.taskName()))
+            is Slot.Task ->
+                previous.resume()
+            is Slot.Closed -> {
+                slot.resume(previous.cause)
+                return
+            }
+            Slot.Empty -> {}
+        }
+
+        // Suspend if buffer unchanged
+        if (!shouldSleep()) {
+            resumeSlot<TaskType>()
         }
     }
 
-    private inline fun trySuspendSlot(continuation: Continuation<Unit>, crossinline sleepCondition: () -> Boolean) {
-        val published = suspensionSlot.compareAndSet(null, continuation)
-        if (!published) {
-            continuation.resume(Unit)
-            return
+    private sealed interface Slot {
+        companion object {
+            @JvmStatic
+            val CLOSED = Closed(null)
+
+            @JvmStatic
+            val RESUME = Result.success(Unit)
         }
 
-        if (!sleepCondition()) {
-            suspensionSlot.getAndSet(null)?.resume(Unit)
+        data object Empty : Slot
+
+        data class Closed(val cause: Throwable?) : Slot
+
+        sealed interface Task : Slot {
+            val continuation: Continuation<Unit>
+
+            fun taskName(): String
+
+            fun resume() =
+                continuation.resumeWith(RESUME)
+
+            fun resume(throwable: Throwable? = null) =
+                continuation.resumeWith(throwable?.let { Result.failure(it) } ?: RESUME)
+        }
+
+        class Read(override val continuation: Continuation<Unit>) : Task {
+            override fun taskName(): String = "read"
+        }
+
+        class Write(override val continuation: Continuation<Unit>) : Task {
+            override fun taskName(): String = "write"
         }
     }
 }
+
+/**
+ * Thrown when a coroutine awaiting I/O is replaced by another.
+ */
+public class ConcurrentIOException(taskName: String) : IllegalStateException("Concurrent $taskName attempts")
