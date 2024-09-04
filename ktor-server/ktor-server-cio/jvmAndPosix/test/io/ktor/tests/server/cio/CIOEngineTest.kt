@@ -17,6 +17,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
@@ -27,7 +28,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testChunkedResponse() = runTest {
+    fun testChunkedResponse() = runBlocking {
         createAndStartServer {
             get("/") {
                 val byteStream = ByteChannel(autoFlush = true)
@@ -47,7 +48,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testExpectedContinue() = runTest {
+    fun testExpectedContinue() = runBlocking {
         createAndStartServer {
             post("/") {
                 val body = call.receiveText()
@@ -72,7 +73,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testExpectedContinueRespondBeforeReadingBody() = runTest {
+    fun testExpectedContinueRespondBeforeReadingBody() = runBlocking {
         createAndStartServer {
             post("/") {
                 val length = call.request.headers[HttpHeaders.ContentLength]?.toInt() ?: 0
@@ -97,7 +98,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testExpectedContinueExpectationFailed() = runTest {
+    fun testExpectedContinueExpectationFailed() = runBlocking {
         createAndStartServer {
             post("/") {
                 val body = call.receiveText()
@@ -117,7 +118,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testExpectedContinueConnection() = runTest {
+    fun testExpectedContinueConnection() = runBlocking {
         createAndStartServer {
             post("/") {
                 val body = call.receiveText()
@@ -153,7 +154,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    fun testExpectedIgnoreHTTP1_0() = runTest {
+    fun testExpectedIgnoreHTTP1_0() = runBlocking {
         createAndStartServer {
             post("/") {
                 val body = call.receiveText()
