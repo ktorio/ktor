@@ -26,7 +26,8 @@ private val KnownPosixErrors = mapOf(
     ENOMEM to "ENOMEM",
     ENOTSOCK to "ENOTSOCK",
     EADDRINUSE to "EADDRINUSE",
-    ENOENT to "ENOENT"
+    ENOENT to "ENOENT",
+    EWINSOCK to "EWINSOCK"
 )
 
 /**
@@ -64,6 +65,8 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
     public class OverflowException(message: String) : PosixException(EOVERFLOW, message)
 
     public class NoMemoryException(message: String) : PosixException(ENOMEM, message)
+
+    public class WindowsSocketException(message: String) : PosixException(EWINSOCK, message)
 
     public class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
 
@@ -113,6 +116,7 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
                 ENOTSOCK -> NotSocketException(message)
                 EADDRINUSE -> AddressAlreadyInUseException(message)
                 ENOENT -> NoSuchFileException(message)
+                EWINSOCK -> WindowsSocketException(message)
                 else -> PosixErrnoException(errno, message)
             }
         }
