@@ -66,7 +66,10 @@ actual constructor(
                 return server
             }
 
-            server.stop(1L, 1L)
+            server.stop(500L, 3000L)
+
+            // The server will sometimes fail from port exhaustion, so we need to wait for the OS to clear some up
+            delay(attempt * 500L)
         }
 
         error(lastFailures)
