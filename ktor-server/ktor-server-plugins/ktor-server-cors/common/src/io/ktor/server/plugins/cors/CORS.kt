@@ -81,6 +81,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
      * a plugin installation.
      */
     onCall { call ->
+        if (call.response.isCommitted) {
+            return@onCall
+        }
+
         if (!allowsAnyHost || allowCredentials) {
             call.corsVary()
         }

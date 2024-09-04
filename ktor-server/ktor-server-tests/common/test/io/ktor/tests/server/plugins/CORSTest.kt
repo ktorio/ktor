@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -1246,5 +1247,32 @@ class CORSTest {
             assertEquals(HttpStatusCode.Forbidden, call.status)
             assertEquals("", call.bodyAsText())
         }
+    }
+
+    @Test
+    fun ignoredWhenResponseAlreadyCommitted() = testApplication {
+        val RespondPrematurely = createApplicationPlugin("Respond") {
+            on(CallSetup) { call ->
+                call.respondText { "123" }
+            }
+        }
+
+        install(RespondPrematurely)
+        install(CORS) {
+            allowCredentials = true
+        }
+
+        routing {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        assertEquals(
+            HttpStatusCode.OK,
+            client.get("/") {
+                header(HttpHeaders.Origin, "http://host.org")
+            }.status
+        )
     }
 }
