@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.metrics.micrometer
@@ -37,23 +37,21 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `time is measured for requests`(): Unit = withTestApplication {
+    fun `time is measured for requests`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
                 call.respond("hello")
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         val timers = testRegistry.find(requestTimeTimerName).timers()
         assertEquals(1, timers.size)
@@ -69,25 +67,23 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `errors are recorded`(): Unit = withTestApplication {
+    fun `errors are recorded`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
         installDefaultBehaviour()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
                 throw IllegalStateException("something went wrong")
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
@@ -104,22 +100,20 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `parameter names are recorded instead of values`(): Unit = withTestApplication {
+    fun `parameter names are recorded instead of values`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        routing {
             get("/uri/{someParameter}") {
                 call.respond("some response")
             }
         }
 
-        handleRequest {
-            uri = "/uri/someParameterValue"
-        }
+        client.request("/uri/someParameterValue")
 
         with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
@@ -134,25 +128,23 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `individual tags can be added per call`(): Unit = withTestApplication {
+    fun `individual tags can be added per call`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
             timers { _, _ ->
                 tag("customTag", "customValue")
             }
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 call.respond("some response")
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
@@ -169,24 +161,22 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `histogram can be configured`(): Unit = withTestApplication {
+    fun `histogram can be configured`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
             distributionStatisticConfig = DistributionStatisticConfig.Builder()
                 .percentiles(0.1, 0.2)
                 .build()
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 call.respond("hello")
             }
         }
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         val timers = testRegistry.find(requestTimeTimerName).timers()
         assertEquals(1, timers.size)
@@ -204,10 +194,10 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `no handler results in status 404 and no exception by default`(): Unit = withTestApplication {
+    fun `no handler results in status 404 and no exception by default`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
 
@@ -215,9 +205,7 @@ class MicrometerMetricsTests {
 
         // no routing config
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         with(testRegistry.find(requestTimeTimerName).timers()) {
             assertEquals(1, size)
@@ -236,10 +224,10 @@ class MicrometerMetricsTests {
 
     @Test
     fun `no handler results in status 404 no route and no exception if distinctNotRegisteredRoutes is false`(): Unit =
-        withTestApplication {
+        testApplication {
             val testRegistry = SimpleMeterRegistry()
 
-            application.install(MicrometerMetrics) {
+            install(MicrometerMetrics) {
                 registry = testRegistry
                 distinctNotRegisteredRoutes = false
             }
@@ -248,9 +236,7 @@ class MicrometerMetricsTests {
 
             // no routing config
 
-            handleRequest {
-                uri = "/uri"
-            }
+            client.request("/uri")
 
             with(testRegistry.find(requestTimeTimerName).timers()) {
                 assertEquals(1, size)
@@ -267,29 +253,31 @@ class MicrometerMetricsTests {
             assertTrue(noHandlerHandledRequest)
         }
 
-    private fun TestApplicationEngine.installDefaultBehaviour() {
-        this.callInterceptor = {
-            try {
-                call.application.execute(call)
-                if (call.response.status() == HttpStatusCode.NotFound) {
-                    noHandlerHandledRequest = true
-                }
-            } catch (t: Throwable) {
-                throwableCaughtInEngine = t
-                if (call.response.status() == null) {
-                    call.respond(HttpStatusCode.InternalServerError)
+    private fun ApplicationTestBuilder.installDefaultBehaviour() {
+        application {
+            (engine as TestApplicationEngine).callInterceptor = {
+                try {
+                    call.application.execute(call)
+                    if (call.response.status() == HttpStatusCode.NotFound) {
+                        noHandlerHandledRequest = true
+                    }
+                } catch (t: Throwable) {
+                    throwableCaughtInEngine = t
+                    if (call.response.status() == null) {
+                        call.respond(HttpStatusCode.InternalServerError)
+                    }
                 }
             }
         }
     }
 
     @Test
-    fun `class loader metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `class loader metrics are registered by default at registry`() = testApplication {
         metersAreRegistered(ClassLoaderMetrics::class, "jvm.classes.loaded", "jvm.classes.unloaded")
     }
 
     @Test
-    fun `memory metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `memory metrics are registered by default at registry`() = testApplication {
         metersAreRegistered(
             ClassLoaderMetrics::class,
             "jvm.memory.used",
@@ -299,7 +287,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `garbage Collection metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `garbage Collection metrics are registered by default at registry`() = testApplication {
         metersAreRegistered(
             JvmGcMetrics::class,
             "jvm.gc.max.data.size",
@@ -310,7 +298,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `processor metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `processor metrics are registered by default at registry`() = testApplication {
         metersAreRegistered(
             ProcessorMetrics::class,
             "system.cpu.count"
@@ -318,7 +306,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `thread metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `thread metrics are registered by default at registry`() = testApplication {
         metersAreRegistered(
             JvmThreadMetrics::class,
             "jvm.threads.peak",
@@ -329,46 +317,46 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `throws exception when metric name is not defined`(): Unit = withTestApplication {
+    fun `throws exception when metric name is not defined`() = testApplication {
+        install(MicrometerMetrics) {
+            metricName = "   "
+        }
+
         assertFailsWith<IllegalArgumentException> {
-            application.install(MicrometerMetrics) {
-                metricName = "   "
-            }
+            startApplication()
         }
     }
 
     @Test
-    fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
+    fun `timer and gauge metric names are configurable`() = testApplication {
         val newMetricName = "custom.metric.name"
         val registry = SimpleMeterRegistry()
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             this.registry = registry
             metricName = newMetricName
         }
 
-        handleRequest(HttpMethod.Get, "/uri")
+        client.get("/uri")
 
         assertEquals(1, registry.get("$newMetricName.active").meters().size)
     }
 
     @Test
-    fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {
+    fun `same timer and gauge metrics accessible by new and deprecated properties`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
-                call.respond("hello")
+                call.respondText { "hello" }
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         with(testRegistry) {
             val timer = find(requestTimeTimerName).timer()
@@ -420,15 +408,16 @@ class MicrometerMetricsTests {
         assertTrue(closed)
     }
 
-    private fun TestApplicationEngine.metersAreRegistered(
+    private suspend fun ApplicationTestBuilder.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
         vararg meterNames: String
     ) {
         val testRegistry = SimpleMeterRegistry()
 
-        application.install(MicrometerMetrics) {
+        install(MicrometerMetrics) {
             registry = testRegistry
         }
+        startApplication()
 
         meterNames.forEach { testRegistry.shouldHaveMetricFrom(meterBinder, it) }
     }
