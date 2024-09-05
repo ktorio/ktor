@@ -4,10 +4,14 @@
 
 package io.ktor.server.http
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import java.io.*
+import java.nio.file.*
 import kotlin.test.*
 
 class RespondFunctionsJvmTest {
@@ -30,5 +34,35 @@ class RespondFunctionsJvmTest {
             assertEquals("1, 2", call.response.byteContent?.joinToString())
             assertEquals("2", call.response.headers[HttpHeaders.ContentLength])
         }
+    }
+
+    @Test
+    fun testRespondFile() = testApplication {
+        val baseDirPath = "jvm/test-resources/"
+        val filePath = "test-resource.txt"
+        routing {
+            get("/respondFile-File-String") {
+                call.respondFile(File(baseDirPath), filePath)
+            }
+            get("/respondFile-File") {
+                call.respondFile(File(baseDirPath + filePath))
+            }
+            get("/respondFile-Path-Path") {
+                call.respondFile(Paths.get(baseDirPath), Paths.get(filePath))
+            }
+            get("/respondFile-Path") {
+                call.respondFile(Paths.get(baseDirPath + filePath))
+            }
+        }
+
+        val expected = "plain\n"
+        val firstBody = client.get("/respondFile-File-String").bodyAsText()
+        val secondBody = client.get("/respondFile-File").bodyAsText()
+        val thirdBody = client.get("/respondFile-Path-Path").bodyAsText()
+        val fourthBody = client.get("/respondFile-Path").bodyAsText()
+        assertEquals(expected, firstBody)
+        assertEquals(expected, secondBody)
+        assertEquals(expected, thirdBody)
+        assertEquals(expected, fourthBody)
     }
 }
