@@ -63,7 +63,7 @@ ws-version = "8.5.0"
 xmlutil-version = "0.90.1"
 yamlkt-version = "0.13.0"
 
-swagger-codegen-version = "3.0.61"
+swagger-codegen-version = "3.0.62"
 swagger-codegen-generators-version = "1.0.52"
 swagger-parser-version = "2.1.22"
 
