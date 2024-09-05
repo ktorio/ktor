@@ -9,7 +9,7 @@ import io.ktor.http.*
 /**
  * Represents the `Accept-Encoding` HTTP header, which specifies the content encoding the client is willing to accept.
  *
- * @property acceptEncoding The encoding type as a string, such as "gzip", "compress", or "br".
+ * @property acceptEncoding The encoding type as a string, such as "gzip", "compress", "br", etc.
  * @param parameters Optional list of parameters associated with the encoding, such as quality values (q-values).
  */
 public class AcceptEncoding(
@@ -18,16 +18,27 @@ public class AcceptEncoding(
 ) : HeaderValueWithParameters(acceptEncoding, parameters) {
 
     /**
+     * Constructs an `AcceptEncoding` instance with a specified encoding type and q-value.
+     *
+     * @param acceptEncoding The encoding type, such as "gzip", "compress", "br", etc.
+     * @param qValue The quality value (q-value) associated with this encoding.
+     */
+    public constructor(acceptEncoding: String, qValue: Double) : this(
+        acceptEncoding,
+        listOf(HeaderValueParam("q", qValue.toString()))
+    )
+
+    /**
      * Companion object containing predefined commonly used `Accept-Encoding` values.
      */
     public companion object {
-        public val gzip: AcceptEncoding = AcceptEncoding("gzip")
-        public val compress: AcceptEncoding = AcceptEncoding("compress")
-        public val deflate: AcceptEncoding = AcceptEncoding("deflate")
-        public val br: AcceptEncoding = AcceptEncoding("br")
-        public val zstd: AcceptEncoding = AcceptEncoding("zstd")
-        public val identity: AcceptEncoding = AcceptEncoding("identity")
-        public val all: AcceptEncoding = AcceptEncoding("*")
+        public val Gzip: AcceptEncoding = AcceptEncoding("gzip")
+        public val Compress: AcceptEncoding = AcceptEncoding("compress")
+        public val Deflate: AcceptEncoding = AcceptEncoding("deflate")
+        public val Br: AcceptEncoding = AcceptEncoding("br")
+        public val Zstd: AcceptEncoding = AcceptEncoding("zstd")
+        public val Identity: AcceptEncoding = AcceptEncoding("identity")
+        public val All: AcceptEncoding = AcceptEncoding("*")
 
         /**
          * Merges multiple `AcceptEncoding` instances into a single string separated by commas.
@@ -51,7 +62,44 @@ public class AcceptEncoding(
             return this
         }
 
-        return AcceptEncoding(acceptEncoding, listOf(HeaderValueParam("q", qValue.toString())))
+        return AcceptEncoding(acceptEncoding, qValue)
+    }
+
+    /**
+     * Checks if `this` `AcceptEncoding` matches a [pattern] `AcceptEncoding`, taking into account
+     * wildcard symbols `*` and parameters such as q-values.
+     *
+     * @param pattern The `AcceptEncoding` to match against.
+     * @return `true` if `this` matches the given [pattern], `false` otherwise.
+     */
+    public fun match(pattern: AcceptEncoding): Boolean {
+        if (pattern.acceptEncoding != "*" && !pattern.acceptEncoding.equals(acceptEncoding, ignoreCase = true)) {
+            return false
+        }
+
+        for ((patternName, patternValue) in pattern.parameters) {
+            val matches = when (patternName) {
+                "*" -> {
+                    when (patternValue) {
+                        "*" -> true
+                        else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
+                    }
+                }
+
+                else -> {
+                    val value = parameter(patternName)
+                    when (patternValue) {
+                        "*" -> value != null
+                        else -> value.equals(patternValue, ignoreCase = true)
+                    }
+                }
+            }
+
+            if (!matches) {
+                return false
+            }
+        }
+        return true
     }
 
     override fun equals(other: Any?): Boolean = other is AcceptEncoding

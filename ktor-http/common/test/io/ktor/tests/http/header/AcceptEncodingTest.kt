@@ -12,17 +12,17 @@ class AcceptEncodingTest {
 
     @Test
     fun testAcceptEncoding() {
-        assertEquals(AcceptEncoding.gzip.toString(), "gzip")
+        assertEquals(AcceptEncoding.Gzip.toString(), "gzip")
     }
 
     @Test
     fun testAcceptEncodingWithQValue() {
-        assertEquals(AcceptEncoding.gzip.withQValue(0.5).toString(), "gzip; q=0.5")
+        assertEquals(AcceptEncoding.Gzip.withQValue(0.5).toString(), "gzip; q=0.5")
     }
 
     @Test
     fun testAcceptEncodingWithDifferentQValue2Times() {
-        val acceptEncoding = AcceptEncoding.gzip.withQValue(0.2)
+        val acceptEncoding = AcceptEncoding.Gzip.withQValue(0.2)
         assertEquals(acceptEncoding.withQValue(0.5).toString(), "gzip; q=0.5")
     }
 
@@ -34,7 +34,7 @@ class AcceptEncodingTest {
     @Test
     fun testAcceptEncodingMerge() {
         assertEquals(AcceptEncoding.mergeAcceptEncodings(
-            AcceptEncoding.gzip, AcceptEncoding.deflate.withQValue(0.2), AcceptEncoding.all.withQValue(0.3)),
+            AcceptEncoding.Gzip, AcceptEncoding.Deflate.withQValue(0.2), AcceptEncoding.All.withQValue(0.3)),
             "gzip, deflate; q=0.2, *; q=0.3")
     }
 
@@ -83,5 +83,35 @@ class AcceptEncodingTest {
 
         assertEquals(encoding1, encoding2)
     }
+
+    @Test
+    fun testAcceptEncodingMatch() {
+        assertTrue(AcceptEncoding.Gzip.match(AcceptEncoding.Gzip), "Exact match should return true")
+        assertTrue(AcceptEncoding.Gzip.match(AcceptEncoding.All), "Wildcard encoding '*' should match any encoding")
+        assertFalse(AcceptEncoding.Gzip.match(AcceptEncoding.Br), "Different encodings should not match")
+        assertTrue(AcceptEncoding.Gzip.withQValue(0.8).match(AcceptEncoding.Gzip.withQValue(0.8)),
+            "Encoding with same q-value should match")
+        assertFalse(AcceptEncoding.Gzip.withQValue(0.8).match(AcceptEncoding.Gzip.withQValue(0.9)),
+            "Encoding with different q-values should not match")
+
+        val encoding1 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "value")))
+        val pattern1 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "value")))
+        assertTrue(encoding1.match(pattern1), "Encoding with multiple matching parameters should match")
+
+        val encoding2 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "value")))
+        val patter2 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "different")))
+        assertFalse(encoding2.match(patter2), "Encoding with different custom parameter values should not match")
+
+        val encoding3 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "value")))
+        val pattern3 = AcceptEncoding("gzip",
+            parameters = listOf(HeaderValueParam("q", "0.8"), HeaderValueParam("custom", "*")))
+        assertTrue(encoding3.match(pattern3), "Wildcard parameter value '*' should match any parameter value")
+    }
+
 
 }

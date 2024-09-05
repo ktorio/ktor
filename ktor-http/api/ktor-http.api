@@ -1396,6 +1396,29 @@ public final class io/ktor/http/content/WriterContent : io/ktor/http/content/Out
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/header/AcceptEncoding : io/ktor/http/HeaderValueWithParameters {
+	public static final field Companion Lio/ktor/http/header/AcceptEncoding$Companion;
+	public fun <init> (Ljava/lang/String;D)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAcceptEncoding ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun match (Lio/ktor/http/header/AcceptEncoding;)Z
+	public final fun withQValue (D)Lio/ktor/http/header/AcceptEncoding;
+}
+
+public final class io/ktor/http/header/AcceptEncoding$Companion {
+	public final fun getAll ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getBr ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getCompress ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getDeflate ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getGzip ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getIdentity ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun getZstd ()Lio/ktor/http/header/AcceptEncoding;
+	public final fun mergeAcceptEncodings ([Lio/ktor/http/header/AcceptEncoding;)Ljava/lang/String;
+}
+
 public final class io/ktor/http/parsing/ParseException : java/lang/IllegalArgumentException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
