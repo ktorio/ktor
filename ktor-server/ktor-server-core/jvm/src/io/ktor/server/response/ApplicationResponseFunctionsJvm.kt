@@ -74,6 +74,14 @@ public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingCo
 }
 
 /**
+ * Responds to a client with a contents of a [file]
+ */
+public suspend fun ApplicationCall.respondFile(file: Path, configure: OutgoingContent.() -> Unit = {}) {
+    val message = LocalPathContent(file).apply(configure)
+    respond(message)
+}
+
+/**
  * Respond with text content writer.
  *
  * The [writer] parameter will be called later when engine is ready to produce content.
