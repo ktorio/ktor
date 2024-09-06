@@ -1,5 +1,9 @@
 description = ""
 
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-gson")
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

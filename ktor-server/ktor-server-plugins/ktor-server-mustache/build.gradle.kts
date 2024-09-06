@@ -1,3 +1,6 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-mustache")
+}
 
 kotlin.sourceSets {
     jvmMain {

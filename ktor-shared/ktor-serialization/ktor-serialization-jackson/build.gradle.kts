@@ -1,5 +1,9 @@
 description = ""
 
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-jackson")
+}
+
 kotlin {
     sourceSets {
         jvmMain {

@@ -4,6 +4,10 @@
 
 description = ""
 
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-auth")
+}
+
 plugins {
     id("kotlinx-serialization")
 }

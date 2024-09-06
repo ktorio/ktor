@@ -1,6 +1,10 @@
-description = ""
+description = "Provides test host for easily writing tests for Ktor applications"
 
 val jetty_alpn_boot_version: String? by extra
+
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-server-test-base")
+}
 
 kotlin.sourceSets {
     commonMain {

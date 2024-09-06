@@ -1,5 +1,9 @@
 description = ""
 
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-webjars")
+}
+
 kotlin {
     sourceSets {
         jvmMain {

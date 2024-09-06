@@ -1,4 +1,8 @@
 description = ""
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-metrics")
+}
+
 kotlin {
     sourceSets {
         jvmMain {

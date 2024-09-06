@@ -1,3 +1,7 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-freemarker")
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

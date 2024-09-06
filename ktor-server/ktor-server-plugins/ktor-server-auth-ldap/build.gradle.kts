@@ -1,3 +1,7 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-auth-ldap")
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

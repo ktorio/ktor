@@ -1,3 +1,6 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-thymeleaf")
+}
 
 kotlin.sourceSets {
     jvmMain {

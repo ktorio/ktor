@@ -1,3 +1,7 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-auth-jwt")
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

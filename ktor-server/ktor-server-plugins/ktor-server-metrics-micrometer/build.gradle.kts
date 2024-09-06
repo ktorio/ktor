@@ -1,3 +1,7 @@
+ext {
+    set(RELOCATED_ARTIFACT, "ktor-metrics-micrometer")
+}
+
 kotlin {
     sourceSets {
         jvmMain {
