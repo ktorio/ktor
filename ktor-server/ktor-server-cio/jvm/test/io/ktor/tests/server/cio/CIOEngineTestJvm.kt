@@ -5,7 +5,9 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 import io.ktor.server.testing.suites.*
+import kotlin.system.*
 import kotlin.test.*
 
 class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
@@ -46,7 +48,27 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
 
 class CIOConfigTest : ConfigTestSuite(CIO)
 
-class CIOConnectionTest : ConnectionTestSuite(CIO)
+class CIOConnectionTest : ConnectionTestSuite(CIO) {
+    @Test
+    fun testShutdownGracePeriodWithConnector() {
+        val server = embeddedServer(
+            factory = CIO,
+            environment = applicationEnvironment(),
+            configure = {
+                shutdownGracePeriod = 10_000
+                connector {
+                    port = 8787
+                }
+            },
+        ).start(wait = false)
+
+        val time = measureTimeMillis {
+            server.stop()
+        }
+
+        assertTrue { time < 5_000 }
+    }
+}
 
 class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {

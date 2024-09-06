@@ -219,7 +219,10 @@ public class CIOApplicationEngine(
             stopRequest.join()
 
             // stopping
-            connectors.forEach { it.acceptJob.cancel() }
+            connectors.forEach {
+                it.acceptJob.cancel()
+                it.rootServerJob.cancel()
+            }
 
             withContext(userDispatcher) {
                 monitor.raise(ApplicationStopPreparing, environment)
