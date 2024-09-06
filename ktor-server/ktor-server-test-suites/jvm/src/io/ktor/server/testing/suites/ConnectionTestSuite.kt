@@ -25,7 +25,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
     fun testNetworkAddresses() = runBlocking {
         val server = embeddedServer(
             engine,
-            applicationProperties {}
+            serverConfig {}
         ) {
             connector { port = 0 }
             connector { port = ServerSocket(0).use { it.localPort } }
@@ -51,7 +51,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val server = embeddedServer(
             engine,
-            applicationProperties(applicationEnvironment()) {
+            serverConfig(applicationEnvironment()) {
                 module {
                     routing {
                         get("/") {
@@ -88,7 +88,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val serverPort = withContext(Dispatchers.IO) { ServerSocket(0).use { it.localPort } }
         val server = embeddedServer(
             engine,
-            applicationProperties(applicationEnvironment()) {
+            serverConfig(applicationEnvironment()) {
                 module {
                     routing {
                         get("/") {

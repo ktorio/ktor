@@ -130,7 +130,7 @@ actual abstract class EngineTestBase<
                 }
             }
         }
-        val properties = applicationProperties(environment) {
+        val properties = serverConfig(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }

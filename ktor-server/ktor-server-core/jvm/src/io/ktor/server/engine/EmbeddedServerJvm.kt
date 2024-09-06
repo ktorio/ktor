@@ -29,14 +29,14 @@ public actual class EmbeddedServer<
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    private val applicationProperties: ApplicationProperties,
+    private val rootConfig: ServerConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
 
-    public actual val monitor: Events = applicationProperties.environment.monitor
+    public actual val monitor: Events = rootConfig.environment.monitor
 
-    public actual val environment: ApplicationEnvironment = applicationProperties.environment
+    public actual val environment: ApplicationEnvironment = rootConfig.environment
 
     public actual val application: Application
         get() = currentApplication()
@@ -48,7 +48,7 @@ actual constructor(
     private var packageWatchKeys = emptyList<WatchKey>()
 
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
-    private val watchPatterns: List<String> = configuredWatchPath + applicationProperties.watchPaths
+    private val watchPatterns: List<String> = configuredWatchPath + rootConfig.watchPaths
 
     private val configModulesNames: List<String> = run {
         environment.config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
@@ -58,17 +58,17 @@ actual constructor(
 
     private var _applicationInstance: Application? = Application(
         environment,
-        applicationProperties.developmentMode,
-        applicationProperties.rootPath,
+        rootConfig.developmentMode,
+        rootConfig.rootPath,
         monitor,
-        applicationProperties.parentCoroutineContext,
+        rootConfig.parentCoroutineContext,
         ::engine
     )
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
         monitor,
-        applicationProperties.developmentMode,
+        rootConfig.developmentMode,
         engineConfig,
         ::currentApplication
     )
@@ -96,7 +96,7 @@ actual constructor(
     private fun currentApplication(): Application = applicationInstanceLock.read {
         val currentApplication = _applicationInstance ?: error("EmbeddedServer was stopped")
 
-        if (!applicationProperties.developmentMode) {
+        if (!rootConfig.developmentMode) {
             return@read currentApplication
         }
 
@@ -148,7 +148,7 @@ actual constructor(
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = environment.classLoader
 
-        if (!applicationProperties.developmentMode) {
+        if (!rootConfig.developmentMode) {
             environment.log.info("Autoreload is disabled because the development mode is off.")
             return baseClassLoader
         }
@@ -314,10 +314,10 @@ actual constructor(
         val newInstance = if (recreateInstance || _applicationInstance == null) {
             Application(
                 environment,
-                applicationProperties.developmentMode,
-                applicationProperties.rootPath,
+                rootConfig.developmentMode,
+                rootConfig.rootPath,
                 monitor,
-                applicationProperties.parentCoroutineContext,
+                rootConfig.parentCoroutineContext,
                 ::engine
             )
         } else {
@@ -332,7 +332,7 @@ actual constructor(
                 launchModuleByName(name, currentClassLoader, newInstance)
             }
 
-            applicationProperties.modules.forEach { module ->
+            rootConfig.modules.forEach { module ->
                 val name = module.methodName()
 
                 try {
