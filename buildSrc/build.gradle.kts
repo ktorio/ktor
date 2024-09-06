@@ -23,11 +23,11 @@ repositories {
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
-    val kotlin_version = libs.versions.kotlin.version.get()
+    val kotlin_version = libs.versions.kotlin.get()
     implementation(kotlin("gradle-plugin", kotlin_version))
     implementation(kotlin("serialization", kotlin_version))
 
-    val ktlint_version = libs.versions.ktlint.version.get()
+    val ktlint_version = libs.versions.ktlint.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
     implementation("io.ktor:ktor-server-default-headers:$ktor_version")
