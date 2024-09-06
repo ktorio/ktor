@@ -22,14 +22,30 @@ class ServerSentEventsTest {
         install(SSE)
         routing {
             sse("/hello") {
-                send(ServerSentEvent("world"))
+                send(ServerSentEvent("world", event = "send", id = "100", retry = 1000, comments = "comment"))
             }
         }
 
         val client = createSseClient()
+        val expected = """
+            data: world
+            event: send
+            id: 100
+            retry: 1000
+            : comment
+            
+        """.trimIndent()
+        val actual = StringBuilder()
         client.sse("/hello") {
-            assertEquals("world", incoming.single().data)
+            val event = incoming.single()
+            assertEquals("world", event.data)
+            assertEquals("send", event.event)
+            assertEquals("100", event.id)
+            assertEquals(1000, event.retry)
+            assertEquals("comment", event.comments)
+            actual.append(event)
         }
+        assertEquals(expected.lines(), actual.toString().lines())
     }
 
     @Test
@@ -118,6 +134,62 @@ class ServerSentEventsTest {
                 assertEquals(1, values.size)
             }
         }
+    }
+
+    @Test
+    fun testMultilineData() = testApplication {
+        install(SSE)
+        routing {
+            sse("/multiline-data") {
+                send(
+                    """
+                    First Line
+                    Second Line
+                    Third Line
+                    """.trimIndent()
+                )
+            }
+
+            sse("/one-event-data") {
+                send(
+                    """
+                    First Line
+                    
+                    data: Third Line
+                    """.trimIndent()
+                )
+            }
+        }
+
+        val client = createSseClient()
+
+        val expectedMultilineData = """
+            data: First Line
+            data: Second Line
+            data: Third Line
+
+        """.trimIndent()
+        val actualMultilineData = StringBuilder()
+        client.sse("/multiline-data") {
+            incoming.collect {
+                actualMultilineData.append(it.toString())
+            }
+        }
+        assertEquals(expectedMultilineData.lines(), actualMultilineData.toString().lines())
+
+        val expectedOneEventData = """
+            data: First Line
+            data: 
+            data: data: Third Line
+            
+        """.trimIndent()
+        val actualOneEventData = StringBuilder()
+        client.sse("/one-event-data") {
+            incoming.collect {
+                actualOneEventData.append(it.toString())
+            }
+        }
+        assertEquals(expectedOneEventData.lines(), actualOneEventData.toString().lines())
     }
 
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {
