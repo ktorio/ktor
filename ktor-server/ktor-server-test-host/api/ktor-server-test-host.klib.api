@@ -180,7 +180,7 @@ open class io.ktor.server.testing/TestApplicationBuilder { // io.ktor.server.tes
     final fun environment(kotlin/Function1<io.ktor.server.engine/ApplicationEnvironmentBuilder, kotlin/Unit>) // io.ktor.server.testing/TestApplicationBuilder.environment|environment(kotlin.Function1<io.ktor.server.engine.ApplicationEnvironmentBuilder,kotlin.Unit>){}[0]
     final fun externalServices(kotlin/Function1<io.ktor.server.testing/ExternalServicesBuilder, kotlin/Unit>) // io.ktor.server.testing/TestApplicationBuilder.externalServices|externalServices(kotlin.Function1<io.ktor.server.testing.ExternalServicesBuilder,kotlin.Unit>){}[0]
     final fun routing(kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>) // io.ktor.server.testing/TestApplicationBuilder.routing|routing(kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
-    final fun testRootConfig(kotlin/Function1<io.ktor.server.application/ApplicationRootConfigBuilder, kotlin/Unit>) // io.ktor.server.testing/TestApplicationBuilder.testRootConfig|testRootConfig(kotlin.Function1<io.ktor.server.application.ApplicationRootConfigBuilder,kotlin.Unit>){}[0]
+    final fun serverConfig(kotlin/Function1<io.ktor.server.application/ServerConfigBuilder, kotlin/Unit>) // io.ktor.server.testing/TestApplicationBuilder.serverConfig|serverConfig(kotlin.Function1<io.ktor.server.application.ServerConfigBuilder,kotlin.Unit>){}[0]
 }
 
 final object io.ktor.server.testing/It // io.ktor.server.testing/It|null[0]

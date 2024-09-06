@@ -35,7 +35,7 @@ class MultipleDispatchOnTimeout {
 
         val jetty = embeddedServer(
             Jetty,
-            rootConfig(environment) {
+            serverConfig(environment) {
                 module {
                     intercept(ApplicationCallPipeline.Call) {
                         callCount.incrementAndGet()

@@ -1,5 +1,0 @@
----
-
-char* read_ktor_version() {
-    return "3.0.0-beta-2"; 
-}

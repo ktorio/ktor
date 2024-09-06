@@ -92,7 +92,7 @@ actual constructor(
                 }
             }
         }
-        val properties = rootConfig(environment) {
+        val properties = serverConfig(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }

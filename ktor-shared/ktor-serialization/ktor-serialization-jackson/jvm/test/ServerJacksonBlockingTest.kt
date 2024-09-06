@@ -29,7 +29,7 @@ class ServerJacksonBlockingTest {
 
     @Test
     fun testReceive() = testApplication {
-        testRootConfig {
+        serverConfig {
             parentCoroutineContext = dispatcher
         }
         application {

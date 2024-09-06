@@ -399,7 +399,7 @@ abstract class io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/
 }
 
 final class <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/EmbeddedServer { // io.ktor.server.engine/EmbeddedServer|null[0]
-    constructor <init>(io.ktor.server.application/ApplicationRootConfig, io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Function1<#B, kotlin/Unit> = ...) // io.ktor.server.engine/EmbeddedServer.<init>|<init>(io.ktor.server.application.ApplicationRootConfig;io.ktor.server.engine.ApplicationEngineFactory<1:0,1:1>;kotlin.Function1<1:1,kotlin.Unit>){}[0]
+    constructor <init>(io.ktor.server.application/ServerConfig, io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Function1<#B, kotlin/Unit> = ...) // io.ktor.server.engine/EmbeddedServer.<init>|<init>(io.ktor.server.application.ServerConfig;io.ktor.server.engine.ApplicationEngineFactory<1:0,1:1>;kotlin.Function1<1:1,kotlin.Unit>){}[0]
 
     final val application // io.ktor.server.engine/EmbeddedServer.application|{}application[0]
         final fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.engine/EmbeddedServer.application.<get-application>|<get-application>(){}[0]
@@ -455,39 +455,6 @@ final class io.ktor.server.application/Application : io.ktor.server.application/
     final fun dispose() // io.ktor.server.application/Application.dispose|dispose(){}[0]
 }
 
-final class io.ktor.server.application/ApplicationRootConfig { // io.ktor.server.application/ApplicationRootConfig|null[0]
-    final val developmentMode // io.ktor.server.application/ApplicationRootConfig.developmentMode|{}developmentMode[0]
-        final fun <get-developmentMode>(): kotlin/Boolean // io.ktor.server.application/ApplicationRootConfig.developmentMode.<get-developmentMode>|<get-developmentMode>(){}[0]
-    final val environment // io.ktor.server.application/ApplicationRootConfig.environment|{}environment[0]
-        final fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.application/ApplicationRootConfig.environment.<get-environment>|<get-environment>(){}[0]
-    final val parentCoroutineContext // io.ktor.server.application/ApplicationRootConfig.parentCoroutineContext|{}parentCoroutineContext[0]
-        final fun <get-parentCoroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.application/ApplicationRootConfig.parentCoroutineContext.<get-parentCoroutineContext>|<get-parentCoroutineContext>(){}[0]
-    final val rootPath // io.ktor.server.application/ApplicationRootConfig.rootPath|{}rootPath[0]
-        final fun <get-rootPath>(): kotlin/String // io.ktor.server.application/ApplicationRootConfig.rootPath.<get-rootPath>|<get-rootPath>(){}[0]
-}
-
-final class io.ktor.server.application/ApplicationRootConfigBuilder { // io.ktor.server.application/ApplicationRootConfigBuilder|null[0]
-    constructor <init>(io.ktor.server.application/ApplicationEnvironment) // io.ktor.server.application/ApplicationRootConfigBuilder.<init>|<init>(io.ktor.server.application.ApplicationEnvironment){}[0]
-
-    final val environment // io.ktor.server.application/ApplicationRootConfigBuilder.environment|{}environment[0]
-        final fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.application/ApplicationRootConfigBuilder.environment.<get-environment>|<get-environment>(){}[0]
-
-    final var developmentMode // io.ktor.server.application/ApplicationRootConfigBuilder.developmentMode|{}developmentMode[0]
-        final fun <get-developmentMode>(): kotlin/Boolean // io.ktor.server.application/ApplicationRootConfigBuilder.developmentMode.<get-developmentMode>|<get-developmentMode>(){}[0]
-        final fun <set-developmentMode>(kotlin/Boolean) // io.ktor.server.application/ApplicationRootConfigBuilder.developmentMode.<set-developmentMode>|<set-developmentMode>(kotlin.Boolean){}[0]
-    final var parentCoroutineContext // io.ktor.server.application/ApplicationRootConfigBuilder.parentCoroutineContext|{}parentCoroutineContext[0]
-        final fun <get-parentCoroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.application/ApplicationRootConfigBuilder.parentCoroutineContext.<get-parentCoroutineContext>|<get-parentCoroutineContext>(){}[0]
-        final fun <set-parentCoroutineContext>(kotlin.coroutines/CoroutineContext) // io.ktor.server.application/ApplicationRootConfigBuilder.parentCoroutineContext.<set-parentCoroutineContext>|<set-parentCoroutineContext>(kotlin.coroutines.CoroutineContext){}[0]
-    final var rootPath // io.ktor.server.application/ApplicationRootConfigBuilder.rootPath|{}rootPath[0]
-        final fun <get-rootPath>(): kotlin/String // io.ktor.server.application/ApplicationRootConfigBuilder.rootPath.<get-rootPath>|<get-rootPath>(){}[0]
-        final fun <set-rootPath>(kotlin/String) // io.ktor.server.application/ApplicationRootConfigBuilder.rootPath.<set-rootPath>|<set-rootPath>(kotlin.String){}[0]
-    final var watchPaths // io.ktor.server.application/ApplicationRootConfigBuilder.watchPaths|{}watchPaths[0]
-        final fun <get-watchPaths>(): kotlin.collections/List<kotlin/String> // io.ktor.server.application/ApplicationRootConfigBuilder.watchPaths.<get-watchPaths>|<get-watchPaths>(){}[0]
-        final fun <set-watchPaths>(kotlin.collections/List<kotlin/String>) // io.ktor.server.application/ApplicationRootConfigBuilder.watchPaths.<set-watchPaths>|<set-watchPaths>(kotlin.collections.List<kotlin.String>){}[0]
-
-    final fun module(kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>) // io.ktor.server.application/ApplicationRootConfigBuilder.module|module(kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){}[0]
-}
-
 final class io.ktor.server.application/DuplicatePluginException : io.ktor.server.application/DuplicateApplicationPluginException { // io.ktor.server.application/DuplicatePluginException|null[0]
     constructor <init>(kotlin/String) // io.ktor.server.application/DuplicatePluginException.<init>|<init>(kotlin.String){}[0]
 }
@@ -508,6 +475,39 @@ final class io.ktor.server.application/MissingApplicationPluginException : kotli
 }
 
 final class io.ktor.server.application/PluginInstance // io.ktor.server.application/PluginInstance|null[0]
+
+final class io.ktor.server.application/ServerConfig { // io.ktor.server.application/ServerConfig|null[0]
+    final val developmentMode // io.ktor.server.application/ServerConfig.developmentMode|{}developmentMode[0]
+        final fun <get-developmentMode>(): kotlin/Boolean // io.ktor.server.application/ServerConfig.developmentMode.<get-developmentMode>|<get-developmentMode>(){}[0]
+    final val environment // io.ktor.server.application/ServerConfig.environment|{}environment[0]
+        final fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.application/ServerConfig.environment.<get-environment>|<get-environment>(){}[0]
+    final val parentCoroutineContext // io.ktor.server.application/ServerConfig.parentCoroutineContext|{}parentCoroutineContext[0]
+        final fun <get-parentCoroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.application/ServerConfig.parentCoroutineContext.<get-parentCoroutineContext>|<get-parentCoroutineContext>(){}[0]
+    final val rootPath // io.ktor.server.application/ServerConfig.rootPath|{}rootPath[0]
+        final fun <get-rootPath>(): kotlin/String // io.ktor.server.application/ServerConfig.rootPath.<get-rootPath>|<get-rootPath>(){}[0]
+}
+
+final class io.ktor.server.application/ServerConfigBuilder { // io.ktor.server.application/ServerConfigBuilder|null[0]
+    constructor <init>(io.ktor.server.application/ApplicationEnvironment) // io.ktor.server.application/ServerConfigBuilder.<init>|<init>(io.ktor.server.application.ApplicationEnvironment){}[0]
+
+    final val environment // io.ktor.server.application/ServerConfigBuilder.environment|{}environment[0]
+        final fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.application/ServerConfigBuilder.environment.<get-environment>|<get-environment>(){}[0]
+
+    final var developmentMode // io.ktor.server.application/ServerConfigBuilder.developmentMode|{}developmentMode[0]
+        final fun <get-developmentMode>(): kotlin/Boolean // io.ktor.server.application/ServerConfigBuilder.developmentMode.<get-developmentMode>|<get-developmentMode>(){}[0]
+        final fun <set-developmentMode>(kotlin/Boolean) // io.ktor.server.application/ServerConfigBuilder.developmentMode.<set-developmentMode>|<set-developmentMode>(kotlin.Boolean){}[0]
+    final var parentCoroutineContext // io.ktor.server.application/ServerConfigBuilder.parentCoroutineContext|{}parentCoroutineContext[0]
+        final fun <get-parentCoroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.application/ServerConfigBuilder.parentCoroutineContext.<get-parentCoroutineContext>|<get-parentCoroutineContext>(){}[0]
+        final fun <set-parentCoroutineContext>(kotlin.coroutines/CoroutineContext) // io.ktor.server.application/ServerConfigBuilder.parentCoroutineContext.<set-parentCoroutineContext>|<set-parentCoroutineContext>(kotlin.coroutines.CoroutineContext){}[0]
+    final var rootPath // io.ktor.server.application/ServerConfigBuilder.rootPath|{}rootPath[0]
+        final fun <get-rootPath>(): kotlin/String // io.ktor.server.application/ServerConfigBuilder.rootPath.<get-rootPath>|<get-rootPath>(){}[0]
+        final fun <set-rootPath>(kotlin/String) // io.ktor.server.application/ServerConfigBuilder.rootPath.<set-rootPath>|<set-rootPath>(kotlin.String){}[0]
+    final var watchPaths // io.ktor.server.application/ServerConfigBuilder.watchPaths|{}watchPaths[0]
+        final fun <get-watchPaths>(): kotlin.collections/List<kotlin/String> // io.ktor.server.application/ServerConfigBuilder.watchPaths.<get-watchPaths>|<get-watchPaths>(){}[0]
+        final fun <set-watchPaths>(kotlin.collections/List<kotlin/String>) // io.ktor.server.application/ServerConfigBuilder.watchPaths.<set-watchPaths>|<set-watchPaths>(kotlin.collections.List<kotlin.String>){}[0]
+
+    final fun module(kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>) // io.ktor.server.application/ServerConfigBuilder.module|module(kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){}[0]
+}
 
 final class io.ktor.server.application/TransformBodyContext { // io.ktor.server.application/TransformBodyContext|null[0]
     constructor <init>(io.ktor.util.reflect/TypeInfo?) // io.ktor.server.application/TransformBodyContext.<init>|<init>(io.ktor.util.reflect.TypeInfo?){}[0]
@@ -546,14 +546,14 @@ final class io.ktor.server.engine/ApplicationEnvironmentImplNix : io.ktor.server
 }
 
 final class io.ktor.server.engine/CommandLineConfig { // io.ktor.server.engine/CommandLineConfig|null[0]
-    constructor <init>(io.ktor.server.application/ApplicationRootConfig, io.ktor.server.engine/BaseApplicationEngine.Configuration) // io.ktor.server.engine/CommandLineConfig.<init>|<init>(io.ktor.server.application.ApplicationRootConfig;io.ktor.server.engine.BaseApplicationEngine.Configuration){}[0]
+    constructor <init>(io.ktor.server.application/ServerConfig, io.ktor.server.engine/BaseApplicationEngine.Configuration) // io.ktor.server.engine/CommandLineConfig.<init>|<init>(io.ktor.server.application.ServerConfig;io.ktor.server.engine.BaseApplicationEngine.Configuration){}[0]
 
     final val engineConfig // io.ktor.server.engine/CommandLineConfig.engineConfig|{}engineConfig[0]
         final fun <get-engineConfig>(): io.ktor.server.engine/BaseApplicationEngine.Configuration // io.ktor.server.engine/CommandLineConfig.engineConfig.<get-engineConfig>|<get-engineConfig>(){}[0]
     final val environment // io.ktor.server.engine/CommandLineConfig.environment|{}environment[0]
         final fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.engine/CommandLineConfig.environment.<get-environment>|<get-environment>(){}[0]
     final val rootConfig // io.ktor.server.engine/CommandLineConfig.rootConfig|{}rootConfig[0]
-        final fun <get-rootConfig>(): io.ktor.server.application/ApplicationRootConfig // io.ktor.server.engine/CommandLineConfig.rootConfig.<get-rootConfig>|<get-rootConfig>(){}[0]
+        final fun <get-rootConfig>(): io.ktor.server.application/ServerConfig // io.ktor.server.engine/CommandLineConfig.rootConfig.<get-rootConfig>|<get-rootConfig>(){}[0]
 }
 
 final class io.ktor.server.engine/ConnectorType { // io.ktor.server.engine/ConnectorType|null[0]
@@ -1771,7 +1771,7 @@ final fun (kotlinx.coroutines/Job).io.ktor.server.engine/launchOnCancellation(ko
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Array<out io.ktor.server.engine/EngineConnectorConfig>... = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Array<out|io.ktor.server.engine.EngineConnectorConfig>...;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ApplicationEnvironment = ..., kotlin/Function1<#B, kotlin/Unit> = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ApplicationEnvironment;kotlin.Function1<0:1,kotlin.Unit>;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
-final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ApplicationRootConfig, kotlin/Function1<#B, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ApplicationRootConfig;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
+final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ServerConfig, kotlin/Function1<#B, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ServerConfig;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.routing/RoutingNode, #B: kotlin/Any, #C: kotlin/Any> (#A).io.ktor.server.application/install(io.ktor.server.application/BaseApplicationPlugin<#A, #B, #C>, kotlin/Function1<#B, kotlin/Unit> = ...): #C // io.ktor.server.application/install|install@0:0(io.ktor.server.application.BaseApplicationPlugin<0:0,0:1,0:2>;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.server.routing.RoutingNode>;1§<kotlin.Any>;2§<kotlin.Any>}[0]
 final fun <#A: io.ktor.util.pipeline/Pipeline<*, io.ktor.server.application/PipelineCall>, #B: kotlin/Any, #C: kotlin/Any> (#A).io.ktor.server.application/install(io.ktor.server.application/Plugin<#A, #B, #C>, kotlin/Function1<#B, kotlin/Unit> = ...): #C // io.ktor.server.application/install|install@0:0(io.ktor.server.application.Plugin<0:0,0:1,0:2>;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.util.pipeline.Pipeline<*,io.ktor.server.application.PipelineCall>>;1§<kotlin.Any>;2§<kotlin.Any>}[0]
@@ -1788,7 +1788,7 @@ final fun <#A: kotlin/Any> io.ktor.server.application/createRouteScopedPlugin(ko
 final fun <#A: kotlin/Any> io.ktor.server.application/createRouteScopedPlugin(kotlin/String, kotlin/String, kotlin/Function1<io.ktor.server.config/ApplicationConfig, #A>, kotlin/Function1<io.ktor.server.application/RouteScopedPluginBuilder<#A>, kotlin/Unit>): io.ktor.server.application/RouteScopedPlugin<#A> // io.ktor.server.application/createRouteScopedPlugin|createRouteScopedPlugin(kotlin.String;kotlin.String;kotlin.Function1<io.ktor.server.config.ApplicationConfig,0:0>;kotlin.Function1<io.ktor.server.application.RouteScopedPluginBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
 final fun io.ktor.server.application/createApplicationPlugin(kotlin/String, kotlin/Function1<io.ktor.server.application/PluginBuilder<kotlin/Unit>, kotlin/Unit>): io.ktor.server.application/ApplicationPlugin<kotlin/Unit> // io.ktor.server.application/createApplicationPlugin|createApplicationPlugin(kotlin.String;kotlin.Function1<io.ktor.server.application.PluginBuilder<kotlin.Unit>,kotlin.Unit>){}[0]
 final fun io.ktor.server.application/createRouteScopedPlugin(kotlin/String, kotlin/Function1<io.ktor.server.application/RouteScopedPluginBuilder<kotlin/Unit>, kotlin/Unit>): io.ktor.server.application/RouteScopedPlugin<kotlin/Unit> // io.ktor.server.application/createRouteScopedPlugin|createRouteScopedPlugin(kotlin.String;kotlin.Function1<io.ktor.server.application.RouteScopedPluginBuilder<kotlin.Unit>,kotlin.Unit>){}[0]
-final fun io.ktor.server.application/rootConfig(io.ktor.server.application/ApplicationEnvironment = ..., kotlin/Function1<io.ktor.server.application/ApplicationRootConfigBuilder, kotlin/Unit> = ...): io.ktor.server.application/ApplicationRootConfig // io.ktor.server.application/rootConfig|rootConfig(io.ktor.server.application.ApplicationEnvironment;kotlin.Function1<io.ktor.server.application.ApplicationRootConfigBuilder,kotlin.Unit>){}[0]
+final fun io.ktor.server.application/serverConfig(io.ktor.server.application/ApplicationEnvironment = ..., kotlin/Function1<io.ktor.server.application/ServerConfigBuilder, kotlin/Unit> = ...): io.ktor.server.application/ServerConfig // io.ktor.server.application/serverConfig|serverConfig(io.ktor.server.application.ApplicationEnvironment;kotlin.Function1<io.ktor.server.application.ServerConfigBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.server.config/addConfigLoader(io.ktor.server.config/ConfigLoader) // io.ktor.server.config/addConfigLoader|addConfigLoader(io.ktor.server.config.ConfigLoader){}[0]
 final fun io.ktor.server.engine/CommandLineConfig(kotlin/Array<kotlin/String>): io.ktor.server.engine/CommandLineConfig // io.ktor.server.engine/CommandLineConfig|CommandLineConfig(kotlin.Array<kotlin.String>){}[0]
 final fun io.ktor.server.engine/applicationEnvironment(kotlin/Function1<io.ktor.server.engine/ApplicationEnvironmentBuilder, kotlin/Unit> = ...): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.engine/applicationEnvironment|applicationEnvironment(kotlin.Function1<io.ktor.server.engine.ApplicationEnvironmentBuilder,kotlin.Unit>){}[0]

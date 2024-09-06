@@ -37,7 +37,7 @@ public expect interface ApplicationEnvironment {
 }
 
 internal expect class ApplicationRootConfigBridge(
-    rootConfig: ApplicationRootConfig,
+    rootConfig: ServerConfig,
     parentCoroutineContext: CoroutineContext
 ) {
     internal val parentCoroutineContext: CoroutineContext

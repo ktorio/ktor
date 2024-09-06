@@ -29,7 +29,7 @@ class CIOSpecificHttpsTest : TestWithKtor() {
 
     override val server: EmbeddedServer<*, *> = embeddedServer(
         Netty,
-        rootConfig {
+        serverConfig {
             module {
                 routing {
                     get("/") {

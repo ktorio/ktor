@@ -10,7 +10,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 
 public class CommandLineConfig(
-    public val rootConfig: ApplicationRootConfig,
+    public val rootConfig: ServerConfig,
     public val engineConfig: BaseApplicationEngine.Configuration
 ) {
     public val environment: ApplicationEnvironment = rootConfig.environment
@@ -50,7 +50,7 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
         config = configuration
     }
 
-    val applicationProperties = rootConfig(environment) {
+    val applicationProperties = serverConfig(environment) {
         rootPath = argumentsMap["-path"] ?: configuration.tryGetString(ConfigKeys.rootPathPath) ?: ""
         developmentMode = configuration.tryGetString(ConfigKeys.developmentModeKey)
             ?.let { it.toBoolean() } ?: PlatformUtils.IS_DEVELOPMENT_MODE

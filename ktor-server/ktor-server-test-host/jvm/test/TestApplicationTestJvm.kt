@@ -197,7 +197,7 @@ class TestApplicationTestJvm {
                 error = exception
             }
         }
-        testRootConfig {
+        serverConfig {
             parentCoroutineContext = exceptionHandler
         }
         application {

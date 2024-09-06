@@ -47,7 +47,7 @@ public fun <R> withApplication(
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
-    val properties = rootConfig(environment) {
+    val properties = serverConfig(environment) {
         watchPaths = emptyList()
     }
     val embeddedServer = EmbeddedServer(properties, TestEngine, configure)

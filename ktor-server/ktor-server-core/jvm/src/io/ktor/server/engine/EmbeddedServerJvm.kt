@@ -29,7 +29,7 @@ public actual class EmbeddedServer<
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    private val rootConfig: ApplicationRootConfig,
+    private val rootConfig: ServerConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {

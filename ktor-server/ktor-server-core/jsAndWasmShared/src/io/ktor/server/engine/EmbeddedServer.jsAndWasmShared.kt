@@ -15,7 +15,7 @@ public actual class EmbeddedServer<
     TConfiguration : ApplicationEngine.Configuration
     >
 actual constructor(
-    rootConfig: ApplicationRootConfig,
+    rootConfig: ServerConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {

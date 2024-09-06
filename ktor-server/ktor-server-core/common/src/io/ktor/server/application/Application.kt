@@ -13,9 +13,9 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A builder for [ApplicationRootConfig].
+ * A builder for [ServerConfig].
  */
-public class ApplicationRootConfigBuilder(
+public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
 
@@ -48,15 +48,15 @@ public class ApplicationRootConfigBuilder(
         modules.add(body)
     }
 
-    internal fun build(): ApplicationRootConfig =
-        ApplicationRootConfig(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
+    internal fun build(): ServerConfig =
+        ServerConfig(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
 /**
  * Core configuration for a running server.
  * Contains modules, paths, and environment details.
  */
-public class ApplicationRootConfig internal constructor(
+public class ServerConfig internal constructor(
     public val environment: ApplicationEnvironment,
     internal val modules: MutableList<Application.() -> Unit>,
     internal val watchPaths: List<String>,
@@ -69,13 +69,13 @@ public class ApplicationRootConfig internal constructor(
 }
 
 /**
- * Creates an [ApplicationRootConfig] instance.
+ * Creates an [ServerConfig] instance.
  */
-public fun rootConfig(
+public fun serverConfig(
     environment: ApplicationEnvironment = applicationEnvironment {},
-    block: ApplicationRootConfigBuilder.() -> Unit = {}
-): ApplicationRootConfig {
-    return ApplicationRootConfigBuilder(environment).apply(block).build()
+    block: ServerConfigBuilder.() -> Unit = {}
+): ServerConfig {
+    return ServerConfigBuilder(environment).apply(block).build()
 }
 
 /**

@@ -18,7 +18,7 @@ import kotlin.coroutines.*
  * @param TConfiguration The type of the configuration used by the engine.
  */
 public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    rootConfig: ApplicationRootConfig,
+    rootConfig: ServerConfig,
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit = {}
 ) {
@@ -114,7 +114,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     val environment = applicationEnvironment {
         this.log = KtorSimpleLogger("io.ktor.server.Application")
     }
-    val applicationProperties = rootConfig(environment) {
+    val applicationProperties = serverConfig(environment) {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.watchPaths = watchPaths
         this.module(module)
@@ -135,7 +135,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
-    val applicationProperties = rootConfig(environment) {
+    val applicationProperties = serverConfig(environment) {
         module(body = module)
     }
     return embeddedServer(factory, applicationProperties, configure)
@@ -146,7 +146,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
-    rootConfig: ApplicationRootConfig,
+    rootConfig: ServerConfig,
     configure: TConfiguration.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
     return EmbeddedServer(rootConfig, factory, configure)

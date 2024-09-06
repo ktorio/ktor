@@ -27,7 +27,7 @@ import kotlin.test.Test
 class AndroidSpecificHttpsTest : TestWithKtor() {
     override val server: EmbeddedServer<*, *> = embeddedServer(
         Netty,
-        rootConfig {
+        serverConfig {
             module {
                 routing {
                     get("/") {

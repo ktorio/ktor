@@ -43,7 +43,7 @@ public actual interface ApplicationEnvironment {
 }
 
 internal actual class ApplicationRootConfigBridge actual constructor(
-    rootConfig: ApplicationRootConfig,
+    rootConfig: ServerConfig,
     parentCoroutineContext: CoroutineContext,
 ) {
     actual val parentCoroutineContext: CoroutineContext = when {

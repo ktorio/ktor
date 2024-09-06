@@ -160,7 +160,7 @@ class ConnectErrorsTest {
             val serverPort = ServerSocket(0).use { it.localPort }
             val server = embeddedServer(
                 Netty,
-                rootConfig {
+                serverConfig {
                     module {
                         routing {
                             get {
