@@ -14,5 +14,6 @@ public final class io/ktor/sse/ServerSentEventKt {
 	public static final field COLON Ljava/lang/String;
 	public static final field END_OF_LINE Ljava/lang/String;
 	public static final field SPACE Ljava/lang/String;
+	public static final fun getEND_OF_LINE_VARIANTS ()Lkotlin/text/Regex;
 }
 
