@@ -106,10 +106,12 @@ internal actual class SelectorHelper {
                     // This means the sets are undefined so do not rely on their contents.
                     watchSet.forEach { event ->
                         if (!isDescriptorValid(event.descriptor)) {
+                            completed.add(event)
                             event.fail(IOException("Bad descriptor ${event.descriptor} for ${event.interest}"))
-                            watchSet.remove(event)
                         }
                     }
+                    watchSet.removeAll(completed)
+                    completed.clear()
                     continue
                 }
 
