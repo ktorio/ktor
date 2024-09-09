@@ -55,7 +55,7 @@ webjars-locator = "0.59"
 webjars-jquery = "3.7.1"
 thymeleaf = "3.1.2.RELEASE"
 javax-servlet = "4.0.1"
-jakarta-servlet = "5.0.0"
+jakarta-servlet = "6.1.0"
 
 node-fetch = "2.6.7"
 abort-controller = "3.0.0"
