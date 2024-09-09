@@ -28,7 +28,7 @@ public class ServerSentEvent(
             appendField("event", event)
             appendField("id", id)
             appendField("retry", retry)
-            appendField("comments", comments)
+            appendField("", comments)
         }
     }
 }
@@ -36,7 +36,10 @@ public class ServerSentEvent(
 @OptIn(InternalAPI::class)
 private fun <T> StringBuilder.appendField(name: String, value: T?) {
     if (value != null) {
-        append("$name$COLON$SPACE$value$END_OF_LINE")
+        val values = value.toString().split(END_OF_LINE_VARIANTS)
+        values.forEach {
+            append("$name$COLON$SPACE$it$END_OF_LINE")
+        }
     }
 }
 
@@ -48,3 +51,6 @@ public const val SPACE: String = " "
 
 @InternalAPI
 public const val END_OF_LINE: String = "\r\n"
+
+@InternalAPI
+public val END_OF_LINE_VARIANTS: Regex = Regex("\r\n|\r|\n")

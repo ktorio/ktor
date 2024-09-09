@@ -29,3 +29,6 @@ final const val io.ktor.sse/END_OF_LINE // io.ktor.sse/END_OF_LINE|{}END_OF_LINE
     final fun <get-END_OF_LINE>(): kotlin/String // io.ktor.sse/END_OF_LINE.<get-END_OF_LINE>|<get-END_OF_LINE>(){}[0]
 final const val io.ktor.sse/SPACE // io.ktor.sse/SPACE|{}SPACE[0]
     final fun <get-SPACE>(): kotlin/String // io.ktor.sse/SPACE.<get-SPACE>|<get-SPACE>(){}[0]
+
+final val io.ktor.sse/END_OF_LINE_VARIANTS // io.ktor.sse/END_OF_LINE_VARIANTS|{}END_OF_LINE_VARIANTS[0]
+    final fun <get-END_OF_LINE_VARIANTS>(): kotlin.text/Regex // io.ktor.sse/END_OF_LINE_VARIANTS.<get-END_OF_LINE_VARIANTS>|<get-END_OF_LINE_VARIANTS>(){}[0]
