@@ -7,7 +7,13 @@ val paths = listOf(
     "/usr/include/",
     "/usr/local/opt/curl/include/",
     "/usr/include/x86_64-linux-gnu/",
-    "/usr/local/Cellar/curl/*/include/",
+    "/usr/local/Cellar/curl/7.62.0/include/",
+    "/usr/local/Cellar/curl/7.63.0/include/",
+    "/usr/local/Cellar/curl/7.65.3/include/",
+    "/usr/local/Cellar/curl/7.66.0/include/",
+    "/usr/local/Cellar/curl/7.80.0/include/",
+    "/usr/local/Cellar/curl/7.80.0_1/include/",
+    "/usr/local/Cellar/curl/7.81.0/include/",
     "desktop/interop/mingwX64/include/",
 )
 
