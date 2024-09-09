@@ -3,8 +3,7 @@
   "extends": [
     "config:recommended",
     ":semanticCommitsDisabled",
-    ":label(dependencies)",
-    ":automergeStableNonMajor"
+    ":label(dependencies)"
   ],
   "packageRules": [
     {
