@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.pebble
@@ -9,7 +9,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -19,6 +18,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.jvm.javaio.*
 import io.pebbletemplates.pebble.loader.*
 import java.util.zip.*
 import kotlin.test.*
@@ -27,138 +27,122 @@ import kotlin.text.Charsets
 class PebbleTest {
 
     @Test
-    fun `Fill template and expect correct rendered content`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+    fun `Fill template and expect correct rendered content`() = testApplication {
+        setupPebble()
+        install(ConditionalHeaders)
 
-            application.routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
-                }
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
+        client.get("/").let { response ->
+            val lines = response.bodyAsText().lines()
 
-                val lines = response.content!!.lines()
-
-                assertEquals("<p>Hello, 1</p>", lines[0])
-                assertEquals("<h1>Hello World!</h1>", lines[1])
-            }
+            assertEquals("<p>Hello, 1</p>", lines[0])
+            assertEquals("<h1>Hello World!</h1>", lines[1])
         }
     }
 
     @Test
-    fun `Fill template and expect correct default content type`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+    fun `Fill template and expect correct default content type`() = testApplication {
+        setupPebble()
+        install(ConditionalHeaders)
 
-            application.routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
-                }
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
+        client.get("/").let { response ->
 
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-            }
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
     }
 
     @Test
-    fun `Fill template and expect eTag set when it is provided`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+    fun `Fill template and expect eTag set when it is provided`() = testApplication {
+        setupPebble()
+        install(ConditionalHeaders)
 
-            application.routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
-                }
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel, etag = "e"))
             }
+        }
 
-            assertEquals("\"e\"", handleRequest(HttpMethod.Get, "/").response.headers[HttpHeaders.ETag])
+        assertEquals("\"e\"", client.get("/").headers[HttpHeaders.ETag])
+    }
+
+    @Test
+    fun `Render empty model`() = testApplication {
+        setupPebble()
+        install(ConditionalHeaders)
+
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateWithoutPlaceholder, emptyMap(), etag = "e"))
+            }
+        }
+
+        client.get("/").let { response ->
+            val lines = response.bodyAsText().lines()
+
+            assertEquals("<p>Hello, Anonymous</p>", lines[0])
+            assertEquals("<h1>Hi!</h1>", lines[1])
         }
     }
 
     @Test
-    fun `Render empty model`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
+    fun `Render template compressed with GZIP`() = testApplication {
+        setupPebble()
+        install(Compression) {
+            gzip { minimumSize(10) }
+        }
+        install(ConditionalHeaders)
 
-            application.routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateWithoutPlaceholder, emptyMap(), etag = "e"))
-                }
+        routing {
+            get("/") {
+                call.respondTemplate(TemplateWithPlaceholder, DefaultModel, etag = "e")
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
+        client.get("/") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }.let { response ->
+            val content = GZIPInputStream(response.bodyAsChannel().toInputStream()).reader().readText()
 
-                val lines = response.content!!.lines()
+            val lines = content.lines()
 
-                assertEquals("<p>Hello, Anonymous</p>", lines[0])
-                assertEquals("<h1>Hi!</h1>", lines[1])
-            }
+            assertEquals("<p>Hello, 1</p>", lines[0])
+            assertEquals("<h1>Hello World!</h1>", lines[1])
         }
     }
 
     @Test
-    fun `Render template compressed with GZIP`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(Compression) {
-                gzip { minimumSize(10) }
-            }
-            application.install(ConditionalHeaders)
+    fun `Render template without eTag`() = testApplication {
+        setupPebble()
+        install(ConditionalHeaders)
 
-            application.routing {
-                get("/") {
-                    call.respondTemplate(TemplateWithPlaceholder, DefaultModel, etag = "e")
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.AcceptEncoding, "gzip")
-            }.response.let { response ->
-                val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-
-                val lines = content.lines()
-
-                assertEquals("<p>Hello, 1</p>", lines[0])
-                assertEquals("<h1>Hello World!</h1>", lines[1])
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel))
             }
         }
-    }
 
-    @Test
-    fun `Render template without eTag`() {
-        withTestApplication {
-            application.setupPebble()
-            application.install(ConditionalHeaders)
-
-            application.routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel))
-                }
-            }
-
-            assertEquals(null, handleRequest(HttpMethod.Get, "/").response.headers[HttpHeaders.ETag])
-        }
+        assertEquals(null, client.get("/").headers[HttpHeaders.ETag])
     }
 
     @Test
     fun `Render template in Spanish with es accept language`() = testApplication {
-        application {
-            setupPebble()
-            install(ConditionalHeaders)
-            routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateI18N, emptyMap()))
-                }
+        setupPebble()
+        install(ConditionalHeaders)
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateI18N, emptyMap()))
             }
         }
 
@@ -171,13 +155,11 @@ class PebbleTest {
 
     @Test
     fun `Render template in English with en accept language`() = testApplication {
-        application {
-            setupPebble()
-            install(ConditionalHeaders)
-            routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateI18N, emptyMap()))
-                }
+        setupPebble()
+        install(ConditionalHeaders)
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateI18N, emptyMap()))
             }
         }
 
@@ -190,13 +172,11 @@ class PebbleTest {
 
     @Test
     fun `Render template in default language with no valid accept language header set`() = testApplication {
-        application {
-            setupPebble()
-            install(ConditionalHeaders)
-            routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateI18N, emptyMap()))
-                }
+        setupPebble()
+        install(ConditionalHeaders)
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateI18N, emptyMap()))
             }
         }
 
@@ -209,13 +189,11 @@ class PebbleTest {
 
     @Test
     fun `Render template in default language with no accept language header set`() = testApplication {
-        application {
-            setupPebble()
-            install(ConditionalHeaders)
-            routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateI18N, emptyMap()))
-                }
+        setupPebble()
+        install(ConditionalHeaders)
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateI18N, emptyMap()))
             }
         }
 
@@ -226,16 +204,14 @@ class PebbleTest {
 
     @Test
     fun `Content Negotiation invoked after`() = testApplication {
-        application {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, alwaysFailingConverter)
-            }
-            setupPebble()
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, alwaysFailingConverter)
+        }
+        setupPebble()
 
-            routing {
-                get("/") {
-                    call.respond(PebbleContent(TemplateI18N, emptyMap()))
-                }
+        routing {
+            get("/") {
+                call.respond(PebbleContent(TemplateI18N, emptyMap()))
             }
         }
 
@@ -243,7 +219,7 @@ class PebbleTest {
         assertEquals("<p>Hola, mundo!</p>", response.bodyAsText())
     }
 
-    private fun Application.setupPebble() {
+    private fun ApplicationTestBuilder.setupPebble() {
         install(Pebble) {
             loader(StringLoader())
             availableLanguages = mutableListOf("en", "es")
