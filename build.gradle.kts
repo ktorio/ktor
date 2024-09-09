@@ -159,7 +159,7 @@ allprojects {
     }
 
     val skipPublish: List<String> by rootProject.extra
-    if (!skipPublish.contains(project.name) && subprojects.isEmpty()) {
+    if (!skipPublish.contains(project.name)) {
         configurePublication()
     }
 }
