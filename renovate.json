@@ -1,5 +1,60 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    ":label(dependencies)",
+    ":automergeStableNonMajor"
+  ],
+  "packageRules": [
+    {
+      "description": "Allow EAPs for Ktor dependencies and use custom versioning to detect a build number",
+      "extends": [
+        "schedule:weekly"
+      ],
+      "matchPackageNames": [
+        "io.ktor:*"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$"
+    },
+    {
+      "description": "False positive dependency findings.",
+      "matchDepNames": [
+        "macosX64:linuxX64"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update kotlinx.serialization plugin in buildSrc, as it should be updated manually.",
+      "matchDepNames": [
+        "org.jetbrains.kotlin.plugin.serialization"
+      ],
+      "matchFileNames": [
+        "buildSrc/build.gradle.kts"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update Jetty 9.x used in ktor-server-jetty",
+      "matchPackageNames": [
+        "org.eclipse.jetty*"
+      ],
+      "matchCurrentVersion": "[,10.0.0)",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update Tomcat 9.x used in ktor-server-tomcat",
+      "matchPackageNames": [
+        "org.apache.tomcat*"
+      ],
+      "matchCurrentVersion": "[,10.0.0)",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    }
   ]
 }

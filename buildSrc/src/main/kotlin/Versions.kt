@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.gradle.api.*
 import org.tomlj.*
 
@@ -21,13 +25,13 @@ val Project.Versions: Versions get() {
                     ?: throw IllegalArgumentException("Version for $key not found in versions catalog $tomlFile")
         }
         Versions(
-            versions["kotlin-version"],
-            versions["coroutines-version"],
-            versions["slf4j-version"],
-            versions["junit-version"],
-            versions["logback-version"],
-            versions["puppeteer-version"],
-            versions["kotlinx-browser-version"],
+            versions["kotlin"],
+            versions["coroutines"],
+            versions["slf4j"],
+            versions["junit"],
+            versions["logback"],
+            versions["puppeteer"],
+            versions["kotlinx-browser"],
         )
     }.also {
         localVersions = it
