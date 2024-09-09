@@ -3,6 +3,7 @@
  */
 
 import org.gradle.api.Project
+import org.gradle.internal.extensions.stdlib.*
 import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.*
@@ -78,22 +79,24 @@ extra["skipPublish"] = mutableListOf(
     "ktor-server-tests",
     "ktor-junit",
 )
-extra["relocatedArtifacts"] = mutableMapOf(
-    "ktor-server-auth" to "ktor-auth",
-    "ktor-server-auth-jwt" to "ktor-auth-jwt",
-    "ktor-server-auth-ldap" to "ktor-auth-ldap",
-    "ktor-server-freemarker" to "ktor-freemarker",
-    "ktor-server-metrics" to "ktor-metrics",
-    "ktor-server-metrics-micrometer" to "ktor-metrics-micrometer",
-    "ktor-server-mustache" to "ktor-mustache",
-    "ktor-server-pebble" to "ktor-pebble",
-    "ktor-server-thymeleaf" to "ktor-thymeleaf",
-    "ktor-server-velocity" to "ktor-velocity",
-    "ktor-server-webjars" to "ktor-webjars",
-    "ktor-serialization-gson" to "ktor-gson",
-    "ktor-serialization-jackson" to "ktor-jackson",
-    "ktor-server-test-host" to "ktor-server-test-base"
-)
+
+extra["relocatedArtifacts"] = mapOf(
+    "ktor-auth" to "ktor-server-auth",
+    "ktor-auth-jwt" to "ktor-server-auth-jwt",
+    "ktor-auth-ldap" to "ktor-server-auth-ldap",
+    "ktor-freemarker" to "ktor-server-freemarker",
+    "ktor-metrics" to "ktor-server-metrics",
+    "ktor-metrics-micrometer" to "ktor-server-metrics-micrometer",
+    "ktor-mustache" to "ktor-server-mustache",
+    "ktor-pebble" to "ktor-server-pebble",
+    "ktor-thymeleaf" to "ktor-server-thymeleaf",
+    "ktor-velocity" to "ktor-server-velocity",
+    "ktor-webjars" to "ktor-server-webjars",
+    "ktor-gson" to "ktor-serialization-gson",
+    "ktor-jackson" to "ktor-serialization-jackson",
+    "ktor-server-test-base" to "ktor-server-test-host",
+).invert()
+
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",
