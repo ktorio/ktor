@@ -5,6 +5,7 @@
     ":semanticCommitsDisabled",
     ":label(dependencies)"
   ],
+  "rebaseWhen": "conflicted",
   "packageRules": [
     {
       "description": "Allow EAPs for Ktor dependencies and use custom versioning to detect a build number",
