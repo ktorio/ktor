@@ -6,7 +6,7 @@ plugins {
     `kotlin-dsl`
     // Serialization version should be aligned with the Kotlin version embedded in Gradle
     // https://docs.gradle.org/current/userguide/compatibility.html#kotlin
-    kotlin("plugin.serialization") version "1.9.24"
+    kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
