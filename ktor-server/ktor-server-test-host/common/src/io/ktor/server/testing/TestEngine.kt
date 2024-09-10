@@ -2,8 +2,6 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("DEPRECATION")
-
 package io.ktor.server.testing
 
 import io.ktor.events.*
@@ -41,7 +39,10 @@ public fun TestApplicationEngine.handleRequest(
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated(
+    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    level = DeprecationLevel.ERROR,
+)
 public fun <R> withApplication(
     environment: ApplicationEnvironment = createTestEnvironment(),
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
@@ -62,16 +63,24 @@ public fun <R> withApplication(
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated(
+    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    level = DeprecationLevel.ERROR,
+)
 public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
+    @Suppress("DEPRECATION_ERROR")
     return withApplication(createTestEnvironment(), test = test)
 }
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated(
+    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    level = DeprecationLevel.ERROR,
+)
 public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
+    @Suppress("DEPRECATION_ERROR")
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
         test()
@@ -81,12 +90,16 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
-@Deprecated("Please use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api")
+@Deprecated(
+    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    level = DeprecationLevel.ERROR,
+)
 public fun <R> withTestApplication(
     moduleFunction: Application.() -> Unit,
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
 ): R {
+    @Suppress("DEPRECATION_ERROR")
     return withApplication(createTestEnvironment(), configure) {
         moduleFunction(application)
         test()
