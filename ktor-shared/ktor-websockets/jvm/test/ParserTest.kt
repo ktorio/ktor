@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
@@ -10,6 +10,7 @@ import java.nio.*
 import kotlin.test.*
 
 class ParserTest {
+
     @Test
     fun testParserSimpleFrame() {
         val buffer = bufferOf("0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f")
