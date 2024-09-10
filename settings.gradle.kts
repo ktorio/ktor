@@ -12,18 +12,23 @@ pluginManagement {
 
 rootProject.name = "ktor"
 
-val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
+val gradleBuildCacheUser = System.getenv("GRADLE_CACHE_USER")?.ifBlank { null }
+val gradleBuildCachePassword = System.getenv("GRADLE_CACHE_PASSWORD")?.ifBlank { null }
 
-if (CACHE_USER != null) {
-    val CACHE_PASSWORD = System.getenv("GRADLE_CACHE_PASSWORD")
-    buildCache {
-        remote(HttpBuildCache::class) {
-            isPush = true
-            setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
-            credentials {
-                username = CACHE_USER
-                password = CACHE_PASSWORD
-            }
+val isCi = !System.getenv("TEAMCITY_VERSION").isNullOrBlank() || !System.getenv("CI").isNullOrBlank()
+
+buildCache {
+    local {
+        // Disable local cache when on CI, to make sure CI updates the remote cache.
+        isEnabled = !isCi
+    }
+    remote<HttpBuildCache> {
+        setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
+        // Only push when credentials are present, otherwise, permit read-only access
+        isPush = gradleBuildCacheUser != null && gradleBuildCachePassword != null
+        credentials {
+            username = gradleBuildCacheUser
+            password = gradleBuildCachePassword
         }
     }
 }
