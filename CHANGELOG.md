@@ -1,3 +1,26 @@
+# 3.0.0-rc-1
+> Published 9 September 2024
+
+### Bugfixes
+* Bytecode incompatibility in AttributeKey ([KTOR-7334](https://youtrack.jetbrains.com/issue/KTOR-7334))
+* ContentEncoding: request hangs when using 3.0.0-beta-2 ([KTOR-7265](https://youtrack.jetbrains.com/issue/KTOR-7265))
+* Revert Routing API changes from `Route` to `Routing` ([KTOR-7238](https://youtrack.jetbrains.com/issue/KTOR-7238))
+* IOException: startIndex (0) > endIndex (-1) when making concurrent requests via thread pool ([KTOR-7254](https://youtrack.jetbrains.com/issue/KTOR-7254))
+* ByteReadChannel.copyTo sometimes throws "IllegalArgumentException: Buffer is empty" ([KTOR-7220](https://youtrack.jetbrains.com/issue/KTOR-7220))
+* Redirect dependencies from ktor-server-test-base ([KTOR-7393](https://youtrack.jetbrains.com/issue/KTOR-7393))
+* CIO: EmbeddedServer.stop always blocks for shutdownGracePeriod ([KTOR-7360](https://youtrack.jetbrains.com/issue/KTOR-7360))
+* SSE: the plugin doesn't follow the spec when multiline data is sent ([KTOR-7391](https://youtrack.jetbrains.com/issue/KTOR-7391))
+* Infinite creation of CancellableContinuationImpl on ByteChannel.flush ([KTOR-7324](https://youtrack.jetbrains.com/issue/KTOR-7324))
+
+### Improvements
+* Include relocation notes for old Ktor modules ([KTOR-6826](https://youtrack.jetbrains.com/issue/KTOR-6826))
+* Deprecate old jetty / tomcat / servlet engines ([KTOR-7315](https://youtrack.jetbrains.com/issue/KTOR-7315))
+* Backwards compatibility for monitor ([KTOR-7264](https://youtrack.jetbrains.com/issue/KTOR-7264))
+* ApplicationProperties naming is confusing ([KTOR-7270](https://youtrack.jetbrains.com/issue/KTOR-7270))
+
+### Features
+* staticZip: Support watching for changes and reloading of zip files ([KTOR-7243](https://youtrack.jetbrains.com/issue/KTOR-7243))
+
 # 3.0.0-beta-2
 > Published 15 July 2024
 
