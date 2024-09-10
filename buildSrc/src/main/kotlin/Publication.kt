@@ -100,6 +100,7 @@ fun Project.configurePublication() {
 
         publications.forEach {
             val publication = it as? MavenPublication ?: return@forEach
+
             publication.pom {
                 name = project.name
                 description = project.description?.takeIf { it.isNotEmpty() } ?: "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
@@ -122,10 +123,10 @@ fun Project.configurePublication() {
                 scm {
                     url = "https://github.com/ktorio/ktor.git"
                 }
-                relocatedArtifacts[project.name]?.let { oldArtifactId ->
+                relocatedArtifacts[project.name]?.let { newArtifactId ->
                     distributionManagement {
                         relocation {
-                            artifactId = oldArtifactId
+                            artifactId = newArtifactId
                         }
                     }
                 }
