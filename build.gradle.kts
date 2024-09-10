@@ -73,28 +73,15 @@ val configuredVersion: String by extra
 apply(from = "gradle/verifier.gradle")
 
 extra["skipPublish"] = mutableListOf(
-    "ktor-server-test-base",
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-junit",
 )
 
+// Point old artifact to new location
 extra["relocatedArtifacts"] = mapOf(
-    "ktor-auth" to "ktor-server-auth",
-    "ktor-auth-jwt" to "ktor-server-auth-jwt",
-    "ktor-auth-ldap" to "ktor-server-auth-ldap",
-    "ktor-freemarker" to "ktor-server-freemarker",
-    "ktor-metrics" to "ktor-server-metrics",
-    "ktor-metrics-micrometer" to "ktor-server-metrics-micrometer",
-    "ktor-mustache" to "ktor-server-mustache",
-    "ktor-pebble" to "ktor-server-pebble",
-    "ktor-thymeleaf" to "ktor-server-thymeleaf",
-    "ktor-velocity" to "ktor-server-velocity",
-    "ktor-webjars" to "ktor-server-webjars",
-    "ktor-gson" to "ktor-serialization-gson",
-    "ktor-jackson" to "ktor-serialization-jackson",
     "ktor-server-test-base" to "ktor-server-test-host",
-).invert()
+)
 
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
