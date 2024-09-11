@@ -54,7 +54,7 @@ public suspend fun ApplicationCall.respondFile(
 }
 
 /**
- * Responds to a client with a contents of a file with the name [relativePath] in the [baseDir] folder
+ * Responds to a client with a contents of a path designated by [relativePath] in the [baseDir] folder
  */
 public suspend fun ApplicationCall.respondPath(
     baseDir: Path,
