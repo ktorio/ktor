@@ -9,7 +9,7 @@ build
 !.idea/dictionaries/*
 !.idea/copyright
 !.idea/copyright/*
-!.idea/icon.png
+!.idea/icon.svg
 out
 *.iml
 .vscode
