@@ -128,6 +128,7 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
     } catch (cause: Throwable) {
         output.close(cause)
         input.cancel(cause)
+        throw cause
     } finally {
         output.flush()
     }
