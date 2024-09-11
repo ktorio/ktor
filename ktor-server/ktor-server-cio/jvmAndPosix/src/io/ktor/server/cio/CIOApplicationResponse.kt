@@ -112,7 +112,7 @@ internal class CIOApplicationResponse(
         }
     }
 
-    private suspend fun preparedBodyChannel(): ByteWriteChannel {
+    private fun preparedBodyChannel(): ByteWriteChannel {
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         if (!chunked) return output
 
