@@ -7,6 +7,7 @@ package test.server
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*

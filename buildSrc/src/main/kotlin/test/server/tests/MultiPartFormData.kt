@@ -18,7 +18,7 @@ internal fun Application.multiPartFormDataTest() {
     routing {
         route("multipart") {
             post {
-                call.receiveMultipart().forEachPart {
+                call.receiveMultipart(formFieldLimit = TEST_FILE_SIZE + 1L).forEachPart {
                     try {
                         if (it is PartData.FileItem) {
                             val array = ByteArray(TEST_FILE_SIZE)
