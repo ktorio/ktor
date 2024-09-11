@@ -121,22 +121,23 @@ class WebSocketTest {
     fun testSerializationWithNoConverter() = testApplication {
         install(WebSockets)
 
-        val executed = Job()
+        val result = DeferredResult()
         routing {
             webSocket("/echo") {
-                assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                    receiveDeserialized<Data>()
+                withDeferredResult(result) {
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        receiveDeserialized<Data>()
+                    }
+                    assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
+                        sendSerialized(Data("hello"))
+                    }
                 }
-                assertFailsWith<WebsocketConverterNotFoundException>("No converter was found for websocket") {
-                    sendSerialized(Data("hello"))
-                }
-                executed.complete()
             }
         }
 
         createWebSocketsClient().webSocket("/echo") {}
 
-        executed.join()
+        result.await().getOrThrow()
     }
 
     @Test
@@ -145,13 +146,14 @@ class WebSocketTest {
             contentConverter = customContentConverter
         }
 
-        val executed = Job()
+        val result = DeferredResult()
         routing {
             webSocket("/echo") {
-                assertFailsWith<ClosedReceiveChannelException> {
-                    receiveDeserialized<Data>()
+                withDeferredResult(result) {
+                    assertFailsWith<ClosedReceiveChannelException> {
+                        receiveDeserialized<Data>()
+                    }
                 }
-                executed.complete()
             }
         }
 
@@ -159,7 +161,7 @@ class WebSocketTest {
             close()
         }
 
-        executed.complete()
+        result.await().getOrThrow()
     }
 
     @Test
@@ -283,18 +285,13 @@ class WebSocketTest {
             maxFrameSize = 1023
         }
 
-        var exception: Throwable? = null
         val started = Job()
-        val executed = Job()
+        val result = DeferredResult()
         routing {
             webSocket("/") {
-                try {
+                withDeferredResult(result) {
                     started.complete()
                     incoming.receive()
-                } catch (cause: Throwable) {
-                    exception = cause
-                } finally {
-                    executed.complete()
                 }
             }
         }
@@ -308,7 +305,7 @@ class WebSocketTest {
             clientClosedProperly = true
         }
 
-        executed.join()
+        val exception = result.await().exceptionOrNull()
         assertTrue(clientClosedProperly, "Client wasn't closed properly")
         assertTrue("Expected FrameTooBigException, but found $exception") {
             exception is FrameTooBigException
@@ -355,16 +352,11 @@ class WebSocketTest {
             maxFrameSize = 1025
         }
 
-        var exception: Throwable? = null
-        val serverExecuted = Job()
+        val result = DeferredResult()
         routing {
             webSocket("/") {
-                try {
+                withDeferredResult(result) {
                     incoming.receive()
-                } catch (cause: Throwable) {
-                    exception = cause
-                } finally {
-                    serverExecuted.complete()
                 }
             }
         }
@@ -378,7 +370,7 @@ class WebSocketTest {
             clientClosedProperly = true
         }
 
-        serverExecuted.join()
+        val exception = result.await().exceptionOrNull()
         assertTrue(clientClosedProperly, "Client wasn't closed properly")
         assertTrue { exception is FrameTooBigException }
     }
@@ -463,17 +455,13 @@ class WebSocketTest {
     fun testFlushClosed() = testApplication {
         install(WebSockets)
 
-        val session = Job()
+        val session = CompletableDeferred<Result<Unit>>()
         routing {
             webSocket("/close/me") {
-                try {
+                withDeferredResult(session) {
                     close()
                     delay(1)
                     flush()
-                    session.complete()
-                } catch (cause: Throwable) {
-                    session.completeExceptionally(cause)
-                    throw cause
                 }
             }
         }
@@ -485,7 +473,7 @@ class WebSocketTest {
             callClosedProperly = true
         }
 
-        session.join()
+        session.await().getOrThrow()
         assertTrue(callClosedProperly, "Client wasn't closed properly")
     }
 
@@ -503,5 +491,19 @@ class WebSocketTest {
         val frame = incoming.receive()
         assertTrue(frame is Frame.Text)
         return frame.readText()
+    }
+}
+
+private typealias DeferredResult = CompletableDeferred<Result<Unit>>
+
+private fun DeferredResult(): DeferredResult = CompletableDeferred()
+
+private inline fun withDeferredResult(deferred: DeferredResult, block: () -> Unit) {
+    try {
+        block()
+        deferred.complete(Result.success(Unit))
+    } catch (cause: Throwable) {
+        deferred.complete(Result.failure(cause))
+        throw cause
     }
 }
