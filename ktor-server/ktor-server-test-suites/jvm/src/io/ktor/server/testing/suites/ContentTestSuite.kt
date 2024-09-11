@@ -89,7 +89,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readRawBytes()))
         }
     }
 
@@ -108,7 +108,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readRawBytes()))
         }
     }
 
@@ -184,7 +184,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         withUrl("/") {
             assertEquals(200, status.value)
-            readBytes().let { bytes ->
+            readRawBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -213,7 +213,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         withUrl("/") {
             assertEquals(200, status.value)
-            readBytes().let { bytes ->
+            readRawBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -242,7 +242,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         withUrl("/") {
             assertEquals(200, status.value)
-            readBytes().let { bytes ->
+            readRawBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -349,40 +349,40 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/array") {
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
         }
 
         withUrl("/array-chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/chunked") {
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
             assertNull(headers[HttpHeaders.ContentLength])
         }
 
         withUrl("/fixed-read-channel") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
         }
 
         withUrl("/pseudo-chunked") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
         }
 
         withUrl("/read-channel") {
             assertNull(headers[HttpHeaders.ContentLength])
             assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
             assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertEquals(data.toList(), call.response.readBytes().toList())
+            assertContentEquals(data, call.response.readRawBytes())
         }
     }
 

@@ -429,7 +429,7 @@ public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteA
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return -1
 
-    var result = 0
+    var result: Int
     UnsafeBufferOperations.readFromHead(readBuffer.buffer) { array, start, endExclusive ->
         result = block(array, start, endExclusive)
         result
