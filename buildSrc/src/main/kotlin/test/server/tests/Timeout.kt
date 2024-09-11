@@ -35,7 +35,7 @@ internal fun Application.timeoutTest() {
                         override val contentType = ContentType.Application.OctetStream
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             for (offset in response.indices) {
-                                channel.writeFully(response, offset, 1)
+                                channel.writeFully(response, offset, offset + 1)
                                 channel.flush()
                                 delay(delay)
                             }

@@ -8,13 +8,18 @@ import io.ktor.http.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import kotlinx.io.*
+import kotlinx.io.Buffer
 import org.junit.jupiter.api.*
-import java.io.*
+import java.io.EOFException
+import java.io.IOException
 import java.nio.*
 import kotlin.test.*
 import kotlin.test.Test
 
 class ChunkedTest {
+
     @Test
     fun testEmptyBroken(): Unit = runBlocking {
         val bodyText = ""
@@ -26,7 +31,6 @@ class ChunkedTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testChunkedWithContentLength() = runBlocking {
         val chunkedContent = listOf(
@@ -121,7 +125,6 @@ class ChunkedTest {
         assertEquals("123456", parsed.readUTF8Line())
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testEncodeEmpty() = runBlocking {
         val encoded = ByteChannel()
@@ -139,7 +142,6 @@ class ChunkedTest {
         assertEquals("0\r\n\r\n", encodedText)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testEncodeChunks() = runBlocking {
         val output = ByteChannel(false)
@@ -166,7 +168,6 @@ class ChunkedTest {
         assertEquals("6\r\n123456\r\n0\r\n\r\n", encodedText)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun longLoop() = runBlocking {
         val content = ByteChannel(true)
@@ -224,5 +225,29 @@ class ChunkedTest {
         val second = read.await()
 
         assertEquals(first, second)
+    }
+
+    @Test
+    fun exceptionDuringWrite() = runTest {
+        val defunctWriteChannel = object : ByteWriteChannel {
+            override val isClosedForWrite: Boolean get() = false
+            override val closedCause: Throwable? get() = null
+
+            @InternalAPI
+            override val writeBuffer: Sink = Buffer()
+            override suspend fun flush() {
+                throw IOException()
+            }
+
+            override suspend fun flushAndClose() {
+                throw IOException()
+            }
+
+            override fun cancel(cause: Throwable?) {}
+        }
+
+        assertFailsWith<IOException> {
+            encodeChunked(defunctWriteChannel, ByteReadChannel("123"))
+        }
     }
 }

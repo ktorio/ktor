@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-val ktor_version = "3.0.0-eap-852"
+val ktor_version = "3.0.0-rc-1-eap-1086"
 
 dependencies {
     val kotlin_version = libs.versions.kotlin.get()
@@ -40,6 +40,7 @@ dependencies {
     implementation("io.ktor:ktor-server-conditional-headers:$ktor_version")
     implementation("io.ktor:ktor-server-compression:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx:$ktor_version")
     implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
     implementation("io.ktor:ktor-utils:$ktor_version")

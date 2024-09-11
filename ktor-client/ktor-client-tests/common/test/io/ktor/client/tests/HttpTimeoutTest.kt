@@ -269,11 +269,11 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/with-stream") {
+            val responseBody: String = client.get("$TEST_URL/with-stream") {
                 parameter("delay", 10)
-            }.body<ByteArray>()
+            }.body()
 
-            assertEquals("Text", response.decodeToString(0, 0 + response.size))
+            assertEquals("Text", responseBody)
         }
     }
 
@@ -284,13 +284,13 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get("$TEST_URL/with-stream") {
+            val responseBody: String = client.get("$TEST_URL/with-stream") {
                 parameter("delay", 10)
 
                 timeout { requestTimeoutMillis = 1000 }
-            }.body<ByteArray>()
+            }.body()
 
-            assertEquals("Text", response.decodeToString(0, 0 + response.size))
+            assertEquals("Text", responseBody)
         }
     }
 

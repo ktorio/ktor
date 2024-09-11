@@ -103,9 +103,8 @@ public typealias EncoderJob = ReaderJob
 /**
  * Start chunked stream encoding coroutine
  */
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
-public suspend fun encodeChunked(
+public fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext
 ): EncoderJob = GlobalScope.reader(coroutineContext, autoFlush = false) {
@@ -120,7 +119,7 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
         while (!input.isClosedForRead) {
             input.read { source, startIndex, endIndex ->
                 if (endIndex == startIndex) return@read 0
-                output.writeChunk(source, startIndex.toInt(), endIndex.toInt())
+                output.writeChunk(source, startIndex, endIndex)
             }
         }
 
@@ -129,6 +128,7 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
     } catch (cause: Throwable) {
         output.close(cause)
         input.cancel(cause)
+        throw cause
     } finally {
         output.flush()
     }
