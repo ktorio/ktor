@@ -42,14 +42,14 @@ public suspend fun ApplicationCall.respondOutputStream(
 }
 
 /**
- * Responds to a client with a contents of a file with the name [relativePath] in the [baseDir] folder
+ * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
  */
 public suspend fun ApplicationCall.respondFile(
     baseDir: File,
-    relativePath: String,
+    fileName: String,
     configure: OutgoingContent.() -> Unit = {}
 ) {
-    val message = LocalFileContent(baseDir, relativePath).apply(configure)
+    val message = LocalFileContent(baseDir, fileName).apply(configure)
     respond(message)
 }
 
