@@ -104,9 +104,22 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      * If the preconfigured session is set, [configureSession] and [handleChallenge] blocks will be ignored.
      *
      * The [session] must be created with [KtorNSURLSessionDelegate] as a delegate.
+     *
+     * ```
+     * val delegate = KtorNSURLSessionDelegate()
+     * val session = NSURLSession.sessionWithConfiguration(
+     *     NSURLSessionConfiguration.defaultSessionConfiguration,
+     *     delegate,
+     *     delegateQueue = NSOperationQueue()
+     * )
+     *
+     * usePreconfiguredSession(session, delegate)
+     * ```
+     *
      * @see [KtorNSURLSessionDelegate] for details.
      */
     public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorNSURLSessionDelegate) {
+        requireNotNull(session.delegate) { "The session must be created with KtorNSURLSessionDelegate as a delegate" }
         sessionAndDelegate = session to delegate
     }
 

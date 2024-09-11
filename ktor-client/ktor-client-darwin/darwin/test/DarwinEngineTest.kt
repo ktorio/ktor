@@ -189,6 +189,29 @@ class DarwinEngineTest {
         }
     }
 
+    // Issue: KTOR-7355
+    @Test
+    fun testOverrideDefaultSessionWithoutDelegate() {
+        val result = runCatching {
+            HttpClient(Darwin) {
+                engine {
+                    usePreconfiguredSession(
+                        session = NSURLSession.sessionWithConfiguration(
+                            NSURLSessionConfiguration.defaultSessionConfiguration()
+                        ),
+                        delegate = KtorNSURLSessionDelegate(),
+                    )
+                }
+            }
+        }
+
+        assertFailsWith<IllegalArgumentException>(
+            "The session must be created with KtorNSURLSessionDelegate as a delegate"
+        ) {
+            result.getOrThrow()
+        }
+    }
+
     @Test
     fun testConfigureRequest(): Unit = runBlocking {
         val client = HttpClient(Darwin) {
