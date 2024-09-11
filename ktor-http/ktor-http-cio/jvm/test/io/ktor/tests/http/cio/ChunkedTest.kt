@@ -12,7 +12,6 @@ import kotlinx.coroutines.test.*
 import kotlinx.io.*
 import kotlinx.io.Buffer
 import org.junit.jupiter.api.*
-import java.io.*
 import java.io.EOFException
 import java.io.IOException
 import java.nio.*
@@ -20,19 +19,6 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class ChunkedTest {
-    val defunctWriteChannel = object : ByteWriteChannel {
-        override val isClosedForWrite: Boolean get() = false
-        override val closedCause: Throwable? get() = null
-        @InternalAPI
-        override val writeBuffer: Sink = Buffer()
-        override suspend fun flush() {
-            throw IOException()
-        }
-        override suspend fun flushAndClose() {
-            throw IOException()
-        }
-        override fun cancel(cause: Throwable?) {}
-    }
 
     @Test
     fun testEmptyBroken(): Unit = runBlocking {
@@ -243,6 +229,23 @@ class ChunkedTest {
 
     @Test
     fun exceptionDuringWrite() = runTest {
+        val defunctWriteChannel = object : ByteWriteChannel {
+            override val isClosedForWrite: Boolean get() = false
+            override val closedCause: Throwable? get() = null
+
+            @InternalAPI
+            override val writeBuffer: Sink = Buffer()
+            override suspend fun flush() {
+                throw IOException()
+            }
+
+            override suspend fun flushAndClose() {
+                throw IOException()
+            }
+
+            override fun cancel(cause: Throwable?) {}
+        }
+
         assertFailsWith<IOException> {
             encodeChunked(defunctWriteChannel, ByteReadChannel("123"))
         }
