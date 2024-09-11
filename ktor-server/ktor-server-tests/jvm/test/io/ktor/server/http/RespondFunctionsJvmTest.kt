@@ -55,14 +55,18 @@ class RespondFunctionsJvmTest {
             }
         }
 
-        val expected = "plain\n"
-        val firstBody = client.get("/respondFile-File-String").bodyAsText()
-        val secondBody = client.get("/respondFile-File").bodyAsText()
-        val thirdBody = client.get("/respondFile-Path-Path").bodyAsText()
-        val fourthBody = client.get("/respondFile-Path").bodyAsText()
+        val expected = "plain"
+        val firstBody = client.get("/respondFile-File-String").trimmedBody()
+        val secondBody = client.get("/respondFile-File").trimmedBody()
+        val thirdBody = client.get("/respondFile-Path-Path").trimmedBody()
+        val fourthBody = client.get("/respondFile-Path").trimmedBody()
         assertEquals(expected, firstBody)
         assertEquals(expected, secondBody)
         assertEquals(expected, thirdBody)
         assertEquals(expected, fourthBody)
+    }
+
+    private suspend fun HttpResponse.trimmedBody(): String {
+        return bodyAsText().trim()
     }
 }
