@@ -9,7 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import java.io.*
-import java.nio.file.Path
+import java.nio.file.*
 
 /**
  * Respond with text content writer.
@@ -42,26 +42,26 @@ public suspend fun ApplicationCall.respondOutputStream(
 }
 
 /**
- * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
+ * Responds to a client with a contents of a file with the name [relativePath] in the [baseDir] folder
  */
 public suspend fun ApplicationCall.respondFile(
     baseDir: File,
-    fileName: String,
+    relativePath: String,
     configure: OutgoingContent.() -> Unit = {}
 ) {
-    val message = LocalFileContent(baseDir, fileName).apply(configure)
+    val message = LocalFileContent(baseDir, relativePath).apply(configure)
     respond(message)
 }
 
 /**
- * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
+ * Responds to a client with a contents of a file with the name [relativePath] in the [baseDir] folder
  */
-public suspend fun ApplicationCall.respondFile(
+public suspend fun ApplicationCall.respondPath(
     baseDir: Path,
-    fileName: Path,
+    relativePath: Path,
     configure: OutgoingContent.() -> Unit = {}
 ) {
-    val message = LocalFileContent(baseDir, fileName).apply(configure)
+    val message = LocalPathContent(baseDir, relativePath).apply(configure)
     respond(message)
 }
 
@@ -74,10 +74,10 @@ public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingCo
 }
 
 /**
- * Responds to a client with a contents of a [file]
+ * Responds to a client with a contents of a [path]
  */
-public suspend fun ApplicationCall.respondFile(file: Path, configure: OutgoingContent.() -> Unit = {}) {
-    val message = LocalPathContent(file).apply(configure)
+public suspend fun ApplicationCall.respondPath(path: Path, configure: OutgoingContent.() -> Unit = {}) {
+    val message = LocalPathContent(path).apply(configure)
     respond(message)
 }
 

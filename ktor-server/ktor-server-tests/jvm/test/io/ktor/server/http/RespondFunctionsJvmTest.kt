@@ -48,10 +48,10 @@ class RespondFunctionsJvmTest {
                 call.respondFile(File(baseDirPath + filePath))
             }
             get("/respondFile-Path-Path") {
-                call.respondFile(Paths.get(baseDirPath), Paths.get(filePath))
+                call.respondPath(Paths.get(baseDirPath), Paths.get(filePath))
             }
             get("/respondFile-Path") {
-                call.respondFile(Paths.get(baseDirPath + filePath))
+                call.respondPath(Paths.get(baseDirPath + filePath))
             }
         }
 
