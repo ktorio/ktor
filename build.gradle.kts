@@ -2,6 +2,8 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.gradle.api.Project
+import org.gradle.internal.extensions.stdlib.*
 import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.*
@@ -71,9 +73,16 @@ val configuredVersion: String by extra
 apply(from = "gradle/verifier.gradle")
 
 extra["skipPublish"] = mutableListOf(
-    "ktor-server-test-base",
-    "ktor-junit"
+    "ktor-server-test-suites",
+    "ktor-server-tests",
+    "ktor-junit",
 )
+
+// Point old artifact to new location
+extra["relocatedArtifacts"] = mapOf(
+    "ktor-server-test-base" to "ktor-server-test-host",
+)
+
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",

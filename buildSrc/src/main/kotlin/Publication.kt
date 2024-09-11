@@ -73,6 +73,7 @@ fun Project.configurePublication() {
     val publishLocal: Boolean by rootProject.extra
     val globalM2: String by rootProject.extra
     val nonDefaultProjectStructure: List<String> by rootProject.extra
+    val relocatedArtifacts: Map<String, String> by rootProject.extra
 
     val emptyJar = tasks.register<Jar>("emptyJar") {
         archiveAppendix.set("empty")
@@ -99,34 +100,35 @@ fun Project.configurePublication() {
 
         publications.forEach {
             val publication = it as? MavenPublication ?: return@forEach
-            publication.pom.withXml {
-                val root = asNode()
-                root.appendNode("name", project.name)
-                root.appendNode(
-                    "description",
-                    "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
-                )
-                root.appendNode("url", "https://github.com/ktorio/ktor")
 
-                root.appendNode("licenses").apply {
-                    appendNode("license").apply {
-                        appendNode("name", "The Apache Software License, Version 2.0")
-                        appendNode("url", "https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        appendNode("distribution", "repo")
+            publication.pom {
+                name = project.name
+                description = project.description?.takeIf { it.isNotEmpty() } ?: "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
+                url = "https://github.com/ktorio/ktor"
+                licenses {
+                    license {
+                        name = "The Apache Software License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
-
-                root.appendNode("developers").apply {
-                    appendNode("developer").apply {
-                        appendNode("id", "JetBrains")
-                        appendNode("name", "JetBrains Team")
-                        appendNode("organization", "JetBrains")
-                        appendNode("organizationUrl", "https://www.jetbrains.com")
+                developers {
+                    developer {
+                        id = "JetBrains"
+                        name = "Jetbrains Team"
+                        organization = "JetBrains"
+                        organizationUrl = "https://www.jetbrains.com"
                     }
                 }
-
-                root.appendNode("scm").apply {
-                    appendNode("url", "https://github.com/ktorio/ktor.git")
+                scm {
+                    url = "https://github.com/ktorio/ktor.git"
+                }
+                relocatedArtifacts[project.name]?.let { newArtifactId ->
+                    distributionManagement {
+                        relocation {
+                            artifactId = newArtifactId
+                        }
+                    }
                 }
             }
         }
