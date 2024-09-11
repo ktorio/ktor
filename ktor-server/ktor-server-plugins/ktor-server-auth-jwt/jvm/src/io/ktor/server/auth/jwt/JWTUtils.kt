@@ -101,11 +101,11 @@ internal suspend fun verifyAndValidate(
     val payload = jwt.parsePayload()
     val credentials = JWTCredential(payload)
     val principal = validate(call, credentials)
-    
+
     if (principal == null) {
         JWTLogger.debug("JWT validation failed: Custom validation returned null")
     }
-    
+
     return principal
 }
 
