@@ -102,14 +102,13 @@ public class AcceptEncoding(
         return true
     }
 
-    override fun equals(other: Any?): Boolean = other is AcceptEncoding
-            && acceptEncoding.equals(other.acceptEncoding, ignoreCase = true)
-            && parameters == other.parameters
+    override fun equals(other: Any?): Boolean = other is AcceptEncoding &&
+        acceptEncoding.equals(other.acceptEncoding, ignoreCase = true) &&
+        parameters == other.parameters
 
     override fun hashCode(): Int {
         var hashCode = acceptEncoding.lowercase().hashCode()
         hashCode += 31 * parameters.hashCode()
         return hashCode
     }
-
 }
