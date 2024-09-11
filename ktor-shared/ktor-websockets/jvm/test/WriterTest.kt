@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
 
-import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -13,6 +12,7 @@ import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)
 class WriterTest {
+
     @Test
     fun testWriteBigThenClose() = runBlocking {
         val out = ByteChannel()
