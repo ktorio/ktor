@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.client.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
@@ -13,10 +17,6 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import kotlin.test.*
-
-/*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 
 class DarwinEngineTest {
 
@@ -205,9 +205,7 @@ class DarwinEngineTest {
             }
         }
 
-        assertFailsWith<IllegalArgumentException>(
-            "The session must be created with KtorNSURLSessionDelegate as a delegate"
-        ) {
+        assertFailsWith<IllegalArgumentException> {
             result.getOrThrow()
         }
     }
