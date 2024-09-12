@@ -11,9 +11,8 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
-import java.io.*
+import kotlinx.io.IOException
 import java.io.EOFException
-import java.io.IOException
 import java.nio.*
 
 /**
@@ -118,23 +117,16 @@ private suspend fun parsePartBodyImpl(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     headers: HttpHeadersMap,
-    limit: Long = Long.MAX_VALUE
+    limit: Long,
 ): Long {
-    val cl = headers["Content-Length"]?.parseDecLong()
-    val size =
-        if (cl != null) {
-            if (cl >
-                limit
-            ) {
-                throw IOException("Multipart part content length limit of $limit exceeded (actual size is $cl)")
-            }
-            input.copyTo(output, cl)
-        } else {
-            copyUntilBoundary("part", boundaryPrefixed, input, { output.writeFully(it) }, limit)
-        }
+    val byteCount = when(val contentLength = headers["Content-Length"]?.parseDecLong()) {
+        null -> copyUntilBoundary("part", boundaryPrefixed, input, { output.writeFully(it) }, limit)
+        in 0L .. limit -> input.copyTo(output, contentLength)
+        else -> throwLimitExceeded("part", contentLength, limit)
+    }
     output.flush()
 
-    return size
+    return byteCount
 }
 
 /**
@@ -200,7 +192,7 @@ public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
-    maxPartSize: Long = Long.MAX_VALUE
+    maxPartSize: Long,
 ): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) {
         throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
@@ -302,7 +294,7 @@ private suspend fun copyUntilBoundary(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
     writeFully: suspend (ByteBuffer) -> Unit,
-    limit: Long = Long.MAX_VALUE
+    limit: Long,
 ): Long {
     val buffer = DefaultByteBufferPool.borrow()
     var copied = 0L
@@ -316,7 +308,7 @@ private suspend fun copyUntilBoundary(
             writeFully(buffer)
             copied += rc
             if (copied > limit) {
-                throw IOException("Multipart $name limit of $limit bytes exceeded")
+                throwLimitExceeded(name, copied, limit)
             }
         }
 
@@ -577,3 +569,9 @@ private fun ByteBuffer.indexOfPartial(sub: ByteBuffer): Int {
 
     return -1
 }
+
+private fun throwLimitExceeded(name: String, actual: Long, limit: Long): Nothing =
+    throw IOException(
+        "Multipart $name content length exceeds limit $actual > $limit; " +
+            "limit is defined using 'formFieldLimit' argument"
+    )
