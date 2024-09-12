@@ -192,7 +192,7 @@ public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
-    maxPartSize: Long,
+    maxPartSize: Long = Long.MAX_VALUE,
 ): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) {
         throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")

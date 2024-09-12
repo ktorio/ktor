@@ -20,7 +20,7 @@ public class CIOMultipartDataBase(
     channel: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
-    formFieldLimit: Long,
+    formFieldLimit: Long = 65536,
 ) : MultiPartData, CoroutineScope {
     private val events: ReceiveChannel<MultipartEvent> =
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
