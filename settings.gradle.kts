@@ -3,6 +3,8 @@
  */
 
 pluginManagement {
+    includeBuild("gradle-settings-conventions")
+
     repositories {
         mavenCentral()
         google()
@@ -10,23 +12,11 @@ pluginManagement {
     }
 }
 
-rootProject.name = "ktor"
-
-val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
-
-if (CACHE_USER != null) {
-    val CACHE_PASSWORD = System.getenv("GRADLE_CACHE_PASSWORD")
-    buildCache {
-        remote(HttpBuildCache::class) {
-            isPush = true
-            setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
-            credentials {
-                username = CACHE_USER
-                password = CACHE_PASSWORD
-            }
-        }
-    }
+plugins {
+    id("conventions-develocity")
 }
+
+rootProject.name = "ktor"
 
 val fullVersion = System.getProperty("java.version", "8.0.0")
 val versionComponents = fullVersion
