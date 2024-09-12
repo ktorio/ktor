@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.testing
 
@@ -166,49 +166,7 @@ public class TestApplicationEngine(
         }
     }
 
-    /**
-     * Installs a hook for test requests.
-     */
-    public fun hookRequests(
-        processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
-        processResponse: TestApplicationCall.() -> Unit,
-        block: () -> Unit
-    ) {
-        val oldProcessRequest = this.processRequest
-        val oldProcessResponse = this.processResponse
-        this.processRequest = {
-            oldProcessRequest {
-                processRequest(it)
-            }
-        }
-        this.processResponse = {
-            oldProcessResponse()
-            processResponse()
-        }
-        try {
-            block()
-        } finally {
-            this.processResponse = oldProcessResponse
-            this.processRequest = oldProcessRequest
-        }
-    }
-
-    /**
-     * Makes a test request.
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    public fun handleRequest(
-        closeRequest: Boolean = true,
-        setup: TestApplicationRequest.() -> Unit
-    ): TestApplicationCall {
-        val callJob = GlobalScope.async(coroutineContext) {
-            handleRequestNonBlocking(closeRequest, timeoutAttributes = null, setup)
-        }
-
-        return maybeRunBlocking { callJob.await() }
-    }
-
-    internal suspend fun handleRequestNonBlocking(
+    internal suspend fun handleRequest(
         closeRequest: Boolean = true,
         timeoutAttributes: HttpTimeoutConfig? = null,
         setup: TestApplicationRequest.() -> Unit
@@ -246,67 +204,15 @@ public class TestApplicationEngine(
         }
 
     /**
-     * Makes a test request that sets up a websocket session and waits for completion.
-     */
-    public fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val call = createWebSocketCall(uri, setup)
-
-        // we can't simply do runBlocking here because runBlocking is not completing
-        // until all children completion (writer is the most dangerous example that can cause deadlock here)
-        val pipelineExecuted = CompletableDeferred<Unit>(coroutineContext[Job])
-        launch(configuration.dispatcher) {
-            try {
-                pipeline.execute(call)
-                pipelineExecuted.complete(Unit)
-            } catch (cause: Throwable) {
-                pipelineExecuted.completeExceptionally(cause)
-            }
-        }
-        processResponse(call)
-
-        maybeRunBlocking {
-            pipelineExecuted.join()
-        }
-
-        return call
-    }
-
-    /**
      * Creates an instance of a test call but doesn't start request processing.
      */
-    public fun createCall(
+    private fun createCall(
         readResponse: Boolean = false,
         closeRequest: Boolean = true,
         context: CoroutineContext = Dispatchers.IOBridge,
         setup: TestApplicationRequest.() -> Unit
     ): TestApplicationCall = TestApplicationCall(applicationProvider(), readResponse, closeRequest, context).apply {
         setup(request)
-    }
-}
-
-/**
- * Keeps cookies between requests inside the [callback].
- *
- * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
- */
-public fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
-    val trackedCookies: MutableList<Cookie> = mutableListOf()
-
-    hookRequests(
-        processRequest = { setup ->
-            addHeader(
-                HttpHeaders.Cookie,
-                trackedCookies.joinToString("; ") {
-                    (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter()
-                }
-            )
-            setup() // setup after setting the cookie so the user can override cookies
-        },
-        processResponse = {
-            trackedCookies += response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
-        }
-    ) {
-        callback()
     }
 }
 

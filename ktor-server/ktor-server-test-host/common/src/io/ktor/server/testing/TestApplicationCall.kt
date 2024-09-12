@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing
@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A test application call that is used in [withTestApplication] and [handleRequest].
+ * A test application call that is used in [TestApplicationEngine].
  */
 public class TestApplicationCall(
     application: Application,
