@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused", "UNUSED_PARAMETER")
@@ -7,8 +7,8 @@
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
+import io.ktor.client.request.*
 import io.ktor.events.*
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
@@ -585,7 +585,8 @@ class EmbeddedServerReloadingTests {
                 }
             }
 
-            assertEquals("Value", engine.handleRequest(HttpMethod.Get, "/").response.headers["Custom"])
+            val response = runBlocking { engine.client.get("/") }
+            assertEquals("Value", response.headers["Custom"])
         } catch (cause: Throwable) {
             fail("Failed with an exception: ${cause.message}")
         } finally {

@@ -1,11 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing
 
 import io.ktor.events.*
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
@@ -24,23 +23,10 @@ public fun createTestEnvironment(
     }
 
 /**
- * Makes a test request.
- */
-public fun TestApplicationEngine.handleRequest(
-    method: HttpMethod,
-    uri: String,
-    setup: TestApplicationRequest.() -> Unit = {}
-): TestApplicationCall = handleRequest {
-    this.uri = uri
-    this.method = method
-    setup()
-}
-
-/**
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
 @Deprecated(
-    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
     level = DeprecationLevel.ERROR,
 )
 public fun <R> withApplication(
@@ -64,7 +50,7 @@ public fun <R> withApplication(
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
 @Deprecated(
-    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
     level = DeprecationLevel.ERROR,
 )
 public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
@@ -76,7 +62,7 @@ public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
 @Deprecated(
-    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
     level = DeprecationLevel.ERROR,
 )
 public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
@@ -91,7 +77,7 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
  * Starts a test application engine, passes it to the [test] function, and stops it.
  */
 @Deprecated(
-    "Use new `testApplication` API: https://ktor.io/docs/migrating-2.html#testing-api",
+    "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
     level = DeprecationLevel.ERROR,
 )
 public fun <R> withTestApplication(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing
@@ -11,8 +11,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.internal.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -29,20 +27,11 @@ public class TestApplicationResponse(
 
     private val timeoutAttributes get() = call.attributes.getOrNull(timeoutAttributesKey)
 
-    /**
-     * Gets a response body text content. Could be blocking. Remains `null` until response appears.
-     */
-    public val content: String?
-        get() {
-            val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
-            return byteContent?.let { charset.newDecoder().decode(ByteReadPacket(it)) }
-        }
+    private val _byteContent = atomic<ByteArray?>(null)
 
     /**
      * Response body byte content. Could be blocking. Remains `null` until response appears.
      */
-    private val _byteContent = atomic<ByteArray?>(null)
-
     public var byteContent: ByteArray?
         get() = when {
             _byteContent.value != null -> _byteContent.value
@@ -124,8 +113,6 @@ public class TestApplicationResponse(
     }
 
     // Websockets & upgrade
-    private val webSocketCompleted: CompletableJob = Job()
-
     internal val webSocketEstablished: CompletableJob = Job()
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
@@ -134,21 +121,8 @@ public class TestApplicationResponse(
             responseChannel(),
             call.application.coroutineContext,
             Dispatchers.Default
-        ).invokeOnCompletion {
-            webSocketCompleted.complete()
-        }
+        )
         webSocketEstablished.complete()
-    }
-
-    /**
-     * Waits for a websocket session completion.
-     */
-    public fun awaitWebSocket(durationMillis: Long): Unit = maybeRunBlocking {
-        withTimeout(durationMillis) {
-            responseChannelDeferred.join()
-            responseJob?.join()
-            webSocketCompleted.join()
-        }
     }
 
     /**

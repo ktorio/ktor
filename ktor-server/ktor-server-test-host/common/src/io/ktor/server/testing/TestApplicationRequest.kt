@@ -1,19 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing
 
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import io.ktor.server.testing.internal.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
 
 /**
  * A test application request
@@ -135,129 +130,13 @@ private fun Parameters.toQueryParameters(): Parameters {
             val values = getAll(name) ?: return null
             return if (values.isEmpty()) "" else values.first()
         }
+
         override val caseInsensitiveName: Boolean
             get() = parameters.caseInsensitiveName
+
         override fun getAll(name: String): List<String>? = parameters.getAll(name)
         override fun names(): Set<String> = parameters.names()
         override fun entries(): Set<Map.Entry<String, List<String>>> = parameters.entries()
         override fun isEmpty(): Boolean = parameters.isEmpty()
     }
-}
-
-/**
- * Sets an HTTP request body text content.
- */
-public fun TestApplicationRequest.setBody(value: String) {
-    setBody(value.toByteArray())
-}
-
-/**
- * Sets an HTTP request body bytes.
- */
-public fun TestApplicationRequest.setBody(value: ByteArray) {
-    bodyChannel = ByteReadChannel(value)
-}
-
-/**
- * Set HTTP request body from [ByteReadPacket]
- */
-
-public fun TestApplicationRequest.setBody(value: Source) {
-    bodyChannel = ByteReadChannel(value.readByteArray())
-}
-
-/**
- * Sets a multipart HTTP request body.
- */
-
-public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
-    bodyChannel = writer(Dispatchers.IOBridge) {
-        if (parts.isEmpty()) return@writer
-
-        try {
-            append("\r\n\r\n")
-            parts.forEach {
-                append("--$boundary\r\n")
-                for ((key, values) in it.headers.entries()) {
-                    append("$key: ${values.joinToString(";")}\r\n")
-                }
-                append("\r\n")
-                append(
-                    when (it) {
-                        is PartData.FileItem -> {
-                            channel.writeFully(it.provider().readRemaining().readByteArray())
-                            ""
-                        }
-
-                        is PartData.BinaryItem -> {
-                            channel.writeFully(it.provider().readByteArray())
-                            ""
-                        }
-
-                        is PartData.FormItem -> it.value
-                        is PartData.BinaryChannelItem -> {
-                            it.provider().copyTo(channel)
-                            ""
-                        }
-                    }
-                )
-                append("\r\n")
-            }
-
-            append("--$boundary--\r\n")
-        } finally {
-            parts.forEach { it.dispose() }
-        }
-    }.channel
-}
-
-/**
- * Sets a multipart HTTP request body.
- */
-
-@OptIn(DelicateCoroutinesApi::class)
-internal fun buildMultipart(
-    boundary: String,
-    parts: List<PartData>
-): ByteReadChannel = GlobalScope.writer(Dispatchers.IOBridge) {
-    if (parts.isEmpty()) return@writer
-
-    try {
-        append("\r\n\r\n")
-        parts.forEach {
-            append("--$boundary\r\n")
-            for ((key, values) in it.headers.entries()) {
-                append("$key: ${values.joinToString(";")}\r\n")
-            }
-            append("\r\n")
-            append(
-                when (it) {
-                    is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readByteArray())
-                        ""
-                    }
-
-                    is PartData.BinaryItem -> {
-                        channel.writeFully(it.provider().readByteArray())
-                        ""
-                    }
-
-                    is PartData.FormItem -> it.value
-                    is PartData.BinaryChannelItem -> {
-                        it.provider().copyTo(channel)
-                        ""
-                    }
-                }
-            )
-            append("\r\n")
-        }
-
-        append("--$boundary--\r\n")
-    } finally {
-        parts.forEach { it.dispose() }
-    }
-}.channel
-
-private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
-    channel.writeFully(str.toByteArray(charset))
 }

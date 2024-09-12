@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.client
@@ -86,7 +86,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         protocol: URLProtocol,
         timeoutAttributes: HttpTimeoutConfig? = null
     ): TestApplicationCall {
-        return app.handleRequestNonBlocking(timeoutAttributes = timeoutAttributes) {
+        return app.handleRequest(timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port
             this.method = method
