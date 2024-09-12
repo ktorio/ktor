@@ -119,9 +119,9 @@ private suspend fun parsePartBodyImpl(
     headers: HttpHeadersMap,
     limit: Long,
 ): Long {
-    val byteCount = when(val contentLength = headers["Content-Length"]?.parseDecLong()) {
+    val byteCount = when (val contentLength = headers["Content-Length"]?.parseDecLong()) {
         null -> copyUntilBoundary("part", boundaryPrefixed, input, { output.writeFully(it) }, limit)
-        in 0L .. limit -> input.copyTo(output, contentLength)
+        in 0L..limit -> input.copyTo(output, contentLength)
         else -> throwLimitExceeded("part", contentLength, limit)
     }
     output.flush()
