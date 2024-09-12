@@ -309,6 +309,38 @@ final class io.ktor.http.content/TextContent : io.ktor.http.content/OutgoingCont
     final fun toString(): kotlin/String // io.ktor.http.content/TextContent.toString|toString(){}[0]
 }
 
+final class io.ktor.http.header/AcceptEncoding : io.ktor.http/HeaderValueWithParameters { // io.ktor.http.header/AcceptEncoding|null[0]
+    constructor <init>(kotlin/String, kotlin.collections/List<io.ktor.http/HeaderValueParam> = ...) // io.ktor.http.header/AcceptEncoding.<init>|<init>(kotlin.String;kotlin.collections.List<io.ktor.http.HeaderValueParam>){}[0]
+    constructor <init>(kotlin/String, kotlin/Double) // io.ktor.http.header/AcceptEncoding.<init>|<init>(kotlin.String;kotlin.Double){}[0]
+
+    final val acceptEncoding // io.ktor.http.header/AcceptEncoding.acceptEncoding|{}acceptEncoding[0]
+        final fun <get-acceptEncoding>(): kotlin/String // io.ktor.http.header/AcceptEncoding.acceptEncoding.<get-acceptEncoding>|<get-acceptEncoding>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http.header/AcceptEncoding.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.http.header/AcceptEncoding.hashCode|hashCode(){}[0]
+    final fun match(io.ktor.http.header/AcceptEncoding): kotlin/Boolean // io.ktor.http.header/AcceptEncoding.match|match(io.ktor.http.header.AcceptEncoding){}[0]
+    final fun withQValue(kotlin/Double): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.withQValue|withQValue(kotlin.Double){}[0]
+
+    final object Companion { // io.ktor.http.header/AcceptEncoding.Companion|null[0]
+        final val All // io.ktor.http.header/AcceptEncoding.Companion.All|{}All[0]
+            final fun <get-All>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.All.<get-All>|<get-All>(){}[0]
+        final val Br // io.ktor.http.header/AcceptEncoding.Companion.Br|{}Br[0]
+            final fun <get-Br>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Br.<get-Br>|<get-Br>(){}[0]
+        final val Compress // io.ktor.http.header/AcceptEncoding.Companion.Compress|{}Compress[0]
+            final fun <get-Compress>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Compress.<get-Compress>|<get-Compress>(){}[0]
+        final val Deflate // io.ktor.http.header/AcceptEncoding.Companion.Deflate|{}Deflate[0]
+            final fun <get-Deflate>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Deflate.<get-Deflate>|<get-Deflate>(){}[0]
+        final val Gzip // io.ktor.http.header/AcceptEncoding.Companion.Gzip|{}Gzip[0]
+            final fun <get-Gzip>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Gzip.<get-Gzip>|<get-Gzip>(){}[0]
+        final val Identity // io.ktor.http.header/AcceptEncoding.Companion.Identity|{}Identity[0]
+            final fun <get-Identity>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Identity.<get-Identity>|<get-Identity>(){}[0]
+        final val Zstd // io.ktor.http.header/AcceptEncoding.Companion.Zstd|{}Zstd[0]
+            final fun <get-Zstd>(): io.ktor.http.header/AcceptEncoding // io.ktor.http.header/AcceptEncoding.Companion.Zstd.<get-Zstd>|<get-Zstd>(){}[0]
+
+        final fun mergeAcceptEncodings(kotlin/Array<out io.ktor.http.header/AcceptEncoding>...): kotlin/String // io.ktor.http.header/AcceptEncoding.Companion.mergeAcceptEncodings|mergeAcceptEncodings(kotlin.Array<out|io.ktor.http.header.AcceptEncoding>...){}[0]
+    }
+}
+
 final class io.ktor.http.parsing/ParseException : kotlin/IllegalArgumentException { // io.ktor.http.parsing/ParseException|null[0]
     constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.http.parsing/ParseException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 
