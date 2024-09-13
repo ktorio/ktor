@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class DarwinEngineTest {
 
@@ -257,13 +258,13 @@ class DarwinEngineTest {
     fun testWebSocketPingInterval() = testSuspend {
         val client = HttpClient(Darwin) {
             install(WebSockets) {
-                pingInterval = 1000
+                pingInterval = 1.seconds
             }
         }
 
         assertFailsWith<TimeoutCancellationException> {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                withTimeout(5000) {
+                withTimeout(5.seconds) {
                     for (frame in incoming) {
                     }
                 }

@@ -231,6 +231,9 @@ sealed class io.ktor.websocket/Frame { // io.ktor.websocket/Frame|null[0]
     }
 }
 
+final const val io.ktor.websocket/PINGER_DISABLED // io.ktor.websocket/PINGER_DISABLED|{}PINGER_DISABLED[0]
+    final fun <get-PINGER_DISABLED>(): kotlin/Long // io.ktor.websocket/PINGER_DISABLED.<get-PINGER_DISABLED>|<get-PINGER_DISABLED>(){}[0]
+
 final var io.ktor.websocket/pingInterval // io.ktor.websocket/pingInterval|@io.ktor.websocket.DefaultWebSocketSession{}pingInterval[0]
     final inline fun (io.ktor.websocket/DefaultWebSocketSession).<get-pingInterval>(): kotlin.time/Duration? // io.ktor.websocket/pingInterval.<get-pingInterval>|<get-pingInterval>@io.ktor.websocket.DefaultWebSocketSession(){}[0]
     final inline fun (io.ktor.websocket/DefaultWebSocketSession).<set-pingInterval>(kotlin.time/Duration?) // io.ktor.websocket/pingInterval.<set-pingInterval>|<set-pingInterval>@io.ktor.websocket.DefaultWebSocketSession(kotlin.time.Duration?){}[0]

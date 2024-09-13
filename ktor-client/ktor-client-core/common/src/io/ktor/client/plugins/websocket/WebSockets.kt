@@ -34,13 +34,13 @@ public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Un
 /**
  * Client WebSocket plugin.
  *
- * @property pingInterval - interval between [FrameType.PING] messages.
+ * @property pingIntervalMillis - interval between [FrameType.PING] messages.
  * @property maxFrameSize - max size of a single websocket frame.
  * @property extensionsConfig - extensions configuration
  * @property contentConverter - converter for serialization/deserialization
  */
 public class WebSockets internal constructor(
-    public val pingInterval: Long,
+    public val pingIntervalMillis: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
     public val contentConverter: WebsocketContentConverter? = null
@@ -48,18 +48,18 @@ public class WebSockets internal constructor(
     /**
      * Client WebSocket plugin.
      *
-     * @property pingInterval - interval between [FrameType.PING] messages.
-     * @property maxFrameSize - max size of single websocket frame.
+     * @property pingIntervalMillis - interval between [FrameType.PING] messages.
+     * @property maxFrameSize - max size of a single websocket frame.
      */
     public constructor(
-        pingInterval: Long = -1L,
+        pingIntervalMillis: Long = PINGER_DISABLED,
         maxFrameSize: Long = Int.MAX_VALUE.toLong()
-    ) : this(pingInterval, maxFrameSize, WebSocketExtensionsConfig())
+    ) : this(pingIntervalMillis, maxFrameSize, WebSocketExtensionsConfig())
 
     /**
      * Client WebSocket plugin.
      */
-    public constructor() : this(-1L, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
+    public constructor() : this(PINGER_DISABLED, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
 
     private fun installExtensions(context: HttpRequestBuilder) {
         val installed = extensionsConfig.build()
@@ -69,7 +69,6 @@ public class WebSockets internal constructor(
         addNegotiatedProtocols(context, protocols)
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun completeNegotiation(
         call: HttpClientCall
     ): List<WebSocketExtension<*>> {
@@ -92,7 +91,7 @@ public class WebSockets internal constructor(
     internal fun convertSessionToDefault(session: WebSocketSession): DefaultWebSocketSession {
         if (session is DefaultWebSocketSession) return session
 
-        return DefaultWebSocketSession(session, pingInterval, timeoutMillis = pingInterval * 2).also {
+        return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis = pingIntervalMillis * 2).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
     }
@@ -107,9 +106,9 @@ public class WebSockets internal constructor(
         /**
          * Sets interval of sending ping frames.
          *
-         * Value -1L is for disabled ping.
+         * Use [PINGER_DISABLED] to disable ping.
          */
-        public var pingInterval: Long = -1L
+        public var pingIntervalMillis: Long = PINGER_DISABLED
 
         /**
          * Sets maximum frame size in bytes.
@@ -138,7 +137,7 @@ public class WebSockets internal constructor(
         override fun prepare(block: Config.() -> Unit): WebSockets {
             val config = Config().apply(block)
             return WebSockets(
-                config.pingInterval,
+                config.pingIntervalMillis,
                 config.maxFrameSize,
                 config.extensionsConfig,
                 config.contentConverter

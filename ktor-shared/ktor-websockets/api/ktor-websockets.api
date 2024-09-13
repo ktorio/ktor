@@ -53,6 +53,7 @@ public final class io/ktor/websocket/DefaultWebSocketSession$DefaultImpls {
 }
 
 public final class io/ktor/websocket/DefaultWebSocketSessionKt {
+	public static final field PINGER_DISABLED J
 	public static final fun DefaultWebSocketSession (Lio/ktor/websocket/WebSocketSession;JJ)Lio/ktor/websocket/DefaultWebSocketSession;
 	public static synthetic fun DefaultWebSocketSession$default (Lio/ktor/websocket/WebSocketSession;JJILjava/lang/Object;)Lio/ktor/websocket/DefaultWebSocketSession;
 	public static final fun getPingInterval (Lio/ktor/websocket/DefaultWebSocketSession;)Lkotlin/time/Duration;

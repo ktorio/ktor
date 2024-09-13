@@ -6,7 +6,8 @@
 
 package io.ktor.server.websocket
 
-import kotlin.time.*
+import io.ktor.websocket.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -33,22 +34,22 @@ public fun WebSockets(
     maxFrameSize: Long,
     masking: Boolean,
 ): WebSockets = WebSockets(
-    pingIntervalMillis = pingInterval?.inWholeMilliseconds ?: 0L,
+    pingIntervalMillis = pingInterval?.inWholeMilliseconds ?: PINGER_DISABLED,
     timeoutMillis = timeout.inWholeMilliseconds,
     maxFrameSize = maxFrameSize,
     masking = masking,
 )
 
 public inline val WebSockets.pingInterval: Duration?
-    get() = pingIntervalMillis.takeIf { it > 0L }?.milliseconds
+    get() = pingIntervalMillis.takeIf { it > PINGER_DISABLED }?.milliseconds
 
 public inline val WebSockets.timeout: Duration
     get() = timeoutMillis.milliseconds
 
 public inline var WebSockets.WebSocketOptions.pingPeriod: Duration?
-    get() = pingPeriodMillis.takeIf { it > 0L }?.milliseconds
+    get() = pingPeriodMillis.takeIf { it > PINGER_DISABLED }?.milliseconds
     set(new) {
-        pingPeriodMillis = new?.inWholeMilliseconds ?: 0L
+        pingPeriodMillis = new?.inWholeMilliseconds ?: PINGER_DISABLED
     }
 
 public inline var WebSockets.WebSocketOptions.timeout: Duration

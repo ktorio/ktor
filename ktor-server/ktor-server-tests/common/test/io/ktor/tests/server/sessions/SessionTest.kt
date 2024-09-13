@@ -17,7 +17,6 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -756,7 +755,7 @@ data class TestUserSessionB(val userId: String, val cart: List<String>)
 
 // Custom serializer should work without kotlinx-serialization
 data class TestUserSessionCustom(val userId: String, val cart: List<String>) {
-    companion object Serializer: SessionSerializer<TestUserSessionCustom> {
+    companion object Serializer : SessionSerializer<TestUserSessionCustom> {
         override fun serialize(session: TestUserSessionCustom): String =
             session.userId + ";" + session.cart.joinToString(",")
 
