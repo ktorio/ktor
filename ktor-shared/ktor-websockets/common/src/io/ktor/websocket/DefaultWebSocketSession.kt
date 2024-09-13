@@ -340,4 +340,23 @@ internal class DefaultWebSocketSessionImpl(
     }
 }
 
+/**
+ * Ping interval or `null` to disable pinger. Note that pongs will be handled despite this setting.
+ */
+public inline var DefaultWebSocketSession.pingInterval: Duration?
+    get() = pingIntervalMillis.takeIf { it >= 0L }?.milliseconds
+    set(newDuration) {
+        pingIntervalMillis = newDuration?.inWholeMilliseconds ?: -1L
+    }
+
+/**
+ * A timeout to wait for pong reply to ping, otherwise the session will be terminated immediately.
+ * It doesn't have any effect if [pingInterval] is `null` (pinger is disabled).
+ */
+public inline var DefaultWebSocketSession.timeout: Duration
+    get() = timeoutMillis.milliseconds
+    set(newDuration) {
+        timeoutMillis = newDuration.inWholeMilliseconds
+    }
+
 internal expect val OUTGOING_CHANNEL_CAPACITY: Int

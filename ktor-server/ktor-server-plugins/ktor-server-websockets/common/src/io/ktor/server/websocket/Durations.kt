@@ -1,69 +1,58 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("FunctionName")
 
 package io.ktor.server.websocket
 
-import java.time.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Ping interval or `null` to disable pinger. Please note that pongs will be handled despite this setting.
+ * WebSockets support plugin. It is required to be installed first before binding any websocket endpoints
+ *
+ * ```
+ * install(WebSockets)
+ *
+ * install(Routing) {
+ *     webSocket("/ws") {
+ *          incoming.consumeForEach { ... }
+ *     }
+ * }
+ * ```
+ *
+ * @param pingInterval duration between pings or `null` to disable pings.
+ * @param timeout write/ping timeout after that a connection will be closed.
+ * @param maxFrameSize maximum frame that could be received or sent.
+ * @param masking whether masking need to be enabled (useful for security).
  */
-public inline var DefaultWebSocketServerSession.pingInterval: Duration?
-    get() = pingIntervalMillis.takeIf { it >= 0L }?.let { Duration.ofMillis(it) }
-    set(newDuration) {
-        pingIntervalMillis = newDuration?.toMillis() ?: -1L
-    }
-
-/**
- * A timeout to wait for pong reply to ping otherwise the session will be terminated immediately.
- * It doesn't have any effect if [pingInterval] is `null` (pinger is disabled).
- */
-public inline var DefaultWebSocketServerSession.timeout: Duration
-    get() = Duration.ofMillis(timeoutMillis)
-    set(newDuration) {
-        timeoutMillis = newDuration.toMillis()
-    }
-
 public fun WebSockets(
     pingInterval: Duration?,
     timeout: Duration,
     maxFrameSize: Long,
-    masking: Boolean
+    masking: Boolean,
 ): WebSockets = WebSockets(
-    pingInterval?.toMillis() ?: 0L,
-    timeout.toMillis(),
-    maxFrameSize,
-    masking
+    pingIntervalMillis = pingInterval?.inWholeMilliseconds ?: 0L,
+    timeoutMillis = timeout.inWholeMilliseconds,
+    maxFrameSize = maxFrameSize,
+    masking = masking,
 )
 
 public inline val WebSockets.pingInterval: Duration?
-    get() = when (pingIntervalMillis) {
-        0L -> null
-        else -> Duration.ofMillis(pingIntervalMillis)
-    }
+    get() = pingIntervalMillis.takeIf { it > 0L }?.milliseconds
 
 public inline val WebSockets.timeout: Duration
-    get() = Duration.ofMillis(timeoutMillis)
+    get() = timeoutMillis.milliseconds
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline var WebSockets.WebSocketOptions.pingPeriod: Duration?
-    get() = when (pingPeriodMillis) {
-        0L -> null
-        else -> Duration.ofMillis(pingPeriodMillis)
-    }
+    get() = pingPeriodMillis.takeIf { it > 0L }?.milliseconds
     set(new) {
-        pingPeriodMillis = when (new) {
-            null -> 0
-            else -> new.toMillis()
-        }
+        pingPeriodMillis = new?.inWholeMilliseconds ?: 0L
     }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 public inline var WebSockets.WebSocketOptions.timeout: Duration
-    get() = Duration.ofMillis(timeoutMillis)
+    get() = timeoutMillis.milliseconds
     set(new) {
-        timeoutMillis = new.toMillis()
+        timeoutMillis = new.inWholeMilliseconds
     }
