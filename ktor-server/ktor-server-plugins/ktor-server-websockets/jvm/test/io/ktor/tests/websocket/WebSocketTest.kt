@@ -318,13 +318,11 @@ class WebSocketTest {
             maxFrameSize = 1025
         }
 
-        var exception: Throwable? = null
+        val result = DeferredResult()
         routing {
             webSocket("/") {
-                try {
+                withDeferredResult(result) {
                     incoming.receive()
-                } catch (cause: Throwable) {
-                    exception = cause
                 }
             }
         }
@@ -340,6 +338,7 @@ class WebSocketTest {
             clientClosedProperly = true
         }
 
+        val exception = result.await().exceptionOrNull()
         assertTrue(clientClosedProperly, "Client wasn't closed properly")
         assertTrue("Expected FrameTooBigException, but found $exception") {
             exception is FrameTooBigException
