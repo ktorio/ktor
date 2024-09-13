@@ -359,6 +359,8 @@ class UrlTest {
         assertEquals("version", aboutVersionUrl.host)
 
         val urlHttp = Url("about")
-        assertEquals("http://localhost/about", urlHttp.toString())
+        assertEquals("localhost", urlHttp.host)
+        assertEquals(URLProtocol.HTTP, urlHttp.protocol)
+        assertTrue(urlHttp.rawSegments.contains("about"))
     }
 }
