@@ -162,34 +162,13 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultipartBigger65536Fails() {
+    fun testMultipartBiggerThanLimitFails() {
         if (!PlatformUtils.IS_JVM) return
 
         testApplication {
             routing {
                 post {
-                    val multipart = call.receiveMultipart()
-                    while (true) {
-                        val part = multipart.readPart() ?: break
-                        when (part) {
-                            is PartData.FileItem -> {
-                                part.provider().readRemaining().readText()
-                            }
-
-                            is PartData.FormItem -> {
-                                part.value
-                            }
-
-                            is PartData.BinaryChannelItem -> {
-                                part.provider().readRemaining().readText()
-                            }
-
-                            is PartData.BinaryItem -> {
-                                part.provider().readByteArray()
-                            }
-                        }
-                        part.dispose()
-                    }
+                    call.receiveMultipart(formFieldLimit = 999).readPart()
                 }
             }
 
@@ -198,9 +177,10 @@ class TestEngineMultipartTest {
                     setBody(
                         MultiPartFormDataContent(
                             formData {
-                                append("data", "a".repeat(42 * 1024 * 1024))
+                                append("data", "a".repeat(1000))
                             }
                         )
+
                     )
                 }
             }

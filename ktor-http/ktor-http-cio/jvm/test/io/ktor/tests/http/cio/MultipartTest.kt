@@ -409,7 +409,8 @@ class MultipartTest {
             val events = parseMultipart(
                 input,
                 "multipart/form-data; boundary=boundary",
-                body.length.toLong()
+                body.length.toLong(),
+                Long.MAX_VALUE
             ).toList()
 
             assertEquals(1, events.size)

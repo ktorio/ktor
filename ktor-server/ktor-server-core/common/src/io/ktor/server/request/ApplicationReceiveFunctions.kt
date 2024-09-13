@@ -20,7 +20,7 @@ import kotlin.reflect.*
 private val FORM_FIELD_LIMIT = AttributeKey<Long>("FormFieldLimit")
 
 @PublishedApi
-internal const val DEFAULT_FORM_FIELD_MAX_SIZE: Long = 64 * 1024
+internal const val DEFAULT_FORM_FIELD_MAX_SIZE: Long = 50 * 1024 * 1024
 
 /**
  * A pipeline for processing incoming content.
