@@ -128,7 +128,7 @@ allprojects {
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
     apply(plugin = "kotlin-multiplatform")
-    apply(plugin = "org.jetbrains.kotlinx.atomicfu")
+    apply(plugin = "atomicfu-conventions")
 
     configureTargets()
 
