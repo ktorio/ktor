@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
 import io.micrometer.core.instrument.logging.*
 import io.micrometer.core.instrument.simple.*
+import java.io.*
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -406,6 +407,20 @@ class MicrometerMetricsTests {
 
         startApplication()
         assertTrue(closed)
+    }
+
+    @Test
+    fun `register meter-filter before the very first meter is registered`() {
+        val standardOut = System.out
+        try {
+            val outputStream = ByteArrayOutputStream()
+            System.setOut(PrintStream(outputStream))
+
+            val logs = outputStream.toString()
+            assertFalse(logs.contains("MeterFilter is being configured after a Meter has been registered"))
+        } finally {
+            System.setOut(standardOut)
+        }
     }
 
     private suspend fun ApplicationTestBuilder.metersAreRegistered(
