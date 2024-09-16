@@ -109,7 +109,7 @@ public open class RoutingNode(
         for (index in 0..handlers.lastIndex) {
             pipeline.intercept(Call) {
                 val call = call as RoutingPipelineCall
-                val routingCall = call.routingCall()
+                val routingCall = RoutingCall(call)
                 val routingContext = RoutingContext(routingCall)
                 if (call.isHandled) return@intercept
                 handlers[index].invoke(routingContext)
@@ -201,10 +201,19 @@ public class RoutingCall internal constructor(
     override val coroutineContext: CoroutineContext
         get() = pipelineCall.coroutineContext
 
-    public override lateinit var request: RoutingRequest
-        internal set
-    public override lateinit var response: RoutingResponse
-        internal set
+    public override val request: RoutingRequest by lazy {
+        RoutingRequest(
+            pathVariables = pipelineCall.pathParameters,
+            request = pipelineCall.request,
+            call = this
+        )
+    }
+    public override val response: RoutingResponse by lazy {
+        RoutingResponse(
+            applicationResponse = pipelineCall.response,
+            call = this
+        )
+    }
 
     public override val attributes: Attributes = pipelineCall.attributes
     public override val application: Application = pipelineCall.application
@@ -283,22 +292,6 @@ public interface Routing : Route {
      * To learn more, see [Tracing routes](https://ktor.io/docs/tracing-routes.html).
      */
     public fun trace(block: (RoutingResolveTrace) -> Unit)
-}
-
-private fun RoutingPipelineCall.routingCall(): RoutingCall {
-    val call = RoutingCall(
-        pipelineCall = this
-    )
-    call.request = RoutingRequest(
-        pathVariables = call.pathParameters,
-        request = request,
-        call = call
-    )
-    call.response = RoutingResponse(
-        applicationResponse = response,
-        call = call
-    )
-    return call
 }
 
 /**

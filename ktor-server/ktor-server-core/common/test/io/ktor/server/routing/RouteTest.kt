@@ -4,10 +4,16 @@
 
 package io.ktor.tests.routing
 
+import io.ktor.client.plugins.api.*
+import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.RoutingRoot.Plugin.RoutingCallStarted
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
 import kotlin.test.*
 
 class RouteTest {
@@ -121,5 +127,19 @@ class RouteTest {
             )
             assertEquals(expected, endpoints.map { it.toString() }.toSet())
         }
+    }
+
+    @Test
+    fun routingInitialization() = testApplication {
+        application {
+            monitor.subscribe(RoutingCallStarted) { call ->
+                assertEquals(HttpMethod.Get, call.request.httpMethod)
+            }
+            routing {
+                get { call.respond(HttpStatusCode.OK) }
+            }
+        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/").status)
     }
 }
