@@ -1,6 +1,6 @@
 // Klib ABI Dump
-// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: native => [iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: apple => [iosArm64, iosSimulatorArm64, iosX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: linux => [linuxArm64, linuxX64]
 // Rendering settings:
@@ -492,6 +492,12 @@ open class io.ktor.utils.io.locks/SynchronizedObject { // io.ktor.utils.io.locks
 
             // Targets: [linux, mingwX64]
             final fun <get-ownerThreadId>(): kotlin/ULong? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
+
+            // Targets: [androidNativeArm32, androidNativeX86]
+            final fun <get-ownerThreadId>(): kotlin/Int? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
+
+            // Targets: [androidNativeArm64, androidNativeX64]
+            final fun <get-ownerThreadId>(): kotlin/Long? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
         final val status // io.ktor.utils.io.locks/SynchronizedObject.LockState.status|{}status[0]
             final fun <get-status>(): io.ktor.utils.io.locks/SynchronizedObject.Status // io.ktor.utils.io.locks/SynchronizedObject.LockState.status.<get-status>|<get-status>(){}[0]
         final val waiters // io.ktor.utils.io.locks/SynchronizedObject.LockState.waiters|{}waiters[0]
@@ -502,6 +508,12 @@ open class io.ktor.utils.io.locks/SynchronizedObject { // io.ktor.utils.io.locks
 
         // Targets: [linux, mingwX64]
         constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/ULong? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.ULong?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
+
+        // Targets: [androidNativeArm32, androidNativeX86]
+        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/Int? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.Int?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
+
+        // Targets: [androidNativeArm64, androidNativeX64]
+        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/Long? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.Long?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
     }
 }
 
