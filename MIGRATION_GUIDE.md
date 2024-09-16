@@ -26,5 +26,3 @@ using big endian, and call the `ByteChannelSequentialBase.reverseByteOrder()` ex
 * `AbstractInput` class has been [deprecated](https://youtrack.jetbrains.com/issue/KTOR-2204) and will be merged with `Input` class as of version 2.0.0.
 * `AbstractOutput` class has been [deprecated](https://youtrack.jetbrains.com/issue/KTOR-2204) and will be merged with `Output` class as of version 2.0.0.
 * `IoBuffer` class has been [deprecated](https://youtrack.jetbrains.com/issue/KTOR-2204). Please use `ChunkBuffer` instead.
-
-

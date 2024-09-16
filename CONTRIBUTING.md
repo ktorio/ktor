@@ -147,5 +147,3 @@ bug reports or feature requests. Before doing so however, please take into consi
 * When submitting a feature request:
     * Explain why you need the feature &mdash; what's your use-case, what's your domain. Explaining the problem you face is more important than suggesting a solution.
       Report your problem even if you don't have any proposed solution. If there is an alternative way to do what you need, then show the code of the alternative.
-      
-
