@@ -1017,13 +1017,12 @@ final class io.ktor.server.routing/RoutingCall : io.ktor.server.application/Appl
         final fun <get-pipelineCall>(): io.ktor.server.routing/RoutingPipelineCall // io.ktor.server.routing/RoutingCall.pipelineCall.<get-pipelineCall>|<get-pipelineCall>(){}[0]
     final val queryParameters // io.ktor.server.routing/RoutingCall.queryParameters|{}queryParameters[0]
         final fun <get-queryParameters>(): io.ktor.http/Parameters // io.ktor.server.routing/RoutingCall.queryParameters.<get-queryParameters>|<get-queryParameters>(){}[0]
+    final val request // io.ktor.server.routing/RoutingCall.request|{}request[0]
+        final fun <get-request>(): io.ktor.server.routing/RoutingRequest // io.ktor.server.routing/RoutingCall.request.<get-request>|<get-request>(){}[0]
+    final val response // io.ktor.server.routing/RoutingCall.response|{}response[0]
+        final fun <get-response>(): io.ktor.server.routing/RoutingResponse // io.ktor.server.routing/RoutingCall.response.<get-response>|<get-response>(){}[0]
     final val route // io.ktor.server.routing/RoutingCall.route|{}route[0]
         final fun <get-route>(): io.ktor.server.routing/RoutingNode // io.ktor.server.routing/RoutingCall.route.<get-route>|<get-route>(){}[0]
-
-    final var request // io.ktor.server.routing/RoutingCall.request|{}request[0]
-        final fun <get-request>(): io.ktor.server.routing/RoutingRequest // io.ktor.server.routing/RoutingCall.request.<get-request>|<get-request>(){}[0]
-    final var response // io.ktor.server.routing/RoutingCall.response|{}response[0]
-        final fun <get-response>(): io.ktor.server.routing/RoutingResponse // io.ktor.server.routing/RoutingCall.response.<get-response>|<get-response>(){}[0]
 
     final suspend fun <#A1: kotlin/Any?> receiveNullable(io.ktor.util.reflect/TypeInfo): #A1? // io.ktor.server.routing/RoutingCall.receiveNullable|receiveNullable(io.ktor.util.reflect.TypeInfo){0§<kotlin.Any?>}[0]
     final suspend fun respond(kotlin/Any?, io.ktor.util.reflect/TypeInfo?) // io.ktor.server.routing/RoutingCall.respond|respond(kotlin.Any?;io.ktor.util.reflect.TypeInfo?){}[0]
