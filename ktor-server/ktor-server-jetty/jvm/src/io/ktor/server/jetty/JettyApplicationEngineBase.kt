@@ -53,10 +53,6 @@ public open class JettyApplicationEngineBase(
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
-        addShutdownHook(monitor) {
-            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
-        }
-
         server.start()
         cancellationDeferred = stopServerOnCancellation(
             applicationProvider(),
