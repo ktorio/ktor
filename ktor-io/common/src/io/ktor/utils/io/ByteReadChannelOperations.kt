@@ -446,16 +446,20 @@ public val ByteReadChannel.availableForRead: Int
  * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
  * Suspends if not enough bytes available.
  */
-@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readFully(out: ByteArray) {
+    readFully(out, 0, out.size)
+}
+
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int, end: Int) {
     if (isClosedForRead) throw EOFException("Channel is already closed")
 
-    var offset = 0
-    while (offset < out.size) {
+    var offset = start
+    while (offset < end) {
         if (readBuffer.exhausted()) awaitContent()
         if (isClosedForRead) throw EOFException("Channel is already closed")
 
-        val count = min(out.size - offset, readBuffer.remaining.toInt())
+        val count = min(end - offset, readBuffer.remaining.toInt())
         readBuffer.readTo(out, offset, offset + count)
         offset += count
     }
