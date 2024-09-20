@@ -4,16 +4,9 @@
 
 package io.ktor.server.engine
 
-import io.ktor.events.*
+import io.ktor.server.application.ApplicationStarting
 
-/**
- * Adds automatic application shutdown hooks management. Should be used **before** starting the engine.
- * Once application termination noticed, [stop] block will be executed.
- * Please note that a shutdown hook only registered when the application is running. If the application
- * is already stopped then there will be no hook and no [stop] function invocation possible.
- * So [stop] block will be called once or never.
- */
-public expect fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () -> Unit)
+internal expect val SHUTDOWN_HOOK_ENABLED: Boolean
 
 /**
  * Adds automatic application shutdown hooks management. Should be used **before** starting the server.
@@ -22,4 +15,17 @@ public expect fun ApplicationEngine.addShutdownHook(monitor: Events, stop: () ->
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-public expect fun EmbeddedServer<*, *>.addShutdownHook(stop: () -> Unit)
+public fun EmbeddedServer<*, *>.addShutdownHook(stop: () -> Unit) {
+    if (SHUTDOWN_HOOK_ENABLED) {
+        monitor.subscribe(ApplicationStarting) { platformAddShutdownHook(stop) }
+    }
+}
+
+/**
+ * Adds automatic application shutdown hooks management. Should be used **before** starting the server.
+ * Once application termination noticed, [stop] block will be executed.
+ * Please note that a shutdown hook only registered when the application is running. If the application
+ * is already stopped then there will be no hook and no [stop] function invocation possible.
+ * So [stop] block will be called once or never.
+ */
+internal expect fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit)
