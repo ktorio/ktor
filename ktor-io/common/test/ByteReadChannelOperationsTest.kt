@@ -63,4 +63,24 @@ class ByteReadChannelOperationsTest {
             channel.readRemaining()
         }
     }
+
+    @Test
+    fun readFully() = testSuspend {
+        val expected = ByteArray(10) { it.toByte() }
+        val actual = ByteArray(10)
+        val channel = ByteChannel()
+        channel.writeFully(expected)
+        channel.flush()
+        channel.readFully(actual)
+        assertContentEquals(expected, actual)
+
+        actual.fill(0)
+        channel.writeFully(expected, 0, 5)
+        channel.flush()
+        channel.readFully(actual, 3, 8)
+        assertContentEquals(ByteArray(3) { 0 }, actual.copyOfRange(0, 3))
+        assertContentEquals(expected.copyOfRange(0, 5), actual.copyOfRange(3, 8))
+        assertContentEquals(ByteArray(2) { 0 }, actual.copyOfRange(8, 10))
+    }
+
 }

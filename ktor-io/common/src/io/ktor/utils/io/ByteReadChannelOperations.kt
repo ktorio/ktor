@@ -129,7 +129,6 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
     return result
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readUTF8Line(): String? {
     val result = StringBuilder()
     val completed = readUTF8LineTo(result)
@@ -443,19 +442,25 @@ public val ByteReadChannel.availableForRead: Int
     get() = readBuffer.buffer.size.toInt()
 
 /**
- * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
- * Suspends if not enough bytes available.
+ * Reads bytes from [start] to [end] into the provided [out] buffer, or fails
+ * if the channel has been closed.
+ *
+ * Suspension occurs when there are not enough bytes available in the channel.
+ *
+ * @param out the buffer to write to
+ * @param start the index to start writing at
+ * @param end the index to write until
  */
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readFully(out: ByteArray) {
+public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int = 0, end: Int = out.size) {
     if (isClosedForRead) throw EOFException("Channel is already closed")
 
-    var offset = 0
-    while (offset < out.size) {
+    var offset = start
+    while (offset < end) {
         if (readBuffer.exhausted()) awaitContent()
         if (isClosedForRead) throw EOFException("Channel is already closed")
 
-        val count = min(out.size - offset, readBuffer.remaining.toInt())
+        val count = min(end - offset, readBuffer.remaining.toInt())
         readBuffer.readTo(out, offset, offset + count)
         offset += count
     }
