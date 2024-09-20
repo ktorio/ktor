@@ -1,5 +1,6 @@
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -20,10 +21,9 @@ class ReadUtf8LineTest {
             }
         }.channel
 
-        val builder = StringBuilder()
-        channel.readUTF8LineTo(builder, 8 * 1024)
-        assertEquals(8 * 1024, builder.length)
-        assertEquals("A".repeat(8 * 1024), builder.toString())
+        assertFailsWith<TooLongLineException> {
+            channel.readUTF8Line(8 * 1024)
+        }
     }
 
     @Test
