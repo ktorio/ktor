@@ -801,7 +801,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             handle {
                 call.respondOutputStream {
                     var count = 0
-                    while(!readingStarted) {
+                    while (!readingStarted) {
                         write(++count)
                         assertFalse(count > 10_000_000)
                     }
@@ -820,10 +820,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 assertEquals((count++).toByte(), byte.toByte())
                 byte = input.read()
                 readingStarted = true
-            } while(byte >= 0)
+            } while (byte >= 0)
         }
     }
-
 
     companion object {
         const val classesDir: String = "build/classes/"
