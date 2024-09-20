@@ -316,11 +316,14 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
+    private var _serializer: SessionSerializer<S>? = null
 
     /**
      * Specifies a serializer used to serialize session data.
      */
-    public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
+    public var serializer: SessionSerializer<S>
+        set(value) { _serializer = value }
+        get() = _serializer ?: defaultSessionSerializer(typeInfo)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
