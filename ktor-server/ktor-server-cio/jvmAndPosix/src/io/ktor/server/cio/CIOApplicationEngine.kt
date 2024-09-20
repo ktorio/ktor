@@ -63,10 +63,6 @@ public class CIOApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        addShutdownHook(monitor) {
-            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
-        }
-
         serverJob.start()
 
         runBlocking {
