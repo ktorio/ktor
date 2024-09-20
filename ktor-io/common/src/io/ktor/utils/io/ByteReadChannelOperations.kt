@@ -442,14 +442,23 @@ public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteA
 public val ByteReadChannel.availableForRead: Int
     get() = readBuffer.buffer.size.toInt()
 
+
 /**
- * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
- * Suspends if not enough bytes available.
+ * Reads bytes available bytes into the provided [out] buffer, or fails
+ * if the channel has been closed.
+ *
+ * Suspension occurs when there are not enough bytes available in the channel.
  */
 public suspend fun ByteReadChannel.readFully(out: ByteArray) {
     readFully(out, 0, out.size)
 }
 
+/**
+ * Reads bytes from [start] to [end] into the provided [out] buffer, or fails
+ * if the channel has been closed.
+ *
+ * Suspension occurs when there are not enough bytes available in the channel.
+ */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int, end: Int) {
     if (isClosedForRead) throw EOFException("Channel is already closed")
