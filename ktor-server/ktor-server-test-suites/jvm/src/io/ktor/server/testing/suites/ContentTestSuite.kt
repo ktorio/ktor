@@ -4,6 +4,7 @@
 
 package io.ktor.server.testing.suites
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -789,6 +790,37 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         withUrl("/?auto") {
             assertEquals("", bodyAsText())
+        }
+    }
+
+    @Test
+    fun outputStreamIsStreamedToConsumer() = runTest {
+        var readingStarted = false
+
+        createAndStartServer {
+            handle {
+                call.respondOutputStream {
+                    var count = 0
+                    while (!readingStarted) {
+                        write(++count)
+                        assertFalse(count > 10_000_000)
+                    }
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            assertEquals(ContentType.Application.OctetStream, contentType())
+
+            val input: InputStream = body()
+            var count = 0
+            var byte = 0
+            do {
+                assertEquals((count++).toByte(), byte.toByte())
+                byte = input.read()
+                readingStarted = true
+            } while (byte >= 0)
         }
     }
 

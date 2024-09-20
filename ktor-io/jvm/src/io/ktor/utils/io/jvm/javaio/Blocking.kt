@@ -50,14 +50,13 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = obj
  * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
  */
-@OptIn(InternalAPI::class)
 public fun ByteWriteChannel.toOutputStream(): OutputStream = object : OutputStream() {
     override fun write(b: Int) {
-        writeBuffer.writeByte(b.toByte())
+        runBlocking { this@toOutputStream.writeByte(b.toByte()) }
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
-        writeBuffer.write(b, off, off + len)
+        runBlocking { this@toOutputStream.writeFully(b, off, off + len) }
     }
 
     override fun flush() {
