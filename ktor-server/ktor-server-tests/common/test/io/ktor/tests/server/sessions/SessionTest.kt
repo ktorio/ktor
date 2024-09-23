@@ -17,6 +17,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -42,7 +43,6 @@ class SessionTest {
                 call.respondText("No session")
             }
         }
-        println(client.get("/0"))
         assertNull(
             client.get("/0").cookies[cookieName],
             "There should be no session data after setting and clearing"
@@ -721,6 +721,28 @@ class SessionTest {
             assertNull(headers[HttpHeaders.SetCookie])
         }
     }
+
+    @Test
+    fun testCustomSerializer() = testApplication {
+        val expected = TestUserSessionCustom("a", listOf("b", "c", "d"))
+        application {
+            install(Sessions) {
+                cookie<TestUserSessionCustom>(cookieName) {
+                    serializer = TestUserSessionCustom.Serializer
+                }
+            }
+            routing {
+                get("/session") {
+                    call.sessions.set(expected)
+                    call.respond(TestUserSessionCustom.serialize(expected))
+                }
+            }
+        }
+        client.get("/session").apply {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals(TestUserSessionCustom.serialize(expected), bodyAsText())
+        }
+    }
 }
 
 @Serializable
@@ -731,3 +753,14 @@ data class TestUserSession(val userId: String, val cart: List<String>)
 
 @Serializable
 data class TestUserSessionB(val userId: String, val cart: List<String>)
+
+// Custom serializer should work without kotlinx-serialization
+data class TestUserSessionCustom(val userId: String, val cart: List<String>) {
+    companion object Serializer: SessionSerializer<TestUserSessionCustom> {
+        override fun serialize(session: TestUserSessionCustom): String =
+            session.userId + ";" + session.cart.joinToString(",")
+
+        override fun deserialize(text: String): TestUserSessionCustom =
+            TestUserSessionCustom(text.substringBeforeLast(";"), text.substringAfterLast(";").split(","))
+    }
+}

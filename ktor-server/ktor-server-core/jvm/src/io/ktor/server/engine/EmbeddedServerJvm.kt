@@ -264,6 +264,8 @@ actual constructor(
     }
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        addShutdownHook { stop() }
+
         applicationInstanceLock.write {
             val (application, classLoader) = try {
                 createApplication()

@@ -45,6 +45,8 @@ actual constructor(
     private val modules = rootConfig.modules
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        addShutdownHook { stop() }
+
         safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }

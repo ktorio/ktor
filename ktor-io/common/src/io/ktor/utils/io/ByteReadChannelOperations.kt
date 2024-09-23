@@ -6,6 +6,7 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -129,10 +130,17 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
     return result
 }
 
-@OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readUTF8Line(): String? {
+/**
+ * Reads a line of UTF-8 characters from the `ByteReadChannel`.
+ * It recognizes CR, LF and CRLF as line delimiters.
+ *
+ * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
+ * @return a string containing the line read, or null if channel is closed
+ * @throws TooLongLineException if max is reached before encountering a newline or end of input
+ */
+public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
     val result = StringBuilder()
-    val completed = readUTF8LineTo(result)
+    val completed = readUTF8LineTo(result, max)
     return if (!completed) null else result.toString()
 }
 
@@ -359,6 +367,7 @@ public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
  * @param max the maximum number of characters to read
  *
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
+ * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
@@ -382,7 +391,7 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
                 consumed += count
                 out.append(readBuffer.readString(count.toLong()))
 
-                if (consumed == max) return true
+                if (consumed == max) throw TooLongLineException("Line exceeds limit of $max characters")
             }
 
             continue
@@ -443,19 +452,25 @@ public val ByteReadChannel.availableForRead: Int
     get() = readBuffer.buffer.size.toInt()
 
 /**
- * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
- * Suspends if not enough bytes available.
+ * Reads bytes from [start] to [end] into the provided [out] buffer, or fails
+ * if the channel has been closed.
+ *
+ * Suspension occurs when there are not enough bytes available in the channel.
+ *
+ * @param out the buffer to write to
+ * @param start the index to start writing at
+ * @param end the index to write until
  */
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readFully(out: ByteArray) {
+public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int = 0, end: Int = out.size) {
     if (isClosedForRead) throw EOFException("Channel is already closed")
 
-    var offset = 0
-    while (offset < out.size) {
+    var offset = start
+    while (offset < end) {
         if (readBuffer.exhausted()) awaitContent()
         if (isClosedForRead) throw EOFException("Channel is already closed")
 
-        val count = min(out.size - offset, readBuffer.remaining.toInt())
+        val count = min(end - offset, readBuffer.remaining.toInt())
         readBuffer.readTo(out, offset, offset + count)
         offset += count
     }

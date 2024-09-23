@@ -71,7 +71,8 @@ public fun <S : Any> SessionsConfig.cookie(
     @Suppress("UNCHECKED_CAST")
     val sessionType = typeInfo.type as KClass<S>
 
-    val builder = CookieIdSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
+    val builder = CookieIdSessionBuilder(sessionType, typeInfo.kotlinType!!)
+        .apply(block)
     cookie(name, builder, sessionType, storage)
 }
 
@@ -209,7 +210,8 @@ public fun <S : Any> SessionsConfig.cookie(
     @Suppress("UNCHECKED_CAST")
     val sessionType = typeInfo.type as KClass<S>
 
-    val builder = CookieSessionBuilder(sessionType, typeInfo.kotlinType!!).apply(block)
+    val builder = CookieSessionBuilder(sessionType, typeInfo.kotlinType!!)
+        .apply(block)
     cookie(name, sessionType, builder)
 }
 
@@ -316,11 +318,15 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
+    private var _serializer: SessionSerializer<S>? = null
+    private val defaultSerializer: SessionSerializer<S> by lazy { defaultSessionSerializer(typeInfo) }
 
     /**
      * Specifies a serializer used to serialize session data.
      */
-    public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
+    public var serializer: SessionSerializer<S>
+        set(value) { _serializer = value }
+        get() = _serializer ?: defaultSerializer
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
