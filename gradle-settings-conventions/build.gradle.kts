@@ -13,5 +13,5 @@ repositories {
 
 dependencies {
     implementation("com.gradle:develocity-gradle-plugin:3.18.1")
-    implementation("com.gradle:common-custom-user-data-gradle-plugin:2.0.1")
+    implementation("com.gradle:common-custom-user-data-gradle-plugin:2.0.2")
 }
