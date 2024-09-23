@@ -122,10 +122,6 @@ public final class io/ktor/server/testing/TestApplicationResponse : io/ktor/serv
 	public final fun websocketChannel ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
-public final class io/ktor/server/testing/TestApplicationResponseJvmKt {
-	public static final fun awaitWebSocket (Lio/ktor/server/testing/TestApplicationResponse;Ljava/time/Duration;)V
-}
-
 public final class io/ktor/server/testing/TestEngine : io/ktor/server/engine/ApplicationEngineFactory {
 	public static final field INSTANCE Lio/ktor/server/testing/TestEngine;
 	public synthetic fun configuration (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine$Configuration;
