@@ -39,3 +39,5 @@ gradle-user-home
 
 .fleet
 .kotlin
+
+scan-journal.log
