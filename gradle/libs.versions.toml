@@ -18,7 +18,7 @@ jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-boot = "8.1.13.v20181017"
 jetty-alpn-openjdk8 = "9.4.56.v20240826"
 
-tomcat = "9.0.94"
+tomcat = "9.0.95"
 tomcat-jakarta = "10.1.29"
 
 apache = "4.1.5"
