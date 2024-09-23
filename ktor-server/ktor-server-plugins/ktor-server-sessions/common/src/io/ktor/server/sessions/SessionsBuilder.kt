@@ -72,10 +72,7 @@ public fun <S : Any> SessionsConfig.cookie(
     val sessionType = typeInfo.type as KClass<S>
 
     val builder = CookieIdSessionBuilder(sessionType, typeInfo.kotlinType!!)
-        .apply {
-            block()
-            init()
-        }
+        .apply(block)
     cookie(name, builder, sessionType, storage)
 }
 
@@ -214,10 +211,7 @@ public fun <S : Any> SessionsConfig.cookie(
     val sessionType = typeInfo.type as KClass<S>
 
     val builder = CookieSessionBuilder(sessionType, typeInfo.kotlinType!!)
-        .apply {
-            block()
-            init()
-        }
+        .apply(block)
     cookie(name, sessionType, builder)
 }
 
@@ -324,10 +318,15 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
+    private var _serializer: SessionSerializer<S>? = null
+    private val defaultSerializer: SessionSerializer<S> by lazy { defaultSessionSerializer(typeInfo) }
+
     /**
      * Specifies a serializer used to serialize session data.
      */
-    public lateinit var serializer: SessionSerializer<S>
+    public var serializer: SessionSerializer<S>
+        set(value) { _serializer = value }
+        get() = _serializer ?: defaultSerializer
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -347,15 +346,6 @@ internal constructor(
      * Gets a configuration used to specify additional cookie attributes for [Sessions].
      */
     public val cookie: CookieConfiguration = CookieConfiguration()
-
-    /**
-     * Ensures fields are initialized properly.
-     */
-    internal fun init() {
-        if (!this::serializer.isInitialized) {
-            serializer = defaultSessionSerializer(typeInfo)
-        }
-    }
 }
 
 /**
