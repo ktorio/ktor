@@ -29,7 +29,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  * }
  * ```
  *
- * @param pingIntervalMillis duration between pings or `null` to disable pings.
+ * @param pingIntervalMillis duration between pings or [PINGER_DISABLED] to disable pings.
  * @param timeoutMillis write/ping timeout after that a connection will be closed.
  * @param maxFrameSize maximum frame that could be received or sent.
  * @param masking whether masking need to be enabled (useful for security).
@@ -73,14 +73,14 @@ public class WebSockets private constructor(
         internal val extensionsConfig = WebSocketExtensionsConfig()
 
         /**
-         * Duration between pings or `0` to disable pings
+         * Duration between pings or [PINGER_DISABLED] to disable pings
          */
-        public var pingPeriodMillis: Long = 0
+        public var pingPeriodMillis: Long = PINGER_DISABLED
 
         /**
          * write/ping timeout after that a connection will be closed
          */
-        public var timeoutMillis: Long = 15000L
+        public var timeoutMillis: Long = 15_000L
 
         /**
          * Maximum frame that could be received or sent

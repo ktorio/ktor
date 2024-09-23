@@ -231,6 +231,16 @@ sealed class io.ktor.websocket/Frame { // io.ktor.websocket/Frame|null[0]
     }
 }
 
+final const val io.ktor.websocket/PINGER_DISABLED // io.ktor.websocket/PINGER_DISABLED|{}PINGER_DISABLED[0]
+    final fun <get-PINGER_DISABLED>(): kotlin/Long // io.ktor.websocket/PINGER_DISABLED.<get-PINGER_DISABLED>|<get-PINGER_DISABLED>(){}[0]
+
+final var io.ktor.websocket/pingInterval // io.ktor.websocket/pingInterval|@io.ktor.websocket.DefaultWebSocketSession{}pingInterval[0]
+    final inline fun (io.ktor.websocket/DefaultWebSocketSession).<get-pingInterval>(): kotlin.time/Duration? // io.ktor.websocket/pingInterval.<get-pingInterval>|<get-pingInterval>@io.ktor.websocket.DefaultWebSocketSession(){}[0]
+    final inline fun (io.ktor.websocket/DefaultWebSocketSession).<set-pingInterval>(kotlin.time/Duration?) // io.ktor.websocket/pingInterval.<set-pingInterval>|<set-pingInterval>@io.ktor.websocket.DefaultWebSocketSession(kotlin.time.Duration?){}[0]
+final var io.ktor.websocket/timeout // io.ktor.websocket/timeout|@io.ktor.websocket.DefaultWebSocketSession{}timeout[0]
+    final inline fun (io.ktor.websocket/DefaultWebSocketSession).<get-timeout>(): kotlin.time/Duration // io.ktor.websocket/timeout.<get-timeout>|<get-timeout>@io.ktor.websocket.DefaultWebSocketSession(){}[0]
+    final inline fun (io.ktor.websocket/DefaultWebSocketSession).<set-timeout>(kotlin.time/Duration) // io.ktor.websocket/timeout.<set-timeout>|<set-timeout>@io.ktor.websocket.DefaultWebSocketSession(kotlin.time.Duration){}[0]
+
 final fun (io.ktor.websocket/Frame).io.ktor.websocket/readBytes(): kotlin/ByteArray // io.ktor.websocket/readBytes|readBytes@io.ktor.websocket.Frame(){}[0]
 final fun (io.ktor.websocket/Frame.Close).io.ktor.websocket/readReason(): io.ktor.websocket/CloseReason? // io.ktor.websocket/readReason|readReason@io.ktor.websocket.Frame.Close(){}[0]
 final fun (io.ktor.websocket/Frame.Text).io.ktor.websocket/readText(): kotlin/String // io.ktor.websocket/readText|readText@io.ktor.websocket.Frame.Text(){}[0]

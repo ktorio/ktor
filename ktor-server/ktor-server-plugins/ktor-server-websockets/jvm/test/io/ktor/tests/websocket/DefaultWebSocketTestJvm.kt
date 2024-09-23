@@ -25,8 +25,8 @@ class DefaultWebSocketTestJvm {
 
         val server = DefaultWebSocketSession(
             RawWebSocket(client2server, server2client, coroutineContext = parent),
-            -1L,
-            1000L
+            PINGER_DISABLED,
+            timeoutMillis = 1_000L,
         ).apply { start() }
 
         val client = RawWebSocket(server2client, client2server, coroutineContext = parent)

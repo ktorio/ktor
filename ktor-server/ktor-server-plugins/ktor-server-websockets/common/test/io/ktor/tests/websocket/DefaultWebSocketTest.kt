@@ -32,8 +32,8 @@ class DefaultWebSocketTest {
 
         server = DefaultWebSocketSession(
             RawWebSocket(client2server, server2client, coroutineContext = parent),
-            -1L,
-            1000L
+            PINGER_DISABLED,
+            timeoutMillis = 1_000L,
         )
         server.start()
 
@@ -92,8 +92,8 @@ class DefaultWebSocketTest {
 
         server = DefaultWebSocketSession(
             RawWebSocket(client2server, server2client, coroutineContext = parent),
-            500L,
-            500L
+            pingIntervalMillis = 500L,
+            timeoutMillis = 500L,
         )
         server.start()
 
