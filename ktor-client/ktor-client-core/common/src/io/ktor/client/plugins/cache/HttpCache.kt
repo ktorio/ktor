@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION")
 
@@ -48,7 +48,7 @@ public class HttpCache private constructor(
     private val publicStorageNew: CacheStorage,
     private val privateStorageNew: CacheStorage,
     private val useOldStorage: Boolean,
-    internal val isSharedClient: Boolean
+    internal val isSharedClient: Boolean,
 ) {
     /**
      * A configuration for the [HttpCache] plugin.
@@ -140,6 +140,10 @@ public class HttpCache private constructor(
             scope.sendPipeline.intercept(CachePhase) { content ->
                 if (content !is OutgoingContent.NoContent) return@intercept
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
+
+                if (plugin.isSharedClient && context.headers.contains(HttpHeaders.Authorization)) {
+                    return@intercept
+                }
 
                 if (plugin.useOldStorage) {
                     interceptSendLegacy(plugin, content, scope)
@@ -349,6 +353,7 @@ internal fun mergedHeadersLookup(
         HttpHeaders.UserAgent -> {
             content.headers[HttpHeaders.UserAgent] ?: headerExtractor(HttpHeaders.UserAgent) ?: KTOR_DEFAULT_USER_AGENT
         }
+
         else -> {
             val value = content.headers.getAll(header) ?: allHeadersExtractor(header) ?: emptyList()
             value.joinToString(";")
