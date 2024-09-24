@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 description = ""
@@ -42,7 +42,7 @@ val generateKtorVersionFile by tasks.registering {
 }
 
 // special task name which is called during idea import
-tasks.maybeCreate("prepareKotlinIdeaImport").dependsOn(generateKtorVersionFile)
+tasks.maybeRegister("prepareKotlinIdeaImport") { dependsOn(generateKtorVersionFile) }
 
 kotlin {
     sourceSets {

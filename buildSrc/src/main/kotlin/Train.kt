@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 import org.gradle.api.*
 import org.gradle.api.tasks.testing.*
@@ -11,7 +11,7 @@ fun Project.filterSnapshotTests() {
 
     println("Hacking test tasks, removing stress and flaky tests")
     subprojects {
-        tasks.withType<Test>().all {
+        tasks.withType<Test>().configureEach {
             exclude("**/*ServerSocketTest*")
             exclude("**/*NettyStressTest*")
             exclude("**/*CIOMultithreadedTest*")

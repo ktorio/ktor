@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
 
 val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -49,7 +49,7 @@ fun Project.configureTargets() {
             configureWasm()
         }
 
-        if (hasPosix || hasLinux || hasDarwin || hasWindows) extra.set("hasNative", true)
+        if (hasPosix || hasLinux || hasDarwin || hasWindows) extra["hasNative"] = true
 
         sourceSets {
             if (hasJsAndWasmShared) {
@@ -333,9 +333,9 @@ fun Project.configureTargets() {
             }
 
             if (hasNative) {
-                tasks.findByName("linkDebugTestLinuxX64")?.onlyIf { HOST_NAME == "linux" }
-                tasks.findByName("linkDebugTestLinuxArm64")?.onlyIf { HOST_NAME == "linux" }
-                tasks.findByName("linkDebugTestMingwX64")?.onlyIf { HOST_NAME == "windows" }
+                tasks.maybeNamed("linkDebugTestLinuxX64") { onlyIf { HOST_NAME == "linux" } }
+                tasks.maybeNamed("linkDebugTestLinuxArm64") { onlyIf { HOST_NAME == "linux" } }
+                tasks.maybeNamed("linkDebugTestMingwX64") { onlyIf { HOST_NAME == "windows" } }
             }
         }
     }

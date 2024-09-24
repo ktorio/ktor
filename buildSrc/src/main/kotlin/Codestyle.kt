@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 import org.gradle.api.*
 import org.gradle.api.tasks.*
@@ -15,7 +15,7 @@ fun Project.configureCodestyle() {
     }
 
     val editorconfigFile = rootProject.file(".editorconfig")
-    tasks.withType<LintTask> {
+    tasks.withType<LintTask>().configureEach {
         inputs.file(editorconfigFile).withPathSensitivity(PathSensitivity.RELATIVE)
     }
 }

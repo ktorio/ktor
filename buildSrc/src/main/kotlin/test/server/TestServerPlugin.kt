@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server
@@ -30,14 +30,8 @@ class TestServerPlugin : Plugin<Project> {
     }
 
     override fun apply(target: Project) {
-        target.configure(target.tasks, object : Action<Task> {
-            override fun execute(task: Task) {
-                task.doFirst(object : Action<Task> {
-                    override fun execute(t: Task) {
-                        start()
-                    }
-                })
-            }
-        })
+        target.tasks.configureEach {
+            doFirst { start() }
+        }
     }
 }

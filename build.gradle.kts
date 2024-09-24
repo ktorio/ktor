@@ -3,7 +3,6 @@
  */
 
 import org.gradle.api.Project
-import org.gradle.internal.extensions.stdlib.*
 import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.*
@@ -168,7 +167,7 @@ fun configureDokka() {
 
     val dokkaOutputDir = "../versions"
 
-    tasks.withType<DokkaMultiModuleTask> {
+    tasks.withType<DokkaMultiModuleTask>().configureEach {
         val id = "org.jetbrains.dokka.versioning.VersioningPlugin"
         val config = """{ "version": "$configuredVersion", "olderVersionsDir":"$dokkaOutputDir" }"""
         val mapOf = mapOf(id to config)
