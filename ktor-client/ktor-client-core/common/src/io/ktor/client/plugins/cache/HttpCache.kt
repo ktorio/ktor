@@ -164,7 +164,10 @@ public class HttpCache private constructor(
             scope.sendPipeline.intercept(CachePhase) { content ->
                 if (content !is OutgoingContent.NoContent) return@intercept
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
-                if (!plugin.cacheRequestWithAuth && context.headers.contains(HttpHeaders.Authorization)) return@intercept
+
+                if (!plugin.cacheRequestWithAuth && context.headers.contains(HttpHeaders.Authorization)) {
+                    return@intercept
+                }
 
                 if (plugin.useOldStorage) {
                     interceptSendLegacy(plugin, content, scope)
