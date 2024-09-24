@@ -40,6 +40,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-mock"))
+            api(project(":ktor-server:ktor-server-test-host"))
         }
     }
 }
