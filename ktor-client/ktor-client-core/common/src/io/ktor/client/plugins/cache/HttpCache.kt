@@ -50,7 +50,8 @@ public class HttpCache private constructor(
     private val publicStorageNew: CacheStorage,
     private val privateStorageNew: CacheStorage,
     private val useOldStorage: Boolean,
-    internal val isSharedClient: Boolean
+    internal val isSharedClient: Boolean,
+    internal val cacheRequestWithAuth: Boolean
 ) {
     /**
      * A configuration for the [HttpCache] plugin.
@@ -60,6 +61,17 @@ public class HttpCache private constructor(
         internal var publicStorageNew: CacheStorage = CacheStorage.Unlimited()
         internal var privateStorageNew: CacheStorage = CacheStorage.Unlimited()
         internal var useOldStorage = false
+
+        /**
+         * Specifies if requests with Authorization header should be cached.
+         *
+         * According to specification, enabling this flag has security implications.
+         * See https://datatracker.ietf.org/doc/html/rfc2616#section-14.8,
+         * https://datatracker.ietf.org/doc/html/rfc7234#section-3,
+         * and https://datatracker.ietf.org/doc/html/rfc9111#section-3 for the details
+         */
+        @Deprecated("Changing this flag has security implication", level = DeprecationLevel.WARNING)
+        public var cacheRequestWithAuth: Boolean = false
 
         /**
          * Specifies if the client where this plugin is installed is shared among multiple users.
@@ -138,7 +150,8 @@ public class HttpCache private constructor(
                     publicStorageNew = publicStorageNew,
                     privateStorageNew = privateStorageNew,
                     useOldStorage = useOldStorage,
-                    isSharedClient = isShared
+                    isSharedClient = isShared,
+                    cacheRequestWithAuth = cacheRequestWithAuth
                 )
             }
         }
@@ -151,6 +164,10 @@ public class HttpCache private constructor(
             scope.sendPipeline.intercept(CachePhase) { content ->
                 if (content !is OutgoingContent.NoContent) return@intercept
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
+
+                if (!plugin.cacheRequestWithAuth && context.headers.contains(HttpHeaders.Authorization)) {
+                    return@intercept
+                }
 
                 if (plugin.useOldStorage) {
                     interceptSendLegacy(plugin, content, scope)

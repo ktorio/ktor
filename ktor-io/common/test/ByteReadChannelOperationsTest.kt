@@ -82,5 +82,4 @@ class ByteReadChannelOperationsTest {
         assertContentEquals(expected.copyOfRange(0, 5), actual.copyOfRange(3, 8))
         assertContentEquals(ByteArray(2) { 0 }, actual.copyOfRange(8, 10))
     }
-
 }
