@@ -43,9 +43,12 @@ class HttpCacheTest {
             }
         }
 
-        assertEquals(client.get("/me") {
-            headers["Authorization"] = "user-a"
-        }.bodyAsText(), "user-a")
+        assertEquals(
+            client.get("/me") {
+                headers["Authorization"] = "user-a"
+            }.bodyAsText(),
+            "user-a"
+        )
         withContext(Dispatchers.Default) {
             listOf(
                 launch {
@@ -96,9 +99,12 @@ class HttpCacheTest {
             }
         }
 
-        assertEquals(client.get("/me") {
-            headers["Authorization"] = "user-a"
-        }.bodyAsText(), "user-a")
+        assertEquals(
+            client.get("/me") {
+                headers["Authorization"] = "user-a"
+            }.bodyAsText(),
+            "user-a"
+        )
         withContext(Dispatchers.Default) {
             listOf(
                 launch {
