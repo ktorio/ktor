@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.io.Buffer
+import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
 import kotlin.jvm.*
@@ -489,4 +490,174 @@ public fun ByteWriteChannel.rethrowCloseCauseIfNeeded() {
 @InternalAPI
 public fun ByteChannel.rethrowCloseCauseIfNeeded() {
     closedCause?.let { throw it }
+}
+
+/**
+ * Reads bytes from the ByteReadChannel until a specified sequence of bytes is encountered or the specified limit is reached.
+ *
+ * This uses the KMP algorithm for finding the string match using a partial match table.
+ *
+ * @see [Knuth–Morris–Pratt algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm)
+ * @param matchString The sequence of bytes to look for.
+ * @param writeChannel The channel to write the read bytes to.
+ * @param limit The maximum number of bytes to read before throwing an exception.
+ * @param ignoreMissing Whether to ignore the missing byteString and return the count of read bytes upon reaching the end of input.
+ * @return The number of bytes read, not including the search string.
+ * @throws IOException If the limit is exceeded or the byteString is not found and ignoreMissing is false.
+ */
+public suspend fun ByteReadChannel.readUntil(
+    matchString: ByteString,
+    writeChannel: ByteWriteChannel,
+    limit: Long = Long.MAX_VALUE,
+    ignoreMissing: Boolean = false,
+): Long {
+    check(matchString.size > 0) {
+        "Empty match string not permitted for readUntil"
+    }
+    val partialMatchTable = buildPartialMatchTable(matchString)
+    var matchIndex = 0
+    val matchBuffer = ByteArray(matchString.size)
+    var rc = 0L
+
+    suspend fun appendPartialMatch() {
+        writeChannel.writeFully(matchBuffer, 0, matchIndex)
+        rc += matchIndex
+        matchIndex = 0
+    }
+
+    fun resetPartialMatch(byte: Byte) {
+        while (matchIndex > 0 && byte != matchString[matchIndex]) {
+            matchIndex = partialMatchTable[matchIndex - 1]
+        }
+    }
+
+    while (!isClosedForRead) {
+        val byte = readByte()
+
+        if (matchIndex > 0 && byte != matchString[matchIndex]) {
+            appendPartialMatch()
+            resetPartialMatch(byte)
+        }
+
+        if (byte == matchString[matchIndex]) {
+            matchBuffer[matchIndex] = byte
+            if (++matchIndex == matchString.size) {
+                return rc
+            }
+        } else {
+            writeChannel.writeByte(byte)
+            rc++
+        }
+
+        if (rc > limit) {
+            throw IOException("Limit of $limit bytes exceeded while scanning for \"${matchString.decodeToString()}\"")
+        }
+    }
+
+    if (ignoreMissing) {
+        appendPartialMatch()
+        writeChannel.flush()
+        return rc
+    }
+
+    throw IOException("Expected \"${matchString.toSingleLineString()}\" but encountered end of input")
+}
+
+/**
+ * Helper function to build the partial match table (also known as "longest prefix suffix" table)
+ */
+private fun buildPartialMatchTable(byteString: ByteString): IntArray {
+    val table = IntArray(byteString.size)
+    var j = 0
+
+    for (i in 1 until byteString.size) {
+        while (j > 0 && byteString[i] != byteString[j]) {
+            j = table[j - 1]
+        }
+        if (byteString[i] == byteString[j]) {
+            j++
+        }
+        table[i] = j
+    }
+
+    return table
+}
+
+/**
+ * Attempts to skip over a sequence of bytes in the channel that matches the provided [byteString].
+ *
+ * @param byteString The byte sequence to be matched and skipped over.
+ * @return [SkipResult.Ok] if the sequence matches and is successfully skipped,
+ *         [SkipResult.EndOfFile] if the end of the channel is reached before completing the match,
+ *         [SkipResult.Invalid] if the sequence does not match the channel's bytes.
+ */
+public suspend fun ByteReadChannel.trySkip(byteString: ByteString): SkipResult {
+    for (i in byteString.indices) {
+        when {
+            isClosedForRead -> return SkipResult.EndOfFile
+            byteString[i] != readByte() -> return SkipResult.Invalid
+        }
+    }
+    return SkipResult.Ok
+}
+
+/**
+ * Suspends the execution while it verifies and skips over a sequence of bytes in the channel that matches the provided [byteString].
+ *
+ * @param byteString The byte sequence to be matched and skipped over.
+ * @return No return value. It throws an [IOException] if the sequence does not match or if there is an unexpected end of input.
+ * @throws IOException If the byte sequence does not match or the end of input is encountered unexpectedly.
+ */
+public suspend fun ByteReadChannel.skip(byteString: ByteString): Unit =
+    when (trySkip(byteString)) {
+        SkipResult.Ok -> Unit
+        SkipResult.EndOfFile ->
+            throw IOException("Expected \"${byteString.toSingleLineString()}\" but encountered end of input")
+        SkipResult.Invalid ->
+            throw IOException("Expected \"${byteString.toSingleLineString()}\" but input did not match")
+    }
+
+private fun ByteString.toSingleLineString() =
+    decodeToString().replace("\n", "\\n")
+
+/**
+ * Skips the specified [byteString] in the ByteReadChannel if it is found at the current position.
+ *
+ * @param byteString The ByteString to look for and skip if found.
+ * @return Returns `true` if the byteString was found and skipped, otherwise returns `false`.
+ */
+public suspend fun ByteReadChannel.skipIfFound(byteString: ByteString): Boolean {
+    if (peek(byteString.size) == byteString) {
+        discard(byteString.size.toLong())
+        return true
+    }
+    return false
+}
+
+/**
+ * Retrieves, but does not consume, up to the specified number of bytes from the current position in this
+ * [ByteReadChannel].
+ *
+ * @param count The number of bytes to peek.
+ * @return A [ByteString] containing the bytes that were peeked, or null if unable to peek the specified number of bytes.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.peek(count: Int): ByteString? {
+    if (isClosedForRead) return null
+    if (!awaitContent(count)) return null
+    return readBuffer.peek().readByteString(count)
+}
+
+/**
+ * Represents the result of an attempt to skip a sequence of bytes in a `ByteReadChannel`.
+ *
+ * This sealed interface can have one of the following possible states:
+ * - `Ok`: Indicates that the sequence matches and is successfully skipped.
+ * - `EndOfFile`: Indicates that the end of the channel is reached before completing the match.
+ * - `Invalid`: Indicates that the sequence does not match the channel's bytes.
+ */
+public sealed interface SkipResult {
+    public data object Ok : SkipResult
+    public data object EndOfFile : SkipResult
+    public data object Invalid : SkipResult
 }

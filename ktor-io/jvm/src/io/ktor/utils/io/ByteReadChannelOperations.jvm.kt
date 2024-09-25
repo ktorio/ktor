@@ -98,36 +98,6 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
     return copied
 }
 
-@OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteString, out: ByteBuffer): Int {
-    val initial = out.remaining()
-    while (!isClosedForRead && out.hasRemaining()) {
-        if (availableForRead == 0) {
-            awaitContent()
-            continue
-        }
-
-        val index = readBuffer.indexOf(delimiter)
-        if (index == -1L) {
-            readBuffer.readAtMostTo(out)
-            continue
-        }
-
-        val count = minOf(out.remaining(), index.toInt())
-        val limit = out.limit()
-        out.limit(minOf(out.limit(), out.position() + count))
-        readBuffer.readAtMostTo(out)
-        out.limit(limit)
-        break
-    }
-
-    return initial - out.remaining()
-}
-
-public suspend fun ByteReadChannel.readUntilDelimiter(delimiter: ByteBuffer, out: ByteBuffer): Int {
-    return readUntilDelimiter(ByteString(delimiter), out)
-}
-
 public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteBuffer) {
     skipDelimiter(ByteString(delimiter))
 }

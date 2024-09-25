@@ -66,6 +66,7 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static final fun exhausted (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getAvailableForRead (Lio/ktor/utils/io/ByteReadChannel;)I
 	public static final fun getAvailableForWrite (Lio/ktor/utils/io/ByteWriteChannel;)I
+	public static final fun peek (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun read (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/jvm/functions/Function1;)I
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;[BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -86,13 +87,18 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static synthetic fun readUTF8Line$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun readUTF8LineTo (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun readUTF8LineTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun readUntil (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun readUntil$default (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun reader (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteChannel;Lkotlin/jvm/functions/Function2;)Lio/ktor/utils/io/ReaderJob;
 	public static final fun reader (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function2;)Lio/ktor/utils/io/ReaderJob;
 	public static synthetic fun reader$default (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/CoroutineContext;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/utils/io/ReaderJob;
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteChannel;)V
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteReadChannel;)V
 	public static final fun rethrowCloseCauseIfNeeded (Lio/ktor/utils/io/ByteWriteChannel;)V
+	public static final fun skip (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun skipIfFound (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun trySkip (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/utils/io/ByteReadChannelOperations_jvmKt {
@@ -105,8 +111,6 @@ public final class io/ktor/utils/io/ByteReadChannelOperations_jvmKt {
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/jvm/functions/Function1;)I
 	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun readUntilDelimiter (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun readUntilDelimiter (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun skipDelimiter (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun skipDelimiter (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -181,7 +185,8 @@ public final class io/ktor/utils/io/CountedByteReadChannel : io/ktor/utils/io/By
 	public fun cancel (Ljava/lang/Throwable;)V
 	public fun getClosedCause ()Ljava/lang/Throwable;
 	public final fun getDelegate ()Lio/ktor/utils/io/ByteReadChannel;
-	public fun getReadBuffer ()Lkotlinx/io/Source;
+	public fun getReadBuffer ()Lkotlinx/io/Buffer;
+	public synthetic fun getReadBuffer ()Lkotlinx/io/Source;
 	public final fun getTotalBytesRead ()J
 	public fun isClosedForRead ()Z
 }
@@ -245,6 +250,30 @@ public final class io/ktor/utils/io/ReaderScope : kotlinx/coroutines/CoroutineSc
 	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
+public abstract interface class io/ktor/utils/io/SkipResult {
+}
+
+public final class io/ktor/utils/io/SkipResult$EndOfFile : io/ktor/utils/io/SkipResult {
+	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$EndOfFile;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/utils/io/SkipResult$Invalid : io/ktor/utils/io/SkipResult {
+	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$Invalid;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/utils/io/SkipResult$Ok : io/ktor/utils/io/SkipResult {
+	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$Ok;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/utils/io/WriterJob : io/ktor/utils/io/ChannelJob {
