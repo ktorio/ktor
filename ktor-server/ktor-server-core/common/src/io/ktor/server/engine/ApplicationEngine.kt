@@ -6,6 +6,7 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
+import kotlinx.coroutines.*
 
 /**
  * An engine which runs an application.
@@ -89,10 +90,32 @@ public interface ApplicationEngine {
     public fun start(wait: Boolean = false): ApplicationEngine
 
     /**
+     * Starts this [ApplicationEngine].
+     *
+     * @param wait if true, then the `start` call blocks a current thread until it finishes its execution.
+     * If you run `start` from the main thread with `wait = false` and nothing else blocking this thread,
+     * then your application will be terminated without handling any requests.
+     * @return returns this instance
+     */
+    public suspend fun startSuspend(wait: Boolean = false): ApplicationEngine {
+        return withContext(Dispatchers.IOBridge) { start(wait) }
+    }
+
+    /**
      * Stops this [ApplicationEngine].
      *
      * @param gracePeriodMillis the maximum amount of time for activity to cool down
      * @param timeoutMillis the maximum amount of time to wait until a server stops gracefully
      */
     public fun stop(gracePeriodMillis: Long = 500, timeoutMillis: Long = 500)
+
+    /**
+     * Stops this [ApplicationEngine].
+     *
+     * @param gracePeriodMillis the maximum amount of time for activity to cool down
+     * @param timeoutMillis the maximum amount of time to wait until a server stops gracefully
+     */
+    public suspend fun stopSuspend(gracePeriodMillis: Long = 500, timeoutMillis: Long = 500) {
+        withContext(Dispatchers.IOBridge) { stop(gracePeriodMillis, timeoutMillis) }
+    }
 }

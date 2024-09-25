@@ -15,7 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.concurrent.Volatile
+import kotlin.concurrent.*
 
 /**
  * Engine that based on CIO backend
@@ -52,7 +52,8 @@ public class CIOApplicationEngine(
     private val stopRequest: CompletableJob = Job()
 
     // See KT-67440
-    @Volatile private var serverJob: Job = Job()
+    @Volatile
+    private var serverJob: Job = Job()
 
     init {
         serverJob = initServerJob()
@@ -62,43 +63,41 @@ public class CIOApplicationEngine(
         }
     }
 
-    override fun start(wait: Boolean): ApplicationEngine {
+    override suspend fun startSuspend(wait: Boolean): ApplicationEngine {
         serverJob.start()
 
-        runBlocking {
-            startupJob.await()
-            monitor.raiseCatching(ServerReady, environment, environment.log)
+        startupJob.await()
+        monitor.raiseCatching(ServerReady, environment, environment.log)
 
-            if (wait) {
-                serverJob.join()
-            }
+        if (wait) {
+            serverJob.join()
         }
 
         return this
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        shutdownServer(gracePeriodMillis, timeoutMillis)
-    }
+    override fun start(wait: Boolean): ApplicationEngine = runBlocking { startSuspend(wait) }
 
-    private fun shutdownServer(gracePeriodMillis: Long, timeoutMillis: Long) {
+    override suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
         stopRequest.complete()
 
-        runBlocking {
-            val result = withTimeoutOrNull(gracePeriodMillis) {
+        val result = withTimeoutOrNull(gracePeriodMillis) {
+            serverJob.join()
+            true
+        }
+
+        if (result == null) {
+            // timeout
+            serverJob.cancel()
+
+            withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
                 serverJob.join()
-                true
-            }
-
-            if (result == null) {
-                // timeout
-                serverJob.cancel()
-
-                withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
-                    serverJob.join()
-                }
             }
         }
+    }
+
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long): Unit = runBlocking {
+        stopSuspend(gracePeriodMillis, timeoutMillis)
     }
 
     private fun CoroutineScope.startConnector(host: String, port: Int): HttpServer {
