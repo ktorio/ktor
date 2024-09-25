@@ -79,6 +79,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx:$ktor_version")
     implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
     implementation("io.ktor:ktor-utils:$ktor_version")
+    implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${libs.versions.atomicfu.version.get()}")
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
