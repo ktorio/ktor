@@ -583,40 +583,7 @@ private fun buildPartialMatchTable(byteString: ByteString): IntArray {
     return table
 }
 
-/**
- * Attempts to skip over a sequence of bytes in the channel that matches the provided [byteString].
- *
- * @param byteString The byte sequence to be matched and skipped over.
- * @return [SkipResult.Ok] if the sequence matches and is successfully skipped,
- *         [SkipResult.EndOfFile] if the end of the channel is reached before completing the match,
- *         [SkipResult.Invalid] if the sequence does not match the channel's bytes.
- */
-public suspend fun ByteReadChannel.trySkip(byteString: ByteString): SkipResult {
-    for (i in byteString.indices) {
-        when {
-            isClosedForRead -> return SkipResult.EndOfFile
-            byteString[i] != readByte() -> return SkipResult.Invalid
-        }
-    }
-    return SkipResult.Ok
-}
-
-/**
- * Suspends the execution while it verifies and skips over a sequence of bytes in the channel that matches the provided [byteString].
- *
- * @param byteString The byte sequence to be matched and skipped over.
- * @return No return value. It throws an [IOException] if the sequence does not match or if there is an unexpected end of input.
- * @throws IOException If the byte sequence does not match or the end of input is encountered unexpectedly.
- */
-public suspend fun ByteReadChannel.skip(byteString: ByteString): Unit =
-    when (trySkip(byteString)) {
-        SkipResult.Ok -> Unit
-        SkipResult.EndOfFile ->
-            throw IOException("Expected \"${byteString.toSingleLineString()}\" but encountered end of input")
-        SkipResult.Invalid ->
-            throw IOException("Expected \"${byteString.toSingleLineString()}\" but input did not match")
-    }
-
+// Used in formatting errors
 private fun ByteString.toSingleLineString() =
     decodeToString().replace("\n", "\\n")
 
@@ -646,18 +613,4 @@ public suspend fun ByteReadChannel.peek(count: Int): ByteString? {
     if (isClosedForRead) return null
     if (!awaitContent(count)) return null
     return readBuffer.peek().readByteString(count)
-}
-
-/**
- * Represents the result of an attempt to skip a sequence of bytes in a `ByteReadChannel`.
- *
- * This sealed interface can have one of the following possible states:
- * - `Ok`: Indicates that the sequence matches and is successfully skipped.
- * - `EndOfFile`: Indicates that the end of the channel is reached before completing the match.
- * - `Invalid`: Indicates that the sequence does not match the channel's bytes.
- */
-public sealed interface SkipResult {
-    public data object Ok : SkipResult
-    public data object EndOfFile : SkipResult
-    public data object Invalid : SkipResult
 }

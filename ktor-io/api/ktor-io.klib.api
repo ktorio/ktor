@@ -97,26 +97,6 @@ abstract interface io.ktor.utils.io/ChannelJob { // io.ktor.utils.io/ChannelJob|
         abstract fun <get-job>(): kotlinx.coroutines/Job // io.ktor.utils.io/ChannelJob.job.<get-job>|<get-job>(){}[0]
 }
 
-sealed interface io.ktor.utils.io/SkipResult { // io.ktor.utils.io/SkipResult|null[0]
-    final object EndOfFile : io.ktor.utils.io/SkipResult { // io.ktor.utils.io/SkipResult.EndOfFile|null[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.utils.io/SkipResult.EndOfFile.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // io.ktor.utils.io/SkipResult.EndOfFile.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // io.ktor.utils.io/SkipResult.EndOfFile.toString|toString(){}[0]
-    }
-
-    final object Invalid : io.ktor.utils.io/SkipResult { // io.ktor.utils.io/SkipResult.Invalid|null[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.utils.io/SkipResult.Invalid.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // io.ktor.utils.io/SkipResult.Invalid.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // io.ktor.utils.io/SkipResult.Invalid.toString|toString(){}[0]
-    }
-
-    final object Ok : io.ktor.utils.io/SkipResult { // io.ktor.utils.io/SkipResult.Ok|null[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.utils.io/SkipResult.Ok.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // io.ktor.utils.io/SkipResult.Ok.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // io.ktor.utils.io/SkipResult.Ok.toString|toString(){}[0]
-    }
-}
-
 abstract class <#A: kotlin/Any> io.ktor.utils.io.pool/DefaultPool : io.ktor.utils.io.pool/ObjectPool<#A> { // io.ktor.utils.io.pool/DefaultPool|null[0]
     constructor <init>(kotlin/Int) // io.ktor.utils.io.pool/DefaultPool.<init>|<init>(kotlin.Int){}[0]
 
@@ -458,10 +438,8 @@ final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readShort(
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUTF8Line(kotlin/Int = ...): kotlin/String? // io.ktor.utils.io/readUTF8Line|readUTF8Line@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUTF8LineTo(kotlin.text/Appendable, kotlin/Int = ...): kotlin/Boolean // io.ktor.utils.io/readUTF8LineTo|readUTF8LineTo@io.ktor.utils.io.ByteReadChannel(kotlin.text.Appendable;kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUntil(kotlinx.io.bytestring/ByteString, io.ktor.utils.io/ByteWriteChannel, kotlin/Long = ..., kotlin/Boolean = ...): kotlin/Long // io.ktor.utils.io/readUntil|readUntil@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString;io.ktor.utils.io.ByteWriteChannel;kotlin.Long;kotlin.Boolean){}[0]
-final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/skip(kotlinx.io.bytestring/ByteString) // io.ktor.utils.io/skip|skip@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/skipIfFound(kotlinx.io.bytestring/ByteString): kotlin/Boolean // io.ktor.utils.io/skipIfFound|skipIfFound@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/toByteArray(): kotlin/ByteArray // io.ktor.utils.io/toByteArray|toByteArray@io.ktor.utils.io.ByteReadChannel(){}[0]
-final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/trySkip(kotlinx.io.bytestring/ByteString): io.ktor.utils.io/SkipResult // io.ktor.utils.io/trySkip|trySkip@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString){}[0]
 final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/awaitFreeSpace() // io.ktor.utils.io/awaitFreeSpace|awaitFreeSpace@io.ktor.utils.io.ByteWriteChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/flushIfNeeded() // io.ktor.utils.io/flushIfNeeded|flushIfNeeded@io.ktor.utils.io.ByteWriteChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/write(kotlin/Int = ..., kotlin/Function3<kotlin/ByteArray, kotlin/Int, kotlin/Int, kotlin/Int>): kotlin/Int // io.ktor.utils.io/write|write@io.ktor.utils.io.ByteWriteChannel(kotlin.Int;kotlin.Function3<kotlin.ByteArray,kotlin.Int,kotlin.Int,kotlin.Int>){}[0]

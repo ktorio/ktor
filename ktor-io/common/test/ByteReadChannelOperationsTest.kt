@@ -91,7 +91,7 @@ class ByteReadChannelOperationsTest {
         ch.close()
 
         val delimiter = ByteString(byteArrayOf(1, 2))
-        ch.skip(delimiter)
+        assertTrue(ch.skipIfFound(delimiter))
         assertEquals(3, ch.readByte())
         assertTrue(ch.isClosedForRead)
     }
@@ -103,7 +103,7 @@ class ByteReadChannelOperationsTest {
         ch.close()
 
         val delimiter = ByteString(byteArrayOf(1, 2))
-        ch.skip(delimiter)
+        assertTrue(ch.skipIfFound(delimiter))
         assertTrue(ch.isClosedForRead)
     }
 
@@ -126,9 +126,7 @@ class ByteReadChannelOperationsTest {
         ch.close()
 
         val delimiter = ByteString(byteArrayOf(1, 2, 3))
-        assertFailsWith<IOException> {
-            ch.skip(delimiter)
-        }
+        assertFalse(ch.skipIfFound(delimiter))
     }
 
     @Test
@@ -144,7 +142,7 @@ class ByteReadChannelOperationsTest {
         writer.start()
 
         val delimiter = ByteString(byteArrayOf(1, 2))
-        ch.skip(delimiter)
+        assertTrue(ch.skipIfFound(delimiter))
         assertEquals(3, ch.readByte())
         assertTrue(ch.isClosedForRead)
     }
@@ -162,10 +160,8 @@ class ByteReadChannelOperationsTest {
         writer.start()
 
         val delimiter = ByteString(byteArrayOf(1, 2))
-        assertFailsWith<IOException> {
-            ch.skip(delimiter)
-        }
-        assertEquals(2, ch.readByte())
+        assertFalse(ch.skipIfFound(delimiter))
+        assertEquals(1, ch.readByte())
         ch.close()
     }
 
