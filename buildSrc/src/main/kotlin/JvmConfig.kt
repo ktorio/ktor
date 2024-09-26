@@ -2,6 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import internal.*
 import org.gradle.api.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.jvm.tasks.*
@@ -15,33 +16,22 @@ fun Project.configureJvm() {
         else -> 8
     }
 
-    val jvm = kotlin.jvm()
+    kotlin {
+        jvm()
 
-    kotlin.sourceSets {
-        val jvmMain by getting {
-            dependencies {
-                if (jdk > 6) {
-                    api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}")
+        sourceSets {
+            jvmMain {
+                dependencies {
+                    api(libs.slf4j.api)
                 }
-                if (jdk > 7) {
-                    api("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}")
-                    api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${Versions.coroutines}") {
-                        exclude(module = "kotlin-stdlib")
-                        exclude(module = "kotlin-stdlib-jvm")
-                        exclude(module = "kotlin-stdlib-jdk8")
-                        exclude(module = "kotlin-stdlib-jdk7")
-                    }
-                }
-
-                api("org.slf4j:slf4j-api:${Versions.slf4j}")
             }
-        }
 
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter:${Versions.junit}")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:${Versions.coroutines}")
+            jvmTest {
+                dependencies {
+                    implementation(libs.kotlin.test.junit5)
+                    implementation(libs.junit)
+                    implementation(libs.kotlinx.coroutines.debug)
+                }
             }
         }
     }
@@ -49,7 +39,7 @@ fun Project.configureJvm() {
     tasks.register<Jar>("jarTest") {
         dependsOn(tasks.named("jvmTestClasses"))
         archiveClassifier = "test"
-        from(jvm.compilations.named("test").map { it.output })
+        from(kotlin.jvm().compilations.named("test").map { it.output })
     }
 
     configurations {

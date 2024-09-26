@@ -1,8 +1,8 @@
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:Suppress("UNUSED_VARIABLE")
 
+import internal.*
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
@@ -13,9 +13,9 @@ fun Project.configureJs() {
 
     kotlin {
         sourceSets {
-            val jsTest by getting {
+            jsTest {
                 dependencies {
-                    implementation(npm("puppeteer", Versions.puppeteer))
+                    implementation(npm("puppeteer", libs.versions.puppeteer.get()))
                 }
             }
         }

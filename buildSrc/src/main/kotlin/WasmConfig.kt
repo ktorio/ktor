@@ -2,6 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import internal.*
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.*
@@ -13,14 +14,14 @@ fun Project.configureWasm() {
 
     kotlin {
         sourceSets {
-            val wasmJsMain by getting {
+            wasmJsMain {
                 dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-browser:${Versions.browser}")
+                    implementation(libs.kotlinx.browser)
                 }
             }
-            val wasmJsTest by getting {
+            wasmJsTest {
                 dependencies {
-                    implementation(npm("puppeteer", Versions.puppeteer))
+                    implementation(npm("puppeteer", libs.versions.puppeteer.get()))
                 }
             }
         }
