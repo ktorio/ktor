@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.server.http
+package io.ktor.server.http
 
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -13,18 +13,20 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.tests.server.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import io.ktor.utils.io.charsets.Charsets
+import kotlinx.coroutines.withTimeout
+import kotlinx.io.Buffer
+import kotlin.io.use
 import kotlin.test.*
-import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 private const val TEST_FILE_SIZE = 1_000_000
 
-// TODO This does not work with the WASM target
+// TODO Only works in JVM
 class MultipartServerTest {
 
     private val fileDispositionHeaders = Headers.build {
@@ -136,10 +138,13 @@ class MultipartServerTest {
                         when (it) {
                             is PartData.FileItem ->
                                 it.provider().copyTo(this)
+
                             is PartData.BinaryChannelItem ->
                                 it.provider().copyTo(this)
+
                             is PartData.BinaryItem ->
                                 writeBuffer(it.provider())
+
                             is PartData.FormItem ->
                                 writeString(it.value)
                         }
