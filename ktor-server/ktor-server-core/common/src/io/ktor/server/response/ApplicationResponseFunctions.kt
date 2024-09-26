@@ -13,6 +13,8 @@ import io.ktor.server.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import kotlinx.io.*
 import kotlin.jvm.*
 
 /**
@@ -149,6 +151,21 @@ public suspend fun ApplicationCall.respondBytes(
     configure: OutgoingContent.() -> Unit = {}
 ) {
     respond(ByteArrayContent(bytes, contentType, status).apply(configure))
+}
+
+/**
+ * Responds to an [ApplicationCall] with the content from the provided kotlinx-io [Source].
+ *
+ * @param source The binary data source of the content to be responded with.
+ * @param contentType An optional [ContentType], unspecified by default
+ * @param status An optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ */
+public suspend fun ApplicationCall.respondSource(
+    source: Source,
+    contentType: ContentType? = null,
+    status: HttpStatusCode? = null,
+) {
+    respond(ChannelWriterContent({ writeBuffer(source) }, contentType, status, source.remaining))
 }
 
 /**

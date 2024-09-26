@@ -31,6 +31,7 @@ public class KotlinxWebsocketSerializationConverter(
         }
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
         val serializer = try {
             format.serializersModule.serializerForTypeInfo(typeInfo)

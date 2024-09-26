@@ -57,3 +57,20 @@ public fun Configuration.json(
 ) {
     serialization(contentType, json)
 }
+
+/**
+ * Registers the `application/json` (or another specified [contentType]) content type
+ * to the [ContentNegotiation] plugin using kotlinx.serialization.
+ *
+ * This uses the experimental JSON support for kotlinx-io to stream content more efficiently.
+ *
+ * @param json A JSON instance used for serialization and deserialization. Defaults to an instance of DefaultJson.
+ * @param contentType The content type to be associated with the JSON converter. Defaults to ContentType.Application.Json.
+ */
+@ExperimentalSerializationApi
+public fun Configuration.jsonIo(
+    json: Json = DefaultJson,
+    contentType: ContentType = ContentType.Application.Json
+) {
+    register(contentType, ExperimentalJsonConverter(json))
+}
