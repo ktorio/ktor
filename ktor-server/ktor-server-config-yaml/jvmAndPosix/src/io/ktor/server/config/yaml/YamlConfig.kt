@@ -159,7 +159,7 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
 
     if (separatorIndex != -1) {
         val key = keyWithDefault.substring(0, separatorIndex)
-        return getEnvironmentValue(key) ?: keyWithDefault.substring(separatorIndex + 1)
+        return getSystemPropertyOrEnvironmentVariable(key) ?: keyWithDefault.substring(separatorIndex + 1)
     }
 
     val selfReference = root.propertyOrNull(keyWithDefault)
@@ -169,7 +169,7 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
 
     val isOptional = keyWithDefault.first() == '?'
     val key = if (isOptional) keyWithDefault.drop(1) else keyWithDefault
-    return getEnvironmentValue(key) ?: if (isOptional) {
+    return getSystemPropertyOrEnvironmentVariable(key) ?: if (isOptional) {
         null
     } else {
         throw ApplicationConfigurationException(
@@ -178,4 +178,4 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
     }
 }
 
-internal expect fun getEnvironmentValue(key: String): String?
+internal expect fun getSystemPropertyOrEnvironmentVariable(key: String): String?

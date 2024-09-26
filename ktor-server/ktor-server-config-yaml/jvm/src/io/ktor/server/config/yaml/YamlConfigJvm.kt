@@ -39,4 +39,6 @@ private fun configFromString(content: String): YamlConfig {
     return YamlConfig(yaml).apply { checkEnvironmentVariables() }
 }
 
-internal actual fun getEnvironmentValue(key: String): String? = System.getenv(key)
+internal actual fun getSystemPropertyOrEnvironmentVariable(key: String): String? {
+    return System.getProperty(key) ?: System.getenv(key)
+}
