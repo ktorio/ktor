@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = "Ktor network utilities"
 
 kotlin {
@@ -23,23 +27,6 @@ kotlin {
                 implementation(project(":ktor-shared:ktor-junit"))
                 implementation(libs.mockk)
             }
-        }
-
-        macosTest {
-            val nixTest = getByName("posixTest")
-            dependsOn(nixTest)
-        }
-        watchosTest {
-            val nixTest = getByName("posixTest")
-            dependsOn(nixTest)
-        }
-        tvosTest {
-            val nixTest = getByName("posixTest")
-            dependsOn(nixTest)
-        }
-        iosTest {
-            val nixTest = getByName("posixTest")
-            dependsOn(nixTest)
         }
     }
 }
