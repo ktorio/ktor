@@ -355,7 +355,7 @@ class WebSocketTest : ClientLoader() {
 
     @Test
     fun testWithAuthPlugin() = clientTests(
-        ENGINES_WITHOUT_WS
+        ENGINES_WITHOUT_WS  + "Js"
     ) {
         config {
             install(WebSockets)
