@@ -155,7 +155,7 @@ internal class DarwinWebsocketSession(
 
     fun didOpen() {
         val response = HttpResponseData(
-            HttpStatusCode.SwitchingProtocols,
+            task.getStatusCode()?.let { HttpStatusCode.fromValue(it) } ?: HttpStatusCode.SwitchingProtocols,
             requestTime,
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
@@ -168,6 +168,13 @@ internal class DarwinWebsocketSession(
     fun didComplete(error: NSError?) {
         if (error == null) {
             socketJob.cancel()
+            return
+        }
+
+        // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
+        if (task.getStatusCode() == HttpStatusCode.Unauthorized.value) {
+            didOpen()
+            socketJob.complete()
             return
         }
 
@@ -196,6 +203,12 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
     suspendCancellableCoroutine {
         receiveMessageWithCompletionHandler { message, error ->
             if (error != null) {
+                // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
+                if (getStatusCode() == HttpStatusCode.Unauthorized.value) {
+                    it.cancel()
+                    return@receiveMessageWithCompletionHandler
+                }
+
                 it.resumeWithException(DarwinHttpRequestException(error))
                 return@receiveMessageWithCompletionHandler
             }
@@ -207,3 +220,6 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
             it.resume(message)
         }
     }
+
+@OptIn(UnsafeNumber::class)
+internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()
