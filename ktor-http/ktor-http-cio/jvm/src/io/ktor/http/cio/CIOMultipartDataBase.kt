@@ -29,21 +29,29 @@ public class CIOMultipartDataBase(
     private val events: ReceiveChannel<MultipartEvent> =
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun readPart(): PartData? {
-        try {
-            previousPart?.dispose?.invoke()
+        previousPart?.dispose?.invoke()
 
-            while (!events.isEmpty) {
-                val event = events.receive()
-                eventToData(event)?.let {
-                    previousPart = it
-                    return it
-                }
+        while (true) {
+            val event = events.tryReceive().getOrNull() ?: break
+            eventToData(event)?.let {
+                previousPart = it
+                return it
             }
-        } catch (_: ClosedReceiveChannelException) {}
+        }
 
-        return null
+        return readPartSuspend()
+    }
+
+    private suspend fun readPartSuspend(): PartData? {
+        try {
+            while (true) {
+                val event = events.receive()
+                eventToData(event)?.let { return it }
+            }
+        } catch (t: ClosedReceiveChannelException) {
+            return null
+        }
     }
 
     private suspend fun eventToData(event: MultipartEvent): PartData? {
