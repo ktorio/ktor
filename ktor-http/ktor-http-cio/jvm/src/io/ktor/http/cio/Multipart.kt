@@ -206,6 +206,7 @@ private fun CoroutineScope.parseMultipart(
                     )
                 }
                 parsePartBodyImpl(boundaryPrefixed, countedInput, body, headersMap, maxPartSize)
+                body.close()
             } catch (cause: Throwable) {
                 if (headers.completeExceptionally(cause)) {
                     headersMap?.release()
@@ -213,8 +214,6 @@ private fun CoroutineScope.parseMultipart(
                 body.close(cause)
                 throw cause
             }
-
-            body.close()
         }
 
         // Can be followed by two carriage returns

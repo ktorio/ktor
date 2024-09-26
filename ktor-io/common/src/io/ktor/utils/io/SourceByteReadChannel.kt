@@ -4,6 +4,7 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import kotlin.concurrent.*
 
@@ -26,7 +27,7 @@ internal class SourceByteReadChannel(private val source: Source) : ByteReadChann
 
     override suspend fun awaitContent(min: Int): Boolean {
         closedCause?.let { throw it }
-        return false
+        return source.remaining >= min
     }
 
     override fun cancel(cause: Throwable?) {

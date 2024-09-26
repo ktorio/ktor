@@ -22,27 +22,28 @@ public class CIOMultipartDataBase(
     contentLength: Long?,
     formFieldLimit: Long = 65536,
 ) : MultiPartData, CoroutineScope {
+    // keep a reference to the previous part, so that we can
+    // close the body if the next is retrieved without reading
+    private var previousPart: PartData? = null
+
     private val events: ReceiveChannel<MultipartEvent> =
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun readPart(): PartData? {
-        while (true) {
-            val event = events.tryReceive().getOrNull() ?: break
-            eventToData(event)?.let { return it }
-        }
-
-        return readPartSuspend()
-    }
-
-    private suspend fun readPartSuspend(): PartData? {
         try {
-            while (true) {
+            previousPart?.dispose?.invoke()
+
+            while (!events.isEmpty) {
                 val event = events.receive()
-                eventToData(event)?.let { return it }
+                eventToData(event)?.let {
+                    previousPart = it
+                    return it
+                }
             }
-        } catch (t: ClosedReceiveChannelException) {
-            return null
-        }
+        } catch (_: ClosedReceiveChannelException) {}
+
+        return null
     }
 
     private suspend fun eventToData(event: MultipartEvent): PartData? {
