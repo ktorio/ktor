@@ -1,6 +1,7 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:Suppress("UnstableApiUsage")
 
 pluginManagement {
     includeBuild("gradle-settings-conventions")
@@ -16,16 +17,16 @@ plugins {
     id("conventions-develocity")
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
+        mavenLocal()
+    }
+}
+
 rootProject.name = "ktor"
-
-val fullVersion = System.getProperty("java.version", "8.0.0")
-val versionComponents = fullVersion
-    .split(".")
-    .take(2)
-    .filter { it.isNotBlank() }
-    .map { Integer.parseInt(it) }
-
-val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
 
 include(":ktor-server")
 include(":ktor-server:ktor-server-core")
@@ -53,7 +54,7 @@ include(":ktor-client:ktor-client-ios")
 include(":ktor-client:ktor-client-darwin")
 include(":ktor-client:ktor-client-darwin-legacy")
 include(":ktor-client:ktor-client-winhttp")
-if (currentJdk >= 11) {
+if (JavaVersion.current() >= JavaVersion.VERSION_11) {
     include(":ktor-client:ktor-client-java")
     include(":ktor-client:ktor-client-jetty-jakarta")
     include(":ktor-server:ktor-server-servlet-jakarta")

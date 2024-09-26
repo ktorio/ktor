@@ -115,13 +115,6 @@ allprojects {
 
     setupTrainForSubproject()
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
-    }
-
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
 
