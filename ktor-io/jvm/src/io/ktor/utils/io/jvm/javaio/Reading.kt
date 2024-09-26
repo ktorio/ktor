@@ -1,6 +1,7 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -59,7 +60,7 @@ internal class RawSourceChannel(
 
         withContext(coroutineContext) {
             var result = 0L
-            while (buffer.size < min && result >= 0) {
+            while (buffer.remaining < min && result >= 0) {
                 result = try {
                     source.readAtMostTo(buffer, Long.MAX_VALUE)
                 } catch (cause: EOFException) {
@@ -74,7 +75,7 @@ internal class RawSourceChannel(
             }
         }
 
-        return closedToken != null
+        return buffer.remaining >= min
     }
 
     override fun cancel(cause: Throwable?) {

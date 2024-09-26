@@ -70,7 +70,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
 
         if (_readBuffer.size < CHANNEL_MAX_SIZE) moveFlushToReadBuffer()
-        return _closedCause.value == null
+        return _readBuffer.size >= min
     }
 
     @OptIn(InternalAPI::class)
