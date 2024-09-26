@@ -250,30 +250,6 @@ public final class io/ktor/utils/io/ReaderScope : kotlinx/coroutines/CoroutineSc
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 }
 
-public abstract interface class io/ktor/utils/io/SkipResult {
-}
-
-public final class io/ktor/utils/io/SkipResult$EndOfFile : io/ktor/utils/io/SkipResult {
-	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$EndOfFile;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/utils/io/SkipResult$Invalid : io/ktor/utils/io/SkipResult {
-	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$Invalid;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/utils/io/SkipResult$Ok : io/ktor/utils/io/SkipResult {
-	public static final field INSTANCE Lio/ktor/utils/io/SkipResult$Ok;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class io/ktor/utils/io/WriterJob : io/ktor/utils/io/ChannelJob {
 	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getJob ()Lkotlinx/coroutines/Job;
