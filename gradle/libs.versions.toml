@@ -1,9 +1,9 @@
 [versions]
-kotlin = "2.0.20"
+kotlin = "2.1.0-Beta1"
 kotlinx-html = "0.11.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-io = "0.5.4"
-coroutines = "1.8.1"
+coroutines = "1.9.0-RC.2"
 atomicfu = "0.25.0"
 serialization = "1.7.3"
 ktlint = "3.15.0"

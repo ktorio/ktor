@@ -26,6 +26,7 @@ dependencies {
     val kotlin_version = libs.versions.kotlin.get()
     implementation(kotlin("gradle-plugin", kotlin_version))
     implementation(kotlin("serialization", kotlin_version))
+    implementation(kotlin("compiler-embeddable", kotlin_version))
 
     val ktlint_version = libs.versions.ktlint.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
