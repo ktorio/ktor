@@ -23,6 +23,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val TEST_FILE_SIZE = 1_000_000
 
+// TODO This does not work with the WASM target
 class MultipartServerTest {
 
     private val fileDispositionHeaders = Headers.build {
