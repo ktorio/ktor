@@ -10,9 +10,13 @@ import org.jetbrains.kotlin.gradle.targets.js.ir.*
 import java.io.*
 
 fun Project.configureWasm() {
-    configureWasmTasks()
-
     kotlin {
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs {
+            nodejs { useMochaForTests() }
+            if (project.targetIsEnabled("wasmJs.browser")) browser { useKarmaForTests() }
+        }
+
         sourceSets {
             wasmJsMain {
                 dependencies {
@@ -27,37 +31,5 @@ fun Project.configureWasm() {
         }
     }
 
-    configureWasmTestTasks()
-}
-
-private fun Project.configureWasmTasks() {
-    kotlin {
-        @OptIn(ExperimentalWasmDsl::class)
-        wasmJs {
-            nodejs {
-                testTask {
-                    useMocha {
-                        timeout = "10000"
-                    }
-                }
-            }
-
-            (this as KotlinJsIrTarget).whenBrowserConfigured {
-                testTask {
-                    useKarma {
-                        useChromeHeadless()
-                        useConfigDirectory(File(project.rootProject.projectDir, "karma"))
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun Project.configureWasmTestTasks() {
-    val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
-    if (shouldRunWasmBrowserTest) return
-
-    tasks.maybeNamed("cleanWasmJsBrowserTest") { onlyIf { false } }
-    tasks.maybeNamed("wasmJsBrowserTest") { onlyIf { false } }
+    configureJsTestTasks(target = "wasmJs")
 }

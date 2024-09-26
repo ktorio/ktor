@@ -4,14 +4,21 @@
 
 import internal.*
 import org.gradle.api.*
+import org.gradle.internal.extensions.stdlib.*
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.ir.*
+import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
+import kotlin.toString
 
 fun Project.configureJs() {
-    configureJsTasks()
-
     kotlin {
+        js {
+            if (project.targetIsEnabled("js.nodeJs")) nodejs { useMochaForTests() }
+            if (project.targetIsEnabled("js.browser")) browser { useKarmaForTests() }
+
+            binaries.library()
+        }
+
         sourceSets {
             jsTest {
                 dependencies {
@@ -21,40 +28,31 @@ fun Project.configureJs() {
         }
     }
 
-    configureJsTestTasks()
+    configureJsTestTasks(target = "js")
 }
 
-private fun Project.configureJsTasks() {
-    kotlin {
-        js {
-            if (project.targetIsEnabled("js.nodeJs")) {
-                nodejs {
-                    testTask {
-                        useMocha {
-                            timeout = "10000"
-                        }
-                    }
-                }
-            }
-
-            (this as KotlinJsIrTarget).whenBrowserConfigured {
-                testTask {
-                    useKarma {
-                        useChromeHeadless()
-                        useConfigDirectory(File(project.rootProject.projectDir, "karma"))
-                    }
-                }
-            }
-
-            binaries.library()
+internal fun KotlinJsSubTargetDsl.useMochaForTests() {
+    testTask {
+        useMocha {
+            timeout = "10000"
         }
     }
 }
 
-private fun Project.configureJsTestTasks() {
+internal fun KotlinJsSubTargetDsl.useKarmaForTests() {
+    testTask {
+        useKarma {
+            useChromeHeadless()
+            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
+        }
+    }
+}
+
+internal fun Project.configureJsTestTasks(target: String) {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunJsBrowserTest) return
 
-    tasks.maybeNamed("cleanJsBrowserTest") { onlyIf { false } }
-    tasks.maybeNamed("jsBrowserTest") { onlyIf { false } }
+    val capitalizedTarget = target.replaceFirstChar { it.titlecase() }
+    tasks.maybeNamed("clean${capitalizedTarget}BrowserTest") { onlyIf { false } }
+    tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
 }

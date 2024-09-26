@@ -108,7 +108,7 @@ doctor {
     enableTestCaching = false
 }
 
-allprojects {
+subprojects {
     group = "io.ktor"
     version = configuredVersion
     extra["hostManager"] = HostManager()
@@ -116,7 +116,7 @@ allprojects {
     setupTrainForSubproject()
 
     val nonDefaultProjectStructure: List<String> by rootProject.extra
-    if (nonDefaultProjectStructure.contains(project.name)) return@allprojects
+    if (nonDefaultProjectStructure.contains(project.name)) return@subprojects
 
     apply(plugin = "kotlin-multiplatform")
     apply(plugin = "atomicfu-conventions")
@@ -138,9 +138,7 @@ allprojects {
     if (!skipPublish.contains(project.name)) {
         configurePublication()
     }
-}
 
-subprojects {
     configureCodestyle()
 }
 
