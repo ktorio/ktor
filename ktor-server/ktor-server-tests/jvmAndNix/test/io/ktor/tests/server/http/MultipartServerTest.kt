@@ -95,21 +95,33 @@ class MultipartServerTest {
 
         withTimeout(5.seconds) {
             client.post("/") {
-                setBody(MultiPartFormDataContent(formData {
-                    append("payload", "a".repeat(1000), Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    })
-                    val provider = ChannelProvider(bytes.size.toLong()) {
-                        ByteReadChannel(bytes)
-                    }
-                    append("file", provider, Headers.build {
-                        append(
-                            HttpHeaders.ContentType,
-                            ContentType.Application.OctetStream.toString()
-                        )
-                        append(HttpHeaders.ContentDisposition, "filename=some.txt")
-                    })
-                }))
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                "payload",
+                                "a".repeat(1000),
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                }
+                            )
+                            val provider = ChannelProvider(bytes.size.toLong()) {
+                                ByteReadChannel(bytes)
+                            }
+                            append(
+                                "file",
+                                provider,
+                                Headers.build {
+                                    append(
+                                        HttpHeaders.ContentType,
+                                        ContentType.Application.OctetStream.toString()
+                                    )
+                                    append(HttpHeaders.ContentDisposition, "filename=some.txt")
+                                }
+                            )
+                        }
+                    )
+                )
             }
         }
     }
