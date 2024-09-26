@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
+import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
 import java.io.*
 
@@ -57,6 +57,6 @@ private fun Project.configureWasmTestTasks() {
     val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunWasmBrowserTest) return
 
-    tasks.findByName("cleanWasmJsBrowserTest")?.onlyIf { false }
-    tasks.findByName("wasmJsBrowserTest")?.onlyIf { false }
+    tasks.maybeNamed("cleanWasmJsBrowserTest") { onlyIf { false } }
+    tasks.maybeNamed("wasmJsBrowserTest") { onlyIf { false } }
 }

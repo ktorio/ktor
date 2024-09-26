@@ -1,10 +1,14 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 plugins {
     id("java-library")
 }
 
 description = "Internal module for checking JPMS compliance"
 
-tasks.register("generateModuleInfo") {
+val generateModuleInfo = tasks.register("generateModuleInfo") {
     doLast {
         val modules = rootProject.subprojects
             .filter { it.hasJavaModule }
@@ -23,8 +27,8 @@ tasks.register("generateModuleInfo") {
     }
 }
 
-val compileJava = tasks.getByName<JavaCompile>("compileJava") {
-    dependsOn("generateModuleInfo")
+tasks.named<JavaCompile>("compileJava") {
+    dependsOn(generateModuleInfo)
     doFirst {
         options.compilerArgs.addAll(listOf("--module-path", classpath.asPath))
         classpath = files()
