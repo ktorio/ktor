@@ -72,4 +72,4 @@ private fun CPointer<FILE>.readFileChunk(
 }.convert()
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun getEnvironmentValue(key: String): String? = getenv(key)?.toKString()
+internal actual fun getSystemPropertyOrEnvironmentVariable(key: String): String? = getenv(key)?.toKString()
