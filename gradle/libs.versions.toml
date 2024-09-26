@@ -25,7 +25,7 @@ apache = "4.1.5"
 apache5 = "5.3.1"
 apacheds = "2.0.0.AM27"
 okhttp = "4.12.0"
-okio = "3.9.0"
+okio = "3.9.1"
 
 json-simple = "1.1.1"
 gson = "2.11.0"
