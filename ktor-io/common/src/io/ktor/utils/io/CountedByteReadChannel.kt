@@ -4,9 +4,7 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
-import kotlinx.io.Buffer
 
 @Deprecated(
     "Counter is no longer available on the regular ByteReadChannel. Use CounterByteReadChannel instead.",

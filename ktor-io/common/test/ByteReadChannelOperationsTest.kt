@@ -114,9 +114,7 @@ class ByteReadChannelOperationsTest {
         ch.close()
 
         val delimiter = ByteString(byteArrayOf(1, 2))
-        assertFailsWith<IOException> {
-            ch.skip(delimiter)
-        }
+        assertFalse(ch.skipIfFound(delimiter))
     }
 
     @Test
