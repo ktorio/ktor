@@ -55,6 +55,4 @@ public class ExperimentalJsonConverter(private val format: Json) : ContentConver
             throw JsonConvertException("Illegal input: ${cause.message}", cause)
         }
     }
-
 }
-
