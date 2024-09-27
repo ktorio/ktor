@@ -201,14 +201,8 @@ final fun io.ktor.server.testing/testApplication(kotlin.coroutines/CoroutineCont
 // Targets: [native]
 final fun io.ktor.server.testing/testApplication(kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>) // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
 
-// Targets: [js]
-final fun io.ktor.server.testing/testApplication(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlin.js/Promise<kotlin/Unit> // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
+// Targets: [js, wasmJs]
+final fun io.ktor.server.testing/testApplication(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlinx.coroutines.test.internal/JsPromiseInterfaceForTesting // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
 
-// Targets: [js]
-final fun io.ktor.server.testing/testApplication(kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlin.js/Promise<kotlin/Unit> // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
-
-// Targets: [wasmJs]
-final fun io.ktor.server.testing/testApplication(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlin.js/Promise<kotlin.js/JsAny?> // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
-
-// Targets: [wasmJs]
-final fun io.ktor.server.testing/testApplication(kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlin.js/Promise<kotlin.js/JsAny?> // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
+// Targets: [js, wasmJs]
+final fun io.ktor.server.testing/testApplication(kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>): kotlinx.coroutines.test.internal/JsPromiseInterfaceForTesting // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
