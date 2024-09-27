@@ -354,9 +354,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWithAuthPlugin() = clientTests(
-        ENGINES_WITHOUT_WS  + "Js"
-    ) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
 
@@ -372,6 +370,48 @@ class WebSocketTest : ClientLoader() {
             client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
                 val frame = incoming.receive() as Frame.Text
                 assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("valid", "valid") }
+                }
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS) {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", "invalid") }
+                    refreshTokens { BearerTokens("invalid", "invalid") }
+                }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {}
             }
             client.close()
         }
