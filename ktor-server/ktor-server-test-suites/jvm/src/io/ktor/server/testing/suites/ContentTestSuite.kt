@@ -574,12 +574,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
-                val parts = mutableListOf<PartData>()
-                call.receiveMultipart().forEachPart {
-                    parts.add(it)
-                }
-
-                parts.sortedBy { it.name }.forEach { part ->
+                call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
                         is PartData.FileItem ->
@@ -592,8 +587,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.BinaryItem -> {}
                         is PartData.BinaryChannelItem -> {}
                     }
-
-                    part.dispose()
                 }
 
                 call.respondText(response.toString())
@@ -773,6 +766,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             {
                 method = HttpMethod.Post
                 headers.append("Content-Length", (Int.MAX_VALUE.toLong() + 1).toString())
+                setBody(ByteArray(1))
             }
         ) {
             assertEquals(200, status.value)

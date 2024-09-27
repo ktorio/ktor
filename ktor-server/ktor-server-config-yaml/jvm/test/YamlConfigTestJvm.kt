@@ -45,7 +45,7 @@ class YamlConfigTestJvm {
             val content = """
             ktor:
                 property: "${'$'}test.property"
-        """.trimIndent()
+            """.trimIndent()
             val yaml = Yaml.decodeYamlFromString(content)
             val config = YamlConfig(yaml as YamlMap)
             config.checkEnvironmentVariables()

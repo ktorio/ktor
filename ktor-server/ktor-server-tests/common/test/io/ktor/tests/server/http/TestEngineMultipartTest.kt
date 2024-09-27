@@ -62,10 +62,7 @@ class TestEngineMultipartTest {
 
         return testMultiParts({
             assertNotNull(it, "it should be multipart data")
-            val parts = it.readAllParts()
-
-            assertEquals(1, parts.size)
-            val file = parts[0] as PartData.FileItem
+            val file = it.readPart() as PartData.FileItem
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
@@ -99,7 +96,7 @@ class TestEngineMultipartTest {
         application {
             intercept(ApplicationCallPipeline.Call) {
                 try {
-                    call.receiveMultipart().readAllParts()
+                    call.receiveMultipart().forEachPart { }
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
                 }
@@ -210,10 +207,8 @@ class TestEngineMultipartTest {
         extraFileAssertions: suspend (file: PartData.FileItem) -> Unit
     ) = testMultiParts({
         assertNotNull(it, "it should be multipart data")
-        val parts = it.readAllParts()
 
-        assertEquals(1, parts.size)
-        val file = parts[0] as PartData.FileItem
+        val file = it.readPart() as PartData.FileItem
 
         assertEquals("fileField", file.name)
         assertEquals(filename, file.originalFileName)
