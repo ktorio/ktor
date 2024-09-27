@@ -13,20 +13,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.tests.server.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.Charsets
-import kotlinx.coroutines.withTimeout
-import kotlinx.io.Buffer
-import kotlin.io.use
+import io.ktor.utils.io.charsets.*
+import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
+import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 
 private const val TEST_FILE_SIZE = 1_000_000
 
-// TODO Only works in JVM
+@Ignore // TODO KTOR-7505 Only works in JVM
 class MultipartServerTest {
 
     private val fileDispositionHeaders = Headers.build {
