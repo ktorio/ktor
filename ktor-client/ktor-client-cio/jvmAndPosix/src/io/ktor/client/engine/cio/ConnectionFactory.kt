@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.cio
 
@@ -27,7 +27,7 @@ internal class ConnectionFactory(
             addressSemaphore.acquire()
 
             try {
-                aSocket(selector).tcpNoDelay().tcp().connect(address, configuration)
+                aSocket(selector).tcp().connect(address, configuration)
             } catch (cause: Throwable) {
                 // a failure or cancellation
                 addressSemaphore.release()

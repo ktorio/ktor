@@ -38,9 +38,11 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
-        val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
-        inetAddress.port
+    protected actual var port: Int = runBlocking {
+        aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
+            val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
+            inetAddress.port
+        }
     }
 
     protected actual var sslPort: Int = 0

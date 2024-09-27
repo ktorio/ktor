@@ -362,7 +362,9 @@ public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public abstract fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
+	public abstract fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stop (JJ)V
+	public abstract fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -385,7 +387,11 @@ public class io/ktor/server/engine/ApplicationEngine$Configuration {
 
 public final class io/ktor/server/engine/ApplicationEngine$DefaultImpls {
 	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public static fun startSuspend (Lio/ktor/server/engine/ApplicationEngine;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/ApplicationEngine;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
+	public static fun stopSuspend (Lio/ktor/server/engine/ApplicationEngine;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/ApplicationEngine;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/engine/ApplicationEngineFactory {
@@ -434,6 +440,8 @@ public abstract class io/ktor/server/engine/BaseApplicationEngine : io/ktor/serv
 	public final fun getPipeline ()Lio/ktor/server/engine/EnginePipeline;
 	protected final fun getResolvedConnectorsDeferred ()Lkotlinx/coroutines/CompletableDeferred;
 	public fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor/server/engine/ApplicationEngine$Configuration {

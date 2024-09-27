@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
@@ -5,11 +9,10 @@ import io.ktor.network.selector.*
 /**
  * TCP socket builder
  */
-@Suppress("PublicApiImplicitType")
-public class TcpSocketBuilder(
+public class TcpSocketBuilder internal constructor(
     private val selector: SelectorManager,
-    override var options: SocketOptions
-) : Configurable<TcpSocketBuilder, SocketOptions> {
+    override var options: SocketOptions.PeerSocketOptions
+) : Configurable<TcpSocketBuilder, SocketOptions.PeerSocketOptions> {
     /**
      * Connect to [hostname] and [port].
      */
@@ -22,7 +25,7 @@ public class TcpSocketBuilder(
     /**
      * Bind server socket at [port] to listen to [hostname].
      */
-    public fun bind(
+    public suspend fun bind(
         hostname: String = "0.0.0.0",
         port: Int = 0,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
@@ -34,13 +37,13 @@ public class TcpSocketBuilder(
     public suspend fun connect(
         remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
-    ): Socket = connect(selector, remoteAddress, options.peer().tcp().apply(configure))
+    ): Socket = connect(selector, remoteAddress, options.tcp().apply(configure))
 
     /**
      * Bind server socket to listen to [localAddress].
      */
-    public fun bind(
+    public suspend fun bind(
         localAddress: SocketAddress? = null,
         configure: SocketOptions.AcceptorOptions.() -> Unit = {}
-    ): ServerSocket = bind(selector, localAddress, options.peer().acceptor().apply(configure))
+    ): ServerSocket = bind(selector, localAddress, options.acceptor().apply(configure))
 }

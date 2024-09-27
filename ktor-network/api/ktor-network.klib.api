@@ -157,30 +157,24 @@ final class io.ktor.network.sockets/SocketTimeoutException : kotlinx.io/IOExcept
     constructor <init>(kotlin/String, kotlin/Throwable?) // io.ktor.network.sockets/SocketTimeoutException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 
-final class io.ktor.network.sockets/TcpSocketBuilder : io.ktor.network.sockets/Configurable<io.ktor.network.sockets/TcpSocketBuilder, io.ktor.network.sockets/SocketOptions> { // io.ktor.network.sockets/TcpSocketBuilder|null[0]
-    constructor <init>(io.ktor.network.selector/SelectorManager, io.ktor.network.sockets/SocketOptions) // io.ktor.network.sockets/TcpSocketBuilder.<init>|<init>(io.ktor.network.selector.SelectorManager;io.ktor.network.sockets.SocketOptions){}[0]
-
+final class io.ktor.network.sockets/TcpSocketBuilder : io.ktor.network.sockets/Configurable<io.ktor.network.sockets/TcpSocketBuilder, io.ktor.network.sockets/SocketOptions.PeerSocketOptions> { // io.ktor.network.sockets/TcpSocketBuilder|null[0]
     final var options // io.ktor.network.sockets/TcpSocketBuilder.options|{}options[0]
-        final fun <get-options>(): io.ktor.network.sockets/SocketOptions // io.ktor.network.sockets/TcpSocketBuilder.options.<get-options>|<get-options>(){}[0]
-        final fun <set-options>(io.ktor.network.sockets/SocketOptions) // io.ktor.network.sockets/TcpSocketBuilder.options.<set-options>|<set-options>(io.ktor.network.sockets.SocketOptions){}[0]
+        final fun <get-options>(): io.ktor.network.sockets/SocketOptions.PeerSocketOptions // io.ktor.network.sockets/TcpSocketBuilder.options.<get-options>|<get-options>(){}[0]
+        final fun <set-options>(io.ktor.network.sockets/SocketOptions.PeerSocketOptions) // io.ktor.network.sockets/TcpSocketBuilder.options.<set-options>|<set-options>(io.ktor.network.sockets.SocketOptions.PeerSocketOptions){}[0]
 
-    final fun bind(io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.AcceptorOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ServerSocket // io.ktor.network.sockets/TcpSocketBuilder.bind|bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}[0]
-    final fun bind(kotlin/String = ..., kotlin/Int = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.AcceptorOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ServerSocket // io.ktor.network.sockets/TcpSocketBuilder.bind|bind(kotlin.String;kotlin.Int;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}[0]
+    final suspend fun bind(io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.AcceptorOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ServerSocket // io.ktor.network.sockets/TcpSocketBuilder.bind|bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}[0]
+    final suspend fun bind(kotlin/String = ..., kotlin/Int = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.AcceptorOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ServerSocket // io.ktor.network.sockets/TcpSocketBuilder.bind|bind(kotlin.String;kotlin.Int;kotlin.Function1<io.ktor.network.sockets.SocketOptions.AcceptorOptions,kotlin.Unit>){}[0]
     final suspend fun connect(io.ktor.network.sockets/SocketAddress, kotlin/Function1<io.ktor.network.sockets/SocketOptions.TCPClientSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/Socket // io.ktor.network.sockets/TcpSocketBuilder.connect|connect(io.ktor.network.sockets.SocketAddress;kotlin.Function1<io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions,kotlin.Unit>){}[0]
     final suspend fun connect(kotlin/String, kotlin/Int, kotlin/Function1<io.ktor.network.sockets/SocketOptions.TCPClientSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/Socket // io.ktor.network.sockets/TcpSocketBuilder.connect|connect(kotlin.String;kotlin.Int;kotlin.Function1<io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions,kotlin.Unit>){}[0]
 }
 
 final class io.ktor.network.sockets/UDPSocketBuilder : io.ktor.network.sockets/Configurable<io.ktor.network.sockets/UDPSocketBuilder, io.ktor.network.sockets/SocketOptions.UDPSocketOptions> { // io.ktor.network.sockets/UDPSocketBuilder|null[0]
-    constructor <init>(io.ktor.network.selector/SelectorManager, io.ktor.network.sockets/SocketOptions.UDPSocketOptions) // io.ktor.network.sockets/UDPSocketBuilder.<init>|<init>(io.ktor.network.selector.SelectorManager;io.ktor.network.sockets.SocketOptions.UDPSocketOptions){}[0]
-
     final var options // io.ktor.network.sockets/UDPSocketBuilder.options|{}options[0]
         final fun <get-options>(): io.ktor.network.sockets/SocketOptions.UDPSocketOptions // io.ktor.network.sockets/UDPSocketBuilder.options.<get-options>|<get-options>(){}[0]
         final fun <set-options>(io.ktor.network.sockets/SocketOptions.UDPSocketOptions) // io.ktor.network.sockets/UDPSocketBuilder.options.<set-options>|<set-options>(io.ktor.network.sockets.SocketOptions.UDPSocketOptions){}[0]
 
-    final fun bind(io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/BoundDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.bind|bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
-    final fun connect(io.ktor.network.sockets/SocketAddress, io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ConnectedDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.connect|connect(io.ktor.network.sockets.SocketAddress;io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
-
-    final object Companion // io.ktor.network.sockets/UDPSocketBuilder.Companion|null[0]
+    final suspend fun bind(io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/BoundDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.bind|bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
+    final suspend fun connect(io.ktor.network.sockets/SocketAddress, io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ConnectedDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.connect|connect(io.ktor.network.sockets.SocketAddress;io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
 }
 
 final class io.ktor.network.sockets/UnixSocketAddress : io.ktor.network.sockets/SocketAddress { // io.ktor.network.sockets/UnixSocketAddress|null[0]
@@ -278,8 +272,6 @@ sealed class io.ktor.network.sockets/SocketOptions { // io.ktor.network.sockets/
 
         open fun copyCommon(io.ktor.network.sockets/SocketOptions) // io.ktor.network.sockets/SocketOptions.PeerSocketOptions.copyCommon|copyCommon(io.ktor.network.sockets.SocketOptions){}[0]
     }
-
-    final object Companion // io.ktor.network.sockets/SocketOptions.Companion|null[0]
 }
 
 final val io.ktor.network.sockets/isClosed // io.ktor.network.sockets/isClosed|@io.ktor.network.sockets.ASocket{}isClosed[0]

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
@@ -32,6 +32,7 @@ public class SocketBuilder internal constructor(
 /**
  * Set TCP_NODELAY socket option to disable the Nagle algorithm.
  */
+@Deprecated("noDelay is true by default", ReplaceWith("this"))
 public fun <T : Configurable<T, *>> T.tcpNoDelay(): T {
     return configure {
         if (this is SocketOptions.TCPClientSocketOptions) {

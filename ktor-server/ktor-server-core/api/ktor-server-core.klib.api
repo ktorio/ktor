@@ -109,6 +109,8 @@ abstract interface io.ktor.server.engine/ApplicationEngine { // io.ktor.server.e
     abstract fun start(kotlin/Boolean = ...): io.ktor.server.engine/ApplicationEngine // io.ktor.server.engine/ApplicationEngine.start|start(kotlin.Boolean){}[0]
     abstract fun stop(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/ApplicationEngine.stop|stop(kotlin.Long;kotlin.Long){}[0]
     abstract suspend fun resolvedConnectors(): kotlin.collections/List<io.ktor.server.engine/EngineConnectorConfig> // io.ktor.server.engine/ApplicationEngine.resolvedConnectors|resolvedConnectors(){}[0]
+    open suspend fun startSuspend(kotlin/Boolean = ...): io.ktor.server.engine/ApplicationEngine // io.ktor.server.engine/ApplicationEngine.startSuspend|startSuspend(kotlin.Boolean){}[0]
+    open suspend fun stopSuspend(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/ApplicationEngine.stopSuspend|stopSuspend(kotlin.Long;kotlin.Long){}[0]
 
     open class Configuration { // io.ktor.server.engine/ApplicationEngine.Configuration|null[0]
         constructor <init>() // io.ktor.server.engine/ApplicationEngine.Configuration.<init>|<init>(){}[0]
