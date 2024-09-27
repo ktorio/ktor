@@ -22,6 +22,5 @@ public actual fun testSuspend(
     timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
 ): TestResult = runTest(context=context, timeout=timeoutMillis.toDuration(DurationUnit.MILLISECONDS)) {
-
     block()
 }
