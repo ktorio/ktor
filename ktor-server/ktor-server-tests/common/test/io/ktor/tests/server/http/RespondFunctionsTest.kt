@@ -99,4 +99,20 @@ class RespondFunctionsTest {
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), it.contentType())
         }
     }
+
+    @Test
+    fun testRespondWithSource() = testApplication {
+        routing {
+            get("text") {
+                val source = Buffer().also { it.writeString("Hello") }
+                call.respondSource(source, contentType = ContentType.Text.Plain)
+            }
+        }
+
+        client.get("/text").let {
+            assertEquals("Hello", it.bodyAsText())
+            assertEquals("Hello".length, it.headers[HttpHeaders.ContentLength]?.toInt())
+            assertEquals(ContentType.Text.Plain, it.contentType())
+        }
+    }
 }
