@@ -20,7 +20,7 @@ internal actual fun <T> unpack_sockaddr_un(
     sockaddr: sockaddr,
     block: (family: UShort, path: String) -> T
 ): T {
-    error("Address ${sockaddr.sa_family} is not supported on ios")
+    error("Address ${sockaddr.sa_family} is not supported on Android Native")
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -29,5 +29,5 @@ internal actual fun pack_sockaddr_un(
     path: String,
     block: (address: CPointer<sockaddr>, size: UInt) -> Unit
 ) {
-    error("Address $family is not supported on ios")
+    error("Address $family is not supported on Android Native")
 }
