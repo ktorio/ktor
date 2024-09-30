@@ -225,7 +225,7 @@ public actual open class SynchronizedObject {
         public val mutex: CPointer<ktor_mutex_node_t>? = null
     ) {
         init {
-            freeze()
+            //freeze()
         }
     }
 
