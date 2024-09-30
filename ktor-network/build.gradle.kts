@@ -5,7 +5,7 @@
 description = "Ktor network utilities"
 
 kotlin {
-    createCInterop("network", nixTargets()) {
+    createCInterop("network", nixTargets()) { _ ->
         definitionFile = projectDir.resolve("nix/interop/network.def")
     }
 
