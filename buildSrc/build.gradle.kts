@@ -33,7 +33,7 @@ repositories {
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
-    val kotlinVersion = libs.versions.kotlin.version.get()
+    val kotlinVersion = "2.0.20"
     implementation(kotlin("gradle-plugin", kotlinVersion))
     implementation(kotlin("compiler-embeddable", kotlinVersion))
     implementation(kotlin("serialization", kotlinVersion))
