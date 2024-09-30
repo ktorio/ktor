@@ -33,9 +33,9 @@ repositories {
 val ktor_version = "3.0.0-eap-852"
 
 dependencies {
-    val kotlinVersion = "2.0.20"
+    val kotlinVersion = libs.versions.kotlin.version.get()
     implementation(kotlin("gradle-plugin", kotlinVersion))
-    implementation(kotlin("compiler-embeddable", kotlinVersion))
+    implementation(kotlin("compiler-embeddable", "2.0.20")) //gradle don't support LV 2.1
     implementation(kotlin("serialization", kotlinVersion))
 
     val ktlint_version = libs.versions.ktlint.version.get()
