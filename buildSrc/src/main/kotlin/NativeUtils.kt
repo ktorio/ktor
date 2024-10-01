@@ -11,7 +11,7 @@ fun Project.nixTargets(): List<String> = darwinTargets() + linuxTargets() + andr
 fun Project.supportsAndroidNative(): Boolean = project.targetIsEnabled("androidNative")
 
 fun Project.androidNativeTargets(): List<String> = with(kotlin) {
-    if (supportsAndroidNative()) listOf(
+    if (project.targetIsEnabled("androidNative")) listOf(
         androidNativeArm32(),
         androidNativeArm64(),
         androidNativeX86(),

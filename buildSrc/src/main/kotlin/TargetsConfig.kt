@@ -48,7 +48,7 @@ fun Project.configureTargets() {
         if (hasNix) nixTargets()
         if (hasDarwin) darwinTargets()
         if (hasLinux) linuxTargets()
-        if (supportsAndroidNative() && hasAndroidNative) androidNativeTargets()
+        if (hasAndroidNative) androidNativeTargets()
         if (hasDesktop) desktopTargets()
         if (hasWindows) windowsTargets()
 
@@ -152,7 +152,11 @@ internal fun Project.targetIsEnabled(target: String): Boolean {
     return findProperty("target.$target") != "false"
 }
 
-/** Original `withAndroidNativeArm32` has bug and matches to `X86` actually. */
+/**
+ * Original `withAndroidNativeArm32` has a bug and matches to `X86` actually.
+ * TODO: Remove after the bug is fixed
+ *  https://youtrack.jetbrains.com/issue/KT-71866/
+ */
 private fun KotlinHierarchyBuilder.withAndroidNativeArm32Fixed() = withCompilations {
     val target = it.target
     target is KotlinNativeTarget && target.konanTarget == KonanTarget.ANDROID_ARM32
