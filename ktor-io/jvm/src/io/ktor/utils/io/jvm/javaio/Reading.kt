@@ -10,6 +10,7 @@ import kotlinx.io.EOFException
 import kotlinx.io.IOException
 import java.io.*
 import java.nio.*
+import java.nio.channels.*
 import kotlin.coroutines.*
 
 /**

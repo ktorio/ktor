@@ -45,7 +45,7 @@ public fun ReadableByteChannel.asSource(): RawSource =
  */
 private open class ReadableByteChannelSource(
     private val channel: ReadableByteChannel,
-): RawSource {
+) : RawSource {
     @OptIn(UnsafeIoApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (byteCount <= 0L) return 0L

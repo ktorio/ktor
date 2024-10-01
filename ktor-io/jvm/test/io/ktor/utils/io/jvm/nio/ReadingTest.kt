@@ -32,5 +32,4 @@ class ReadingTest {
         assertEquals(expected, actual)
         assertFalse(channel.isOpen)
     }
-
 }
