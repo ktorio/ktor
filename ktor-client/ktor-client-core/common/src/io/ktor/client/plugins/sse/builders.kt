@@ -17,6 +17,7 @@ internal val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
 internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime")
 internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
+internal val deserializerAttr = AttributeKey<(String) -> Any>("SSEDeserializer")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
@@ -30,18 +31,20 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEventsSession(
+public suspend fun <T : Any> HttpClient.serverSentEventsSession(
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit
-): ClientSSESession {
+): ClientSSESession<T> {
     plugin(SSE)
 
-    val sessionDeferred = CompletableDeferred<ClientSSESession>()
+    val sessionDeferred = CompletableDeferred<ClientSSESession<T>>()
     val statement = prepareRequest {
         block()
         addAttribute(sseRequestAttr, true)
+        addAttribute(deserializerAttr, deserialize)
         addAttribute(reconnectionTimeAttr, reconnectionTime)
         addAttribute(showCommentEventsAttr, showCommentEvents)
         addAttribute(showRetryEventsAttr, showRetryEvents)
@@ -49,7 +52,7 @@ public suspend fun HttpClient.serverSentEventsSession(
     @Suppress("SuspendFunctionOnCoroutineScope")
     launch {
         try {
-            statement.body<ClientSSESession, Unit> { session ->
+            statement.body<ClientSSESession<T>, Unit> { session ->
                 sessionDeferred.complete(session)
             }
         } catch (cause: CancellationException) {
@@ -64,16 +67,17 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEventsSession(
+public suspend fun <T : Any> HttpClient.serverSentEventsSession(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    deserialize: ((String) -> T)?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents) {
+): ClientSSESession<T> = serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents) {
     url(scheme, host, port, path)
     block()
 }
@@ -81,13 +85,14 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEventsSession(
+public suspend fun <T : Any> HttpClient.serverSentEventsSession(
     urlString: String,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents) {
+): ClientSSESession<T> = serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents) {
     url.takeFrom(urlString)
     block()
 }
@@ -95,14 +100,15 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEvents(
+public suspend fun <T : Any> HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    block: suspend ClientSSESession.() -> Unit
+    block: suspend ClientSSESession<T>.() -> Unit
 ) {
-    val session = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, request)
+    val session = serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, request)
     try {
         block(session)
     } catch (cause: CancellationException) {
@@ -117,22 +123,24 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEvents(
+public suspend fun <T : Any> HttpClient.serverSentEvents(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientSSESession.() -> Unit
+    block: suspend ClientSSESession<T>.() -> Unit
 ) {
     serverSentEvents(
         {
             url(scheme, host, port, path)
             request()
         },
+        deserialize,
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
@@ -143,19 +151,21 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.serverSentEvents(
+public suspend fun <T : Any> HttpClient.serverSentEvents(
     urlString: String,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend ClientSSESession.() -> Unit
+    block: suspend ClientSSESession<T>.() -> Unit
 ) {
     serverSentEvents(
         {
             url.takeFrom(urlString)
             request()
         },
+        deserialize,
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
@@ -166,77 +176,106 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.sseSession(
+public suspend fun <T : Any> HttpClient.sseSession(
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit
-): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, block)
+): ClientSSESession<T> =
+    serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.sseSession(
+public suspend fun <T : Any> HttpClient.sseSession(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession =
-    serverSentEventsSession(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, block)
+): ClientSSESession<T> =
+    serverSentEventsSession(
+        scheme,
+        host,
+        port,
+        path,
+        deserialize,
+        reconnectionTime,
+        showCommentEvents,
+        showRetryEvents,
+        block
+    )
 
 /**
  * Opens a [ClientSSESession].
  */
-public suspend fun HttpClient.sseSession(
+public suspend fun <T : Any> HttpClient.sseSession(
     urlString: String,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
     block: HttpRequestBuilder.() -> Unit = {}
-): ClientSSESession = serverSentEventsSession(urlString, reconnectionTime, showCommentEvents, showRetryEvents, block)
+): ClientSSESession<T> =
+    serverSentEventsSession(urlString, deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.sse(
+public suspend fun <T : Any> HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(request, reconnectionTime, showCommentEvents, showRetryEvents, block)
+    block: suspend ClientSSESession<T>.() -> Unit
+): Unit = serverSentEvents(request, deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.sse(
+public suspend fun <T : Any> HttpClient.sse(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    block: suspend ClientSSESession.() -> Unit
+    block: suspend ClientSSESession<T>.() -> Unit
 ): Unit =
-    serverSentEvents(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
+    serverSentEvents(
+        scheme,
+        host,
+        port,
+        path,
+        deserialize,
+        reconnectionTime,
+        showCommentEvents,
+        showRetryEvents,
+        request,
+        block
+    )
 
 /**
  * Opens a [block] with [ClientSSESession].
  */
-public suspend fun HttpClient.sse(
+public suspend fun <T : Any> HttpClient.sse(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
+    deserialize: ((String) -> T)? = null,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(urlString, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
+    block: suspend ClientSSESession<T>.() -> Unit
+): Unit = serverSentEvents(urlString, deserialize, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
 
 private fun <T : Any> HttpRequestBuilder.addAttribute(attributeKey: AttributeKey<T>, value: T?) {
     if (value != null) {

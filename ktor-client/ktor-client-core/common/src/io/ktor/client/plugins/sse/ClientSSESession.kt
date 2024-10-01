@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.*
 /**
  * A Server-sent events session.
  */
-public interface SSESession : CoroutineScope {
+public interface SSESession<T> : CoroutineScope {
     /**
      * An incoming server-sent events flow.
      */
-    public val incoming: Flow<ServerSentEvent>
+    public val incoming: Flow<ServerSentEvent<T>>
 }
 
 /**
@@ -24,4 +24,4 @@ public interface SSESession : CoroutineScope {
  *
  * @property call associated with session.
  */
-public class ClientSSESession(public val call: HttpClientCall, delegate: SSESession) : SSESession by delegate
+public class ClientSSESession<T>(public val call: HttpClientCall, delegate: SSESession<T>) : SSESession<T> by delegate
