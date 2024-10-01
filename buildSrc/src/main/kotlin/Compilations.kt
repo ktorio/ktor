@@ -13,5 +13,6 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
 
         freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
         freeCompilerArgs += "-Xexpect-actual-classes"
+        freeCompilerArgs += "-Xconsistent-data-class-copy-visibility"
     }
 }
