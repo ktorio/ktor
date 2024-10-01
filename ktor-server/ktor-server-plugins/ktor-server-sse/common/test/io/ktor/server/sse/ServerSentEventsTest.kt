@@ -13,6 +13,8 @@ import io.ktor.server.testing.*
 import io.ktor.sse.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class ServerSentEventsTest {
@@ -125,11 +127,11 @@ class ServerSentEventsTest {
     fun testNoDuplicateHeader() = testApplication {
         install(SSE)
         routing {
-            sse { }
+            sse<String> { }
         }
 
         val client = createSseClient()
-        client.sse {
+        client.sse<String> {
             call.response.headers.forEach { _, values ->
                 assertEquals(1, values.size)
             }
@@ -170,7 +172,7 @@ class ServerSentEventsTest {
 
         """.trimIndent()
         val actualMultilineData = StringBuilder()
-        client.sse("/multiline-data") {
+        client.sse<String>("/multiline-data") {
             incoming.collect {
                 actualMultilineData.append(it.toString())
             }
@@ -184,12 +186,97 @@ class ServerSentEventsTest {
             
         """.trimIndent()
         val actualOneEventData = StringBuilder()
-        client.sse("/one-event-data") {
+        client.sse<String>("/one-event-data") {
             incoming.collect {
                 actualOneEventData.append(it.toString())
             }
         }
         assertEquals(expectedOneEventData.lines(), actualOneEventData.toString().lines())
+    }
+
+    class Person(val age: Int)
+
+    @Test
+    fun testSerializerInRoute() = testApplication {
+        install(SSE)
+        routing {
+            sse("/person", serialize = { "Age ${it.age}" }) {
+                repeat(10) {
+                    send(Person(it))
+                }
+            }
+        }
+
+        val client = createSseClient()
+
+        client.sse("/person") {
+            incoming.collectIndexed { i, person ->
+                assertEquals("Age $i", person.data)
+            }
+        }
+    }
+
+    class Person1(val age: Int)
+    class Person2(val number: Int)
+    class Person3(val index: Int)
+
+    @Test
+    fun testDifferentSerializers() = testApplication {
+        install(SSE) {
+            serialize { person: Person3 ->
+                "${person.index}"
+            }
+        }
+        routing {
+            sse("/person1", serialize = { println("1");"${it.age}" }) {
+                send(Person1(22))
+            }
+            sse("/person2", serialize = { "${it.number}" }) {
+                send(Person2(123456))
+            }
+            sse("/person3") {
+                send(Person3(0))
+            }
+        }
+
+        val client = createSseClient()
+        client.sse("/person1") {
+            incoming.single().apply {
+                assertEquals("22", data)
+            }
+        }
+        client.sse("/person2") {
+            incoming.single().apply {
+                assertEquals("123456", data)
+            }
+        }
+        client.sse("/person3") {
+            incoming.single().apply {
+                assertEquals("0", data)
+            }
+        }
+    }
+
+    @Serializable
+    data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+    @Test
+    fun testJsonDeserializer() = testApplication {
+        install(SSE) {
+            serialize<Customer> {
+                Json.encodeToString(it)
+            }
+        }
+        routing {
+            sse("/json") {
+                send(Customer(0, "Jet", "Brains"))
+            }
+        }
+
+        assertEquals(
+            "data: {\"id\":0,\"firstName\":\"Jet\",\"lastName\":\"Brains\"}",
+            client.get("/json").bodyAsText().trim()
+        )
     }
 
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {

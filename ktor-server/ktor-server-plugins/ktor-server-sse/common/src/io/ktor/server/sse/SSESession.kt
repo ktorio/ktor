@@ -10,11 +10,11 @@ import kotlinx.coroutines.*
 
 /**
  * Represents a server-side server-sent events session.
- * An [ServerSSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
+ * An [SSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * @see [SSE]
  */
-public interface ServerSSESession : CoroutineScope {
+public interface SSESession<T> : CoroutineScope {
     /**
      * Associated received [call] that originating this session.
      */
@@ -23,7 +23,7 @@ public interface ServerSSESession : CoroutineScope {
     /**
      * Sends a [ServerSentEvent] to the client.
      */
-    public suspend fun send(event: ServerSentEvent)
+    public suspend fun send(event: ServerSentEvent<T>)
 
     /**
      * Creates and sends a [ServerSentEvent] to the client.
@@ -35,7 +35,7 @@ public interface ServerSSESession : CoroutineScope {
      *  @param comments comment lines starting with a ':' character.
      */
     public suspend fun send(
-        data: String? = null,
+        data: T? = null,
         event: String? = null,
         id: String? = null,
         retry: Long? = null,
@@ -45,7 +45,7 @@ public interface ServerSSESession : CoroutineScope {
     }
 
     /**
-     * Closes the [ServerSSESession], terminating the connection with the client.
+     * Closes the [SSESession], terminating the connection with the client.
      * Once this method is called, the SSE session is closed and no further events can be sent.
      * You don't need to call this method as it is called automatically when all the send operations are completed.
      *
