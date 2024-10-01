@@ -22,9 +22,15 @@ public class ServerSentEvent<T>(
     public val retry: Long? = null,
     public val comments: String? = null
 ) {
+    @OptIn(InternalAPI::class)
     override fun toString(): String {
+        return toString { it.toString() }
+    }
+
+    @InternalAPI
+    public fun toString(serializer: (T) -> String): String {
         return buildString {
-            appendField("data", data)
+            appendField("data", data?.let { serializer(it) })
             appendField("event", event)
             appendField("id", id)
             appendField("retry", retry)
