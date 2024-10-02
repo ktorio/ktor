@@ -34,8 +34,8 @@ val ktor_version = "3.0.0-eap-852"
 
 dependencies {
     val kotlinVersion = libs.versions.kotlin.version.get()
-    implementation(kotlin("gradle-plugin", kotlinVersion))
-    implementation(kotlin("compiler-embeddable", "2.0.20")) //gradle don't support LV 2.1
+    implementation(kotlin("gradle-plugin", "2.1.0-dev-8424"))
+    implementation(kotlin("compiler-embeddable", "2.1.0-dev-8424")) //gradle don't support LV 2.1
     implementation(kotlin("serialization", kotlinVersion))
 
     val ktlint_version = libs.versions.ktlint.version.get()
