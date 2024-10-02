@@ -91,8 +91,6 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
                 group("linux") { withLinux() }
 
                 group("darwin") {
-                    withApple()
-
                     group("ios") { withIos() }
                     group("tvos") { withTvos() }
                     group("watchos") { withWatchos() }
@@ -100,8 +98,6 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
                 }
 
                 group("androidNative") {
-                    withAndroidNative()
-
                     group("androidNative64") {
                         withAndroidNativeX64()
                         withAndroidNativeArm64()

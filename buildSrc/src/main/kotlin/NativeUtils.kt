@@ -8,8 +8,6 @@ fun Project.posixTargets(): List<String> = nixTargets() + windowsTargets()
 
 fun Project.nixTargets(): List<String> = darwinTargets() + linuxTargets() + androidNativeTargets()
 
-fun Project.supportsAndroidNative(): Boolean = project.targetIsEnabled("androidNative")
-
 fun Project.androidNativeTargets(): List<String> = with(kotlin) {
     if (project.targetIsEnabled("androidNative")) listOf(
         androidNativeArm32(),
