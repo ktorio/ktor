@@ -53,7 +53,6 @@ fun Project.configureJvm() {
     }
 
     val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
-        ignoreFailures = true
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         useJUnitPlatform()
@@ -64,7 +63,6 @@ fun Project.configureJvm() {
         classpath = files(jvmTest.get().classpath)
         testClassesDirs = files(jvmTest.get().testClassesDirs)
 
-        ignoreFailures = true
         maxHeapSize = "2g"
         jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         setForkEvery(1)

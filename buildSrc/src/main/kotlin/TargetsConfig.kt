@@ -3,9 +3,11 @@
  */
 
 import org.gradle.api.*
+import org.gradle.api.tasks.testing.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.tasks.*
 import java.io.*
 
 private val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -61,6 +63,15 @@ fun Project.configureTargets() {
                 enabled = false
             }
         }
+    }
+
+    // Don't fail build on the CI:
+    // 1. To distinct builds failed because of failed tests and because of compilation errors or anything else.
+    //    TeamCity parses test results to define build status, so the build won't be green.
+    // 2. To run as many tests as possible while keeping fail-fast behavior locally.
+    if (CI) tasks.withType<AbstractTestTask>().configureEach {
+        ignoreFailures = true
+        if (this is KotlinTest) ignoreRunFailures = true
     }
 }
 
