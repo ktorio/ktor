@@ -1,14 +1,31 @@
 public final class io/ktor/server/sse/RoutingKt {
+	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun sse (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public static final fun sse (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun sse$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun sse$default (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 }
 
-public final class io/ktor/server/sse/SSEKt {
-	public static final fun getSSE ()Lio/ktor/server/application/ApplicationPlugin;
+public final class io/ktor/server/sse/SSE {
+	public static final field Plugin Lio/ktor/server/sse/SSE$Plugin;
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getSerialize ()Lkotlin/jvm/functions/Function1;
+}
+
+public final class io/ktor/server/sse/SSE$Plugin : io/ktor/server/application/BaseApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/sse/SSE;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/sse/SSEConfig {
+	public fun <init> ()V
+	public final fun serialize (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/sse/SSEServerContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
-	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function2;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getHandle ()Lkotlin/jvm/functions/Function2;
@@ -16,15 +33,15 @@ public final class io/ktor/server/sse/SSEServerContent : io/ktor/http/content/Ou
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/server/sse/ServerSSESession : kotlinx/coroutines/CoroutineScope {
+public abstract interface class io/ktor/server/sse/SSESession : kotlinx/coroutines/CoroutineScope {
 	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public abstract fun send (Lio/ktor/sse/ServerSentEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun send (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun send (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/sse/ServerSSESession$DefaultImpls {
-	public static fun send (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun send$default (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+public final class io/ktor/server/sse/SSESession$DefaultImpls {
+	public static fun send (Lio/ktor/server/sse/SSESession;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun send$default (Lio/ktor/server/sse/SSESession;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

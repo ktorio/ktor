@@ -20,7 +20,7 @@ import io.ktor.server.routing.*
  *
  * @see SSESession
  */
-public fun <T: Any> Route.sse(path: String, handler: suspend SSESession<T>.() -> Unit) {
+public fun <T : Any> Route.sse(path: String, handler: suspend SSESession<T>.() -> Unit) {
     route(path, HttpMethod.Get) {
         sse(handler)
     }
@@ -59,7 +59,11 @@ public fun <T : Any> Route.sse(handler: suspend SSESession<T>.() -> Unit) {
  *
  * @see SSESession
  */
-public fun <T> Route.sse(path: String, serialize: (T) -> String = { it.toString() }, handler: suspend SSESession<T>.() -> Unit) {
+public fun <T> Route.sse(
+    path: String,
+    serialize: (T) -> String = { it.toString() },
+    handler: suspend SSESession<T>.() -> Unit
+) {
     route(path, HttpMethod.Get) {
         sse(serialize, handler)
     }

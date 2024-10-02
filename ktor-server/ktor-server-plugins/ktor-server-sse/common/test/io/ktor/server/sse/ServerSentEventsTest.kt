@@ -228,7 +228,7 @@ class ServerSentEventsTest {
             }
         }
         routing {
-            sse("/person1", serialize = { println("1");"${it.age}" }) {
+            sse("/person1", serialize = { println("1"); "${it.age}" }) {
                 send(Person1(22))
             }
             sse("/person2", serialize = { "${it.number}" }) {
