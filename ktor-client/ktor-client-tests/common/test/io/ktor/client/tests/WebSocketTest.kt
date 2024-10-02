@@ -6,6 +6,8 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -348,6 +350,70 @@ class WebSocketTest : ClientLoader() {
                     defs.awaitAll()
                 }
             }
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithValidRefreshToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", "invalid") }
+                    refreshTokens { BearerTokens("valid", "valid") }
+                }
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("valid", "valid") }
+                }
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", "invalid") }
+                    refreshTokens { BearerTokens("invalid", "invalid") }
+                }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {}
+            }
+            client.close()
         }
     }
 }

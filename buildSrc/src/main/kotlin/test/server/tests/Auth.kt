@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import java.security.*
 
@@ -58,6 +59,16 @@ internal fun Application.authTestServer() {
                 check("MyUser" == credential.name)
                 check("1234" == credential.password)
                 UserIdPrincipal("MyUser")
+            }
+        }
+
+        bearer("websocket-auth") {
+            authenticate { credential ->
+                if (credential.token == "valid") {
+                    UserIdPrincipal("User")
+                } else {
+                    null
+                }
             }
         }
     }
@@ -200,6 +211,11 @@ internal fun Application.authTestServer() {
                     }
 
                     call.respond("OK")
+                }
+            }
+            authenticate("websocket-auth") {
+                webSocket("websocket") {
+                    send(Frame.Text("Hello from server"))
                 }
             }
         }

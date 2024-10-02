@@ -5,6 +5,7 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.plugins.websocket.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
@@ -131,11 +132,18 @@ internal class OkHttpWebsocketSession(
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
+        val statusCode = response?.code
 
-        _closeReason.completeExceptionally(t)
-        originResponse.completeExceptionally(t)
-        _incoming.close(t)
-        outgoing.close(t)
+        if (statusCode == HttpStatusCode.Unauthorized.value) {
+            originResponse.complete(response)
+            _incoming.close()
+            outgoing.close()
+        } else {
+            originResponse.completeExceptionally(t)
+            _closeReason.completeExceptionally(t)
+            _incoming.close(t)
+            outgoing.close(t)
+        }
     }
 
     override suspend fun flush() {
