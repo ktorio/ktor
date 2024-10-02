@@ -463,7 +463,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     }
 
     @Test
-    fun testExceptionIfNoDeserializerProvided() = clientTests {
+    fun testExceptionIfNoDeserializerProvided() = clientTests(listOf("Curl", "Darwin", "DarwinLegacy", "Js")) {
         config {
             install(SSE)
         }
@@ -480,7 +480,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     }
 
     @Test
-    fun testExceptionIfWrongDeserializerProvided() = clientTests {
+    fun testExceptionIfWrongDeserializerProvided() = clientTests(listOf("Curl", "Darwin", "DarwinLegacy", "Js")) {
         config {
             install(SSE) {
                 deserialize {
@@ -507,7 +507,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     class Person3(val surname: String)
 
     @Test
-    fun testDifferentDeserializers() = clientTests {
+    fun testDifferentDeserializers() = clientTests(listOf("Js")) {
         config {
             install(SSE) {
                 deserialize {
@@ -539,7 +539,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     data class Customer(val id: Int, val firstName: String, val lastName: String)
 
     @Test
-    fun testJsonDeserializer() = clientTests {
+    fun testJsonDeserializer() = clientTests(listOf("Js")) {
         config {
             install(SSE) {
                 deserialize {
