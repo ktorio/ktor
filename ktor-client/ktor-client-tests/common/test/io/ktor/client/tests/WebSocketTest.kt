@@ -376,7 +376,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
 
@@ -397,7 +397,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
         config {
             install(WebSockets)
 
