@@ -123,7 +123,7 @@ doctor {
     enableTestCaching = false
 }
 
-val kotlinVersion = libs.versions.kotlin.version.get()
+val kotlinVersion = libs.versions.kotlin.get()
 
 subprojects {
     group = "io.ktor"
