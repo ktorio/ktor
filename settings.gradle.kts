@@ -22,7 +22,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.enterprise") version("3.10.1")
-    id("conventions-develocity")
+    //id("conventions-develocity")
 }
 
 dependencyResolutionManagement {
