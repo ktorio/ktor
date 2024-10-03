@@ -230,13 +230,13 @@ final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.util.collections/CopyOnWrit
 }
 
 final class <#A: kotlin/Any> io.ktor.util/AttributeKey { // io.ktor.util/AttributeKey|null[0]
-    constructor <init>(kotlin/String, kotlin.reflect/KType = ...) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;kotlin.reflect.KType){}[0]
+    constructor <init>(kotlin/String, io.ktor.util.reflect/TypeInfo = ...) // io.ktor.util/AttributeKey.<init>|<init>(kotlin.String;io.ktor.util.reflect.TypeInfo){}[0]
 
     final val name // io.ktor.util/AttributeKey.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.util/AttributeKey.name.<get-name>|<get-name>(){}[0]
 
     final fun component1(): kotlin/String // io.ktor.util/AttributeKey.component1|component1(){}[0]
-    final fun copy(kotlin/String = ..., kotlin.reflect/KType = ...): io.ktor.util/AttributeKey<#A> // io.ktor.util/AttributeKey.copy|copy(kotlin.String;kotlin.reflect.KType){}[0]
+    final fun copy(kotlin/String = ..., io.ktor.util.reflect/TypeInfo = ...): io.ktor.util/AttributeKey<#A> // io.ktor.util/AttributeKey.copy|copy(kotlin.String;io.ktor.util.reflect.TypeInfo){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.util/AttributeKey.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.util/AttributeKey.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.util/AttributeKey.toString|toString(){}[0]
@@ -986,8 +986,8 @@ final inline fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.util.cio/use(kotlin
 final inline fun (kotlin/String).io.ktor.util/chomp(kotlin/String, kotlin/Function0<kotlin/Pair<kotlin/String, kotlin/String>>): kotlin/Pair<kotlin/String, kotlin/String> // io.ktor.util/chomp|chomp@kotlin.String(kotlin.String;kotlin.Function0<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
 final inline fun <#A: reified kotlin/Any, #B: kotlin/Any> (io.ktor.util.pipeline/Pipeline<*, #B>).io.ktor.util.pipeline/intercept(io.ktor.util.pipeline/PipelinePhase, noinline kotlin.coroutines/SuspendFunction2<io.ktor.util.pipeline/PipelineContext<#A, #B>, #A, kotlin/Unit>) // io.ktor.util.pipeline/intercept|intercept@io.ktor.util.pipeline.Pipeline<*,0:1>(io.ktor.util.pipeline.PipelinePhase;kotlin.coroutines.SuspendFunction2<io.ktor.util.pipeline.PipelineContext<0:0,0:1>,0:0,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.util/AttributeKey(kotlin/String): io.ktor.util/AttributeKey<#A> // io.ktor.util/AttributeKey|AttributeKey(kotlin.String){0§<kotlin.Any>}[0]
-final inline fun <#A: reified kotlin/Any?> io.ktor.util.reflect/tryGetType(): kotlin.reflect/KType? // io.ktor.util.reflect/tryGetType|tryGetType(){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> io.ktor.util.reflect/typeInfo(): io.ktor.util.reflect/TypeInfo // io.ktor.util.reflect/typeInfo|typeInfo(){0§<kotlin.Any?>}[0]
+final inline fun <#A: reified kotlin/Any?> io.ktor.util.reflect/typeOfOrNull(): kotlin.reflect/KType? // io.ktor.util.reflect/typeOfOrNull|typeOfOrNull(){0§<kotlin.Any?>}[0]
 final suspend fun (io.ktor.util/Digest).io.ktor.util/build(kotlin/ByteArray): kotlin/ByteArray // io.ktor.util/build|build@io.ktor.util.Digest(kotlin.ByteArray){}[0]
 final suspend fun (io.ktor.util/Digest).io.ktor.util/build(kotlin/String, io.ktor.utils.io.charsets/Charset = ...): kotlin/ByteArray // io.ktor.util/build|build@io.ktor.util.Digest(kotlin.String;io.ktor.utils.io.charsets.Charset){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.util.cio/toByteArray(kotlin/Int = ...): kotlin/ByteArray // io.ktor.util.cio/toByteArray|toByteArray@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
