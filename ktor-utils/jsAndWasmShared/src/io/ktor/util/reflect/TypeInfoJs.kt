@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.reflect
@@ -10,8 +10,7 @@ public actual interface Type
 
 public object JsType : Type
 
-@OptIn(ExperimentalStdlibApi::class)
-public actual inline fun <reified T> typeInfo(): TypeInfo = typeInfoImpl(JsType, T::class, tryGetType<T>())
+public actual inline fun <reified T> typeInfo(): TypeInfo = typeInfoImpl(JsType, T::class, typeOfOrNull<T>())
 
 public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
     TypeInfo(kClass, reifiedType, kType)
