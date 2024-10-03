@@ -20,6 +20,9 @@ buildscript {
     extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
     val build_snapshot_train: String? by extra
 
+    extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+    val kotlin_repo_url: String? by extra
+
     if (build_snapshot_train.toBoolean()) {
         extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
         val kotlin_version: String? by extra
@@ -38,6 +41,7 @@ buildscript {
         configurations.classpath {
             resolutionStrategy.eachDependency {
                 if (requested.group == "org.jetbrains.kotlin") {
+                    println("Using Kotlin Version $kotlin_version for train")
                     useVersion(kotlin_version!!)
                 }
             }
@@ -49,12 +53,16 @@ buildscript {
         google()
         gradlePluginPortal()
         mavenLocal()
+        if (kotlin_repo_url != null) {
+            maven(kotlin_repo_url!!)
+        }
     }
 }
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
 val version = (project.version as String).let { if (it.endsWith("-SNAPSHOT")) it.dropLast("-SNAPSHOT".length) else it }
+val kotlinVersion = libs.versions.kotlin.get()
 
 extra["configuredVersion"] = when {
     releaseVersion != null -> releaseVersion
@@ -127,6 +135,17 @@ subprojects {
         maybeCreate("testOutput")
     }
 
+    configurations.configureEach {
+        if (isCanBeResolved) {
+            resolutionStrategy.eachDependency {
+                if (requested.group == "org.jetbrains.kotlin") {
+                    println("Using Kotlin version $kotlinVersion")
+                    useVersion(kotlinVersion)
+                }
+            }
+        }
+    }
+
     kotlin {
         if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
 
@@ -191,6 +210,12 @@ subprojects {
 }
 
 fun KotlinMultiplatformExtension.configureSourceSets() {
+    extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
+    val kotlin_language_version: String? by extra
+
+    extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
+    val kotlin_api_version: String? by extra
+
     sourceSets
         .matching { it.name !in listOf("main", "test") }
         .all {
@@ -203,6 +228,8 @@ fun KotlinMultiplatformExtension.configureSourceSets() {
 
             languageSettings.apply {
                 progressiveMode = true
+                languageVersion = kotlin_language_version
+                apiVersion = kotlin_api_version
             }
         }
 }

@@ -11,12 +11,19 @@ plugins {
 
 val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
 
+extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
+val kotlin_repo_url: String? by extra
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
     maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
     if (buildSnapshotTrain) {
         mavenLocal()
+    }
+    if (kotlin_repo_url != null) {
+        maven(kotlin_repo_url!!)
     }
 }
 

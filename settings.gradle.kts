@@ -17,7 +17,17 @@ plugins {
     id("conventions-develocity")
 }
 
+
 dependencyResolutionManagement {
+    versionCatalogs {
+        val libs by creating {
+            if (extra.has("kotlin_version")) {
+                val kotlinVersion = extra["kotlin_version"].toString()
+                println("Using Kotlin version $kotlinVersion in settings.gradle")
+                version("kotlin-version", kotlinVersion)
+            }
+        }
+    }
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
