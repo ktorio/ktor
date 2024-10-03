@@ -18,7 +18,7 @@ kotlin {
                 api(project(":ktor-shared:ktor-events"))
                 api(project(":ktor-http:ktor-http-cio"))
                 api(project(":ktor-shared:ktor-websockets"))
-                
+
                 api(libs.kotlin.reflect)
             }
         }
