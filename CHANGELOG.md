@@ -25,6 +25,7 @@
 * Include relocation notes for old Ktor modules ([KTOR-6826](https://youtrack.jetbrains.com/issue/KTOR-6826))
 * `ByteReadChannel.readFully(dst: ByteArray, offset: Int, length: Int)` is missing since 3.0.0-beta-2 ([KTOR-7427](https://youtrack.jetbrains.com/issue/KTOR-7427))
 * ByteChannel.readUtf8Line() backwards compatibility ([KTOR-7474](https://youtrack.jetbrains.com/issue/KTOR-7474))
+* Kotlinx-io response extension ([KTOR-7504](https://youtrack.jetbrains.com/issue/KTOR-7504))
 
 ### Features
 * Add multiplatform support for XML ([KTOR-5085](https://youtrack.jetbrains.com/issue/KTOR-5085))
