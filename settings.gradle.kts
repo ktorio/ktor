@@ -3,6 +3,10 @@
  */
 @file:Suppress("UnstableApiUsage")
 
+import java.io.*
+import java.util.*
+
+
 pluginManagement {
     includeBuild("gradle-settings-conventions")
 
@@ -21,9 +25,23 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         val libs by creating {
-            if (extra.has("kotlin_version")) {
-                val kotlinVersion = extra["kotlin_version"].toString()
-                println("Using Kotlin version $kotlinVersion in settings.gradle")
+
+            fun kotlinVersionFromProjectRootProperties(): String? {
+                val properties = Properties()
+                FileInputStream(file("../gradle.properties")).use {
+                    properties.load(it)
+                }
+                return properties["kotlin_version"]?.toString()
+            }
+
+            val kotlinVersion = if (extra.has("kotlin_version")) {
+                extra.get("kotlin_version").toString()
+            } else {
+                kotlinVersionFromProjectRootProperties()
+            }
+
+            if (kotlinVersion != null) {
+                println("Using Kotlin Compiler version $kotlinVersion")
                 version("kotlin-version", kotlinVersion)
             }
         }

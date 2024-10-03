@@ -62,7 +62,7 @@ buildscript {
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
 val version = (project.version as String).let { if (it.endsWith("-SNAPSHOT")) it.dropLast("-SNAPSHOT".length) else it }
-val kotlinVersion = libs.versions.kotlin.get()
+val kotlinVersion = extra["kotlin_version"].toString()
 
 extra["configuredVersion"] = when {
     releaseVersion != null -> releaseVersion
@@ -161,7 +161,6 @@ subprojects {
     configureCodestyle()
 }
 
-println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
 filterSnapshotTests()
 
 fun configureDokka() {

@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -16,6 +19,10 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             from(files("../gradle/libs.versions.toml"))
+
+            val kotlinVersion = extra["kotlin_version"].toString()
+            println("Using Kotlin version $kotlinVersion in settings.gradle")
+            version("kotlin-version", kotlinVersion)
         }
     }
 }

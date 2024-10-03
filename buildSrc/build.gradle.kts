@@ -30,11 +30,12 @@ repositories {
 val ktor_version = "3.0.0-rc-2-eap-1091"
 
 dependencies {
-    val kotlin_version = libs.versions.kotlin.get()
+    val kotlin_version: String? by extra
+    println("Using Kotlin version $kotlin_version for buildSrc.")
     implementation(kotlin("gradle-plugin", kotlin_version))
     implementation(kotlin("serialization", kotlin_version))
 
-    val ktlint_version = libs.versions.ktlint.get()
+    val ktlint_version ="3.15.0"
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
     implementation("io.ktor:ktor-server-default-headers:$ktor_version")
@@ -65,3 +66,25 @@ dependencies {
 kotlin {
     jvmToolchain(8)
 }
+
+extra["kotlin_language_version"] = rootProject.properties["kotlin_language_version"]
+val kotlin_language_version: String? by extra
+
+extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
+val kotlin_api_version: String? by extra
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += listOf(
+        "-Xsuppress-version-warnings",
+        "-Xskip-metadata-version-check",
+    )
+
+    if (kotlin_language_version != null) {
+        println("Using Kotlin Language Version $kotlin_language_version")
+        kotlinOptions.languageVersion = kotlin_language_version
+    }
+    if (kotlin_language_version != null) {
+        kotlinOptions.apiVersion = kotlin_api_version
+    }
+}
+
