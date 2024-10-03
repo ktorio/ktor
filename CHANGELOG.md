@@ -1,5 +1,5 @@
 # 3.0.0-rc-2
-> Published 10 October 2024
+> Published 2 October 2024
 
 ### Bugfixes
 * Sessions: custom SessionSerializer is no longer supported ([KTOR-7442](https://youtrack.jetbrains.com/issue/KTOR-7442))
@@ -18,8 +18,8 @@
 * Maven builds not working ([KTOR-7425](https://youtrack.jetbrains.com/issue/KTOR-7425))
 
 ### Improvements
-* $${\color{red}[Breaking\ Change]}$$ Deprecate `withTestApplication` APIs with ERROR and migrate to `testApplication` ([KTOR-7284](https://youtrack.jetbrains.com/issue/KTOR-7284))
-* $${\color{red}[Breaking\ Change]}$$ Replace `java.time` options in Websockets plugin ([KTOR-7446](https://youtrack.jetbrains.com/issue/KTOR-7446))
+* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-red?style=flat-square)](#) Deprecate `withTestApplication` APIs with ERROR and migrate to `testApplication` ([KTOR-7284](https://youtrack.jetbrains.com/issue/KTOR-7284))
+* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-red?style=flat-square)](#) Replace `java.time` options in Websockets plugin ([KTOR-7446](https://youtrack.jetbrains.com/issue/KTOR-7446))
 * Ktor doesn't read System properties from jvm ([KTOR-7492](https://youtrack.jetbrains.com/issue/KTOR-7492))
 * Redirect dependencies from ktor-server-test-base ([KTOR-7393](https://youtrack.jetbrains.com/issue/KTOR-7393))
 * Include relocation notes for old Ktor modules ([KTOR-6826](https://youtrack.jetbrains.com/issue/KTOR-6826))
