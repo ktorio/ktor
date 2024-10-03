@@ -18,8 +18,8 @@
 * Maven builds not working ([KTOR-7425](https://youtrack.jetbrains.com/issue/KTOR-7425))
 
 ### Improvements
-* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-cf222e?style=flat-square)](#) Deprecate `withTestApplication` APIs with ERROR and migrate to `testApplication` ([KTOR-7284](https://youtrack.jetbrains.com/issue/KTOR-7284))
-* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-cf222e?style=flat-square)](#) Replace `java.time` options in Websockets plugin ([KTOR-7446](https://youtrack.jetbrains.com/issue/KTOR-7446))
+* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-red?style=flat-square)](#) Deprecate `withTestApplication` APIs with ERROR and migrate to `testApplication` ([KTOR-7284](https://youtrack.jetbrains.com/issue/KTOR-7284))
+* [![Breaking change](https://img.shields.io/badge/[Breaking%20change]-red?style=flat-square)](#) Replace `java.time` options in Websockets plugin ([KTOR-7446](https://youtrack.jetbrains.com/issue/KTOR-7446))
 * Ktor doesn't read System properties from jvm ([KTOR-7492](https://youtrack.jetbrains.com/issue/KTOR-7492))
 * Redirect dependencies from ktor-server-test-base ([KTOR-7393](https://youtrack.jetbrains.com/issue/KTOR-7393))
 * Include relocation notes for old Ktor modules ([KTOR-6826](https://youtrack.jetbrains.com/issue/KTOR-6826))
