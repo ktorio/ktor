@@ -74,10 +74,6 @@ extra["kotlin_api_version"] = rootProject.properties["kotlin_api_version"]
 val kotlin_api_version: String? by extra
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += listOf(
-        "-Xsuppress-version-warnings",
-        "-Xskip-metadata-version-check",
-    )
 
     if (kotlin_language_version != null) {
         println("Using Kotlin Language Version $kotlin_language_version")

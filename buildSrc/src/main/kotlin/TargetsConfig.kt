@@ -99,7 +99,7 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
 
         group("jsAndWasmShared") {
             withJs()
-            withWasmJs()
+            //withWasmJs()
         }
 
         group("jvmAndPosix") {
