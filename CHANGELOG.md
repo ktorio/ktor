@@ -1,3 +1,37 @@
+# 3.0.0-rc-2
+> Published 10 October 2024
+
+### Bugfixes
+* Sessions: custom SessionSerializer is no longer supported ([KTOR-7442](https://youtrack.jetbrains.com/issue/KTOR-7442))
+* Multipart/form-data: Request timeout when receiving FileItem with 3.0.0-rc-1 ([KTOR-7484](https://youtrack.jetbrains.com/issue/KTOR-7484))
+* MultiPartData.readPart does not return null when stream ends ([KTOR-7500](https://youtrack.jetbrains.com/issue/KTOR-7500))
+* Multipart/form-data: Form limit applied for binary and file items ([KTOR-7356](https://youtrack.jetbrains.com/issue/KTOR-7356))
+* Autoreload not working by default under Windows ([KTOR-3031](https://youtrack.jetbrains.com/issue/KTOR-3031))
+* HttpCache: Cache collision in the plugin when Authorization header is used ([KTOR-7483](https://youtrack.jetbrains.com/issue/KTOR-7483))
+* Gradle sync issue with kotlin-serialization 1.7.2 on 3.0.0-rc-1 ([KTOR-7477](https://youtrack.jetbrains.com/issue/KTOR-7477))
+* The ApplicationStopping event isn't raised when application is terminated with SIGINT ([KTOR-7448](https://youtrack.jetbrains.com/issue/KTOR-7448))
+* respondOutputStream reads entire contents into memory before returning response ([KTOR-7461](https://youtrack.jetbrains.com/issue/KTOR-7461))
+* UninitializedPropertyAccessException for `request` property when using MonitoringEvent(RoutingCallStarted) ([KTOR-7449](https://youtrack.jetbrains.com/issue/KTOR-7449))
+* Preconfigured NSURLSession causes requests to hang ([KTOR-7355](https://youtrack.jetbrains.com/issue/KTOR-7355))
+* Failures after upgrading Ktor in test server ([KTOR-7431](https://youtrack.jetbrains.com/issue/KTOR-7431))
+* `InputStream.toByteReadChannel` creates unattached job ([KTOR-7012](https://youtrack.jetbrains.com/issue/KTOR-7012))
+* Maven builds not working ([KTOR-7425](https://youtrack.jetbrains.com/issue/KTOR-7425))
+
+### Improvements
+* $${\color{red}[Breaking\ Change]}$$ Deprecate `withTestApplication` APIs with ERROR and migrate to `testApplication` ([KTOR-7284](https://youtrack.jetbrains.com/issue/KTOR-7284))
+* $${\color{red}[Breaking\ Change]}$$ Replace `java.time` options in Websockets plugin ([KTOR-7446](https://youtrack.jetbrains.com/issue/KTOR-7446))
+* Ktor doesn't read System properties from jvm ([KTOR-7492](https://youtrack.jetbrains.com/issue/KTOR-7492))
+* Redirect dependencies from ktor-server-test-base ([KTOR-7393](https://youtrack.jetbrains.com/issue/KTOR-7393))
+* Include relocation notes for old Ktor modules ([KTOR-6826](https://youtrack.jetbrains.com/issue/KTOR-6826))
+* `ByteReadChannel.readFully(dst: ByteArray, offset: Int, length: Int)` is missing since 3.0.0-beta-2 ([KTOR-7427](https://youtrack.jetbrains.com/issue/KTOR-7427))
+* ByteChannel.readUtf8Line() backwards compatibility ([KTOR-7474](https://youtrack.jetbrains.com/issue/KTOR-7474))
+* Kotlinx-io response extension ([KTOR-7504](https://youtrack.jetbrains.com/issue/KTOR-7504))
+
+### Features
+* Add multiplatform support for XML ([KTOR-5085](https://youtrack.jetbrains.com/issue/KTOR-5085))
+* Add watchosDeviceArm64 target ([KTOR-6368](https://youtrack.jetbrains.com/issue/KTOR-6368))
+
+
 # 3.0.0-rc-1
 > Published 9 September 2024
 
