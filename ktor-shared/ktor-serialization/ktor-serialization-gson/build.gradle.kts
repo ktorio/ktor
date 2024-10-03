@@ -4,7 +4,6 @@ kotlin.sourceSets {
     jvmMain {
         dependencies {
             api(project(":ktor-shared:ktor-serialization"))
-            api(libs.kotlin.reflect)
             api(libs.gson)
         }
     }

@@ -7,7 +7,6 @@ kotlin {
                 api(project(":ktor-shared:ktor-serialization"))
                 api(libs.jackson.databind)
                 api(libs.jackson.module.kotlin)
-                implementation(libs.kotlin.reflect)
             }
         }
         jvmTest {
