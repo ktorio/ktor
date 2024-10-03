@@ -13,6 +13,7 @@ val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolea
 
 extra["kotlin_repo_url"] = rootProject.properties["kotlin_repo_url"]
 val kotlin_repo_url: String? by extra
+val kotlinVersion= rootProject.properties["kotlin_version"].toString()
 
 repositories {
     mavenCentral()
@@ -34,12 +35,11 @@ repositories {
 val ktor_version = "3.0.0-rc-2-eap-1091"
 
 dependencies {
-    val kotlinVersion = libs.versions.kotlin.get()
     implementation(kotlin("gradle-plugin", "2.1.0-dev-8424"))
     implementation(kotlin("compiler-embeddable", "2.1.0-dev-8424")) //gradle don't support LV 2.1
     implementation(kotlin("serialization", kotlinVersion))
 
-    val ktlint_version = libs.versions.ktlint.get()
+    val ktlint_version = "3.15.0"
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
     implementation("io.ktor:ktor-server-default-headers:$ktor_version")

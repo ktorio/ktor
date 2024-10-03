@@ -123,7 +123,7 @@ doctor {
     enableTestCaching = false
 }
 
-val kotlinVersion = libs.versions.kotlin.get()
+var kotlinVersion: String = System.getProperty("kotlin_version")
 
 subprojects {
     group = "io.ktor"
