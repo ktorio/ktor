@@ -1,5 +1,5 @@
 # 3.0.0-rc-2
-> Published 10 October 2024
+> Published 2 October 2024
 
 ### Bugfixes
 * Sessions: custom SessionSerializer is no longer supported ([KTOR-7442](https://youtrack.jetbrains.com/issue/KTOR-7442))
