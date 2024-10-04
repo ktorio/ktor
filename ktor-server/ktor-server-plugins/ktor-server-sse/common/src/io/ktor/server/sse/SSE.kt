@@ -5,7 +5,6 @@
 package io.ktor.server.sse
 
 import io.ktor.server.application.*
-import io.ktor.util.*
 import io.ktor.util.logging.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
@@ -26,17 +25,4 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
  * }
  * ```
  */
-public class SSE private constructor(
-    public val serialize: (Any) -> String,
-) {
-    public companion object Plugin : BaseApplicationPlugin<Application, SSEConfig, SSE> {
-        override val key: AttributeKey<SSE> = AttributeKey("SSE")
-
-        override fun install(pipeline: Application, configure: SSEConfig.() -> Unit): SSE {
-            val config = SSEConfig().also(configure)
-            with(config) {
-                return SSE(serialize)
-            }
-        }
-    }
-}
+public val SSE: ApplicationPlugin<Unit> = createApplicationPlugin("SSE") {}

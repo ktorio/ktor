@@ -10,15 +10,14 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.sync.*
 import kotlin.coroutines.*
 
-internal class DefaultServerSSESession<T>(
-    private val serializer: (T) -> String,
+internal class DefaultServerSSESession(
     private val output: ByteWriteChannel,
     override val call: ApplicationCall,
     override val coroutineContext: CoroutineContext
-) : SSESession<T> {
+) : SSESession {
     private val mutex = Mutex()
 
-    override suspend fun send(event: ServerSentEvent<T>) {
+    override suspend fun send(event: ServerSentEvent<String>) {
         mutex.withLock {
             output.writeSSE(event)
         }
@@ -31,8 +30,8 @@ internal class DefaultServerSSESession<T>(
     }
 
     @OptIn(InternalAPI::class)
-    private suspend fun ByteWriteChannel.writeSSE(event: ServerSentEvent<T>) {
-        writeStringUtf8(event.toString(serializer) + END_OF_LINE)
+    private suspend fun ByteWriteChannel.writeSSE(event: ServerSentEvent<String>) {
+        writeStringUtf8(event.toString() + END_OF_LINE)
         flush()
     }
 }

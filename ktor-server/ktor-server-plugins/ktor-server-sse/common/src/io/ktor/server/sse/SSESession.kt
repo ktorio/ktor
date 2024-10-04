@@ -6,6 +6,8 @@ package io.ktor.server.sse
 
 import io.ktor.server.application.*
 import io.ktor.sse.*
+import io.ktor.util.reflect.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 /**
@@ -14,7 +16,7 @@ import kotlinx.coroutines.*
  *
  * @see [SSE]
  */
-public interface SSESession<T> : CoroutineScope {
+public interface SSESession : CoroutineScope {
     /**
      * Associated received [call] that originating this session.
      */
@@ -23,7 +25,7 @@ public interface SSESession<T> : CoroutineScope {
     /**
      * Sends a [ServerSentEvent] to the client.
      */
-    public suspend fun send(event: ServerSentEvent<T>)
+    public suspend fun send(event: ServerSentEvent<String>)
 
     /**
      * Creates and sends a [ServerSentEvent] to the client.
@@ -35,7 +37,7 @@ public interface SSESession<T> : CoroutineScope {
      *  @param comments comment lines starting with a ':' character.
      */
     public suspend fun send(
-        data: T? = null,
+        data: String? = null,
         event: String? = null,
         id: String? = null,
         retry: Long? = null,
@@ -54,4 +56,46 @@ public interface SSESession<T> : CoroutineScope {
      * before closing the session, you can use the [send] function for it.
      */
     public suspend fun close()
+}
+
+
+/**
+ * Represents a server-side server-sent events session with serialization support.
+ * An [SSESessionWithDeserialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
+ *
+ * @see [SSE]
+ */
+public interface SSESessionWithDeserialization : SSESession {
+    /**
+     * Serializer for transforming data object into field `data` of `ServerSentEvent`.
+     */
+    public val serializer: (TypeInfo) -> (Any) -> String
+}
+
+public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(event: ServerSentEvent<T>) {
+    send(
+        ServerSentEvent(
+            event.data?.let {
+                serializer(typeInfo<T>()).invoke(it)
+            },
+            event.event,
+            event.id,
+            event.retry,
+            event.comments
+        )
+    )
+}
+
+public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(
+    data: T? = null,
+    event: String? = null,
+    id: String? = null,
+    retry: Long? = null,
+    comments: String? = null
+) {
+    sendSerialized(ServerSentEvent(data, event, id, retry, comments))
+}
+
+public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(data: T) {
+    send(ServerSentEvent(serializer(typeInfo<T>()).invoke(data)))
 }

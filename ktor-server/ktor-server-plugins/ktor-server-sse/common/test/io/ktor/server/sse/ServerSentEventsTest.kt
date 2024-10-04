@@ -127,11 +127,11 @@ class ServerSentEventsTest {
     fun testNoDuplicateHeader() = testApplication {
         install(SSE)
         routing {
-            sse<String> { }
+            sse { }
         }
 
         val client = createSseClient()
-        client.sse<String> {
+        client.sse {
             call.response.headers.forEach { _, values ->
                 assertEquals(1, values.size)
             }
@@ -172,7 +172,7 @@ class ServerSentEventsTest {
 
         """.trimIndent()
         val actualMultilineData = StringBuilder()
-        client.sse<String>("/multiline-data") {
+        client.sse("/multiline-data") {
             incoming.collect {
                 actualMultilineData.append(it.toString())
             }
@@ -186,7 +186,7 @@ class ServerSentEventsTest {
             
         """.trimIndent()
         val actualOneEventData = StringBuilder()
-        client.sse<String>("/one-event-data") {
+        client.sse("/one-event-data") {
             incoming.collect {
                 actualOneEventData.append(it.toString())
             }
@@ -194,15 +194,28 @@ class ServerSentEventsTest {
         assertEquals(expectedOneEventData.lines(), actualOneEventData.toString().lines())
     }
 
-    class Person(val age: Int)
+    class Person1(val age: Int)
+    class Person2(val number: Int)
 
     @Test
     fun testSerializerInRoute() = testApplication {
         install(SSE)
         routing {
-            sse("/person", serialize = { "Age ${it.age}" }) {
+            sse("/person", serialize = { typeInfo ->
+                { data ->
+                    when (typeInfo.type) {
+                        Person1::class -> {
+                            "Age ${(data as Person1).age}"
+                        }
+
+                        else -> {
+                            data.toString()
+                        }
+                    }
+                }
+            }) {
                 repeat(10) {
-                    send(Person(it))
+                    sendSerialized(Person1(it))
                 }
             }
         }
@@ -216,43 +229,42 @@ class ServerSentEventsTest {
         }
     }
 
-    class Person1(val age: Int)
-    class Person2(val number: Int)
-    class Person3(val index: Int)
-
     @Test
     fun testDifferentSerializers() = testApplication {
-        install(SSE) {
-            serialize { person: Person3 ->
-                "${person.index}"
-            }
-        }
+        install(SSE)
         routing {
-            sse("/person1", serialize = { println("1"); "${it.age}" }) {
-                send(Person1(22))
-            }
-            sse("/person2", serialize = { "${it.number}" }) {
-                send(Person2(123456))
-            }
-            sse("/person3") {
-                send(Person3(0))
+            sse(serialize = { typeInfo ->
+                { data ->
+                    when (typeInfo.type) {
+                        Person1::class -> {
+                            "Age ${(data as Person1).age}"
+                        }
+
+                        Person2::class -> {
+                            "Number ${(data as Person2).number}"
+                        }
+
+                        else -> {
+                            data.toString()
+                        }
+                    }
+                }
+            }) {
+                sendSerialized(Person1(22))
+                sendSerialized(Person2(123456))
             }
         }
 
         val client = createSseClient()
-        client.sse("/person1") {
-            incoming.single().apply {
-                assertEquals("22", data)
-            }
-        }
-        client.sse("/person2") {
-            incoming.single().apply {
-                assertEquals("123456", data)
-            }
-        }
-        client.sse("/person3") {
-            incoming.single().apply {
-                assertEquals("0", data)
+        client.sse {
+            var first = true
+            incoming.collect {
+                if (first) {
+                    assertEquals("Age 22", it.data)
+                    first = false
+                } else {
+                    assertEquals("Number 123456", it.data)
+                }
             }
         }
     }
@@ -260,21 +272,27 @@ class ServerSentEventsTest {
     @Serializable
     data class Customer(val id: Int, val firstName: String, val lastName: String)
 
+    @Serializable
+    data class Product(val id: Int, val prices: List<Int>)
+
     @Test
     fun testJsonDeserializer() = testApplication {
-        install(SSE) {
-            serialize<Customer> {
-                Json.encodeToString(it)
-            }
-        }
+        install(SSE)
         routing {
-            sse("/json") {
-                send(Customer(0, "Jet", "Brains"))
+            sse("/json", serialize = { typeInfo ->
+                {
+                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                    Json.encodeToString(serializer, it)
+                }
+            }) {
+                sendSerialized(Customer(0, "Jet", "Brains"))
+                sendSerialized(Product(0, listOf(100, 200)))
             }
         }
 
         assertEquals(
-            "data: {\"id\":0,\"firstName\":\"Jet\",\"lastName\":\"Brains\"}",
+            "data: {\"id\":0,\"firstName\":\"Jet\",\"lastName\":\"Brains\"}\r\n\r\n" +
+                "data: {\"id\":0,\"prices\":[100,200]}",
             client.get("/json").bodyAsText().trim()
         )
     }

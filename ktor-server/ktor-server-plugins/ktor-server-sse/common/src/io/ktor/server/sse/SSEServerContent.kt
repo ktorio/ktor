@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
@@ -23,20 +24,25 @@ import kotlinx.coroutines.*
  * @param call that is starting SSE session.
  * @param handle function that is started once SSE session created.
  */
-public class SSEServerContent<T>(
+public class SSEServerContent<T : SSESession>(
     public val call: ApplicationCall,
-    private val serializer: (T) -> String,
-    public val handle: suspend SSESession<T>.() -> Unit
+    public val serialize: ((TypeInfo) -> (Any) -> String)?,
+    public val handle: suspend T.() -> Unit
 ) : OutgoingContent.WriteChannelContent() {
     override val contentType: ContentType = ContentType.Text.EventStream
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         LOGGER.trace("Starting sse session for ${call.request.uri}")
 
-        var session: SSESession<T>? = null
+        var session: T? = null
         try {
             coroutineScope {
-                session = DefaultServerSSESession(serializer, channel, call, coroutineContext)
+                session = DefaultServerSSESession(channel, call, coroutineContext) as T
+                if (serialize != null) {
+                    session = object : SSESessionWithDeserialization, SSESession by session as DefaultServerSSESession {
+                        override val serializer: (TypeInfo) -> (Any) -> String = serialize
+                    } as T
+                }
                 session?.handle()
             }
         } finally {
