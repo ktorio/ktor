@@ -333,9 +333,6 @@ final class io.ktor.client.plugins.cache/HttpCache { // io.ktor.client.plugins.c
     final class Config { // io.ktor.client.plugins.cache/HttpCache.Config|null[0]
         constructor <init>() // io.ktor.client.plugins.cache/HttpCache.Config.<init>|<init>(){}[0]
 
-        final var cacheRequestWithAuth // io.ktor.client.plugins.cache/HttpCache.Config.cacheRequestWithAuth|{}cacheRequestWithAuth[0]
-            final fun <get-cacheRequestWithAuth>(): kotlin/Boolean // io.ktor.client.plugins.cache/HttpCache.Config.cacheRequestWithAuth.<get-cacheRequestWithAuth>|<get-cacheRequestWithAuth>(){}[0]
-            final fun <set-cacheRequestWithAuth>(kotlin/Boolean) // io.ktor.client.plugins.cache/HttpCache.Config.cacheRequestWithAuth.<set-cacheRequestWithAuth>|<set-cacheRequestWithAuth>(kotlin.Boolean){}[0]
         final var isShared // io.ktor.client.plugins.cache/HttpCache.Config.isShared|{}isShared[0]
             final fun <get-isShared>(): kotlin/Boolean // io.ktor.client.plugins.cache/HttpCache.Config.isShared.<get-isShared>|<get-isShared>(){}[0]
             final fun <set-isShared>(kotlin/Boolean) // io.ktor.client.plugins.cache/HttpCache.Config.isShared.<set-isShared>|<set-isShared>(kotlin.Boolean){}[0]
