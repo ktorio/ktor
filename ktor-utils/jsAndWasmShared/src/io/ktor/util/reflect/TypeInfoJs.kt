@@ -10,8 +10,9 @@ public actual interface Type
 
 public object JsType : Type
 
-public actual inline fun <reified T> typeInfo(): TypeInfo = typeInfoImpl(JsType, T::class, typeOfOrNull<T>())
+public actual inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, JsType, typeOfOrNull<T>())
 
+@Deprecated("Use TypeInfo constructor instead.", ReplaceWith("TypeInfo(kClass, reifiedType, kType)"))
 public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
     TypeInfo(kClass, reifiedType, kType)
 

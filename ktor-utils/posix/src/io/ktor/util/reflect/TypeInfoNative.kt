@@ -8,9 +8,10 @@ import kotlin.reflect.*
 
 public actual typealias Type = KType
 
-public actual inline fun <reified T> typeInfo(): TypeInfo = typeInfoImpl(typeOf<T>(), T::class, typeOf<T>())
+public actual inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOf<T>())
 
-@PublishedApi
+@Suppress("unused")
+@Deprecated("Maintained for binary compatibility.", level = DeprecationLevel.HIDDEN)
 internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
     TypeInfo(kClass, reifiedType, kType)
 
