@@ -13,7 +13,6 @@ import kotlin.time.Duration.Companion.milliseconds
 public class SSEConfig {
     internal var showCommentEvents = false
     internal var showRetryEvents = false
-    internal var deserialize: (String) -> Any = { s -> s }
 
     /**
      * The reconnection time. If the connection to the server is lost,
@@ -35,12 +34,5 @@ public class SSEConfig {
      */
     public fun showRetryEvents() {
         showRetryEvents = true
-    }
-
-    /**
-     * Configures deserialization logic for transforming field `data` of `ServerSentEvent` into desired data object.
-     */
-    public fun deserialize(deserialize: (String) -> Any) {
-        this.deserialize = deserialize
     }
 }

@@ -103,13 +103,19 @@ internal fun Application.serverSentEvents() {
             }
 
             get("/json") {
-                val data = """{ "id": 1, 
-                                "firstName": "Jet", 
-                                "lastName": "Brains" 
+                val customer = """
+                               { "id": 1, 
+                                 "firstName": "Jet", 
+                                 "lastName": "Brains" 
+                               }""".trimIndent()
+                val product = """
+                              { "name": "Milk", 
+                                "price": "100"
                               }""".trimIndent()
                 call.respondSseEvents(
                     flow {
-                        emit(SseEvent(data = data))
+                        emit(SseEvent(data = customer))
+                        emit(SseEvent(data = product))
                     }
                 )
             }

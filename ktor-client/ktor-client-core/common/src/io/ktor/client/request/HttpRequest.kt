@@ -342,7 +342,6 @@ public class SSEClientResponseAdapter : ResponseAdapter {
             outgoingContent as SSEClientContent
             DefaultClientSSESession(
                 outgoingContent,
-                outgoingContent.deserializer,
                 responseBody,
                 callContext
             )

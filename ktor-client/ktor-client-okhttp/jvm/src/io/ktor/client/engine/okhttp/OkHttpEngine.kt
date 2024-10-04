@@ -66,7 +66,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
 
         return when {
             data.isUpgradeRequest() -> executeWebSocketRequest(requestEngine, engineRequest, callContext)
-            data.isSseRequest() -> executeServerSendEventsRequest(requestEngine, engineRequest, callContext, data)
+            data.isSseRequest() -> executeServerSendEventsRequest(requestEngine, engineRequest, callContext)
             else -> executeHttpRequest(requestEngine, engineRequest, callContext, data)
         }
     }
@@ -96,16 +96,13 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     private suspend fun executeServerSendEventsRequest(
         engine: OkHttpClient,
         engineRequest: Request,
-        callContext: CoroutineContext,
-        requestData: HttpRequestData
+        callContext: CoroutineContext
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val deserializer = (requestData.body as SSEClientContent).deserializer
         val session = OkHttpSSESession(
             engine,
             engineRequest,
-            callContext,
-            deserializer
+            callContext
         )
 
         val originResponse = session.originResponse.await()

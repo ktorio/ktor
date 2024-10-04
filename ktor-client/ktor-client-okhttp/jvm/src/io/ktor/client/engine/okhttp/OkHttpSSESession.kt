@@ -14,19 +14,18 @@ import okhttp3.*
 import okhttp3.sse.*
 import kotlin.coroutines.*
 
-internal class OkHttpSSESession<T>(
+internal class OkHttpSSESession(
     engine: OkHttpClient,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
-    private val deserializer: (String) -> T
-) : SSESession<T>, EventSourceListener() {
+) : SSESession, EventSourceListener() {
     private val serverSentEventsSource = EventSources.createFactory(engine).newEventSource(engineRequest, this)
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
-    private val _incoming = Channel<ServerSentEvent<T>>(8)
+    private val _incoming = Channel<ServerSentEvent<String>>(8)
 
-    override val incoming: Flow<ServerSentEvent<T>>
+    override val incoming: Flow<ServerSentEvent<String>>
         get() = _incoming.receiveAsFlow()
 
     override fun onOpen(eventSource: EventSource, response: Response) {
@@ -34,7 +33,7 @@ internal class OkHttpSSESession<T>(
     }
 
     override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-        _incoming.trySendBlocking(ServerSentEvent(deserializer(data), type, id))
+        _incoming.trySendBlocking(ServerSentEvent(data, type, id))
     }
 
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {

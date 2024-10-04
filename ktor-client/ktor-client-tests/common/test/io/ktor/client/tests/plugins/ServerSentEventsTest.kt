@@ -15,7 +15,9 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
@@ -31,12 +33,12 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     fun testExceptionIfSseIsNotInstalled() = testSuspend {
         val client = HttpClient()
         assertFailsWith<IllegalStateException> {
-            client.serverSentEventsSession<String> {}
+            client.serverSentEventsSession {}
         }.apply {
             assertContains(message!!, SSE.key.name)
         }
         assertFailsWith<IllegalStateException> {
-            client.serverSentEvents<String> {}
+            client.serverSentEvents {}
         }.apply {
             assertContains(message!!, SSE.key.name)
         }
@@ -64,7 +66,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         }
 
         test { client ->
-            val session = client.serverSentEventsSession<String>("$TEST_SERVER/sse/hello")
+            val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello")
             session.incoming.single().apply {
                 assertEquals("0", id)
                 assertEquals("hello 0", event)
@@ -86,7 +88,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         test { client ->
             coroutineScope {
                 launch {
-                    val session = client.serverSentEventsSession<String>("$TEST_SERVER/sse/hello?times=100")
+                    val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello?times=100")
                     var size = 0
                     session.incoming.collectIndexed { i, it ->
                         assertEquals("$i", it.id)
@@ -101,7 +103,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
                     session.cancel()
                 }
                 launch {
-                    val session = client.serverSentEventsSession<String>("$TEST_SERVER/sse/hello?times=50")
+                    val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello?times=50")
                     var size = 0
                     session.incoming.collectIndexed { i, it ->
                         assertEquals("$i", it.id)
@@ -127,7 +129,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.serverSentEventsSession<String>("http://unknown_host")
+                client.serverSentEventsSession("http://unknown_host")
             }.apply {
                 assertNotNull(cause)
             }
@@ -142,7 +144,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.serverSentEvents<String>("$TEST_SERVER/sse/hello") { error("error") }
+                client.serverSentEvents("$TEST_SERVER/sse/hello") { error("error") }
             }.apply {
                 assertTrue { cause is IllegalStateException }
                 assertEquals("error", message)
@@ -162,7 +164,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
                 val job: Job
                 suspendCoroutine { cont ->
                     job = launch {
-                        client.serverSentEvents<String>("$TEST_SERVER/sse/hello") {
+                        client.serverSentEvents("$TEST_SERVER/sse/hello") {
                             cont.resume(Unit)
                             awaitCancellation()
                         }
@@ -259,7 +261,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         }
 
         test { client ->
-            client.sse<String>("$TEST_SERVER/sse/hello?delay=20") {
+            client.sse("$TEST_SERVER/sse/hello?delay=20") {
                 val result = incoming.single()
                 assertEquals("hello 0", result.event)
             }
@@ -296,7 +298,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.sse<String>("$TEST_SERVER/sse/404") {}
+                client.sse("$TEST_SERVER/sse/404") {}
             }.apply {
                 assertEquals(HttpStatusCode.NotFound, response?.status)
                 assertEquals("Expected status code 200 but was 404", message)
@@ -312,7 +314,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.sse<String>("$TEST_SERVER/sse/content-type-text-plain") {}
+                client.sse("$TEST_SERVER/sse/content-type-text-plain") {}
             }.apply {
                 assertEquals(HttpStatusCode.OK, response?.status)
                 assertEquals(ContentType.Text.Plain, response?.contentType())
@@ -328,7 +330,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         }
 
         test { client ->
-            client.sse<String>("$TEST_SERVER/sse/content_type_with_charset") {
+            client.sse("$TEST_SERVER/sse/content_type_with_charset") {
                 assertEquals(ContentType.Text.EventStream.withCharset(Charsets.UTF_8), call.response.contentType())
 
                 incoming.single().apply {
@@ -385,7 +387,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         }
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.sse<String>({
+                client.sse({
                     url("$TEST_SERVER/sse/echo")
                     setBody(body)
                 }) {}
@@ -438,23 +440,23 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     @Test
     fun testDeserializer() = clientTests {
         config {
-            install(SSE) {
-                deserialize {
-                    Person(it)
-                }
-            }
+            install(SSE)
         }
 
         test { client ->
             val count = 10
             var size = 0
-            client.sse<Person>({
-                url("$TEST_SERVER/sse/person")
-                parameter("times", count)
-            }) {
-                incoming.collectIndexed { i, person ->
-                    assertEquals("Name $i", person.data?.name)
-                    assertEquals("$i", person.id)
+            client.sse(
+                {
+                    url("$TEST_SERVER/sse/person")
+                    parameter("times", count)
+                },
+                deserialize = { { Person(it) } }
+            ) {
+                incoming.collectIndexed { i, event ->
+                    val person = deserialize<Person>(event)
+                    assertEquals("Name $i", person?.name)
+                    assertEquals("$i", event.id)
                     size++
                 }
             }
@@ -463,73 +465,41 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     }
 
     @Test
-    fun testExceptionIfNoDeserializerProvided() = clientTests(listOf("Curl", "Darwin", "DarwinLegacy", "Js")) {
+    fun testExceptionIfWrongDeserializerProvided() = clientTests {
         config {
             install(SSE)
         }
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.sse<Person>({ url("$TEST_SERVER/sse/person") }) {
+                client.sse({ url("$TEST_SERVER/sse/person") }, { { Data(it) } }) {
                     incoming.single().apply {
+                        val data = deserialize<Person>(data)
                         assertEquals("Name 0", data?.name)
                     }
                 }
-            }
-        }
-    }
-
-    @Test
-    fun testExceptionIfWrongDeserializerProvided() = clientTests(listOf("Curl", "Darwin", "DarwinLegacy", "Js")) {
-        config {
-            install(SSE) {
-                deserialize {
-                    Data(it)
-                }
-            }
-        }
-
-        test { client ->
-            assertFailsWith<SSEClientException> {
-                client.sse<Person>({ url("$TEST_SERVER/sse/person") }) {
-                    incoming.single().apply {
-                        assertEquals("Name 0", data?.name)
-                    }
-                }
-            }.apply {
-                assertTrue { cause is ClassCastException }
             }
         }
     }
 
     class Person1(val name: String)
     class Person2(val middleName: String)
-    class Person3(val surname: String)
 
     @Test
-    fun testDifferentDeserializers() = clientTests(listOf("Js")) {
+    fun testDifferentDeserializers() = clientTests {
         config {
-            install(SSE) {
-                deserialize {
-                    Person3(it)
-                }
-            }
+            install(SSE)
         }
 
         test { client ->
-            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { Person1(it) }) {
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _ -> { str -> Person1(str) } }) {
                 incoming.single().apply {
-                    assertEquals("Name 0", data?.name)
+                    assertEquals("Name 0", deserialize<Person1>(data)?.name)
                 }
             }
-            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { Person2(it) }) {
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _ -> { str -> Person2(str) } }) {
                 incoming.single().apply {
-                    assertEquals("Name 0", data?.middleName)
-                }
-            }
-            client.sse<Person3>({ url("$TEST_SERVER/sse/person") }) {
-                incoming.single().apply {
-                    assertEquals("Name 0", data?.surname)
+                    assertEquals("Name 0", deserialize<Person2>(data)?.middleName)
                 }
             }
         }
@@ -538,24 +508,37 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
     @Serializable
     data class Customer(val id: Int, val firstName: String, val lastName: String)
 
+    @Serializable
+    data class Product(val name: String, val price: Int)
+
     @Test
-    fun testJsonDeserializer() = clientTests(listOf("Js")) {
+    fun testJsonDeserializer() = clientTests {
         config {
-            install(SSE) {
-                deserialize {
-                    Json.decodeFromString<Customer>(it)
-                }
-            }
+            install(SSE)
         }
 
         test { client ->
-            client.sse<Customer>({
+            client.sse({
                 url("$TEST_SERVER/sse/json")
+            }, deserialize = { typeInfo: TypeInfo ->
+                { jsonString: String ->
+                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                    Json.decodeFromString(serializer, jsonString) ?: Exception()
+                }
             }) {
-                incoming.single().apply {
-                    assertEquals(1, data?.id)
-                    assertEquals("Jet", data?.firstName)
-                    assertEquals("Brains", data?.lastName)
+                var firstIsCustomer = true
+                incoming.collect { event: ServerSentEvent<String> ->
+                    if (firstIsCustomer) {
+                        val customer = deserialize<Customer>(event.data)
+                        assertEquals(1, customer?.id)
+                        assertEquals("Jet", customer?.firstName)
+                        assertEquals("Brains", customer?.lastName)
+                        firstIsCustomer = false
+                    } else {
+                        val product = deserialize<Product>(event.data)
+                        assertEquals("Milk", product?.name)
+                        assertEquals(100, product?.price)
+                    }
                 }
             }
         }

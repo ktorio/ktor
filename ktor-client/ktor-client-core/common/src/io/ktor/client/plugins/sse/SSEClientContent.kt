@@ -11,7 +11,6 @@ import kotlin.time.*
 
 @InternalAPI
 public class SSEClientContent(
-    public val deserializer: (String) -> Any,
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,
     public val showRetryEvents: Boolean,
@@ -28,6 +27,6 @@ public class SSEClientContent(
     override fun toString(): String = "SSEClientContent"
 
     override fun copy(delegate: OutgoingContent): SSEClientContent {
-        return SSEClientContent(deserializer, reconnectionTime, showCommentEvents, showRetryEvents, delegate)
+        return SSEClientContent(reconnectionTime, showCommentEvents, showRetryEvents, delegate)
     }
 }

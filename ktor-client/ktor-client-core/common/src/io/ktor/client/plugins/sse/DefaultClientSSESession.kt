@@ -10,12 +10,11 @@ import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
 
 @OptIn(InternalAPI::class)
-public class DefaultClientSSESession<T>(
+public class DefaultClientSSESession(
     content: SSEClientContent,
-    private val deserializer: (String) -> T,
     private var input: ByteReadChannel,
     override val coroutineContext: CoroutineContext,
-) : SSESession<T> {
+) : SSESession {
     private var lastEventId: String? = null
     private var reconnectionTimeMillis = content.reconnectionTime.inWholeMilliseconds
     private val showCommentEvents = content.showCommentEvents
@@ -32,10 +31,10 @@ public class DefaultClientSSESession<T>(
         }
     }
 
-    override val incoming: Flow<ServerSentEvent<T>>
+    override val incoming: Flow<ServerSentEvent<String>>
         get() = _incoming
 
-    private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent<T>? {
+    private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent<String>? {
         val data = StringBuilder()
         val comments = StringBuilder()
         var eventType: String? = null
@@ -56,7 +55,7 @@ public class DefaultClientSSESession<T>(
                     this@DefaultClientSSESession.lastEventId = lastEventId
 
                     val event = ServerSentEvent(
-                        if (wasData) deserializer(data.toText()) else null,
+                        if (wasData) data.toText() else null,
                         eventType,
                         lastEventId,
                         curRetry,
@@ -106,13 +105,13 @@ public class DefaultClientSSESession<T>(
 
     private fun StringBuilder.toText() = toString().removeSuffix(END_OF_LINE)
 
-    private fun ServerSentEvent<T>.isEmpty() =
+    private fun ServerSentEvent<String>.isEmpty() =
         data == null && id == null && event == null && retry == null && comments == null
 
-    private fun ServerSentEvent<T>.isCommentsEvent() =
+    private fun ServerSentEvent<String>.isCommentsEvent() =
         data == null && event == null && id == null && retry == null && comments != null
 
-    private fun ServerSentEvent<T>.isRetryEvent() =
+    private fun ServerSentEvent<String>.isRetryEvent() =
         data == null && event == null && id == null && comments == null && retry != null
 }
 

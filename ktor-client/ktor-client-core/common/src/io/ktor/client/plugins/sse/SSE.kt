@@ -14,6 +14,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
@@ -41,7 +42,6 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     name = "SSE",
     createConfiguration = ::SSEConfig
 ) {
-    val deserializer = pluginConfig.deserialize
     val reconnectionTime = pluginConfig.reconnectionTime
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
@@ -53,7 +53,6 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         LOGGER.trace("Sending SSE request ${request.url}")
         request.setCapability(SSECapability, Unit)
 
-        val localDeserializer = getAttributeValue(request, deserializerAttr)
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
@@ -61,7 +60,6 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
         content.contentType?.let { request.contentType(it) }
         SSEClientContent(
-            localDeserializer ?: deserializer,
             localReconnectionTime ?: reconnectionTime,
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
@@ -91,7 +89,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
                 message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
             )
         }
-        if (session !is SSESession<*>) {
+        if (session !is SSESession) {
             throw SSEClientException(
                 response,
                 message = "Expected ${SSESession::class.simpleName} content but was $session"
@@ -99,7 +97,14 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         }
 
         LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
-        proceedWith(HttpResponseContainer(info, ClientSSESession(context, session)))
+
+        val deserializer = response.request.attributes.getOrNull(deserializerAttr)
+        val clientSSESession = deserializer?.let {
+            ClientSSESessionWithDeserialization(context, object : SSESessionWithDeserialization, SSESession by session {
+                override val deserializer: (TypeInfo) -> (String) -> Any = deserializer
+            })
+        } ?: ClientSSESession(context, session)
+        proceedWith(HttpResponseContainer(info, clientSSESession))
     }
 }
 
