@@ -25,7 +25,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     ): TestResult {
         val skipEnginesLowerCase = skipEngines.map { it.lowercase() }
         return if ((onlyWithEngine != null && onlyWithEngine != "js") || skipEnginesLowerCase.contains("js")) {
-            GlobalScope.async {}.asPromise()
+            runTest {}
         } else {
             testWithEngine(Js) {
                 withTimeout(timeoutSeconds.toLong() * 1000) {
