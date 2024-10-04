@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.application
@@ -31,27 +31,14 @@ import io.ktor.util.pipeline.*
  * Note that it may be modified later when a user of your plugin calls [Application.install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- **/
+ */
 public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
     configurationPath: String,
     createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
     body: PluginBuilder<PluginConfigT>.() -> Unit
-): ApplicationPlugin<PluginConfigT> = object : ApplicationPlugin<PluginConfigT> {
-    override val key: AttributeKey<PluginInstance> = AttributeKey(name)
-
-    override fun install(
-        pipeline: Application,
-        configure: PluginConfigT.() -> Unit
-    ): PluginInstance {
-        val config = try {
-            pipeline.environment.config.config(configurationPath)
-        } catch (_: Throwable) {
-            MapApplicationConfig()
-        }
-        return createPluginInstance(pipeline, pipeline, body, { createConfiguration(config) }, configure)
-    }
-}
+): ApplicationPlugin<PluginConfigT> =
+    ApplicationPluginImpl(name, createConfiguration.withConfig(configurationPath), body)
 
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].
@@ -74,13 +61,19 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * Note that it may be modified later when a user of your plugin calls [Application.install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- *
- **/
+ */
 public fun <PluginConfigT : Any> createApplicationPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
     body: PluginBuilder<PluginConfigT>.() -> Unit
-): ApplicationPlugin<PluginConfigT> = object : ApplicationPlugin<PluginConfigT> {
+): ApplicationPlugin<PluginConfigT> = ApplicationPluginImpl(name, { createConfiguration() }, body)
+
+private class ApplicationPluginImpl<PluginConfigT : Any>(
+    name: String,
+    private val createConfiguration: ApplicationCallPipeline.() -> PluginConfigT,
+    private val body: PluginBuilder<PluginConfigT>.() -> Unit
+) : ApplicationPlugin<PluginConfigT> {
+
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
     override fun install(
@@ -115,28 +108,12 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * note that it may be modified later when a user of your plugin calls [install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- **/
+ */
 public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
     body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
-
-    override val key: AttributeKey<PluginInstance> = AttributeKey(name)
-
-    override fun install(
-        pipeline: ApplicationCallPipeline,
-        configure: PluginConfigT.() -> Unit
-    ): PluginInstance {
-        val application = when (pipeline) {
-            is RoutingNode -> pipeline.application
-            is Application -> pipeline
-            else -> error("Unsupported pipeline type: ${pipeline::class}")
-        }
-
-        return createRouteScopedPluginInstance(application, pipeline, body, createConfiguration, configure)
-    }
-}
+): RouteScopedPlugin<PluginConfigT> = RouteScopedPluginImpl(name, { createConfiguration() }, body)
 
 /**
  * Creates a [RouteScopedPlugin] that can be installed into a [io.ktor.server.routing.RoutingNode].
@@ -163,13 +140,20 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  * note that it may be modified later when a user of your plugin calls [install].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- **/
+ */
 public fun <PluginConfigT : Any> createRouteScopedPlugin(
     name: String,
     configurationPath: String,
     createConfiguration: (config: ApplicationConfig) -> PluginConfigT,
     body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
-): RouteScopedPlugin<PluginConfigT> = object : RouteScopedPlugin<PluginConfigT> {
+): RouteScopedPlugin<PluginConfigT> =
+    RouteScopedPluginImpl(name, createConfiguration.withConfig(configurationPath), body)
+
+private class RouteScopedPluginImpl<PluginConfigT : Any>(
+    name: String,
+    private val createConfiguration: ApplicationCallPipeline.() -> PluginConfigT,
+    private val body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit
+) : RouteScopedPlugin<PluginConfigT> {
 
     override val key: AttributeKey<PluginInstance> = AttributeKey(name)
 
@@ -177,21 +161,13 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
         pipeline: ApplicationCallPipeline,
         configure: PluginConfigT.() -> Unit
     ): PluginInstance {
-        val environment = pipeline.environment
-
-        val config = try {
-            environment.config.config(configurationPath)
-        } catch (_: Throwable) {
-            MapApplicationConfig()
-        }
-
         val application = when (pipeline) {
             is RoutingNode -> pipeline.application
             is Application -> pipeline
             else -> error("Unsupported pipeline type: ${pipeline::class}")
         }
 
-        return createRouteScopedPluginInstance(application, pipeline, body, { createConfiguration(config) }, configure)
+        return createRouteScopedPluginInstance(application, pipeline, body, createConfiguration, configure)
     }
 }
 
@@ -214,7 +190,7 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- **/
+ */
 public fun createApplicationPlugin(
     name: String,
     body: PluginBuilder<Unit>.() -> Unit
@@ -241,7 +217,7 @@ public fun createApplicationPlugin(
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [io.ktor.server.routing.RoutingNode].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
- **/
+ */
 public fun createRouteScopedPlugin(
     name: String,
     body: RouteScopedPluginBuilder<Unit>.() -> Unit
@@ -254,10 +230,10 @@ private fun <
     application: Application,
     pipeline: ApplicationCallPipeline,
     body: PluginBuilder<PluginConfigT>.() -> Unit,
-    createConfiguration: () -> PluginConfigT,
+    createConfiguration: ApplicationCallPipeline.() -> PluginConfigT,
     configure: PluginConfigT.() -> Unit
 ): PluginInstance {
-    val config = createConfiguration().apply(configure)
+    val config = pipeline.createConfiguration().apply(configure)
 
     val currentPlugin = this
     val pluginBuilder = object : PluginBuilder<PluginConfigT>(currentPlugin.key) {
@@ -277,10 +253,10 @@ private fun <
     application: Application,
     pipeline: ApplicationCallPipeline,
     body: RouteScopedPluginBuilder<PluginConfigT>.() -> Unit,
-    createConfiguration: () -> PluginConfigT,
+    createConfiguration: ApplicationCallPipeline.() -> PluginConfigT,
     configure: PluginConfigT.() -> Unit
 ): PluginInstance {
-    val config = createConfiguration().apply(configure)
+    val config = pipeline.createConfiguration().apply(configure)
 
     val currentPlugin = this
     val pluginBuilder = object : RouteScopedPluginBuilder<PluginConfigT>(currentPlugin.key) {
@@ -316,4 +292,16 @@ private fun <Configuration : Any, Builder : PluginBuilder<Configuration>> Builde
     }
 
     hooks.forEach { it.install(pipeline) }
+}
+
+private fun <T> ((ApplicationConfig) -> T).withConfig(path: String): ApplicationCallPipeline.() -> T {
+    val createConfiguration = this
+    return {
+        val config = try {
+            environment.config.config(path)
+        } catch (_: Throwable) {
+            MapApplicationConfig()
+        }
+        createConfiguration(config)
+    }
 }

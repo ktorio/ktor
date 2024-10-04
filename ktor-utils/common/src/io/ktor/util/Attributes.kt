@@ -28,9 +28,7 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
     private val type: TypeInfo = typeInfo<Any>(),
 ) {
     init {
-        if (name.isEmpty()) {
-            throw IllegalStateException("Name can't be blank")
-        }
+        require(name.isNotBlank()) { "Name can't be blank" }
     }
 
     override fun toString(): String = "AttributeKey: $name"
