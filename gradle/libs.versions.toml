@@ -29,7 +29,7 @@ okio = "3.9.1"
 
 json-simple = "1.1.1"
 gson = "2.11.0"
-jackson = "2.17.2"
+jackson = "2.18.0"
 
 junit = "5.11.1"
 slf4j = "2.0.16"
