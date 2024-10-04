@@ -32,8 +32,9 @@ val ktor_version = "3.0.0-rc-2-eap-1091"
 dependencies {
     val kotlin_version: String? by extra
     println("Using Kotlin version $kotlin_version for buildSrc.")
-    implementation(kotlin("gradle-plugin", kotlin_version))
-    implementation(kotlin("serialization", kotlin_version))
+    implementation(kotlin("gradle-plugin", "2.1.0-dev-8424")) //gradle don't support LV 2.1
+    implementation(kotlin("compiler-embeddable", "2.1.0-dev-8424")) //gradle don't support LV 2.1
+    implementation(kotlin("serialization", "kotlin_version"))
 
     val ktlint_version ="3.15.0"
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
@@ -76,11 +77,11 @@ val kotlin_api_version: String? by extra
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
 
     if (kotlin_language_version != null) {
-        println("Using Kotlin Language Version $kotlin_language_version")
-        kotlinOptions.languageVersion = kotlin_language_version
+        println("Using Kotlin Language Version 1.9 for BuildSrc because Gradle does not support 2.1 yet.)")
+        kotlinOptions.languageVersion = "1.9"
     }
     if (kotlin_language_version != null) {
-        kotlinOptions.apiVersion = kotlin_api_version
+        kotlinOptions.apiVersion = "1.9"
     }
 }
 
