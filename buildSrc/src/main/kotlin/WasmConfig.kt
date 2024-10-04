@@ -12,7 +12,6 @@ import java.io.*
 
 fun Project.configureWasm() {
     kotlin {
-        @OptIn(ExperimentalWasmDsl::class)
         wasmJs {
             nodejs { useMochaForTests() }
             if (project.targetIsEnabled("wasmJs.browser")) browser { useKarmaForTests() }
