@@ -18,9 +18,10 @@ public actual inline fun <reified T> typeInfo(): TypeInfo {
         // Fallback to a type without generics if we can't get KType for the given T
         T::class.java
     }
-    return typeInfoImpl(reifiedType, T::class, kType)
+    return TypeInfo(T::class, reifiedType, kType)
 }
 
+@Deprecated("Use TypeInfo constructor instead.", ReplaceWith("TypeInfo(kClass, reifiedType, kType)"))
 public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
     TypeInfo(kClass, reifiedType, kType)
 

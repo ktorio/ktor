@@ -19,11 +19,17 @@ public expect val KType.platformType: Type
  * @property reifiedType Type with substituted generics
  * @property kotlinType Kotlin reified type with all generic type parameters.
  */
-public data class TypeInfo(
+public class TypeInfo(
     public val type: KClass<*>,
     public val reifiedType: Type,
     public val kotlinType: KType? = null
 ) {
+
+    public constructor(type: KClass<*>, kotlinType: KType) : this(
+        type = type,
+        reifiedType = kotlinType.platformType,
+        kotlinType = kotlinType,
+    )
 
     override fun hashCode(): Int {
         return kotlinType?.hashCode() ?: type.hashCode()
@@ -39,6 +45,8 @@ public data class TypeInfo(
             type == other.type
         }
     }
+
+    override fun toString(): String = "TypeInfo(${kotlinType ?: type})"
 }
 
 /**

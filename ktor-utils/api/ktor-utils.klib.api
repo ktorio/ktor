@@ -493,6 +493,8 @@ final class io.ktor.util.pipeline/PipelinePhase { // io.ktor.util.pipeline/Pipel
 }
 
 final class io.ktor.util.reflect/TypeInfo { // io.ktor.util.reflect/TypeInfo|null[0]
+    constructor <init>(kotlin.reflect/KClass<*>, kotlin.reflect/KType) // io.ktor.util.reflect/TypeInfo.<init>|<init>(kotlin.reflect.KClass<*>;kotlin.reflect.KType){}[0]
+
     final val kotlinType // io.ktor.util.reflect/TypeInfo.kotlinType|{}kotlinType[0]
         final fun <get-kotlinType>(): kotlin.reflect/KType? // io.ktor.util.reflect/TypeInfo.kotlinType.<get-kotlinType>|<get-kotlinType>(){}[0]
     final val reifiedType // io.ktor.util.reflect/TypeInfo.reifiedType|{}reifiedType[0]
@@ -504,8 +506,6 @@ final class io.ktor.util.reflect/TypeInfo { // io.ktor.util.reflect/TypeInfo|nul
     final val type // io.ktor.util.reflect/TypeInfo.type|{}type[0]
         final fun <get-type>(): kotlin.reflect/KClass<*> // io.ktor.util.reflect/TypeInfo.type.<get-type>|<get-type>(){}[0]
 
-    final fun component1(): kotlin.reflect/KClass<*> // io.ktor.util.reflect/TypeInfo.component1|component1(){}[0]
-    final fun component3(): kotlin.reflect/KType? // io.ktor.util.reflect/TypeInfo.component3|component3(){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.util.reflect/TypeInfo.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.util.reflect/TypeInfo.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.util.reflect/TypeInfo.toString|toString(){}[0]
@@ -513,20 +513,8 @@ final class io.ktor.util.reflect/TypeInfo { // io.ktor.util.reflect/TypeInfo|nul
     // Targets: [native]
     constructor <init>(kotlin.reflect/KClass<*>, kotlin.reflect/KType, kotlin.reflect/KType? = ...) // io.ktor.util.reflect/TypeInfo.<init>|<init>(kotlin.reflect.KClass<*>;kotlin.reflect.KType;kotlin.reflect.KType?){}[0]
 
-    // Targets: [native]
-    final fun component2(): kotlin.reflect/KType // io.ktor.util.reflect/TypeInfo.component2|component2(){}[0]
-
-    // Targets: [native]
-    final fun copy(kotlin.reflect/KClass<*> = ..., kotlin.reflect/KType = ..., kotlin.reflect/KType? = ...): io.ktor.util.reflect/TypeInfo // io.ktor.util.reflect/TypeInfo.copy|copy(kotlin.reflect.KClass<*>;kotlin.reflect.KType;kotlin.reflect.KType?){}[0]
-
     // Targets: [js, wasmJs]
     constructor <init>(kotlin.reflect/KClass<*>, io.ktor.util.reflect/Type, kotlin.reflect/KType? = ...) // io.ktor.util.reflect/TypeInfo.<init>|<init>(kotlin.reflect.KClass<*>;io.ktor.util.reflect.Type;kotlin.reflect.KType?){}[0]
-
-    // Targets: [js, wasmJs]
-    final fun component2(): io.ktor.util.reflect/Type // io.ktor.util.reflect/TypeInfo.component2|component2(){}[0]
-
-    // Targets: [js, wasmJs]
-    final fun copy(kotlin.reflect/KClass<*> = ..., io.ktor.util.reflect/Type = ..., kotlin.reflect/KType? = ...): io.ktor.util.reflect/TypeInfo // io.ktor.util.reflect/TypeInfo.copy|copy(kotlin.reflect.KClass<*>;io.ktor.util.reflect.Type;kotlin.reflect.KType?){}[0]
 }
 
 final class io.ktor.util/CaseInsensitiveSet : kotlin.collections/MutableSet<kotlin/String> { // io.ktor.util/CaseInsensitiveSet|null[0]
@@ -1050,9 +1038,6 @@ final fun (kotlinx.coroutines/Dispatchers).io.ktor.util/createFixedThreadDispatc
 
 // Targets: [native]
 final fun io.ktor.util.network/ResolvedNetworkAddress(kotlin/String, kotlin/Int, kotlin/Any?): io.ktor.util.network/NetworkAddress // io.ktor.util.network/ResolvedNetworkAddress|ResolvedNetworkAddress(kotlin.String;kotlin.Int;kotlin.Any?){}[0]
-
-// Targets: [native]
-final fun io.ktor.util.reflect/typeInfoImpl(kotlin.reflect/KType, kotlin.reflect/KClass<*>, kotlin.reflect/KType): io.ktor.util.reflect/TypeInfo // io.ktor.util.reflect/typeInfoImpl|typeInfoImpl(kotlin.reflect.KType;kotlin.reflect.KClass<*>;kotlin.reflect.KType){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.util.reflect/Type // io.ktor.util.reflect/Type|null[0]

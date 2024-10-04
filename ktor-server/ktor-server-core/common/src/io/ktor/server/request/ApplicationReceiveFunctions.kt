@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.request
 
@@ -87,7 +87,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
-    return receiveNullable(TypeInfo(type, kotlinType.platformType, kotlinType))!!
+    return receiveNullable(TypeInfo(type, kotlinType))!!
 }
 
 /**
