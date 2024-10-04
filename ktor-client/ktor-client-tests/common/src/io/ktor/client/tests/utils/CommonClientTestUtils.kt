@@ -8,9 +8,10 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Web url for tests.
@@ -43,17 +44,15 @@ private fun testWithClient(
     client: HttpClient,
     timeout: Long,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = testSuspend(timeoutMillis = timeout) {
-    val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
-
-    concurrency(builder.concurrency) { threadId ->
-        repeat(builder.repeatCount) { attempt ->
+) = runTest(timeout = timeout.milliseconds) {
+    val builder1 = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
+    concurrency(builder1.concurrency) { threadId ->
+        repeat(builder1.repeatCount) { attempt ->
             @Suppress("UNCHECKED_CAST")
-            client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-                .use { client -> builder.test(TestInfo(threadId, attempt), client) }
+            client.config { builder1.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+                .use { client -> builder1.test(TestInfo(threadId, attempt), client) }
         }
     }
-
     client.engine.close()
 }
 
@@ -66,7 +65,7 @@ fun <T : HttpClientEngineConfig> testWithEngine(
     loader: ClientLoader? = null,
     timeoutMillis: Long = 60L * 1000L,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = testSuspend(timeoutMillis = timeoutMillis) {
+) = runTest(timeout = timeoutMillis.milliseconds) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {
@@ -76,24 +75,26 @@ fun <T : HttpClientEngineConfig> testWithEngine(
         }
     }
 
-    concurrency(builder.concurrency) { threadId ->
-        repeat(builder.repeatCount) { attempt ->
-            val client = HttpClient(factory, block = builder.config)
+    withContext(Dispatchers.Default.limitedParallelism(1)) {
+        concurrency(builder.concurrency) { threadId ->
+            repeat(builder.repeatCount) { attempt ->
+                val client = HttpClient(factory, block = builder.config)
 
-            client.use {
-                builder.test(TestInfo(threadId, attempt), it)
-            }
-
-            try {
-                val job = client.coroutineContext[Job]!!
-                while (job.isActive) {
-                    yield()
+                client.use {
+                    builder.test(TestInfo(threadId, attempt), it)
                 }
-            } catch (cause: Throwable) {
-                client.cancel("Test failed", cause)
-                throw cause
-            } finally {
-                builder.after(client)
+
+                try {
+                    val job = client.coroutineContext[Job]!!
+                    while (job.isActive) {
+                        yield()
+                    }
+                } catch (cause: Throwable) {
+                    client.cancel("Test failed", cause)
+                    throw cause
+                } finally {
+                    builder.after(client)
+                }
             }
         }
     }

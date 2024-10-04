@@ -13,6 +13,14 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Test runner for common suspend tests.
  */
+@Deprecated(
+    "testSuspend is deprecated, use runTest function instead",
+    replaceWith = ReplaceWith(
+        "runTest { block() }",
+        "kotlinx.coroutines.test.runTest",
+    ),
+    level = DeprecationLevel.WARNING
+)
 public expect fun testSuspend(
     context: CoroutineContext = EmptyCoroutineContext,
     timeoutMillis: Long = 60L * 1000L,
