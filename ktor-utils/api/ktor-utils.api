@@ -1005,9 +1005,9 @@ public final class io/ktor/util/reflect/TypeInfo {
 	public fun <init> (Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;Lkotlin/reflect/KType;)V
 	public synthetic fun <init> (Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKotlinType ()Lkotlin/reflect/KType;
-	public final fun getReifiedType ()Ljava/lang/reflect/Type;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1015,6 +1015,7 @@ public final class io/ktor/util/reflect/TypeInfo {
 
 public final class io/ktor/util/reflect/TypeInfoJvmKt {
 	public static final fun getPlatformType (Lkotlin/reflect/KType;)Ljava/lang/reflect/Type;
+	public static final fun getReifiedType (Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/reflect/Type;
 	public static final fun instanceOf (Ljava/lang/Object;Lkotlin/reflect/KClass;)Z
 	public static final fun typeInfoImpl (Ljava/lang/reflect/Type;Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)Lio/ktor/util/reflect/TypeInfo;
 }

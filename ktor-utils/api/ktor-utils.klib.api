@@ -493,16 +493,10 @@ final class io.ktor.util.pipeline/PipelinePhase { // io.ktor.util.pipeline/Pipel
 }
 
 final class io.ktor.util.reflect/TypeInfo { // io.ktor.util.reflect/TypeInfo|null[0]
-    constructor <init>(kotlin.reflect/KClass<*>, kotlin.reflect/KType) // io.ktor.util.reflect/TypeInfo.<init>|<init>(kotlin.reflect.KClass<*>;kotlin.reflect.KType){}[0]
+    constructor <init>(kotlin.reflect/KClass<*>, kotlin.reflect/KType? = ...) // io.ktor.util.reflect/TypeInfo.<init>|<init>(kotlin.reflect.KClass<*>;kotlin.reflect.KType?){}[0]
 
     final val kotlinType // io.ktor.util.reflect/TypeInfo.kotlinType|{}kotlinType[0]
         final fun <get-kotlinType>(): kotlin.reflect/KType? // io.ktor.util.reflect/TypeInfo.kotlinType.<get-kotlinType>|<get-kotlinType>(){}[0]
-    final val reifiedType // io.ktor.util.reflect/TypeInfo.reifiedType|{}reifiedType[0]
-        // Targets: [native]
-        final fun <get-reifiedType>(): kotlin.reflect/KType // io.ktor.util.reflect/TypeInfo.reifiedType.<get-reifiedType>|<get-reifiedType>(){}[0]
-
-        // Targets: [js, wasmJs]
-        final fun <get-reifiedType>(): io.ktor.util.reflect/Type // io.ktor.util.reflect/TypeInfo.reifiedType.<get-reifiedType>|<get-reifiedType>(){}[0]
     final val type // io.ktor.util.reflect/TypeInfo.type|{}type[0]
         final fun <get-type>(): kotlin.reflect/KClass<*> // io.ktor.util.reflect/TypeInfo.type.<get-type>|<get-type>(){}[0]
 

@@ -6,20 +6,23 @@ package io.ktor.util.reflect
 
 import kotlin.reflect.*
 
+@Deprecated("Not used anymore in common code as it was effective only on JVM target.")
 public actual interface Type
 
+@Suppress("DEPRECATION")
+@Deprecated("Not used anymore in common code as it was effective only on JVM target.")
 public object JsType : Type
 
-public actual inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, JsType, typeOfOrNull<T>())
-
-@Deprecated("Use TypeInfo constructor instead.", ReplaceWith("TypeInfo(kClass, reifiedType, kType)"))
-public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo =
-    TypeInfo(kClass, reifiedType, kType)
+@Suppress("DEPRECATION")
+@Deprecated("Use TypeInfo constructor instead.", ReplaceWith("TypeInfo(kClass, kType)"))
+public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo = TypeInfo(kClass, kType)
 
 /**
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
+@Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Not used anymore in common code as it was effective only on JVM target.")
 public actual val KType.platformType: Type
     get() = JsType

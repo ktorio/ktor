@@ -6,19 +6,19 @@ package io.ktor.util.reflect
 
 import kotlin.reflect.*
 
+@Deprecated("Use KType instead.")
 public actual typealias Type = KType
 
-public actual inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOf<T>())
-
-@Suppress("unused")
+@Suppress("unused", "UNUSED_PARAMETER", "DEPRECATION")
 @Deprecated("Maintained for binary compatibility.", level = DeprecationLevel.HIDDEN)
-internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo =
-    TypeInfo(kClass, reifiedType, kType)
+internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): TypeInfo = TypeInfo(kClass, kType)
 
 /**
  * Check [this] is instance of [type].
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
+@Suppress("DEPRECATION")
+@Deprecated("Use KType directly instead.", ReplaceWith("this"))
 public actual val KType.platformType: Type
     get() = this

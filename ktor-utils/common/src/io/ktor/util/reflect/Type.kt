@@ -9,27 +9,30 @@ import kotlin.reflect.*
 /**
  * Information about type.
  */
+@Deprecated("Not used anymore in common code as it was needed only for JVM target.")
 public expect interface Type
 
+@Suppress("DEPRECATION")
+@Deprecated("Not used anymore in common code as it was needed only for JVM target.")
 public expect val KType.platformType: Type
 
 /**
  * Ktor type information.
  * @property type Source KClass<*>
- * @property reifiedType Type with substituted generics
  * @property kotlinType Kotlin reified type with all generic type parameters.
  */
 public class TypeInfo(
     public val type: KClass<*>,
-    public val reifiedType: Type,
     public val kotlinType: KType? = null
 ) {
 
-    public constructor(type: KClass<*>, kotlinType: KType) : this(
-        type = type,
-        reifiedType = kotlinType.platformType,
-        kotlinType = kotlinType,
-    )
+    @Suppress("UNUSED_PARAMETER", "DEPRECATION")
+    @Deprecated("Use constructor without reifiedType parameter.", ReplaceWith("TypeInfo(type, kotlinType)"))
+    public constructor(
+        type: KClass<*>,
+        reifiedType: Type,
+        kotlinType: KType? = null,
+    ) : this(type, kotlinType)
 
     override fun hashCode(): Int {
         return kotlinType?.hashCode() ?: type.hashCode()
@@ -52,7 +55,7 @@ public class TypeInfo(
 /**
  * Returns [TypeInfo] for the specified type [T]
  */
-public expect inline fun <reified T> typeInfo(): TypeInfo
+public inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOfOrNull<T>())
 
 /**
  * Check [this] is instance of [type].
