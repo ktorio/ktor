@@ -44,15 +44,15 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  *
  * @param path URL path at which to handle SSE requests.
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithDeserialization]
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
  *
- * @see SSESessionWithDeserialization
+ * @see SSESessionWithSerialization
  */
 public fun Route.sse(
     path: String,
     serialize: (TypeInfo) -> (Any) -> String = { { it.toString() } },
-    handler: suspend SSESessionWithDeserialization.() -> Unit
+    handler: suspend SSESessionWithSerialization.() -> Unit
 ) {
     route(path, HttpMethod.Get) {
         sse(serialize, handler)
@@ -64,19 +64,19 @@ public fun Route.sse(
  * Requires [SSE] plugin to be installed.
  *
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithDeserialization]
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
  *
- * @see SSESessionWithDeserialization
+ * @see SSESessionWithSerialization
  */
 public fun Route.sse(
     serialize: (TypeInfo) -> (Any) -> String = { { it.toString() } },
-    handler: suspend SSESessionWithDeserialization.() -> Unit
+    handler: suspend SSESessionWithSerialization.() -> Unit
 ): Unit = processSSE(serialize, handler)
 
 private fun Route.processSSE(
     serialize: ((TypeInfo) -> (Any) -> String)?,
-    handler: suspend SSESessionWithDeserialization.() -> Unit
+    handler: suspend SSESessionWithSerialization.() -> Unit
 ) {
     plugin(SSE)
 

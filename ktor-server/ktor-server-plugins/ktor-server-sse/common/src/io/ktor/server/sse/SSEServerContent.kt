@@ -39,7 +39,7 @@ public class SSEServerContent<T : SSESession>(
             coroutineScope {
                 session = DefaultServerSSESession(channel, call, coroutineContext) as T
                 if (serialize != null) {
-                    session = object : SSESessionWithDeserialization, SSESession by session as DefaultServerSSESession {
+                    session = object : SSESessionWithSerialization, SSESession by session as DefaultServerSSESession {
                         override val serializer: (TypeInfo) -> (Any) -> String = serialize
                     } as T
                 }

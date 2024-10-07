@@ -60,18 +60,18 @@ public interface SSESession : CoroutineScope {
 
 /**
  * Represents a server-side server-sent events session with serialization support.
- * An [SSESessionWithDeserialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
+ * An [SSESessionWithSerialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * @see [SSE]
  */
-public interface SSESessionWithDeserialization : SSESession {
+public interface SSESessionWithSerialization : SSESession {
     /**
      * Serializer for transforming data object into field `data` of `ServerSentEvent`.
      */
     public val serializer: (TypeInfo) -> (Any) -> String
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(event: ServerSentEvent<T>) {
+public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(event: ServerSentEvent<T>) {
     send(
         ServerSentEvent(
             event.data?.let {
@@ -85,7 +85,7 @@ public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSe
     )
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(
+public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(
     data: T? = null,
     event: String? = null,
     id: String? = null,
@@ -95,6 +95,6 @@ public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSe
     sendSerialized(ServerSentEvent(data, event, id, retry, comments))
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithDeserialization.sendSerialized(data: T) {
+public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(data: T) {
     send(ServerSentEvent(serializer(typeInfo<T>()).invoke(data)))
 }

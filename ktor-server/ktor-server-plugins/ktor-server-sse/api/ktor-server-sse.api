@@ -41,3 +41,11 @@ public final class io/ktor/server/sse/SSESessionWithDeserialization$DefaultImpls
 	public static fun send (Lio/ktor/server/sse/SSESessionWithDeserialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class io/ktor/server/sse/SSESessionWithSerialization : io/ktor/server/sse/SSESession {
+	public abstract fun getSerializer ()Lkotlin/jvm/functions/Function1;
+}
+
+public final class io/ktor/server/sse/SSESessionWithSerialization$DefaultImpls {
+	public static fun send (Lio/ktor/server/sse/SSESessionWithSerialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
