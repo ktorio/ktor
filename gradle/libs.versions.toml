@@ -7,7 +7,7 @@ coroutines = "1.9.0"
 atomicfu = "0.25.0"
 serialization = "1.7.3"
 ktlint = "3.15.0"
-kotlinx-browser = "0.1"
+kotlinx-browser = "0.2"
 
 netty = "4.1.114.Final"
 netty-tcnative = "2.0.66.Final"
