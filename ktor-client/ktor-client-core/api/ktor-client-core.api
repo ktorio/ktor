@@ -598,7 +598,7 @@ public final class io/ktor/client/plugins/api/TransformResponseBodyContext {
 
 public final class io/ktor/client/plugins/cache/HttpCache {
 	public static final field Companion Lio/ktor/client/plugins/cache/HttpCache$Companion;
-	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;ZZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/plugins/cache/HttpCache$Companion : io/ktor/client/plugins/HttpClientPlugin {
@@ -612,13 +612,11 @@ public final class io/ktor/client/plugins/cache/HttpCache$Companion : io/ktor/cl
 
 public final class io/ktor/client/plugins/cache/HttpCache$Config {
 	public fun <init> ()V
-	public final fun getCacheRequestWithAuth ()Z
 	public final fun getPrivateStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 	public final fun getPublicStorage ()Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;
 	public final fun isShared ()Z
 	public final fun privateStorage (Lio/ktor/client/plugins/cache/storage/CacheStorage;)V
 	public final fun publicStorage (Lio/ktor/client/plugins/cache/storage/CacheStorage;)V
-	public final fun setCacheRequestWithAuth (Z)V
 	public final fun setPrivateStorage (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;)V
 	public final fun setPublicStorage (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;)V
 	public final fun setShared (Z)V

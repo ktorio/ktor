@@ -70,7 +70,7 @@ class HttpCacheTest {
     }
 
     @Test
-    fun `should mix ETags when Authorization header is present and flag enabled`() = testApplication {
+    fun `should mix ETags when Authorization header is present and client is not shared`() = testApplication {
         application {
             routing {
                 get("/me") {
@@ -92,11 +92,7 @@ class HttpCacheTest {
         }
 
         val client = createClient {
-            install(HttpCache) {
-                isShared = true
-                @Suppress("DEPRECATION")
-                cacheRequestWithAuth = true
-            }
+            install(HttpCache)
         }
 
         assertEquals(
