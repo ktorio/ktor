@@ -231,7 +231,8 @@ public suspend fun HttpClient.serverSentEventsSession(
     block: HttpRequestBuilder.() -> Unit
 ): ClientSSESessionWithDeserialization = processSession(reconnectionTime, showCommentEvents, showRetryEvents, block) {
     addAttribute(
-        deserializerAttr, deserialize
+        deserializerAttr,
+        deserialize
     )
 }
 

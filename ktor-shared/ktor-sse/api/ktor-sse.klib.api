@@ -20,6 +20,14 @@ final class <#A: kotlin/Any?> io.ktor.sse/ServerSentEvent { // io.ktor.sse/Serve
     final val retry // io.ktor.sse/ServerSentEvent.retry|{}retry[0]
         final fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEvent.retry.<get-retry>|<get-retry>(){}[0]
 
+    final fun component1(): #A? // io.ktor.sse/ServerSentEvent.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // io.ktor.sse/ServerSentEvent.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.ktor.sse/ServerSentEvent.component3|component3(){}[0]
+    final fun component4(): kotlin/Long? // io.ktor.sse/ServerSentEvent.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // io.ktor.sse/ServerSentEvent.component5|component5(){}[0]
+    final fun copy(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/ServerSentEvent<#A> // io.ktor.sse/ServerSentEvent.copy|copy(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.sse/ServerSentEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.sse/ServerSentEvent.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.sse/ServerSentEvent.toString|toString(){}[0]
     final fun toString(kotlin/Function1<#A, kotlin/String>): kotlin/String // io.ktor.sse/ServerSentEvent.toString|toString(kotlin.Function1<1:0,kotlin.String>){}[0]
 }

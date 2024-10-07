@@ -100,9 +100,12 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
 
         val deserializer = response.request.attributes.getOrNull(deserializerAttr)
         val clientSSESession = deserializer?.let {
-            ClientSSESessionWithDeserialization(context, object : SSESessionWithDeserialization, SSESession by session {
-                override val deserializer: (TypeInfo) -> (String) -> Any = deserializer
-            })
+            ClientSSESessionWithDeserialization(
+                context,
+                object : SSESessionWithDeserialization, SSESession by session {
+                    override val deserializer: (TypeInfo) -> (String) -> Any = deserializer
+                }
+            )
         } ?: ClientSSESession(context, session)
         proceedWith(HttpResponseContainer(info, clientSSESession))
     }

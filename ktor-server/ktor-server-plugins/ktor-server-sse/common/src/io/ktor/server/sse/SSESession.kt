@@ -58,7 +58,6 @@ public interface SSESession : CoroutineScope {
     public suspend fun close()
 }
 
-
 /**
  * Represents a server-side server-sent events session with serialization support.
  * An [SSESessionWithDeserialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
