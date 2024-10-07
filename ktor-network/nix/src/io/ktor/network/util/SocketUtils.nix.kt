@@ -113,19 +113,7 @@ internal actual fun ktor_sendto(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: UInt
 ): Int {
-    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).convert()
-}
-
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun ktor_recvfrom(
-    __fd: Int,
-    __buf: CValuesRef<ByteVar>?,
-    __n: UInt,
-    __flags: Int,
-    __addr: CValuesRef<sockaddr>?,
-    __addr_len: CPointer<UIntVar>?
-): Int {
-    return recvfrom(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).convert()
+    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len.convert()).convert()
 }
 
 internal actual fun ktor_socket(__domain: Int, __type: Int, __protocol: Int): Int {
@@ -134,17 +122,12 @@ internal actual fun ktor_socket(__domain: Int, __type: Int, __protocol: Int): In
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_bind(__fd: Int, __addr: CValuesRef<sockaddr>?, __len: UInt): Int {
-    return bind(__fd, __addr, __len)
+    return bind(__fd, __addr, __len.convert())
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_connect(__fd: Int, __addr: CValuesRef<sockaddr>?, __len: UInt): Int {
-    return connect(__fd, __addr, __len)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun ktor_accept(__fd: Int, __addr: CValuesRef<sockaddr>?, __addr_len: CPointer<UIntVar>?): Int {
-    return accept(__fd, __addr, __addr_len)
+    return connect(__fd, __addr, __len.convert())
 }
 
 internal actual fun ktor_listen(__fd: Int, __n: Int): Int {
@@ -159,36 +142,7 @@ internal actual fun ktor_setsockopt(
     __optval: CPointer<*>?,
     __optlen: UInt
 ): Int {
-    return setsockopt(__fd, __level, __optname, __optval, __optlen)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun ktor_getsockopt(
-    __fd: Int,
-    __level: Int,
-    __optname: Int,
-    __optval: CPointer<*>?,
-    __optlen: CPointer<UIntVar>?
-): Int {
-    return getsockopt(__fd, __level, __optname, __optval, __optlen)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun ktor_getsockname(
-    __fd: Int,
-    __addr: CValuesRef<sockaddr>?,
-    __len: CPointer<UIntVar>?
-): Int {
-    return getsockname(__fd.convert(), __addr, __len?.reinterpret())
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun ktor_getpeername(
-    __fd: Int,
-    __addr: CValuesRef<sockaddr>?,
-    __len: CPointer<UIntVar>?
-): Int {
-    return getpeername(__fd.convert(), __addr, __len?.reinterpret())
+    return setsockopt(__fd, __level, __optname, __optval, __optlen.convert())
 }
 
 internal actual fun getSocketError(): Int {
