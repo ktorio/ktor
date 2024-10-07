@@ -186,7 +186,7 @@ public class WebSockets internal constructor(
 
                 LOGGER.trace("Receive websocket session from ${context.request.url}: $session")
 
-                if (plugin.maxFrameSize != Long.MAX_VALUE) {
+                if (plugin.maxFrameSize != Int.MAX_VALUE.toLong()) {
                     session.maxFrameSize = plugin.maxFrameSize
                 }
 
