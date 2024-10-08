@@ -32,7 +32,7 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  * val client = HttpClient {
  *     install(SSE)
  * }
- * client.sse<String> {
+ * client.sse {
  *     val event = incoming.receive()
  * }
  * ```
