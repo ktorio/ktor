@@ -235,10 +235,7 @@ public class RoutingCall internal constructor(
  */
 public class RoutingContext(
     public val call: RoutingCall
-): CoroutineScope by call {
-    public val application: Application
-        get() = call.application
-}
+)
 
 /**
  * A function that handles a [RoutingCall].
