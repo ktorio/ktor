@@ -17,7 +17,7 @@ internal class DefaultServerSSESession(
 ) : SSESession {
     private val mutex = Mutex()
 
-    override suspend fun send(event: ServerSentEvent<String>) {
+    override suspend fun send(event: ServerSentEvent) {
         mutex.withLock {
             output.writeSSE(event)
         }
@@ -30,7 +30,7 @@ internal class DefaultServerSSESession(
     }
 
     @OptIn(InternalAPI::class)
-    private suspend fun ByteWriteChannel.writeSSE(event: ServerSentEvent<String>) {
+    private suspend fun ByteWriteChannel.writeSSE(event: ServerSentEvent) {
         writeStringUtf8(event.toString() + END_OF_LINE)
         flush()
     }

@@ -25,7 +25,7 @@ public interface SSESession : CoroutineScope {
     /**
      * Sends a [ServerSentEvent] to the client.
      */
-    public suspend fun send(event: ServerSentEvent<String>)
+    public suspend fun send(event: ServerSentEvent)
 
     /**
      * Creates and sends a [ServerSentEvent] to the client.
@@ -71,7 +71,9 @@ public interface SSESessionWithSerialization : SSESession {
     public val serializer: (TypeInfo) -> (Any) -> String
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(event: ServerSentEvent<T>) {
+public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(
+    event: ParameterizedServerSentEvent<T>
+) {
     send(
         ServerSentEvent(
             event.data?.let {
@@ -92,7 +94,7 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSeri
     retry: Long? = null,
     comments: String? = null
 ) {
-    sendSerialized(ServerSentEvent(data, event, id, retry, comments))
+    sendSerialized(ParameterizedServerSentEvent(data, event, id, retry, comments))
 }
 
 public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(data: T) {

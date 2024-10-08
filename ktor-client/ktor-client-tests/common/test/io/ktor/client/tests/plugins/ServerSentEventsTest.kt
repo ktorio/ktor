@@ -527,7 +527,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
                 }
             }) {
                 var firstIsCustomer = true
-                incoming.collect { event: ServerSentEvent<String> ->
+                incoming.collect { event: ParameterizedServerSentEvent<String> ->
                     if (firstIsCustomer) {
                         val customer = deserialize<Customer>(event.data)
                         assertEquals(1, customer?.id)

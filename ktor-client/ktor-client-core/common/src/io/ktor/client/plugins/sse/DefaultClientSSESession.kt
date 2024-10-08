@@ -31,10 +31,10 @@ public class DefaultClientSSESession(
         }
     }
 
-    override val incoming: Flow<ServerSentEvent<String>>
+    override val incoming: Flow<ServerSentEvent>
         get() = _incoming
 
-    private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent<String>? {
+    private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent? {
         val data = StringBuilder()
         val comments = StringBuilder()
         var eventType: String? = null
@@ -105,13 +105,13 @@ public class DefaultClientSSESession(
 
     private fun StringBuilder.toText() = toString().removeSuffix(END_OF_LINE)
 
-    private fun ServerSentEvent<String>.isEmpty() =
+    private fun ServerSentEvent.isEmpty() =
         data == null && id == null && event == null && retry == null && comments == null
 
-    private fun ServerSentEvent<String>.isCommentsEvent() =
+    private fun ServerSentEvent.isCommentsEvent() =
         data == null && event == null && id == null && retry == null && comments != null
 
-    private fun ServerSentEvent<String>.isRetryEvent() =
+    private fun ServerSentEvent.isRetryEvent() =
         data == null && event == null && id == null && comments == null && retry != null
 }
 

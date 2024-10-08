@@ -14,28 +14,49 @@ import io.ktor.utils.io.*
  *  @property id event ID.
  *  @property retry reconnection time, in milliseconds to wait before reconnecting.
  *  @property comments comment lines starting with a ':' character.
+ *
+ *  @see ParameterizedServerSentEvent with parameterized parameter [data]
  */
-public data class ServerSentEvent<T>(
+public data class ServerSentEvent(
+    public val data: String? = null,
+    public val event: String? = null,
+    public val id: String? = null,
+    public val retry: Long? = null,
+    public val comments: String? = null
+) {
+    override fun toString(): String = eventToString(data, event, id, retry, comments)
+}
+
+/**
+ *  Server-sent event with generic parameter [data].
+ *
+ *  @property data data field of the event.
+ *  @property event string identifying the type of event.
+ *  @property id event ID.
+ *  @property retry reconnection time, in milliseconds to wait before reconnecting.
+ *  @property comments comment lines starting with a ':' character.
+ *
+ *  @see ServerSentEvent with default String parameter [data]
+ */
+public data class ParameterizedServerSentEvent<T>(
     public val data: T? = null,
     public val event: String? = null,
     public val id: String? = null,
     public val retry: Long? = null,
     public val comments: String? = null
 ) {
-    @OptIn(InternalAPI::class)
-    override fun toString(): String {
-        return toString { it.toString() }
-    }
-
     @InternalAPI
-    public fun toString(serializer: (T) -> String): String {
-        return buildString {
-            appendField("data", data?.let { serializer(it) })
-            appendField("event", event)
-            appendField("id", id)
-            appendField("retry", retry)
-            appendField("", comments)
-        }
+    public fun toString(serializer: (T) -> String): String =
+        eventToString(data?.let { serializer(it) }, event, id, retry, comments)
+}
+
+private fun eventToString(data: String?, event: String?, id: String?, retry: Long?, comments: String?): String {
+    return buildString {
+        appendField("data", data)
+        appendField("event", event)
+        appendField("id", id)
+        appendField("retry", retry)
+        appendField("", comments)
     }
 }
 

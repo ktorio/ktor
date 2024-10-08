@@ -23,9 +23,9 @@ internal class OkHttpSSESession(
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
-    private val _incoming = Channel<ServerSentEvent<String>>(8)
+    private val _incoming = Channel<ServerSentEvent>(8)
 
-    override val incoming: Flow<ServerSentEvent<String>>
+    override val incoming: Flow<ServerSentEvent>
         get() = _incoming.receiveAsFlow()
 
     override fun onOpen(eventSource: EventSource, response: Response) {

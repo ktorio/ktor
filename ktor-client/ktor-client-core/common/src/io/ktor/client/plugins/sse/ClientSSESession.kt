@@ -17,13 +17,18 @@ public interface SSESession : CoroutineScope {
     /**
      * An incoming server-sent events flow.
      */
-    public val incoming: Flow<ServerSentEvent<String>>
+    public val incoming: Flow<ServerSentEvent>
 }
 
 /**
  * A Server-sent events session.
  */
-public interface SSESessionWithDeserialization : SSESession {
+public interface SSESessionWithDeserialization : CoroutineScope {
+    /**
+     * An incoming server-sent events flow.
+     */
+    public val incoming: Flow<ParameterizedServerSentEvent<String>>
+
     /**
      * Deserializer for transforming field `data` of `ServerSentEvent` into desired data object.
      */
@@ -50,9 +55,9 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  * @param event The Server-sent event containing data to deserialize.
  * @return The deserialized object of type [T], or null if deserialization is not successful.
  */
-public inline fun <reified T> SSESessionWithDeserialization.deserialize(event: ServerSentEvent<String>): T? {
-    return deserialize(event.data)
-}
+public inline fun <reified T> SSESessionWithDeserialization.deserialize(
+    event: ParameterizedServerSentEvent<String>
+): T? = deserialize(event.data)
 
 /**
  * A client Server-sent events session.

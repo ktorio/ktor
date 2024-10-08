@@ -11,11 +11,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.flow.*
+import kotlin.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
 
@@ -102,8 +105,15 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val clientSSESession = deserializer?.let {
             ClientSSESessionWithDeserialization(
                 context,
-                object : SSESessionWithDeserialization, SSESession by session {
+                object : SSESessionWithDeserialization {
+                    override val incoming: Flow<ParameterizedServerSentEvent<String>> =
+                        session.incoming.map { event: ServerSentEvent ->
+                            ParameterizedServerSentEvent(event.data, event.event, event.id, event.retry, event.comments)
+                        }
+
                     override val deserializer: (TypeInfo) -> (String) -> Any = deserializer
+
+                    override val coroutineContext: CoroutineContext = session.coroutineContext
                 }
             )
         } ?: ClientSSESession(context, session)
