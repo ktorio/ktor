@@ -3,9 +3,11 @@
  */
 
 package io.ktor.tests.resources
+
 import io.ktor.resources.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
