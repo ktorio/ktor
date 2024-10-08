@@ -18,7 +18,7 @@ internal val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
 internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime")
 internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
-internal val deserializerAttr = AttributeKey<(TypeInfo) -> (String) -> Any>("SSEDeserializer")
+internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any>("SSEDeserializer")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
@@ -224,7 +224,7 @@ public suspend fun HttpClient.sse(
  * Opens a [ClientSSESessionWithDeserialization].
  */
 public suspend fun HttpClient.serverSentEventsSession(
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -244,7 +244,7 @@ public suspend fun HttpClient.serverSentEventsSession(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -260,7 +260,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -276,7 +276,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  */
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -302,7 +302,7 @@ public suspend fun HttpClient.serverSentEvents(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -327,7 +327,7 @@ public suspend fun HttpClient.serverSentEvents(
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -351,7 +351,7 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESessionWithDeserialization].
  */
 public suspend fun HttpClient.sseSession(
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -367,7 +367,7 @@ public suspend fun HttpClient.sseSession(
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -389,7 +389,7 @@ public suspend fun HttpClient.sseSession(
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -402,7 +402,7 @@ public suspend fun HttpClient.sseSession(
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -418,7 +418,7 @@ public suspend fun HttpClient.sse(
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -442,7 +442,7 @@ public suspend fun HttpClient.sse(
 public suspend fun HttpClient.sse(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
-    deserialize: (TypeInfo) -> (String) -> Any,
+    deserialize: (TypeInfo, String) -> Any,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,

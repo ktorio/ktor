@@ -32,7 +32,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     /**
      * Deserializer for transforming field `data` of `ServerSentEvent` into desired data object.
      */
-    public val deserializer: (TypeInfo) -> (String) -> Any
+    public val deserializer: (TypeInfo, String) -> Any
 }
 
 /**
@@ -44,7 +44,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
  */
 public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: String?): T? {
     return data?.let {
-        deserializer(typeInfo<T>()).invoke(data) as? T
+        deserializer(typeInfo<T>(), data) as? T
     }
 }
 

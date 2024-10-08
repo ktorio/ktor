@@ -17,7 +17,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
-import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
@@ -451,7 +450,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
                     url("$TEST_SERVER/sse/person")
                     parameter("times", count)
                 },
-                deserialize = { { Person(it) } }
+                deserialize = { _, it -> Person(it) }
             ) {
                 incoming.collectIndexed { i, event ->
                     val person = deserialize<Person>(event)
@@ -472,7 +471,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
 
         test { client ->
             assertFailsWith<SSEClientException> {
-                client.sse({ url("$TEST_SERVER/sse/person") }, { { Data(it) } }) {
+                client.sse({ url("$TEST_SERVER/sse/person") }, { _, it -> Data(it) }) {
                     incoming.single().apply {
                         val data = deserialize<Person>(data)
                         assertEquals("Name 0", data?.name)
@@ -492,12 +491,12 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         }
 
         test { client ->
-            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _ -> { str -> Person1(str) } }) {
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _, str -> Person1(str) }) {
                 incoming.single().apply {
                     assertEquals("Name 0", deserialize<Person1>(data)?.name)
                 }
             }
-            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _ -> { str -> Person2(str) } }) {
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _, str -> Person2(str) }) {
                 incoming.single().apply {
                     assertEquals("Name 0", deserialize<Person2>(data)?.middleName)
                 }
@@ -520,11 +519,9 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
         test { client ->
             client.sse({
                 url("$TEST_SERVER/sse/json")
-            }, deserialize = { typeInfo: TypeInfo ->
-                { jsonString: String ->
-                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
-                    Json.decodeFromString(serializer, jsonString) ?: Exception()
-                }
+            }, deserialize = { typeInfo, jsonString ->
+                val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                Json.decodeFromString(serializer, jsonString) ?: Exception()
             }) {
                 var firstIsCustomer = true
                 incoming.collect { event: ParameterizedServerSentEvent<String> ->

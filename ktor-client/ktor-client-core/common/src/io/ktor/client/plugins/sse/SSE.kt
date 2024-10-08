@@ -111,7 +111,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
                             ParameterizedServerSentEvent(event.data, event.event, event.id, event.retry, event.comments)
                         }
 
-                    override val deserializer: (TypeInfo) -> (String) -> Any = deserializer
+                    override val deserializer: (TypeInfo, String) -> Any = deserializer
 
                     override val coroutineContext: CoroutineContext = session.coroutineContext
                 }
