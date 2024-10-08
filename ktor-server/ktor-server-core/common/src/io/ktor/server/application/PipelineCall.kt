@@ -10,6 +10,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -119,3 +120,8 @@ public var ApplicationCall.receiveType: TypeInfo
     internal set(value) {
         attributes.put(RECEIVE_TYPE_KEY, value)
     }
+
+/**
+ * Convenience extension property for pipeline interceptors with Application call contexts.
+ */
+public val <C : ApplicationCall> PipelineContext<*, C>.call: C get() = context
