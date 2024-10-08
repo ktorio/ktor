@@ -1033,8 +1033,6 @@ final class io.ktor.server.routing/RoutingCall : io.ktor.server.application/Appl
 final class io.ktor.server.routing/RoutingContext { // io.ktor.server.routing/RoutingContext|null[0]
     constructor <init>(io.ktor.server.routing/RoutingCall) // io.ktor.server.routing/RoutingContext.<init>|<init>(io.ktor.server.routing.RoutingCall){}[0]
 
-    final val application // io.ktor.server.routing/RoutingContext.application|{}application[0]
-        final fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/RoutingContext.application.<get-application>|<get-application>(){}[0]
     final val call // io.ktor.server.routing/RoutingContext.call|{}call[0]
         final fun <get-call>(): io.ktor.server.routing/RoutingCall // io.ktor.server.routing/RoutingContext.call.<get-call>|<get-call>(){}[0]
 }
@@ -1619,6 +1617,8 @@ final val io.ktor.server.application/ServerReady // io.ktor.server.application/S
     final fun <get-ServerReady>(): io.ktor.events/EventDefinition<io.ktor.server.application/ApplicationEnvironment> // io.ktor.server.application/ServerReady.<get-ServerReady>|<get-ServerReady>(){}[0]
 final val io.ktor.server.application/application // io.ktor.server.application/application|@io.ktor.util.pipeline.PipelineContext<*,io.ktor.server.application.PipelineCall>{}application[0]
     final fun (io.ktor.util.pipeline/PipelineContext<*, io.ktor.server.application/PipelineCall>).<get-application>(): io.ktor.server.application/Application // io.ktor.server.application/application.<get-application>|<get-application>@io.ktor.util.pipeline.PipelineContext<*,io.ktor.server.application.PipelineCall>(){}[0]
+final val io.ktor.server.application/call // io.ktor.server.application/call|@io.ktor.util.pipeline.PipelineContext<*,0:0>{0§<io.ktor.server.application.ApplicationCall>}call[0]
+    final fun <#A1: io.ktor.server.application/ApplicationCall> (io.ktor.util.pipeline/PipelineContext<*, #A1>).<get-call>(): #A1 // io.ktor.server.application/call.<get-call>|<get-call>@io.ktor.util.pipeline.PipelineContext<*,0:0>(){0§<io.ktor.server.application.ApplicationCall>}[0]
 final val io.ktor.server.application/call // io.ktor.server.application/call|@io.ktor.util.pipeline.PipelineContext<*,io.ktor.server.application.PipelineCall>{}call[0]
     final inline fun (io.ktor.util.pipeline/PipelineContext<*, io.ktor.server.application/PipelineCall>).<get-call>(): io.ktor.server.application/PipelineCall // io.ktor.server.application/call.<get-call>|<get-call>@io.ktor.util.pipeline.PipelineContext<*,io.ktor.server.application.PipelineCall>(){}[0]
 final val io.ktor.server.application/host // io.ktor.server.application/host|@io.ktor.server.config.ApplicationConfig{}host[0]

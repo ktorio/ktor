@@ -153,6 +153,7 @@ public final class io/ktor/server/application/PipelineCall$DefaultImpls {
 }
 
 public final class io/ktor/server/application/PipelineCallKt {
+	public static final fun getCall (Lio/ktor/util/pipeline/PipelineContext;)Lio/ktor/server/application/ApplicationCall;
 	public static final fun getReceiveType (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/util/reflect/TypeInfo;
 	public static final fun isHandled (Lio/ktor/server/application/ApplicationCall;)Z
 }
@@ -1658,7 +1659,6 @@ public final class io/ktor/server/routing/RoutingCall : io/ktor/server/applicati
 
 public final class io/ktor/server/routing/RoutingContext {
 	public fun <init> (Lio/ktor/server/routing/RoutingCall;)V
-	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public final fun getCall ()Lio/ktor/server/routing/RoutingCall;
 }
 

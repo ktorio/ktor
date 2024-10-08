@@ -12,6 +12,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -234,10 +235,7 @@ public class RoutingCall internal constructor(
  */
 public class RoutingContext(
     public val call: RoutingCall
-) {
-    public val application: Application
-        get() = call.application
-}
+)
 
 /**
  * A function that handles a [RoutingCall].
