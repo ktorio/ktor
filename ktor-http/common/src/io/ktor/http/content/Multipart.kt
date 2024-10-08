@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.PartData.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.flow.*
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem].
@@ -102,15 +103,23 @@ public interface MultiPartData {
 }
 
 /**
+ * Transforms the multipart data stream into a [Flow] of [PartData].
+ *
+ * @return a [Flow] emitting each part of the multipart data until the end of the stream.
+ */
+public fun MultiPartData.asFlow(): Flow<PartData> = flow {
+    while (true) {
+        val part = readPart() ?: break
+        emit(part)
+    }
+}
+
+/**
  * Parse multipart data stream and invoke [partHandler] for each [PartData] encountered.
  * @param partHandler to be invoked for every part item
  */
-public suspend fun MultiPartData.forEachPart(partHandler: suspend (PartData) -> Unit) {
-    while (true) {
-        val part = readPart() ?: break
-        partHandler(part)
-    }
-}
+public suspend fun MultiPartData.forEachPart(partHandler: suspend (PartData) -> Unit): Unit =
+    asFlow().collect(partHandler)
 
 /**
  * Parse multipart data stream and put all parts into a list.

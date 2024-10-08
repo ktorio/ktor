@@ -1240,6 +1240,7 @@ public final class io/ktor/http/content/MultipartJvmKt {
 }
 
 public final class io/ktor/http/content/MultipartKt {
+	public static final fun asFlow (Lio/ktor/http/content/MultiPartData;)Lkotlinx/coroutines/flow/Flow;
 	public static final fun forEachPart (Lio/ktor/http/content/MultiPartData;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readAllParts (Lio/ktor/http/content/MultiPartData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
