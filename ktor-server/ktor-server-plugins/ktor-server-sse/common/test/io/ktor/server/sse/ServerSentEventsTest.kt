@@ -201,16 +201,14 @@ class ServerSentEventsTest {
     fun testSerializerInRoute() = testApplication {
         install(SSE)
         routing {
-            sse("/person", serialize = { typeInfo ->
-                { data ->
-                    when (typeInfo.type) {
-                        Person1::class -> {
-                            "Age ${(data as Person1).age}"
-                        }
+            sse("/person", serialize = { typeInfo, data ->
+                when (typeInfo.type) {
+                    Person1::class -> {
+                        "Age ${(data as Person1).age}"
+                    }
 
-                        else -> {
-                            data.toString()
-                        }
+                    else -> {
+                        data.toString()
                     }
                 }
             }) {
@@ -233,20 +231,18 @@ class ServerSentEventsTest {
     fun testDifferentSerializers() = testApplication {
         install(SSE)
         routing {
-            sse(serialize = { typeInfo ->
-                { data ->
-                    when (typeInfo.type) {
-                        Person1::class -> {
-                            "Age ${(data as Person1).age}"
-                        }
+            sse(serialize = { typeInfo, data ->
+                when (typeInfo.type) {
+                    Person1::class -> {
+                        "Age ${(data as Person1).age}"
+                    }
 
-                        Person2::class -> {
-                            "Number ${(data as Person2).number}"
-                        }
+                    Person2::class -> {
+                        "Number ${(data as Person2).number}"
+                    }
 
-                        else -> {
-                            data.toString()
-                        }
+                    else -> {
+                        data.toString()
                     }
                 }
             }) {
@@ -279,11 +275,9 @@ class ServerSentEventsTest {
     fun testJsonDeserializer() = testApplication {
         install(SSE)
         routing {
-            sse("/json", serialize = { typeInfo ->
-                {
-                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
-                    Json.encodeToString(serializer, it)
-                }
+            sse("/json", serialize = { typeInfo, it ->
+                val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                Json.encodeToString(serializer, it)
             }) {
                 sendSerialized(Customer(0, "Jet", "Brains"))
                 sendSerialized(Product(0, listOf(100, 200)))

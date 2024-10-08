@@ -26,7 +26,7 @@ import kotlinx.coroutines.*
  */
 public class SSEServerContent<T : SSESession>(
     public val call: ApplicationCall,
-    public val serialize: ((TypeInfo) -> (Any) -> String)?,
+    public val serialize: ((TypeInfo, Any) -> String)?,
     public val handle: suspend T.() -> Unit
 ) : OutgoingContent.WriteChannelContent() {
     override val contentType: ContentType = ContentType.Text.EventStream
@@ -40,7 +40,7 @@ public class SSEServerContent<T : SSESession>(
                 session = DefaultServerSSESession(channel, call, coroutineContext) as T
                 if (serialize != null) {
                     session = object : SSESessionWithSerialization, SSESession by session as DefaultServerSSESession {
-                        override val serializer: (TypeInfo) -> (Any) -> String = serialize
+                        override val serializer: (TypeInfo, Any) -> String = serialize
                     } as T
                 }
                 session?.handle()

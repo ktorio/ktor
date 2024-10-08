@@ -68,7 +68,7 @@ public interface SSESessionWithSerialization : SSESession {
     /**
      * Serializer for transforming data object into field `data` of `ServerSentEvent`.
      */
-    public val serializer: (TypeInfo) -> (Any) -> String
+    public val serializer: (TypeInfo, Any) -> String
 }
 
 public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(
@@ -77,7 +77,7 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSeri
     send(
         ServerSentEvent(
             event.data?.let {
-                serializer(typeInfo<T>()).invoke(it)
+                serializer(typeInfo<T>(), it)
             },
             event.event,
             event.id,
@@ -98,5 +98,5 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSeri
 }
 
 public suspend inline fun <reified T : Any> SSESessionWithSerialization.sendSerialized(data: T) {
-    send(ServerSentEvent(serializer(typeInfo<T>()).invoke(data)))
+    send(ServerSentEvent(serializer(typeInfo<T>(), data)))
 }

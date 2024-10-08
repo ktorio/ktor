@@ -51,7 +51,7 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  */
 public fun Route.sse(
     path: String,
-    serialize: (TypeInfo) -> (Any) -> String = { { it.toString() } },
+    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
     handler: suspend SSESessionWithSerialization.() -> Unit
 ) {
     route(path, HttpMethod.Get) {
@@ -70,12 +70,12 @@ public fun Route.sse(
  * @see SSESessionWithSerialization
  */
 public fun Route.sse(
-    serialize: (TypeInfo) -> (Any) -> String = { { it.toString() } },
+    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
     handler: suspend SSESessionWithSerialization.() -> Unit
 ): Unit = processSSE(serialize, handler)
 
 private fun Route.processSSE(
-    serialize: ((TypeInfo) -> (Any) -> String)?,
+    serialize: ((TypeInfo, Any) -> String)?,
     handler: suspend SSESessionWithSerialization.() -> Unit
 ) {
     plugin(SSE)
