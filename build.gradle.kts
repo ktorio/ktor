@@ -3,11 +3,7 @@
  */
 
 import org.jetbrains.dokka.gradle.*
-import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.*
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
-import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.konan.target.*
 
 buildscript {
@@ -30,6 +26,10 @@ buildscript {
                 "'kotlin_snapshot_version' should be defined when building with snapshot compiler",
             )
         }
+
+        dependencies {
+            classpath("org.jetbrains.kotlin:kotlin-metadata-jvm:2.1.0-dev-8424")
+        }
         repositories {
             maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
                 mavenContent { snapshotsOnly() }
@@ -39,7 +39,9 @@ buildscript {
 
         configurations.classpath {
             resolutionStrategy.eachDependency {
-                if (requested.group == "org.jetbrains.kotlin") {
+                if (requested.group == "org.jetbrains.kotlin" && requested.module.name != "kotlin-metadata-jvm" &&
+                    requested.module.name != "kotlin-stdlib"
+                ) {
                     useVersion(kotlin_version!!)
                 }
             }
