@@ -30,6 +30,8 @@ dependencies {
     val ktlint_version = libs.versions.ktlint.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
 
+    implementation(libs.develocity)
+
     implementation("io.ktor:ktor-server-default-headers:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("io.ktor:ktor-server-cio:$ktor_version")

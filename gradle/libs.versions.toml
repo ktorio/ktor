@@ -70,6 +70,9 @@ swagger-parser = "2.1.22"
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
+develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.0.2"
+
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
@@ -191,3 +194,6 @@ swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-g
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
 
 tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+
+develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
+develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }

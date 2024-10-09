@@ -122,6 +122,7 @@ subprojects {
     apply(plugin = "atomicfu-conventions")
 
     configureTargets()
+    if (CI) configureTestTasksOnCi()
 
     configurations {
         maybeCreate("testOutput")
