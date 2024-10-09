@@ -9,31 +9,27 @@ plugins {
     kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
-val ktor_version = "3.1.0-eap-1153"
-
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.kotlin.serialization)
 
-    val ktlint_version = libs.versions.ktlint.get()
-    implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
-
+    implementation(libs.kotlinter)
     implementation(libs.develocity)
 
-    implementation("io.ktor:ktor-server-default-headers:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("io.ktor:ktor-server-cio:$ktor_version")
-    implementation("io.ktor:ktor-server-jetty:$ktor_version")
-    implementation("io.ktor:ktor-server-websockets:$ktor_version")
-    implementation("io.ktor:ktor-server-auth:$ktor_version")
-    implementation("io.ktor:ktor-server-caching-headers:$ktor_version")
-    implementation("io.ktor:ktor-server-conditional-headers:$ktor_version")
-    implementation("io.ktor:ktor-server-compression:$ktor_version")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx:$ktor_version")
-    implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
-    implementation("io.ktor:ktor-utils:$ktor_version")
+    implementation(libs.ktor.server.default.headers)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.jetty)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.caching.headers)
+    implementation(libs.ktor.server.conditional.headers)
+    implementation(libs.ktor.server.compression)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.serialization.kotlinx)
+    implementation(libs.ktor.network.tls.certificates)
+    implementation(libs.ktor.utils)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
