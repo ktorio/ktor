@@ -185,6 +185,11 @@ public class WebSockets internal constructor(
                 }
 
                 LOGGER.trace("Receive websocket session from ${context.request.url}: $session")
+
+                if (plugin.maxFrameSize != Int.MAX_VALUE.toLong()) {
+                    session.maxFrameSize = plugin.maxFrameSize
+                }
+
                 val clientSession: ClientWebSocketSession = when (info.type) {
                     DefaultClientWebSocketSession::class -> {
                         val defaultSession = plugin.convertSessionToDefault(session)
@@ -201,7 +206,9 @@ public class WebSockets internal constructor(
                         }
                     }
 
-                    else -> DelegatingClientWebSocketSession(context, session)
+                    else -> {
+                        DelegatingClientWebSocketSession(context, session)
+                    }
                 }
 
                 proceedWith(HttpResponseContainer(info, clientSession))
