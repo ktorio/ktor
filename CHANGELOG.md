@@ -23,7 +23,7 @@
 ### Improvements
 * Misleading `readBytes` method name ([KTOR-6596](https://youtrack.jetbrains.com/issue/KTOR-6596))
 * Remove reflection utils used only on JVM target from common source set ([KTOR-7540](https://youtrack.jetbrains.com/issue/KTOR-7540))
-* Weak security algorithm (MD5) in FileCacheStorage (https://youtrack.jetbrains.com/issue/KTOR-6589))
+* Weak security algorithm (MD5) in FileCacheStorage ([KTOR-6589](https://youtrack.jetbrains.com/issue/KTOR-6589))
 * Missing constants for AcceptEncoding ([KTOR-6412](https://youtrack.jetbrains.com/issue/KTOR-6412))
 * Add `respondFile` overload with `Path` parameters ([KTOR-7202](https://youtrack.jetbrains.com/issue/KTOR-7202))
 * MalformedInputException confusingly is a Throwable but not an Exception ([KTOR-7316](https://youtrack.jetbrains.com/issue/KTOR-7316))
