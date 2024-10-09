@@ -1,21 +1,26 @@
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 pluginManagement {
-    val build_snapshot_train: String? by settings
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-        if (build_snapshot_train.toBoolean()) {
-            mavenLocal()
-        }
-    }
+    includeBuild("../gradle-settings-conventions")
+}
+
+plugins {
+    id("conventions-dependency-resolution-management")
 }
 
 dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
+    // Additional repositories for buildSrc dependencies
+    @Suppress("UnstableApiUsage")
+    repositories {
+        gradlePluginPortal()
+
+        exclusiveContent {
+            forRepository {
+                maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") { name = "KtorEAP" }
+            }
+            filter { includeGroup("io.ktor") }
         }
     }
 }

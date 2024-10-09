@@ -1,13 +1,14 @@
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+import internal.*
 import org.gradle.api.*
+import org.gradle.api.provider.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.kotlin.dsl.*
 
 fun Project.filterSnapshotTests() {
-    val build_snapshot_train: String? by extra
-    if (!build_snapshot_train.toBoolean()) return
+    if (!buildSnapshotTrain) return
 
     println("Hacking test tasks, removing stress and flaky tests")
     subprojects {
@@ -46,35 +47,21 @@ fun Project.filterSnapshotTests() {
 }
 
 fun Project.setupTrainForSubproject() {
-    val build_snapshot_train: String? by extra
-    if (!build_snapshot_train.toBoolean()) {
-        return
-    }
-
-    val atomicfu_version: String by extra
-    val coroutines_version: String by extra
-    val serialization_version: String by extra
-
-    extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-    val kotlin_version: String by extra
-    println("Using Kotlin $kotlin_version for project $this")
     val deployVersion = properties["DeployVersion"]
     if (deployVersion != null) version = deployVersion
 
-    val skipSnapshotChecks = rootProject.properties["skip_snapshot_checks"] != null
-    if (!skipSnapshotChecks) {
-        check(version, atomicfu_version, "atomicfu")
-        check(version, coroutines_version, "coroutines")
-        check(version, serialization_version, "serialization")
-    }
-    repositories {
-        mavenLocal()
-        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
+    if (buildSnapshotTrain && !rootProject.hasProperty("skip_snapshot_checks")) {
+        check(version, rootProject.libs.versions.atomicfu, "atomicfu")
+        check(version, rootProject.libs.versions.coroutines, "coroutines")
+        check(version, rootProject.libs.versions.serialization, "serialization")
     }
 }
 
-private fun check(version: Any, libVersion: String, libName: String) {
-    if (version != libVersion) {
-        error("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
+private val Project.buildSnapshotTrain: Boolean
+    get() = rootProject.findProperty("build_snapshot_train")?.toString().toBoolean()
+
+private fun check(version: Any, libVersion: Provider<String>, libName: String) {
+    check(version == libVersion) {
+        "Current deploy version is $version, but $libName version is not overridden (${libVersion.get()})"
     }
 }

@@ -1,29 +1,14 @@
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:Suppress("UnstableApiUsage")
 
 pluginManagement {
     includeBuild("gradle-settings-conventions")
-
-    repositories {
-        mavenCentral()
-        google()
-        gradlePluginPortal()
-    }
 }
 
 plugins {
+    id("conventions-dependency-resolution-management")
     id("conventions-develocity")
-}
-
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
-        mavenLocal()
-    }
 }
 
 rootProject.name = "ktor"
