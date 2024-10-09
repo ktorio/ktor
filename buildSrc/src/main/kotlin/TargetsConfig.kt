@@ -69,15 +69,6 @@ fun Project.configureTargets() {
             }
         }
     }
-
-    // Don't fail build on the CI:
-    // 1. To distinct builds failed because of failed tests and because of compilation errors or anything else.
-    //    TeamCity parses test results to define build status, so the build won't be green.
-    // 2. To run as many tests as possible while keeping fail-fast behavior locally.
-    if (CI) tasks.withType<AbstractTestTask>().configureEach {
-        ignoreFailures = true
-        if (this is KotlinTest) ignoreRunFailures = true
-    }
 }
 
 private val hierarchyTemplate = KotlinHierarchyTemplate {
