@@ -1,3 +1,45 @@
+# 3.0.0
+> Published 9 October 2024
+
+### Bugfixes
+* Darwin: The `maxFrameSize` option has no effect ([KTOR-6963](https://youtrack.jetbrains.com/issue/KTOR-6963))
+* KotlinReflectionInternalError (createClientPlugin) when running release APK on Android ([KTOR-7479](https://youtrack.jetbrains.com/issue/KTOR-7479))
+* Netty: UnsupportedOperationException is thrown when responding in CallSetup and CORS plugin is installed ([KTOR-4433](https://youtrack.jetbrains.com/issue/KTOR-4433))
+* MicrometerMetrics: Prometheus meter registry 1.13.0 generates configuration warning ([KTOR-7035](https://youtrack.jetbrains.com/issue/KTOR-7035))
+* Websockets/Auth: ProtocolException when requesting protected WebSockets endpoint ([KTOR-7363](https://youtrack.jetbrains.com/issue/KTOR-7363))
+* Data truncated in receiveParameters and receiveMultipart ([KTOR-7201](https://youtrack.jetbrains.com/issue/KTOR-7201))
+* The `pathSegments` returns empty strings for trailing slashes ([KTOR-4402](https://youtrack.jetbrains.com/issue/KTOR-4402))
+* HttpRequestRetry: exponential delay doesn't work for delays <= 1 second ([KTOR-7294](https://youtrack.jetbrains.com/issue/KTOR-7294))
+* JS browser: "Error: HttpClientCall expected" on HTTP request when targeting es2015 ([KTOR-6882](https://youtrack.jetbrains.com/issue/KTOR-6882))
+* Incomplete write using io.ktor.util.cio.FileChannelsKt#writeChannel ([KTOR-1618](https://youtrack.jetbrains.com/issue/KTOR-1618))
+* `response.content.copyAndClose(targetFile.writeChannel())` sometimes loses some bytes ([KTOR-3003](https://youtrack.jetbrains.com/issue/KTOR-3003))
+* ByteWriteChannel.flush is not Waiting Until Flushing the Internal Buffer to the Destination ([KTOR-3102](https://youtrack.jetbrains.com/issue/KTOR-3102))
+* CORS check fails when the Origin header has a value without trailing slash ([KTOR-5936](https://youtrack.jetbrains.com/issue/KTOR-5936))
+* Closing socket and selector leaks descriptor on native ([KTOR-7255](https://youtrack.jetbrains.com/issue/KTOR-7255))
+* ConnectionUtilsNative leaks descriptors on error ([KTOR-6977](https://youtrack.jetbrains.com/issue/KTOR-6977))
+* withTimeout doesn't cancel socket connection on native ([KTOR-5289](https://youtrack.jetbrains.com/issue/KTOR-5289))
+* MockEngine: the ability to set dispatcher is removed ([KTOR-6417](https://youtrack.jetbrains.com/issue/KTOR-6417))
+
+### Improvements
+* Misleading `readBytes` method name ([KTOR-6596](https://youtrack.jetbrains.com/issue/KTOR-6596))
+* Remove reflection utils used only on JVM target from common source set ([KTOR-7540](https://youtrack.jetbrains.com/issue/KTOR-7540))
+* Weak security algorithm ([KTOR-6589](MD5) in FileCacheStorage (https://youtrack.jetbrains.com/issue/KTOR-6589))
+* Missing constants for AcceptEncoding ([KTOR-6412](https://youtrack.jetbrains.com/issue/KTOR-6412))
+* Add `respondFile` overload with `Path` parameters ([KTOR-7202](https://youtrack.jetbrains.com/issue/KTOR-7202))
+* MalformedInputException confusingly is a Throwable but not an Exception ([KTOR-7316](https://youtrack.jetbrains.com/issue/KTOR-7316))
+* CSRF: The allowOrigin method enables the Origin Header validation ([KTOR-6695](https://youtrack.jetbrains.com/issue/KTOR-6695))
+* Auth: Drop marker interface requirements ([KTOR-7323](https://youtrack.jetbrains.com/issue/KTOR-7323))
+* Routing: Support accessing the request body in RouteSelector ([KTOR-7084](https://youtrack.jetbrains.com/issue/KTOR-7084))
+* Make Cookie class Serializable ([KTOR-6258](https://youtrack.jetbrains.com/issue/KTOR-6258))
+* Make the internal Route.swaggerUI method public ([KTOR-6491](https://youtrack.jetbrains.com/issue/KTOR-6491))
+* Ktor clients and servers should use Dispatchers.IO.limitedParallelism(...) wherever possible ([KTOR-6462](https://youtrack.jetbrains.com/issue/KTOR-6462))
+
+### Features
+* Support androidNative targets ([KTOR-7289](https://youtrack.jetbrains.com/issue/KTOR-7289))
+* Provide the API that simplifies disabling CORS for testing purposes ([KTOR-3329](https://youtrack.jetbrains.com/issue/KTOR-3329))
+* Add support for mingw to ktor-network in order to make server and client work on windows ([KTOR-4080](https://youtrack.jetbrains.com/issue/KTOR-4080))
+
+
 # 3.0.0-rc-2
 > Published 2 October 2024
 
