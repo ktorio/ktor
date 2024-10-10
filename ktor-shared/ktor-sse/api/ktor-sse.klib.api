@@ -6,13 +6,52 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-sse>
-final class <#A: kotlin/Any?> io.ktor.sse/ServerSentEvent { // io.ktor.sse/ServerSentEvent|null[0]
-    constructor <init>(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.sse/ServerSentEvent.<init>|<init>(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+sealed interface <#A: kotlin/Any?> io.ktor.sse/ServerSentEventMetadata { // io.ktor.sse/ServerSentEventMetadata|null[0]
+    abstract val comments // io.ktor.sse/ServerSentEventMetadata.comments|{}comments[0]
+        abstract fun <get-comments>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.comments.<get-comments>|<get-comments>(){}[0]
+    abstract val data // io.ktor.sse/ServerSentEventMetadata.data|{}data[0]
+        abstract fun <get-data>(): #A? // io.ktor.sse/ServerSentEventMetadata.data.<get-data>|<get-data>(){}[0]
+    abstract val event // io.ktor.sse/ServerSentEventMetadata.event|{}event[0]
+        abstract fun <get-event>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.event.<get-event>|<get-event>(){}[0]
+    abstract val id // io.ktor.sse/ServerSentEventMetadata.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.id.<get-id>|<get-id>(){}[0]
+    abstract val retry // io.ktor.sse/ServerSentEventMetadata.retry|{}retry[0]
+        abstract fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEventMetadata.retry.<get-retry>|<get-retry>(){}[0]
+}
+
+final class <#A: kotlin/Any?> io.ktor.sse/ServerSentEventParsed : io.ktor.sse/ServerSentEventMetadata<#A> { // io.ktor.sse/ServerSentEventParsed|null[0]
+    constructor <init>(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.sse/ServerSentEventParsed.<init>|<init>(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+
+    final val comments // io.ktor.sse/ServerSentEventParsed.comments|{}comments[0]
+        final fun <get-comments>(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.comments.<get-comments>|<get-comments>(){}[0]
+    final val data // io.ktor.sse/ServerSentEventParsed.data|{}data[0]
+        final fun <get-data>(): #A? // io.ktor.sse/ServerSentEventParsed.data.<get-data>|<get-data>(){}[0]
+    final val event // io.ktor.sse/ServerSentEventParsed.event|{}event[0]
+        final fun <get-event>(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.event.<get-event>|<get-event>(){}[0]
+    final val id // io.ktor.sse/ServerSentEventParsed.id|{}id[0]
+        final fun <get-id>(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.id.<get-id>|<get-id>(){}[0]
+    final val retry // io.ktor.sse/ServerSentEventParsed.retry|{}retry[0]
+        final fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEventParsed.retry.<get-retry>|<get-retry>(){}[0]
+
+    final fun component1(): #A? // io.ktor.sse/ServerSentEventParsed.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.component3|component3(){}[0]
+    final fun component4(): kotlin/Long? // io.ktor.sse/ServerSentEventParsed.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // io.ktor.sse/ServerSentEventParsed.component5|component5(){}[0]
+    final fun copy(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/ServerSentEventParsed<#A> // io.ktor.sse/ServerSentEventParsed.copy|copy(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.sse/ServerSentEventParsed.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.sse/ServerSentEventParsed.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.sse/ServerSentEventParsed.toString|toString(){}[0]
+    final fun toString(kotlin/Function1<#A, kotlin/String>): kotlin/String // io.ktor.sse/ServerSentEventParsed.toString|toString(kotlin.Function1<1:0,kotlin.String>){}[0]
+}
+
+final class io.ktor.sse/ServerSentEvent : io.ktor.sse/ServerSentEventMetadata<kotlin/String> { // io.ktor.sse/ServerSentEvent|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.sse/ServerSentEvent.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
 
     final val comments // io.ktor.sse/ServerSentEvent.comments|{}comments[0]
         final fun <get-comments>(): kotlin/String? // io.ktor.sse/ServerSentEvent.comments.<get-comments>|<get-comments>(){}[0]
     final val data // io.ktor.sse/ServerSentEvent.data|{}data[0]
-        final fun <get-data>(): #A? // io.ktor.sse/ServerSentEvent.data.<get-data>|<get-data>(){}[0]
+        final fun <get-data>(): kotlin/String? // io.ktor.sse/ServerSentEvent.data.<get-data>|<get-data>(){}[0]
     final val event // io.ktor.sse/ServerSentEvent.event|{}event[0]
         final fun <get-event>(): kotlin/String? // io.ktor.sse/ServerSentEvent.event.<get-event>|<get-event>(){}[0]
     final val id // io.ktor.sse/ServerSentEvent.id|{}id[0]
@@ -20,16 +59,15 @@ final class <#A: kotlin/Any?> io.ktor.sse/ServerSentEvent { // io.ktor.sse/Serve
     final val retry // io.ktor.sse/ServerSentEvent.retry|{}retry[0]
         final fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEvent.retry.<get-retry>|<get-retry>(){}[0]
 
-    final fun component1(): #A? // io.ktor.sse/ServerSentEvent.component1|component1(){}[0]
+    final fun component1(): kotlin/String? // io.ktor.sse/ServerSentEvent.component1|component1(){}[0]
     final fun component2(): kotlin/String? // io.ktor.sse/ServerSentEvent.component2|component2(){}[0]
     final fun component3(): kotlin/String? // io.ktor.sse/ServerSentEvent.component3|component3(){}[0]
     final fun component4(): kotlin/Long? // io.ktor.sse/ServerSentEvent.component4|component4(){}[0]
     final fun component5(): kotlin/String? // io.ktor.sse/ServerSentEvent.component5|component5(){}[0]
-    final fun copy(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/ServerSentEvent<#A> // io.ktor.sse/ServerSentEvent.copy|copy(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+    final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/ServerSentEvent // io.ktor.sse/ServerSentEvent.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.sse/ServerSentEvent.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.sse/ServerSentEvent.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.sse/ServerSentEvent.toString|toString(){}[0]
-    final fun toString(kotlin/Function1<#A, kotlin/String>): kotlin/String // io.ktor.sse/ServerSentEvent.toString|toString(kotlin.Function1<1:0,kotlin.String>){}[0]
 }
 
 final const val io.ktor.sse/COLON // io.ktor.sse/COLON|{}COLON[0]

@@ -106,9 +106,9 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             ClientSSESessionWithDeserialization(
                 context,
                 object : SSESessionWithDeserialization {
-                    override val incoming: Flow<ParameterizedServerSentEvent<String>> =
+                    override val incoming: Flow<ServerSentEventParsed<String>> =
                         session.incoming.map { event: ServerSentEvent ->
-                            ParameterizedServerSentEvent(event.data, event.event, event.id, event.retry, event.comments)
+                            ServerSentEventParsed(event.data, event.event, event.id, event.retry, event.comments)
                         }
 
                     override val deserializer: (TypeInfo, String) -> Any = deserializer

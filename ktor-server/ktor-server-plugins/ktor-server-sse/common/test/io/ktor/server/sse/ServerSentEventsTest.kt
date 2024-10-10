@@ -213,7 +213,7 @@ class ServerSentEventsTest {
                 }
             }) {
                 repeat(10) {
-                    sendSerialized(Person1(it))
+                    send(Person1(it))
                 }
             }
         }
@@ -246,8 +246,8 @@ class ServerSentEventsTest {
                     }
                 }
             }) {
-                sendSerialized(Person1(22))
-                sendSerialized(Person2(123456))
+                send(Person1(22))
+                send(Person2(123456))
             }
         }
 
@@ -279,8 +279,8 @@ class ServerSentEventsTest {
                 val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
                 Json.encodeToString(serializer, it)
             }) {
-                sendSerialized(Customer(0, "Jet", "Brains"))
-                sendSerialized(Product(0, listOf(100, 200)))
+                send(Customer(0, "Jet", "Brains"))
+                send(Product(0, listOf(100, 200)))
             }
         }
 
