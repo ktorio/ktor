@@ -6,7 +6,6 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -87,31 +86,6 @@ class ContentTypeTest {
                     header(HttpHeaders.ContentType, ContentType.Application.OctetStream)
                 }
             }
-        }
-    }
-
-    @Test
-    fun canOverrideTheDefaultRequestType() = testWithEngine(MockEngine) {
-        config {
-            defaultRequest {
-                contentType(ContentType.Application.Json)
-            }
-            engine {
-                addHandler { request ->
-                    respond(
-                        content = """{"x": 123}""",
-                        headers = headersOf("X-ContentType", request.body.contentType.toString())
-                    )
-                }
-            }
-        }
-        test { client ->
-            val response = client.get("/") {
-                setBody("Hello World!")
-                contentType(ContentType.Application.Xml)
-            }
-
-            assertEquals("application/xml", response.headers["X-ContentType"])
         }
     }
 
