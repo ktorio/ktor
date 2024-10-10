@@ -143,6 +143,11 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             out.appendMailto(encodedUserAndPassword, host)
             return out
         }
+
+        "about" -> {
+            out.appendAbout(host)
+            return out
+        }
     }
 
     out.append("://")
@@ -171,6 +176,11 @@ private fun Appendable.appendFile(host: String, encodedPath: String) {
         append('/')
     }
     append(encodedPath)
+}
+
+private fun Appendable.appendAbout(host: String) {
+    append(":")
+    append(host)
 }
 
 /**
