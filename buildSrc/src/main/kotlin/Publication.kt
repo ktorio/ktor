@@ -74,11 +74,7 @@ fun Project.configurePublication() {
     val globalM2: String by rootProject.extra
     val nonDefaultProjectStructure: List<String> by rootProject.extra
 
-    val emptyJar = tasks.register<Jar>("emptyJar") {
-        archiveAppendix.set("empty")
-    }
-
-    the<PublishingExtension>().apply {
+    publishing {
         repositories {
             maven {
                 if (publishLocal) {
@@ -93,48 +89,77 @@ fun Project.configurePublication() {
             }
             maven {
                 name = "testLocal"
-                setUrl("$rootProject.buildDir/m2")
+                setUrl("${rootProject.layout.buildDirectory.get().asFile}/m2")
             }
         }
 
-        publications.forEach {
-            val publication = it as? MavenPublication ?: return@forEach
-            publication.pom.withXml {
-                val root = asNode()
-                root.appendNode("name", project.name)
-                root.appendNode(
-                    "description",
-                    "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
-                )
-                root.appendNode("url", "https://github.com/ktorio/ktor")
+        publications.configureEach {
+            if (this !is MavenPublication) return@configureEach
 
-                root.appendNode("licenses").apply {
-                    appendNode("license").apply {
-                        appendNode("name", "The Apache Software License, Version 2.0")
-                        appendNode("url", "https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        appendNode("distribution", "repo")
+            pom {
+                name = project.name
+                description = project.description?.takeIf { it.isNotEmpty() } ?: "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
+                url = "https://github.com/ktorio/ktor"
+                licenses {
+                    license {
+                        name = "The Apache Software License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
-
-                root.appendNode("developers").apply {
-                    appendNode("developer").apply {
-                        appendNode("id", "JetBrains")
-                        appendNode("name", "JetBrains Team")
-                        appendNode("organization", "JetBrains")
-                        appendNode("organizationUrl", "https://www.jetbrains.com")
+                developers {
+                    developer {
+                        id = "JetBrains"
+                        name = "Jetbrains Team"
+                        organization = "JetBrains"
+                        organizationUrl = "https://www.jetbrains.com"
                     }
                 }
-
-                root.appendNode("scm").apply {
-                    appendNode("url", "https://github.com/ktorio/ktor.git")
+                scm {
+                    url = "https://github.com/ktorio/ktor.git"
                 }
             }
         }
+    }
 
-        if (nonDefaultProjectStructure.contains(project.name)) return@apply
+    tasks.named("publish") {
+        dependsOn(tasks.named("publishToMavenLocal"))
+    }
 
-        kotlin.targets.forEach { target ->
-            val publication = publications.findByName(target.name) as? MavenPublication ?: return@forEach
+    configureSigning()
+    configureJavadocArtifact()
+}
+
+private fun Project.configureSigning() {
+    extra["signing.gnupg.keyName"] = (System.getenv("SIGN_KEY_ID") ?: return)
+    extra["signing.gnupg.passphrase"] = (System.getenv("SIGN_KEY_PASSPHRASE") ?: return)
+
+    apply(plugin = "signing")
+
+    signing {
+        useGpgCmd()
+        sign(publishing.publications)
+    }
+
+    val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
+
+    tasks.withType<Sign>().configureEach {
+        doFirst { gpgAgentLock.lock() }
+        doLast { gpgAgentLock.unlock() }
+    }
+}
+
+private fun Project.configureJavadocArtifact() {
+    val nonDefaultProjectStructure: List<String> by rootProject.extra
+    if (project.name in nonDefaultProjectStructure) return
+
+    val emptyJar = tasks.register<Jar>("emptyJar") {
+        archiveAppendix = "empty"
+    }
+
+    publishing {
+        for (target in kotlin.targets) {
+            val publication = publications.findByName<MavenPublication>(target.name) ?: continue
 
             if (target.platformType.name == "jvm") {
                 publication.artifact(emptyJar) {
@@ -155,46 +180,13 @@ fun Project.configurePublication() {
         }
     }
 
-    val publishToMavenLocal = tasks.getByName("publishToMavenLocal")
-    tasks.getByName("publish").dependsOn(publishToMavenLocal)
-
-    val signingKey = System.getenv("SIGN_KEY_ID")
-    val signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
-
-    if (signingKey != null && signingKey != "") {
-        extra["signing.gnupg.keyName"] = signingKey
-        extra["signing.gnupg.passphrase"] = signingKeyPassphrase
-
-        apply(plugin = "signing")
-
-        the<SigningExtension>().apply {
-            useGpgCmd()
-
-            sign(the<PublishingExtension>().publications)
-        }
-
-        val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
-
-        tasks.withType<Sign> {
-            doFirst {
-                gpgAgentLock.lock()
-            }
-
-            doLast {
-                gpgAgentLock.unlock()
-            }
-        }
-    }
-
-    val publishLinuxX64PublicationToMavenRepository = tasks.findByName("publishLinuxX64PublicationToMavenRepository")
-    val signLinuxArm64Publication = tasks.findByName("signLinuxArm64Publication")
-    if (publishLinuxX64PublicationToMavenRepository != null && signLinuxArm64Publication != null) {
-        publishLinuxX64PublicationToMavenRepository.dependsOn(signLinuxArm64Publication)
-    }
-
-    val publishLinuxArm64PublicationToMavenRepository = tasks.findByName("publishLinuxArm64PublicationToMavenRepository")
-    val signLinuxX64Publication = tasks.findByName("signLinuxX64Publication")
-    if (publishLinuxArm64PublicationToMavenRepository != null && signLinuxX64Publication != null) {
-        publishLinuxArm64PublicationToMavenRepository.dependsOn(signLinuxX64Publication)
-    }
+    // We share emptyJar artifact between all publications, so all publish tasks should be run after all sign tasks.
+    // Otherwise Gradle will throw an error like:
+    //   Task ':publishX' uses output of task ':signY' without declaring an explicit or implicit dependency.
+    tasks.withType<AbstractPublishToMaven>().configureEach { mustRunAfter(tasks.withType<Sign>()) }
 }
+
+// Extension accessors
+private val Project.publishing: PublishingExtension get() = extensions.getByName<PublishingExtension>("publishing")
+private fun Project.publishing(block: PublishingExtension.() -> Unit) = extensions.configure("publishing", block)
+private fun Project.signing(configure: SigningExtension.() -> Unit) = extensions.configure("signing", configure)
