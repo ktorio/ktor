@@ -88,7 +88,7 @@ public class UnsupportedMediaTypeException(
     private val contentType: ContentType?
 ) : ContentTransformationException(
     contentType?.let { "Content type $it is not supported" }
-        ?: "Content-Type header is required for multipart processing"
+        ?: "Content-Type header is required"
 ), CopyableThrowable<UnsupportedMediaTypeException> {
 
     override fun createCopy(): UnsupportedMediaTypeException = UnsupportedMediaTypeException(contentType).also {

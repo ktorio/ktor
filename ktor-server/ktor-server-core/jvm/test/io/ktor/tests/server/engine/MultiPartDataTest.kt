@@ -24,11 +24,11 @@ class MultiPartDataTest {
 
     @Test
     fun givenRequest_whenNoContentTypeHeaderPresent_thenUnsupportedMediaTypeException() {
-        // Setup
+        // Given
         every { mockContext.call.request } returns mockRequest
         every { mockRequest.header(HttpHeaders.ContentType) } returns null
 
-        // Act & Assert
+        // When & Then
         assertFailsWith<UnsupportedMediaTypeException> {
             runBlocking { mockContext.multiPartData(ByteReadChannel("sample data")) }
         }
