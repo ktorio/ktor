@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -16,8 +16,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.mockk.mockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.*
+import java.net.InetAddress
 import java.nio.channels.*
 import kotlin.test.*
 import kotlin.test.Ignore
@@ -156,6 +159,16 @@ class CIORequestTest : TestWithKtor() {
             assertNotNull(fail)
             if (fail !is ConnectTimeoutException && fail !is UnresolvedAddressException) {
                 fail("Expected ConnectTimeoutException or UnresolvedAddressException, got $fail", fail)
+            }
+        }
+    }
+
+    @Test
+    fun testInetAddressResolvedOncePerRequest() = testWithEngine(CIO) {
+        test { client ->
+            mockkStatic(InetAddress::getByName) {
+                client.prepareGet { url(path = "/echo", port = serverPort) }.execute()
+                verify(exactly = 1) { InetAddress.getByName(any()) }
             }
         }
     }
