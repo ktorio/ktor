@@ -164,20 +164,6 @@ private fun Project.configureSigning() {
         doFirst { gpgAgentLock.lock() }
         doLast { gpgAgentLock.unlock() }
     }
-
-    val signLinuxArm64Publication = tasks.maybeNamed("signLinuxArm64Publication")
-    if (signLinuxArm64Publication != null) {
-        tasks.maybeNamed("publishLinuxX64PublicationToMavenRepository") {
-            dependsOn(signLinuxArm64Publication)
-        }
-    }
-
-    val signLinuxX64Publication = tasks.maybeNamed("signLinuxX64Publication")
-    if (signLinuxX64Publication != null) {
-        tasks.maybeNamed("publishLinuxArm64PublicationToMavenRepository") {
-            dependsOn(signLinuxX64Publication)
-        }
-    }
 }
 
 private fun Project.configureJavadocArtifact() {
@@ -210,6 +196,11 @@ private fun Project.configureJavadocArtifact() {
             }
         }
     }
+
+    // We share emptyJar artifact between all publications, so all publish tasks should be run after all sign tasks.
+    // Otherwise Gradle will throw an error like:
+    //   Task ':publishX' uses output of task ':signY' without declaring an explicit or implicit dependency.
+    tasks.withType<AbstractPublishToMaven>().configureEach { mustRunAfter(tasks.withType<Sign>()) }
 }
 
 // Extension accessors
