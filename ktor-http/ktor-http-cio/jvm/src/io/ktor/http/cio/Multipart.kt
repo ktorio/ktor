@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
-import kotlinx.io.IOException
 import kotlinx.io.bytestring.*
 import java.io.EOFException
 import java.nio.*
