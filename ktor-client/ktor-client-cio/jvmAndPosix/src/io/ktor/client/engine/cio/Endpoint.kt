@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.cio
 
@@ -13,12 +13,15 @@ import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.engine.cio.Endpoint")
 
 internal class Endpoint(
     private val host: String,
@@ -34,6 +37,8 @@ internal class Endpoint(
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
+
+    private var lastResolvedAddress: InetSocketAddress? = null
 
     private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
@@ -111,7 +116,8 @@ internal class Endpoint(
                     originOutput.close(originCause)
                     connection.socket.close()
                     releaseConnection()
-                } catch (_: Throwable) {
+                } catch (cause: Throwable) {
+                    LOGGER.debug("An error occurred while closing connection", cause)
                 }
             }
 
@@ -204,7 +210,7 @@ internal class Endpoint(
                 val connect: suspend CoroutineScope.() -> Socket = {
                     connectionFactory.connect(address) {
                         this.socketTimeout = socketTimeout
-                    }
+                    }.also { lastResolvedAddress = address }
                 }
 
                 val socket = when (connectTimeout) {
@@ -282,7 +288,7 @@ internal class Endpoint(
     }
 
     private fun releaseConnection() {
-        val address = InetSocketAddress(host, port)
+        val address = lastResolvedAddress ?: return
         connectionFactory.release(address)
         connections.decrementAndGet()
     }

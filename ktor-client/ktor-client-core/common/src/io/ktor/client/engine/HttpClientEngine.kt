@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine
 
@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -91,14 +90,13 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
 
-        val context = callContext + KtorCallContextElement(callContext)
-        return async(context) {
+        return withContext(callContext + KtorCallContextElement(callContext)) {
             if (closed) {
                 throw ClientEngineClosedException()
             }
 
             execute(requestData)
-        }.await()
+        }
     }
 
     private fun checkExtensions(requestData: HttpRequestData) {
