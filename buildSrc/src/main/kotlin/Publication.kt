@@ -82,14 +82,9 @@ fun Project.configurePublication() {
 
     val publishLocal: Boolean by rootProject.extra
     val globalM2: String by rootProject.extra
-    val nonDefaultProjectStructure: List<String> by rootProject.extra
     val relocatedArtifacts: Map<String, String> by rootProject.extra
 
-    val emptyJar = tasks.register<Jar>("emptyJar") {
-        archiveAppendix = "empty"
-    }
-
-    the<PublishingExtension>().apply {
+    publishing {
         repositories {
             maven {
                 if (publishLocal) {
@@ -104,14 +99,14 @@ fun Project.configurePublication() {
             }
             maven {
                 name = "testLocal"
-                setUrl("$rootProject.buildDir/m2")
+                setUrl("${rootProject.layout.buildDirectory.get().asFile}/m2")
             }
         }
 
-        publications.forEach {
-            val publication = it as? MavenPublication ?: return@forEach
+        publications.configureEach {
+            if (this !is MavenPublication) return@configureEach
 
-            publication.pom {
+            pom {
                 name = project.name
                 description = project.description?.takeIf { it.isNotEmpty() } ?: "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
                 url = "https://github.com/ktorio/ktor"
@@ -142,11 +137,60 @@ fun Project.configurePublication() {
                 }
             }
         }
+    }
 
-        if (nonDefaultProjectStructure.contains(project.name)) return@apply
+    tasks.named("publish") {
+        dependsOn(tasks.named("publishToMavenLocal"))
+    }
 
-        kotlin.targets.forEach { target ->
-            val publication = publications.findByName(target.name) as? MavenPublication ?: return@forEach
+    configureSigning()
+    configureJavadocArtifact()
+}
+
+private fun Project.configureSigning() {
+    extra["signing.gnupg.keyName"] = (System.getenv("SIGN_KEY_ID") ?: return)
+    extra["signing.gnupg.passphrase"] = (System.getenv("SIGN_KEY_PASSPHRASE") ?: return)
+
+    apply(plugin = "signing")
+
+    signing {
+        useGpgCmd()
+        sign(publishing.publications)
+    }
+
+    val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
+
+    tasks.withType<Sign>().configureEach {
+        doFirst { gpgAgentLock.lock() }
+        doLast { gpgAgentLock.unlock() }
+    }
+
+    val signLinuxArm64Publication = tasks.maybeNamed("signLinuxArm64Publication")
+    if (signLinuxArm64Publication != null) {
+        tasks.maybeNamed("publishLinuxX64PublicationToMavenRepository") {
+            dependsOn(signLinuxArm64Publication)
+        }
+    }
+
+    val signLinuxX64Publication = tasks.maybeNamed("signLinuxX64Publication")
+    if (signLinuxX64Publication != null) {
+        tasks.maybeNamed("publishLinuxArm64PublicationToMavenRepository") {
+            dependsOn(signLinuxX64Publication)
+        }
+    }
+}
+
+private fun Project.configureJavadocArtifact() {
+    val nonDefaultProjectStructure: List<String> by rootProject.extra
+    if (project.name in nonDefaultProjectStructure) return
+
+    val emptyJar = tasks.register<Jar>("emptyJar") {
+        archiveAppendix = "empty"
+    }
+
+    publishing {
+        for (target in kotlin.targets) {
+            val publication = publications.findByName<MavenPublication>(target.name) ?: continue
 
             if (target.platformType.name == "jvm") {
                 publication.artifact(emptyJar) {
@@ -166,50 +210,9 @@ fun Project.configurePublication() {
             }
         }
     }
-
-    tasks.named("publish") {
-        dependsOn(tasks.named("publishToMavenLocal"))
-    }
-
-    val signingKey = System.getenv("SIGN_KEY_ID")
-    val signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
-
-    if (signingKey != null && signingKey != "") {
-        extra["signing.gnupg.keyName"] = signingKey
-        extra["signing.gnupg.passphrase"] = signingKeyPassphrase
-
-        apply(plugin = "signing")
-
-        the<SigningExtension>().apply {
-            useGpgCmd()
-
-            sign(the<PublishingExtension>().publications)
-        }
-
-        val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
-
-        tasks.withType<Sign> {
-            doFirst {
-                gpgAgentLock.lock()
-            }
-
-            doLast {
-                gpgAgentLock.unlock()
-            }
-        }
-    }
-
-    val signLinuxArm64Publication = tasks.maybeNamed("signLinuxArm64Publication")
-    if (signLinuxArm64Publication != null) {
-        tasks.maybeNamed("publishLinuxX64PublicationToMavenRepository") {
-            dependsOn(signLinuxArm64Publication)
-        }
-    }
-
-    val signLinuxX64Publication = tasks.maybeNamed("signLinuxX64Publication")
-    if (signLinuxX64Publication != null) {
-        tasks.maybeNamed("publishLinuxArm64PublicationToMavenRepository") {
-            dependsOn(signLinuxX64Publication)
-        }
-    }
 }
+
+// Extension accessors
+private val Project.publishing: PublishingExtension get() = extensions.getByName<PublishingExtension>("publishing")
+private fun Project.publishing(block: PublishingExtension.() -> Unit) = extensions.configure("publishing", block)
+private fun Project.signing(configure: SigningExtension.() -> Unit) = extensions.configure("signing", configure)
