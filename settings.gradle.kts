@@ -6,10 +6,37 @@
 pluginManagement {
     includeBuild("gradle-settings-conventions")
 
+    /*
+     * This property group is used to build Ktor against Kotlin compiler snapshot.
+     * How does it work:
+     * When build_snapshot_train is set to true, kotlin version is overridden with kotlin_snapshot_version,
+     * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
+     * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
+     * DO NOT change the name of these properties without adapting kotlinx.train build chain.
+     */
+    val buildSnapshotTrain by settings.extra {
+        settings.extra.has("build_snapshot_train") && settings.extra["build_snapshot_train"] == "true"
+    }
+    val additionalKotlinRepo by settings.extra {
+        if (settings.extra.has("kotlin_repo_url")) settings.extra["kotlin_repo_url"].toString() else null
+    }
+
     repositories {
         mavenCentral()
         google()
         gradlePluginPortal()
+
+        additionalKotlinRepo?.let { repo ->
+            maven(repo)
+            logger.info("A custom Kotlin repository $repo was added")
+        }
+        if (buildSnapshotTrain) {
+            maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                mavenContent { snapshotsOnly() }
+            }
+        }
+
+        mavenLocal()
     }
 }
 
@@ -17,12 +44,34 @@ plugins {
     id("conventions-develocity")
 }
 
+val buildSnapshotTrain: Boolean by settings.extra
+val additionalKotlinRepo: String? by settings.extra
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlinx/dev")
+
+        additionalKotlinRepo?.let { maven(it) }
+        if (buildSnapshotTrain) {
+            maven("https://oss.sonatype.org/content/repositories/snapshots") {
+                mavenContent { snapshotsOnly() }
+            }
+        }
+
         mavenLocal()
+    }
+
+    versionCatalogs {
+        create("libs") {
+            if (buildSnapshotTrain) {
+                version("kotlin", settings.extra["kotlin_snapshot_version"].toString())
+                version("atomicfu", settings.extra["atomicfu_version"].toString())
+                version("coroutines", settings.extra["coroutines_version"].toString())
+                version("serialization", settings.extra["serialization_version"].toString())
+            }
+        }
     }
 }
 

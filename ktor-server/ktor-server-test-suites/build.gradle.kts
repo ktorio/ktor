@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = ""
 
 kotlin.sourceSets {
@@ -20,7 +24,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-request-validation"))
 
-            implementation(kotlin("test-junit5"))
+            implementation(libs.kotlin.test.junit5)
 
             implementation(libs.kotlinx.coroutines.debug)
         }
