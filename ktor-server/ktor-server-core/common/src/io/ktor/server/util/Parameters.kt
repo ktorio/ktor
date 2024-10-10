@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.util
@@ -41,12 +41,11 @@ public inline fun Parameters.getOrFail(name: String): String {
 }
 
 /**
- * Get parameters value associated with this [name] converting to type [R] using [DefaultConversionService]
+ * Get parameter value associated with this [name] converting to type [R] using [DefaultConversionService]
  * or fail with [MissingRequestParameterException]
  * @throws MissingRequestParameterException if no values associated with this [name]
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
-@OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
     return getOrFailImpl(name, typeInfo<R>())
 }

@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -1620,6 +1620,7 @@ final var io.ktor.http/encodedPath // io.ktor.http/encodedPath|@io.ktor.http.URL
     final fun (io.ktor.http/URLBuilder).<get-encodedPath>(): kotlin/String // io.ktor.http/encodedPath.<get-encodedPath>|<get-encodedPath>@io.ktor.http.URLBuilder(){}[0]
     final fun (io.ktor.http/URLBuilder).<set-encodedPath>(kotlin/String) // io.ktor.http/encodedPath.<set-encodedPath>|<set-encodedPath>@io.ktor.http.URLBuilder(kotlin.String){}[0]
 
+final fun (io.ktor.http.content/MultiPartData).io.ktor.http.content/asFlow(): kotlinx.coroutines.flow/Flow<io.ktor.http.content/PartData> // io.ktor.http.content/asFlow|asFlow@io.ktor.http.content.MultiPartData(){}[0]
 final fun (io.ktor.http.content/OutgoingContent).io.ktor.http.content/compressed(io.ktor.util/ContentEncoder, kotlin.coroutines/CoroutineContext = ...): io.ktor.http.content/OutgoingContent? // io.ktor.http.content/compressed|compressed@io.ktor.http.content.OutgoingContent(io.ktor.util.ContentEncoder;kotlin.coroutines.CoroutineContext){}[0]
 final fun (io.ktor.http.content/OutgoingContent).io.ktor.http.content/isEmpty(): kotlin/Boolean // io.ktor.http.content/isEmpty|isEmpty@io.ktor.http.content.OutgoingContent(){}[0]
 final fun (io.ktor.http/ContentType).io.ktor.http/fileExtensions(): kotlin.collections/List<kotlin/String> // io.ktor.http/fileExtensions|fileExtensions@io.ktor.http.ContentType(){}[0]

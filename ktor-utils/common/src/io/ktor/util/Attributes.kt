@@ -1,9 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util
 
+import io.ktor.util.reflect.*
 import kotlin.jvm.*
 import kotlin.reflect.*
 
@@ -14,7 +15,7 @@ import kotlin.reflect.*
  */
 @JvmSynthetic
 public inline fun <reified T : Any> AttributeKey(name: String): AttributeKey<T> =
-    AttributeKey(name, typeOf<T>())
+    AttributeKey(name, typeInfo<T>())
 
 /**
  * Specifies a key for an attribute in [Attributes]
@@ -24,12 +25,10 @@ public inline fun <reified T : Any> AttributeKey(name: String): AttributeKey<T> 
  */
 public data class AttributeKey<T : Any> @JvmOverloads constructor(
     public val name: String,
-    private val type: KType = typeOf<Any>(),
+    private val type: TypeInfo = typeInfo<Any>(),
 ) {
     init {
-        if (name.isEmpty()) {
-            throw IllegalStateException("Name can't be blank")
-        }
+        require(name.isNotBlank()) { "Name can't be blank" }
     }
 
     override fun toString(): String = "AttributeKey: $name"

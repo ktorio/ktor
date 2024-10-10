@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("unused")
 
@@ -22,8 +22,7 @@ import kotlin.jvm.*
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
-    // KT-42913
-    respond(message, runCatching { typeInfo<T>() }.getOrNull())
+    respond(message, typeInfo<T>())
 }
 
 /**
@@ -31,8 +30,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
-    // KT-42913
-    respond(message, runCatching { typeInfo<T>() }.getOrNull())
+    respond(message, typeInfo<T>())
 }
 
 /**

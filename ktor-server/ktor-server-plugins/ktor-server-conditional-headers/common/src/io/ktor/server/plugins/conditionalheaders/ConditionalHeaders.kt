@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.conditionalheaders
@@ -10,8 +10,8 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.reflect.*
 
 /**
  * A configuration for the [ConditionalHeaders] plugin.
@@ -39,7 +39,7 @@ public class ConditionalHeadersConfig {
 }
 
 internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, OutgoingContent) -> List<Version>>> =
-    AttributeKey("ConditionalHeadersKey", typeOf<List<*>>())
+    AttributeKey("ConditionalHeadersKey", typeInfo<List<*>>())
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
