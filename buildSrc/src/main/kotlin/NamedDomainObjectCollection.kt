@@ -15,3 +15,5 @@ internal fun <T> NamedDomainObjectCollection<T>.maybeNamed(name: String): NamedD
 internal fun <T> NamedDomainObjectCollection<T>.maybeNamed(name: String, configure: T.() -> Unit) {
     if (name in names) named(name).configure(configure)
 }
+
+internal inline fun <reified T> NamedDomainObjectCollection<*>.findByName(name: String): T? = findByName(name) as? T
