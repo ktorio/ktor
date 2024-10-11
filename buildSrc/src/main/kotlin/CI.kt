@@ -21,6 +21,8 @@ fun Project.configureTestTasksOnCi() {
         ignoreFailures = true
         if (this is KotlinTest) ignoreRunFailures = true
     }
+    // KotlinTestReport overwrites ignoreFailure values and fails build on test failure if this flag is disabled
+    extra["kotlin.tests.individualTaskReports"] = true
 
     tasks.withType<KotlinJvmTest>().configureEach {
         testRetry {
