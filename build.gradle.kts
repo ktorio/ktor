@@ -64,7 +64,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
+       // classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${rootProject.properties["atomicfu_version"]}")
     }
 }
 
