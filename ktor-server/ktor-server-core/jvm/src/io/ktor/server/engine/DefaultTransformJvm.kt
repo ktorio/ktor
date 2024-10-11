@@ -47,8 +47,11 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
             contentLength,
             call.formFieldLimit
         )
-    } catch (_: IOException) {
-        throw UnsupportedMediaTypeException(ContentType.parse(contentType))
+    } catch (e: IOException) {
+        if (e.message?.contains("Content-Type") == true) {
+            throw UnsupportedMediaTypeException(ContentType.parse(contentType))
+        }
+        throw e
     }
 }
 
