@@ -18,7 +18,7 @@ class UDPSocketTest {
     private val done = atomic(0)
 
     @Test
-    fun testBroadcastFails(): Unit = testSockets { selector ->
+    fun testBroadcastFails() = testSockets { selector ->
         if (isJvmWindows()) {
             return@testSockets
         }
@@ -45,11 +45,11 @@ class UDPSocketTest {
                     denied = true
                 }
                 // PosixException (WSAEACCES)
-                cause.message?.contains("10013", ignoreCase = true) == true -> {
+                cause.message?.contains("10013", ignoreCase = true) == true             -> {
                     denied = true
                 }
 
-                else -> {
+                else                                                                    -> {
                     throw cause
                 }
             }
@@ -103,7 +103,7 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testClose(): Unit = testSockets { selector ->
+    fun testClose() = testSockets { selector ->
         val socket = aSocket(selector)
             .udp()
             .bind()
@@ -194,7 +194,7 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testSendReceive(): Unit = testSockets { selector ->
+    fun testSendReceive() = testSockets { selector ->
         aSocket(selector)
             .udp()
             .bind(InetSocketAddress("127.0.0.1", 8000)) {
@@ -224,7 +224,7 @@ class UDPSocketTest {
     }
 
     @Test
-    fun testSendReceiveLarge(): Unit = testSockets { selector ->
+    fun testSendReceiveLarge() = testSockets { selector ->
         val datagramSize = 10000 // must be larger than Segment.SIZE (8192) for this test
         val largeData = Random.nextBytes(datagramSize)
 

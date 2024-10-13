@@ -62,48 +62,51 @@ class TCPSocketTest {
         if (!supportsUnixDomainSockets()) return@testSockets
 
         val socketPath = createTempFilePath("ktor-echo-test")
-
-        val tcp = aSocket(selector).tcp()
-        val server = tcp.bind(UnixSocketAddress(socketPath))
-
-        val serverConnectionPromise = async {
-            server.accept()
-        }
-
-        val clientConnection = tcp.connect(UnixSocketAddress(socketPath))
-        val serverConnection = serverConnectionPromise.await()
-
-        val clientOutput = clientConnection.openWriteChannel()
         try {
-            clientOutput.writeStringUtf8("Hello, world\n")
-            clientOutput.flush()
+
+            val tcp = aSocket(selector).tcp()
+            val server = tcp.bind(UnixSocketAddress(socketPath))
+
+            val serverConnectionPromise = async {
+                server.accept()
+            }
+
+            val clientConnection = tcp.connect(UnixSocketAddress(socketPath))
+            val serverConnection = serverConnectionPromise.await()
+
+            val clientOutput = clientConnection.openWriteChannel()
+            try {
+                clientOutput.writeStringUtf8("Hello, world\n")
+                clientOutput.flush()
+            } finally {
+                clientOutput.flushAndClose()
+            }
+
+            val serverInput = serverConnection.openReadChannel()
+            val message = serverInput.readUTF8Line()
+            assertEquals("Hello, world", message)
+
+            val serverOutput = serverConnection.openWriteChannel()
+            try {
+                serverOutput.writeStringUtf8("Hello From Server\n")
+                serverOutput.flush()
+
+                val clientInput = clientConnection.openReadChannel()
+                val echo = clientInput.readUTF8Line()
+
+                assertEquals("Hello From Server", echo)
+            } finally {
+                serverOutput.flushAndClose()
+            }
+
+            serverConnection.close()
+            clientConnection.close()
+
+            server.close()
+
         } finally {
-            clientOutput.flushAndClose()
+            removeFile(socketPath)
         }
-
-        val serverInput = serverConnection.openReadChannel()
-        val message = serverInput.readUTF8Line()
-        assertEquals("Hello, world", message)
-
-        val serverOutput = serverConnection.openWriteChannel()
-        try {
-            serverOutput.writeStringUtf8("Hello From Server\n")
-            serverOutput.flush()
-
-            val clientInput = clientConnection.openReadChannel()
-            val echo = clientInput.readUTF8Line()
-
-            assertEquals("Hello From Server", echo)
-        } finally {
-            serverOutput.flushAndClose()
-        }
-
-        serverConnection.close()
-        clientConnection.close()
-
-        server.close()
-
-        removeFile(socketPath)
     }
 
     @Test
