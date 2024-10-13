@@ -117,6 +117,11 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
             group("windows")
             group("macos")
         }
+
+        group("nonJvm") {
+            group("posix")
+            group("jsAndWasmShared")
+        }
     }
 }
 

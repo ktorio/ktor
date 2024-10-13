@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.sockets
 
@@ -14,7 +14,7 @@ import platform.posix.*
 private const val DEFAULT_BACKLOG_SIZE = 50
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual suspend fun connect(
+internal actual suspend fun tcpConnect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     socketOptions: SocketOptions.TCPClientSocketOptions
@@ -79,7 +79,7 @@ internal actual suspend fun connect(
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun bind(
+internal actual suspend fun tcpBind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
     socketOptions: SocketOptions.AcceptorOptions

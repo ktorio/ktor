@@ -8,9 +8,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-public actual fun SelectorManager(
-    dispatcher: CoroutineContext
-): SelectorManager = WorkerSelectorManager()
+public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager = NoopSelectorManager
 
 public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
@@ -44,5 +42,22 @@ public actual enum class SelectInterest {
     public actual companion object {
         public actual val AllInterests: Array<SelectInterest>
             get() = entries.toTypedArray()
+    }
+}
+
+// TODO: how coroutine context should be used?
+private object NoopSelectorManager : SelectorManager {
+    override val coroutineContext: CoroutineContext get() = EmptyCoroutineContext
+
+    override fun notifyClosed(selectable: Selectable) {
+        error("not supported")
+    }
+
+    override suspend fun select(selectable: Selectable, interest: SelectInterest) {
+        error("not supported")
+    }
+
+    override fun close() {
+        // no-op so it can be called in common code
     }
 }
