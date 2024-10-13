@@ -112,11 +112,6 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
             group("posix")
         }
 
-        group("jvmAndNix") {
-            withJvm()
-            group("nix")
-        }
-
         group("desktop") {
             group("linux")
             group("windows")
