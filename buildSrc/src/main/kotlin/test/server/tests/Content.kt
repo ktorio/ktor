@@ -7,6 +7,7 @@ package test.server.tests
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.file
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -88,13 +89,9 @@ internal fun Application.contentTestServer() {
                 call.respondText(response.toString())
             }
             put("/file-upload") {
-                val parts = call.receiveMultipart().readAllParts()
                 if (call.request.headers[HttpHeaders.ContentLength] == null) error("Content length is missing")
 
-                if (parts.size != 1) call.fail("Invalid form size: $parts")
-
-                val file = parts.first() as? PartData.FileItem ?: call.fail("Invalid item")
-
+                val file = call.receiveMultipart().readPart() as? PartData.FileItem ?: call.fail("Invalid item")
                 if (4 != file.headers[HttpHeaders.ContentLength]?.toInt()) call.fail("Size is missing")
 
                 val value = file.provider().readInt()
