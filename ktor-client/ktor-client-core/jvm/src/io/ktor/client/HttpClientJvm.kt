@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client
@@ -34,14 +34,18 @@ public interface HttpClientEngineContainer {
     public val factory: HttpClientEngineFactory<*>
 }
 
-/**
- * Workaround for dummy android [ClassLoader].
- */
-private val engines: List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
-    ServiceLoader.load(it, it.classLoader).toList()
-}
+// ServiceLoader should use specific call convention to be optimized by R8 on Android:
+// `ServiceLoader.load(X.class, X.class.getClassLoader()).iterator()`
+// source:
+// https://r8.googlesource.com/r8/+/refs/heads/main/src/main/java/com/android/tools/r8/ir/optimize/ServiceLoaderRewriter.java
+private val engines = Iterable {
+    ServiceLoader.load(
+        HttpClientEngineContainer::class.java,
+        HttpClientEngineContainer::class.java.classLoader
+    ).iterator()
+}.toList()
 
 private val FACTORY = engines.firstOrNull()?.factory ?: error(
-    "Failed to find HTTP client engine implementation in the classpath: consider adding client engine dependency. " +
+    "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
         "See https://ktor.io/docs/http-client-engines.html"
 )

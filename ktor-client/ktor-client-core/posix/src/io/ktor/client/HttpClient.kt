@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client
@@ -13,10 +13,13 @@ import io.ktor.utils.io.*
  * The [HttpClientEngine] is selected from the dependencies.
  * https://ktor.io/docs/http-client-engines.html
  */
-@OptIn(InternalAPI::class)
 @KtorDsl
 public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
-): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) } ?: error(
-    "Failed to find HttpClientEngineContainer. Consider adding [HttpClientEngine] implementation in dependencies."
+): HttpClient = HttpClient(FACTORY, block)
+
+@OptIn(InternalAPI::class)
+private val FACTORY = engines.firstOrNull() ?: error(
+    "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
+        "See https://ktor.io/docs/http-client-engines.html"
 )
