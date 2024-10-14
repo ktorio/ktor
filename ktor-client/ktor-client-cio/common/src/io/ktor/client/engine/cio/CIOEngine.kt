@@ -61,7 +61,6 @@ internal class CIOEngine(
         val requestJob = requestField[Job]!!
         val selector = selectorManager
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(parentContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestJob.join()

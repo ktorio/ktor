@@ -26,10 +26,6 @@ import io.ktor.client.engine.*
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
 public data object CIO : HttpClientEngineFactory<CIOEngineConfig> {
-    init {
-        addToLoader()
-    }
-
     override fun create(block: CIOEngineConfig.() -> Unit): HttpClientEngine =
         CIOEngine(CIOEngineConfig().apply(block))
 }

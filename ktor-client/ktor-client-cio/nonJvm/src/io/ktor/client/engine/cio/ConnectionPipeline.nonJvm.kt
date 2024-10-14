@@ -21,9 +21,9 @@ internal actual class ConnectionPipeline actual constructor(
     actual override val coroutineContext: CoroutineContext = parentContext
 
     init {
-        error("Pipelining is not supported in native CIO")
+        error("Pipelining is not supported in native/js/wasm CIO")
     }
 
     actual val pipelineContext: Job
-        get() = error("Pipelining is not supported in native CIO")
+        get() = error("Pipelining is not supported in native/js/wasm CIO")
 }
