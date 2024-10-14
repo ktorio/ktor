@@ -73,7 +73,7 @@ class DigestProviderTest {
         val authHeader = addRequestHeaders(authAllFields)
 
         authHeader.assertParameter("qop", expectedValue = "qop")
-        authHeader.assertParameter("opaque", expectedValue = "opaque")
+        authHeader.assertParameter("opaque", expectedValue = "opaque".quote())
         authHeader.checkStandardParameters()
     }
 
@@ -141,9 +141,9 @@ class DigestProviderTest {
     }
 
     private fun String.checkStandardParameters() {
-        assertParameter("realm", expectedValue = "realm")
-        assertParameter("username", expectedValue = "username")
-        assertParameter("nonce", expectedValue = "nonce")
+        assertParameter("realm", expectedValue = "realm".quote())
+        assertParameter("username", expectedValue = "username".quote())
+        assertParameter("nonce", expectedValue = "nonce".quote())
         assertParameter("nc", expectedValue = "00000001")
         assertParameter("uri", expectedValue = "/$path?$paramName=$paramValue".quote())
     }
