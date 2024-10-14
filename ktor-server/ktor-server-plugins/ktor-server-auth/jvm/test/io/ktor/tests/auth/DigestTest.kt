@@ -40,11 +40,13 @@ class DigestTest {
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         assertEquals(
-            """Digest
-             realm="testrealm@host.com",
-             nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-             opaque="5ccc069c403ebaf9f0171e9517f40e41",
-             algorithm="MD5" """.normalize(),
+            """
+                Digest
+                realm="testrealm@host.com",
+                nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                opaque="5ccc069c403ebaf9f0171e9517f40e41",
+                algorithm="MD5"
+            """.normalize(),
             response.headers[HttpHeaders.WWWAuthenticate]
         )
     }
@@ -70,15 +72,18 @@ class DigestTest {
         client.request("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="Mufasa",
-             realm="testrealm@host.com",
-             nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-             uri="/dir/index.html",
-             qop=auth,
-             nc=00000001,
-             cnonce="0a4f113b",
-             response="6629fae49393a05397450978507c4ef1",
-             opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="Mufasa",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="6629fae49393a05397450978507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
 
@@ -96,15 +101,18 @@ class DigestTest {
 
     @Test
     fun testVerify() = runTest {
-        val authHeaderContent = """Digest username="Mufasa",
-                     realm="testrealm@host.com",
-                     nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                     uri="/dir/index.html",
-                     qop=auth,
-                     nc=00000001,
-                     cnonce="0a4f113b",
-                     response="6629fae49393a05397450978507c4ef1",
-                     opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+        val authHeaderContent = """
+            Digest
+            username="Mufasa",
+            realm="testrealm@host.com",
+            nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+            uri="/dir/index.html",
+            qop=auth,
+            nc=00000001,
+            cnonce="0a4f113b",
+            response="6629fae49393a05397450978507c4ef1",
+            opaque="5ccc069c403ebaf9f0171e9517f40e41"
+        """.normalize()
 
         val authHeader = parseAuthorizationHeader(authHeaderContent) as HttpAuthHeader.Parameterized
         val digest = authHeader.toDigestCredential()
@@ -144,15 +152,18 @@ class DigestTest {
         val responseWrongAuth = client.get("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="Mufasa",
-                 realm="testrealm@host.com",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="Mufasa",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="6629fae49393a05397450978507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
         assertEquals(HttpStatusCode.Unauthorized, responseWrongAuth.status)
@@ -160,15 +171,18 @@ class DigestTest {
         val responseCorrectAuth = client.get("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="admin",
-                 realm="testrealm@host.com",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="b9b12c2f6abe2d166e5743ed1e687ed6",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="admin",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="b9b12c2f6abe2d166e5743ed1e687ed6",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
         assertEquals(HttpStatusCode.OK, responseCorrectAuth.status)
@@ -203,15 +217,18 @@ class DigestTest {
         val response = client.request("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="Mufasa",
-                 realm="testrealm@host.com",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="Mufasa",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="6629fae49393a05397450978507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
 
@@ -226,15 +243,18 @@ class DigestTest {
         val response = client.request("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="Mufasa",
-                 realm="testrealm@host.com1",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="Mufasa",
+                    realm="testrealm@host.com1",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="6629fae49393a05397450978507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
 
@@ -257,15 +277,18 @@ class DigestTest {
         val response = client.request("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="Mufasa",
-                 realm="testrealm@host.com",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="bad response goes here  507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="Mufasa",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="bad response goes here  507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
 
@@ -279,15 +302,18 @@ class DigestTest {
         val response = client.request("/") {
             header(
                 HttpHeaders.Authorization,
-                """Digest username="missing",
-                 realm="testrealm@host.com",
-                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                 uri="/dir/index.html",
-                 qop=auth,
-                 nc=00000001,
-                 cnonce="0a4f113b",
-                 response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                """
+                    Digest
+                    username="missing",
+                    realm="testrealm@host.com",
+                    nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                    uri="/dir/index.html",
+                    qop=auth,
+                    nc=00000001,
+                    cnonce="0a4f113b",
+                    response="6629fae49393a05397450978507c4ef1",
+                    opaque="5ccc069c403ebaf9f0171e9517f40e41"
+                """.normalize()
             )
         }
 
@@ -379,5 +405,5 @@ class DigestTest {
         return digester.digest()
     }
 
-    private fun String.normalize() = lineSequence().map { it.trim() }.joinToString(" ")
+    private fun String.normalize() = trimIndent().replace("\n", " ")
 }
