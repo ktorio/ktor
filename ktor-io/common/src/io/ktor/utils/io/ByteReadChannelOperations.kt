@@ -71,6 +71,7 @@ public suspend fun ByteReadChannel.readLong(): Long {
 
 private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
     while (availableForRead < numberOfBytes && awaitContent(numberOfBytes)) {
+        yield()
     }
 
     if (availableForRead < numberOfBytes) throw EOFException("Not enough data available")
