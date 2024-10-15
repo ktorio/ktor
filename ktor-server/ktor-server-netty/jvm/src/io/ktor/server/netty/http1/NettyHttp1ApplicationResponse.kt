@@ -9,6 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.server.response.*
+import io.ktor.util.PlatformUtils
+import io.ktor.util.threadId
 import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
@@ -63,6 +65,7 @@ internal class NettyHttp1ApplicationResponse(
     }
 
     override fun responseMessage(chunked: Boolean, data: ByteArray): Any {
+        println("ResponseMessage: ${PlatformUtils.threadId}")
         val responseMessage = DefaultFullHttpResponse(
             protocol,
             responseStatus,

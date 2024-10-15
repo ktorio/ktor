@@ -176,7 +176,9 @@ public class NettyApplicationEngine(
             }
 
             if (config().channelFactory() == null) {
-                channel(getChannelClass().java)
+                val channelClass = getChannelClass().java
+                println("Using $channelClass channel")
+                channel(channelClass)
             }
 
             childHandler(

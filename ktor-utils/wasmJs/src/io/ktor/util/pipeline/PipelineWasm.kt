@@ -8,11 +8,12 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
 internal actual fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUninterceptedOrReturn(
-    interceptor: PipelineInterceptor<TSubject, TContext>,
+    interceptor: PipelineInterceptorCoroutine<TSubject, TContext>,
     context: PipelineContext<TSubject, TContext>,
     subject: TSubject,
     continuation: Continuation<Unit>
 ): Any? {
+    val currentInterceptor = interceptor as PipelineInterceptor<TSubject, TContext>
     val coroutine: suspend () -> Unit = { interceptor.invoke(context, subject) }
     return coroutine.startCoroutineUninterceptedOrReturn(continuation)
 }

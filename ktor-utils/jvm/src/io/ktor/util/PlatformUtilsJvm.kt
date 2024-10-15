@@ -14,3 +14,5 @@ internal actual val PlatformUtils.isDevelopmentMode: Boolean
 
 internal actual val PlatformUtils.isNewMemoryModel: Boolean
     get() = true
+
+public actual val PlatformUtils.threadId: String get() = Thread.currentThread().name

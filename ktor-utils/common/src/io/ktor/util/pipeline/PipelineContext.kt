@@ -55,5 +55,8 @@ internal fun <TSubject : Any, TContext : Any> pipelineContextFor(
 ): PipelineContext<TSubject, TContext> = if (DISABLE_SFG || debugMode) {
     DebugPipelineContext(context, interceptors, subject, coroutineContext)
 } else {
-    SuspendFunctionGun(subject, context, interceptors)
+    @Suppress("UNCHECKED_CAST")
+    SuspendFunctionGun(subject, context,
+        interceptors as List<(PipelineContext<TSubject, TContext>, TSubject, Continuation<Unit>) -> Any?>
+    )
 }

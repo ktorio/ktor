@@ -216,11 +216,11 @@ public class RoutingCall internal constructor(
         )
     }
 
-    public override val attributes: Attributes = pipelineCall.attributes
-    public override val application: Application = pipelineCall.application
-    public override val parameters: Parameters = pipelineCall.parameters
-    public val pathParameters: Parameters = pipelineCall.pathParameters
-    public val queryParameters: Parameters = pipelineCall.engineCall.parameters
+    public override val attributes: Attributes get() = pipelineCall.attributes
+    public override val application: Application get() = pipelineCall.application
+    public override val parameters: Parameters get() = pipelineCall.parameters
+    public val pathParameters: Parameters get() = pipelineCall.pathParameters
+    public val queryParameters: Parameters get() = pipelineCall.engineCall.parameters
     public val route: RoutingNode = pipelineCall.route
 
     override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = pipelineCall.receiveNullable(typeInfo)

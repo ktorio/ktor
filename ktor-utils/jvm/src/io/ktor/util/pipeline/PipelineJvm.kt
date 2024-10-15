@@ -8,8 +8,8 @@ import kotlin.coroutines.*
 
 @Suppress("UNCHECKED_CAST")
 internal actual fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUninterceptedOrReturn(
-    interceptor: PipelineInterceptor<TSubject, TContext>,
+    interceptor: PipelineInterceptorCoroutine<TSubject, TContext>,
     context: PipelineContext<TSubject, TContext>,
     subject: TSubject,
     continuation: Continuation<Unit>
-): Any? = (interceptor as PipelineInterceptorCoroutine<TSubject, TContext>)(context, subject, continuation)
+): Any? = interceptor(context, subject, continuation)

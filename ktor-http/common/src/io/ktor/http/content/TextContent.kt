@@ -7,6 +7,7 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.Buffer
 
 /**
  * Represents a text content that could be sent
@@ -22,7 +23,10 @@ public class TextContent(
     override val contentLength: Long
         get() = bytes.size.toLong()
 
-    override fun bytes(): ByteArray = bytes
+    override fun bytes(): ByteArray {
+        Buffer().writeText(text)
+        return bytes
+    }
 
     override fun toString(): String = "TextContent[$contentType] \"${text.take(30)}\""
 }

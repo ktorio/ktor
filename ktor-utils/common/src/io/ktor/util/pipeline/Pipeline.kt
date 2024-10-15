@@ -18,7 +18,7 @@ internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =
 // If it was public, then this function would be just:
 // `interceptor.startCoroutineUninterceptedOrReturn(context, subject, continuation)`
 internal expect fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUninterceptedOrReturn(
-    interceptor: PipelineInterceptor<TSubject, TContext>,
+    interceptor: PipelineInterceptorCoroutine<TSubject, TContext>,
     context: PipelineContext<TSubject, TContext>,
     subject: TSubject,
     continuation: Continuation<Unit>

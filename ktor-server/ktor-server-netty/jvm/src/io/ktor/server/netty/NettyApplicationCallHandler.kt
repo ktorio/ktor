@@ -9,7 +9,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
+import io.ktor.util.PlatformUtils
 import io.ktor.util.pipeline.*
+import io.ktor.util.threadId
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -39,6 +41,7 @@ internal class NettyApplicationCallHandler(
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 
         currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
+            println("Netty Call Handler: ${PlatformUtils.threadId}")
             when {
                 call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
                     respondError400BadRequest(call)

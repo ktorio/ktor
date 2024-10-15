@@ -2,7 +2,13 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.gradle.kotlin.dsl.module
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+import kotlin
+
+plugins {
+    kotlin("plugin.serialization")
+}
 
 description = ""
 
@@ -41,12 +47,19 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-test-base"))
             api(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-core"))
+            api(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
 
             api(libs.netty.tcnative)
             api(libs.netty.tcnative.boringssl.static)
             api(libs.mockk)
             api(libs.logback.classic)
 
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            api(libs.jackson.databind)
+            api(libs.jackson.module.kotlin)
+            api(libs.netty.transport.native.epoll)
+            api(libs.netty.tcnative)
+            api(libs.netty.tcnative.boringssl.static)
             api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }

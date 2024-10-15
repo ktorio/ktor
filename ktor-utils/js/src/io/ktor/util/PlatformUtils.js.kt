@@ -13,3 +13,5 @@ public actual val PlatformUtils.platform: Platform by lazy {
         }
     )
 }
+
+public actual val PlatformUtils.threadId: String get() = "js-thread"

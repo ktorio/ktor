@@ -200,4 +200,35 @@ public class IllegalHeaderValueException(public val headerValue: String, public 
             " (code ${(headerValue[position].code and 0xff)})"
     )
 
-private fun isDelimiter(ch: Char): Boolean = ch in "\"(),/:;<=>?@[\\]{}"
+private object DelimiterHelper {
+    val lowerMask: Long
+    val upperMask: Long
+
+    init {
+        val delimiters = "\"(),/:;<=>?@[\\]{}"
+        var lower = 0L
+        var upper = 0L
+
+        for (ch in delimiters) {
+            if (ch.code < 64) {
+                lower = lower or (1L shl ch.code)
+            } else {
+                upper = upper or (1L shl (ch.code - 64))
+            }
+        }
+
+        lowerMask = lower
+        upperMask = upper
+    }
+}
+
+internal fun isDelimiter(ch: Char): Boolean {
+    val code = ch.code
+    return if (code < 64) {
+        (DelimiterHelper.lowerMask and (1L shl code)) != 0L
+    } else if (code < 128) {
+        (DelimiterHelper.upperMask and (1L shl (code - 64))) != 0L
+    } else {
+        false
+    }
+}

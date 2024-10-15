@@ -11,7 +11,7 @@ import kotlin.coroutines.intrinsics.*
 internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     context: TContext,
-    private val blocks: List<PipelineInterceptor<TSubject, TContext>>
+    private val blocks: List<PipelineInterceptorCoroutine<TSubject, TContext>>
 ) : PipelineContext<TSubject, TContext>(context) {
 
     override val coroutineContext: CoroutineContext get() = continuation.context

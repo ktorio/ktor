@@ -14,3 +14,5 @@ internal actual val PlatformUtils.isNewMemoryModel: Boolean
 
 public actual val PlatformUtils.platform: Platform
     get() = Platform.Native
+
+public actual val PlatformUtils.threadId: String get() = "native-thread"

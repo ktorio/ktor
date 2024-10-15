@@ -24,12 +24,15 @@ public object PlatformUtils {
     public val IS_DEVELOPMENT_MODE: Boolean = isDevelopmentMode
 
     public val IS_NEW_MM_ENABLED: Boolean = isNewMemoryModel
+
 }
 
 internal expect val PlatformUtils.isDevelopmentMode: Boolean
 internal expect val PlatformUtils.isNewMemoryModel: Boolean
 
 public expect val PlatformUtils.platform: Platform
+
+public expect val PlatformUtils.threadId: String
 
 public sealed class Platform {
     public data object Jvm : Platform()
