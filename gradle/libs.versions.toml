@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 kotlinx-html = "0.11.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-io = "0.5.4"
@@ -19,7 +19,7 @@ jetty-alpn-boot = "8.1.13.v20181017"
 jetty-alpn-openjdk8 = "9.4.56.v20240826"
 
 tomcat = "9.0.96"
-tomcat-jakarta = "10.1.30"
+tomcat-jakarta = "10.1.31"
 
 apache = "4.1.5"
 apache5 = "5.3.1"
@@ -33,7 +33,7 @@ jackson = "2.18.0"
 
 junit = "5.11.2"
 slf4j = "2.0.16"
-logback = "1.5.8"
+logback = "1.5.10"
 
 dropwizard = "4.2.28"
 micrometer = "1.13.5"
