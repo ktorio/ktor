@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -179,7 +179,7 @@ public class DigestAuthProvider(
                 this["response"] = hex(token)
                 this["uri"] = url.fullPath
                 actualQop?.let { this["qop"] = it }
-                this["nc"] = nonceCount.toString()
+                this["nc"] = nonceCount.toString(radix = 16).padStart(length = 8, padChar = '0')
                 @Suppress("DEPRECATION_ERROR")
                 this["algorithm"] = algorithmName
             }
