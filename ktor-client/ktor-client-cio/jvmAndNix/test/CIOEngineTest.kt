@@ -65,6 +65,7 @@ class CIOEngineTest {
     }
 
     @Test
+    @Ignore // because of KT-72293
     fun testExpectHeader(): Unit = runBlocking {
         val body = "Hello World"
 
@@ -144,6 +145,7 @@ class CIOEngineTest {
     }
 
     @Test
+    @Ignore // because of KT-72293
     fun testRepeatRequestAfterExpectationFailed(): Unit = runBlocking {
         val body = "Hello World"
 
