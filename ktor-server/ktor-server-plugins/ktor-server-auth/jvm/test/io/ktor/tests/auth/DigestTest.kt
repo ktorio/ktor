@@ -28,7 +28,8 @@ class DigestTest {
                         HttpAuthHeader.digestAuthChallenge(
                             realm = "testrealm@host.com",
                             nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                            opaque = "5ccc069c403ebaf9f0171e9517f40e41"
+                            opaque = "5ccc069c403ebaf9f0171e9517f40e41",
+                            stale = false,
                         )
                     )
                 )
@@ -45,7 +46,8 @@ class DigestTest {
                 realm="testrealm@host.com",
                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                 opaque="5ccc069c403ebaf9f0171e9517f40e41",
-                algorithm="MD5"
+                stale=false,
+                algorithm=MD5
             """.normalize(),
             response.headers[HttpHeaders.WWWAuthenticate]
         )
