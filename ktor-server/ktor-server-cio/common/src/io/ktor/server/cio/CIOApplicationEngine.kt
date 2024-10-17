@@ -76,7 +76,7 @@ public class CIOApplicationEngine(
         return this
     }
 
-    override fun start(wait: Boolean): ApplicationEngine = runBlocking { startSuspend(wait) }
+    override fun start(wait: Boolean): ApplicationEngine = runBlockingBridge { startSuspend(wait) }
 
     override suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
         stopRequest.complete()
@@ -96,7 +96,7 @@ public class CIOApplicationEngine(
         }
     }
 
-    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long): Unit = runBlocking {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long): Unit = runBlockingBridge {
         stopSuspend(gracePeriodMillis, timeoutMillis)
     }
 

@@ -5,7 +5,7 @@
 description = ""
 
 kotlin.sourceSets {
-    jvmAndPosixMain {
+    commonMain {
         dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-http:ktor-http-cio"))
@@ -13,9 +13,8 @@ kotlin.sourceSets {
             api(project(":ktor-network"))
         }
     }
-    jvmAndPosixTest {
+    commonTest {
         dependencies {
-            api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-test-base"))

@@ -7,3 +7,5 @@ package io.ktor.server.cio.internal
 import kotlinx.coroutines.*
 
 internal expect val Dispatchers.IOBridge: CoroutineDispatcher
+
+internal expect fun <T> runBlockingBridge(block: suspend CoroutineScope.() -> T): T
