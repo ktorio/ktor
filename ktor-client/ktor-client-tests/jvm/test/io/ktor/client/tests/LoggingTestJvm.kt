@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.*
 import org.slf4j.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 private class LoggerWithMdc : Logger {
     val logs = mutableListOf<Pair<String, String>>()
@@ -27,7 +28,7 @@ private class LoggerWithMdc : Logger {
     }
 }
 
-class LoggingTestJvm : ClientLoader(timeoutSeconds = 1000000) {
+class LoggingTestJvm : ClientLoader(1000000.seconds) {
 
     @OptIn(InternalAPI::class)
     @Test
