@@ -179,6 +179,8 @@ public abstract class BaseApplicationResponse(
                 }
             } catch (closed: ClosedWriteChannelException) {
                 throw ChannelWriteException(exception = closed)
+            } finally {
+                flushAndClose()
             }
 
             // TODO currently we can't ensure length like that
