@@ -6,8 +6,13 @@ package io.ktor.client.engine.darwin.certificates
 
 import io.ktor.client.engine.darwin.*
 import kotlinx.cinterop.*
-import platform.CoreCrypto.*
-import platform.CoreFoundation.*
+import platform.CoreCrypto.CC_SHA1
+import platform.CoreCrypto.CC_SHA1_DIGEST_LENGTH
+import platform.CoreCrypto.CC_SHA256
+import platform.CoreCrypto.CC_SHA256_DIGEST_LENGTH
+import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFStringCreateWithCString
+import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.Foundation.*
 import platform.Security.*
 
@@ -248,15 +253,8 @@ public data class CertificatePinner(
      * Returns list of matching certificates' pins for the hostname. Returns an empty list if the
      * hostname does not have pinned certificates.
      */
-    internal fun findMatchingPins(hostname: String): List<PinnedCertificate> {
-        var result: List<PinnedCertificate> = emptyList()
-        for (pin in pinnedCertificates) {
-            if (pin.matches(hostname)) {
-                if (result.isEmpty()) result = mutableListOf()
-                (result as MutableList<PinnedCertificate>).add(pin)
-            }
-        }
-        return result
+    private fun findMatchingPins(hostname: String): List<PinnedCertificate> {
+        return pinnedCertificates.filter { it.matches(hostname) }
     }
 
     /**
@@ -403,7 +401,6 @@ public data class CertificatePinner(
     ) {
         /**
          * Pins certificates for `pattern`.
-         *
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder.add)
          *
