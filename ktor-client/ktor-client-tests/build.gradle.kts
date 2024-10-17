@@ -72,7 +72,7 @@ kotlin.sourceSets {
 
     jvmAndPosixTest {
         dependencies {
-            runtimeOnly(project(":ktor-client:ktor-client-cio"))
+            api(project(":ktor-client:ktor-client-cio"))
         }
     }
 
