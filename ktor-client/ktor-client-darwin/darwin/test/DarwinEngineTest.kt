@@ -19,10 +19,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
@@ -261,6 +258,21 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
                 }
             }
         }
+    }
+
+    @OptIn(UnsafeNumber::class)
+    @Test
+    fun testRethrowExceptionThrownDuringCustomChallenge() = runBlocking {
+        val challengeException = Exception("Challenge failed")
+
+        val client = HttpClient(Darwin) {
+            engine {
+                handleChallenge { _, _, _, _ -> throw challengeException }
+            }
+        }
+
+        val thrownException = assertFails { client.get(TEST_SERVER_TLS) }
+        assertSame(thrownException, challengeException, "Expected exception to be rethrown")
     }
 
     private fun stringToNSUrlString(value: String): String {
