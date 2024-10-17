@@ -16,6 +16,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 actual abstract class EngineTestBase<
@@ -32,13 +33,28 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = 0
+    private var _port: Int = 0
+    protected actual var port: Int
+        get() {
+            check(_port != 0) { "Port is not initialized" }
+            return _port
+        }
+        set(_) {
+            error("Can't reassign port.")
+        }
+
     protected actual var sslPort: Int = 0
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
     protected actual var enableHttp2: Boolean = false
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @AfterTest
+    fun tearDownBase() {
+        GlobalScope.launch { server?.stopSuspend(0, 500) }
+    }
 
     protected actual suspend fun createAndStartServer(
         log: Logger?,
@@ -56,7 +72,7 @@ actual constructor(
                 return server
             }
 
-            server.stop(1L, 1L)
+            server.stopSuspend(1L, 1L)
         }
 
         error(lastFailures)
@@ -67,7 +83,6 @@ actual constructor(
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
         val environment = applicationEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -88,7 +103,7 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = _port }
+            connector { port = 0 }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }
@@ -101,7 +116,8 @@ actual constructor(
         // we start it on the global scope because we don't want it to fail the whole test
         // as far as we have retry loop on call side
         val starting = GlobalScope.async {
-            server.start(wait = false)
+            server.startSuspend(wait = false)
+            _port = server.engine.resolvedConnectors().first().port
             delay(500)
         }
 
