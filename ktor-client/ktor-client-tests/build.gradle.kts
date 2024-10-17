@@ -59,6 +59,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-apache"))
             api(project(":ktor-client:ktor-client-apache5"))
+            api(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
             if (currentJdk >= 11) {
