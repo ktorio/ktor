@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING", "KDocMissingDocumentation")
@@ -17,6 +17,11 @@ import kotlin.time.Duration.Companion.milliseconds
  * Web url for tests.
  */
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
+
+/**
+ * Web url with TLS for tests.
+ */
+const val TEST_SERVER_TLS: String = "https://127.0.0.1:8089"
 
 /**
  * Websocket server url for tests.
