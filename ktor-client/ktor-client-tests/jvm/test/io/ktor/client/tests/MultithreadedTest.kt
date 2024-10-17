@@ -7,14 +7,20 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import kotlinx.coroutines.*
-import java.util.concurrent.*
-import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
 
 private const val TEST_SIZE = 100_000
 private const val DEFAULT_THREADS_COUNT = 32
 
-class MultithreadedTest : ClientLoader(timeoutSeconds = 10 * 60) {
+class MultithreadedTest : ClientLoader(timeout = 10.minutes) {
     @Test
     @Ignore
     fun numberTest() = clientTests {

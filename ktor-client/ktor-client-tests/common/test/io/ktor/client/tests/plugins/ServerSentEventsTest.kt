@@ -19,12 +19,15 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.single
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
-import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.minutes
 
-class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
+class ServerSentEventsTest : ClientLoader(timeout = 2.minutes) {
 
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {

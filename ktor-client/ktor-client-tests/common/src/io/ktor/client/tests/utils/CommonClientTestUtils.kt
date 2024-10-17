@@ -2,15 +2,13 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING", "KDocMissingDocumentation")
-
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.runTest
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -65,7 +63,6 @@ private fun testWithClient(
 /**
  * Perform test with selected client engine [factory].
  */
-@OptIn(DelicateCoroutinesApi::class)
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
@@ -73,6 +70,16 @@ fun <T : HttpClientEngineConfig> testWithEngine(
     retries: Int = 1,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = runTest(timeout = timeoutMillis.milliseconds) {
+    performTestWithEngine(factory, loader, retries, block)
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+suspend fun <T : HttpClientEngineConfig> performTestWithEngine(
+    factory: HttpClientEngineFactory<T>,
+    loader: ClientLoader? = null,
+    retries: Int = 1,
+    block: suspend TestClientBuilder<T>.() -> Unit
+) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {

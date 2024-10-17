@@ -18,8 +18,9 @@ import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.readByteArray
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -42,7 +43,7 @@ val testArrays = testSize.map {
     makeArray(it)
 }
 
-class ContentTest : ClientLoader(5 * 60) {
+class ContentTest : ClientLoader(timeout = 5.minutes) {
 
     @Test
     fun testGetFormData() = clientTests {
