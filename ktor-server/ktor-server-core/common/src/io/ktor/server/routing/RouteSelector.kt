@@ -599,7 +599,9 @@ public data class HttpMultiAcceptRouteSelector(
                 return RouteSelectorEvaluation.Missing
             }
 
-            val header = parsedHeaders.firstOrNull { header -> contentTypes.any { it.match(header.value) } }
+            val header = parsedHeaders.firstOrNull { header ->
+                contentTypes.any { ContentType.parse(header.value).match(it) }
+            }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)
             }
