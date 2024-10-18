@@ -1,14 +1,12 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
-import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
@@ -27,6 +25,9 @@ internal class DarwinTaskHandler(
 
     private val requestTime: GMTDate = GMTDate()
     private val bodyChunks = Channel<ByteArray>(Channel.UNLIMITED)
+
+    private var pendingFailure: Throwable? = null
+        get() = field?.also { field = null }
 
     private val body: ByteReadChannel = GlobalScope.writer(callContext) {
         try {
@@ -54,9 +55,13 @@ internal class DarwinTaskHandler(
         }
     }
 
+    fun saveFailure(cause: Throwable) {
+        pendingFailure = cause
+    }
+
     fun complete(task: NSURLSessionTask, didCompleteWithError: NSError?) {
         if (didCompleteWithError != null) {
-            val exception = handleNSError(requestData, didCompleteWithError)
+            val exception = pendingFailure ?: handleNSError(requestData, didCompleteWithError)
             bodyChunks.close(exception)
             response.completeExceptionally(exception)
             return
