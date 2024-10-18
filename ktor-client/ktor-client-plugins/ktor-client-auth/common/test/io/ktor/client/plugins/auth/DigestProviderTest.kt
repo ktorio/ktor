@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION")
 
@@ -21,14 +21,31 @@ class DigestProviderTest {
 
     private val paramValue = "value"
 
-    private val authAllFields =
-        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", qop=\"qop\", " +
-            "snonce=\"server-nonce\", cnonce=\"client-nonce\", uri=\"requested-uri\", " +
-            "request=\"client-digest\", message=\"message-digest\", opaque=\"opaque\""
+    private val authAllFields = """
+        Digest
+        algorithm=MD5,
+        username="username",
+        realm="realm",
+        nonce="nonce",
+        qop=qop,
+        cnonce="client-nonce",
+        uri="requested-uri",
+        request="client-digest",
+        message="message-digest",
+        opaque="opaque"
+    """.normalize()
 
-    private val authMissingQopAndOpaque =
-        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", snonce=\"server-nonce\", " +
-            "cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\""
+    private val authMissingQopAndOpaque = """
+        Digest
+        algorithm=MD5,
+        username="username",
+        realm="realm",
+        nonce="nonce",
+        cnonce="client-nonce",
+        uri="requested-uri",
+        request="client-digest",
+        message="message-digest"
+    """.normalize()
 
     private val digestAuthProvider by lazy {
         DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
@@ -55,9 +72,9 @@ class DigestProviderTest {
         runIsApplicable(authAllFields)
         val authHeader = addRequestHeaders(authAllFields)
 
-        assertTrue(authHeader.contains("qop=qop"))
-        assertTrue(authHeader.contains("opaque=opaque"))
-        checkStandardFields(authHeader)
+        authHeader.assertParameter("qop", expectedValue = "qop")
+        authHeader.assertParameter("opaque", expectedValue = "opaque".quote())
+        authHeader.checkStandardParameters()
     }
 
     @Test
@@ -72,7 +89,7 @@ class DigestProviderTest {
         providerWithoutRealm.addRequestHeaders(requestBuilder, authHeader)
 
         val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
-        checkStandardFields(resultAuthHeader)
+        resultAuthHeader.checkStandardParameters()
     }
 
     @Test
@@ -93,9 +110,9 @@ class DigestProviderTest {
         runIsApplicable(authMissingQopAndOpaque)
         val authHeader = addRequestHeaders(authMissingQopAndOpaque)
 
-        assertFalse(authHeader.contains("opaque="))
-        assertFalse(authHeader.contains("qop="))
-        checkStandardFields(authHeader)
+        authHeader.assertParameterNotSet("opaque")
+        authHeader.assertParameterNotSet("qop")
+        authHeader.checkStandardParameters()
     }
 
     @Test
@@ -123,12 +140,21 @@ class DigestProviderTest {
         return requestBuilder.headers[HttpHeaders.Authorization]!!
     }
 
-    private fun checkStandardFields(authHeader: String) {
-        assertTrue(authHeader.contains("realm=realm"))
-        assertTrue(authHeader.contains("username=username"))
-        assertTrue(authHeader.contains("nonce=nonce"))
-
-        val uriPattern = "uri=\"/$path?$paramName=$paramValue\""
-        assertTrue(authHeader.contains(uriPattern))
+    private fun String.checkStandardParameters() {
+        assertParameter("realm", expectedValue = "realm".quote())
+        assertParameter("username", expectedValue = "username".quote())
+        assertParameter("nonce", expectedValue = "nonce".quote())
+        assertParameter("nc", expectedValue = "00000001")
+        assertParameter("uri", expectedValue = "/$path?$paramName=$paramValue".quote())
     }
+
+    private fun String.assertParameter(name: String, expectedValue: String?) {
+        assertContains(this, "$name=$expectedValue")
+    }
+
+    private fun String.assertParameterNotSet(name: String) {
+        assertFalse(this.contains("$name="))
+    }
+
+    private fun String.normalize(): String = trimIndent().replace("\n", " ")
 }
