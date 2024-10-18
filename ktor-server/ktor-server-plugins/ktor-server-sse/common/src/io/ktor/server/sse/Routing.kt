@@ -7,6 +7,7 @@ package io.ktor.server.sse
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
 
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
@@ -14,14 +15,12 @@ import io.ktor.server.routing.*
  *
  * @param path URL path at which to handle SSE requests.
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [ServerSSESession]
+ * endpoint. Inside the handler, you can use the functions provided by [SSESession]
  * to send events to the connected clients.
  *
- * @see ServerSSESession
+ * @see SSESession
  */
-public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit) {
-    plugin(SSE)
-
+public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
     route(path, HttpMethod.Get) {
         sse(handler)
     }
@@ -32,12 +31,53 @@ public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit)
  * Requires [SSE] plugin to be installed.
  *
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [ServerSSESession]
+ * endpoint. Inside the handler, you can use the functions provided by [SSESession]
  * to send events to the connected clients.
  *
- * @see ServerSSESession
+ * @see SSESession
  */
-public fun Route.sse(handler: suspend ServerSSESession.() -> Unit) {
+public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(null, handler)
+
+/**
+ * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
+ * Requires [SSE] plugin to be installed.
+ *
+ * @param path URL path at which to handle SSE requests.
+ * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * to send events to the connected clients.
+ *
+ * @see SSESessionWithSerialization
+ */
+public fun Route.sse(
+    path: String,
+    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
+    handler: suspend SSESessionWithSerialization.() -> Unit
+) {
+    route(path, HttpMethod.Get) {
+        sse(serialize, handler)
+    }
+}
+
+/**
+ * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
+ * Requires [SSE] plugin to be installed.
+ *
+ * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * to send events to the connected clients.
+ *
+ * @see SSESessionWithSerialization
+ */
+public fun Route.sse(
+    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
+    handler: suspend SSESessionWithSerialization.() -> Unit
+): Unit = processSSE(serialize, handler)
+
+private fun Route.processSSE(
+    serialize: ((TypeInfo, Any) -> String)?,
+    handler: suspend SSESessionWithSerialization.() -> Unit
+) {
     plugin(SSE)
 
     handle {
@@ -45,6 +85,6 @@ public fun Route.sse(handler: suspend ServerSSESession.() -> Unit) {
         call.response.header(HttpHeaders.CacheControl, "no-store")
         call.response.header(HttpHeaders.Connection, "keep-alive")
         call.response.header("X-Accel-Buffering", "no")
-        call.respond(SSEServerContent(call, handler))
+        call.respond(SSEServerContent(call, serialize, handler))
     }
 }
