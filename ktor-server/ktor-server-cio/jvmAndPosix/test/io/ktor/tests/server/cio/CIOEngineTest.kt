@@ -1,8 +1,8 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// ktlint-disable filename
 package io.ktor.tests.server.cio
 
 import io.ktor.client.statement.*
@@ -16,7 +16,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {

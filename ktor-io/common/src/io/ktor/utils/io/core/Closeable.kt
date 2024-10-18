@@ -4,25 +4,9 @@
 
 package io.ktor.utils.io.core
 
-public expect interface Closeable {
-    public fun close()
-}
+import kotlin.use as stdlibUse
 
-public inline fun <T : Closeable?, R> T.use(block: (T) -> R): R {
-    var closed = false
-    try {
-        return block(this)
-    } catch (cause: Throwable) {
-        closed = true
-        try {
-            this?.close()
-        } catch (closeException: Throwable) {
-            cause.addSuppressed(closeException)
-        }
-        throw cause
-    } finally {
-        if (!closed) {
-            this?.close()
-        }
-    }
-}
+public expect interface Closeable : AutoCloseable
+
+@Deprecated("Use stdlib implementation instead. Remove import of this function", ReplaceWith("stdlibUse(block)"))
+public inline fun <T : Closeable?, R> T.use(block: (T) -> R): R = stdlibUse(block)

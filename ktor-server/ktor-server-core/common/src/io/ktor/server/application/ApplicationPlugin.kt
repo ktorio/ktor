@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.application
 
@@ -8,7 +8,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
 /**
@@ -230,7 +229,7 @@ public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
 public fun <A : Pipeline<*, PipelineCall>, F : Any> A.uninstallPlugin(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(pluginRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
-    if (instance is Closeable) {
+    if (instance is AutoCloseable) {
         instance.close()
     }
     registry.remove(key)
