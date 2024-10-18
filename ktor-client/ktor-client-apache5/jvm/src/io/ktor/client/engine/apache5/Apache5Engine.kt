@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -89,6 +89,8 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                             ClientTlsStrategyBuilder.create()
                                 .setSslContext(config.sslContext ?: SSLContexts.createSystemDefault())
                                 .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                                // TODO: Remove apply after https://github.com/apache/httpcomponents-client/pull/588 merged
+                                .apply { setHostnameVerificationPolicy(HostnameVerificationPolicy.BOTH) }
                                 .build()
                         )
                         .setDefaultConnectionConfig(
