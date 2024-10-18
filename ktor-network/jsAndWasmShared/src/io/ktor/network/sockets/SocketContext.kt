@@ -49,9 +49,11 @@ internal class SocketContext(
             incomingFrames.trySend(data)
         })
 
-        if (connectCont != null) socket.on("connect", fun() {
-            connectCont.resume(createSocket())
-        })
+        if (connectCont != null) {
+            socket.on("connect", fun() {
+                connectCont.resume(createSocket())
+            })
+        }
     }
 
     // Socket real address could be resolved only after the ` connect ` event.
@@ -60,11 +62,11 @@ internal class SocketContext(
     fun createSocket(): Socket = SocketImpl(
         localAddress = when (address) {
             is UnixSocketAddress -> address
-            else                 -> InetSocketAddress(socket.localAddress, socket.localPort)
+            else -> InetSocketAddress(socket.localAddress, socket.localPort)
         },
         remoteAddress = when (address) {
             is UnixSocketAddress -> address
-            else                 -> InetSocketAddress(socket.remoteAddress, socket.remotePort)
+            else -> InetSocketAddress(socket.remoteAddress, socket.remotePort)
         },
         coroutineContext = socketContext,
         incoming = incomingFrames,

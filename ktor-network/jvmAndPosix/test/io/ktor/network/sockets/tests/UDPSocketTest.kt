@@ -45,11 +45,11 @@ class UDPSocketTest {
                     denied = true
                 }
                 // PosixException (WSAEACCES)
-                cause.message?.contains("10013", ignoreCase = true) == true             -> {
+                cause.message?.contains("10013", ignoreCase = true) == true -> {
                     denied = true
                 }
 
-                else                                                                    -> {
+                else -> {
                     throw cause
                 }
             }

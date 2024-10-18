@@ -9,5 +9,5 @@ import kotlin.experimental.*
 @OptIn(ExperimentalNativeApi::class)
 internal actual fun Any.supportsUnixDomainSockets(): Boolean = when (Platform.osFamily) {
     OsFamily.MACOSX, OsFamily.LINUX -> true
-    else                            -> false
+    else -> false
 }

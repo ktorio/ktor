@@ -16,7 +16,6 @@ internal external interface JsBuffer // Int8Array
 internal expect fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
 internal expect fun JsBuffer.toByteArray(): ByteArray
 
-
 internal external interface NodeNet {
     fun createConnection(options: CreateConnectionOptions): Socket
     fun createServer(options: CreateServerOptions): Server
@@ -40,7 +39,7 @@ internal fun CreateConnectionOptions(
         noDelay = socketOptions.noDelay
         timeout = when (socketOptions.socketTimeout) {
             Long.MAX_VALUE -> Int.MAX_VALUE
-            else           -> socketOptions.socketTimeout.toInt()
+            else -> socketOptions.socketTimeout.toInt()
         }
         keepAlive = socketOptions.keepAlive
     }
@@ -49,7 +48,7 @@ internal fun CreateConnectionOptions(
         path = remoteAddress.path
         timeout = when (socketOptions.socketTimeout) {
             Long.MAX_VALUE -> Int.MAX_VALUE
-            else           -> socketOptions.socketTimeout.toInt()
+            else -> socketOptions.socketTimeout.toInt()
         }
     }
 }
@@ -59,7 +58,9 @@ internal external interface CreateConnectionOptions {
     var allowHalfOpen: Boolean?
 }
 
-internal expect fun TcpCreateConnectionOptions(block: TcpCreateConnectionOptions.() -> Unit): TcpCreateConnectionOptions
+internal expect fun TcpCreateConnectionOptions(
+    block: TcpCreateConnectionOptions.() -> Unit
+): TcpCreateConnectionOptions
 
 internal external interface TcpCreateConnectionOptions : CreateConnectionOptions {
     var port: Int
@@ -72,7 +73,9 @@ internal external interface TcpCreateConnectionOptions : CreateConnectionOptions
     var keepAlive: Boolean?
 }
 
-internal expect fun IpcCreateConnectionOptions(block: IpcCreateConnectionOptions.() -> Unit): IpcCreateConnectionOptions
+internal expect fun IpcCreateConnectionOptions(
+    block: IpcCreateConnectionOptions.() -> Unit
+): IpcCreateConnectionOptions
 
 internal external interface IpcCreateConnectionOptions : CreateConnectionOptions {
     var path: String
@@ -98,7 +101,9 @@ internal external interface Socket {
     fun on(event: String /* "error" */, listener: (error: JsError) -> Unit)
 }
 
-internal expect fun CreateServerOptions(block: CreateServerOptions.() -> Unit): CreateServerOptions
+internal expect fun CreateServerOptions(
+    block: CreateServerOptions.() -> Unit
+): CreateServerOptions
 
 internal external interface CreateServerOptions {
     var allowHalfOpen: Boolean?
@@ -132,14 +137,16 @@ internal fun ServerListenOptions(localAddress: SocketAddress?): ServerListenOpti
             path = localAddress.path
         }
 
-        null                 -> {
+        null -> {
             host = "0.0.0.0"
             port = 0
         }
     }
 }
 
-internal expect fun ServerListenOptions(block: ServerListenOptions.() -> Unit): ServerListenOptions
+internal expect fun ServerListenOptions(
+    block: ServerListenOptions.() -> Unit
+): ServerListenOptions
 
 internal external interface ServerListenOptions {
     var port: Int?
@@ -156,4 +163,3 @@ internal external interface TcpServerLocalAddressInfo : ServerLocalAddressInfo {
 }
 
 internal expect fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress
-

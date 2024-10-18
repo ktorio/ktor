@@ -9,17 +9,21 @@ import org.khronos.webgl.*
 
 internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')").unsafeCast<NodeNet?>()
 
-internal actual fun TcpCreateConnectionOptions(block: TcpCreateConnectionOptions.() -> Unit): TcpCreateConnectionOptions =
-    createObject(block)
+internal actual fun TcpCreateConnectionOptions(
+    block: TcpCreateConnectionOptions.() -> Unit
+): TcpCreateConnectionOptions = createObject(block)
 
-internal actual fun IpcCreateConnectionOptions(block: IpcCreateConnectionOptions.() -> Unit): IpcCreateConnectionOptions =
-    createObject(block)
+internal actual fun IpcCreateConnectionOptions(
+    block: IpcCreateConnectionOptions.() -> Unit
+): IpcCreateConnectionOptions = createObject(block)
 
-internal actual fun CreateServerOptions(block: CreateServerOptions.() -> Unit): CreateServerOptions =
-    createObject(block)
+internal actual fun CreateServerOptions(
+    block: CreateServerOptions.() -> Unit
+): CreateServerOptions = createObject(block)
 
-internal actual fun ServerListenOptions(block: ServerListenOptions.() -> Unit): ServerListenOptions =
-    createObject(block)
+internal actual fun ServerListenOptions(
+    block: ServerListenOptions.() -> Unit
+): ServerListenOptions = createObject(block)
 
 private fun <T> createObject(block: T.() -> Unit): T = js("{}").unsafeCast<T>().apply(block)
 

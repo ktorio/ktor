@@ -33,12 +33,18 @@ internal class ServerSocketContext(
             incomingSockets.trySend(context.createSocket())
         })
         server.on("close", fun() {
-            if (cont.isActive) cont.resumeWithException(IOException("Failed to bind"))
-            else serverContext.job.cancel("Server closed")
+            if (cont.isActive) {
+                cont.resumeWithException(IOException("Failed to bind"))
+            } else {
+                serverContext.job.cancel("Server closed")
+            }
         })
         server.on("error", fun(error: JsError) {
-            if (cont.isActive) cont.resumeWithException(IOException("Failed to bind", error.toThrowable()))
-            else serverContext.job.cancel("Server failed", error.toThrowable())
+            if (cont.isActive) {
+                cont.resumeWithException(IOException("Failed to bind", error.toThrowable()))
+            } else {
+                serverContext.job.cancel("Server failed", error.toThrowable())
+            }
         })
         server.on("drop", fun(_: ServerConnectionDrop) {
             // TODO: handle drop?

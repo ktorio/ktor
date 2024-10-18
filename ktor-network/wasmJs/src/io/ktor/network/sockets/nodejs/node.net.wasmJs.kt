@@ -9,17 +9,21 @@ import org.khronos.webgl.*
 
 internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')")
 
-internal actual fun TcpCreateConnectionOptions(block: TcpCreateConnectionOptions.() -> Unit): TcpCreateConnectionOptions =
-    createObject(block)
+internal actual fun TcpCreateConnectionOptions(
+    block: TcpCreateConnectionOptions.() -> Unit
+): TcpCreateConnectionOptions = createObject(block)
 
-internal actual fun IpcCreateConnectionOptions(block: IpcCreateConnectionOptions.() -> Unit): IpcCreateConnectionOptions =
-    createObject(block)
+internal actual fun IpcCreateConnectionOptions(
+    block: IpcCreateConnectionOptions.() -> Unit
+): IpcCreateConnectionOptions = createObject(block)
 
-internal actual fun CreateServerOptions(block: CreateServerOptions.() -> Unit): CreateServerOptions =
-    createObject(block)
+internal actual fun CreateServerOptions(
+    block: CreateServerOptions.() -> Unit
+): CreateServerOptions = createObject(block)
 
-internal actual fun ServerListenOptions(block: ServerListenOptions.() -> Unit): ServerListenOptions =
-    createObject(block)
+internal actual fun ServerListenOptions(
+    block: ServerListenOptions.() -> Unit
+): ServerListenOptions = createObject(block)
 
 // TODO[whyoleg] how to convert exceptions?
 internal actual fun JsError.toThrowable(): Throwable = Error(this.toString())
