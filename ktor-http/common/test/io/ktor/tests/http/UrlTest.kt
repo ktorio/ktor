@@ -345,4 +345,22 @@ class UrlTest {
         assertEquals(null, parseUrl("incorrecturl"))
         assertEquals(null, parseUrl("http://localhost:7000Value"))
     }
+
+    @Test
+    fun testAboutUrl() {
+        val aboutBlankUrl = Url("about:blank")
+        assertEquals("about:blank", aboutBlankUrl.toString())
+        assertEquals("about", aboutBlankUrl.protocol.name)
+        assertEquals("blank", aboutBlankUrl.host)
+
+        val aboutVersionUrl = Url("about:version")
+        assertEquals("about:version", aboutVersionUrl.toString())
+        assertEquals("about", aboutVersionUrl.protocol.name)
+        assertEquals("version", aboutVersionUrl.host)
+
+        val urlHttp = Url("about")
+        assertEquals("localhost", urlHttp.host)
+        assertEquals(URLProtocol.HTTP, urlHttp.protocol)
+        assertTrue(urlHttp.rawSegments.contains("about"))
+    }
 }
