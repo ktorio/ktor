@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty.jakarta
@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -72,7 +71,7 @@ internal class JettyKtorHandler(
     ) {
         try {
             val contentType = request.contentType
-            if (contentType != null && contentType.startsWith("multipart/")) {
+            if (contentType != null && contentType.startsWith("multipart/", ignoreCase = true)) {
                 baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multipartConfig)
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
