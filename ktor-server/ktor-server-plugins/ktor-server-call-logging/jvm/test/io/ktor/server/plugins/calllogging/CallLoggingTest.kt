@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.calllogging
@@ -77,19 +77,13 @@ class CallLoggingTest {
 
         assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
         val startingMessageIndex = messages.indexOfFirst {
-            it.startsWith(
-                "INFO: Application started: class io.ktor.server.application.Application(0x$hash)"
-            )
+            it == "INFO: Application started: io.ktor.server.application.Application@$hash"
         }
         val stoppingMessageIndex = messages.indexOfFirst {
-            it.startsWith(
-                "INFO: Application stopping: class io.ktor.server.application.Application(0x$hash)"
-            )
+            it == "INFO: Application stopping: io.ktor.server.application.Application@$hash"
         }
         val stoppedMessageIndex = messages.indexOfFirst {
-            it.startsWith(
-                "INFO: Application stopped: class io.ktor.server.application.Application(0x$hash)"
-            )
+            it == "INFO: Application stopped: io.ktor.server.application.Application@$hash"
         }
         assertTrue { startingMessageIndex >= 0 }
         assertTrue { startingMessageIndex < stoppingMessageIndex }
