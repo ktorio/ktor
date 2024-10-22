@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
-import kotlinx.io.IOException
 import kotlinx.io.bytestring.*
 import java.io.EOFException
 import java.nio.*
@@ -148,14 +147,13 @@ public fun CoroutineScope.parseMultipart(
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@Suppress("DEPRECATION_ERROR")
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
     maxPartSize: Long = Long.MAX_VALUE,
 ): ReceiveChannel<MultipartEvent> {
-    if (!contentType.startsWith("multipart/")) {
+    if (!contentType.startsWith("multipart/", ignoreCase = true)) {
         throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
     }
     val boundaryByteBuffer = parseBoundaryInternal(contentType)
