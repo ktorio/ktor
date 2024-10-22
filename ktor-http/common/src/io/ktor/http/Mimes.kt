@@ -6,10 +6,12 @@ package io.ktor.http
 
 import io.ktor.util.*
 
+internal const val MIMES_COUNT: Int = 1212
+
 private val rawMimes: String
     get() = """
 application/acad,dwg
-application/andrew-inset,N/A
+application/andrew-inset,ez
 application/applixware,aw
 application/arj,arj
 application/atom+xml,atom
@@ -35,7 +37,6 @@ application/dsptype,tsp
 application/dssc+der,dssc
 application/dssc+xml,xdssc
 application/dxf,dxf
-application/ecmascript,es
 application/emma+xml,emma
 application/envoy,evy
 application/epub+zip,epub
@@ -61,15 +62,14 @@ application/java-archive,jar
 application/java-byte-code,class
 application/java-serialized-object,ser
 application/java-vm,class
-application/javascript,js
 application/json,json
 application/lha,lha
 application/lzx,lzx
+application/macbinary,bin
 application/mac-binary,bin
 application/mac-binhex,hqx
 application/mac-binhex40,hqx
 application/mac-compactpro,cpt
-application/macbinary,bin
 application/mads+xml,mads
 application/manifest+json,webmanifest
 application/marc,mrc
@@ -85,7 +85,6 @@ application/mets+xml,mets
 application/mime,aps
 application/mods+xml,mods
 application/mp21,m21
-application/mp4,mp4
 application/mspowerpoint,pot pps ppt ppz
 application/msword,doc dot w6w wiz word
 application/mswrite,wri
@@ -142,7 +141,6 @@ application/set-registration-initiation,setreg
 application/shf+xml,shf
 application/sla,stl
 application/smil+xml,smi
-application/smil,smi smil
 application/solids,sol
 application/sounder,sdr
 application/sparql-query,rq
@@ -234,8 +232,6 @@ application/vnd.fdsn.seed,seed
 application/vnd.flographit,gph
 application/vnd.fluxtime.clip,ftc
 application/vnd.framemaker,fm
-application/vnd.frogans.fnc,fnc
-application/vnd.frogans.ltf,ltf
 application/vnd.fsc.weblaunch,fsc
 application/vnd.fujitsu.oasys,oas
 application/vnd.fujitsu.oasys2,oa2
@@ -277,7 +273,6 @@ application/vnd.hp-pclxl,pclxl
 application/vnd.hydrostatix.sof-data,sfd-hdstx
 application/vnd.hzn-3d-crossword,x3d
 application/vnd.ibm.minipay,mpy
-application/vnd.ibm.modcap,afp
 application/vnd.ibm.rights-management,irm
 application/vnd.ibm.secure-container,sc
 application/vnd.iccprofile,icc
@@ -314,7 +309,7 @@ application/vnd.kodak-descriptor,sse
 application/vnd.las.las+xml,lasxml
 application/vnd.llamagraphics.life-balance.desktop,lbd
 application/vnd.llamagraphics.life-balance.exchange+xml,lbe
-application/vnd.lotus-1-2-3,23
+application/vnd.lotus-1-2-3,123
 application/vnd.lotus-approach,apr
 application/vnd.lotus-freelance,pre
 application/vnd.lotus-notes,nsf
@@ -378,7 +373,6 @@ application/vnd.noblenet-sealer,nns
 application/vnd.noblenet-web,nnw
 application/vnd.nokia.configuration-message,ncm
 application/vnd.nokia.n-gage.data,ngdat
-application/vnd.nokia.n-gage.symbian.install,n-gage
 application/vnd.nokia.radio-preset,rpst
 application/vnd.nokia.radio-presets,rpss
 application/vnd.nokia.ringing-tone,rng
@@ -387,7 +381,6 @@ application/vnd.novadigm.edx,edx
 application/vnd.novadigm.ext,ext
 application/vnd.oasis.opendocument.chart,odc
 application/vnd.oasis.opendocument.chart-template,otc
-application/vnd.oasis.opendocument.database,odb
 application/vnd.oasis.opendocument.formula,odf
 application/vnd.oasis.opendocument.formula-template,odft
 application/vnd.oasis.opendocument.graphics,odg
@@ -543,6 +536,7 @@ application/x-cmu-raster,ras
 application/x-cocoa,cco
 application/x-compactpro,cpt
 application/x-compress,z
+application/zip,zip
 application/x-compressed,gz tgz z zip
 application/x-conference,nsc
 application/x-cpio,cpio
@@ -644,7 +638,6 @@ application/x-portable-anymap,pnm
 application/x-project,mpc mpt mpv mpx
 application/x-qpro,wb1
 application/x-rar-compressed,rar
-application/x-rpm,rpm
 application/x-sdp,sdp
 application/x-sea,sea
 application/x-seelogo,sl
@@ -696,7 +689,7 @@ application/xspf+xml,xspf
 application/xv+xml,mxml
 application/yang,yang
 application/yin+xml,yin
-application/zip,war zip
+application/zip,war
 audio/aac,aac
 audio/adpcm,adp
 audio/aiff,aif aifc aiff
@@ -708,7 +701,7 @@ audio/mid,rmi
 audio/midi,kar mid midi
 audio/mod,mod
 audio/mp4,m4a mp4a
-audio/mpeg,m2a mp2 mp3 mpa mpg mpga
+audio/mpeg,m2a mp2 mp3 mpa mpga
 audio/mpeg3,mp3
 audio/nspaudio,la lma
 audio/ogg,oga ogg
@@ -736,7 +729,6 @@ audio/x-au,au
 audio/x-gsm,gsd gsm
 audio/x-jam,jam
 audio/x-liveaudio,lam
-audio/x-matroska,mkv
 audio/x-mid,mid midi
 audio/x-midi,midi
 audio/x-mod,mod
@@ -747,6 +739,7 @@ audio/x-ms-wma,wma
 audio/x-nspaudio,la lma
 audio/x-pn-realaudio,ra ram rm rmm rmp
 audio/x-pn-realaudio-plugin,ra rmp rpm
+application/x-rpm,rpm
 audio/x-psid,sid
 audio/x-realaudio,ra
 audio/x-twinvq,vqf
@@ -938,7 +931,9 @@ video/jpeg,jpgv
 video/jpm,jpm
 video/mj2,mj2
 video/mp4,m4v mp4
+application/mp4,mp4
 video/mpeg,m1v m2v mp2 mpe mpeg mpg
+audio/mpeg,mpg
 video/msvideo,avi
 video/ogg,ogv
 video/quicktime,moov mov qt
@@ -968,6 +963,7 @@ video/x-flv,flv
 video/x-gl,gl
 video/x-isvideo,isu
 video/x-matroska,mkv
+audio/x-matroska,mkv
 video/x-motion-jpeg,mjpg
 video/x-mpeg,mp2
 video/x-mpeq2a,mp2
@@ -991,17 +987,27 @@ x-world/x-vrml,vrml wrl wrz
 x-world/x-vrt,vrt
 xgl/drawing,xgz
 xgl/movie,xmz
+# Deprecated media types
+application/ecmascript,es
+application/javascript,js
+application/smil,smi sml
+application/vnd.frogans.fnc,fnc
+application/vnd.frogans.ltf,ltf
+application/vnd.ibm.modcap,afp
+application/vnd.nokia.n-gage.symbian.install,n-gage
+application/vnd.oasis.opendocument.database,odb
 """
 
 internal fun loadMimes(): List<Pair<String, ContentType>> {
-    return rawMimes.lineSequence().mapNotNull {
+    return rawMimes.lineSequence().flatMapTo(ArrayList(MIMES_COUNT)) {
         val line = it.trim()
-        if (line.isEmpty()) return@mapNotNull null
-        val (mime, extensions) = line.split(',')
-        extensions.split(" ").map {
-            ext -> ext.toLowerCasePreservingASCIIRules() to mime.toContentType()
-        }
-    }.flatten().toList()
+        if (line.isEmpty() || line.startsWith("#")) return@flatMapTo emptyList()
+        val (mime, extensions) = line.split(",", limit = 2)
+        val contentType = mime.toContentType()
+        extensions.splitToSequence(" ").map {
+                ext -> ext.toLowerCasePreservingASCIIRules() to contentType
+        }.toList()
+    }
 }
 
 internal val mimes: List<Pair<String, ContentType>> by lazy { loadMimes() }

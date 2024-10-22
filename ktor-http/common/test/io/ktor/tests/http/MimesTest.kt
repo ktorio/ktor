@@ -25,4 +25,9 @@ class MimesTest {
         assertTrue(mimes.contains(dwgMime))
     }
 
+    @Test
+    fun testMimesSize() {
+        assertEquals(MIMES_COUNT, mimes.size)
+    }
+
 }
