@@ -26,6 +26,7 @@ private class AtomicCounter {
 @KtorDsl
 public class AuthConfig {
     public val providers: MutableList<AuthProvider> = mutableListOf()
+    public val reAuthStatusCodes: MutableList<HttpStatusCode> = mutableListOf(HttpStatusCode.Unauthorized)
 }
 
 /**
@@ -40,6 +41,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
  *
  * [providers] - list of auth providers to use.
+ * [reAuthStatusCodes] - list of [HttpStatusCode] values which trigger a re-auth.
  */
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
@@ -128,14 +130,14 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
 
     on(Send) { originalRequest ->
         val origin = proceed(originalRequest)
-        if (origin.response.status != HttpStatusCode.Unauthorized) return@on origin
+        if (origin.response.status !in pluginConfig.reAuthStatusCodes) return@on origin
         if (origin.request.attributes.contains(AuthCircuitBreaker)) return@on origin
 
         var call = origin
 
         val candidateProviders = HashSet(providers)
 
-        while (call.response.status == HttpStatusCode.Unauthorized) {
+        while (call.response.status in pluginConfig.reAuthStatusCodes) {
             LOGGER.trace("Received 401 for ${call.request.url}")
 
             val (provider, authHeader) = findProvider(call, candidateProviders) ?: run {
