@@ -22,7 +22,7 @@ internal suspend fun commonFetch(
         PlatformUtils.IS_BROWSER -> fetch(input, init)
         else -> {
             val options = js("Object").assign(js("Object").create(null), init, config.nodeOptions)
-            jsRequireNodeFetch()(input, options)
+            fetch(input, options)
         }
     }
 
@@ -37,14 +37,7 @@ internal suspend fun commonFetch(
 }
 
 internal fun AbortController(): AbortController {
-    return when {
-        PlatformUtils.IS_BROWSER -> js("new AbortController()")
-        else -> {
-            @Suppress("UNUSED_VARIABLE")
-            val controller = js("eval('require')('abort-controller')")
-            js("new controller()")
-        }
-    }
+    return js("new AbortController()")
 }
 
 internal fun CoroutineScope.readBody(
@@ -52,10 +45,4 @@ internal fun CoroutineScope.readBody(
 ): ByteReadChannel = when {
     PlatformUtils.IS_NODE -> readBodyNode(response)
     else -> readBodyBrowser(response)
-}
-
-private fun jsRequireNodeFetch(): dynamic = try {
-    js("eval('require')('node-fetch')")
-} catch (cause: dynamic) {
-    throw Error("Error loading module 'node-fetch': $cause")
 }

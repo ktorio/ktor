@@ -22,8 +22,6 @@ kotlin.sourceSets {
 
     jsMain {
         dependencies {
-            api(npm("node-fetch", libs.versions.node.fetch.get()))
-            api(npm("abort-controller", libs.versions.abort.controller.get()))
             api(npm("ws", libs.versions.ws.get()))
         }
     }
