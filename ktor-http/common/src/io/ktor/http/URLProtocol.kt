@@ -5,13 +5,14 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /**
  * Represents URL protocol
  * @property name of protocol (schema)
  * @property defaultPort default port for protocol or `-1` if not known
  */
-public data class URLProtocol(val name: String, val defaultPort: Int) {
+public data class URLProtocol(val name: String, val defaultPort: Int) : JvmSerializable {
     init {
         require(name.all { it.isLowerCase() }) { "All characters should be lower case" }
     }

@@ -4,6 +4,8 @@
 
 package io.ktor.junit
 
+import java.io.*
+
 /**
  * Convenience function for asserting on all elements of a collection.
  */
@@ -28,4 +30,11 @@ fun <T> assertAll(collection: Iterable<T>, assertion: (T) -> Unit) {
             }
         }
     )
+}
+
+inline fun <reified T : Any> assertSerializable(obj: T): T {
+    val encoded = ByteArrayOutputStream().also {
+        ObjectOutputStream(it).writeObject(obj)
+    }.toByteArray()
+    return ObjectInputStream(encoded.inputStream()).readObject() as T
 }
