@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
 import java.security.*
 import java.security.cert.*
