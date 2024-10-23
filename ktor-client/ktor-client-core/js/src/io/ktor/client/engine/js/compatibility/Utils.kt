@@ -42,7 +42,5 @@ internal fun AbortController(): AbortController {
 
 internal fun CoroutineScope.readBody(
     response: org.w3c.fetch.Response
-): ByteReadChannel = when {
-    PlatformUtils.IS_NODE -> readBodyNode(response)
-    else -> readBodyBrowser(response)
-}
+): ByteReadChannel =
+    readBodyBrowser(response)
