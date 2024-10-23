@@ -6,7 +6,10 @@ package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
 
-internal external interface JsError // js.Error
+// js.Error
+internal external interface JsError {
+    val message: String?
+}
 
 internal expect fun JsError.toThrowable(): Throwable
 internal expect fun Throwable.toJsError(): JsError?

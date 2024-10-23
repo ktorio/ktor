@@ -25,9 +25,10 @@ internal actual fun ServerListenOptions(
     block: ServerListenOptions.() -> Unit
 ): ServerListenOptions = createObject(block)
 
-// TODO[whyoleg] how to convert exceptions?
-internal actual fun JsError.toThrowable(): Throwable = Error(this.toString())
-internal actual fun Throwable.toJsError(): JsError? = null
+internal actual fun JsError.toThrowable(): Throwable = Error(message)
+internal actual fun Throwable.toJsError(): JsError? = jsError(message)
+
+private fun jsError(message: String?): JsError = js("(new Error(message))")
 
 internal actual fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer {
     val array = Int8Array(toIndex - fromIndex)
