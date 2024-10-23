@@ -27,32 +27,32 @@ internal class SocketContext(
             socketContext.cancel()
             incomingFrames.cancel()
         }
-        socket.on("error", fun(error: JsError) {
+        socket.onError { error ->
             when (connectCont?.isActive) {
                 true -> connectCont.resumeWithException(IOException("Failed to connect", error.toThrowable()))
                 else -> socketContext.job.cancel("Socket error", error.toThrowable())
             }
-        })
-        socket.on("timeout", fun() {
+        }
+        socket.onTimeout {
             when (connectCont?.isActive) {
                 true -> connectCont.resumeWithException(SocketTimeoutException("timeout"))
                 else -> socketContext.job.cancel("Socket timeout", SocketTimeoutException("timeout"))
             }
-        })
-        socket.on("end", fun() {
+        }
+        socket.onEnd {
             incomingFrames.close()
-        })
-        socket.on("close", fun(_: Boolean) {
+        }
+        socket.onClose {
             socketContext.job.cancel("Socket closed")
-        })
-        socket.on("data", fun(data: JsBuffer) {
+        }
+        socket.onData { data ->
             incomingFrames.trySend(data)
-        })
+        }
 
         if (connectCont != null) {
-            socket.on("connect", fun() {
+            socket.onConnect {
                 connectCont.resume(createSocket())
-            })
+            }
         }
     }
 

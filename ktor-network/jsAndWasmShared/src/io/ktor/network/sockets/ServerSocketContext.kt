@@ -9,7 +9,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
 import kotlin.coroutines.*
-import io.ktor.network.sockets.nodejs.Socket as NodejsSocket
 
 internal class ServerSocketContext(
     private val server: Server,
@@ -27,31 +26,28 @@ internal class ServerSocketContext(
             incomingSockets.cancel()
         }
 
-        server.on("connection", fun(socket: NodejsSocket) {
+        server.onConnection { socket ->
             val context = SocketContext(socket, localAddress, serverContext)
             context.initiate(null)
             incomingSockets.trySend(context.createSocket())
-        })
-        server.on("close", fun() {
+        }
+        server.onClose {
             if (cont.isActive) {
                 cont.resumeWithException(IOException("Failed to bind"))
             } else {
                 serverContext.job.cancel("Server closed")
             }
-        })
-        server.on("error", fun(error: JsError) {
+        }
+        server.onError { error ->
             if (cont.isActive) {
                 cont.resumeWithException(IOException("Failed to bind", error.toThrowable()))
             } else {
                 serverContext.job.cancel("Server failed", error.toThrowable())
             }
-        })
-        server.on("drop", fun(_: ServerConnectionDrop) {
-            // TODO: handle drop?
-        })
-        server.on("listening", fun() {
+        }
+        server.onListening {
             cont.resume(ServerSocketImpl(server.address()!!.toSocketAddress(), serverContext, incomingSockets, server))
-        })
+        }
         server.listen(ServerListenOptions(localAddress))
     }
 }

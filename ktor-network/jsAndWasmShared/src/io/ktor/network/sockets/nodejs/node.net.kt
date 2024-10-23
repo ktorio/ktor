@@ -99,10 +99,17 @@ internal external interface Socket {
     fun end()
 
     fun on(event: String /* "close" */, listener: (hadError: Boolean) -> Unit)
-    fun on(event: String /* "connect", "drain", "end", "timeout",  */, listener: () -> Unit)
+    fun on(event: String /* "connect", "end", "timeout",  */, listener: () -> Unit)
     fun on(event: String /* "data" */, listener: (data: JsBuffer) -> Unit)
     fun on(event: String /* "error" */, listener: (error: JsError) -> Unit)
 }
+
+internal fun Socket.onClose(block: (hadError: Boolean) -> Unit): Unit = on("close", block)
+internal fun Socket.onConnect(block: () -> Unit): Unit = on("connect", block)
+internal fun Socket.onEnd(block: () -> Unit): Unit = on("end", block)
+internal fun Socket.onTimeout(block: () -> Unit): Unit = on("timeout", block)
+internal fun Socket.onData(block: (data: JsBuffer) -> Unit): Unit = on("data", block)
+internal fun Socket.onError(block: (error: JsError) -> Unit): Unit = on("error", block)
 
 internal expect fun CreateServerOptions(
     block: CreateServerOptions.() -> Unit
@@ -124,10 +131,12 @@ internal external interface Server {
     fun on(event: String /* "close", "listening" */, listener: () -> Unit)
     fun on(event: String /* "connection" */, listener: (socket: Socket) -> Unit)
     fun on(event: String /* "error" */, listener: (error: JsError) -> Unit)
-    fun on(event: String /* "drop" */, listener: (drop: ServerConnectionDrop) -> Unit)
 }
 
-internal external interface ServerConnectionDrop
+internal fun Server.onClose(block: () -> Unit): Unit = on("close", block)
+internal fun Server.onListening(block: () -> Unit): Unit = on("listening", block)
+internal fun Server.onConnection(block: (socket: Socket) -> Unit): Unit = on("connection", block)
+internal fun Server.onError(block: (error: JsError) -> Unit): Unit = on("error", block)
 
 internal fun ServerListenOptions(localAddress: SocketAddress?): ServerListenOptions = ServerListenOptions {
     when (localAddress) {
