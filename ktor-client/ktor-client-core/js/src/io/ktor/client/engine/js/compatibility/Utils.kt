@@ -6,7 +6,6 @@ package io.ktor.client.engine.js.compatibility
 
 import io.ktor.client.engine.js.*
 import io.ktor.client.engine.js.browser.*
-import io.ktor.client.engine.js.node.*
 import io.ktor.client.fetch.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
