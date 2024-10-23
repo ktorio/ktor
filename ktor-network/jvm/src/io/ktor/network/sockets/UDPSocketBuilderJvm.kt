@@ -6,7 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 
-internal actual fun connectUDP(
+internal actual suspend fun udpConnect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     localAddress: SocketAddress?,
@@ -25,7 +25,7 @@ internal actual fun connectUDP(
     return DatagramSocketImpl(this, selector)
 }
 
-internal actual fun bindUDP(
+internal actual suspend fun udpBind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions

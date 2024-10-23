@@ -38,7 +38,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
 /**
  * Select interest kind
  */
-@Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
 public actual enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 
