@@ -11,7 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 
 /**
- * `An authentication provider.
+ * An authentication provider.
  */
 public interface AuthProvider {
     /**
