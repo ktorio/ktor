@@ -78,6 +78,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     compilerOptions.freeCompilerArgs.addAll(listOf(
         "-Xsuppress-version-warnings",
         "-Xskip-metadata-version-check",
+        "-version"
     ))
 
     if (kotlin_language_version != null) {

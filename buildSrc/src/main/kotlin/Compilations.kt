@@ -11,7 +11,7 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
 //            allWarningsAsErrors = true
         }
 
-        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
+        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn", "-version")
         freeCompilerArgs += "-Xexpect-actual-classes"
     }
 }
