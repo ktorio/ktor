@@ -22,7 +22,7 @@ internal suspend fun commonFetch(
         PlatformUtils.IS_BROWSER -> fetch(input, init)
         else -> {
             val options = makeJsCall<RequestInit>(
-                js("Object.assign"),
+                jsObjectAssign(),
                 makeJsObject<RequestInit>(),
                 init,
                 config.nodeOptions,
