@@ -57,8 +57,6 @@ thymeleaf = "3.1.2.RELEASE"
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-node-fetch = "2.6.7"
-abort-controller = "3.0.0"
 ws = "8.5.0"
 xmlutil = "0.90.2"
 yamlkt = "0.13.0"

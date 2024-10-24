@@ -8,6 +8,9 @@ import org.khronos.webgl.*
 
 internal fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
+internal fun jsObjectAssign(): JsAny =
+    js("Object.assign")
+
 @Suppress("UNUSED_PARAMETER")
 internal fun <T : JsAny> makeJsNew(ctor: JsAny): T = js("new ctor()")
 
