@@ -553,7 +553,6 @@ open class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.util.pipeline/Pipeline { // 
     final fun resetFrom(io.ktor.util.pipeline/Pipeline<#A, #B>) // io.ktor.util.pipeline/Pipeline.resetFrom|resetFrom(io.ktor.util.pipeline.Pipeline<1:0,1:1>){}[0]
     final suspend fun execute(#B, #A): #A // io.ktor.util.pipeline/Pipeline.execute|execute(1:1;1:0){}[0]
     open fun afterIntercepted() // io.ktor.util.pipeline/Pipeline.afterIntercepted|afterIntercepted(){}[0]
-    open fun toString(): kotlin/String // io.ktor.util.pipeline/Pipeline.toString|toString(){}[0]
 }
 
 open class io.ktor.util.cio/ChannelIOException : kotlinx.io/IOException { // io.ktor.util.cio/ChannelIOException|null[0]
