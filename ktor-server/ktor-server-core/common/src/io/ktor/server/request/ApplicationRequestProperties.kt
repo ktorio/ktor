@@ -1,13 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("unused")
 
 package io.ktor.server.request
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.utils.io.charsets.*
 
@@ -149,7 +148,7 @@ public fun ApplicationRequest.isChunked(): Boolean =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.isMultipart)
  */
-public fun ApplicationRequest.isMultipart(): Boolean = contentType().match(ContentType.MultiPart.Any)
+public fun ApplicationRequest.isMultipart(): Boolean = contentType() in ContentType.MultiPart
 
 /**
  * Gets a request's `User-Agent` header value.
