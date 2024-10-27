@@ -137,7 +137,7 @@ public class Url internal constructor(
      **/
     public val segments: List<String> by lazy {
         if (pathSegments.isEmpty()) return@lazy emptyList()
-        val start = if (pathSegments.first().isEmpty()) 1 else 0
+        val start = if (pathSegments.first().isEmpty() && pathSegments.size > 1) 1 else 0
         val end = if (pathSegments.last().isEmpty()) pathSegments.lastIndex else pathSegments.lastIndex + 1
         pathSegments.subList(start, end)
     }
