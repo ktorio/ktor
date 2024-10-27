@@ -34,6 +34,8 @@ class UrlTest {
         val relative = Url("docs")
         val relativeWithTrailing = Url("docs/")
         val empty = Url("https://ktor.io")
+        val emptyWithTrailing = Url("http://ktor.io/")
+
 
         val expected = listOf("docs")
         assertContentEquals(expected, full.segments)
@@ -42,6 +44,7 @@ class UrlTest {
         assertContentEquals(expected, relative.segments)
         assertContentEquals(expected, relativeWithTrailing.segments)
         assertContentEquals(emptyList<String>(), empty.segments)
+        assertContentEquals(emptyList(), emptyWithTrailing.segments)
     }
 
     @Test
