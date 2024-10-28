@@ -8,7 +8,6 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
 import kotlin.time.Duration.Companion.milliseconds
