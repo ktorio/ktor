@@ -53,7 +53,7 @@ abstract interface <#A: kotlin/Any> io.ktor.utils.io.pool/ObjectPool : kotlin/Au
     open fun close() // io.ktor.utils.io.pool/ObjectPool.close|close(){}[0]
 }
 
-abstract interface io.ktor.utils.io.core/Closeable { // io.ktor.utils.io.core/Closeable|null[0]
+abstract interface io.ktor.utils.io.core/Closeable : kotlin/AutoCloseable { // io.ktor.utils.io.core/Closeable|null[0]
     abstract fun close() // io.ktor.utils.io.core/Closeable.close|close(){}[0]
 }
 
