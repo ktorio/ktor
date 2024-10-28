@@ -21,6 +21,7 @@ import javax.security.auth.x500.*
 import kotlin.time.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.use
 
 internal val DEFAULT_PRINCIPAL = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
 private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
