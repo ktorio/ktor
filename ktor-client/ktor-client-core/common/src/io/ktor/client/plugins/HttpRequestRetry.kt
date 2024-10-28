@@ -4,7 +4,6 @@
 
 package io.ktor.client.plugins
 
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.api.*
@@ -219,6 +218,7 @@ public class HttpRequestRetryConfig {
  * }
  * ```
  */
+@OptIn(InternalAPI::class)
 @Suppress("NAME_SHADOWING")
 public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClientPlugin(
     "RetryFeature",
@@ -295,6 +295,10 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
                 }
                 call = proceed(subRequest)
                 if (!shouldRetry(retryCount, maxRetries, shouldRetry, call)) {
+                    // throws exception if body is corrupt
+                    if (call.response.isSaved && !call.response.rawContent.isClosedForRead) {
+                        call.response.readBytes(0)
+                    }
                     break
                 }
                 HttpRetryEventData(subRequest, ++retryCount, call.response, null)
