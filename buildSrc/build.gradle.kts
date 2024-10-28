@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-val ktor_version = "3.0.1-eap-1117"
+val ktor_version = "3.0.1-eap-1122"
 
 dependencies {
     val kotlin_version = libs.versions.kotlin.get()
