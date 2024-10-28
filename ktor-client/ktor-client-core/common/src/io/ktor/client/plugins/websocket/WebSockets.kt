@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.websocket
 
@@ -150,11 +150,11 @@ public class WebSockets internal constructor(
 
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) {
                 if (!context.url.protocol.isWebsocket()) {
-                    LOGGER.trace("Skipping WebSocket plugin for non-websocket request: ${context.url}")
+                    LOGGER.trace { "Skipping WebSocket plugin for non-websocket request: ${context.url}" }
                     return@intercept
                 }
 
-                LOGGER.trace("Sending WebSocket request ${context.url}")
+                LOGGER.trace { "Sending WebSocket request ${context.url}" }
                 context.setCapability(WebSocketCapability, Unit)
 
                 if (extensionsSupported) {
@@ -170,7 +170,7 @@ public class WebSockets internal constructor(
                 val requestContent = response.request.content
 
                 if (requestContent !is WebSocketContent) {
-                    LOGGER.trace("Skipping non-websocket response from ${context.request.url}: $session")
+                    LOGGER.trace { "Skipping non-websocket response from ${context.request.url}: $requestContent" }
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
@@ -180,11 +180,11 @@ public class WebSockets internal constructor(
                 }
                 if (session !is WebSocketSession) {
                     throw WebSocketException(
-                        "Handshake exception, expected `WebSocketSession` content but was $session"
+                        "Handshake exception, expected `WebSocketSession` content but was ${session::class}"
                     )
                 }
 
-                LOGGER.trace("Receive websocket session from ${context.request.url}: $session")
+                LOGGER.trace { "Receive websocket session from ${context.request.url}: $session" }
 
                 if (plugin.maxFrameSize != Int.MAX_VALUE.toLong()) {
                     session.maxFrameSize = plugin.maxFrameSize
