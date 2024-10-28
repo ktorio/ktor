@@ -88,6 +88,11 @@ subprojects {
 
         configureSourceSets()
         setupJvmToolchain()
+
+        compilerOptions {
+            languageVersion = getKotlinLanguageVersion()
+            apiVersion = getKotlinApiVersion()
+        }
     }
 
     val skipPublish: List<String> by rootProject.extra
