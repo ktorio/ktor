@@ -6,7 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-internal const val MIMES_COUNT: Int = 1212
+internal const val INITIAL_MIMES_LIST_SIZE: Int = 1212
 
 private val rawMimes: String
     get() = """
@@ -999,14 +999,14 @@ application/vnd.oasis.opendocument.database,odb
 """
 
 internal fun loadMimes(): List<Pair<String, ContentType>> {
-    return rawMimes.lineSequence().flatMapTo(ArrayList(MIMES_COUNT)) {
+    return rawMimes.lineSequence().flatMapTo(ArrayList(INITIAL_MIMES_LIST_SIZE)) {
         val line = it.trim()
-        if (line.isEmpty() || line.startsWith("#")) return@flatMapTo emptyList()
+        if (line.isEmpty() || line.startsWith("#")) return@flatMapTo emptySequence()
         val (mime, extensions) = line.split(",", limit = 2)
         val contentType = mime.toContentType()
         extensions.splitToSequence(" ").map {
                 ext -> ext.toLowerCasePreservingASCIIRules() to contentType
-        }.toList()
+        }
     }
 }
 

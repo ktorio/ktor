@@ -26,8 +26,8 @@ class MimesTest {
     }
 
     @Test
-    fun testMimesSize() {
-        assertEquals(MIMES_COUNT, mimes.size)
+    fun `test mimes size matches preallocated list size`() {
+        assertEquals(INITIAL_MIMES_LIST_SIZE, mimes.size)
     }
 
 }
