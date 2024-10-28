@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.cache.storage
@@ -10,7 +10,6 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
