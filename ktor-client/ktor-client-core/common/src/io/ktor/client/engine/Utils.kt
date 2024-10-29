@@ -16,7 +16,7 @@ import kotlin.coroutines.*
  * Default user agent to use in ktor client.
  */
 @InternalAPI
-public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
+public val KTOR_DEFAULT_USER_AGENT: String = "ktor-client"
 
 private val DATE_HEADERS = setOf(
     HttpHeaders.Date,
