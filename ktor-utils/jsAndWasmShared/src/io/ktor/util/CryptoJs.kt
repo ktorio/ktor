@@ -13,10 +13,7 @@ import kotlin.js.*
  */
 public actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES).toJsArray()
-    when {
-        PlatformUtils.IS_NODE -> _crypto.randomFillSync(buffer)
-        else -> _crypto.getRandomValues(buffer)
-    }
+    _crypto.getRandomValues(buffer)
     return hex(buffer.toByteArray())
 }
 
@@ -49,8 +46,6 @@ private external class Crypto {
     val subtle: SubtleCrypto
 
     fun getRandomValues(array: Int8Array)
-
-    fun randomFillSync(array: Int8Array)
 }
 
 private external class SubtleCrypto {
