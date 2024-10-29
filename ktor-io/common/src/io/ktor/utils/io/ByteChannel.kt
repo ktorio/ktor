@@ -13,12 +13,36 @@ import kotlin.coroutines.*
 import kotlin.jvm.*
 
 internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
+internal expect val DEBUG: Boolean
+
+internal class IOTrace {
+    lateinit var created: Throwable
+    lateinit var closed: Throwable
+    internal val reads by lazy { mutableListOf<Throwable>() }
+    internal val flushes by lazy { mutableListOf<Throwable>() }
+    fun create() {
+        created = Throwable()
+    }
+    fun close() {
+        closed = Throwable()
+    }
+    fun flush() {
+        flushes.add(Throwable())
+    }
+    fun awaitRead() {
+        reads.add(Throwable())
+    }
+
+    private fun createException() = Exception().also { it.stackTraceToString() }
+}
 
 /**
  * Sequential (non-concurrent) byte channel implementation
  */
 public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
     private val flushBuffer: Buffer = Buffer()
+
+    internal val trace = IOTrace().apply { create() }
 
     @Volatile
     private var flushBufferSize = 0
@@ -97,6 +121,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @InternalAPI
     public override fun flushWriteBuffer() {
+        trace.flush()
         if (_writeBuffer.exhausted()) return
 
         synchronized(flushBufferMutex) {
@@ -111,7 +136,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @OptIn(InternalAPI::class)
     override fun close() {
         flushWriteBuffer()
-
+        trace.close()
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return
         closeSlot(null)
@@ -121,7 +146,8 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         runCatching {
             flush()
         }
-
+    
+        trace.close()
         // It's important to flush before we have closedCause set
         if (!_closedCause.compareAndSet(null, CLOSED)) return
         closeSlot(null)
@@ -143,6 +169,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         crossinline createTask: (Continuation<Unit>) -> TaskType,
         crossinline shouldSleep: () -> Boolean
     ) {
+        trace.awaitRead()
         while (shouldSleep()) {
             suspendCancellableCoroutine { continuation ->
                 trySuspend<TaskType>(createTask(continuation), shouldSleep)
