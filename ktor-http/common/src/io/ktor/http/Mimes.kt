@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
@@ -1002,10 +1002,11 @@ internal fun loadMimes(): List<Pair<String, ContentType>> {
     return rawMimes.lineSequence().flatMapTo(ArrayList(INITIAL_MIMES_LIST_SIZE)) {
         val line = it.trim()
         if (line.isEmpty() || line.startsWith("#")) return@flatMapTo emptySequence()
+
         val (mime, extensions) = line.split(",", limit = 2)
         val contentType = mime.toContentType()
-        extensions.splitToSequence(" ").map {
-                ext -> ext.toLowerCasePreservingASCIIRules() to contentType
+        extensions.splitToSequence(" ").map { ext ->
+            ext.toLowerCasePreservingASCIIRules() to contentType
         }
     }
 }
