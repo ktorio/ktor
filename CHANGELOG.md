@@ -8,6 +8,7 @@
 * about:blank URL should be parsed correctly as about:blank ([KTOR-7410](https://youtrack.jetbrains.com/issue/KTOR-7410))
 * ByteReadChannel.{readShort/readInt/readLong} could lead to CPU-bound indefinite loop since 3.0.0 ([KTOR-7571](https://youtrack.jetbrains.com/issue/KTOR-7571))
 * CIO: Requests face connection timeouts when executed on the Android main dispatcher ([KTOR-6803](https://youtrack.jetbrains.com/issue/KTOR-6803))
+* receiveMultipart fails with "IOException: Failed to parse multipart" when content-type is capitalized ([KTOR-7596](https://youtrack.jetbrains.com/issue/KTOR-7596))
 
 ### Improvements
 * WebSockets logging: The plugin calls toString() unnecessarily on transformed response body ([KTOR-7623](https://youtrack.jetbrains.com/issue/KTOR-7623))
