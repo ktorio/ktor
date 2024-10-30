@@ -1,3 +1,23 @@
+# 3.0.1
+> Published 29 October 2024
+
+### Bugfixes
+* Remove space from the default client user agent ([KTOR-7655](https://youtrack.jetbrains.com/issue/KTOR-7655))
+* `Url.segments` throws on URLs with root path ([KTOR-7625](https://youtrack.jetbrains.com/issue/KTOR-7625))
+* Digest Auth does not implement nc parameter correctly according to RFC 7616 ([KTOR-4318](https://youtrack.jetbrains.com/issue/KTOR-4318))
+* about:blank URL should be parsed correctly as about:blank ([KTOR-7410](https://youtrack.jetbrains.com/issue/KTOR-7410))
+* ByteReadChannel.{readShort/readInt/readLong} could lead to CPU-bound indefinite loop since 3.0.0 ([KTOR-7571](https://youtrack.jetbrains.com/issue/KTOR-7571))
+* CIO: Requests face connection timeouts when executed on the Android main dispatcher ([KTOR-6803](https://youtrack.jetbrains.com/issue/KTOR-6803))
+* receiveMultipart fails with "IOException: Failed to parse multipart" when content-type is capitalized ([KTOR-7596](https://youtrack.jetbrains.com/issue/KTOR-7596))
+
+### Improvements
+* WebSockets logging: The plugin calls toString() unnecessarily on transformed response body ([KTOR-7623](https://youtrack.jetbrains.com/issue/KTOR-7623))
+* INFO log message with all server interceptors on server startup ([KTOR-7326](https://youtrack.jetbrains.com/issue/KTOR-7326))
+* Digest auth: `username` and `cnonce` parameters aren't surrounded with quotes ([KTOR-7561](https://youtrack.jetbrains.com/issue/KTOR-7561))
+* ContentType.fromFilePath for newer file formats HEIC, AVIF, HEIF ([KTOR-7536](https://youtrack.jetbrains.com/issue/KTOR-7536))
+* Support missing native targets in ktor-serialization-kotlinx-xml ([KTOR-7583](https://youtrack.jetbrains.com/issue/KTOR-7583))
+
+
 # 3.0.0
 > Published 9 October 2024
 
