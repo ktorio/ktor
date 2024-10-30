@@ -61,9 +61,10 @@ fun Project.setupTrainForSubproject() {
 private val Project.buildSnapshotTrain: Boolean
     get() = rootProject.findProperty("build_snapshot_train")?.toString().toBoolean()
 
-private fun check(version: Any, libVersion: Provider<String>, libName: String) {
+private fun check(version: Any, libVersionProvider: Provider<String>, libName: String) {
+    val libVersion = libVersionProvider.get()
     check(version == libVersion) {
-        "Current deploy version is $version, but $libName version is not overridden (${libVersion.get()})"
+        "Current deploy version is $version, but $libName version is not overridden ($libVersion)"
     }
 }
 
