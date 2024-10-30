@@ -895,7 +895,9 @@ public final class io/ktor/server/http/content/StaticContentResolutionKt {
 public final class io/ktor/server/http/content/SuppressionAttributeKt {
 	public static final fun getSuppressionAttribute ()Lio/ktor/util/AttributeKey;
 	public static final fun isCompressionSuppressed (Lio/ktor/server/application/ApplicationCall;)Z
+	public static final fun isDecompressionSuppressed (Lio/ktor/server/application/ApplicationCall;)Z
 	public static final fun suppressCompression (Lio/ktor/server/application/ApplicationCall;)V
+	public static final fun suppressDecompression (Lio/ktor/server/application/ApplicationCall;)V
 }
 
 public final class io/ktor/server/logging/LoggingKt {

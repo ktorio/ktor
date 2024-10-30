@@ -769,6 +769,54 @@ class CompressionTest {
         assertContentEquals(textToCompressAsBytes, response.body<ByteArray>())
     }
 
+    @Test
+    fun testDisableCallEncoding() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+
+        install(Compression)
+        routing {
+            post("/gzip") {
+                call.suppressCompression()
+
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                val body = call.receive<ByteArray>()
+                assertContentEquals(textToCompressAsBytes, body)
+                call.respond(textToCompressAsBytes)
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertContentEquals(textToCompressAsBytes, response.body<ByteArray>())
+    }
+
+    @Test
+    fun testDisableCallDecoding() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+
+        install(Compression) {
+            mode = CompressionConfig.Mode.CompressResponse
+        }
+        routing {
+            post("/gzip") {
+                assertEquals("gzip", call.request.headers[HttpHeaders.ContentEncoding])
+                val body = call.receive<ByteArray>()
+                assertContentEquals(compressed, body)
+                call.respond(textToCompress)
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertContentEquals(compressed, response.body<ByteArray>())
+    }
+
     private suspend fun ApplicationTestBuilder.handleAndAssert(
         url: String,
         acceptHeader: String?,
