@@ -12,8 +12,6 @@
 ### Improvements
 * WebSockets logging: The plugin calls toString() unnecessarily on transformed response body ([KTOR-7623](https://youtrack.jetbrains.com/issue/KTOR-7623))
 * INFO log message with all server interceptors on server startup ([KTOR-7326](https://youtrack.jetbrains.com/issue/KTOR-7326))
-* Gradle plugin uses deprecated features which will be removed by Gradle 9.0 ([KTOR-6107](https://youtrack.jetbrains.com/issue/KTOR-6107))
-* Update Gradle Plugin dependencies ([KTOR-7647](https://youtrack.jetbrains.com/issue/KTOR-7647))
 * Digest auth: `username` and `cnonce` parameters aren't surrounded with quotes ([KTOR-7561](https://youtrack.jetbrains.com/issue/KTOR-7561))
 * ContentType.fromFilePath for newer file formats HEIC, AVIF, HEIF ([KTOR-7536](https://youtrack.jetbrains.com/issue/KTOR-7536))
 * Support missing native targets in ktor-serialization-kotlinx-xml ([KTOR-7583](https://youtrack.jetbrains.com/issue/KTOR-7583))
