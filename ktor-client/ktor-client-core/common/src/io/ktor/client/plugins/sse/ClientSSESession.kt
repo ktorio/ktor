@@ -27,7 +27,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     /**
      * An incoming server-sent events flow.
      */
-    public val incoming: Flow<ServerSentEventParsed<String>>
+    public val incoming: Flow<TypedServerSentEvent<String>>
 
     /**
      * Deserializer for transforming field `data` of `ServerSentEvent` into desired data object.
@@ -56,7 +56,7 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  * @return The deserialized object of type [T], or null if deserialization is not successful.
  */
 public inline fun <reified T> SSESessionWithDeserialization.deserialize(
-    event: ServerSentEventParsed<String>
+    event: TypedServerSentEvent<String>
 ): T? = deserialize(event.data)
 
 /**

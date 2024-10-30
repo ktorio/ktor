@@ -71,7 +71,7 @@ public interface SSESessionWithSerialization : SSESession {
     public val serializer: (TypeInfo, Any) -> String
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(event: ServerSentEventParsed<T>) {
+public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(event: TypedServerSentEvent<T>) {
     send(
         ServerSentEvent(
             event.data?.let {
@@ -92,7 +92,7 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(
     retry: Long? = null,
     comments: String? = null
 ) {
-    send(ServerSentEventParsed(data, event, id, retry, comments))
+    send(TypedServerSentEvent(data, event, id, retry, comments))
 }
 
 public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(data: T) {

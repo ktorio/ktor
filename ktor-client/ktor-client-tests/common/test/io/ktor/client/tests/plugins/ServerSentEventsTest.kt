@@ -524,7 +524,7 @@ class ServerSentEventsTest : ClientLoader(2.minutes) {
                 Json.decodeFromString(serializer, jsonString) ?: Exception()
             }) {
                 var firstIsCustomer = true
-                incoming.collect { event: ServerSentEventParsed<String> ->
+                incoming.collect { event: TypedServerSentEvent<String> ->
                     if (firstIsCustomer) {
                         val customer = deserialize<Customer>(event.data)
                         assertEquals(1, customer?.id)
