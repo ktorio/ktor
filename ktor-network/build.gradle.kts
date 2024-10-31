@@ -19,13 +19,13 @@ kotlin {
     }
 
     sourceSets {
-        jvmAndPosixMain {
+        commonMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
         }
 
-        jvmAndPosixTest {
+        commonTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }
