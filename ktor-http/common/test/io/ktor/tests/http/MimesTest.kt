@@ -10,7 +10,7 @@ import kotlin.test.*
 class MimesTest {
 
     @Test
-    fun `test mime with multiple extensions`() {
+    fun testMimeWithMultipleExtensions() {
         val textPlain = "text/plain".toContentType()
         val textMime = "text" to textPlain
         val txtMime = "txt" to textPlain
@@ -19,14 +19,14 @@ class MimesTest {
     }
 
     @Test
-    fun `test mime with single extension`() {
+    fun testMimeWithSingleExtension() {
         val acad = "application/acad".toContentType()
         val dwgMime = "dwg" to acad
         assertTrue(mimes.contains(dwgMime))
     }
 
     @Test
-    fun `test mimes size matches preallocated list size`() {
+    fun testMimesSizeMatchesPreallocatedListSize() {
         assertEquals(INITIAL_MIMES_LIST_SIZE, mimes.size)
     }
 }
