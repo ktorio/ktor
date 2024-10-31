@@ -1,5 +1,6 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -34,11 +35,6 @@ abstract interface <#A: out io.ktor.network.sockets/Configurable<#A, #B>, #B: io
         abstract fun <set-options>(#B) // io.ktor.network.sockets/Configurable.options.<set-options>|<set-options>(1:1){}[0]
 
     open fun configure(kotlin/Function1<#B, kotlin/Unit>): #A // io.ktor.network.sockets/Configurable.configure|configure(kotlin.Function1<1:1,kotlin.Unit>){}[0]
-}
-
-abstract interface io.ktor.network.selector/Selectable { // io.ktor.network.selector/Selectable|null[0]
-    abstract val descriptor // io.ktor.network.selector/Selectable.descriptor|{}descriptor[0]
-        abstract fun <get-descriptor>(): kotlin/Int // io.ktor.network.selector/Selectable.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
 }
 
 abstract interface io.ktor.network.selector/SelectorManager : io.ktor.utils.io.core/Closeable, kotlinx.coroutines/CoroutineScope { // io.ktor.network.selector/SelectorManager|null[0]
@@ -101,10 +97,6 @@ abstract interface io.ktor.network.sockets/Socket : io.ktor.network.sockets/ABou
 
 final class io.ktor.network.selector/ClosedChannelCancellationException : kotlin.coroutines.cancellation/CancellationException { // io.ktor.network.selector/ClosedChannelCancellationException|null[0]
     constructor <init>() // io.ktor.network.selector/ClosedChannelCancellationException.<init>|<init>(){}[0]
-}
-
-final class io.ktor.network.selector/SocketError : kotlin/IllegalStateException { // io.ktor.network.selector/SocketError|null[0]
-    constructor <init>() // io.ktor.network.selector/SocketError.<init>|<init>(){}[0]
 }
 
 final class io.ktor.network.sockets/Connection { // io.ktor.network.sockets/Connection|null[0]
@@ -284,3 +276,17 @@ final fun <#A: io.ktor.network.sockets/Configurable<#A, *>> (#A).io.ktor.network
 final fun io.ktor.network.selector/SelectorManager(kotlin.coroutines/CoroutineContext = ...): io.ktor.network.selector/SelectorManager // io.ktor.network.selector/SelectorManager|SelectorManager(kotlin.coroutines.CoroutineContext){}[0]
 final fun io.ktor.network.sockets/aSocket(io.ktor.network.selector/SelectorManager): io.ktor.network.sockets/SocketBuilder // io.ktor.network.sockets/aSocket|aSocket(io.ktor.network.selector.SelectorManager){}[0]
 final suspend fun (io.ktor.network.sockets/ASocket).io.ktor.network.sockets/awaitClosed() // io.ktor.network.sockets/awaitClosed|awaitClosed@io.ktor.network.sockets.ASocket(){}[0]
+
+// Targets: [native]
+abstract interface io.ktor.network.selector/Selectable { // io.ktor.network.selector/Selectable|null[0]
+    abstract val descriptor // io.ktor.network.selector/Selectable.descriptor|{}descriptor[0]
+        abstract fun <get-descriptor>(): kotlin/Int // io.ktor.network.selector/Selectable.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+}
+
+// Targets: [native]
+final class io.ktor.network.selector/SocketError : kotlin/IllegalStateException { // io.ktor.network.selector/SocketError|null[0]
+    constructor <init>() // io.ktor.network.selector/SocketError.<init>|<init>(){}[0]
+}
+
+// Targets: [js, wasmJs]
+abstract interface io.ktor.network.selector/Selectable // io.ktor.network.selector/Selectable|null[0]

@@ -10,7 +10,7 @@ import kotlinx.cinterop.*
 import platform.posix.*
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun connectUDP(
+internal actual suspend fun udpConnect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     localAddress: SocketAddress?,
@@ -51,7 +51,7 @@ internal actual fun connectUDP(
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun bindUDP(
+internal actual suspend fun udpBind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
