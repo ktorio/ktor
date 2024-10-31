@@ -9,12 +9,16 @@ plugins {
 description = "Internal module for checking JPMS compliance"
 
 val generateModuleInfo = tasks.register("generateModuleInfo") {
-    doLast {
-        val modules = rootProject.subprojects
-            .filter { it.hasJavaModule }
-            .map { it.javaModuleName() }
+    val modules = rootProject.subprojects
+        .filter { it.hasJavaModule }
+        .map { it.javaModuleName() }
+    inputs.property("modules", modules)
 
-        File(projectDir.absolutePath + "/src/main/java/module-info.java")
+    val moduleInfoFile = layout.projectDirectory.file("src/main/java/module-info.java")
+    outputs.file(moduleInfoFile)
+
+    doLast {
+        moduleInfoFile.asFile
             .apply {
                 parentFile.mkdirs()
                 createNewFile()
@@ -29,9 +33,11 @@ val generateModuleInfo = tasks.register("generateModuleInfo") {
 
 tasks.named<JavaCompile>("compileJava") {
     dependsOn(generateModuleInfo)
+
+    val emptyClasspath = objects.fileCollection()
     doFirst {
         options.compilerArgs.addAll(listOf("--module-path", classpath.asPath))
-        classpath = files()
+        classpath = emptyClasspath
     }
 }
 java {

@@ -39,7 +39,7 @@ fun Project.configureJvm() {
     tasks.register<Jar>("jarTest") {
         dependsOn(tasks.named("jvmTestClasses"))
         archiveClassifier = "test"
-        from(kotlin.jvm().compilations.named("test").map { it.output })
+        from(kotlin.jvm().compilations["test"].output)
     }
 
     configurations {
