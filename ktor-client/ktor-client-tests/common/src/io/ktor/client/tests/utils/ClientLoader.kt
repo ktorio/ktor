@@ -26,7 +26,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         onlyWithEngine: String? = null,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult = runTest(timeout = timeout) {
-        val skipPatterns = skipEngines.map(SkipEnginePattern::parse)
+        val skipPatterns = skipEngines.map { SkipEnginePattern.parse(it.lowercase()) }
 
         val failures: List<TestFailure> = enginesToTest.mapNotNull { engineFactory ->
             val engineName = engineFactory.toString().lowercase()
@@ -47,7 +47,15 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
             }
         }
 
-        if (failures.isNotEmpty()) throw AssertionError(failures.joinToString("\n"))
+        if (failures.isNotEmpty()) {
+            throw AssertionError(buildString {
+                appendLine("Test failed for engines: ${failures.map { it.engineName }}")
+                failures.forEach {
+                    appendLine("Test failed for engine '$platformName:${it.engineName}' with:")
+                    appendLine(it.cause.stackTraceToString().prependIndent("  "))
+                }
+            })
+        }
     }
 
     private fun shouldRun(
@@ -95,7 +103,7 @@ private data class SkipEnginePattern(
 
     companion object {
         fun parse(pattern: String): SkipEnginePattern {
-            val parts = pattern.lowercase().split(":").map { it.takeIf { it != "*" } }
+            val parts = pattern.split(":").map { it.takeIf { it != "*" } }
             val platform: String?
             val engine: String?
             when (parts.size) {
@@ -120,12 +128,4 @@ private data class SkipEnginePattern(
     }
 }
 
-private class TestFailure(val engineName: String, val cause: Throwable) {
-    override fun toString(): String = buildString {
-        appendLine("Test failed with engine: '$platformName:$engineName'")
-        appendLine(cause)
-        for (stackLine in cause.stackTraceToString().lines()) {
-            appendLine("\t$stackLine")
-        }
-    }
-}
+private class TestFailure(val engineName: String, val cause: Throwable)
