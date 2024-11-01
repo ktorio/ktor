@@ -58,16 +58,19 @@ fun Project.configureTestTasksOnCi() {
  */
 private fun KotlinJvmTest.applyTestRetryCompatibilityWorkaround() {
     if (targetName == null) return
+    val originalTargetName = targetName
 
     val executeTestsActionIndex = taskActions.indexOfLast { it.displayName == "Execute executeTests" }
     check(executeTestsActionIndex != -1) { "Action executeTests not found" }
 
     // Add the workaround action and then move it to the correct position right before tests execution.
-    doFirst("workaround for compatibility with testRetry") {
-        targetName = null
-    }
+    doFirst("workaround for compatibility with testRetry") { targetName = null }
     val injectedAction = taskActions.removeFirst()
     taskActions.add(executeTestsActionIndex, injectedAction)
+
+    // Restore targetName value as other plugins might rely on it.
+    // For example, kover uses it to find test tasks by target name
+    doLast("restore targetName") { targetName = originalTargetName }
 }
 
 // Docs: https://docs.gradle.com/develocity/gradle-plugin/current/#test_retry
