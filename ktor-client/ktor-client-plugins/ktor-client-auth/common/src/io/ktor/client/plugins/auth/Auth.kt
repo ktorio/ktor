@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
@@ -26,7 +27,7 @@ private class AtomicCounter {
 @KtorDsl
 public class AuthConfig {
     public val providers: MutableList<AuthProvider> = mutableListOf()
-    public val reAuthStatusCodes: MutableList<HttpStatusCode> = mutableListOf(HttpStatusCode.Unauthorized)
+    public var isUnauthorized: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
 }
 
 /**
@@ -41,7 +42,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
  *
  * [providers] - list of auth providers to use.
- * [reAuthStatusCodes] - list of [HttpStatusCode] values which trigger a re-auth.
+ * [isUnauthorized] - lambda function to control whether a response is unauthorized and should trigger a re-auth.
  */
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
@@ -66,10 +67,10 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
             }
 
             authHeaders.isEmpty() -> {
-                LOGGER.trace(
-                    "401 response ${call.request.url} has no or empty \"WWW-Authenticate\" header. " +
+                LOGGER.trace {
+                    "Unauthorized response ${call.request.url} has no or empty \"WWW-Authenticate\" header. " +
                         "Can not add or refresh token"
-                )
+                }
                 null
             }
 
@@ -90,9 +91,9 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
         val requestTokenVersion = requestTokenVersions[provider]
 
         if (requestTokenVersion != null && requestTokenVersion >= tokenVersion.atomic.value) {
-            LOGGER.trace("Refreshing token for ${call.request.url}")
+            LOGGER.trace { "Refreshing token for ${call.request.url}" }
             if (!provider.refreshToken(call.response)) {
-                LOGGER.trace("Refreshing token failed for ${call.request.url}")
+                LOGGER.trace { "Refreshing token failed for ${call.request.url}" }
                 return false
             } else {
                 requestTokenVersions[provider] = tokenVersion.atomic.incrementAndGet()
@@ -113,13 +114,13 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
         provider.addRequestHeaders(request, authHeader)
         request.attributes.put(AuthCircuitBreaker, Unit)
 
-        LOGGER.trace("Sending new request to ${call.request.url}")
+        LOGGER.trace { "Sending new request to ${call.request.url}" }
         return proceed(request)
     }
 
     onRequest { request, _ ->
         providers.filter { it.sendWithoutRequest(request) }.forEach { provider ->
-            LOGGER.trace("Adding auth headers for ${request.url} from provider $provider")
+            LOGGER.trace { "Adding auth headers for ${request.url} from provider $provider" }
             val tokenVersion = tokenVersions.computeIfAbsent(provider) { AtomicCounter() }
             val requestTokenVersions = request.attributes
                 .computeIfAbsent(tokenVersionsAttributeKey) { mutableMapOf() }
@@ -130,22 +131,22 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
 
     on(Send) { originalRequest ->
         val origin = proceed(originalRequest)
-        if (origin.response.status !in pluginConfig.reAuthStatusCodes) return@on origin
+        if (!pluginConfig.isUnauthorized(origin.response)) return@on origin
         if (origin.request.attributes.contains(AuthCircuitBreaker)) return@on origin
 
         var call = origin
 
         val candidateProviders = HashSet(providers)
 
-        while (call.response.status in pluginConfig.reAuthStatusCodes) {
-            LOGGER.trace("Received 401 for ${call.request.url}")
+        while (pluginConfig.isUnauthorized(call.response)) {
+            LOGGER.trace { "Unauthorized response for ${call.request.url}" }
 
             val (provider, authHeader) = findProvider(call, candidateProviders) ?: run {
-                LOGGER.trace("Can not find auth provider for ${call.request.url}")
+                LOGGER.trace { "Can not find auth provider for ${call.request.url}" }
                 return@on call
             }
 
-            LOGGER.trace("Using provider $provider for ${call.request.url}")
+            LOGGER.trace { "Using provider $provider for ${call.request.url}" }
 
             candidateProviders.remove(provider)
             if (!refreshTokenIfNeeded(call, provider, originalRequest)) return@on call

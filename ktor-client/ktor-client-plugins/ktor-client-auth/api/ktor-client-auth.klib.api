@@ -155,8 +155,10 @@ final class io.ktor.client.plugins.auth/AuthConfig { // io.ktor.client.plugins.a
 
     final val providers // io.ktor.client.plugins.auth/AuthConfig.providers|{}providers[0]
         final fun <get-providers>(): kotlin.collections/MutableList<io.ktor.client.plugins.auth/AuthProvider> // io.ktor.client.plugins.auth/AuthConfig.providers.<get-providers>|<get-providers>(){}[0]
-    final val reAuthStatusCodes // io.ktor.client.plugins.auth/AuthConfig.reAuthStatusCodes|{}reAuthStatusCodes[0]
-        final fun <get-reAuthStatusCodes>(): kotlin.collections/MutableList<io.ktor.http/HttpStatusCode> // io.ktor.client.plugins.auth/AuthConfig.reAuthStatusCodes.<get-reAuthStatusCodes>|<get-reAuthStatusCodes>(){}[0]
+
+    final var isUnauthorized // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized|{}isUnauthorized[0]
+        final fun <get-isUnauthorized>(): kotlin/Function1<io.ktor.client.statement/HttpResponse, kotlin/Boolean> // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized.<get-isUnauthorized>|<get-isUnauthorized>(){}[0]
+        final fun <set-isUnauthorized>(kotlin/Function1<io.ktor.client.statement/HttpResponse, kotlin/Boolean>) // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized.<set-isUnauthorized>|<set-isUnauthorized>(kotlin.Function1<io.ktor.client.statement.HttpResponse,kotlin.Boolean>){}[0]
 }
 
 final val io.ktor.client.plugins.auth/Auth // io.ktor.client.plugins.auth/Auth|{}Auth[0]
