@@ -168,14 +168,7 @@ public fun renderSetCookieHeader(
  * Encode cookie value using the specified [encoding]
  */
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
-    CookieEncoding.RAW -> when {
-        value.any { it.shouldEscapeInCookies() } ->
-            throw IllegalArgumentException(
-                "The cookie value contains characters that cannot be encoded in RAW format. " +
-                    " Consider URL_ENCODING mode"
-            )
-        else -> value
-    }
+    CookieEncoding.RAW -> value
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
             "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
