@@ -2,55 +2,10 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.gradle.api.Project
 import org.jetbrains.dokka.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.konan.target.*
-
-buildscript {
-    /*
-     * These property group is used to build ktor against Kotlin compiler snapshot.
-     * How does it work:
-     * When build_snapshot_train is set to true, kotlin_version property is overridden with kotlin_snapshot_version,
-     * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
-     * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
-     * DO NOT change the name of these properties without adapting kotlinx.train build chain.
-     */
-    extra["build_snapshot_train"] = rootProject.properties["build_snapshot_train"]
-    val build_snapshot_train: String? by extra
-
-    if (build_snapshot_train.toBoolean()) {
-        extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-        val kotlin_version: String? by extra
-        if (kotlin_version == null) {
-            throw IllegalArgumentException(
-                "'kotlin_snapshot_version' should be defined when building with snapshot compiler",
-            )
-        }
-        repositories {
-            maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
-                mavenContent { snapshotsOnly() }
-            }
-            mavenLocal()
-        }
-
-        configurations.classpath {
-            resolutionStrategy.eachDependency {
-                if (requested.group == "org.jetbrains.kotlin") {
-                    useVersion(kotlin_version!!)
-                }
-            }
-        }
-    }
-
-    repositories {
-        mavenCentral()
-        google()
-        gradlePluginPortal()
-        mavenLocal()
-    }
-}
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
@@ -133,6 +88,11 @@ subprojects {
 
         configureSourceSets()
         setupJvmToolchain()
+
+        compilerOptions {
+            languageVersion = getKotlinLanguageVersion()
+            apiVersion = getKotlinApiVersion()
+        }
     }
 
     val skipPublish: List<String> by rootProject.extra
@@ -143,7 +103,7 @@ subprojects {
     configureCodestyle()
 }
 
-println("Using Kotlin compiler version: ${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
+println("Using Kotlin compiler version: ${libs.versions.kotlin.get()}")
 filterSnapshotTests()
 
 fun configureDokka() {

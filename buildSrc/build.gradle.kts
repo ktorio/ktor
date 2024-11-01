@@ -9,23 +9,11 @@ plugins {
     kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
-val buildSnapshotTrain = properties["build_snapshot_train"]?.toString().toBoolean()
-
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-    if (buildSnapshotTrain) {
-        mavenLocal()
-    }
-}
-
 val ktor_version = "3.0.1-eap-1122"
 
 dependencies {
-    val kotlin_version = libs.versions.kotlin.get()
-    implementation(kotlin("gradle-plugin", kotlin_version))
-    implementation(kotlin("serialization", kotlin_version))
+    implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.kotlin.serialization)
 
     val ktlint_version = libs.versions.ktlint.get()
     implementation("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
@@ -50,7 +38,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
     implementation(libs.tomlj)
-    implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${libs.versions.atomicfu.get()}")
+    implementation(libs.kotlinx.atomicfu.gradlePlugin)
 
     // A hack to make version catalogs accessible from buildSrc sources
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192

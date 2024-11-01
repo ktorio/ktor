@@ -10,4 +10,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "gradle-conventions-settings"
+rootProject.name = "gradle-settings-conventions"
