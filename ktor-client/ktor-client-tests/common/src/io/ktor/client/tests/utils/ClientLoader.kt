@@ -48,13 +48,14 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         }
 
         if (failures.isNotEmpty()) {
-            throw AssertionError(buildString {
+            val message = buildString {
                 appendLine("Test failed for engines: ${failures.map { it.engineName }}")
                 failures.forEach {
                     appendLine("Test failed for engine '$platformName:${it.engineName}' with:")
                     appendLine(it.cause.stackTraceToString().prependIndent("  "))
                 }
-            })
+            }
+            throw AssertionError(message)
         }
     }
 
