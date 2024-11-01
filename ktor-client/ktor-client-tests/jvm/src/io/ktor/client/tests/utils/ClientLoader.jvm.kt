@@ -22,7 +22,7 @@ internal actual val platformName: String by lazy {
         os.contains("win") -> "win"
         os.contains("mac") -> "mac"
         os.contains("nux") -> "unix"
-        else               -> "unknown"
+        else -> "unknown"
     }
 }
 

@@ -99,12 +99,12 @@ private data class SkipEnginePattern(
             val platform: String?
             val engine: String?
             when (parts.size) {
-                1    -> {
+                1 -> {
                     platform = null
                     engine = parts[0]
                 }
 
-                2    -> {
+                2 -> {
                     platform = parts[0]
                     engine = parts[1]
                 }
