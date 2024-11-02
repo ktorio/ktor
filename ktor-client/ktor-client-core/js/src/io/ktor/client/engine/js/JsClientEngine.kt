@@ -19,7 +19,7 @@ import kotlinx.coroutines.*
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
-import kotlin.js.*
+import kotlin.js.Promise
 
 internal class JsClientEngine(
     override val config: JsClientEngineConfig,
@@ -84,8 +84,8 @@ internal class JsClientEngine(
         return when {
             PlatformUtils.IS_BROWSER -> js("new WebSocket(urlString_capturingHack, protocols)")
             else -> {
-                val ws_import = js("import('w' + 's')")
-                val ws_capturingHack = Promise.resolve<Any>(ws_import).await()
+                val ws_import: Promise<dynamic> = js("import('w' + 's')")
+                val ws_capturingHack = ws_import.await().default
                 val headers_capturingHack: dynamic = object {}
                 headers.forEach { name, values ->
                     headers_capturingHack[name] = values.joinToString(",")

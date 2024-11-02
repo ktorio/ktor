@@ -91,7 +91,7 @@ internal class JsClientEngine(
         return when {
             PlatformUtils.IS_BROWSER -> createBrowserWebSocket(urlString, *protocols)
             else -> {
-                val ws_capturingHack = makeImport<JsAny>("ws").await<JsAny>()
+                val ws_capturingHack = makeImport<JsAny>("ws").await<JsAny>().get("default")
                 val headers_capturingHack = makeJsObject<JsAny>()
                 headers.forEach { name, values ->
                     headers_capturingHack[name] = values.joinToString(",")

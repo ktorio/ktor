@@ -29,6 +29,10 @@ internal fun <T : JsAny> makeImport(name: String): Promise<T> = js("import(name)
 @Suppress("UNUSED_PARAMETER")
 private fun setObjectField(obj: JsAny, name: String, value: JsAny): Unit = js("obj[name]=value")
 
+@Suppress("UNUSED_PARAMETER")
+internal operator fun JsAny.get(name: String): JsAny =
+    js("obj[name]")
+
 internal operator fun JsAny.set(name: String, value: JsAny) =
     setObjectField(this, name, value)
 
