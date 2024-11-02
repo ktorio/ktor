@@ -24,7 +24,7 @@ internal fun <T : JsAny> makeJsCall(func: JsAny, vararg arg: JsAny): T = js("fun
 internal fun makeJsCall(func: JsAny, vararg arg: JsAny): Unit = js("func.apply(null, arg)")
 
 @Suppress("UNUSED_PARAMETER")
-internal fun <T : JsAny> makeImport(name: String): Promise<T> = js("((globalThis.import || globalThis.require)(name))")
+internal fun <T : JsAny> makeImport(name: String): Promise<T> = js("import(name)")
 
 @Suppress("UNUSED_PARAMETER")
 private fun setObjectField(obj: JsAny, name: String, value: JsAny): Unit = js("obj[name]=value")
