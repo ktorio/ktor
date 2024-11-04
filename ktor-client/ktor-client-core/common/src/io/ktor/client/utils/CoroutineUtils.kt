@@ -8,7 +8,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * Creates [CoroutineDispatcher] for client with fixed [threadCount] and specified [dispatcherName].
+ * Creates [CoroutineDispatcher] for the client with fixed [threadCount] and specified [dispatcherName].
  */
 @InternalAPI
 public expect fun Dispatchers.clientDispatcher(

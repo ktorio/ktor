@@ -307,6 +307,22 @@ import kotlin.coroutines.*
  *
  * There are many plugins available out of the box, and you can write your own. See
  * [Create custom client plugins](https://ktor.io/docs/client-custom-plugins.html) to learn more.
+ *
+ * # Service Loader and Default Engine
+ * On JVM, calling `HttpClient()` without specifying an engine uses a service loader mechanism to
+ * determine the appropriate default engine. This can introduce a performance overhead, especially on
+ * slower devices, such as Android.
+ *
+ * **Performance Note**: If you are targeting platforms where initialization speed is critical,
+ * consider explicitly specifying an engine to avoid the service loader lookup.
+ *
+ * Example with manual engine specification:
+ * ```
+ * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * ```
+ *
+ * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * by preventing the default service loader mechanism.
  */
 @KtorDsl
 public expect fun HttpClient(
@@ -602,6 +618,22 @@ public expect fun HttpClient(
  *
  * There are many plugins available out of the box, and you can write your own. See
  * [Create custom client plugins](https://ktor.io/docs/client-custom-plugins.html) to learn more.
+ *
+ * # Service Loader and Default Engine
+ * On JVM, calling `HttpClient()` without specifying an engine uses a service loader mechanism to
+ * determine the appropriate default engine. This can introduce a performance overhead, especially on
+ * slower devices, such as Android.
+ *
+ * **Performance Note**: If you are targeting platforms where initialization speed is critical,
+ * consider explicitly specifying an engine to avoid the service loader lookup.
+ *
+ * Example with manual engine specification:
+ * ```
+ * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * ```
+ *
+ * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * by preventing the default service loader mechanism.
  */
 @KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
@@ -910,6 +942,22 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  *
  * There are many plugins available out of the box, and you can write your own. See
  * [Create custom client plugins](https://ktor.io/docs/client-custom-plugins.html) to learn more.
+ *
+ * # Service Loader and Default Engine
+ * On JVM, calling `HttpClient()` without specifying an engine uses a service loader mechanism to
+ * determine the appropriate default engine. This can introduce a performance overhead, especially on
+ * slower devices, such as Android.
+ *
+ * **Performance Note**: If you are targeting platforms where initialization speed is critical,
+ * consider explicitly specifying an engine to avoid the service loader lookup.
+ *
+ * Example with manual engine specification:
+ * ```
+ * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * ```
+ *
+ * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * by preventing the default service loader mechanism.
  */
 @KtorDsl
 public fun HttpClient(
@@ -1206,6 +1254,22 @@ public fun HttpClient(
  *
  * There are many plugins available out of the box, and you can write your own. See
  * [Create custom client plugins](https://ktor.io/docs/client-custom-plugins.html) to learn more.
+ *
+ * # Service Loader and Default Engine
+ * On JVM, calling `HttpClient()` without specifying an engine uses a service loader mechanism to
+ * determine the appropriate default engine. This can introduce a performance overhead, especially on
+ * slower devices, such as Android.
+ *
+ * **Performance Note**: If you are targeting platforms where initialization speed is critical,
+ * consider explicitly specifying an engine to avoid the service loader lookup.
+ *
+ * Example with manual engine specification:
+ * ```
+ * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * ```
+ *
+ * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * by preventing the default service loader mechanism.
  */
 @OptIn(InternalAPI::class)
 public class HttpClient(
@@ -1350,7 +1414,31 @@ public class HttpClient(
     )
 
     /**
-     * Closes the underlying [engine].
+     * Initiates the shutdown process for the `HttpClient`. This is a non-blocking call, which
+     * means it returns immediately and begins the client closure in the background.
+     *
+     * ## Usage
+     * ```
+     * val client = HttpClient()
+     * client.close()
+     * client.coroutineContext.job.join() // Waits for complete termination if necessary
+     * ```
+     *
+     * ## Important Notes
+     * - **Non-blocking**: `close()` only starts the closing process and does not wait for it to complete.
+     * - **Coroutine Context**: To wait for all client resources to be freed, use `client.coroutineContext.job.join()`
+     *   or `client.coroutineContext.cancel()` to terminate ongoing tasks.
+     * - **Manual Engine Management**: If a custom `engine` was manually created, it must be closed explicitly
+     *   after calling `client.close()` to release all resources.
+     *
+     * Example with custom engine management:
+     * ```
+     * val engine = HttpClientEngine() // Custom engine instance
+     * val client = HttpClient(engine)
+     *
+     * client.close()
+     * engine.close() // Ensure manually created engine is also closed
+     * ```
      */
     override fun close() {
         val success = closed.compareAndSet(false, true)
