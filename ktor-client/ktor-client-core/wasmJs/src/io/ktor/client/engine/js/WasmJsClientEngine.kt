@@ -80,7 +80,7 @@ internal class JsClientEngine(
         )
     }
 
-    private fun createWebSocket(
+    private suspend fun createWebSocket(
         urlString: String,
         headers: Headers
     ): WebSocket {
@@ -91,7 +91,7 @@ internal class JsClientEngine(
         return when {
             PlatformUtils.IS_BROWSER -> createBrowserWebSocket(urlString, *protocols)
             else -> {
-                val ws_capturingHack = makeRequire<JsAny>("ws")
+                val ws_capturingHack = makeImport<JsAny>("ws").await<JsAny>().get("default")
                 val headers_capturingHack = makeJsObject<JsAny>()
                 headers.forEach { name, values ->
                     headers_capturingHack[name] = values.joinToString(",")
