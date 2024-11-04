@@ -60,7 +60,8 @@ public class ContentType private constructor(
             return false
         }
 
-        if (pattern.contentSubtype != "*" && !pattern.contentSubtype.equals(contentSubtype, ignoreCase = true)) {
+        if (pattern.contentSubtype != "*" && contentSubtype != "*"
+            && !pattern.contentSubtype.equals(contentSubtype, ignoreCase = true)) {
             return false
         }
 
