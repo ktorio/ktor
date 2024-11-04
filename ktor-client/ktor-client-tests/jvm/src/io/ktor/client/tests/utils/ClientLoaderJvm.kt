@@ -32,6 +32,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         DebugProbes.install()
+        println("ENGINES: $engines")
         for (engine in engines) {
             if (shouldSkip(engine, skipEngines, onlyWithEngine)) {
                 continue
