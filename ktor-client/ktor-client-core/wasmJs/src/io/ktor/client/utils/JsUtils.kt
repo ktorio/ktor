@@ -27,11 +27,13 @@ internal fun makeJsCall(func: JsAny, vararg arg: JsAny): Unit = js("func.apply(n
 internal fun <T : JsAny> makeImport(name: String): Promise<T> = js("import(name)")
 
 @Suppress("UNUSED_PARAMETER")
-private fun setObjectField(obj: JsAny, name: String, value: JsAny): Unit = js("obj[name]=value")
+private fun getObjectField(obj: JsAny, name: String): JsAny = js("obj[name]")
 
 @Suppress("UNUSED_PARAMETER")
+private fun setObjectField(obj: JsAny, name: String, value: JsAny): Unit = js("obj[name]=value")
+
 internal operator fun JsAny.get(name: String): JsAny =
-    js("obj[name]")
+    getObjectField(this, name)
 
 internal operator fun JsAny.set(name: String, value: JsAny) =
     setObjectField(this, name, value)
