@@ -168,7 +168,6 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
     }
 }
 
-
 private fun PipelineResponse.isSSEResponse(): Boolean {
     val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
     return contentType?.withoutParameters() == ContentType.Text.EventStream
