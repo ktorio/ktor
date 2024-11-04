@@ -143,7 +143,7 @@ public class DigestAuthProvider(
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
-        val nonceCount = requestCounter.incrementAndGet()
+        val nonceCount = requestCounter.incrementAndGet().toString(radix = 16).padStart(length = 8, padChar = '0')
         val methodName = request.method.value.uppercase()
         val url = URLBuilder().takeFrom(request.url).build()
 
@@ -180,7 +180,7 @@ public class DigestAuthProvider(
                 this["response"] = hex(token).quote()
                 this["uri"] = url.fullPath.quote()
                 actualQop?.let { this["qop"] = it }
-                this["nc"] = nonceCount.toString(radix = 16).padStart(length = 8, padChar = '0')
+                this["nc"] = nonceCount
                 @Suppress("DEPRECATION_ERROR")
                 this["algorithm"] = algorithmName
             },
