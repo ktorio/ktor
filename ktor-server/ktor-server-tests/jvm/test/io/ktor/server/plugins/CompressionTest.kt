@@ -774,6 +774,7 @@ class CompressionTest {
         val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
 
         install(Compression)
+
         routing {
             post("/gzip") {
                 call.suppressCompression()
@@ -797,11 +798,10 @@ class CompressionTest {
     fun testDisableCallDecoding() = testApplication {
         val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
 
-        install(Compression) {
-            mode = CompressionConfig.Mode.CompressResponse
-        }
+        install(Compression)
         routing {
             post("/gzip") {
+                call.suppressDecompression()
                 assertEquals("gzip", call.request.headers[HttpHeaders.ContentEncoding])
                 val body = call.receive<ByteArray>()
                 assertContentEquals(compressed, body)

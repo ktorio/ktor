@@ -66,16 +66,18 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
         if (!mode.response) return@on
         encode(call, options)
     }
-    onCall { call ->
-        if (!mode.request) return@onCall
+
+    onCallReceive { call ->
+        if (!mode.request) return@onCallReceive
         decode(call, options)
     }
+
 }
 
 @OptIn(InternalAPI::class)
 private fun decode(call: PipelineCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
-    if (call.isCompressionSuppressed) {
+    if (call.isDecompressionSuppressed) {
         LOGGER.trace("Skip decompression for ${call.request.uri} because it is suppressed.")
         return
     }
