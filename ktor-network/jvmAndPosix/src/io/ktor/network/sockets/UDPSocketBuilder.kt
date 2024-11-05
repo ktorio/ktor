@@ -22,6 +22,15 @@ public class UDPSocketBuilder internal constructor(
     ): BoundDatagramSocket = bindUDP(selector, localAddress, options.udp().apply(configure))
 
     /**
+     * Bind server socket at [port] to listen to [hostname].
+     */
+    public suspend fun bind(
+        hostname: String = "0.0.0.0",
+        port: Int = 0,
+        configure: SocketOptions.UDPSocketOptions.() -> Unit = {}
+    ): BoundDatagramSocket = bind(InetSocketAddress(hostname, port), configure)
+
+    /**
      * Create a datagram socket to listen datagrams at [localAddress] and set to [remoteAddress].
      */
     public suspend fun connect(
