@@ -69,18 +69,20 @@ internal class MergedApplicationConfig(
 
     override fun keys(): Set<String> = firstKeys + secondKeys
 
-    override fun toMap(): Map<String, Any?> = second.toMap().deepMerge(first.toMap())
+    override fun toMap(): Map<String, Any?> = second.toMap().merge(first.toMap())
 
     @Suppress("UNCHECKED_CAST")
-    private fun Map<String, Any?>.deepMerge(other: Map<String, Any?>): Map<String, Any?> = (this.keys + other.keys).associateWith { key ->
-        val value1 = this[key]
-        val value2 = other[key]
+    private fun Map<String, Any?>.merge(other: Map<String, Any?>): Map<String, Any?> =
+        (this.keys + other.keys).associateWith { key ->
+            val value1 = this[key]
+            val value2 = other[key]
 
-        when {
-            value1 is Map<*, *> && value2 is Map<*, *> -> {
-                (value1 as Map<String, Any?>).deepMerge(value2 as Map<String, Any?>)
+            when {
+                value1 is Map<*, *> && value2 is Map<*, *> -> {
+                    (value1 as Map<String, Any?>).merge(value2 as Map<String, Any?>)
+                }
+
+                else -> value2 ?: value1
             }
-            else -> value2 ?: value1
         }
-    } 
 }
