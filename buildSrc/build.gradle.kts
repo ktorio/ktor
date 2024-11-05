@@ -9,7 +9,7 @@ plugins {
     kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
-val ktor_version = "3.0.1-eap-1122"
+val ktor_version = "3.1.0-eap-1130"
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
