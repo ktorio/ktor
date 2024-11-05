@@ -59,7 +59,7 @@ javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
 ws = "8.5.0"
-xmlutil = "0.90.2"
+xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
 swagger-codegen = "3.0.63"
