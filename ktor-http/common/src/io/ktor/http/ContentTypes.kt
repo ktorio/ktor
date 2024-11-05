@@ -56,7 +56,8 @@ public class ContentType private constructor(
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
      */
     public fun match(pattern: ContentType): Boolean {
-        if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
+        if (pattern.contentType != "*" && contentType != "*"
+            && !pattern.contentType.equals(contentType, ignoreCase = true)) {
             return false
         }
 
