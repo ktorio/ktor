@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx
@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 
-internal expect val providers: List<KotlinxSerializationExtensionProvider>
+internal expect val providers: Iterable<KotlinxSerializationExtensionProvider>
 
 internal fun extensions(format: SerialFormat): List<KotlinxSerializationExtension> =
     providers.mapNotNull { it.extension(format) }
