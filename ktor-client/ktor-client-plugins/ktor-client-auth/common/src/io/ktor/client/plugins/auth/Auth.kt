@@ -27,7 +27,7 @@ private class AtomicCounter {
 @KtorDsl
 public class AuthConfig {
     public val providers: MutableList<AuthProvider> = mutableListOf()
-    public var isUnauthorized: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
+    public var isUnauthorized: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
 }
 
 /**

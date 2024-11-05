@@ -403,6 +403,27 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testForbiddenBearerAuthWithInvalidAccessAndValidRefreshTokens() = clientTests {
+        config {
+            install(Auth) {
+                isUnauthorized = { it.status == HttpStatusCode.Forbidden }
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                }
+            }
+
+            expectSuccess = false
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh?status=403").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
     // The return of refreshTokenFun is null, cause it should not be called at all, if loadTokensFun returns valid tokens
     @Test
     fun testUnauthorizedBearerAuthWithValidAccessTokenAndInvalidRefreshToken() = clientTests {
