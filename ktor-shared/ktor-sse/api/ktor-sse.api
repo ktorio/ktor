@@ -35,7 +35,7 @@ public abstract interface class io/ktor/sse/ServerSentEventMetadata {
 	public abstract fun getRetry ()Ljava/lang/Long;
 }
 
-public final class io/ktor/sse/ServerSentEventParsed : io/ktor/sse/ServerSentEventMetadata {
+public final class io/ktor/sse/TypedServerSentEvent : io/ktor/sse/ServerSentEventMetadata {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -44,8 +44,8 @@ public final class io/ktor/sse/ServerSentEventParsed : io/ktor/sse/ServerSentEve
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/Long;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lio/ktor/sse/ServerSentEventParsed;
-	public static synthetic fun copy$default (Lio/ktor/sse/ServerSentEventParsed;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/sse/ServerSentEventParsed;
+	public final fun copy (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lio/ktor/sse/TypedServerSentEvent;
+	public static synthetic fun copy$default (Lio/ktor/sse/TypedServerSentEvent;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/sse/TypedServerSentEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getComments ()Ljava/lang/String;
 	public fun getData ()Ljava/lang/Object;
