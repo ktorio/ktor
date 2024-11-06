@@ -30,13 +30,41 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
 /**
  * Client Server-sent events plugin that allows you to establish an SSE connection to a server
  * and receive Server-sent events from it.
+ * For a simple session, use [ClientSSESession].
+ * For session with deserialization, use [ClientSSESessionWithDeserialization].
  *
  * ```kotlin
  * val client = HttpClient {
  *     install(SSE)
  * }
- * client.sse {
- *     val event = incoming.receive()
+ *
+ * // SSE request
+ * client.serverSentEvents("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ *
+ * // SSE request with deserialization
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
  * }
  * ```
  */
@@ -111,7 +139,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
                             TypedServerSentEvent(event.data, event.event, event.id, event.retry, event.comments)
                         }
 
-                    override val deserializer: (TypeInfo, String) -> Any = deserializer
+                    override val deserializer: (TypeInfo, String) -> Any? = deserializer
 
                     override val coroutineContext: CoroutineContext = session.coroutineContext
                 }

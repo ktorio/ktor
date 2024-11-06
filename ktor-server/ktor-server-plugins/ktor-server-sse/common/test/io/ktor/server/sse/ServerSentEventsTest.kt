@@ -272,7 +272,7 @@ class ServerSentEventsTest {
     data class Product(val id: Int, val prices: List<Int>)
 
     @Test
-    fun testJsonDeserializer() = testApplication {
+    fun testJsonSerializer() = testApplication {
         install(SSE)
         routing {
             sse("/json", serialize = { typeInfo, it ->

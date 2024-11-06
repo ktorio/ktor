@@ -15,6 +15,18 @@ import kotlinx.coroutines.*
  * An [SSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * @see [SSE]
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse("/default") {
+ *         repeat(100) {
+ *             send(ServerSentEvent("event $it"))
+ *         }
+ *     }
+ * }
+ * ```
  */
 public interface SSESession : CoroutineScope {
     /**
@@ -63,6 +75,20 @@ public interface SSESession : CoroutineScope {
  * An [SSESessionWithSerialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * @see [SSE]
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse("/serialization", serialize = { typeInfo, it ->
+ *         val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *         Json.encodeToString(serializer, it)
+ *     }) {
+ *         send(Customer(0, "Jet", "Brains"))
+ *         send(Product(0, listOf(100, 200)))
+ *     }
+ * }
+ * ```
  */
 public interface SSESessionWithSerialization : SSESession {
     /**

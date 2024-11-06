@@ -14,13 +14,22 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
  *
  * To learn more, see [specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- * Example:
+ * Example of usage:
  * ```kotlin
  * install(SSE)
+ * routing {
+ *     sse("/default") {
+ *         repeat(100) {
+ *             send(ServerSentEvent("event $it"))
+ *         }
+ *     }
  *
- * install(Routing) {
- *     sse {
- *          send(ServerSentEvent("Hello"))
+ *     sse("/serialization", serialize = { typeInfo, it ->
+ *         val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *         Json.encodeToString(serializer, it)
+ *     }) {
+ *         send(Customer(0, "Jet", "Brains"))
+ *         send(Product(0, listOf(100, 200)))
  *     }
  * }
  * ```

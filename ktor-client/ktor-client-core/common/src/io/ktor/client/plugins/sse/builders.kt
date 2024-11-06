@@ -18,10 +18,20 @@ internal val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
 internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime")
 internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
-internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any>("SSEDeserializer")
+internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any?>("SSEDeserializer")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
+ *
+ * Example usage:
+ * ```kotlin
+ * val client = HttpClient() {
+ *     SSE {
+ *         showCommentEvents()
+ *         showRetryEvents()
+ *     }
+ * }
+ * ```
  */
 public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
     install(SSE) {
@@ -32,7 +42,23 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
 // Builders for the `ClientSSESession`
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
@@ -42,7 +68,23 @@ public suspend fun HttpClient.serverSentEventsSession(
 ): ClientSSESession = processSession(reconnectionTime, showCommentEvents, showRetryEvents, block) {}
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -59,7 +101,23 @@ public suspend fun HttpClient.serverSentEventsSession(
 }
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
@@ -73,7 +131,22 @@ public suspend fun HttpClient.serverSentEventsSession(
 }
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.serverSentEvents("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
@@ -95,7 +168,22 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.serverSentEvents("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -121,7 +209,22 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.serverSentEvents("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
@@ -144,7 +247,23 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
@@ -154,7 +273,23 @@ public suspend fun HttpClient.sseSession(
 ): ClientSSESession = serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -169,7 +304,23 @@ public suspend fun HttpClient.sseSession(
     serverSentEventsSession(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession {
+ *     url("http://localhost:8080/sse")
+ * }
+ * session.incoming.collect { event ->
+ *     println("Id: ${event.id}")
+ *     println("Event: ${event.event}")
+ *     println("Data: ${event.data}")
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
@@ -180,7 +331,22 @@ public suspend fun HttpClient.sseSession(
 ): ClientSSESession = serverSentEventsSession(urlString, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
@@ -191,7 +357,22 @@ public suspend fun HttpClient.sse(
 ): Unit = serverSentEvents(request, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -207,7 +388,22 @@ public suspend fun HttpClient.sse(
     serverSentEvents(scheme, host, port, path, reconnectionTime, showCommentEvents, showRetryEvents, request, block)
 
 /**
- * Opens a [block] with [ClientSSESession].
+ * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     urlString: String,
@@ -221,10 +417,39 @@ public suspend fun HttpClient.sse(
 // Builders for the `ClientSSESessionWithDeserialization`
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent` 
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -237,14 +462,43 @@ public suspend fun HttpClient.serverSentEventsSession(
 }
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent` 
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -256,11 +510,40 @@ public suspend fun HttpClient.serverSentEventsSession(
     }
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -272,11 +555,40 @@ public suspend fun HttpClient.serverSentEventsSession(
     }
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.serverSentEvents({
+ *     url("http://localhost:8080/sse")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -295,14 +607,43 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.serverSentEvents({
+ *     url("http://localhost:8080/sse")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -323,11 +664,40 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -348,10 +718,39 @@ public suspend fun HttpClient.serverSentEvents(
 }
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -360,14 +759,43 @@ public suspend fun HttpClient.sseSession(
     serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
     host: String? = null,
     port: Int? = null,
     path: String? = null,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -385,11 +813,40 @@ public suspend fun HttpClient.sseSession(
 )
 
 /**
- * Opens a [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * })
+ *
+ * session.apply {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -398,11 +855,40 @@ public suspend fun HttpClient.sseSession(
     serverSentEventsSession(urlString, deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/sse")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -410,7 +896,36 @@ public suspend fun HttpClient.sse(
 ): Unit = serverSentEvents(request, deserialize, reconnectionTime, showCommentEvents, showRetryEvents, block)
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/sse")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -418,7 +933,7 @@ public suspend fun HttpClient.sse(
     port: Int? = null,
     path: String? = null,
     request: HttpRequestBuilder.() -> Unit = {},
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
@@ -437,12 +952,41 @@ public suspend fun HttpClient.sse(
 )
 
 /**
- * Opens a [block] with [ClientSSESessionWithDeserialization].
+ * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
+ * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
+ *
+ * Example usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/sse")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public suspend fun HttpClient.sse(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
-    deserialize: (TypeInfo, String) -> Any,
+    deserialize: (TypeInfo, String) -> Any?,
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,

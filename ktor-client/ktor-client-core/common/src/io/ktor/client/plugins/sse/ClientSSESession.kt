@@ -32,7 +32,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     /**
      * Deserializer for transforming field `data` of `ServerSentEvent` into desired data object.
      */
-    public val deserializer: (TypeInfo, String) -> Any
+    public val deserializer: (TypeInfo, String) -> Any?
 }
 
 /**

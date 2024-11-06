@@ -19,6 +19,18 @@ import io.ktor.util.reflect.*
  * to send events to the connected clients.
  *
  * @see SSESession
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse("/events") {
+ *         repeat(100) {
+ *             send(ServerSentEvent("event $it"))
+ *         }
+ *     }
+ * }
+ * ```
  */
 public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
     route(path, HttpMethod.Get) {
@@ -35,6 +47,18 @@ public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
  * to send events to the connected clients.
  *
  * @see SSESession
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse {
+ *         repeat(100) {
+ *             send(ServerSentEvent("event $it"))
+ *         }
+ *     }
+ * }
+ * ```
  */
 public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(null, handler)
 
@@ -43,11 +67,26 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  * Requires [SSE] plugin to be installed.
  *
  * @param path URL path at which to handle SSE requests.
+ * @param serialize serialize function for transforming data object into field `data` of `ServerSentEvent`
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * @see SSESessionWithSerialization
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse("/json", serialize = { typeInfo, it ->
+ *         val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *         Json.encodeToString(serializer, it)
+ *     }) {
+ *         send(Customer(0, "Jet", "Brains"))
+ *         send(Product(0, listOf(100, 200)))
+ *     }
+ * }
+ * ```
  */
 public fun Route.sse(
     path: String,
@@ -63,11 +102,26 @@ public fun Route.sse(
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
+ * @param serialize serialize function for transforming data object into field `data` of `ServerSentEvent`
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * @see SSESessionWithSerialization
+ *
+ * Example of usage:
+ * ```kotlin
+ * install(SSE)
+ * routing {
+ *     sse(serialize = { typeInfo, it ->
+ *         val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *         Json.encodeToString(serializer, it)
+ *     }) {
+ *         send(Customer(0, "Jet", "Brains"))
+ *         send(Product(0, listOf(100, 200)))
+ *     }
+ * }
+ * ```
  */
 public fun Route.sse(
     serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
