@@ -24,9 +24,19 @@ private class AtomicCounter {
     val atomic = atomic(0)
 }
 
+/**
+ * Configuration used by [Auth] plugin.
+ */
 @KtorDsl
 public class AuthConfig {
+    /**
+     * [AuthProvider] list to use.
+     */
     public val providers: MutableList<AuthProvider> = mutableListOf()
+
+    /**
+     * A lambda function to control whether a response is unauthorized and should trigger a refresh / re-auth.
+     */
     public var isUnauthorized: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
 }
 
@@ -41,8 +51,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  *
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
  *
- * [providers] - list of auth providers to use.
- * [isUnauthorized] - lambda function to control whether a response is unauthorized and should trigger a re-auth.
+ * @see [AuthConfig] for configuration options.
  */
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
