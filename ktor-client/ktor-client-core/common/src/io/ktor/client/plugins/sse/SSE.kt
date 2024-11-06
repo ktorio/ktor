@@ -67,6 +67,8 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  *     }
  * }
  * ```
+ *
+ * To learn more, see [specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 @OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
