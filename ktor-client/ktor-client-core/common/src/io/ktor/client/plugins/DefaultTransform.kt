@@ -111,6 +111,26 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, response.status))
             }
 
+            MultiPartData::class -> {
+                val contentType = context.response.contentType() ?: 
+                    throw IllegalStateException("No content type in response")
+                if (!contentType.match(ContentType.MultiPart.FormData)) {
+                    throw IllegalStateException(
+                        "Expected multipart/form-data, got $contentType"
+                    )
+                }
+                
+                val boundary = contentType.parameter("boundary") ?: 
+                    throw IllegalStateException("Missing boundary in content type")
+                
+                proceedWith(
+                    HttpResponseContainer(
+                        info,
+                        TODO()
+                    )
+                )
+            }
+
             else -> null
         }
         if (result != null) {
