@@ -12,6 +12,17 @@ import kotlinx.coroutines.flow.*
 
 /**
  * A Server-sent events session.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public interface SSESession : CoroutineScope {
     /**
@@ -22,6 +33,28 @@ public interface SSESession : CoroutineScope {
 
 /**
  * A Server-sent events session.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public interface SSESessionWithDeserialization : CoroutineScope {
     /**
@@ -41,6 +74,28 @@ public interface SSESessionWithDeserialization : CoroutineScope {
  *
  * @param data The string data to deserialize.
  * @return The deserialized object of type [T], or null if deserialization is not successful.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: String?): T? {
     return data?.let {
@@ -54,6 +109,28 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  *
  * @param event The Server-sent event containing data to deserialize.
  * @return The deserialized object of type [T], or null if deserialization is not successful.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public inline fun <reified T> SSESessionWithDeserialization.deserialize(
     event: TypedServerSentEvent<String>
@@ -63,6 +140,17 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
  * A client Server-sent events session.
  *
  * @property call associated with session.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse("http://localhost:8080/sse") {
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ * ```
  */
 public class ClientSSESession(public val call: HttpClientCall, delegate: SSESession) : SSESession by delegate
 
@@ -70,6 +158,28 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
  * A client Server-sent events session with deserialization support.
  *
  * @property call associated with session.
+ *
+ * Example of usage:
+ * ```kotlin
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) {
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public class ClientSSESessionWithDeserialization(
     public val call: HttpClientCall,

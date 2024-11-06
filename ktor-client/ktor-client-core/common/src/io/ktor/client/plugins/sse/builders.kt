@@ -23,7 +23,7 @@ internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any?>("SSEDes
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val client = HttpClient() {
  *     SSE {
@@ -48,7 +48,7 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
  *     url("http://localhost:8080/sse")
@@ -74,7 +74,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
  *     url("http://localhost:8080/sse")
@@ -107,7 +107,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
  *     url("http://localhost:8080/sse")
@@ -137,7 +137,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.serverSentEvents("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -174,7 +174,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.serverSentEvents("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -215,7 +215,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.serverSentEvents("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -253,7 +253,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
  *     url("http://localhost:8080/sse")
@@ -279,7 +279,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
  *     url("http://localhost:8080/sse")
@@ -310,7 +310,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
  *     url("http://localhost:8080/sse")
@@ -337,7 +337,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -363,7 +363,7 @@ public suspend fun HttpClient.sse(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -394,7 +394,7 @@ public suspend fun HttpClient.sse(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse("http://localhost:8080/sse") {
  *     incoming.collect { event ->
@@ -426,7 +426,7 @@ public suspend fun HttpClient.sse(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -471,7 +471,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -519,7 +519,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -564,7 +564,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.serverSentEvents({
  *     url("http://localhost:8080/sse")
@@ -616,7 +616,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.serverSentEvents({
  *     url("http://localhost:8080/sse")
@@ -673,7 +673,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse({
  *     url("http://localhost:8080/serverSentEvents")
@@ -727,7 +727,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -768,7 +768,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -822,7 +822,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
@@ -864,7 +864,7 @@ public suspend fun HttpClient.sseSession(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse({
  *     url("http://localhost:8080/sse")
@@ -905,7 +905,7 @@ public suspend fun HttpClient.sse(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse({
  *     url("http://localhost:8080/sse")
@@ -961,7 +961,7 @@ public suspend fun HttpClient.sse(
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
  *
- * Example usage:
+ * Example of usage:
  * ```kotlin
  * client.sse({
  *     url("http://localhost:8080/sse")
