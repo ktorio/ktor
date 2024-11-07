@@ -21,7 +21,6 @@ public inline fun <reified T : Any> loadServices(): List<T> = ServiceLoader.load
     T::class.java.classLoader,
 ).iterator().asSequence().toList()
 
-
 /**
  * Loads single implementation of the service [T] using [ServiceLoader.load]
  * returns `null` if there are no any implementations.
