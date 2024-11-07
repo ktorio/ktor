@@ -72,6 +72,58 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun addAcceptHeadersWithDefaultQValue() {
+        testWithEngine(MockEngine) {
+            val registeredTypesToSend = listOf(
+                ContentType("testing", "a"),
+                ContentType("testing", "b"),
+                ContentType("testing", "c")
+            )
+
+            setupWithContentNegotiation {
+                for (typeToSend in registeredTypesToSend) {
+                    register(typeToSend, TestContentConverter())
+                    defaultAcceptHeaderQValue = "0.8"
+                }
+            }
+
+            test { client ->
+                client.get("https://test.com/").apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    // Order NOT tested
+                    for (typeToSend in registeredTypesToSend) {
+                        assertContains(sentTypes, typeToSend.withParameter("q", "0.8"))
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun skipAddAcceptHeadersWithMatchingContentType() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType("testing", "a"), TestContentConverter())
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    // our explicitly specified lower q-value should take precedence
+                    accept(ContentType("testing", "a", listOf(HeaderValueParam("q", "0.5"))))
+                }.apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    assertContains(sentTypes, ContentType("testing", "a", listOf(HeaderValueParam("q", "0.5"))))
+                    assertEquals(1, sentTypes.size)
+                }
+            }
+        }
+    }
+
+    @Test
     fun testKeepsContentType() {
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {
