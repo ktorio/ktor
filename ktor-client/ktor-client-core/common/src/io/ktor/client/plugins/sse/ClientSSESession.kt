@@ -157,7 +157,7 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
 /**
  * A client Server-sent events session with deserialization support.
  *
- * @property call associated with session.
+ * @property call The HTTP call associated with the session.
  *
  * Example of usage:
  * ```kotlin
