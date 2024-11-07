@@ -47,6 +47,12 @@ public class ContentNegotiationConfig : Configuration {
     internal val registrations = mutableListOf<ConverterRegistration>()
 
     /**
+     * By default, `Accept` headers for registered content types will have no q value (implicit 1.0). Set this to
+     * change that behavior. This is useful to override the preferred `Accept` content types on a per-request basis.
+     */
+    public var defaultAcceptHeaderQValue: String? = null
+
+    /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
      */
     public override fun <T : ContentConverter> register(
@@ -144,7 +150,13 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
             val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
             if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
                 LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header with q=0.8 for ${request.url}")
-                request.accept(it.contentTypeToSend)
+                // automatically added headers get a lower content type priority, so user-specified accept headers
+                //  with higher q or implicit q=1 will take precedence
+                val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
+                  null -> it.contentTypeToSend
+                  else -> it.contentTypeToSend.withParameter("q", qValue)
+                }
+                request.accept(contentTypeToSend)
             }
         }
 
