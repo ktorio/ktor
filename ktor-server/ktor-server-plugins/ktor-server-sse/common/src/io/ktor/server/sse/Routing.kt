@@ -67,7 +67,7 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  * Requires [SSE] plugin to be installed.
  *
  * @param path URL path at which to handle SSE requests.
- * @param serialize serialize function for transforming data object into field `data` of `ServerSentEvent`
+ * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
  * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
