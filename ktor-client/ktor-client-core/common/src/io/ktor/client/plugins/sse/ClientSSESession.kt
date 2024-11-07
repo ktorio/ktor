@@ -63,7 +63,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     public val incoming: Flow<TypedServerSentEvent<String>>
 
     /**
-     * Deserializer for transforming field `data` of `ServerSentEvent` into desired data object.
+     * Deserializer for transforming the `data` field of a `ServerSentEvent` into a desired data object.
      */
     public val deserializer: (TypeInfo, String) -> Any?
 }
