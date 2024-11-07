@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.*
 
-internal expect val providers: Iterable<KotlinxSerializationExtensionProvider>
+internal expect val providers: List<KotlinxSerializationExtensionProvider>
 
 internal fun extensions(format: SerialFormat): List<KotlinxSerializationExtension> =
     providers.mapNotNull { it.extension(format) }

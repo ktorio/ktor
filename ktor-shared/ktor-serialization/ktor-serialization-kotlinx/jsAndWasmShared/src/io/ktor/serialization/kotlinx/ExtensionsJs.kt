@@ -4,5 +4,5 @@
 
 package io.ktor.serialization.kotlinx
 
-internal actual val providers: Iterable<KotlinxSerializationExtensionProvider>
+internal actual val providers: List<KotlinxSerializationExtensionProvider>
     get() = emptyList()

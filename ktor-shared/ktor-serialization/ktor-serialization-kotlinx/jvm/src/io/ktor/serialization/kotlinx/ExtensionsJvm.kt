@@ -8,5 +8,5 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
 @OptIn(InternalAPI::class)
-internal actual val providers: Iterable<KotlinxSerializationExtensionProvider> =
+internal actual val providers: List<KotlinxSerializationExtensionProvider> =
     loadServices<KotlinxSerializationExtensionProvider>()
