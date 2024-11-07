@@ -15,6 +15,7 @@
       "matchPackageNames": [
         "io.ktor:*"
       ],
+      "fetchChangeLogs": "off",
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$"
     },
     {
