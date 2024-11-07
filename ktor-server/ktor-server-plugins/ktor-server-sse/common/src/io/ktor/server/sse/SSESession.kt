@@ -30,7 +30,7 @@ import kotlinx.coroutines.*
  */
 public interface SSESession : CoroutineScope {
     /**
-     * Associated received [call] that originating this session.
+     * The received [call] that originated this session.
      */
     public val call: ApplicationCall
 
