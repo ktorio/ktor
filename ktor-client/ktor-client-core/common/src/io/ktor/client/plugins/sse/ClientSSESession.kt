@@ -139,7 +139,7 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
 /**
  * A client Server-sent events session.
  *
- * @property call associated with session.
+ * @property call The HTTP call associated with the session.
  *
  * Example of usage:
  * ```kotlin
