@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
 
     @OptIn(InternalAPI::class)
-    private val engines: Iterable<HttpClientEngineContainer> by lazy { loadService<HttpClientEngineContainer>() }
+    private val engines: List<HttpClientEngineContainer> by lazy { loadServices<HttpClientEngineContainer>() }
 
     /**
      * Perform test against all clients from dependencies.

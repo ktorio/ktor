@@ -7,10 +7,8 @@ package io.ktor.client.plugins.json
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
-@OptIn(InternalAPI::class)
 @Suppress("DEPRECATION_ERROR")
 public actual fun defaultSerializer(): JsonSerializer {
-    val serializers = loadService<JsonSerializer>()
     return serializers.maxByOrNull { it::javaClass.name } ?: error(
         """
         Failed to find serializer. Consider adding one of the following dependencies: 
@@ -20,3 +18,7 @@ public actual fun defaultSerializer(): JsonSerializer {
         """.trimIndent()
     )
 }
+
+@OptIn(InternalAPI::class)
+@Suppress("DEPRECATION_ERROR")
+private val serializers = loadServices<JsonSerializer>()

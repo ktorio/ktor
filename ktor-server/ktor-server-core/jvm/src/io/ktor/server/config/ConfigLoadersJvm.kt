@@ -16,4 +16,4 @@ internal actual val CONFIG_PATH: List<String>
     )
 
 @OptIn(InternalAPI::class)
-public actual val configLoaders: List<ConfigLoader> = loadService<ConfigLoader>().toList()
+public actual val configLoaders: List<ConfigLoader> = loadServices<ConfigLoader>()
