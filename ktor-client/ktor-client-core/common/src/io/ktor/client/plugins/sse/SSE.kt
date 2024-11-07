@@ -31,7 +31,7 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  * Client Server-sent events plugin that allows you to establish an SSE connection to a server
  * and receive Server-sent events from it.
  * For a simple session, use [ClientSSESession].
- * For session with deserialization, use [ClientSSESessionWithDeserialization].
+ * For a session with deserialization, use [ClientSSESessionWithDeserialization].
  *
  * ```kotlin
  * val client = HttpClient {
