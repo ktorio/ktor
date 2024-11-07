@@ -12,8 +12,6 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
 /**
  * Server-Sent Events (SSE) support plugin. It is required to be installed first before binding any sse endpoints.
  *
- * To learn more, see [specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
- *
  * Example of usage:
  * ```kotlin
  * install(SSE)
@@ -33,5 +31,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 public val SSE: ApplicationPlugin<Unit> = createApplicationPlugin("SSE") {}

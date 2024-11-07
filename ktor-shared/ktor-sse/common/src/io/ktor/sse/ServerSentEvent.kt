@@ -15,8 +15,8 @@ import io.ktor.utils.io.*
  *  @property retry reconnection time, in milliseconds to wait before reconnecting.
  *  @property comments comment lines starting with a ':' character.
  *
- *  @see ServerSentEvent with default String parameter [data]
- *  @see TypedServerSentEvent with parameterized parameter [data]
+ *  @see ServerSentEvent with default String parameter `data`
+ *  @see TypedServerSentEvent with parameterized parameter `data`
  */
 public sealed interface ServerSentEventMetadata<T> {
     public val data: T?
@@ -35,7 +35,7 @@ public sealed interface ServerSentEventMetadata<T> {
  *  @property retry reconnection time, in milliseconds to wait before reconnecting.
  *  @property comments comment lines starting with a ':' character.
  *
- *  @see TypedServerSentEvent with parameterized parameter [data]
+ *  @see TypedServerSentEvent with parameterized parameter `data`
  */
 public data class ServerSentEvent(
     override val data: String? = null,
@@ -56,7 +56,7 @@ public data class ServerSentEvent(
  *  @property retry reconnection time, in milliseconds to wait before reconnecting.
  *  @property comments comment lines starting with a ':' character.
  *
- *  @see ServerSentEvent with default String parameter [data]
+ *  @see ServerSentEvent with default String parameter `data`
  */
 public data class TypedServerSentEvent<T>(
     override val data: T? = null,

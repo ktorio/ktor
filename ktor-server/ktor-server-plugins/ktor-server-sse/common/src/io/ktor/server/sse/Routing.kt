@@ -13,12 +13,10 @@ import io.ktor.util.reflect.*
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
- * @param path URL path at which to handle SSE requests.
- * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESession]
+ * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
+ * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
- *
- * @see SSESession
  *
  * Example of usage:
  * ```kotlin
@@ -31,6 +29,11 @@ import io.ktor.util.reflect.*
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSESession
  */
 public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
     route(path, HttpMethod.Get) {
@@ -42,11 +45,9 @@ public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
- * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESession]
+ * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
+ * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
- *
- * @see SSESession
  *
  * Example of usage:
  * ```kotlin
@@ -59,6 +60,11 @@ public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSESession
  */
 public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(null, handler)
 
@@ -66,13 +72,11 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
- * @param path URL path at which to handle SSE requests.
+ * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
  * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
- *
- * @see SSESessionWithSerialization
  *
  * Example of usage:
  * ```kotlin
@@ -87,6 +91,11 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSESessionWithSerialization
  */
 public fun Route.sse(
     path: String,
@@ -102,12 +111,10 @@ public fun Route.sse(
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
- * @param serialize serialize function for transforming data object into field `data` of `ServerSentEvent`
- * @param handler function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
+ * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
+ * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
  * to send events to the connected clients.
- *
- * @see SSESessionWithSerialization
  *
  * Example of usage:
  * ```kotlin
@@ -122,6 +129,11 @@ public fun Route.sse(
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSESessionWithSerialization
  */
 public fun Route.sse(
     serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },

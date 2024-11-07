@@ -139,7 +139,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  *
  * Example of usage:
  * ```kotlin
- * client.serverSentEvents("http://localhost:8080/sse") {
+ * client.serverSentEvents("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -176,7 +176,7 @@ public suspend fun HttpClient.serverSentEvents(
  *
  * Example of usage:
  * ```kotlin
- * client.serverSentEvents("http://localhost:8080/sse") {
+ * client.serverSentEvents("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -217,7 +217,7 @@ public suspend fun HttpClient.serverSentEvents(
  *
  * Example of usage:
  * ```kotlin
- * client.serverSentEvents("http://localhost:8080/sse") {
+ * client.serverSentEvents("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -339,7 +339,7 @@ public suspend fun HttpClient.sseSession(
  *
  * Example of usage:
  * ```kotlin
- * client.sse("http://localhost:8080/sse") {
+ * client.sse("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -365,7 +365,7 @@ public suspend fun HttpClient.sse(
  *
  * Example of usage:
  * ```kotlin
- * client.sse("http://localhost:8080/sse") {
+ * client.sse("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -396,7 +396,7 @@ public suspend fun HttpClient.sse(
  *
  * Example of usage:
  * ```kotlin
- * client.sse("http://localhost:8080/sse") {
+ * client.sse("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -420,7 +420,7 @@ public suspend fun HttpClient.sse(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent` 
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -465,7 +465,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent` 
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -572,7 +572,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -624,7 +624,7 @@ public suspend fun HttpClient.serverSentEvents(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -681,7 +681,7 @@ public suspend fun HttpClient.serverSentEvents(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -872,7 +872,7 @@ public suspend fun HttpClient.sseSession(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -913,7 +913,7 @@ public suspend fun HttpClient.sse(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -969,7 +969,7 @@ public suspend fun HttpClient.sse(
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {

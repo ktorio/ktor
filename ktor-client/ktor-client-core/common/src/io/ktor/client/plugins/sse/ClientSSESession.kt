@@ -11,11 +11,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 /**
- * A Server-sent events session.
+ * A session for handling Server-Sent Events (SSE) from a server.
  *
  * Example of usage:
  * ```kotlin
- * client.sse("http://localhost:8080/sse") {
+ * client.sse("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -23,16 +23,26 @@ import kotlinx.coroutines.flow.*
  *     }
  * }
  * ```
- */
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+*/
 public interface SSESession : CoroutineScope {
     /**
-     * An incoming server-sent events flow.
+     * An incoming Server-Sent Events (SSE) flow.
+     *
+     * Each [ServerSentEvent] can contain following fields:
+     * - [ServerSentEvent.data] data field of the event.
+     * - [ServerSentEvent.event] string identifying the type of event.
+     * - [ServerSentEvent.id] event ID.
+     * - [ServerSentEvent.retry] reconnection time, in milliseconds to wait before reconnecting.
+     * - [ServerSentEvent.comments] comment lines starting with a ':' character.
      */
     public val incoming: Flow<ServerSentEvent>
 }
 
 /**
- * A Server-sent events session.
+ * A session with deserialization support for handling Server-Sent Events (SSE) from a server.
  *
  * Example of usage:
  * ```kotlin
@@ -42,7 +52,7 @@ public interface SSESession : CoroutineScope {
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -55,10 +65,21 @@ public interface SSESession : CoroutineScope {
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 public interface SSESessionWithDeserialization : CoroutineScope {
     /**
-     * An incoming server-sent events flow.
+     * An incoming Server-Sent Events (SSE) flow.
+     *
+     * Each [TypedServerSentEvent] can contain following fields:
+     * - [TypedServerSentEvent.data] data field of the event. It can be deserialized into an object
+     *   of desired type using the [deserialize] function
+     * - [TypedServerSentEvent.event] string identifying the type of event.
+     * - [TypedServerSentEvent.id] event ID.
+     * - [TypedServerSentEvent.retry] reconnection time, in milliseconds to wait before reconnecting.
+     * - [TypedServerSentEvent.comments] comment lines starting with a ':' character.
      */
     public val incoming: Flow<TypedServerSentEvent<String>>
 
@@ -83,7 +104,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -118,7 +139,7 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -137,13 +158,13 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
 ): T? = deserialize(event.data)
 
 /**
- * A client Server-sent events session.
+ * A client session for handling Server-Sent Events (SSE) from a server.
  *
  * @property call The HTTP call associated with the session.
  *
  * Example of usage:
  * ```kotlin
- * client.sse("http://localhost:8080/sse") {
+ * client.sse("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -151,11 +172,14 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 public class ClientSSESession(public val call: HttpClientCall, delegate: SSESession) : SSESession by delegate
 
 /**
- * A client Server-sent events session with deserialization support.
+ * A client session with deserialization support for handling Server-Sent Events (SSE) from a server.
  *
  * @property call The HTTP call associated with the session.
  *
@@ -167,7 +191,7 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -180,6 +204,9 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 public class ClientSSESessionWithDeserialization(
     public val call: HttpClientCall,

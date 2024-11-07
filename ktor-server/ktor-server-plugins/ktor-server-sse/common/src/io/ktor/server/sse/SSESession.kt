@@ -11,10 +11,8 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 
 /**
- * Represents a server-side server-sent events session.
+ * Represents a server-side Server-Sent Events (SSE) session.
  * An [SSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
- *
- * @see [SSE]
  *
  * Example of usage:
  * ```kotlin
@@ -27,6 +25,11 @@ import kotlinx.coroutines.*
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSE
  */
 public interface SSESession : CoroutineScope {
     /**
@@ -71,10 +74,8 @@ public interface SSESession : CoroutineScope {
 }
 
 /**
- * Represents a server-side server-sent events session with serialization support.
+ * Represents a server-side Server-Sent Events (SSE) session with serialization support.
  * An [SSESessionWithSerialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
- *
- * @see [SSE]
  *
  * Example of usage:
  * ```kotlin
@@ -89,6 +90,11 @@ public interface SSESession : CoroutineScope {
  *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * @see SSE
  */
 public interface SSESessionWithSerialization : SSESession {
     /**

@@ -23,13 +23,13 @@ import kotlin.coroutines.*
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
 
 /**
- * Indicates if a client engine supports Server-sent events.
+ * Indicates if a client engine supports Server-Sent Events (SSE).
  */
 public data object SSECapability : HttpClientEngineCapability<Unit>
 
 /**
- * Client Server-sent events plugin that allows you to establish an SSE connection to a server
- * and receive Server-sent events from it.
+ * Client Server-Sent Events (SSE) plugin that allows you to establish an SSE connection to a server
+ * and receive Server-Sent Events from it.
  * For a simple session, use [ClientSSESession].
  * For a session with deserialization, use [ClientSSESessionWithDeserialization].
  *
@@ -39,7 +39,7 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  * }
  *
  * // SSE request
- * client.serverSentEvents("http://localhost:8080/sse") {
+ * client.serverSentEvents("http://localhost:8080/sse") { // `this` is `ClientSSESession`
  *     incoming.collect { event ->
  *         println("Id: ${event.id}")
  *         println("Event: ${event.event}")
@@ -54,7 +54,7 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  *     typeInfo, jsonString ->
  *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
  *     Json.decodeFromString(serializer, jsonString)!!
- * }) {
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
  *     incoming.collect { event: TypedServerSentEvent<String> ->
  *         when (event.event) {
  *             "customer" -> {
@@ -68,7 +68,8 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  * }
  * ```
  *
- * To learn more, see [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 @OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
