@@ -156,9 +156,9 @@ final class io.ktor.client.plugins.auth/AuthConfig { // io.ktor.client.plugins.a
     final val providers // io.ktor.client.plugins.auth/AuthConfig.providers|{}providers[0]
         final fun <get-providers>(): kotlin.collections/MutableList<io.ktor.client.plugins.auth/AuthProvider> // io.ktor.client.plugins.auth/AuthConfig.providers.<get-providers>|<get-providers>(){}[0]
 
-    final var isUnauthorized // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized|{}isUnauthorized[0]
-        final fun <get-isUnauthorized>(): kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Boolean> // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized.<get-isUnauthorized>|<get-isUnauthorized>(){}[0]
-        final fun <set-isUnauthorized>(kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Boolean>) // io.ktor.client.plugins.auth/AuthConfig.isUnauthorized.<set-isUnauthorized>|<set-isUnauthorized>(kotlin.coroutines.SuspendFunction1<io.ktor.client.statement.HttpResponse,kotlin.Boolean>){}[0]
+    final var isUnauthorizedResponse // io.ktor.client.plugins.auth/AuthConfig.isUnauthorizedResponse|{}isUnauthorizedResponse[0]
+        final fun <get-isUnauthorizedResponse>(): kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Boolean> // io.ktor.client.plugins.auth/AuthConfig.isUnauthorizedResponse.<get-isUnauthorizedResponse>|<get-isUnauthorizedResponse>(){}[0]
+        final fun <set-isUnauthorizedResponse>(kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Boolean>) // io.ktor.client.plugins.auth/AuthConfig.isUnauthorizedResponse.<set-isUnauthorizedResponse>|<set-isUnauthorizedResponse>(kotlin.coroutines.SuspendFunction1<io.ktor.client.statement.HttpResponse,kotlin.Boolean>){}[0]
 }
 
 final val io.ktor.client.plugins.auth/Auth // io.ktor.client.plugins.auth/Auth|{}Auth[0]

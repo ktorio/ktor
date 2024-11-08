@@ -6,7 +6,6 @@ package io.ktor.client.plugins.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -37,7 +36,7 @@ public class AuthConfig {
     /**
      * A lambda function to control whether a response is unauthorized and should trigger a refresh / re-auth.
      */
-    public var isUnauthorized: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
+    public var isUnauthorizedResponse: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
 }
 
 /**
@@ -140,14 +139,14 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
 
     on(Send) { originalRequest ->
         val origin = proceed(originalRequest)
-        if (!pluginConfig.isUnauthorized(origin.response)) return@on origin
+        if (!pluginConfig.isUnauthorizedResponse(origin.response)) return@on origin
         if (origin.request.attributes.contains(AuthCircuitBreaker)) return@on origin
 
         var call = origin
 
         val candidateProviders = HashSet(providers)
 
-        while (pluginConfig.isUnauthorized(call.response)) {
+        while (pluginConfig.isUnauthorizedResponse(call.response)) {
             LOGGER.trace { "Unauthorized response for ${call.request.url}" }
 
             val (provider, authHeader) = findProvider(call, candidateProviders) ?: run {
