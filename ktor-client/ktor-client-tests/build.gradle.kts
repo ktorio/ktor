@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import test.server.*
+import test.server.TestServerPlugin
 
 description = "Common tests for client"
 
@@ -68,9 +68,9 @@ kotlin.sourceSets {
         }
     }
 
-    jvmAndPosixTest {
+    commonTest {
         dependencies {
-            runtimeOnly(project(":ktor-client:ktor-client-cio"))
+            api(project(":ktor-client:ktor-client-cio"))
         }
     }
 

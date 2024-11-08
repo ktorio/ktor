@@ -1161,6 +1161,11 @@ final object io.ktor.client.engine/ProxyBuilder { // io.ktor.client.engine/Proxy
     final fun socks(kotlin/String, kotlin/Int): io.ktor.client.engine/ProxyConfig // io.ktor.client.engine/ProxyBuilder.socks|socks(kotlin.String;kotlin.Int){}[0]
 }
 
+final object io.ktor.client.engine/engines : kotlin.collections/Iterable<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> { // io.ktor.client.engine/engines|null[0]
+    final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>){}[0]
+    final fun iterator(): kotlin.collections/Iterator<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> // io.ktor.client.engine/engines.iterator|iterator(){}[0]
+}
+
 final object io.ktor.client.plugins.api/Send : io.ktor.client.plugins.api/ClientHook<kotlin.coroutines/SuspendFunction2<io.ktor.client.plugins.api/Send.Sender, io.ktor.client.request/HttpRequestBuilder, io.ktor.client.call/HttpClientCall>> { // io.ktor.client.plugins.api/Send|null[0]
     final fun install(io.ktor.client/HttpClient, kotlin.coroutines/SuspendFunction2<io.ktor.client.plugins.api/Send.Sender, io.ktor.client.request/HttpRequestBuilder, io.ktor.client.call/HttpClientCall>) // io.ktor.client.plugins.api/Send.install|install(io.ktor.client.HttpClient;kotlin.coroutines.SuspendFunction2<io.ktor.client.plugins.api.Send.Sender,io.ktor.client.request.HttpRequestBuilder,io.ktor.client.call.HttpClientCall>){}[0]
 
@@ -1512,12 +1517,6 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.webso
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).io.ktor.client.plugins.websocket/sendSerialized(#A) // io.ktor.client.plugins.websocket/sendSerialized|sendSerialized@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(0:0){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/HttpResponse).io.ktor.client.call/body(): #A // io.ktor.client.call/body|body@io.ktor.client.statement.HttpResponse(){0§<kotlin.Any?>}[0]
 
-// Targets: [native]
-final object io.ktor.client.engine/engines : kotlin.collections/Iterable<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> { // io.ktor.client.engine/engines|null[0]
-    final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>){}[0]
-    final fun iterator(): kotlin.collections/Iterator<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> // io.ktor.client.engine/engines.iterator|iterator(){}[0]
-}
-
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
     abstract var aborted // io.ktor.client.fetch/AbortSignal.aborted|{}aborted[0]
@@ -1786,6 +1785,9 @@ open class io.ktor.client.engine.js/JsClientEngineConfig : io.ktor.client.engine
 // Targets: [js, wasmJs]
 final object io.ktor.client.engine.js/Js : io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine.js/JsClientEngineConfig> { // io.ktor.client.engine.js/Js|null[0]
     final fun create(kotlin/Function1<io.ktor.client.engine.js/JsClientEngineConfig, kotlin/Unit>): io.ktor.client.engine/HttpClientEngine // io.ktor.client.engine.js/Js.create|create(kotlin.Function1<io.ktor.client.engine.js.JsClientEngineConfig,kotlin.Unit>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.engine.js/Js.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.client.engine.js/Js.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.client.engine.js/Js.toString|toString(){}[0]
 }
 
 // Targets: [js, wasmJs]
@@ -2178,6 +2180,10 @@ abstract interface io.ktor.client.fetch/Uint8ArrayConstructor { // io.ktor.clien
     abstract fun from(io.ktor.client.fetch/ArrayLike<kotlin/Number>): io.ktor.client.fetch/Uint8Array // io.ktor.client.fetch/Uint8ArrayConstructor.from|from(io.ktor.client.fetch.ArrayLike<kotlin.Number>){}[0]
     abstract fun of(kotlin/Array<out kotlin/Number>...): io.ktor.client.fetch/Uint8Array // io.ktor.client.fetch/Uint8ArrayConstructor.of|of(kotlin.Array<out|kotlin.Number>...){}[0]
 }
+
+// Targets: [js]
+final val io.ktor.client.engine.js/initHook // io.ktor.client.engine.js/initHook|{}initHook[0]
+    final fun <get-initHook>(): dynamic // io.ktor.client.engine.js/initHook.<get-initHook>|<get-initHook>(){}[0]
 
 // Targets: [js]
 final inline fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Number): kotlin/Number? // io.ktor.client.fetch/get|get@io.ktor.client.fetch.Uint8Array(kotlin.Number){}[0]
