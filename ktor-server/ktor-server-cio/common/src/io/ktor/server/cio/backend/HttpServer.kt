@@ -39,7 +39,6 @@ public fun CoroutineScope.httpServer(
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
 
-
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(settings.host, settings.port) {
             reuseAddress = settings.reuseAddress
