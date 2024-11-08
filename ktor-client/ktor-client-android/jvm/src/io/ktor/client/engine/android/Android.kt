@@ -26,7 +26,7 @@ import io.ktor.client.engine.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object Android : HttpClientEngineFactory<AndroidEngineConfig> {
+public data object Android : HttpClientEngineFactory<AndroidEngineConfig> {
     override fun create(block: AndroidEngineConfig.() -> Unit): HttpClientEngine =
         AndroidClientEngine(AndroidEngineConfig().apply(block))
 }
