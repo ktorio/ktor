@@ -25,7 +25,7 @@ class MultiPartFormDataTest : ClientLoader() {
     }
 
     @Test
-    fun testMultiPartFormData() = clientTests(listOf("native")) {
+    fun testMultiPartFormData() = clientTests(listOf("native:*")) {
         test { client ->
             val result = client.preparePost("$TEST_SERVER/multipart") {
                 setBody(

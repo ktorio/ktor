@@ -23,8 +23,9 @@ import kotlinx.coroutines.flow.*
 import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.minutes
 
-class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
+class ServerSentEventsTest : ClientLoader(2.minutes) {
 
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {
