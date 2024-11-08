@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
 class AuthTest : ClientLoader() {
 
     @Test
-    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -43,7 +43,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuth() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuth() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -60,7 +60,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -84,7 +84,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
