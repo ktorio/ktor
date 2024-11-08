@@ -14,7 +14,7 @@ internal class DefaultServerSSESession(
     private val output: ByteWriteChannel,
     override val call: ApplicationCall,
     override val coroutineContext: CoroutineContext
-) : SSESession {
+) : ServerSSESession {
     private val mutex = Mutex()
 
     override suspend fun send(event: ServerSentEvent) {

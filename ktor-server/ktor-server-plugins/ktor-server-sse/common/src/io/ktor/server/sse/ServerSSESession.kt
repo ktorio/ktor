@@ -12,7 +12,7 @@ import kotlinx.coroutines.*
 
 /**
  * Represents a server-side Server-Sent Events (SSE) session.
- * An [SSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
+ * An [ServerSSESession] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * Example of usage:
  * ```kotlin
@@ -31,7 +31,7 @@ import kotlinx.coroutines.*
  *
  * @see SSE
  */
-public interface SSESession : CoroutineScope {
+public interface ServerSSESession : CoroutineScope {
     /**
      * The received [call] that originated this session.
      */
@@ -62,7 +62,7 @@ public interface SSESession : CoroutineScope {
     }
 
     /**
-     * Closes the [SSESession], terminating the connection with the client.
+     * Closes the [ServerSSESession], terminating the connection with the client.
      * Once this method is called, the SSE session is closed and no further events can be sent.
      * You don't need to call this method as it is called automatically when all the send operations are completed.
      *
@@ -75,7 +75,7 @@ public interface SSESession : CoroutineScope {
 
 /**
  * Represents a server-side Server-Sent Events (SSE) session with serialization support.
- * An [SSESessionWithSerialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
+ * An [ServerSSESessionWithSerialization] allows the server to send [ServerSentEvent] to the client over a single HTTP connection.
  *
  * Example of usage:
  * ```kotlin
@@ -96,14 +96,14 @@ public interface SSESession : CoroutineScope {
  *
  * @see SSE
  */
-public interface SSESessionWithSerialization : SSESession {
+public interface ServerSSESessionWithSerialization : ServerSSESession {
     /**
      * Serializer for transforming data object into field `data` of `ServerSentEvent`.
      */
     public val serializer: (TypeInfo, Any) -> String
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(event: TypedServerSentEvent<T>) {
+public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.send(event: TypedServerSentEvent<T>) {
     send(
         ServerSentEvent(
             event.data?.let {
@@ -117,7 +117,7 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(eve
     )
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(
+public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.send(
     data: T? = null,
     event: String? = null,
     id: String? = null,
@@ -127,6 +127,6 @@ public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(
     send(TypedServerSentEvent(data, event, id, retry, comments))
 }
 
-public suspend inline fun <reified T : Any> SSESessionWithSerialization.send(data: T) {
+public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.send(data: T) {
     send(ServerSentEvent(serializer(typeInfo<T>(), data)))
 }

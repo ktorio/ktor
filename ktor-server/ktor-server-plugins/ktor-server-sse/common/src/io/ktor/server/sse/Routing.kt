@@ -15,7 +15,7 @@ import io.ktor.util.reflect.*
  *
  * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * Example of usage:
@@ -33,9 +33,9 @@ import io.ktor.util.reflect.*
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- * @see SSESession
+ * @see ServerSSESession
  */
-public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
+public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit) {
     route(path, HttpMethod.Get) {
         sse(handler)
     }
@@ -46,7 +46,7 @@ public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
  * Requires [SSE] plugin to be installed.
  *
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * Example of usage:
@@ -64,9 +64,9 @@ public fun Route.sse(path: String, handler: suspend SSESession.() -> Unit) {
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- * @see SSESession
+ * @see ServerSSESession
  */
-public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(null, handler)
+public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = processSSEWithoutSerialization(null, handler)
 
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
@@ -75,7 +75,7 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
  * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * Example of usage:
@@ -95,12 +95,12 @@ public fun Route.sse(handler: suspend SSESession.() -> Unit): Unit = processSSE(
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- * @see SSESessionWithSerialization
+ * @see ServerSSESessionWithSerialization
  */
 public fun Route.sse(
     path: String,
     serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
-    handler: suspend SSESessionWithSerialization.() -> Unit
+    handler: suspend ServerSSESessionWithSerialization.() -> Unit
 ) {
     route(path, HttpMethod.Get) {
         sse(serialize, handler)
@@ -113,7 +113,7 @@ public fun Route.sse(
  *
  * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
- * endpoint. Inside the handler, you can use the functions provided by [SSESessionWithSerialization]
+ * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
  * to send events to the connected clients.
  *
  * Example of usage:
@@ -133,16 +133,35 @@ public fun Route.sse(
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- * @see SSESessionWithSerialization
+ * @see ServerSSESessionWithSerialization
  */
 public fun Route.sse(
     serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
-    handler: suspend SSESessionWithSerialization.() -> Unit
-): Unit = processSSE(serialize, handler)
+    handler: suspend ServerSSESessionWithSerialization.() -> Unit
+): Unit = processSSEWithSerialization(serialize, handler)
+
+private fun Route.processSSEWithoutSerialization(
+    serialize: ((TypeInfo, Any) -> String)?,
+    handler: suspend ServerSSESession.() -> Unit
+) = processSSE(serialize, handler)
+
+private fun Route.processSSEWithSerialization(
+    serialize: ((TypeInfo, Any) -> String)?,
+    handler: suspend ServerSSESessionWithSerialization.() -> Unit
+) {
+    val sessionHandler: suspend ServerSSESession.() -> Unit = {
+        if (this is ServerSSESessionWithSerialization) {
+            handler()
+        } else {
+            throw IllegalStateException("ServerSSESessionWithSerialization is required.")
+        }
+    }
+    processSSE(serialize, sessionHandler)
+}
 
 private fun Route.processSSE(
     serialize: ((TypeInfo, Any) -> String)?,
-    handler: suspend SSESessionWithSerialization.() -> Unit
+    handler: suspend ServerSSESession.() -> Unit
 ) {
     plugin(SSE)
 
@@ -151,6 +170,6 @@ private fun Route.processSSE(
         call.response.header(HttpHeaders.CacheControl, "no-store")
         call.response.header(HttpHeaders.Connection, "keep-alive")
         call.response.header("X-Accel-Buffering", "no")
-        call.respond(SSEServerContent(call, serialize, handler))
+        call.respond(SSEServerContent(call, handler, serialize))
     }
 }

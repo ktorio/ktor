@@ -24,24 +24,30 @@ import kotlinx.coroutines.*
  * @param call that is starting SSE session.
  * @param handle function that is started once SSE session created.
  */
-public class SSEServerContent<T : SSESession>(
+public class SSEServerContent(
     public val call: ApplicationCall,
-    public val serialize: ((TypeInfo, Any) -> String)?,
-    public val handle: suspend T.() -> Unit
+    public val handle: suspend ServerSSESession.() -> Unit,
+    public val serialize: ((TypeInfo, Any) -> String)? = null
 ) : OutgoingContent.WriteChannelContent() {
+    public constructor(
+        call: ApplicationCall,
+        handle: suspend ServerSSESession.() -> Unit,
+    ) : this(call, handle, null)
+
     override val contentType: ContentType = ContentType.Text.EventStream
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         LOGGER.trace("Starting sse session for ${call.request.uri}")
 
-        var session: T? = null
+        var session: ServerSSESession? = null
         try {
             coroutineScope {
-                session = DefaultServerSSESession(channel, call, coroutineContext) as T
+                session = DefaultServerSSESession(channel, call, coroutineContext)
                 if (serialize != null) {
-                    session = object : SSESessionWithSerialization, SSESession by session as DefaultServerSSESession {
+                    session = object : ServerSSESessionWithSerialization,
+                        ServerSSESession by session as DefaultServerSSESession {
                         override val serializer: (TypeInfo, Any) -> String = serialize
-                    } as T
+                    }
                 }
                 session?.handle()
             }
