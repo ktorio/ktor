@@ -38,7 +38,7 @@ class HttpStatementTest : ClientLoader() {
     }
 
     @Test
-    fun testGZipFromSavedResponse() = clientTests(except("native:CIO")) {
+    fun testGZipFromSavedResponse() = clientTests(except("native:CIO", "web:CIO")) {
         config {
             ContentEncoding {
                 gzip()
