@@ -146,15 +146,14 @@ private fun Route.processSSEWithoutSerialization(
 ) = processSSE(serialize, handler)
 
 private fun Route.processSSEWithSerialization(
-    serialize: ((TypeInfo, Any) -> String)?,
+    serialize: ((TypeInfo, Any) -> String),
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
 ) {
     val sessionHandler: suspend ServerSSESession.() -> Unit = {
-        if (this is ServerSSESessionWithSerialization) {
-            handler()
-        } else {
-            throw IllegalStateException("ServerSSESessionWithSerialization is required.")
+        check(this is ServerSSESessionWithSerialization) {
+            "Impossible state. Please report this bug: https://youtrack.jetbrains.com/newIssue?project=KTOR"
         }
+        handler()
     }
     processSSE(serialize, sessionHandler)
 }
