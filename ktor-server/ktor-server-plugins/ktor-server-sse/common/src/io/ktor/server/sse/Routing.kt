@@ -66,7 +66,7 @@ public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit)
  *
  * @see ServerSSESession
  */
-public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = processSSEWithoutSerialization(null, handler)
+public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = processSSEWithoutSerialization(handler)
 
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
@@ -99,7 +99,7 @@ public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = proce
  */
 public fun Route.sse(
     path: String,
-    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
+    serialize: (TypeInfo, Any) -> String,
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
 ) {
     route(path, HttpMethod.Get) {
@@ -136,14 +136,13 @@ public fun Route.sse(
  * @see ServerSSESessionWithSerialization
  */
 public fun Route.sse(
-    serialize: (TypeInfo, Any) -> String = { _, it -> it.toString() },
+    serialize: (TypeInfo, Any) -> String,
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
 ): Unit = processSSEWithSerialization(serialize, handler)
 
 private fun Route.processSSEWithoutSerialization(
-    serialize: ((TypeInfo, Any) -> String)?,
     handler: suspend ServerSSESession.() -> Unit
-) = processSSE(serialize, handler)
+) = processSSE(null, handler)
 
 private fun Route.processSSEWithSerialization(
     serialize: ((TypeInfo, Any) -> String),
