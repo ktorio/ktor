@@ -357,7 +357,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingWithCompression() = clientTests(listOf("Darwin", "DarwinLegacy", "native:CIO")) {
+    fun testLoggingWithCompression() = clientTests(listOf("Darwin", "DarwinLegacy", "native:CIO", "web:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/compression/deflate",
             "METHOD: HttpMethod(value=GET)",
