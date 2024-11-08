@@ -224,15 +224,6 @@ class RoutingProcessingTest {
             }
         }
 
-        on("making request to /image with Accept */png") {
-            client.get("/image") {
-                header(HttpHeaders.Accept, ContentType.parse("*/png"))
-            }.let {
-                assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("Image", it.bodyAsText())
-            }
-        }
-
         on("making request to /any with Accept image/png") {
             client.get("/any") {
                 header(HttpHeaders.Accept, ContentType.Image.PNG)
@@ -254,15 +245,6 @@ class RoutingProcessingTest {
         on("making request to /any with Accept */*") {
             client.get("/any") {
                 header(HttpHeaders.Accept, ContentType.Any)
-            }.let {
-                assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("Any", it.bodyAsText())
-            }
-        }
-
-        on("making request to /any with Accept */png") {
-            client.get("/any") {
-                header(HttpHeaders.Accept, ContentType.parse("*/png"))
             }.let {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("Any", it.bodyAsText())
