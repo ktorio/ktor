@@ -3,6 +3,7 @@
  */
 
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.dataformat.smile.SmileFactory
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -128,6 +129,40 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
             setBody("""{"value":null}""")
         }.let { response ->
             assertEquals("""{"value":"asd"}""", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testSmileEncoding() = testApplication {
+        val uc = "\u0422"
+
+        val smileContentType = ContentType.parse("application/x-jackson-smile")
+        val smileMapper = ObjectMapper(SmileFactory())
+
+        install(ContentNegotiation) {
+            register(smileContentType, JacksonConverter(smileMapper))
+        }
+        routing {
+            post("/") {
+                val map = call.receive<Map<*, *>>()
+                val text = map.entries.joinToString { "${it.key}=${it.value}" }
+                call.respond(text)
+            }
+        }
+
+        val data = mapOf(
+            "id" to 1,
+            "title" to "Hello, World!",
+            "unicode" to uc
+        )
+
+        client.post("/") {
+            header(HttpHeaders.Accept, "application/json")
+            contentType(smileContentType)
+            setBody(smileMapper.writeValueAsBytes(data))
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""id=1, title=Hello, World!, unicode=$uc""", response.bodyAsText())
         }
     }
 }

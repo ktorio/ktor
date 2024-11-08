@@ -21,6 +21,7 @@ kotlin {
                 api(project(":ktor-shared:ktor-serialization:ktor-serialization-tests"))
                 
                 api(libs.logback.classic)
+                api(libs.jackson.dataformat.smile)
             }
         }
     }

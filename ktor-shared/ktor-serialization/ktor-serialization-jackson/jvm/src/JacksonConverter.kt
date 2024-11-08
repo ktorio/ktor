@@ -79,8 +79,17 @@ public class JacksonConverter(
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         try {
             return withContext(Dispatchers.IO) {
-                val reader = content.toInputStream().reader(charset)
-                objectMapper.readValue(reader, objectMapper.constructType(typeInfo.reifiedType))
+                val type = objectMapper.constructType(typeInfo.reifiedType)
+                val objectReader = objectMapper.readerFor(type)
+
+                // Jackson handles decoding of Unicode charsets automatically, no need to create a reader.
+                // Additionally, a byte-based source is required for binary format (Smile).
+                if (isUnicode(charset)) {
+                    objectReader.readValue(content.toInputStream())
+                } else {
+                    val reader = content.toInputStream().reader(charset)
+                    objectReader.readValue(reader)
+                }
             }
         } catch (cause: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
@@ -94,6 +103,17 @@ public class JacksonConverter(
     }
 
     private companion object {
+        private val encodings = buildMap<String, JsonEncoding> {
+            JsonEncoding.entries.forEach { put(it.javaName, it) }
+            put("US-ASCII", JsonEncoding.UTF8) // Jackson automatically unescapes Unicode characters
+        }
+
+        private fun isUnicode(charset: Charset): Boolean {
+            return encodings.containsKey(charset.name())
+                || charset == Charsets.UTF_16
+                || charset == Charsets.UTF_32
+        }
+
         private const val beginArrayCharCode = '['.code
         private const val endArrayCharCode = ']'.code
         private const val objectSeparator = ','.code

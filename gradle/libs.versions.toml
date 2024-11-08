@@ -148,6 +148,7 @@ json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref =
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-smile = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-smile", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 
 jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
