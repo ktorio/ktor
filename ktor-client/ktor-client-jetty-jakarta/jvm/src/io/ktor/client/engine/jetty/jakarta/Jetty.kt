@@ -26,7 +26,7 @@ import io.ktor.utils.io.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
+public data object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
     override fun create(block: JettyEngineConfig.() -> Unit): HttpClientEngine =
         JettyHttp2Engine(JettyEngineConfig().apply(block))
 }

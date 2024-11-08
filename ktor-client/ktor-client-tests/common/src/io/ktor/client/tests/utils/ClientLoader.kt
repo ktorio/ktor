@@ -165,7 +165,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
 }
 
 internal val HttpClientEngineFactory<*>.engineName: String
-    get() = this::class.simpleName!!
+    get() = this.toString()
 
 /**
  * Decides whether an engine should be tested or not.

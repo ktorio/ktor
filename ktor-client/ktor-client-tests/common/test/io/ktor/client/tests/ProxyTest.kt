@@ -19,7 +19,7 @@ data class ProxyResponse(val status: String)
 class ProxyTest : ClientLoader() {
 
     @Test
-    fun testHttpProxy() = clientTests(except("Js")) {
+    fun testHttpProxy() = clientTests(except("Js", "web:CIO")) {
         config {
             engine {
                 proxy = ProxyBuilder.http(TCP_SERVER)
@@ -33,7 +33,7 @@ class ProxyTest : ClientLoader() {
     }
 
     @Test
-    fun testProxyWithSerialization() = clientTests(except("Js")) {
+    fun testProxyWithSerialization() = clientTests(except("Js", "web:CIO")) {
         config {
             engine {
                 proxy = ProxyBuilder.http(TCP_SERVER)

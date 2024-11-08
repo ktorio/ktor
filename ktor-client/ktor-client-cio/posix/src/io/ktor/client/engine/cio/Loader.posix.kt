@@ -7,11 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import io.ktor.utils.io.*
 
-@OptIn(ExperimentalStdlibApi::class)
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
 @EagerInitialization
-private val initHook = CIO
-
-@OptIn(InternalAPI::class)
-internal actual fun addToLoader() {
-    engines.append(CIO)
-}
+private val initHook = engines.append(CIO)
