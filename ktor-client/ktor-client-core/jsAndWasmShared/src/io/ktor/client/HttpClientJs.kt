@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client
 
+import io.ktor.client.engine.*
 import io.ktor.client.engine.js.*
 import io.ktor.utils.io.*
 
@@ -16,4 +17,9 @@ import io.ktor.utils.io.*
 @KtorDsl
 public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
-): HttpClient = HttpClient(JsClient(), block)
+): HttpClient = HttpClient(FACTORY, block)
+
+// we need to fall back to the default (Js) engine if there are no other engines,
+// but in the presence of other engines, they're preferred.
+@OptIn(InternalAPI::class)
+private val FACTORY = engines.firstOrNull { it != Js } ?: Js
