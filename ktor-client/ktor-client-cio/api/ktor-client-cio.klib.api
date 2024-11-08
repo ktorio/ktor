@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -62,3 +62,7 @@ final object io.ktor.client.engine.cio/CIO : io.ktor.client.engine/HttpClientEng
 }
 
 final fun (io.ktor.client.engine.cio/CIOEngineConfig).io.ktor.client.engine.cio/endpoint(kotlin/Function1<io.ktor.client.engine.cio/EndpointConfig, kotlin/Unit>): io.ktor.client.engine.cio/EndpointConfig // io.ktor.client.engine.cio/endpoint|endpoint@io.ktor.client.engine.cio.CIOEngineConfig(kotlin.Function1<io.ktor.client.engine.cio.EndpointConfig,kotlin.Unit>){}[0]
+
+// Targets: [js]
+final val io.ktor.client.engine.cio/initHook // io.ktor.client.engine.cio/initHook|{}initHook[0]
+    final fun <get-initHook>(): dynamic // io.ktor.client.engine.cio/initHook.<get-initHook>|<get-initHook>(){}[0]
