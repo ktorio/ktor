@@ -197,7 +197,7 @@ class UDPSocketTest {
     fun testSendReceive() = testSockets { selector ->
         aSocket(selector)
             .udp()
-            .bind(InetSocketAddress("127.0.0.1", 8000)) {
+            .bind("127.0.0.1", 8000) {
                 reuseAddress = true
             }
             .use { socket ->

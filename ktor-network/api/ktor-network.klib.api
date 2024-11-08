@@ -166,6 +166,7 @@ final class io.ktor.network.sockets/UDPSocketBuilder : io.ktor.network.sockets/C
         final fun <set-options>(io.ktor.network.sockets/SocketOptions.UDPSocketOptions) // io.ktor.network.sockets/UDPSocketBuilder.options.<set-options>|<set-options>(io.ktor.network.sockets.SocketOptions.UDPSocketOptions){}[0]
 
     final suspend fun bind(io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/BoundDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.bind|bind(io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
+    final suspend fun bind(kotlin/String = ..., kotlin/Int = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/BoundDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.bind|bind(kotlin.String;kotlin.Int;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
     final suspend fun connect(io.ktor.network.sockets/SocketAddress, io.ktor.network.sockets/SocketAddress? = ..., kotlin/Function1<io.ktor.network.sockets/SocketOptions.UDPSocketOptions, kotlin/Unit> = ...): io.ktor.network.sockets/ConnectedDatagramSocket // io.ktor.network.sockets/UDPSocketBuilder.connect|connect(io.ktor.network.sockets.SocketAddress;io.ktor.network.sockets.SocketAddress?;kotlin.Function1<io.ktor.network.sockets.SocketOptions.UDPSocketOptions,kotlin.Unit>){}[0]
 }
 
