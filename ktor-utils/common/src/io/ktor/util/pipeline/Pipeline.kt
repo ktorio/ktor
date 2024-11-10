@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util.pipeline
 
@@ -253,11 +253,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         fastPathMerge(from)
     }
 
+    // Kept for binary compatibility
     override fun toString(): String {
-        val interceptors = interceptorsForTests()
-            .joinToString("\n") { "    " + it::class.toString() }
-
-        return "${this::class}(0x${hashCode().toString(16)}) [\n$interceptors\n]"
+        return super.toString()
     }
 
     internal fun phaseInterceptors(phase: PipelinePhase): List<PipelineInterceptor<TSubject, TContext>> =

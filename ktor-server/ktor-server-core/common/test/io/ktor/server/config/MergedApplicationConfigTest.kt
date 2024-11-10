@@ -100,6 +100,22 @@ class MergedApplicationConfigTest {
     }
 
     @Test
+    fun testDeepToMap() {
+        val first = MapApplicationConfig(
+            "nested.nested-value-1" to "value1",
+            "nested.nested-value-2" to "value1",
+        )
+        val second = MapApplicationConfig(
+            "nested.nested-value-2" to "value2",
+            "nested.nested-value-3" to "value2",
+        )
+        val merged = first.mergeWith(second).toMap()["nested"] as Map<*, *>
+        assertEquals("value1", merged["nested-value-1"])
+        assertEquals("value2", merged["nested-value-2"])
+        assertEquals("value2", merged["nested-value-3"])
+    }
+
+    @Test
     fun testMergeWith() {
         val first = MapApplicationConfig(
             "value1" to "1",

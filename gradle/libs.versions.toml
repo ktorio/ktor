@@ -1,16 +1,17 @@
 [versions]
+
 kotlin = "2.0.21"
 kotlinx-html = "0.11.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-io = "0.5.4"
 coroutines = "1.9.0"
-atomicfu = "0.25.0"
+atomicfu = "0.26.0"
 serialization = "1.7.3"
 ktlint = "3.15.0"
 kotlinx-browser = "0.2"
 
 netty = "4.1.114.Final"
-netty-tcnative = "2.0.66.Final"
+netty-tcnative = "2.0.69.Final"
 
 jetty = "9.4.56.v20240826"
 jetty-jakarta = "11.0.24"
@@ -29,14 +30,14 @@ okio = "3.9.1"
 
 json-simple = "1.1.1"
 gson = "2.11.0"
-jackson = "2.18.0"
+jackson = "2.18.1"
 
-junit = "5.11.2"
+junit = "5.11.3"
 slf4j = "2.0.16"
-logback = "1.5.10"
+logback = "1.5.12"
 
 dropwizard = "4.2.28"
-micrometer = "1.13.5"
+micrometer = "1.13.6"
 
 jansi = "2.4.1"
 typesafe = "1.4.3"
@@ -49,7 +50,7 @@ jwks-rsa = "0.22.1"
 mustache = "0.9.14"
 freemarker = "2.3.33"
 pebble = "3.2.2"
-velocity = "2.4"
+velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
 webjars-jquery = "3.7.1"
@@ -57,28 +58,31 @@ thymeleaf = "3.1.2.RELEASE"
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-node-fetch = "2.6.7"
-abort-controller = "3.0.0"
 ws = "8.5.0"
-xmlutil = "0.90.1"
+xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.62"
-swagger-codegen-generators = "1.0.52"
-swagger-parser = "2.1.22"
+swagger-codegen = "3.0.63"
+swagger-codegen-generators = "1.0.53"
+swagger-parser = "2.1.23"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
+develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.0.2"
+
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
-kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+kotlinx-atomicfu-gradlePlugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 
 kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -191,3 +195,6 @@ swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-g
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
 
 tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+
+develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
+develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }

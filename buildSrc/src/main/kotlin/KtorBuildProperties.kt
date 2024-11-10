@@ -23,8 +23,6 @@ val IDEA_ACTIVE: Boolean = System.getProperty("idea.active") == "true"
 
 val OS_NAME = System.getProperty("os.name").lowercase()
 
-val CI = System.getenv("TEAMCITY_VERSION") != null
-
 val HOST_NAME = when {
     OS_NAME.startsWith("linux") -> "linux"
     OS_NAME.startsWith("windows") -> "windows"

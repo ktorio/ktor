@@ -53,31 +53,28 @@ public suspend fun ByteReadChannel.readByte(): Byte {
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readShort(): Short {
-    while (availableForRead < 2 && awaitContent()) {
-    }
-
-    if (availableForRead < 2) throw EOFException("Not enough data available")
-
+    awaitUntilReadable(Short.SIZE_BYTES)
     return readBuffer.readShort()
 }
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readInt(): Int {
-    while (availableForRead < 4 && awaitContent()) {
-    }
-
-    if (availableForRead < 4) throw EOFException("Not enough data available")
-
+    awaitUntilReadable(Int.SIZE_BYTES)
     return readBuffer.readInt()
 }
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readLong(): Long {
-    while (availableForRead < 8 && awaitContent()) {
+    awaitUntilReadable(Long.SIZE_BYTES)
+    return readBuffer.readLong()
+}
+
+private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
+    while (availableForRead < numberOfBytes && awaitContent(numberOfBytes)) {
+        yield()
     }
 
-    if (availableForRead < 8) throw EOFException("Not enough data available")
-    return readBuffer.readLong()
+    if (availableForRead < numberOfBytes) throw EOFException("Not enough data available")
 }
 
 @OptIn(InternalAPI::class)

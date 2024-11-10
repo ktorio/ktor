@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import test.server.*
 
 /*
@@ -50,7 +54,7 @@ kotlin.sourceSets {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
             api(libs.logback.classic)
             api(libs.junit)
-            api(kotlin("test-junit5"))
+            api(libs.kotlin.test.junit5)
             implementation(libs.kotlinx.coroutines.debug)
         }
     }
