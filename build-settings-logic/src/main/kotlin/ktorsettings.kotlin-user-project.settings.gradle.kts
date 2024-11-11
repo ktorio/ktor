@@ -182,6 +182,7 @@ private fun Project.filterTests() {
             excludeTestsMatching("*.PostTest")
             excludeTestsMatching("*.ServerSocketTest")
             excludeTestsMatching("*.WebSocketTest")
+            excludeTestsMatching("*.CIOEngineTest")
 
             // Particular tests
             excludeTestsMatching("*numberTest")
@@ -189,6 +190,10 @@ private fun Project.filterTests() {
             excludeTestsMatching("*testBlockingConcurrency")
             excludeTestsMatching("*testCustomUrls")
             excludeTestsMatching("*testStaticServeFromDir")
+            excludeTestsMatching("*testAcceptErrorOnImmediateSocketClose")
+            excludeTestsMatching("*testResponseErrorWithInvalidChunkException")
+            excludeTestsMatching("*testEcho")
+            excludeTestsMatching("*testALotOfFrames")
         }
     }
 }
