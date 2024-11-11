@@ -15,6 +15,9 @@ import kotlin.coroutines.*
 
 /**
  * Callback that can be registered to listen for upload/download progress.
+ *
+ * This class is used for callbacks in [HttpRequestBuilder.onDownload] and [HttpRequestBuilder.onUpload].
+ *
  * @param bytesSentTotal number of transmitted bytes.
  * @param contentLength body size. Can be null if the size is unknown.
  */
