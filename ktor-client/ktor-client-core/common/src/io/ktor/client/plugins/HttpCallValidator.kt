@@ -75,9 +75,9 @@ public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
 public typealias CallRequestExceptionHandler = suspend (cause: Throwable, request: HttpRequest) -> Unit
 
 /**
- * Response validator plugin is used for validate response and handle response exceptions.
+ * The response validator plugin is used for validating an [HttpClient] response and handling response exceptions.
  *
- * See also [Config] for additional details.
+ * For more details, see [HttpCallValidatorConfig].
  */
 public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClientPlugin(
     "HttpResponseValidator",
