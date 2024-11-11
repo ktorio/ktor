@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.request
@@ -25,7 +25,7 @@ import io.ktor.http.*
  * This example demonstrates making a GET request to "https://ktor.io".
  *
  * ## Note
- * In addition to this generic `request` method, there are more specific extension functions, such as
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
  * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
  *
@@ -49,7 +49,7 @@ public suspend inline fun HttpClient.prepareRequest(
 /**
  * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * This function sends a request with parameters specified in the [builder], allowing customization
+ * This function sends a request with parameters specified in the [block], allowing customization
  * of request settings such as URL, HTTP method, headers, and body.
  *
  * ## Usage Example
@@ -63,12 +63,12 @@ public suspend inline fun HttpClient.prepareRequest(
  * This example demonstrates making a GET request to "https://ktor.io".
  *
  * ## Note
- * In addition to this generic `request` method, there are more specific extension functions, such as
- * [HttpClient.get], [HttpClient.post], HttpClient.put`, and `HttpClient.delete`, which are often more
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
  *
- * @param builder The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
- * builder if none is provided.
+ * @param block The [HttpRequestBuilder] block used to configure request parameters.
+ * Defaults to an empty builder if none is provided.
  * @return [HttpResponse] The response received from the server after executing the request.
  *
  * For more details, see [Making requests](https://ktor.io/docs/request.html).
@@ -85,7 +85,7 @@ public suspend inline fun HttpClient.prepareRequest(block: HttpRequestBuilder.()
 /**
  * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * This function sends a request with parameters specified in the [builder], allowing customization
+ * This function sends a request to the [urlString] with parameters specified in the [block], allowing customization
  * of request settings such as URL, HTTP method, headers, and body.
  *
  * ## Usage Example
@@ -98,11 +98,12 @@ public suspend inline fun HttpClient.prepareRequest(block: HttpRequestBuilder.()
  * This example demonstrates making a GET request to "https://ktor.io".
  *
  * ## Note
- * In addition to this generic `request` method, there are more specific extension functions, such as
- * [HttpClient.get], [HttpClient.post], HttpClient.put`, and `HttpClient.delete`, which are often more
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
  *
- * @param builder The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
+ * @param [urlString] The URL to which the request is sent.
+ * @param [block] The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
  * builder if none is provided.
  * @return [HttpResponse] The response received from the server after executing the request.
  *
@@ -130,7 +131,7 @@ public suspend inline fun HttpClient.prepareRequest(
 /**
  * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * This function sends a request with parameters specified in the [builder], allowing customization
+ * This function sends a request to [url] with parameters specified in the [block], allowing customization
  * of request settings such as URL, HTTP method, headers, and body.
  *
  * ## Usage Example
@@ -143,11 +144,12 @@ public suspend inline fun HttpClient.prepareRequest(
  * This example demonstrates making a GET request to "https://ktor.io".
  *
  * ## Note
- * In addition to this generic `request` method, there are more specific extension functions, such as
- * [HttpClient.get], [HttpClient.post], HttpClient.put`, and `HttpClient.delete`, which are often more
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
  *
- * @param builder The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
+ * @param [url] The URL to which the request is sent.
+ * @param [block] The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
  * builder if none is provided.
  * @return [HttpResponse] The response received from the server after executing the request.
  *
