@@ -2,6 +2,8 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class)
+
 package io.ktor.http
 
 import io.ktor.utils.io.*
@@ -263,8 +265,9 @@ internal val Url.encodedUserAndPassword: String
         appendUserAndPassword(encodedUser, encodedPassword)
     }
 
-public class UrlSerializer : KSerializer<Url> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Url", PrimitiveKind.STRING)
+public object UrlSerializer : KSerializer<Url> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("io.ktor.http.Url", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Url =
         Url(decoder.decodeString())

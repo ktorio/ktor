@@ -6,12 +6,15 @@ package io.ktor.utils.io
 
 import java.io.*
 
+@InternalAPI
 public actual typealias JvmSerializable = Serializable
 
 @Suppress("UNCHECKED_CAST")
+@InternalAPI
 public actual fun <T : Any> JvmSerializerReplacement(serializer: JvmSerializer<T>, value: T): Any =
     DefaultJvmSerializerReplacement(serializer, value)
 
+@OptIn(InternalAPI::class)
 @PublishedApi // IMPORTANT: changing the class name would result in serialization incompatibility
 internal class DefaultJvmSerializerReplacement<T : Any>(
     private var serializer: JvmSerializer<T>?,

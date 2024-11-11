@@ -12,13 +12,11 @@ import kotlin.test.*
 class SerializableTest {
     @Test
     fun urlTest() {
-        val url = Url("https://localhost/path?key=value#fragment")
-        assertEquals(url, assertSerializable(url))
+        assertSerializable(Url("https://localhost/path?key=value#fragment"))
     }
 
     @Test
     fun cookieTest() {
-        val cookie = Cookie("key", "value")
-        assertEquals(cookie, assertSerializable(cookie))
+        assertSerializable(Cookie("key", "value"))
     }
 }

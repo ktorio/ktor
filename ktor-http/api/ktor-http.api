@@ -1062,7 +1062,7 @@ public final class io/ktor/http/UrlKt {
 }
 
 public final class io/ktor/http/UrlSerializer : kotlinx/serialization/KSerializer {
-	public fun <init> ()V
+	public static final field INSTANCE Lio/ktor/http/UrlSerializer;
 	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/http/Url;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;

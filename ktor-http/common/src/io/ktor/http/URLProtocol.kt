@@ -12,6 +12,7 @@ import io.ktor.utils.io.*
  * @property name of protocol (schema)
  * @property defaultPort default port for protocol or `-1` if not known
  */
+@OptIn(InternalAPI::class)
 public data class URLProtocol(val name: String, val defaultPort: Int) : JvmSerializable {
     init {
         require(name.all { it.isLowerCase() }) { "All characters should be lower case" }

@@ -4,13 +4,17 @@
 
 package io.ktor.utils.io
 
+/** Alias for `java.io.Serializable` on JVM. Empty interface otherwise. */
+@InternalAPI
 public expect interface JvmSerializable
 
+@InternalAPI
 public interface JvmSerializer<T> : JvmSerializable {
     public fun jvmSerialize(value: T): ByteArray
     public fun jvmDeserialize(value: ByteArray): T
 }
 
+@InternalAPI
 public expect fun <T : Any> JvmSerializerReplacement(serializer: JvmSerializer<T>, value: T): Any
 
 internal object DummyJvmSimpleSerializerReplacement

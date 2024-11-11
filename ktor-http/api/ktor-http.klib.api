@@ -1134,16 +1134,6 @@ final class io.ktor.http/Url : io.ktor.utils.io/JvmSerializable { // io.ktor.htt
     }
 }
 
-final class io.ktor.http/UrlSerializer : kotlinx.serialization/KSerializer<io.ktor.http/Url> { // io.ktor.http/UrlSerializer|null[0]
-    constructor <init>() // io.ktor.http/UrlSerializer.<init>|<init>(){}[0]
-
-    final val descriptor // io.ktor.http/UrlSerializer.descriptor|{}descriptor[0]
-        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.http/UrlSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/Url // io.ktor.http/UrlSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/Url) // io.ktor.http/UrlSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.Url){}[0]
-}
-
 sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHeader|null[0]
     final val authScheme // io.ktor.http.auth/HttpAuthHeader.authScheme|{}authScheme[0]
         final fun <get-authScheme>(): kotlin/String // io.ktor.http.auth/HttpAuthHeader.authScheme.<get-authScheme>|<get-authScheme>(){}[0]
@@ -1590,6 +1580,14 @@ final object io.ktor.http/HttpHeaders { // io.ktor.http/HttpHeaders|null[0]
     final fun checkHeaderName(kotlin/String) // io.ktor.http/HttpHeaders.checkHeaderName|checkHeaderName(kotlin.String){}[0]
     final fun checkHeaderValue(kotlin/String) // io.ktor.http/HttpHeaders.checkHeaderValue|checkHeaderValue(kotlin.String){}[0]
     final fun isUnsafe(kotlin/String): kotlin/Boolean // io.ktor.http/HttpHeaders.isUnsafe|isUnsafe(kotlin.String){}[0]
+}
+
+final object io.ktor.http/UrlSerializer : kotlinx.serialization/KSerializer<io.ktor.http/Url> { // io.ktor.http/UrlSerializer|null[0]
+    final val descriptor // io.ktor.http/UrlSerializer.descriptor|{}descriptor[0]
+        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.http/UrlSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/Url // io.ktor.http/UrlSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/Url) // io.ktor.http/UrlSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.Url){}[0]
 }
 
 final const val io.ktor.http/DEFAULT_PORT // io.ktor.http/DEFAULT_PORT|{}DEFAULT_PORT[0]
