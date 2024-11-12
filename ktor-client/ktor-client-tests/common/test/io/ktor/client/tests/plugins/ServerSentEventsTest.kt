@@ -25,6 +25,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class ServerSentEventsTest : ClientLoader(2.minutes) {
 
