@@ -14,5 +14,12 @@ kotlin {
                 api(libs.kotlinx.serialization.core)
             }
         }
+        jvmTest {
+            dependencies {
+                implementation(project(":ktor-shared:ktor-junit"))
+                implementation(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+                implementation(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
+            }
+        }
     }
 }
