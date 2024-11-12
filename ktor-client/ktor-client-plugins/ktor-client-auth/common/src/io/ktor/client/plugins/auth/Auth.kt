@@ -34,9 +34,23 @@ public class AuthConfig {
     public val providers: MutableList<AuthProvider> = mutableListOf()
 
     /**
-     * A lambda function to control whether a response is unauthorized and should trigger a refresh / re-auth.
+     * The currently set function to control whether a response is unauthorized and should trigger a refresh / re-auth.
+     *
+     * By default checks against HTTP status 401.
+     *
+     * You can set this value via [reAuthorizeOnResponse].
      */
     public var isUnauthorizedResponse: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
+        private set
+
+    /**
+     * Sets a custom function to control whether a response is unauthorized and should trigger a refresh / re-auth.
+     *
+     * Use this to change the value of [isUnauthorizedResponse].
+     */
+    public fun reAuthorizeOnResponse(block: suspend (HttpResponse) -> Boolean) {
+        isUnauthorizedResponse = block
+    }
 }
 
 /**

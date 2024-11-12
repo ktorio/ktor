@@ -407,7 +407,7 @@ class AuthTest : ClientLoader() {
     fun testForbiddenBearerAuthWithInvalidAccessAndValidRefreshTokens() = clientTests {
         config {
             install(Auth) {
-                isUnauthorizedResponse = { it.status == HttpStatusCode.Forbidden }
+                reAuthorizeOnResponse { it.status == HttpStatusCode.Forbidden }
                 bearer {
                     refreshTokens { BearerTokens("valid", "refresh") }
                     loadTokens { BearerTokens("invalid", "refresh") }
