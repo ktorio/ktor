@@ -250,6 +250,14 @@ class RoutingProcessingTest {
                 assertEquals("Any", it.bodyAsText())
             }
         }
+
+        on("making request to /image with Accept text/plain") {
+            client.get("/image") {
+                header(HttpHeaders.Accept, ContentType.Text.Plain)
+            }.let {
+                assertEquals(HttpStatusCode.BadRequest, it.status)
+            }
+        }
     }
 
     @Test

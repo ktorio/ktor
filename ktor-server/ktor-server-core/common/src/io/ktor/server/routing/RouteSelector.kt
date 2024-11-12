@@ -664,6 +664,9 @@ internal fun evaluatePathSegmentParameter(
     )
 }
 
-private fun ContentType.isCompatibleWith(other: ContentType): Boolean =
-    this.contentSubtype == "*" || this.match(other)
-
+private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
+    this.contentType == "*" && this.contentSubtype == "*" -> true
+    other.contentType == "*" && other.contentSubtype == "*" -> true
+    this.contentSubtype == "*" -> other.match(this)
+    else -> this.match(other)
+}
