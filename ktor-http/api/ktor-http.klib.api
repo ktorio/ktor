@@ -573,7 +573,7 @@ final class io.ktor.http/ContentType : io.ktor.http/HeaderValueWithParameters { 
     }
 }
 
-final class io.ktor.http/Cookie { // io.ktor.http/Cookie|null[0]
+final class io.ktor.http/Cookie : io.ktor.utils.io/JvmSerializable { // io.ktor.http/Cookie|null[0]
     constructor <init>(kotlin/String, kotlin/String, io.ktor.http/CookieEncoding = ..., kotlin/Int? = ..., io.ktor.util.date/GMTDate? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin.collections/Map<kotlin/String, kotlin/String?> = ...) // io.ktor.http/Cookie.<init>|<init>(kotlin.String;kotlin.String;io.ktor.http.CookieEncoding;kotlin.Int?;io.ktor.util.date.GMTDate?;kotlin.String?;kotlin.String?;kotlin.Boolean;kotlin.Boolean;kotlin.collections.Map<kotlin.String,kotlin.String?>){}[0]
 
     final val domain // io.ktor.http/Cookie.domain|{}domain[0]
@@ -1048,7 +1048,7 @@ final class io.ktor.http/URLParserException : kotlin/IllegalStateException { // 
     constructor <init>(kotlin/String, kotlin/Throwable) // io.ktor.http/URLParserException.<init>|<init>(kotlin.String;kotlin.Throwable){}[0]
 }
 
-final class io.ktor.http/URLProtocol { // io.ktor.http/URLProtocol|null[0]
+final class io.ktor.http/URLProtocol : io.ktor.utils.io/JvmSerializable { // io.ktor.http/URLProtocol|null[0]
     constructor <init>(kotlin/String, kotlin/Int) // io.ktor.http/URLProtocol.<init>|<init>(kotlin.String;kotlin.Int){}[0]
 
     final val defaultPort // io.ktor.http/URLProtocol.defaultPort|{}defaultPort[0]
@@ -1085,7 +1085,7 @@ final class io.ktor.http/UnsafeHeaderException : kotlin/IllegalArgumentException
     constructor <init>(kotlin/String) // io.ktor.http/UnsafeHeaderException.<init>|<init>(kotlin.String){}[0]
 }
 
-final class io.ktor.http/Url { // io.ktor.http/Url|null[0]
+final class io.ktor.http/Url : io.ktor.utils.io/JvmSerializable { // io.ktor.http/Url|null[0]
     final val encodedFragment // io.ktor.http/Url.encodedFragment|{}encodedFragment[0]
         final fun <get-encodedFragment>(): kotlin/String // io.ktor.http/Url.encodedFragment.<get-encodedFragment>|<get-encodedFragment>(){}[0]
     final val encodedPassword // io.ktor.http/Url.encodedPassword|{}encodedPassword[0]
@@ -1129,7 +1129,9 @@ final class io.ktor.http/Url { // io.ktor.http/Url|null[0]
     final fun hashCode(): kotlin/Int // io.ktor.http/Url.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.http/Url.toString|toString(){}[0]
 
-    final object Companion // io.ktor.http/Url.Companion|null[0]
+    final object Companion { // io.ktor.http/Url.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.http/Url> // io.ktor.http/Url.Companion.serializer|serializer(){}[0]
+    }
 }
 
 sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHeader|null[0]
@@ -1578,6 +1580,14 @@ final object io.ktor.http/HttpHeaders { // io.ktor.http/HttpHeaders|null[0]
     final fun checkHeaderName(kotlin/String) // io.ktor.http/HttpHeaders.checkHeaderName|checkHeaderName(kotlin.String){}[0]
     final fun checkHeaderValue(kotlin/String) // io.ktor.http/HttpHeaders.checkHeaderValue|checkHeaderValue(kotlin.String){}[0]
     final fun isUnsafe(kotlin/String): kotlin/Boolean // io.ktor.http/HttpHeaders.isUnsafe|isUnsafe(kotlin.String){}[0]
+}
+
+final object io.ktor.http/UrlSerializer : kotlinx.serialization/KSerializer<io.ktor.http/Url> { // io.ktor.http/UrlSerializer|null[0]
+    final val descriptor // io.ktor.http/UrlSerializer.descriptor|{}descriptor[0]
+        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.http/UrlSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/Url // io.ktor.http/UrlSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/Url) // io.ktor.http/UrlSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.Url){}[0]
 }
 
 final const val io.ktor.http/DEFAULT_PORT // io.ktor.http/DEFAULT_PORT|{}DEFAULT_PORT[0]

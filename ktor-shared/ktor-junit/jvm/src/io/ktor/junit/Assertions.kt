@@ -4,6 +4,9 @@
 
 package io.ktor.junit
 
+import java.io.*
+import kotlin.test.*
+
 /**
  * Convenience function for asserting on all elements of a collection.
  */
@@ -28,4 +31,15 @@ fun <T> assertAll(collection: Iterable<T>, assertion: (T) -> Unit) {
             }
         }
     )
+}
+
+inline fun <reified T : Any> assertSerializable(obj: T, checkEquality: Boolean = true): T {
+    val encoded = ByteArrayOutputStream().also {
+        ObjectOutputStream(it).writeObject(obj)
+    }.toByteArray()
+    val decoded = ObjectInputStream(encoded.inputStream()).readObject() as T
+    if (checkEquality) {
+        assertEquals(obj, decoded, "deserialized object must be equal to original object")
+    }
+    return decoded
 }
