@@ -49,7 +49,7 @@ public class CIOMultipartDataBase(
                 val event = events.receive()
                 eventToData(event)?.let { return it }
             }
-        } catch (t: ClosedReceiveChannelException) {
+        } catch (_: ClosedReceiveChannelException) {
             return null
         }
     }
@@ -77,13 +77,7 @@ public class CIOMultipartDataBase(
 
         val body = part.body
         if (filename == null) {
-            val packet = body.readRemaining() // formFieldLimit.toLong())
-//            if (!body.exhausted()) {
-//                val cause = IllegalStateException("Form field size limit exceeded: $formFieldLimit")
-//                body.cancel(cause)
-//                throw cause
-//            }
-
+            val packet = body.readRemaining()
             packet.use {
                 return PartData.FormItem(it.readText(), { part.release() }, CIOHeaders(headers))
             }
