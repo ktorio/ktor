@@ -63,7 +63,7 @@ xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
 swagger-codegen = "3.0.64"
-swagger-codegen-generators = "1.0.53"
+swagger-codegen-generators = "1.0.54"
 swagger-parser = "2.1.23"
 
 puppeteer = "21.5.0"
