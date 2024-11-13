@@ -1,11 +1,13 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import java.util.*
@@ -16,11 +18,8 @@ import kotlin.time.Duration.Companion.seconds
  */
 actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
 
-    private val engines: List<HttpClientEngineContainer> by lazy {
-        HttpClientEngineContainer::class.java.let { engineContainerClass ->
-            ServiceLoader.load(engineContainerClass, engineContainerClass.classLoader).toList()
-        }
-    }
+    @OptIn(InternalAPI::class)
+    private val engines: List<HttpClientEngineContainer> by lazy { loadServices<HttpClientEngineContainer>() }
 
     /**
      * Perform test against all clients from dependencies.
