@@ -53,7 +53,7 @@ actual constructor(
     @OptIn(DelicateCoroutinesApi::class)
     @AfterTest
     fun tearDownBase() {
-        GlobalScope.launch { server?.stopSuspend(0, 500) }
+        GlobalScope.launch { server?.stopSuspend(gracePeriodMillis = 0, timeoutMillis = 500) }
     }
 
     protected actual suspend fun createAndStartServer(
