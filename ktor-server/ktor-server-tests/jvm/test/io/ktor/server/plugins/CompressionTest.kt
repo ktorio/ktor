@@ -642,14 +642,19 @@ class CompressionTest {
         install(Compression)
         routing {
             post("/identity") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("identity"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+
+                call.respond(message)
             }
             post("/gzip") {
+                val message = call.receiveText()
+
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("gzip"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+
+                call.respond(message)
             }
             post("/deflate") {
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
@@ -754,9 +759,11 @@ class CompressionTest {
         }
         routing {
             post("/gzip") {
-                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 val body = call.receive<ByteArray>()
+
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertContentEquals(textToCompressAsBytes, body)
+
                 call.respond(textToCompressAsBytes)
             }
         }
@@ -772,16 +779,18 @@ class CompressionTest {
     @Test
     fun testDisableCallEncoding() = testApplication {
         val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
-
         install(Compression)
 
         routing {
             post("/gzip") {
                 call.suppressCompression()
 
-                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 val body = call.receive<ByteArray>()
-                assertContentEquals(textToCompressAsBytes, body)
+
+                assertEquals("gzip", call.request.appliedDecoders.first())
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertContentEquals(compressed, body)
+
                 call.respond(textToCompressAsBytes)
             }
         }
