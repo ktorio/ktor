@@ -8,6 +8,6 @@ import io.ktor.network.sockets.*
 import io.ktor.util.network.*
 
 internal actual fun SocketAddress.toNetworkAddress(): NetworkAddress {
-    val inetAddress = this as? InetSocketAddress ?: error("Expected inet socket address")
-    return NetworkAddress(inetAddress.hostname, inetAddress.port)
+    check(this is InetSocketAddress) { "Expected inet socket address" }
+    return NetworkAddress(hostname, port)
 }
