@@ -7,4 +7,4 @@ package io.ktor.server.cio.internal
 import kotlinx.coroutines.*
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher
-    get() = Default
+    get() = IO
