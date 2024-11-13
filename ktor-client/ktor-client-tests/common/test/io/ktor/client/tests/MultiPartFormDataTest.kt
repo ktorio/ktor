@@ -55,11 +55,11 @@ class MultiPartFormDataTest : ClientLoader() {
     fun testReceiveMultiPartFormData() = clientTests {
         test { client ->
             val response = client.post("$TEST_SERVER/multipart/receive")
-            
+
             val multipart = response.body<MultiPartData>()
             var textFound = false
             var fileFound = false
-            
+
             multipart.forEachPart { part ->
                 when (part) {
                     is PartData.FormItem -> {
@@ -70,7 +70,7 @@ class MultiPartFormDataTest : ClientLoader() {
                     is PartData.FileItem -> {
                         assertEquals("file", part.name)
                         assertEquals("test.bin", part.originalFileName)
-                        
+
                         val bytes = part.provider().readRemaining().readByteArray()
                         assertEquals(1024, bytes.size)
                         for (i in bytes.indices) {
@@ -82,7 +82,7 @@ class MultiPartFormDataTest : ClientLoader() {
                 }
                 part.dispose()
             }
-            
+
             assertTrue(textFound, "Text part not found")
             assertTrue(fileFound, "File part not found")
         }
