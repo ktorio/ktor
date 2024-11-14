@@ -11,6 +11,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.AttributeKey
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -28,6 +29,11 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
 )
 
 internal expect val DefaultIgnoredTypes: Set<KClass<*>>
+
+/**
+ * Shows that request should skip auth and refresh token procedure.
+ */
+public val ExcludeContentTypes: AttributeKey<List<ContentType>> = AttributeKey("exclude-content-types")
 
 /**
  * A [ContentNegotiation] configuration that is used during installation.
@@ -146,7 +152,14 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
     val ignoredTypes: Set<KClass<*>> = pluginConfig.ignoredTypes
 
     suspend fun convertRequest(request: HttpRequestBuilder, body: Any): OutgoingContent? {
-        registrations.forEach {
+        val requestRegistrations = if (request.attributes.contains(ExcludeContentTypes)) {
+            val excluded = request.attributes[ExcludeContentTypes]
+            registrations.filter { registration -> excluded.none { registration.contentTypeToSend.match(it) } }
+        } else {
+            registrations
+        }
+
+        requestRegistrations.forEach {
             val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
             if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
                 LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header with q=0.8 for ${request.url}")
@@ -264,3 +277,14 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
 }
 
 public class ContentConverterException(message: String) : Exception(message)
+
+/**
+ * Excludes the given [ContentType] from the list of types that will be sent in the `Accept` header by
+ * the [ContentNegotiation] plugin. Can be used to not accept specific types for particular requests.
+ * This can be called multiple times to exclude multiple content types, or multiple content types can
+ * be passed in a single call.
+ */
+public fun HttpRequestBuilder.exclude(vararg contentType: ContentType) {
+    val excludedContentTypes = attributes.getOrNull(ExcludeContentTypes).orEmpty()
+    attributes.put(ExcludeContentTypes, excludedContentTypes + contentType)
+}

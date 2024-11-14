@@ -72,6 +72,114 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun addAcceptHeadersWithSingleExclusion() {
+        testWithEngine(MockEngine) {
+            val registeredTypesToSend = listOf(
+                ContentType("testing", "a"),
+                ContentType("testing", "b"),
+                ContentType("testing", "c")
+            )
+
+            setupWithContentNegotiation {
+                for (typeToSend in registeredTypesToSend) {
+                    register(typeToSend, TestContentConverter())
+                }
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    exclude(ContentType("testing", "b"))
+                }.apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    // Order NOT tested
+                    for (typeToSend in registeredTypesToSend.filter { it.contentSubtype != "b" }) {
+                        assertContains(sentTypes, typeToSend)
+                    }
+                    assertNull(sentTypes.firstOrNull { it.contentSubtype == "b" })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun addAcceptHeadersWithExclusionMatchingParameterizedType() {
+        testWithEngine(MockEngine) {
+            val registeredTypesToSend = listOf(
+                ContentType("testing", "a").withParameter("foo", "bar"),
+                ContentType("testing", "b").withParameter("foo", "bar"),
+                ContentType("testing", "c").withParameter("foo", "bar")
+            )
+
+            setupWithContentNegotiation {
+                for (typeToSend in registeredTypesToSend) {
+                    register(typeToSend, TestContentConverter())
+                }
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    exclude(ContentType("testing", "b"))
+                }.apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    // Order NOT tested
+                    for (typeToSend in registeredTypesToSend.filter { it.contentSubtype != "b" }) {
+                        assertContains(sentTypes, typeToSend)
+                    }
+                    assertNull(sentTypes.firstOrNull { it.contentSubtype == "b" })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun addAcceptHeadersWithMultipleExclusions() {
+        testWithEngine(MockEngine) {
+            val registeredTypesToSend = listOf(
+                ContentType("testing", "a"),
+                ContentType("testing", "b"),
+                ContentType("testing", "c")
+            )
+
+            setupWithContentNegotiation {
+                for (typeToSend in registeredTypesToSend) {
+                    register(typeToSend, TestContentConverter())
+                }
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    exclude(ContentType("testing", "b"))
+                    exclude(ContentType("testing", "c"))
+                }.apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    // Order NOT tested
+                    assertTrue(sentTypes.size == 1)
+                    assertContains(sentTypes, ContentType("testing", "a"))
+                }
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    exclude(ContentType("testing", "b"), ContentType("testing", "c"))
+                }.apply {
+                    val sentTypes = assertNotNull(call.request.headers.getAll(HttpHeaders.Accept))
+                        .map { ContentType.parse(it) }
+
+                    // Order NOT tested
+                    assertTrue(sentTypes.size == 1)
+                    assertContains(sentTypes, ContentType("testing", "a"))
+                }
+            }
+        }
+    }
+
+    @Test
     fun addAcceptHeadersWithDefaultQValue() {
         testWithEngine(MockEngine) {
             val registeredTypesToSend = listOf(
