@@ -138,7 +138,7 @@ public fun CoroutineScope.parseMultipart(
     headers: HttpHeadersMap,
     maxPartSize: Long = Long.MAX_VALUE
 ): ReceiveChannel<MultipartEvent> {
-    val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
+    val contentType = headers["Content-Type"] ?: throw UnsupportedMediaTypeExceptionCIO("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
 
     return parseMultipart(input, contentType, contentLength, maxPartSize)
@@ -154,7 +154,7 @@ public fun CoroutineScope.parseMultipart(
     maxPartSize: Long = Long.MAX_VALUE,
 ): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/", ignoreCase = true)) {
-        throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
+        throw UnsupportedMediaTypeExceptionCIO("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
     }
     val boundaryByteBuffer = parseBoundaryInternal(contentType)
     val boundaryBytes = ByteString(boundaryByteBuffer)

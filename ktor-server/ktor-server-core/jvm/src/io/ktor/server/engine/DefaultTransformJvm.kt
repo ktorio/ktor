@@ -18,7 +18,6 @@ import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import java.io.*
-import java.io.IOException
 
 internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
     query: Any
@@ -47,11 +46,8 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
             contentLength,
             call.formFieldLimit
         )
-    } catch (e: IOException) {
-        if (e.message?.contains("Content-Type") == true) {
-            throw UnsupportedMediaTypeException(ContentType.parse(contentType))
-        }
-        throw e
+    } catch (_: UnsupportedMediaTypeExceptionCIO) {
+        throw UnsupportedMediaTypeException(ContentType.parse(contentType))
     }
 }
 
