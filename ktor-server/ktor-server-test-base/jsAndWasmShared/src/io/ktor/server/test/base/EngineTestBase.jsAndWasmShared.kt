@@ -109,7 +109,10 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = 0 }
+            connector {
+                // port is zero, so that it will be automatically assigned when the server is started.
+                port = 0
+            }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }
