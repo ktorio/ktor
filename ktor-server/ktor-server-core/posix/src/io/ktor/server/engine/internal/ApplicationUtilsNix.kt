@@ -9,10 +9,12 @@ import io.ktor.server.engine.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
+import kotlin.experimental.*
 
-internal actual fun availableProcessorsBridge(): Int = 1
+@OptIn(ExperimentalNativeApi::class)
+internal actual fun availableProcessorsBridge(): Int = Platform.getAvailableProcessors()
 
-internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = Default
+internal actual val Dispatchers.IOBridge: CoroutineDispatcher get() = IO
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun printError(message: Any?) {
