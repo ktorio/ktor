@@ -52,7 +52,6 @@ internal fun Project.configureJsTestTasks(target: String) {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunJsBrowserTest) return
 
-    val capitalizedTarget = target.replaceFirstChar { it.titlecase() }
-    tasks.maybeNamed("clean${capitalizedTarget}BrowserTest") { onlyIf { false } }
+    tasks.maybeNamed("clean${target.capitalized()}BrowserTest") { onlyIf { false } }
     tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
 }
