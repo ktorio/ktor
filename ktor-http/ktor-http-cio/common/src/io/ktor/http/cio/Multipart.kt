@@ -305,9 +305,11 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
     var position = 0
 
     fun put(value: Byte) {
-        if (position >= boundaryBytes.size) throw IOException(
-            "Failed to parse multipart: boundary shouldn't be longer than 70 characters"
-        )
+        if (position >= boundaryBytes.size) {
+            throw IOException(
+                "Failed to parse multipart: boundary shouldn't be longer than 70 characters"
+            )
+        }
         boundaryBytes[position++] = value
     }
 

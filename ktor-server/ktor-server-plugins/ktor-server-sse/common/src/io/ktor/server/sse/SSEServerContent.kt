@@ -44,7 +44,8 @@ public class SSEServerContent(
             coroutineScope {
                 session = DefaultServerSSESession(channel, call, coroutineContext)
                 if (serialize != null) {
-                    session = object : ServerSSESessionWithSerialization,
+                    session = object :
+                        ServerSSESessionWithSerialization,
                         ServerSSESession by session as DefaultServerSSESession {
                         override val serializer: (TypeInfo, Any) -> String = serialize
                     }
