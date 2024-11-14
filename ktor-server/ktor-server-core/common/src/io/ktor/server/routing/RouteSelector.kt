@@ -599,7 +599,9 @@ public data class HttpMultiAcceptRouteSelector(
                 return RouteSelectorEvaluation.Missing
             }
 
-            val header = parsedHeaders.firstOrNull { header -> contentTypes.any { it.match(header.value) } }
+            val header = parsedHeaders.firstOrNull { header ->
+                contentTypes.any { it.isCompatibleWith(ContentType.parse(header.value)) }
+            }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)
             }
@@ -660,4 +662,11 @@ internal fun evaluatePathSegmentParameter(
         parameters = values,
         segmentIncrement = 1
     )
+}
+
+private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
+    this.contentType == "*" && this.contentSubtype == "*" -> true
+    other.contentType == "*" && other.contentSubtype == "*" -> true
+    this.contentSubtype == "*" -> other.match(this)
+    else -> this.match(other)
 }

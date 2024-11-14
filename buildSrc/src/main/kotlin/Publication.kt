@@ -2,72 +2,73 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import internal.*
 import org.gradle.api.*
 import org.gradle.api.publish.*
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.tasks.*
+import org.gradle.api.publish.plugins.*
 import org.gradle.jvm.tasks.*
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.signing.*
 import java.util.concurrent.locks.*
 
-fun isAvailableForPublication(publication: Publication): Boolean {
-    val name = publication.name
-    if (name == "maven") return true
+private val jvmAndCommonTargets = setOf(
+    "jvm",
+    "androidRelease",
+    "androidDebug",
+    "metadata",
+    "kotlinMultiplatform",
+    "maven",
+)
 
-    var result = false
-    val jvmAndCommon = setOf(
-        "jvm",
-        "androidRelease",
-        "androidDebug",
-        "js",
-        "wasmJs",
-        "metadata",
-        "kotlinMultiplatform"
-    )
-    result = result || name in jvmAndCommon
-    result = result || (HOST_NAME == "linux" && (name == "linuxX64" || name == "linuxArm64"))
-    result = result || (HOST_NAME == "windows" && name == "mingwX64")
-    val macPublications = setOf(
-        "iosX64",
-        "iosArm64",
-        "iosSimulatorArm64",
+private val jsTargets = setOf(
+    "js",
+    "wasmJs",
+)
 
-        "watchosX64",
-        "watchosArm32",
-        "watchosArm64",
-        "watchosSimulatorArm64",
-        "watchosDeviceArm64",
+private val linuxTargets = setOf(
+    "linuxX64",
+    "linuxArm64",
+)
 
-        "tvosX64",
-        "tvosArm64",
-        "tvosSimulatorArm64",
+private val windowsTargets = setOf(
+    "mingwX64",
+)
 
-        "macosX64",
-        "macosArm64"
-    )
+private val darwinTargets = setOf(
+    "iosX64",
+    "iosArm64",
+    "iosSimulatorArm64",
 
-    result = result || (HOST_NAME == "macos" && name in macPublications)
+    "watchosX64",
+    "watchosArm32",
+    "watchosArm64",
+    "watchosSimulatorArm64",
+    "watchosDeviceArm64",
 
-    // can be published from any host
-    val androidNativePublication = setOf(
-        "androidNativeArm32",
-        "androidNativeArm64",
-        "androidNativeX64",
-        "androidNativeX86"
-    )
+    "tvosX64",
+    "tvosArm64",
+    "tvosSimulatorArm64",
 
-    result = result || name in androidNativePublication
+    "macosX64",
+    "macosArm64",
+)
 
-    return result
-}
+private val androidNativeTargets = setOf(
+    "androidNativeArm32",
+    "androidNativeArm64",
+    "androidNativeX64",
+    "androidNativeX86",
+)
 
 fun Project.configurePublication() {
     apply(plugin = "maven-publish")
 
     tasks.withType<AbstractPublishToMaven>().configureEach {
-        onlyIf { isAvailableForPublication(publication) }
+        onlyIf { publication.isAvailableForPublication() }
     }
+    configureAggregatingTasks()
 
     val publishingUser: String? = System.getenv("PUBLISHING_USER")
     val publishingPassword: String? = System.getenv("PUBLISHING_PASSWORD")
@@ -99,7 +100,7 @@ fun Project.configurePublication() {
             }
             maven {
                 name = "testLocal"
-                setUrl("${rootProject.layout.buildDirectory.get().asFile}/m2")
+                setUrl(rootProject.layout.buildDirectory.dir("m2"))
             }
         }
 
@@ -108,7 +109,8 @@ fun Project.configurePublication() {
 
             pom {
                 name = project.name
-                description = project.description?.takeIf { it.isNotEmpty() } ?: "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort."
+                description = project.description.orEmpty()
+                    .ifEmpty { "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort." }
                 url = "https://github.com/ktorio/ktor"
                 licenses {
                     license {
@@ -145,6 +147,36 @@ fun Project.configurePublication() {
 
     configureSigning()
     configureJavadocArtifact()
+}
+
+private fun Publication.isAvailableForPublication(): Boolean {
+    val name = name
+
+    var result = name in jvmAndCommonTargets || name in jsTargets || name in androidNativeTargets
+    result = result || (HOST_NAME == "linux" && name in linuxTargets)
+    result = result || (HOST_NAME == "windows" && name in windowsTargets)
+    result = result || (HOST_NAME == "macos" && name in darwinTargets)
+
+    return result
+}
+
+private fun Project.configureAggregatingTasks() {
+    registerAggregatingTask("JvmAndCommon", jvmAndCommonTargets)
+    if (hasJs || hasWasmJs) registerAggregatingTask("Js", jsTargets)
+    if (hasLinux) registerAggregatingTask("Linux", linuxTargets)
+    if (hasWindows) registerAggregatingTask("Windows", windowsTargets)
+    if (hasDarwin) registerAggregatingTask("Darwin", darwinTargets)
+    if (hasAndroidNative) registerAggregatingTask("AndroidNative", androidNativeTargets)
+}
+
+private fun Project.registerAggregatingTask(name: String, targets: Set<String>) {
+    tasks.register("publish${name}Publications") {
+        group = PublishingPlugin.PUBLISH_TASK_GROUP
+        val targetsTasks = targets.mapNotNull { target ->
+            tasks.maybeNamed("publish${target.capitalized()}PublicationToMavenRepository")
+        }
+        dependsOn(targetsTasks)
+    }
 }
 
 private fun Project.configureSigning() {

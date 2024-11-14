@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.request
@@ -7,12 +7,33 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlin.jvm.*
 
 /**
- * Executes an [HttpClient]'s request with the parameters specified using [builder].
+ * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ * This function sends a request with parameters specified in the [builder], allowing customization
+ * of request settings such as URL, HTTP method, headers, and body.
+ *
+ * ## Usage Example
+ * ```
+ * val client = HttpClient()
+ * val response = client.request {
+ *     url("https://ktor.io")
+ *     method = HttpMethod.Get
+ * }
+ * ```
+ * This example demonstrates making a GET request to "https://ktor.io".
+ *
+ * ## Note
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
+ * convenient for common HTTP methods.
+ *
+ * @param builder The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
+ * builder if none is provided.
+ * @return [HttpResponse] The response received from the server after executing the request.
+ *
+ * For more details, see [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(
     builder: HttpRequestBuilder = HttpRequestBuilder()
@@ -26,9 +47,31 @@ public suspend inline fun HttpClient.prepareRequest(
 ): HttpStatement = HttpStatement(builder, this)
 
 /**
- * Executes an [HttpClient]'s request with the parameters specified in [block].
+ * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ * This function sends a request with parameters specified in the [block], allowing customization
+ * of request settings such as URL, HTTP method, headers, and body.
+ *
+ * ## Usage Example
+ * ```
+ * val client = HttpClient()
+ * val response = client.request {
+ *     url("https://ktor.io")
+ *     method = HttpMethod.Get
+ * }
+ * ```
+ * This example demonstrates making a GET request to "https://ktor.io".
+ *
+ * ## Note
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
+ * convenient for common HTTP methods.
+ *
+ * @param block The [HttpRequestBuilder] block used to configure request parameters.
+ * Defaults to an empty builder if none is provided.
+ * @return [HttpResponse] The response received from the server after executing the request.
+ *
+ * For more details, see [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(block: HttpRequestBuilder.() -> Unit): HttpResponse =
     request(HttpRequestBuilder().apply(block))
@@ -40,9 +83,31 @@ public suspend inline fun HttpClient.prepareRequest(block: HttpRequestBuilder.()
     prepareRequest(HttpRequestBuilder().apply(block))
 
 /**
- * Executes an [HttpClient]'s request with the [urlString] and the parameters configured in [block].
+ * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ * This function sends a request to the [urlString] with parameters specified in the [block], allowing customization
+ * of request settings such as URL, HTTP method, headers, and body.
+ *
+ * ## Usage Example
+ * ```
+ * val client = HttpClient()
+ * val response = client.request("https://ktor.io") {
+ *     method = HttpMethod.Get
+ * }
+ * ```
+ * This example demonstrates making a GET request to "https://ktor.io".
+ *
+ * ## Note
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
+ * convenient for common HTTP methods.
+ *
+ * @param [urlString] The URL to which the request is sent.
+ * @param [block] The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
+ * builder if none is provided.
+ * @return [HttpResponse] The response received from the server after executing the request.
+ *
+ * For more details, see [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(
     urlString: String,
@@ -64,9 +129,31 @@ public suspend inline fun HttpClient.prepareRequest(
 }
 
 /**
- * Executes an [HttpClient]'s request with the [url] and the parameters configured in [block].
+ * Executes an HTTP request using the provided [HttpRequestBuilder] configuration.
  *
- * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ * This function sends a request to [url] with parameters specified in the [block], allowing customization
+ * of request settings such as URL, HTTP method, headers, and body.
+ *
+ * ## Usage Example
+ * ```
+ * val client = HttpClient()
+ * val response = client.request("https://ktor.io") {
+ *     method = HttpMethod.Get
+ * }
+ * ```
+ * This example demonstrates making a GET request to "https://ktor.io".
+ *
+ * ## Note
+ * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
+ * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
+ * convenient for common HTTP methods.
+ *
+ * @param [url] The URL to which the request is sent.
+ * @param [block] The [HttpRequestBuilder] used to configure request parameters. Defaults to an empty
+ * builder if none is provided.
+ * @return [HttpResponse] The response received from the server after executing the request.
+ *
+ * For more details, see [Making requests](https://ktor.io/docs/request.html).
  */
 public suspend inline fun HttpClient.request(
     url: Url,

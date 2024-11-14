@@ -5,13 +5,11 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import org.gradle.api.*
-import org.gradle.api.tasks.testing.*
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.konan.target.*
-import org.jetbrains.kotlin.gradle.tasks.*
 import java.io.*
 
 private val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
@@ -27,7 +25,7 @@ val Project.hasAndroidNative: Boolean get() = hasPosix || files.any { it.name ==
 val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
 val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWasmShared" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
-val Project.hasWasm: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
+val Project.hasWasmJs: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || hasJvmAndPosix || files.any { it.name == "jvm" }
 
 val Project.hasExplicitNative: Boolean
@@ -42,7 +40,7 @@ fun Project.configureTargets() {
         if (hasJvm) configureJvm()
 
         if (hasJs) configureJs()
-        if (hasWasm) configureWasm()
+        if (hasWasmJs) configureWasm()
 
         if (hasPosix) posixTargets()
         if (hasNix) nixTargets()
