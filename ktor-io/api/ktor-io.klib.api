@@ -212,7 +212,7 @@ final class io.ktor.utils.io/ByteChannel : io.ktor.utils.io/BufferedByteWriteCha
 }
 
 final class io.ktor.utils.io/ConcurrentIOException : kotlin/IllegalStateException { // io.ktor.utils.io/ConcurrentIOException|null[0]
-    constructor <init>(kotlin/String) // io.ktor.utils.io/ConcurrentIOException.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.utils.io/ConcurrentIOException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 
 final class io.ktor.utils.io/CountedByteReadChannel : io.ktor.utils.io/ByteReadChannel { // io.ktor.utils.io/CountedByteReadChannel|null[0]
