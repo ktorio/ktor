@@ -33,6 +33,12 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
+    /**
+     * It's not possible to find a free port during test setup,
+     * as on JS (Node.js) all APIs are non-blocking (suspend).
+     * That's why we assign port after the server is started in [startServer]
+     * Note: this means, that [port] can be used only after calling [createAndStartServer] or [startServer].
+     */
     private var _port: Int = 0
     protected actual var port: Int
         get() {
