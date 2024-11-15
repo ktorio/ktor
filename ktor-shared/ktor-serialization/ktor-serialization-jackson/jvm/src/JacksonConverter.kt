@@ -11,7 +11,6 @@ import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -103,13 +102,13 @@ public class JacksonConverter(
     }
 
     private companion object {
-        private val encodings = buildMap<String, JsonEncoding> {
-            JsonEncoding.entries.forEach { put(it.javaName, it) }
-            put("US-ASCII", JsonEncoding.UTF8) // Jackson automatically unescapes Unicode characters
+        private val jacksonEncodings = buildSet<String> {
+            JsonEncoding.entries.forEach { add(it.javaName) }
+            add("US-ASCII") // Jackson automatically unescapes Unicode characters
         }
 
         private fun isUnicode(charset: Charset): Boolean {
-            return encodings.containsKey(charset.name())
+            return jacksonEncodings.contains(charset.name())
                 || charset == Charsets.UTF_16
                 || charset == Charsets.UTF_32
         }
