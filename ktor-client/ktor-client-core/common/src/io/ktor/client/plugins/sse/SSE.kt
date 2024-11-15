@@ -11,30 +11,65 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.flow.*
+import kotlin.coroutines.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
 
 /**
- * Indicates if a client engine supports Server-sent events.
+ * Indicates if a client engine supports Server-Sent Events (SSE).
  */
 public data object SSECapability : HttpClientEngineCapability<Unit>
 
 /**
- * Client Server-sent events plugin that allows you to establish an SSE connection to a server
- * and receive Server-sent events from it.
+ * Client Server-Sent Events (SSE) plugin that allows you to establish an SSE connection to a server
+ * and receive Server-Sent Events from it.
+ * For a simple session, use [ClientSSESession].
+ * For a session with deserialization, use [ClientSSESessionWithDeserialization].
  *
  * ```kotlin
  * val client = HttpClient {
  *     install(SSE)
  * }
- * client.sse {
- *     val event = incoming.receive()
+ *
+ * // SSE request
+ * client.serverSentEvents("http://localhost:8080/sse") { // `this` is `ClientSSESession`
+ *     incoming.collect { event ->
+ *         println("Id: ${event.id}")
+ *         println("Event: ${event.event}")
+ *         println("Data: ${event.data}")
+ *     }
+ * }
+ *
+ * // SSE request with deserialization
+ * client.sse({
+ *     url("http://localhost:8080/serverSentEvents")
+ * }, deserialize = {
+ *     typeInfo, jsonString ->
+ *     val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+ *     Json.decodeFromString(serializer, jsonString)!!
+ * }) { // `this` is `ClientSSESessionWithDeserialization`
+ *     incoming.collect { event: TypedServerSentEvent<String> ->
+ *         when (event.event) {
+ *             "customer" -> {
+ *                 val customer: Customer? = deserialize<Customer>(event.data)
+ *             }
+ *             "product" -> {
+ *                 val product: Product? = deserialize<Product>(event.data)
+ *             }
+ *         }
+ *     }
  * }
  * ```
+ *
+ * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
+ * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  */
 @OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
@@ -96,7 +131,24 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         }
 
         LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
-        proceedWith(HttpResponseContainer(info, ClientSSESession(context, session)))
+
+        val deserializer = response.request.attributes.getOrNull(deserializerAttr)
+        val clientSSESession = deserializer?.let {
+            ClientSSESessionWithDeserialization(
+                context,
+                object : SSESessionWithDeserialization {
+                    override val incoming: Flow<TypedServerSentEvent<String>> =
+                        session.incoming.map { event: ServerSentEvent ->
+                            TypedServerSentEvent(event.data, event.event, event.id, event.retry, event.comments)
+                        }
+
+                    override val deserializer: (TypeInfo, String) -> Any? = deserializer
+
+                    override val coroutineContext: CoroutineContext = session.coroutineContext
+                }
+            )
+        } ?: ClientSSESession(context, session)
+        proceedWith(HttpResponseContainer(info, clientSSESession))
     }
 }
 

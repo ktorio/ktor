@@ -6,7 +6,46 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-sse>
-final class io.ktor.sse/ServerSentEvent { // io.ktor.sse/ServerSentEvent|null[0]
+sealed interface <#A: kotlin/Any?> io.ktor.sse/ServerSentEventMetadata { // io.ktor.sse/ServerSentEventMetadata|null[0]
+    abstract val comments // io.ktor.sse/ServerSentEventMetadata.comments|{}comments[0]
+        abstract fun <get-comments>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.comments.<get-comments>|<get-comments>(){}[0]
+    abstract val data // io.ktor.sse/ServerSentEventMetadata.data|{}data[0]
+        abstract fun <get-data>(): #A? // io.ktor.sse/ServerSentEventMetadata.data.<get-data>|<get-data>(){}[0]
+    abstract val event // io.ktor.sse/ServerSentEventMetadata.event|{}event[0]
+        abstract fun <get-event>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.event.<get-event>|<get-event>(){}[0]
+    abstract val id // io.ktor.sse/ServerSentEventMetadata.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String? // io.ktor.sse/ServerSentEventMetadata.id.<get-id>|<get-id>(){}[0]
+    abstract val retry // io.ktor.sse/ServerSentEventMetadata.retry|{}retry[0]
+        abstract fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEventMetadata.retry.<get-retry>|<get-retry>(){}[0]
+}
+
+final class <#A: kotlin/Any?> io.ktor.sse/TypedServerSentEvent : io.ktor.sse/ServerSentEventMetadata<#A> { // io.ktor.sse/TypedServerSentEvent|null[0]
+    constructor <init>(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.sse/TypedServerSentEvent.<init>|<init>(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+
+    final val comments // io.ktor.sse/TypedServerSentEvent.comments|{}comments[0]
+        final fun <get-comments>(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.comments.<get-comments>|<get-comments>(){}[0]
+    final val data // io.ktor.sse/TypedServerSentEvent.data|{}data[0]
+        final fun <get-data>(): #A? // io.ktor.sse/TypedServerSentEvent.data.<get-data>|<get-data>(){}[0]
+    final val event // io.ktor.sse/TypedServerSentEvent.event|{}event[0]
+        final fun <get-event>(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.event.<get-event>|<get-event>(){}[0]
+    final val id // io.ktor.sse/TypedServerSentEvent.id|{}id[0]
+        final fun <get-id>(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.id.<get-id>|<get-id>(){}[0]
+    final val retry // io.ktor.sse/TypedServerSentEvent.retry|{}retry[0]
+        final fun <get-retry>(): kotlin/Long? // io.ktor.sse/TypedServerSentEvent.retry.<get-retry>|<get-retry>(){}[0]
+
+    final fun component1(): #A? // io.ktor.sse/TypedServerSentEvent.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.component3|component3(){}[0]
+    final fun component4(): kotlin/Long? // io.ktor.sse/TypedServerSentEvent.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // io.ktor.sse/TypedServerSentEvent.component5|component5(){}[0]
+    final fun copy(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/TypedServerSentEvent<#A> // io.ktor.sse/TypedServerSentEvent.copy|copy(1:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.sse/TypedServerSentEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.sse/TypedServerSentEvent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.sse/TypedServerSentEvent.toString|toString(){}[0]
+    final fun toString(kotlin/Function1<#A, kotlin/String>): kotlin/String // io.ktor.sse/TypedServerSentEvent.toString|toString(kotlin.Function1<1:0,kotlin.String>){}[0]
+}
+
+final class io.ktor.sse/ServerSentEvent : io.ktor.sse/ServerSentEventMetadata<kotlin/String> { // io.ktor.sse/ServerSentEvent|null[0]
     constructor <init>(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.sse/ServerSentEvent.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
 
     final val comments // io.ktor.sse/ServerSentEvent.comments|{}comments[0]
@@ -20,6 +59,14 @@ final class io.ktor.sse/ServerSentEvent { // io.ktor.sse/ServerSentEvent|null[0]
     final val retry // io.ktor.sse/ServerSentEvent.retry|{}retry[0]
         final fun <get-retry>(): kotlin/Long? // io.ktor.sse/ServerSentEvent.retry.<get-retry>|<get-retry>(){}[0]
 
+    final fun component1(): kotlin/String? // io.ktor.sse/ServerSentEvent.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // io.ktor.sse/ServerSentEvent.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // io.ktor.sse/ServerSentEvent.component3|component3(){}[0]
+    final fun component4(): kotlin/Long? // io.ktor.sse/ServerSentEvent.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // io.ktor.sse/ServerSentEvent.component5|component5(){}[0]
+    final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): io.ktor.sse/ServerSentEvent // io.ktor.sse/ServerSentEvent.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.sse/ServerSentEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.sse/ServerSentEvent.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.sse/ServerSentEvent.toString|toString(){}[0]
 }
 

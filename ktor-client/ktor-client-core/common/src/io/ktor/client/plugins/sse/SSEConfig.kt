@@ -23,14 +23,14 @@ public class SSEConfig {
     public var reconnectionTime: Duration = 3000.milliseconds
 
     /**
-     * Add events consisting only of comments in the incoming flow.
+     * Adds events consisting only of comments in the incoming flow.
      */
     public fun showCommentEvents() {
         showCommentEvents = true
     }
 
     /**
-     * Add events consisting only of the retry field in the incoming flow.
+     * Adds events consisting only of the retry field in the incoming flow.
      */
     public fun showRetryEvents() {
         showRetryEvents = true

@@ -339,8 +339,9 @@ public class SSEClientResponseAdapter : ResponseAdapter {
             status == HttpStatusCode.OK &&
             contentType?.withoutParameters() == ContentType.Text.EventStream
         ) {
+            outgoingContent as SSEClientContent
             DefaultClientSSESession(
-                outgoingContent as SSEClientContent,
+                outgoingContent,
                 responseBody,
                 callContext
             )

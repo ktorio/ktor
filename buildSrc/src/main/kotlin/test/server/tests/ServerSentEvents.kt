@@ -84,12 +84,40 @@ internal fun Application.serverSentEvents() {
                         emit(SseEvent("Hello"))
                     }
                 )
-
             }
 
             get("/content-type-text-plain") {
                 call.response.header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
                 call.respond(HttpStatusCode.OK)
+            }
+
+            get("/person") {
+                val times = call.parameters["times"]?.toInt() ?: 1
+                call.respondSseEvents(
+                    flow {
+                        repeat(times) {
+                            emit(SseEvent(data = "Name $it", event = "event $it", id = "$it"))
+                        }
+                    }
+                )
+            }
+
+            get("/json") {
+                val customer = """
+                               { "id": 1, 
+                                 "firstName": "Jet", 
+                                 "lastName": "Brains" 
+                               }""".trimIndent()
+                val product = """
+                              { "name": "Milk", 
+                                "price": "100"
+                              }""".trimIndent()
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent(data = customer))
+                        emit(SseEvent(data = product))
+                    }
+                )
             }
         }
     }

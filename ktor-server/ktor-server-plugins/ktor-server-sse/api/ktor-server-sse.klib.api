@@ -15,8 +15,14 @@ abstract interface io.ktor.server.sse/ServerSSESession : kotlinx.coroutines/Coro
     open suspend fun send(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.server.sse/ServerSSESession.send|send(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
 }
 
+abstract interface io.ktor.server.sse/ServerSSESessionWithSerialization : io.ktor.server.sse/ServerSSESession { // io.ktor.server.sse/ServerSSESessionWithSerialization|null[0]
+    abstract val serializer // io.ktor.server.sse/ServerSSESessionWithSerialization.serializer|{}serializer[0]
+        abstract fun <get-serializer>(): kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/Any, kotlin/String> // io.ktor.server.sse/ServerSSESessionWithSerialization.serializer.<get-serializer>|<get-serializer>(){}[0]
+}
+
 final class io.ktor.server.sse/SSEServerContent : io.ktor.http.content/OutgoingContent.WriteChannelContent { // io.ktor.server.sse/SSEServerContent|null[0]
     constructor <init>(io.ktor.server.application/ApplicationCall, kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESession, kotlin/Unit>) // io.ktor.server.sse/SSEServerContent.<init>|<init>(io.ktor.server.application.ApplicationCall;kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESession,kotlin.Unit>){}[0]
+    constructor <init>(io.ktor.server.application/ApplicationCall, kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESession, kotlin/Unit>, kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/Any, kotlin/String>? = ...) // io.ktor.server.sse/SSEServerContent.<init>|<init>(io.ktor.server.application.ApplicationCall;kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESession,kotlin.Unit>;kotlin.Function2<io.ktor.util.reflect.TypeInfo,kotlin.Any,kotlin.String>?){}[0]
 
     final val call // io.ktor.server.sse/SSEServerContent.call|{}call[0]
         final fun <get-call>(): io.ktor.server.application/ApplicationCall // io.ktor.server.sse/SSEServerContent.call.<get-call>|<get-call>(){}[0]
@@ -24,6 +30,8 @@ final class io.ktor.server.sse/SSEServerContent : io.ktor.http.content/OutgoingC
         final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.server.sse/SSEServerContent.contentType.<get-contentType>|<get-contentType>(){}[0]
     final val handle // io.ktor.server.sse/SSEServerContent.handle|{}handle[0]
         final fun <get-handle>(): kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESession, kotlin/Unit> // io.ktor.server.sse/SSEServerContent.handle.<get-handle>|<get-handle>(){}[0]
+    final val serialize // io.ktor.server.sse/SSEServerContent.serialize|{}serialize[0]
+        final fun <get-serialize>(): kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/Any, kotlin/String>? // io.ktor.server.sse/SSEServerContent.serialize.<get-serialize>|<get-serialize>(){}[0]
 
     final fun toString(): kotlin/String // io.ktor.server.sse/SSEServerContent.toString|toString(){}[0]
     final suspend fun writeTo(io.ktor.utils.io/ByteWriteChannel) // io.ktor.server.sse/SSEServerContent.writeTo|writeTo(io.ktor.utils.io.ByteWriteChannel){}[0]
@@ -33,4 +41,9 @@ final val io.ktor.server.sse/SSE // io.ktor.server.sse/SSE|{}SSE[0]
     final fun <get-SSE>(): io.ktor.server.application/ApplicationPlugin<kotlin/Unit> // io.ktor.server.sse/SSE.<get-SSE>|<get-SSE>(){}[0]
 
 final fun (io.ktor.server.routing/Route).io.ktor.server.sse/sse(kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESession, kotlin/Unit>) // io.ktor.server.sse/sse|sse@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESession,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.sse/sse(kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/Any, kotlin/String>, kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESessionWithSerialization, kotlin/Unit>) // io.ktor.server.sse/sse|sse@io.ktor.server.routing.Route(kotlin.Function2<io.ktor.util.reflect.TypeInfo,kotlin.Any,kotlin.String>;kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESessionWithSerialization,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.sse/sse(kotlin/String, kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESession, kotlin/Unit>) // io.ktor.server.sse/sse|sse@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESession,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.sse/sse(kotlin/String, kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/Any, kotlin/String>, kotlin.coroutines/SuspendFunction1<io.ktor.server.sse/ServerSSESessionWithSerialization, kotlin/Unit>) // io.ktor.server.sse/sse|sse@io.ktor.server.routing.Route(kotlin.String;kotlin.Function2<io.ktor.util.reflect.TypeInfo,kotlin.Any,kotlin.String>;kotlin.coroutines.SuspendFunction1<io.ktor.server.sse.ServerSSESessionWithSerialization,kotlin.Unit>){}[0]
+final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.sse/ServerSSESessionWithSerialization).io.ktor.server.sse/send(#A) // io.ktor.server.sse/send|send@io.ktor.server.sse.ServerSSESessionWithSerialization(0:0){0§<kotlin.Any>}[0]
+final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.sse/ServerSSESessionWithSerialization).io.ktor.server.sse/send(#A? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // io.ktor.server.sse/send|send@io.ktor.server.sse.ServerSSESessionWithSerialization(0:0?;kotlin.String?;kotlin.String?;kotlin.Long?;kotlin.String?){0§<kotlin.Any>}[0]
+final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.sse/ServerSSESessionWithSerialization).io.ktor.server.sse/send(io.ktor.sse/TypedServerSentEvent<#A>) // io.ktor.server.sse/send|send@io.ktor.server.sse.ServerSSESessionWithSerialization(io.ktor.sse.TypedServerSentEvent<0:0>){0§<kotlin.Any>}[0]
