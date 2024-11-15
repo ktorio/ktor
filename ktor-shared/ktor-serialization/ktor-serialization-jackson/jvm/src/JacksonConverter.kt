@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.serialization.jackson
 
@@ -107,9 +107,9 @@ public class JacksonConverter(
         }
 
         private fun isUnicode(charset: Charset): Boolean {
-            return jacksonEncodings.contains(charset.name())
-                || charset == Charsets.UTF_16
-                || charset == Charsets.UTF_32
+            return jacksonEncodings.contains(charset.name()) ||
+                charset == Charsets.UTF_16 ||
+                charset == Charsets.UTF_32
         }
     }
 
