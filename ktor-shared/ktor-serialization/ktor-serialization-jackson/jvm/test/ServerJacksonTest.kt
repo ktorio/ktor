@@ -3,7 +3,7 @@
  */
 
 import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.dataformat.smile.SmileFactory
+import com.fasterxml.jackson.dataformat.smile.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
