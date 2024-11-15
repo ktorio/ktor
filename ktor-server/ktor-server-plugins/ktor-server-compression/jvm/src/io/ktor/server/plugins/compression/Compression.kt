@@ -75,7 +75,7 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
 }
 
 @OptIn(InternalAPI::class)
-private fun decode(call: PipelineCall, options: CompressionOptions) {
+private suspend fun OnCallReceiveContext<CompressionConfig>.decode(call: PipelineCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (call.isDecompressionSuppressed) {
         LOGGER.trace("Skip decompression for ${call.request.uri} because it is suppressed.")
@@ -102,10 +102,12 @@ private fun decode(call: PipelineCall, options: CompressionOptions) {
     } else {
         call.request.setHeader(HttpHeaders.ContentEncoding, null)
     }
-    val originalChannel = call.request.receiveChannel()
-    val decoded = encoders.fold(originalChannel) { content, encoder -> encoder.encoder.decode(content) }
-    call.request.setReceiveChannel(decoded)
+
     call.attributes.put(DecompressionListAttribute, encoderNames)
+
+    transformBody { body ->
+        encoders.fold(body) { content, encoder -> encoder.encoder.decode(content) }
+    }
 }
 
 private fun ContentEncoding.Context.encode(call: PipelineCall, options: CompressionOptions) {

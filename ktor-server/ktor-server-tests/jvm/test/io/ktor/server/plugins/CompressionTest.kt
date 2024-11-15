@@ -657,14 +657,16 @@ class CompressionTest {
                 call.respond(message)
             }
             post("/deflate") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("deflate"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+                call.respond(message)
             }
             post("/multiple") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("identity", "deflate", "gzip"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+                call.respond(message)
             }
             post("/unknown") {
                 assertEquals("unknown", call.request.headers[HttpHeaders.ContentEncoding])
@@ -762,7 +764,7 @@ class CompressionTest {
                 val body = call.receive<ByteArray>()
 
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertContentEquals(textToCompressAsBytes, body)
+                assertContentEquals(compressed, body)
 
                 call.respond(textToCompressAsBytes)
             }
