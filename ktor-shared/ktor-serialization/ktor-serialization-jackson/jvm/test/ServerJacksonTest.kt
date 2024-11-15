@@ -15,6 +15,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.flow.flowOf
 import java.nio.charset.*
 import kotlin.test.*
 
@@ -163,6 +164,37 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
         }.let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("""id=1, title=Hello, World!, unicode=$uc""", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testStreamingSmileEncoding() = testApplication {
+        val smileContentType = ContentType.parse("application/x-jackson-smile")
+        val smileMapper = ObjectMapper(SmileFactory()).apply {
+            registerKotlinModule()
+        }
+
+        install(ContentNegotiation) {
+            register(smileContentType, JacksonConverter(smileMapper))
+        }
+        routing {
+            get("/smile-stream") {
+                val testEntities = flowOf(
+                    MyEntity(111, "ൠ", listOf(ChildEntity("item1", 1), ChildEntity("item2", 2))),
+                    MyEntity(222, "ൠ1", listOf(ChildEntity("item3", 3), ChildEntity("item4", 5)))
+                )
+
+                call.respond(testEntities)
+            }
+        }
+
+        client.get("/smile-stream") {
+            header(HttpHeaders.Accept, smileContentType)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            val bytes = response.bodyAsBytes()
+            val entities = smileMapper.readValue<List<MyEntity>>(bytes)
+            assertEquals(2, entities.size)
         }
     }
 }
