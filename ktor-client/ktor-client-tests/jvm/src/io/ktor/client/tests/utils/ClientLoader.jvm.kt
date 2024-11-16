@@ -1,20 +1,20 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import java.util.*
 
+@OptIn(InternalAPI::class)
 internal actual val enginesToTest: Iterable<HttpClientEngineFactory<HttpClientEngineConfig>> by lazy {
-    ServiceLoader.load(
-        HttpClientEngineContainer::class.java,
-        HttpClientEngineContainer::class.java.classLoader
-    ).map { it.factory }
+    loadServices<HttpClientEngineContainer>().map { it.factory }
 }
 internal actual val platformName: String by lazy {
     val os = System.getProperty("os.name", "unknown").lowercase(Locale.getDefault())
