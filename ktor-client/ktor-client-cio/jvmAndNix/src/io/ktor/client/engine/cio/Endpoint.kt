@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.cio
 
@@ -15,12 +15,15 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.client.engine.cio.Endpoint")
 
 internal class Endpoint(
     private val host: String,
@@ -97,7 +100,7 @@ internal class Endpoint(
         callContext: CoroutineContext
     ): HttpResponseData {
         try {
-            val connection = connect(request)
+            val (address, connection) = connect(request)
             val input = this@Endpoint.mapEngineExceptions(connection.input, request)
             val originOutput = this@Endpoint.mapEngineExceptions(connection.output, request)
 
@@ -112,8 +115,10 @@ internal class Endpoint(
                     input.cancel(originCause)
                     originOutput.close(originCause)
                     connection.socket.close()
-                    releaseConnection()
-                } catch (_: Throwable) {
+                } catch (cause: Throwable) {
+                    LOGGER.debug("An error occurred while closing connection", cause)
+                } finally {
+                    releaseConnection(address)
                 }
             }
 
@@ -177,7 +182,7 @@ internal class Endpoint(
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
-        val connection = connect(request)
+        val (address, connection) = connect(request)
 
         val pipeline = ConnectionPipeline(
             config.endpoint.keepAliveTime,
@@ -188,11 +193,11 @@ internal class Endpoint(
             coroutineContext
         )
 
-        pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
+        pipeline.pipelineContext.invokeOnCompletion { releaseConnection(address) }
     }
 
     @Suppress("UNUSED_EXPRESSION")
-    private suspend fun connect(requestData: HttpRequestData): Connection {
+    private suspend fun connect(requestData: HttpRequestData): Pair<InetSocketAddress, Connection> {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
         var timeoutFails = 0
@@ -222,7 +227,7 @@ internal class Endpoint(
                 }
 
                 val connection = socket.connection()
-                if (!secure) return@connect connection
+                if (!secure) return@connect address to connection
 
                 try {
                     if (proxy?.type == ProxyType.HTTP) {
@@ -236,7 +241,7 @@ internal class Endpoint(
                         takeFrom(config.https)
                         serverName = serverName ?: realAddress.hostname
                     }
-                    return tlsSocket.connection()
+                    return address to tlsSocket.connection()
                 } catch (cause: Throwable) {
                     try {
                         socket.close()
@@ -283,8 +288,7 @@ internal class Endpoint(
         return connectTimeout to socketTimeout
     }
 
-    private fun releaseConnection() {
-        val address = InetSocketAddress(host, port)
+    private fun releaseConnection(address: InetSocketAddress) {
         connectionFactory.release(address)
         connections.decrementAndGet()
     }
