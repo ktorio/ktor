@@ -19,6 +19,9 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
+private const val UNINITIALIZED_PORT = -1
+private const val DEFAULT_PORT = 0
+
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration
@@ -39,10 +42,10 @@ actual constructor(
      * That's why we assign port after the server is started in [startServer]
      * Note: this means, that [port] can be used only after calling [createAndStartServer] or [startServer].
      */
-    private var _port: Int = 0
+    private var _port: Int = UNINITIALIZED_PORT
     protected actual var port: Int
         get() {
-            check(_port != 0) { "Port is not initialized" }
+            check(_port != UNINITIALIZED_PORT) { "Port is not initialized" }
             return _port
         }
         set(_) {
@@ -110,8 +113,8 @@ actual constructor(
 
         return embeddedServer(applicationEngineFactory, properties) {
             connector {
-                // port is zero, so that it will be automatically assigned when the server is started.
-                port = 0
+                // the default port is zero, so that it will be automatically assigned when the server is started.
+                port = DEFAULT_PORT
             }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
