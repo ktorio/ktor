@@ -89,7 +89,8 @@ public class UnsupportedMediaTypeException(
 ) : ContentTransformationException(
     contentType?.let { "Content type $it is not supported" }
         ?: "Content-Type header is required"
-), CopyableThrowable<UnsupportedMediaTypeException> {
+),
+    CopyableThrowable<UnsupportedMediaTypeException> {
 
     override fun createCopy(): UnsupportedMediaTypeException = UnsupportedMediaTypeException(contentType).also {
         it.initCauseBridge(this)

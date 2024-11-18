@@ -4,17 +4,20 @@
 
 package io.ktor.tests.server.engine
 
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.multiPartData
-import io.ktor.server.plugins.UnsupportedMediaTypeException
+import io.ktor.server.engine.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.mockk.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class MultiPartDataTest {
@@ -50,6 +53,26 @@ class MultiPartDataTest {
             assertFailsWith<UnsupportedMediaTypeException> {
                 mockContext.multiPartData(rc)
             }
+        }
+    }
+
+    @Test
+    fun testUnsupportedMediaTypeStatusCode() = testApplication {
+        routing {
+            post {
+                call.receiveMultipart()
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        client.post {
+            accept(ContentType.Text.Plain)
+        }.apply {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, status)
+        }
+
+        client.post {}.apply {
+            assertEquals(HttpStatusCode.UnsupportedMediaType, status)
         }
     }
 }

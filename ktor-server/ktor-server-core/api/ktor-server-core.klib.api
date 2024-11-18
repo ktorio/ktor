@@ -697,7 +697,7 @@ final class io.ktor.server.plugins/PayloadTooLargeException : io.ktor.server.plu
 }
 
 final class io.ktor.server.plugins/UnsupportedMediaTypeException : io.ktor.server.plugins/ContentTransformationException, kotlinx.coroutines/CopyableThrowable<io.ktor.server.plugins/UnsupportedMediaTypeException> { // io.ktor.server.plugins/UnsupportedMediaTypeException|null[0]
-    constructor <init>(io.ktor.http/ContentType) // io.ktor.server.plugins/UnsupportedMediaTypeException.<init>|<init>(io.ktor.http.ContentType){}[0]
+    constructor <init>(io.ktor.http/ContentType?) // io.ktor.server.plugins/UnsupportedMediaTypeException.<init>|<init>(io.ktor.http.ContentType?){}[0]
 
     final fun createCopy(): io.ktor.server.plugins/UnsupportedMediaTypeException // io.ktor.server.plugins/UnsupportedMediaTypeException.createCopy|createCopy(){}[0]
 }

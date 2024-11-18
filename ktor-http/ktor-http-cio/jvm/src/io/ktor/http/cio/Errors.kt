@@ -4,6 +4,8 @@
 
 package io.ktor.http.cio
 
+import io.ktor.utils.io.*
 import kotlinx.io.IOException
 
+@InternalAPI
 public class UnsupportedMediaTypeExceptionCIO(message: String) : IOException(message)
