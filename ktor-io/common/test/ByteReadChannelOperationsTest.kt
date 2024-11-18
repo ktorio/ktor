@@ -2,10 +2,12 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.*
 import kotlinx.io.IOException
 import kotlinx.io.bytestring.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
@@ -249,6 +251,19 @@ class ByteReadChannelOperationsTest {
         assertFalse(input.skipIfFound("Won't find this".encodeToByteString()))
         assertTrue(input.skipIfFound("This is a test of the ".encodeToByteString()))
         assertEquals("skipIfFound", input.readUTF8Line())
+    }
+
+    // this test ensures we don't get stuck on awaitContent
+    @OptIn(InternalAPI::class, InternalIoApi::class)
+    @Test
+    fun readIntWithPartialContents() = runTest(timeout = 1.seconds) {
+        val channel = ByteChannel()
+        channel.readBuffer.buffer.writeByte(1)
+        channel.writeByte(1)
+        channel.writeByte(1)
+        channel.writeByte(1)
+        channel.flush()
+        assertEquals(16843009, channel.readInt())
     }
 
     @OptIn(InternalAPI::class)

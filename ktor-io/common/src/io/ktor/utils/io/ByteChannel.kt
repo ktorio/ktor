@@ -64,7 +64,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
-        if (flushBufferSize + _readBuffer.size >= min) return true
+        if (_readBuffer.size >= min) return true
 
         sleepWhile(Slot::Read) {
             flushBufferSize + _readBuffer.size < min && _closedCause.value == null
