@@ -106,6 +106,12 @@ private fun Test.configureJavaToolchain(compileJdk: Int) {
             "--add-opens=java.base/java.util=ALL-UNNAMED",
         )
     }
+
+    if (testJdk >= 21) {
+        // coroutines-debug use dynamic agent loading under the hood.
+        // Remove as soon as the issue is fixed: https://youtrack.jetbrains.com/issue/KT-62096/
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
+    }
 }
 
 fun Project.javaModuleName(): String {
