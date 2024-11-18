@@ -97,6 +97,15 @@ private fun Test.configureJavaToolchain(compileJdk: Int) {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(testJdk)
     }
+
+    if (testJdk >= 16) {
+        // Allow reflective access from tests
+        jvmArgs(
+            "--add-opens=java.base/java.net=ALL-UNNAMED",
+            "--add-opens=java.base/java.time=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+        )
+    }
 }
 
 fun Project.javaModuleName(): String {
