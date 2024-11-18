@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
@@ -40,6 +40,7 @@ public class AuthConfig {
      *
      * You can set this value via [reAuthorizeOnResponse].
      */
+    @InternalAPI
     public var isUnauthorizedResponse: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
         private set
 
@@ -49,6 +50,7 @@ public class AuthConfig {
      * Use this to change the value of [isUnauthorizedResponse].
      */
     public fun reAuthorizeOnResponse(block: suspend (HttpResponse) -> Boolean) {
+        @OptIn(InternalAPI::class)
         isUnauthorizedResponse = block
     }
 }
@@ -66,6 +68,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  *
  * @see [AuthConfig] for configuration options.
  */
+@OptIn(InternalAPI::class)
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
 
@@ -75,7 +78,6 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
     val tokenVersionsAttributeKey =
         AttributeKey<MutableMap<AuthProvider, Int>>("ProviderVersionAttributeKey")
 
-    @OptIn(InternalAPI::class)
     fun findProvider(
         call: HttpClientCall,
         candidateProviders: Set<AuthProvider>
@@ -124,7 +126,6 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
         return true
     }
 
-    @OptIn(InternalAPI::class)
     suspend fun Send.Sender.executeWithNewToken(
         call: HttpClientCall,
         provider: AuthProvider,
