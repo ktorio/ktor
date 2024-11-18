@@ -40,23 +40,18 @@ tasks.named<JavaCompile>("compileJava") {
         classpath = emptyClasspath
     }
 }
+
+// Here should be specified the latest LTS version
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 dependencies {
     rootProject.subprojects
         .filter { it.hasJavaModule }
-        .map {
-            generateSequence(it) { it.parent }
-                .toList()
-                .dropLast(1)
-                .reversed()
-                .joinToString(":", prefix = ":") { it.name }
-        }
-        .forEach { api(project(it)) }
+        .forEach { implementation(project(it.path)) }
 }
 
 internal val Project.hasJavaModule: Boolean
