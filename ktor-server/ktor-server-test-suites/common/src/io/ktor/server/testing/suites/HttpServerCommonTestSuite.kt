@@ -31,8 +31,6 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
