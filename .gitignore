@@ -2,6 +2,7 @@ build
 .gradle
 .gradletasknamecache
 .idea/*
+!.idea/externalDependencies.xml
 !.idea/runConfigurations
 !.idea/runConfigurations/*
 !.idea/vcs.xml
