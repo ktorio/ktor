@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.compression
@@ -49,7 +49,9 @@ public data class CompressionEncoderConfig(
 public class CompressionConfig : ConditionsHolderBuilder {
 
     public enum class Mode(internal val request: Boolean, internal val response: Boolean) {
-        CompressResponse(false, true), DecompressRequest(true, false), All(true, true)
+        CompressResponse(false, true),
+        DecompressRequest(true, false),
+        All(true, true),
     }
 
     /**

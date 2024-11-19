@@ -7,7 +7,8 @@ package io.ktor.utils.io.core
 import kotlin.experimental.*
 
 public actual enum class ByteOrder {
-    BIG_ENDIAN, LITTLE_ENDIAN;
+    BIG_ENDIAN,
+    LITTLE_ENDIAN;
 
     public actual companion object {
         @OptIn(ExperimentalNativeApi::class)

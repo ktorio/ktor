@@ -62,7 +62,10 @@ public class TestApplication internal constructor(
 ) : ClientProvider by clientProvider {
 
     internal enum class State {
-        Created, Starting, Started, Stopped
+        Created,
+        Starting,
+        Started,
+        Stopped,
     }
 
     private val state = atomic(State.Created)
