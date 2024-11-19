@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -11,11 +11,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.PlatformUtils
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
+import kotlinx.io.IOException
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
@@ -438,7 +438,7 @@ class HttpTimeoutTest : ClientLoader() {
             assertFails {
                 try {
                     client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) { /* Ignore. */
+                } catch (_: ConnectTimeoutException) {
                 }
             }
         }

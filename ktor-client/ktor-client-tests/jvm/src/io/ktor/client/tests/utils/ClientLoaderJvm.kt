@@ -92,8 +92,8 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
      * Issues to fix before unlock:
      * 1. Pinger & Ponger in ws
      * 2. Nonce generator
+     * Then @After should be added to the function
      */
-    // @After
     @OptIn(ExperimentalCoroutinesApi::class)
     fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {

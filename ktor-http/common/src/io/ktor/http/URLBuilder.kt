@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
@@ -44,7 +44,9 @@ public class URLBuilder(
     public var protocolOrNull: URLProtocol? = protocol
     public var protocol: URLProtocol
         get() = protocolOrNull ?: URLProtocol.HTTP
-        set(value) { protocolOrNull = value }
+        set(value) {
+            protocolOrNull = value
+        }
 
     public var encodedUser: String? = user?.encodeURLParameter()
 
@@ -88,14 +90,13 @@ public class URLBuilder(
     /**
      * Build a URL string
      */
-    // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
     public fun buildString(): String {
         applyOrigin()
-        return appendTo(StringBuilder(256)).toString()
+        return appendTo(StringBuilder(INITIAL_CAPACITY)).toString()
     }
 
     override fun toString(): String {
-        return appendTo(StringBuilder(256)).toString()
+        return appendTo(StringBuilder(INITIAL_CAPACITY)).toString()
     }
 
     /**
@@ -127,6 +128,12 @@ public class URLBuilder(
     // Required to write external extension function
     public companion object {
         private val originUrl = Url(origin)
+
+        /**
+         * Initial capacity of StringBuilder.
+         * Note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
+         */
+        private const val INITIAL_CAPACITY = 256
     }
 }
 

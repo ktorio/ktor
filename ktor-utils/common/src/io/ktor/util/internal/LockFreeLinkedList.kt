@@ -250,13 +250,22 @@ public open class LockFreeLinkedListNode {
         }
     }
 
+    /**
+     * Adds the specified [node] at the end of the list atomically if the previous node matches the given [predicate].
+     *
+     * @param node the node to be added
+     * @param predicate a function that evaluates the previous node
+     * @param condition an atomic condition that must be `true` for the node to be added
+     * @return `true` if the node was added, `false` otherwise
+     */
     public inline fun addLastIfPrevAndIf(
         node: Node,
-        predicate: (Node) -> Boolean, // prev node predicate
-        crossinline condition: () -> Boolean // atomically checked condition
+        predicate: (Node) -> Boolean,
+        crossinline condition: () -> Boolean,
     ): Boolean {
         val condAdd = makeCondAddOp(node, condition)
-        while (true) { // lock-free loop on prev.next
+        // lock-free loop on prev.next
+        while (true) {
             val prev = prev as Node // sentinel node is never removed, so prev is always defined
             if (!predicate(prev)) return false
             when (prev.tryCondAddNext(node, this, condAdd)) {
