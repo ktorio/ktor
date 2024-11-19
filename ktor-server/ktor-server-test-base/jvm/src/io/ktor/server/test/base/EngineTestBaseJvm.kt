@@ -217,7 +217,7 @@ actual abstract class EngineTestBase<
             starting.join()
             @OptIn(ExperimentalCoroutinesApi::class)
             starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-        } catch (t: Throwable) { // InterruptedException?
+        } catch (t: Throwable) {
             starting.cancel()
             listOf(t)
         }
