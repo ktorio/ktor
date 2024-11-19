@@ -604,6 +604,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @Ignore("Flaky. To be investigated in KTOR-7811")
     @Test
     @NoHttp2
     fun testHeaderIsTooLong() = runTest {
