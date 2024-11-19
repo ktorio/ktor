@@ -66,8 +66,8 @@ public class ContentNegotiationConfig : Configuration {
         converter: T,
         configuration: T.() -> Unit
     ) {
-        val matcher = when (contentType) {
-            ContentType.Application.Json -> JsonContentTypeMatcher
+        val matcher = when {
+            contentType.match(ContentType.Application.Json) -> JsonContentTypeMatcher
             else -> defaultMatcher(contentType)
         }
         register(contentType, converter, matcher, configuration)
