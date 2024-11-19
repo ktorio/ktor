@@ -68,7 +68,7 @@ actual constructor(
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
+        val savedPort = this.port
         val environment = applicationEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -89,7 +89,7 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = _port }
+            connector { port = savedPort }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }

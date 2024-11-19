@@ -74,16 +74,16 @@ private val NO_DECISION: Any = Symbol("NO_DECISION")
  * @suppress **This is unstable API and it is subject to change.**
  */
 public abstract class AtomicOp<in T> : OpDescriptor() {
-    private val _consensus = atomic<Any?>(NO_DECISION)
+    private val consensus = atomic<Any?>(NO_DECISION)
 
-    public val isDecided: Boolean get() = _consensus.value !== NO_DECISION
+    public val isDecided: Boolean get() = consensus.value !== NO_DECISION
 
     public fun tryDecide(decision: Any?): Boolean {
         check(decision !== NO_DECISION)
-        return _consensus.compareAndSet(NO_DECISION, decision)
+        return consensus.compareAndSet(NO_DECISION, decision)
     }
 
-    private fun decide(decision: Any?): Any? = if (tryDecide(decision)) decision else _consensus.value
+    private fun decide(decision: Any?): Any? = if (tryDecide(decision)) decision else consensus.value
 
     public abstract fun prepare(affected: T): Any? // `null` if Ok, or failure reason
 
@@ -92,8 +92,8 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
     // returns `null` on success
     @Suppress("UNCHECKED_CAST")
     public final override fun perform(affected: Any?): Any? {
-        // make decision on status
-        var decision = this._consensus.value
+        // make a decision on status
+        var decision = consensus.value
         if (decision === NO_DECISION) {
             decision = decide(prepare(affected as T))
         }
@@ -142,10 +142,10 @@ public open class LockFreeLinkedListNode {
     private val _prev = atomic<Any>(this)
 
     // lazily cached removed ref to this
-    private val _removedRef = atomic<Removed?>(null)
+    private val removedRef = atomic<Removed?>(null)
 
     private fun removed(): Removed =
-        _removedRef.value ?: Removed(this).also { _removedRef.lazySet(it) }
+        removedRef.value ?: Removed(this).also { removedRef.lazySet(it) }
 
     @PublishedApi
     internal abstract class CondAddOp(

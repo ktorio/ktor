@@ -6,6 +6,7 @@ package io.ktor.serialization.kotlinx
 
 import io.ktor.utils.io.*
 
+@Suppress("ObjectPropertyName")
 private val _providers: MutableList<KotlinxSerializationExtensionProvider> = mutableListOf()
 internal actual val providers: List<KotlinxSerializationExtensionProvider> = _providers
 
