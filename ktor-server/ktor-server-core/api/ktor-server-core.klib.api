@@ -416,6 +416,8 @@ final class <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.eng
 
     final fun start(kotlin/Boolean = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/EmbeddedServer.start|start(kotlin.Boolean){}[0]
     final fun stop(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/EmbeddedServer.stop|stop(kotlin.Long;kotlin.Long){}[0]
+    final suspend fun startSuspend(kotlin/Boolean = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/EmbeddedServer.startSuspend|startSuspend(kotlin.Boolean){}[0]
+    final suspend fun stopSuspend(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/EmbeddedServer.stopSuspend|stopSuspend(kotlin.Long;kotlin.Long){}[0]
 }
 
 final class <#A: kotlin/Any, #B: io.ktor.events/EventDefinition<#A>> io.ktor.server.application.hooks/MonitoringEvent : io.ktor.server.application/Hook<kotlin/Function1<#A, kotlin/Unit>> { // io.ktor.server.application.hooks/MonitoringEvent|null[0]
