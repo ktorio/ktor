@@ -310,6 +310,10 @@ actual constructor(
         return this
     }
 
+    public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        return withContext(Dispatchers.IOBridge) { start(wait) }
+    }
+
     public fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long, timeUnit: TimeUnit) {
         try {
             engine.stop(timeUnit.toMillis(shutdownGracePeriod), timeUnit.toMillis(shutdownTimeout))
@@ -326,6 +330,10 @@ actual constructor(
 
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         stop(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
+    }
+
+    public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
+        withContext(Dispatchers.IOBridge) { stop(gracePeriodMillis, timeoutMillis) }
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
