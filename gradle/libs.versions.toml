@@ -7,8 +7,14 @@ kotlinx-io = "0.5.4"
 coroutines = "1.9.0"
 atomicfu = "0.26.0"
 serialization = "1.7.3"
+binaryCompatibilityValidator = "0.16.3"
+dokka = "1.9.20"
+kover = "0.8.3"
 ktlint = "3.15.0"
 kotlinx-browser = "0.2"
+
+# Used for test server in buildSrc
+ktor = "3.1.0-eap-1153"
 
 netty = "4.1.115.Final"
 netty-tcnative = "2.0.69.Final"
@@ -19,7 +25,7 @@ jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-boot = "8.1.13.v20181017"
 jetty-alpn-openjdk8 = "9.4.56.v20240826"
 
-tomcat = "9.0.96"
+tomcat = "9.0.97"
 tomcat-jakarta = "10.1.31"
 
 apache = "4.1.5"
@@ -55,6 +61,8 @@ velocity-tools = "3.1"
 webjars-locator = "0.59"
 webjars-jquery = "3.7.1"
 thymeleaf = "3.1.2.RELEASE"
+jte = "3.1.14"
+
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
@@ -71,6 +79,7 @@ tomlj = "1.1.1"
 
 develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.0.2"
+gradleDoctor = "0.10.0"
 
 [libraries]
 
@@ -80,6 +89,21 @@ kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", v
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+
+ktor-network-tls-certificates = { module = "io.ktor:ktor-network-tls-certificates", version.ref = "ktor" }
+ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-caching-headers = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktor" }
+ktor-server-conditional-headers = { module = "io.ktor:ktor-server-conditional-headers", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
+ktor-server-jetty = { module = "io.ktor:ktor-server-jetty", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-atomicfu-gradlePlugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
@@ -103,6 +127,10 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
+
+kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "ktlint" }
+
+dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
@@ -148,6 +176,7 @@ json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref =
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-smile = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-smile", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 
 jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
@@ -183,6 +212,8 @@ velocity-tools = { module = "org.apache.velocity.tools:velocity-tools-generic", 
 webjars-locator = { module = "org.webjars:webjars-locator-core", version.ref = "webjars-locator" }
 webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
+jte = { module = "gg.jte:jte", version.ref = "jte" }
+jte-kotlin = { module = "gg.jte:jte-kotlin", version.ref = "jte" }
 
 javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet" }
 jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet" }
@@ -198,3 +229,11 @@ tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
 
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
+
+[plugins]
+
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+
+doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }

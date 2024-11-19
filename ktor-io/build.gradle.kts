@@ -1,6 +1,10 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 
 plugins {
-    id("org.jetbrains.kotlinx.kover") version "0.8.3"
+    alias(libs.plugins.kover)
 }
 
 kotlin {
