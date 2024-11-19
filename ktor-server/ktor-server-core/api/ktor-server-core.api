@@ -590,9 +590,13 @@ public final class io/ktor/server/engine/EmbeddedServer {
 	public final fun reload ()V
 	public final fun start (Z)Lio/ktor/server/engine/EmbeddedServer;
 	public static synthetic fun start$default (Lio/ktor/server/engine/EmbeddedServer;ZILjava/lang/Object;)Lio/ktor/server/engine/EmbeddedServer;
+	public final fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/EmbeddedServer;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun stop (JJ)V
 	public final fun stop (JJLjava/util/concurrent/TimeUnit;)V
 	public static synthetic fun stop$default (Lio/ktor/server/engine/EmbeddedServer;JJILjava/lang/Object;)V
+	public final fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/EmbeddedServer;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/engine/EmbeddedServerKt {
