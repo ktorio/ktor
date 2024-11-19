@@ -102,7 +102,8 @@ class ConnectErrorsTest {
                             }
                             client.getInputStream().readBytes()
                         }
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
                 }
                 assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 thread.join()
