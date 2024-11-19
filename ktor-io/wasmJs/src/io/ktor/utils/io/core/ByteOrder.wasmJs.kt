@@ -7,7 +7,8 @@ package io.ktor.utils.io.core
 import org.khronos.webgl.*
 
 public actual enum class ByteOrder {
-    BIG_ENDIAN, LITTLE_ENDIAN;
+    BIG_ENDIAN,
+    LITTLE_ENDIAN;
 
     public actual companion object {
         private val native: ByteOrder

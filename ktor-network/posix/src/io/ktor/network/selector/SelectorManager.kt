@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.selector
 
@@ -40,7 +40,10 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
 public actual enum class SelectInterest {
-    READ, WRITE, ACCEPT, CONNECT;
+    READ,
+    WRITE,
+    ACCEPT,
+    CONNECT;
 
     public actual companion object {
         public actual val AllInterests: Array<SelectInterest>
