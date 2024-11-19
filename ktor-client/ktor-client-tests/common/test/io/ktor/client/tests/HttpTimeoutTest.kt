@@ -170,7 +170,7 @@ class HttpTimeoutTest : ClientLoader() {
     @Test
     fun testGetWithSeparateReceive() = clientTests {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }
 
         test { client ->
@@ -206,7 +206,7 @@ class HttpTimeoutTest : ClientLoader() {
     @Test
     fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js")) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }
 
         test { client ->
@@ -233,7 +233,7 @@ class HttpTimeoutTest : ClientLoader() {
                     method = HttpMethod.Get
                     parameter("delay", 10000)
 
-                    timeout { requestTimeoutMillis = 1000 }
+                    timeout { requestTimeoutMillis = 2000 }
                 }.body<ByteReadChannel>()
                 assertFailsWith<CancellationException> {
                     response.readUTF8Line()

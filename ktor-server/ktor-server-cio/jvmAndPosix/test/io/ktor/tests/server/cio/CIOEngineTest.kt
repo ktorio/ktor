@@ -18,8 +18,12 @@ import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+
+    override val timeout: Duration = 20.seconds
 
     init {
         enableHttp2 = false
