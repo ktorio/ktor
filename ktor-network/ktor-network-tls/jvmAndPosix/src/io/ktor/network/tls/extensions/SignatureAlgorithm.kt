@@ -8,16 +8,13 @@ import io.ktor.network.tls.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
-/**
- * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
- */
+// See also: https://www.iana.org/assignments/tls-parameters/tls-parameters.txt
 
 /**
  * Hash algorithms
  * @property code numeric hash algorithm code
  * @property openSSLName is a name used in openssl for this algorithm
  */
-
 public enum class HashAlgorithm(public val code: Byte, public val openSSLName: String, public val macName: String) {
     NONE(0, "", ""),
     MD5(1, "MD5", "HmacMD5"),
@@ -43,7 +40,6 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
  * Signature algorithms
  * @property code numeric algorithm codes
  */
-
 public enum class SignatureAlgorithm(public val code: Byte) {
     ANON(0),
     RSA(1),
@@ -69,7 +65,6 @@ public enum class SignatureAlgorithm(public val code: Byte) {
  * @property sign algorithm.
  * @property oid [object identifier](https://en.wikipedia.org/wiki/Object_identifier).
  */
-
 public data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm, val oid: OID? = null) {
     /**
      * String representation of this algorithms pair
@@ -91,7 +86,6 @@ internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = n
 /**
  * List of supported combinations of hash and signature algorithms
  */
-
 public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA384Encryption),
     HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA256Encryption),

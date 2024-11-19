@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.fetch
@@ -11,17 +11,17 @@ import kotlin.js.Promise
 public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<org.w3c.fetch.Response>
 
 public external interface Request : Body {
-    /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
+    // "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached"
     public var cache: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "omit" | "same-origin" | "include" */
+    // "omit" | "same-origin" | "include"
     public var credentials: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "" | "audio" | "audioworklet" | "document" | "embed" | "font" | "image" | "manifest" | "object" | "paintworklet" | "report" | "script" | "sharedworker" | "style" | "track" | "video" | "worker" | "xslt" */
+    // "" | "audio" | "audioworklet" | "document" | "embed" | "font" | "image" | "manifest" | "object" | "paintworklet" | "report" | "script" | "sharedworker" | "style" | "track" | "video" | "worker" | "xslt"
     public var destination: dynamic
         get() = definedExternally
         set(value) = definedExternally
@@ -32,18 +32,18 @@ public external interface Request : Body {
     public var keepalive: Boolean
     public var method: String
 
-    /* "navigate" | "same-origin" | "no-cors" | "cors" */
+    // "navigate" | "same-origin" | "no-cors" | "cors"
     public var mode: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "follow" | "error" | "manual" */
+    // "follow" | "error" | "manual"
     public var redirect: dynamic
         get() = definedExternally
         set(value) = definedExternally
     public var referrer: String
 
-    /* "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url" */
+    // "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url"
     public var referrerPolicy: dynamic
         get() = definedExternally
         set(value) = definedExternally
@@ -63,7 +63,7 @@ public external interface Response : Body {
     public var statusText: String
     public var trailer: Promise<Headers>
 
-    /* "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect" */
+    // "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect"
     public var type: dynamic
         get() = definedExternally
         set(value) = definedExternally
@@ -89,14 +89,14 @@ public external interface FormData {
     public fun append(name: String, value: Blob, fileName: String? = definedExternally)
     public fun delete(name: String)
 
-    /* File | String */
-    public fun get(name: String): dynamic
-    public fun getAll(name: String): Array<dynamic /* File | String */>
+    public fun get(name: String): dynamic // File | String
+    public fun getAll(name: String): Array<dynamic> // File | String
     public fun has(name: String): Boolean
     public fun set(name: String, value: String, fileName: String? = definedExternally)
     public fun set(name: String, value: Blob, fileName: String? = definedExternally)
     public fun forEach(
-        callbackfn: (value: dynamic /* File | String */, key: String, parent: FormData) -> Unit,
+        // value: File | String
+        callbackfn: (value: dynamic, key: String, parent: FormData) -> Unit,
         thisArg: Any? = definedExternally
     )
 }
@@ -121,7 +121,7 @@ public external interface ReadableStream<R> {
 
     public fun pipeTo(dest: WritableStream<R>, options: PipeOptions? = definedExternally): Promise<Unit>
 
-    /* JsTuple<ReadableStream<R>, ReadableStream<R>> */
+    // JsTuple<ReadableStream<R>, ReadableStream<R>>
     public fun tee(): dynamic
 }
 
@@ -190,22 +190,22 @@ public external interface Headers {
 }
 
 public external interface RequestInit {
-    /* Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array> | String */
+    // Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array> | String
     public var body: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
+    // "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached"
     public var cache: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "omit" | "same-origin" | "include" */
+    // "omit" | "same-origin" | "include"
     public var credentials: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* Headers | Array<Array<String>> | Record<String, String> */
+    // Headers | Array<Array<String>> | Record<String, String>
     public var headers: dynamic
         get() = definedExternally
         set(value) = definedExternally
@@ -222,12 +222,12 @@ public external interface RequestInit {
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "navigate" | "same-origin" | "no-cors" | "cors" */
+    // "navigate" | "same-origin" | "no-cors" | "cors"
     public var mode: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "follow" | "error" | "manual" */
+    // "follow" | "error" | "manual"
     public var redirect: dynamic
         get() = definedExternally
         set(value) = definedExternally
@@ -235,7 +235,7 @@ public external interface RequestInit {
         get() = definedExternally
         set(value) = definedExternally
 
-    /* "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url" */
+    // "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url"
     public var referrerPolicy: dynamic
         get() = definedExternally
         set(value) = definedExternally

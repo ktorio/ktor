@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.fetch
@@ -30,7 +30,7 @@ public external interface Uint8Array {
     public var byteLength: Number
     public var byteOffset: Number
 
-    public fun copyWithin(target: Number, start: Number, end: Number? = definedExternally): Uint8Array /* this */
+    public fun copyWithin(target: Number, start: Number, end: Number? = definedExternally): Uint8Array // this
     public fun every(
         callbackfn: (value: Number, index: Number, array: Uint8Array) -> Any,
         thisArg: Any? = definedExternally
@@ -40,7 +40,7 @@ public external interface Uint8Array {
         value: Number,
         start: Number? = definedExternally,
         end: Number? = definedExternally
-    ): Uint8Array /* this */
+    ): Uint8Array // this
 
     public fun filter(
         callbackfn: (value: Number, index: Number, array: Uint8Array) -> Any,
@@ -101,7 +101,7 @@ public external interface Uint8Array {
         thisArg: Any? = definedExternally
     ): Boolean
 
-    public fun sort(compareFn: ((a: Number, b: Number) -> Number)? = definedExternally): Uint8Array /* this */
+    public fun sort(compareFn: ((a: Number, b: Number) -> Number)? = definedExternally): Uint8Array // this
     public fun subarray(begin: Number? = definedExternally, end: Number? = definedExternally): Uint8Array
     public fun toLocaleString(): String
     override fun toString(): String
