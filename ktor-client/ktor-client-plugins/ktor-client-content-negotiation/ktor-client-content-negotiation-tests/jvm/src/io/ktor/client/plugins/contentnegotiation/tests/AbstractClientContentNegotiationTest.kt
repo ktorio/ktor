@@ -96,7 +96,8 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
                 Response.serializer(ListSerializer(User.serializer()))
             )
         }
-        get("/users-x") { // route for testing custom content type, namely "application/x-${contentSubtype}"
+        // route for testing custom content type, namely "application/x-${contentSubtype}"
+        get("/users-x") {
             call.respond(
                 """{"ok":true,"result":[{"name":"x","age":10},{"name":"y","age":45}]}""",
                 customContentType,

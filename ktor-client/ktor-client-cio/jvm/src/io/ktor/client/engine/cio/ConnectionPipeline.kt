@@ -61,9 +61,7 @@ internal actual class ConnectionPipeline actual constructor(
         } catch (_: CancellationException) {
         } finally {
             responseChannel.close()
-            /**
-             * Workaround bug with socket.close
-             */
+            // Workaround bug with socket.close
 //            outputChannel.close()
         }
     }
