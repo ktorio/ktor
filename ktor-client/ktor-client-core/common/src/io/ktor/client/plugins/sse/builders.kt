@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.sse
 
@@ -21,6 +21,7 @@ internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
     install(SSE) {
         config()

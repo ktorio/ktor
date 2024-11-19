@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.tls.extensions
 
@@ -74,7 +74,7 @@ public data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgori
     public companion object
 }
 
-@Suppress("CONFLICTING_OVERLOADS")
+@Suppress("CONFLICTING_OVERLOADS", "ktlint:standard:function-naming")
 internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = null): HashAndSign? {
     val hash = HashAlgorithm.byCode(hashValue)
     val sign = SignatureAlgorithm.byCode(signValue) ?: return null
