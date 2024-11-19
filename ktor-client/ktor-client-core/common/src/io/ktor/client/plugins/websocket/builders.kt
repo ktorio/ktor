@@ -45,7 +45,9 @@ public suspend fun HttpClient.webSocketSession(
                 session.outgoing.invokeOnClose {
                     if (it != null) {
                         sessionCompleted.completeExceptionally(it)
-                    } else sessionCompleted.complete(Unit)
+                    } else {
+                        sessionCompleted.complete(Unit)
+                    }
                 }
                 sessionCompleted.await()
             }

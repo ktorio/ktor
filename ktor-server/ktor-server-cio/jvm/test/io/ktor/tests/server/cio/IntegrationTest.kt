@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
@@ -38,7 +38,10 @@ class IntegrationTest {
         s.invokeOnCompletion { t ->
             if (t != null) {
                 server.completeExceptionally(t)
-            } else server.complete(@OptIn(ExperimentalCoroutinesApi::class) s.getCompleted())
+            } else {
+                @OptIn(ExperimentalCoroutinesApi::class)
+                server.complete(s.getCompleted())
+            }
         }
 
         j.invokeOnCompletion {
