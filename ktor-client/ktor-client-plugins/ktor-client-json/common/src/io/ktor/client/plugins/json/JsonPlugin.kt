@@ -232,6 +232,7 @@ public class JsonPlugin internal constructor(
 /**
  * Install [JsonPlugin].
  */
+@Suppress("FunctionName")
 @Deprecated(
     "Please use ContentNegotiation plugin: https://ktor.io/docs/migration-to-20x.html#serialization-client",
     level = DeprecationLevel.ERROR

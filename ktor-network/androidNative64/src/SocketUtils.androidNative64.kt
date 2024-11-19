@@ -2,14 +2,14 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("FunctionName")
+
 package io.ktor.network.util
 
 import kotlinx.cinterop.*
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.convert
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_recvfrom(
     __fd: Int,
     __buf: CValuesRef<ByteVar>?,

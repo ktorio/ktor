@@ -28,6 +28,7 @@ public class YamlConfigLoader : ConfigLoader {
  * On JVM, loads a configuration from application resources, if exists; otherwise, reads a configuration from a file.
  * On Native, always reads a configuration from a file.
  */
+@Suppress("ktlint:standard:function-naming")
 public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**

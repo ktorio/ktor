@@ -219,6 +219,7 @@ internal object ReceiveStateHook : ClientHook<suspend (HttpResponse) -> HttpResp
  *
  * @param block: a [ContentEncoding] configuration.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.ContentEncoding(
     mode: ContentEncodingConfig.Mode = ContentEncodingConfig.Mode.DecompressResponse,
     block: ContentEncodingConfig.() -> Unit = {
