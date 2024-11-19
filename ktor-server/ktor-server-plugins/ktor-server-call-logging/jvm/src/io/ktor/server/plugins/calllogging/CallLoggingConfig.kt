@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.calllogging
@@ -135,5 +135,7 @@ public class CallLoggingConfig {
     private fun colored(value: Any, color: Ansi.Color): String =
         if (isColorsEnabled) {
             Ansi.ansi().fg(color).a(value).reset().toString()
-        } else value.toString() // ignore color
+        } else {
+            value.toString() // ignore color
+        }
 }

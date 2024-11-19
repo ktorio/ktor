@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.cio
 
@@ -18,7 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.*
-import kotlinx.io.EOFException
+import kotlinx.io.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 import io.ktor.utils.io.ByteChannel as KtorByteChannel
@@ -107,7 +107,9 @@ internal actual class ConnectionPipeline actual constructor(
                         val proxyChannel = KtorByteChannel()
                         skipTask = skipCancels(responseChannel, proxyChannel)
                         proxyChannel
-                    } else ByteReadChannel.Empty
+                    } else {
+                        ByteReadChannel.Empty
+                    }
 
                     callJob.invokeOnCompletion {
                         body.cancel()
