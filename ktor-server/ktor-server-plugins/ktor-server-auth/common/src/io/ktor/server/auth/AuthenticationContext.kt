@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -17,8 +17,9 @@ public class AuthenticationContext(call: ApplicationCall) {
     public var call: ApplicationCall = call
         private set
 
-    private val _errors = HashMap<Any, AuthenticationFailedCause>()
+    private val errors = HashMap<Any, AuthenticationFailedCause>()
 
+    @Suppress("PropertyName")
     internal val _principal: CombinedPrincipal = CombinedPrincipal()
 
     /**
@@ -36,19 +37,19 @@ public class AuthenticationContext(call: ApplicationCall) {
      * All registered errors during auth procedure (only [AuthenticationFailedCause.Error]).
      */
     public val allErrors: List<AuthenticationFailedCause.Error>
-        get() = _errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
+        get() = errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
 
     /**
      * All authentication failures during auth procedure including missing or invalid credentials.
      */
     public val allFailures: List<AuthenticationFailedCause>
-        get() = _errors.values.toList()
+        get() = errors.values.toList()
 
     /**
      * Appends an error to the errors list. Overwrites if already registered for the same [key].
      */
     public fun error(key: Any, cause: AuthenticationFailedCause) {
-        _errors[key] = cause
+        errors[key] = cause
     }
 
     /**

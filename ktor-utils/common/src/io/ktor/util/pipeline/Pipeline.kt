@@ -59,14 +59,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
-    private val _interceptors: AtomicRef<List<PipelineInterceptor<TSubject, TContext>>?> =
-        atomic(null)
-
-    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>?
-        get() = _interceptors.value
-        set(value) {
-            _interceptors.value = value
-        }
+    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>? by atomic(null)
 
     private var interceptorsListShared: Boolean = false
 

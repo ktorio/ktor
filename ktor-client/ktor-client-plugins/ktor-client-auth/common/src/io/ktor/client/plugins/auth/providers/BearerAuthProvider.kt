@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
  */
 public fun AuthConfig.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        this@bearer.providers.add(BearerAuthProvider(_refreshTokens, _loadTokens, _sendWithoutRequest, realm))
+        this@bearer.providers.add(BearerAuthProvider(refreshTokens, loadTokens, sendWithoutRequest, realm))
     }
 }
 
@@ -48,9 +48,9 @@ public class RefreshTokensParams(
  */
 @KtorDsl
 public class BearerAuthConfig {
-    internal var _refreshTokens: suspend RefreshTokensParams.() -> BearerTokens? = { null }
-    internal var _loadTokens: suspend () -> BearerTokens? = { null }
-    internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
+    internal var refreshTokens: suspend RefreshTokensParams.() -> BearerTokens? = { null }
+    internal var loadTokens: suspend () -> BearerTokens? = { null }
+    internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
     public var realm: String? = null
 
@@ -58,7 +58,7 @@ public class BearerAuthConfig {
      * Configures a callback that refreshes a token when the 401 status code is received.
      */
     public fun refreshTokens(block: suspend RefreshTokensParams.() -> BearerTokens?) {
-        _refreshTokens = block
+        refreshTokens = block
     }
 
     /**
@@ -66,14 +66,14 @@ public class BearerAuthConfig {
      * Note: Using the same client instance here to make a request will result in a deadlock.
      */
     public fun loadTokens(block: suspend () -> BearerTokens?) {
-        _loadTokens = block
+        loadTokens = block
     }
 
     /**
      * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
      */
     public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
-        _sendWithoutRequest = block
+        sendWithoutRequest = block
     }
 }
 
