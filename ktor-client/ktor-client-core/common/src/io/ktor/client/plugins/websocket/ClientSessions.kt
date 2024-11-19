@@ -49,9 +49,8 @@ public val DefaultClientWebSocketSession.converter: WebsocketContentConverter?
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
  *
- * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] function.
- *
- * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ * @type the type of the data to be serialized
+ * @throws WebsocketConverterNotFoundException if no [DefaultClientWebSocketSession.converter] is found for the [WebSockets] plugin
  */
 @OptIn(InternalAPI::class)
 public suspend fun DefaultClientWebSocketSession.sendSerialized(data: Any?, typeInfo: TypeInfo) {
@@ -73,7 +72,7 @@ public suspend fun DefaultClientWebSocketSession.sendSerialized(data: Any?, type
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
  *
- * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ * @throws WebsocketConverterNotFoundException if no [DefaultClientWebSocketSession.converter] is found for the [WebSockets] plugin
  */
 public suspend inline fun <reified T> DefaultClientWebSocketSession.sendSerialized(data: T) {
     sendSerialized(data, typeInfo<T>())
@@ -111,7 +110,7 @@ public suspend fun <T> DefaultClientWebSocketSession.receiveDeserialized(typeInf
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
  *
- * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
+ * @throws WebsocketConverterNotFoundException if no [DefaultClientWebSocketSession.converter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
 public suspend inline fun <reified T> DefaultClientWebSocketSession.receiveDeserialized(): T =

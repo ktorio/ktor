@@ -12,11 +12,9 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -67,7 +65,7 @@ internal suspend fun HttpCacheStorage.store(url: Url, value: HttpResponse, isSha
 public interface CacheStorage {
 
     /**
-     * Store [value] in cache storage for [url] key.
+     * Store [data] in cache storage for [url] key.
      */
     public suspend fun store(url: Url, data: CachedResponseData)
 

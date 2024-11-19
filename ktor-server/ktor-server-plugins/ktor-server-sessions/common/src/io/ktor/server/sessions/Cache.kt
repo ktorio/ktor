@@ -9,12 +9,13 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
- * A cache for [CookieStorage]
+ * A cache for [CacheStorage] class that allows to store and retrieve values by keys.
+ * It is used to store session data.
  */
 public interface Cache<in K : Any, V : Any> {
 
     /**
-     * Returns value for [key] or computes ans saves it if it's not found in the cache.
+     * Returns value for [key] or computes and saves it if it's not found in the cache.
      */
     public suspend fun getOrCompute(key: K): V
 

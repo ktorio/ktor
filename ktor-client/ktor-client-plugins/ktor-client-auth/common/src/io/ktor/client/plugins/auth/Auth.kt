@@ -39,7 +39,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  *
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
  *
- * [providers] - list of auth providers to use.
+ * [AuthConfig.providers] - List of auth providers to use.
  */
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()

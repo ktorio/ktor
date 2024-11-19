@@ -18,7 +18,7 @@ import java.net.*
 import kotlin.coroutines.*
 
 /**
- * Setup [HttpURLConnection] timeout configuration using [HttpTimeout.HttpTimeoutCapabilityConfiguration] as a source.
+ * Setup [HttpURLConnection] timeout configuration using [HttpTimeoutConfig] as a source.
  */
 @OptIn(InternalAPI::class)
 internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestData) {

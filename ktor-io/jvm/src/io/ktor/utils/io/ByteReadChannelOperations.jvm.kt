@@ -49,7 +49,7 @@ public fun ByteString(buffer: ByteBuffer): ByteString {
 /**
  * Copy up to [limit] bytes to blocking NIO [channel].
  * Copying to a non-blocking channel requires selection and not supported.
- * It is suspended if no data are available in a byte channel but may block if destination NIO channel blocks.
+ * It is suspended if no data is available in a byte channel but may block if destination NIO channel blocks.
  *
  * @return number of bytes copied
  */
@@ -124,10 +124,11 @@ public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
 /**
  * Invokes [block] if it is possible to read at least [min] byte
  * providing byte buffer to it so lambda can read from the buffer
- * up to [ByteBuffer.available] bytes. If there are no [min] bytes available then the invocation returns 0.
+ * up to [ByteBuffer.remaining] bytes.
+ * If there are no [min] bytes available then the invocation returns 0.
  *
- * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
- * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
+ * Warning: it is not guaranteed that all the available bytes will be represented as a single byte buffer
+ * e.g.: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *
  * @param min amount of bytes available for read, should be positive
@@ -157,8 +158,8 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  *
  * If [min] is zero then the invocation will suspend until at least one byte available.
  *
- * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
- * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 remaining bytes:
+ * Warning: it is not guaranteed that all the remaining bytes will be represented as a single byte buffer
+ * e.g.: it could be 4 bytes available for read but the provided byte buffer could have only 2 remaining bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *
  * It will fail with [EOFException] if not enough bytes ([availableForRead] < [min]) available

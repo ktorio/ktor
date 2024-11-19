@@ -10,6 +10,6 @@ import io.ktor.utils.io.pool.*
 import java.nio.*
 
 /**
- * Singleton pool of [ByteBuffer] objects used for [HttpClient].
+ * Singleton pool of [ByteBuffer] objects used for [io.ktor.client.HttpClient].
  */
 public val HttpClientDefaultPool: ByteBufferPool = ByteBufferPool()

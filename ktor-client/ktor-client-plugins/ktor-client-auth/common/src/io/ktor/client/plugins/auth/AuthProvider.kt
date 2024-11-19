@@ -38,7 +38,7 @@ public interface AuthProvider {
     /**
      * Refreshes a token if required.
      *
-     * @param call - response triggered token refresh.
+     * @param response - response triggered token refresh.
      * @return if the token was successfully refreshed.
      */
     public suspend fun refreshToken(response: HttpResponse): Boolean = true

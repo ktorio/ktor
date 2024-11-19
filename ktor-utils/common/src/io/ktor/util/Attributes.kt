@@ -35,9 +35,7 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
 }
 
 /**
- * A version of [AttributeKey] that overrides [equals] and [hashCode] using [name]
- * @param T is a type of the value stored in the attribute
- * @param name is a name of the attribute
+ * Please use `AttributeKey` class instead.
  */
 @Deprecated(
     "Please use `AttributeKey` class instead",
@@ -47,7 +45,7 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
 public typealias EquatableAttributeKey<T> = AttributeKey<T>
 
 /**
- * Creates an attributes instance suitable for the particular platform
+ * Creates an [Attributes] instance suitable for the particular platform
  */
 public expect fun Attributes(concurrent: Boolean = false): Attributes
 

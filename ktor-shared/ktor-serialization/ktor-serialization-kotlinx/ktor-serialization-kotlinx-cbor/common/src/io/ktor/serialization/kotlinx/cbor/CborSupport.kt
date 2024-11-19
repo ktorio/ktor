@@ -25,7 +25,7 @@ public val DefaultCbor: Cbor = Cbor {
 
 /**
  * Registers the `application/cbor` (or another specified [contentType]) content type
- * to the [ContentNegotiation] plugin using kotlinx.serialization.
+ * to the [KotlinxSerializationConverter] plugin using kotlinx.serialization.
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  *

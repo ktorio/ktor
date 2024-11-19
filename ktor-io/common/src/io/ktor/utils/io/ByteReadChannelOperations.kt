@@ -14,7 +14,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -133,7 +132,7 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
  * It recognizes CR, LF and CRLF as line delimiters.
  *
  * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
- * @return a string containing the line read, or null if channel is closed
+ * @return a string containing the line read, or null if the channel is closed
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
 public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
@@ -223,7 +222,7 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
 }
 
 /**
- * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
+ * Reads all available bytes to [buffer] buffer and returns immediately or suspends if no bytes available
  * @return number of bytes were read or `-1` if the channel has been closed
  */
 @OptIn(InternalAPI::class)
@@ -242,9 +241,9 @@ public suspend fun ByteReadChannel.readAvailable(
 /**
  * Invokes [block] if it is possible to read at least [min] byte
  * providing buffer to it so lambda can read from the buffer
- * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+ * up to [Buffer.size] bytes. If there are no [min] bytes available then the invocation returns -1.
  *
- * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
+ * Warning: it is not guaranteed that all available bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *

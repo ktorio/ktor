@@ -26,7 +26,7 @@ public suspend fun HttpClient.request(
  * Executes a [HttpClient] GET request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
+ * Tries to receive a [HttpResponse], if fails, an exception is thrown.
  */
 public suspend fun HttpClient.get(
     url: URL,
@@ -123,8 +123,6 @@ public suspend fun HttpClient.prepareRequest(
 /**
  * Prepares a [HttpClient] GET request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
- *
- * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend fun HttpClient.prepareGet(
     url: URL,

@@ -247,7 +247,7 @@ private fun verifyCallIdAgainstDictionary(callId: String, dictionarySet: Set<Cha
 
 /**
  * Generates a fixed [length] call ID using the specified [dictionary].
- * Note that this function generates pseudo-random identifiers via regular [java.util.Random]
+ * Note that this function generates pseudo-random identifiers via regular [Random.Default]
  * and should not be considered as cryptographically secure.
  * Also note that you need to use the same dictionary for [CallIdVerifier], otherwise a generated call ID could be
  * discarded or may lead to complete call rejection.
