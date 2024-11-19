@@ -191,7 +191,7 @@ class ContentNegotiationTests {
             setupWithContentNegotiation {
                 for (typeToSend in registeredTypesToSend) {
                     register(typeToSend, TestContentConverter())
-                    defaultAcceptHeaderQValue = "0.8"
+                    defaultAcceptHeaderQValue = 0.8
                 }
             }
 

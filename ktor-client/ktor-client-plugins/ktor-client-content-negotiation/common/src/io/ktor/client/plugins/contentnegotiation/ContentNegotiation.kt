@@ -31,9 +31,10 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
 internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
- * Shows that request should skip auth and refresh token procedure.
+ * The content types that are excluded from the `Accept` header for this specific request. Use the
+ * [exclude] `HttpRequestBuilder` extension to set this attribute on a request.
  */
-public val ExcludeContentTypes: AttributeKey<List<ContentType>> = AttributeKey("exclude-content-types")
+public val ExcludedContentTypes: AttributeKey<List<ContentType>> = AttributeKey("ExcludedContentTypesAttr")
 
 /**
  * A [ContentNegotiation] configuration that is used during installation.
@@ -56,7 +57,7 @@ public class ContentNegotiationConfig : Configuration {
      * By default, `Accept` headers for registered content types will have no q value (implicit 1.0). Set this to
      * change that behavior. This is useful to override the preferred `Accept` content types on a per-request basis.
      */
-    public var defaultAcceptHeaderQValue: String? = null
+    public var defaultAcceptHeaderQValue: Double? = null
 
     /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
@@ -152,23 +153,23 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
     val ignoredTypes: Set<KClass<*>> = pluginConfig.ignoredTypes
 
     suspend fun convertRequest(request: HttpRequestBuilder, body: Any): OutgoingContent? {
-        val requestRegistrations = if (request.attributes.contains(ExcludeContentTypes)) {
-            val excluded = request.attributes[ExcludeContentTypes]
+        val requestRegistrations = if (request.attributes.contains(ExcludedContentTypes)) {
+            val excluded = request.attributes[ExcludedContentTypes]
             registrations.filter { registration -> excluded.none { registration.contentTypeToSend.match(it) } }
         } else {
             registrations
         }
 
+        val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
         requestRegistrations.forEach {
-            val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
             if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
-                LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header with q=0.8 for ${request.url}")
                 // automatically added headers get a lower content type priority, so user-specified accept headers
                 //  with higher q or implicit q=1 will take precedence
                 val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
                   null -> it.contentTypeToSend
-                  else -> it.contentTypeToSend.withParameter("q", qValue)
+                  else -> it.contentTypeToSend.withParameter("q", qValue.toString())
                 }
+                LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
                 request.accept(contentTypeToSend)
             }
         }
@@ -285,6 +286,6 @@ public class ContentConverterException(message: String) : Exception(message)
  * be passed in a single call.
  */
 public fun HttpRequestBuilder.exclude(vararg contentType: ContentType) {
-    val excludedContentTypes = attributes.getOrNull(ExcludeContentTypes).orEmpty()
-    attributes.put(ExcludeContentTypes, excludedContentTypes + contentType)
+    val excludedContentTypes = attributes.getOrNull(ExcludedContentTypes).orEmpty()
+    attributes.put(ExcludedContentTypes, excludedContentTypes + contentType)
 }
