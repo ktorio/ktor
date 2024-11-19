@@ -19,7 +19,7 @@ import kotlinx.coroutines.*
 public abstract class BaseApplicationResponse(
     final override val call: PipelineCall
 ) : PipelineResponse {
-    private var _status: HttpStatusCode? = null
+    private var status: HttpStatusCode? = null
 
     override val isCommitted: Boolean
         get() = responded
@@ -31,9 +31,9 @@ public abstract class BaseApplicationResponse(
         ResponseCookies(this)
     }
 
-    override fun status(): HttpStatusCode? = _status
+    override fun status(): HttpStatusCode? = status
     override fun status(value: HttpStatusCode) {
-        _status = value
+        status = value
         setStatus(value)
     }
 

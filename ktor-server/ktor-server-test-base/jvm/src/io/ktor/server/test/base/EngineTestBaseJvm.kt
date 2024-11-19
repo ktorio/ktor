@@ -43,7 +43,6 @@ actual abstract class EngineTestBase<
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     protected val testDispatcher = Dispatchers.IO.limitedParallelism(32)
 
     protected val isUnderDebugger: Boolean =
@@ -113,7 +112,7 @@ actual abstract class EngineTestBase<
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
+        val savedPort = this.port
         val environment = applicationEnvironment {
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -139,7 +138,7 @@ actual abstract class EngineTestBase<
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
 
-            connector { port = _port }
+            connector { port = savedPort }
             if (enableSsl) {
                 sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
                     this.port = sslPort
