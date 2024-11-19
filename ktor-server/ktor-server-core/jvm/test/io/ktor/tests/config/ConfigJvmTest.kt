@@ -17,6 +17,7 @@ class ConfigJvmTest {
     fun testLoadFromResources() {
         System.setProperty("config.resource", "custom.config.conf")
         val config = ConfigLoader.load()
+        System.clearProperty("config.resource")
 
         assertEquals(4242, config.port)
     }
@@ -25,6 +26,7 @@ class ConfigJvmTest {
     fun testLoadYamlFromResources() {
         System.setProperty("config.resource", "custom.config.yaml")
         val config = ConfigLoader.load()
+        System.clearProperty("config.resource")
 
         assertEquals(4244, config.port)
     }
@@ -44,6 +46,7 @@ class ConfigJvmTest {
 
         System.setProperty("config.file", file.absolutePathString())
         val config = ConfigLoader.load()
+        System.clearProperty("config.file")
 
         assertEquals(4243, config.port)
     }
