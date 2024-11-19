@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -70,8 +70,9 @@ internal class OkHttpSSESession(
 
             response != null && response.headers[HttpHeaders.ContentType]
                 ?.let { ContentType.parse(it) }?.withoutParameters() != ContentType.Text.EventStream ->
+                @Suppress("ktlint:standard:max-line-length")
                 SSEClientException(
-                    message = "Content type must be ${ContentType.Text.EventStream} but was ${response.headers[HttpHeaders.ContentType]}" // ktlint-disable max-line-length
+                    message = "Content type must be ${ContentType.Text.EventStream} but was ${response.headers[HttpHeaders.ContentType]}"
                 )
 
             else -> SSEClientException(message = "Unexpected error occurred in OkHttpSSESession")

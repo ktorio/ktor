@@ -12,8 +12,9 @@ import io.ktor.utils.io.core.*
 /**
  * Client json serializer.
  */
+@Suppress("ktlint:standard:max-line-length")
 @Deprecated(
-    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migration-to-20x.html#serialization-client", // ktlint-disable max-line-length
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migration-to-20x.html#serialization-client",
     level = DeprecationLevel.ERROR
 )
 public interface JsonSerializer {

@@ -174,8 +174,9 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    @Suppress("ktlint:standard:max-line-length")
                     throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}" // ktlint-disable max-line-length
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}"
                     )
                 }
                 if (session !is WebSocketSession) {

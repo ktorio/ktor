@@ -1,6 +1,5 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -10,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
 import io.ktor.server.http.*
-import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*

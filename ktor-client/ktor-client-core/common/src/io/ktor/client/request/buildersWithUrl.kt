@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.request
 
@@ -193,6 +193,6 @@ public suspend inline fun HttpClient.prepareDelete(
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
-public fun HttpRequestBuilder.url(url: Url): Unit { // ktlint-disable no-unit-return
+public fun HttpRequestBuilder.url(url: Url) {
     this.url.takeFrom(url)
 }
