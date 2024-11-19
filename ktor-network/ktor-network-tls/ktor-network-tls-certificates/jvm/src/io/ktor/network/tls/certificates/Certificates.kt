@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls.certificates
@@ -8,8 +8,6 @@ import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
-import kotlinx.io.Sink
-import kotlinx.io.writeUByte
 import java.io.*
 import java.math.*
 import java.net.*
@@ -115,7 +113,9 @@ internal fun generateX509Certificate(
 }
 
 public enum class KeyType {
-    CA, Server, Client
+    CA,
+    Server,
+    Client,
 }
 
 /**
