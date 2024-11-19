@@ -1,17 +1,16 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.*
-import kotlinx.io.IOException
 import kotlinx.io.bytestring.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
-
-/*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 
 class ByteReadChannelOperationsTest {
 

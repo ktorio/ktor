@@ -1,18 +1,15 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.internal
 
-/*
- * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
- *
- * Copied from kotlinx.coroutines
- */
-
 import kotlinx.atomicfu.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
+
+/*
+ * Copied from kotlinx.coroutines
+ */
 
 private typealias Node = LockFreeLinkedListNode
 

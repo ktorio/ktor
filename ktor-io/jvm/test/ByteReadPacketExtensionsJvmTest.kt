@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.test.*
 import kotlinx.io.*
@@ -6,10 +10,6 @@ import java.nio.*
 import kotlin.random.*
 import kotlin.test.*
 import kotlin.text.String
-
-/*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 
 class ByteReadPacketExtensionsJvmTest {
 
