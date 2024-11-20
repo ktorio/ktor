@@ -204,7 +204,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js")) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }

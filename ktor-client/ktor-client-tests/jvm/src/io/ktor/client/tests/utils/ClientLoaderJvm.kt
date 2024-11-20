@@ -28,6 +28,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
     actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,
+        retries: Int,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         DebugProbes.install()
@@ -37,7 +38,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
             }
             runBlocking {
                 withTimeout(timeoutSeconds.seconds.inWholeMilliseconds) {
-                    testWithEngine(engine.factory, this@ClientLoader, timeoutSeconds * 1000L, block)
+                    testWithEngine(engine.factory, this@ClientLoader, timeoutSeconds * 1000L, retries, block)
                 }
             }
         }
