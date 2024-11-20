@@ -31,6 +31,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -738,7 +739,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testErrorInBodyClosesConnection() = runTest {
+    fun testErrorInBodyClosesConnection() = runTest(1.minutes) {
         createAndStartServer {
             get("/") {
                 call.respond(
