@@ -15,22 +15,25 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.sse.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.minutes
 
-class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
+class ServerSentEventsTest : ClientLoader(2.minutes) {
 
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {
         val client = HttpClient()
         assertFailsWith<IllegalStateException> {
-            client.serverSentEventsSession()
+            client.serverSentEventsSession {}
         }.apply {
             assertContains(message!!, SSE.key.name)
         }
@@ -426,6 +429,114 @@ class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
             }) {
                 incoming.single().apply {
                     assertEquals("Hello", data)
+                }
+            }
+        }
+    }
+
+    class Person(val name: String)
+    class Data(val value: String)
+
+    @Test
+    fun testDeserializer() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val count = 10
+            var size = 0
+            client.sse(
+                {
+                    url("$TEST_SERVER/sse/person")
+                    parameter("times", count)
+                },
+                deserialize = { _, it -> Person(it) }
+            ) {
+                incoming.collectIndexed { i, event ->
+                    val person = deserialize<Person>(event)
+                    assertEquals("Name $i", person?.name)
+                    assertEquals("$i", event.id)
+                    size++
+                }
+            }
+            assertEquals(count, size)
+        }
+    }
+
+    @Test
+    fun testExceptionIfWrongDeserializerProvided() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            assertFailsWith<SSEClientException> {
+                client.sse({ url("$TEST_SERVER/sse/person") }, { _, it -> Data(it) }) {
+                    incoming.single().apply {
+                        val data = deserialize<Person>(data)
+                        assertEquals("Name 0", data?.name)
+                    }
+                }
+            }
+        }
+    }
+
+    class Person1(val name: String)
+    class Person2(val middleName: String)
+
+    @Test
+    fun testDifferentDeserializers() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _, str -> Person1(str) }) {
+                incoming.single().apply {
+                    assertEquals("Name 0", deserialize<Person1>(data)?.name)
+                }
+            }
+            client.sse({ url("$TEST_SERVER/sse/person") }, deserialize = { _, str -> Person2(str) }) {
+                incoming.single().apply {
+                    assertEquals("Name 0", deserialize<Person2>(data)?.middleName)
+                }
+            }
+        }
+    }
+
+    @Serializable
+    data class Customer(val id: Int, val firstName: String, val lastName: String)
+
+    @Serializable
+    data class Product(val name: String, val price: Int)
+
+    @Test
+    fun testJsonDeserializer() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse({
+                url("$TEST_SERVER/sse/json")
+            }, deserialize = { typeInfo, jsonString ->
+                val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                Json.decodeFromString(serializer, jsonString) ?: Exception()
+            }) {
+                var firstIsCustomer = true
+                incoming.collect { event: TypedServerSentEvent<String> ->
+                    if (firstIsCustomer) {
+                        val customer = deserialize<Customer>(event.data)
+                        assertEquals(1, customer?.id)
+                        assertEquals("Jet", customer?.firstName)
+                        assertEquals("Brains", customer?.lastName)
+                        firstIsCustomer = false
+                    } else {
+                        val product = deserialize<Product>(event.data)
+                        assertEquals("Milk", product?.name)
+                        assertEquals(100, product?.price)
+                    }
                 }
             }
         }

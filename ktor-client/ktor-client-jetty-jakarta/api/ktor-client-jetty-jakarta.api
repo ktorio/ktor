@@ -1,6 +1,9 @@
 public final class io/ktor/client/engine/jetty/jakarta/Jetty : io/ktor/client/engine/HttpClientEngineFactory {
 	public static final field INSTANCE Lio/ktor/client/engine/jetty/jakarta/Jetty;
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/engine/jetty/jakarta/JettyEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {

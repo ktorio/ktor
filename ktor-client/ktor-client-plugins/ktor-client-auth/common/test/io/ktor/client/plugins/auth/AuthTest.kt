@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
 class AuthTest : ClientLoader() {
 
     @Test
-    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -43,7 +43,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuth() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuth() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -60,7 +60,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -84,7 +84,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native")) {
+    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -399,6 +399,27 @@ class AuthTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+        }
+    }
+
+    @Test
+    fun testForbiddenBearerAuthWithInvalidAccessAndValidRefreshTokens() = clientTests {
+        config {
+            install(Auth) {
+                reAuthorizeOnResponse { it.status == HttpStatusCode.Forbidden }
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                }
+            }
+
+            expectSuccess = false
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh?status=403").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
             }
         }
     }

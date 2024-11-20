@@ -26,7 +26,7 @@ import io.ktor.client.engine.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
+public data object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
     override fun create(block: OkHttpConfig.() -> Unit): HttpClientEngine =
         OkHttpEngine(OkHttpConfig().apply(block))
 }

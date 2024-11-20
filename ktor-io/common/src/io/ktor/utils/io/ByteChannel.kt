@@ -272,5 +272,4 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 public class ConcurrentIOException(
     taskName: String,
     cause: Throwable? = null
-) : IllegalStateException("Concurrent $taskName attempts", cause) {
-}
+) : IllegalStateException("Concurrent $taskName attempts", cause)

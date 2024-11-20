@@ -5,7 +5,6 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import java.nio.*

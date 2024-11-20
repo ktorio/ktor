@@ -2,7 +2,14 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class)
+
 package io.ktor.http
+
+import io.ktor.utils.io.*
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
 /**
  * Represents an immutable URL
@@ -18,6 +25,7 @@ package io.ktor.http
  * @property password password part of URL
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
+@Serializable(with = UrlSerializer::class)
 public class Url internal constructor(
     protocol: URLProtocol?,
     public val host: String,
@@ -29,7 +37,7 @@ public class Url internal constructor(
     public val password: String?,
     public val trailingQuery: Boolean,
     private val urlString: String
-) {
+) : JvmSerializable {
     init {
         require(specifiedPort in 0..65535) {
             "Port must be between 0 and 65535, or $DEFAULT_PORT if not set. Provided: $specifiedPort"
@@ -222,6 +230,8 @@ public class Url internal constructor(
         return urlString.hashCode()
     }
 
+    private fun writeReplace(): Any = JvmSerializerReplacement(UrlJvmSerializer, this)
+
     public companion object
 }
 
@@ -254,3 +264,23 @@ internal val Url.encodedUserAndPassword: String
     get() = buildString {
         appendUserAndPassword(encodedUser, encodedPassword)
     }
+
+public object UrlSerializer : KSerializer<Url> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("io.ktor.http.Url", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Url =
+        Url(decoder.decodeString())
+
+    override fun serialize(encoder: Encoder, value: Url) {
+        encoder.encodeString(value.toString())
+    }
+}
+
+internal object UrlJvmSerializer : JvmSerializer<Url> {
+    override fun jvmSerialize(value: Url): ByteArray =
+        value.toString().encodeToByteArray()
+
+    override fun jvmDeserialize(value: ByteArray): Url =
+        Url(value.decodeToString())
+}

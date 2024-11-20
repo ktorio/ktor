@@ -43,7 +43,7 @@ slf4j = "2.0.16"
 logback = "1.5.12"
 
 dropwizard = "4.2.28"
-micrometer = "1.13.6"
+micrometer = "1.14.1"
 
 jansi = "2.4.1"
 typesafe = "1.4.3"
@@ -61,7 +61,7 @@ velocity-tools = "3.1"
 webjars-locator = "0.59"
 webjars-jquery = "3.7.1"
 thymeleaf = "3.1.2.RELEASE"
-jte = "3.1.14"
+jte = "3.1.15"
 
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
@@ -72,7 +72,7 @@ yamlkt = "0.13.0"
 
 swagger-codegen = "3.0.64"
 swagger-codegen-generators = "1.0.54"
-swagger-parser = "2.1.23"
+swagger-parser = "2.1.24"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
