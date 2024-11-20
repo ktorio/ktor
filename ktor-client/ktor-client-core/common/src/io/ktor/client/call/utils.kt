@@ -4,6 +4,7 @@
 
 package io.ktor.client.call
 
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 
@@ -14,3 +15,11 @@ public class UnsupportedContentTypeException(content: OutgoingContent) :
 public class UnsupportedUpgradeProtocolException(
     url: Url
 ) : IllegalArgumentException("Unsupported upgrade protocol exception: $url")
+
+internal fun checkContentLength(contentLength: Long?, bodySize: Long, method: HttpMethod) {
+    if (contentLength == null || contentLength < 0 || method == HttpMethod.Head) return
+
+    if (contentLength != bodySize) {
+        throw IllegalStateException("Content-Length mismatch: expected $contentLength bytes, but received $bodySize bytes")
+    }
+}
