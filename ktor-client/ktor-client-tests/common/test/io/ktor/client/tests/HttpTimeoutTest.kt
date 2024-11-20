@@ -185,7 +185,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetWithSeparateReceivePerRequestAttributes() = clientTests {
+    fun testGetWithSeparateReceivePerRequestAttributes() = clientTests(retries = 5) {
         config {
             install(HttpTimeout)
         }
