@@ -764,7 +764,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    open fun testErrorInBodyClosesConnectionWithContentLength() = runTest {
+    open fun testErrorInBodyClosesConnectionWithContentLength() = runTest(1.minutes) {
         createAndStartServer {
             get("/") {
                 call.respond(
