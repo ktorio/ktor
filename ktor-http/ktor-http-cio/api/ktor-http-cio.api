@@ -142,6 +142,10 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 	public final fun getVersion ()Ljava/lang/CharSequence;
 }
 
+public final class io/ktor/http/cio/UnsupportedMediaTypeExceptionCIO : java/io/IOException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class io/ktor/http/cio/internals/CharsKt {
 	public static final fun parseDecLong (Ljava/lang/CharSequence;)J
 }
