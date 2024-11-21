@@ -34,7 +34,7 @@ internal expect val DefaultIgnoredTypes: Set<KClass<*>>
  * The content types that are excluded from the `Accept` header for this specific request. Use the
  * [exclude] `HttpRequestBuilder` extension to set this attribute on a request.
  */
-public val ExcludedContentTypes: AttributeKey<List<ContentType>> = AttributeKey("ExcludedContentTypesAttr")
+internal val ExcludedContentTypes: AttributeKey<List<ContentType>> = AttributeKey("ExcludedContentTypesAttr")
 
 /**
  * A [ContentNegotiation] configuration that is used during installation.
@@ -166,8 +166,8 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
                 // automatically added headers get a lower content type priority, so user-specified accept headers
                 //  with higher q or implicit q=1 will take precedence
                 val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
-                  null -> it.contentTypeToSend
-                  else -> it.contentTypeToSend.withParameter("q", qValue.toString())
+                    null -> it.contentTypeToSend
+                    else -> it.contentTypeToSend.withParameter("q", qValue.toString())
                 }
                 LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
                 request.accept(contentTypeToSend)
