@@ -1,14 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING", "KDocMissingDocumentation")
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -29,43 +26,23 @@ const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 const val TCP_SERVER: String = "http://127.0.0.1:8082"
 
 /**
- * Perform test with selected client [engine].
- */
-fun testWithEngine(
-    engine: HttpClientEngine,
-    timeoutMillis: Long = 60 * 1000L,
-    block: suspend TestClientBuilder<*>.() -> Unit
-) = testWithClient(HttpClient(engine), timeoutMillis, block)
-
-/**
- * Perform test with selected [client].
- */
-private fun testWithClient(
-    client: HttpClient,
-    timeout: Long,
-    block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = runTest(timeout = timeout.milliseconds) {
-    val builder1 = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
-    concurrency(builder1.concurrency) { threadId ->
-        repeat(builder1.repeatCount) { attempt ->
-            @Suppress("UNCHECKED_CAST")
-            client.config { builder1.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-                .use { client -> builder1.test(TestInfo(threadId, attempt), client) }
-        }
-    }
-    client.engine.close()
-}
-
-/**
  * Perform test with selected client engine [factory].
  */
-@OptIn(DelicateCoroutinesApi::class)
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
     timeoutMillis: Long = 60L * 1000L,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = runTest(timeout = timeoutMillis.milliseconds) {
+    performTestWithEngine(factory, loader, block)
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+suspend fun <T : HttpClientEngineConfig> performTestWithEngine(
+    factory: HttpClientEngineFactory<T>,
+    loader: ClientLoader? = null,
+    block: suspend TestClientBuilder<T>.() -> Unit
+) {
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {

@@ -53,7 +53,12 @@ abstract interface <#A: kotlin/Any> io.ktor.utils.io.pool/ObjectPool : kotlin/Au
     open fun close() // io.ktor.utils.io.pool/ObjectPool.close|close(){}[0]
 }
 
-abstract interface io.ktor.utils.io.core/Closeable { // io.ktor.utils.io.core/Closeable|null[0]
+abstract interface <#A: kotlin/Any?> io.ktor.utils.io/JvmSerializer : io.ktor.utils.io/JvmSerializable { // io.ktor.utils.io/JvmSerializer|null[0]
+    abstract fun jvmDeserialize(kotlin/ByteArray): #A // io.ktor.utils.io/JvmSerializer.jvmDeserialize|jvmDeserialize(kotlin.ByteArray){}[0]
+    abstract fun jvmSerialize(#A): kotlin/ByteArray // io.ktor.utils.io/JvmSerializer.jvmSerialize|jvmSerialize(1:0){}[0]
+}
+
+abstract interface io.ktor.utils.io.core/Closeable : kotlin/AutoCloseable { // io.ktor.utils.io.core/Closeable|null[0]
     abstract fun close() // io.ktor.utils.io.core/Closeable.close|close(){}[0]
 }
 
@@ -96,6 +101,8 @@ abstract interface io.ktor.utils.io/ChannelJob { // io.ktor.utils.io/ChannelJob|
     abstract val job // io.ktor.utils.io/ChannelJob.job|{}job[0]
         abstract fun <get-job>(): kotlinx.coroutines/Job // io.ktor.utils.io/ChannelJob.job.<get-job>|<get-job>(){}[0]
 }
+
+abstract interface io.ktor.utils.io/JvmSerializable // io.ktor.utils.io/JvmSerializable|null[0]
 
 abstract class <#A: kotlin/Any> io.ktor.utils.io.pool/DefaultPool : io.ktor.utils.io.pool/ObjectPool<#A> { // io.ktor.utils.io.pool/DefaultPool|null[0]
     constructor <init>(kotlin/Int) // io.ktor.utils.io.pool/DefaultPool.<init>|<init>(kotlin.Int){}[0]
@@ -212,7 +219,7 @@ final class io.ktor.utils.io/ByteChannel : io.ktor.utils.io/BufferedByteWriteCha
 }
 
 final class io.ktor.utils.io/ConcurrentIOException : kotlin/IllegalStateException { // io.ktor.utils.io/ConcurrentIOException|null[0]
-    constructor <init>(kotlin/String) // io.ktor.utils.io/ConcurrentIOException.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.utils.io/ConcurrentIOException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 
 final class io.ktor.utils.io/CountedByteReadChannel : io.ktor.utils.io/ByteReadChannel { // io.ktor.utils.io/CountedByteReadChannel|null[0]
@@ -399,6 +406,7 @@ final fun (kotlinx.io/Source).io.ktor.utils.io.core/readTextExactCharacters(kotl
 final fun (kotlinx.io/Source).io.ktor.utils.io.core/release() // io.ktor.utils.io.core/release|release@kotlinx.io.Source(){}[0]
 final fun (kotlinx.io/Source).io.ktor.utils.io.core/takeWhile(kotlin/Function1<kotlinx.io/Buffer, kotlin/Boolean>) // io.ktor.utils.io.core/takeWhile|takeWhile@kotlinx.io.Source(kotlin.Function1<kotlinx.io.Buffer,kotlin.Boolean>){}[0]
 final fun (kotlinx.io/Source).io.ktor.utils.io/readText(): kotlin/String // io.ktor.utils.io/readText|readText@kotlinx.io.Source(){}[0]
+final fun <#A: kotlin/Any> io.ktor.utils.io/JvmSerializerReplacement(io.ktor.utils.io/JvmSerializer<#A>, #A): kotlin/Any // io.ktor.utils.io/JvmSerializerReplacement|JvmSerializerReplacement(io.ktor.utils.io.JvmSerializer<0:0>;0:0){0§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any?> (kotlinx.io/Sink).io.ktor.utils.io.core/preview(kotlin/Function1<kotlinx.io/Source, #A>): #A // io.ktor.utils.io.core/preview|preview@kotlinx.io.Sink(kotlin.Function1<kotlinx.io.Source,0:0>){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (kotlinx.io/Source).io.ktor.utils.io.core/preview(kotlin/Function1<kotlinx.io/Source, #A>): #A // io.ktor.utils.io.core/preview|preview@kotlinx.io.Source(kotlin.Function1<kotlinx.io.Source,0:0>){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> io.ktor.utils.io.core/withMemory(kotlin/Int, kotlin/Function1<kotlin/ByteArray, #A>): #A // io.ktor.utils.io.core/withMemory|withMemory(kotlin.Int;kotlin.Function1<kotlin.ByteArray,0:0>){0§<kotlin.Any?>}[0]

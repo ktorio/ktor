@@ -4,6 +4,7 @@
 
 package io.ktor.http.content
 
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 
 /**
@@ -11,6 +12,6 @@ import java.io.*
  */
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated("This API uses blocking InputStream. Please use provider() directly.")
-public val PartData.FileItem.streamProvider: () -> InputStream get() = error(
-    "streamProvider is deprecated. Use provider() instead"
-)
+public val PartData.FileItem.streamProvider: () -> InputStream get() = {
+    provider().toInputStream()
+}

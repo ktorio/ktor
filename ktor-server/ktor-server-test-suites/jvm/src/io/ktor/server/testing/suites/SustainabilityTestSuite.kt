@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.testing.suites
 
@@ -37,6 +37,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
+import kotlin.use
 
 @ExtendWith(RetrySupport::class)
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(

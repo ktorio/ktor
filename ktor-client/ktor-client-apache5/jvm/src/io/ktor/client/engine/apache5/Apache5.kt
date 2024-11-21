@@ -25,7 +25,7 @@ import io.ktor.client.engine.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object Apache5 : HttpClientEngineFactory<Apache5EngineConfig> {
+public data object Apache5 : HttpClientEngineFactory<Apache5EngineConfig> {
     override fun create(block: Apache5EngineConfig.() -> Unit): HttpClientEngine {
         val config = Apache5EngineConfig().apply(block)
         return Apache5Engine(config)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -35,7 +35,6 @@ class UrlTest {
         val relativeWithTrailing = Url("docs/")
         val empty = Url("https://ktor.io")
         val emptyWithTrailing = Url("http://ktor.io/")
-
 
         val expected = listOf("docs")
         assertContentEquals(expected, full.segments)

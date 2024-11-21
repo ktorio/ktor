@@ -40,6 +40,15 @@ final class io.ktor.http.cio/CIOHeaders : io.ktor.http/Headers { // io.ktor.http
     final fun names(): kotlin.collections/Set<kotlin/String> // io.ktor.http.cio/CIOHeaders.names|names(){}[0]
 }
 
+final class io.ktor.http.cio/CIOMultipartDataBase : io.ktor.http.content/MultiPartData, kotlinx.coroutines/CoroutineScope { // io.ktor.http.cio/CIOMultipartDataBase|null[0]
+    constructor <init>(kotlin.coroutines/CoroutineContext, io.ktor.utils.io/ByteReadChannel, kotlin/CharSequence, kotlin/Long?, kotlin/Long = ...) // io.ktor.http.cio/CIOMultipartDataBase.<init>|<init>(kotlin.coroutines.CoroutineContext;io.ktor.utils.io.ByteReadChannel;kotlin.CharSequence;kotlin.Long?;kotlin.Long){}[0]
+
+    final val coroutineContext // io.ktor.http.cio/CIOMultipartDataBase.coroutineContext|{}coroutineContext[0]
+        final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.http.cio/CIOMultipartDataBase.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+
+    final suspend fun readPart(): io.ktor.http.content/PartData? // io.ktor.http.cio/CIOMultipartDataBase.readPart|readPart(){}[0]
+}
+
 final class io.ktor.http.cio/ConnectionOptions { // io.ktor.http.cio/ConnectionOptions|null[0]
     constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin.collections/List<kotlin/String> = ...) // io.ktor.http.cio/ConnectionOptions.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.collections.List<kotlin.String>){}[0]
 
@@ -117,9 +126,44 @@ final class io.ktor.http.cio/Response : io.ktor.http.cio/HttpMessage { // io.kto
         final fun <get-version>(): kotlin/CharSequence // io.ktor.http.cio/Response.version.<get-version>|<get-version>(){}[0]
 }
 
+sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent|null[0]
+    abstract fun release() // io.ktor.http.cio/MultipartEvent.release|release(){}[0]
+
+    final class Epilogue : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.Epilogue|null[0]
+        constructor <init>(kotlinx.io/Source) // io.ktor.http.cio/MultipartEvent.Epilogue.<init>|<init>(kotlinx.io.Source){}[0]
+
+        final val body // io.ktor.http.cio/MultipartEvent.Epilogue.body|{}body[0]
+            final fun <get-body>(): kotlinx.io/Source // io.ktor.http.cio/MultipartEvent.Epilogue.body.<get-body>|<get-body>(){}[0]
+
+        final fun release() // io.ktor.http.cio/MultipartEvent.Epilogue.release|release(){}[0]
+    }
+
+    final class MultipartPart : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.MultipartPart|null[0]
+        constructor <init>(kotlinx.coroutines/Deferred<io.ktor.http.cio/HttpHeadersMap>, io.ktor.utils.io/ByteReadChannel) // io.ktor.http.cio/MultipartEvent.MultipartPart.<init>|<init>(kotlinx.coroutines.Deferred<io.ktor.http.cio.HttpHeadersMap>;io.ktor.utils.io.ByteReadChannel){}[0]
+
+        final val body // io.ktor.http.cio/MultipartEvent.MultipartPart.body|{}body[0]
+            final fun <get-body>(): io.ktor.utils.io/ByteReadChannel // io.ktor.http.cio/MultipartEvent.MultipartPart.body.<get-body>|<get-body>(){}[0]
+        final val headers // io.ktor.http.cio/MultipartEvent.MultipartPart.headers|{}headers[0]
+            final fun <get-headers>(): kotlinx.coroutines/Deferred<io.ktor.http.cio/HttpHeadersMap> // io.ktor.http.cio/MultipartEvent.MultipartPart.headers.<get-headers>|<get-headers>(){}[0]
+
+        final fun release() // io.ktor.http.cio/MultipartEvent.MultipartPart.release|release(){}[0]
+    }
+
+    final class Preamble : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.Preamble|null[0]
+        constructor <init>(kotlinx.io/Source) // io.ktor.http.cio/MultipartEvent.Preamble.<init>|<init>(kotlinx.io.Source){}[0]
+
+        final val body // io.ktor.http.cio/MultipartEvent.Preamble.body|{}body[0]
+            final fun <get-body>(): kotlinx.io/Source // io.ktor.http.cio/MultipartEvent.Preamble.body.<get-body>|<get-body>(){}[0]
+
+        final fun release() // io.ktor.http.cio/MultipartEvent.Preamble.release|release(){}[0]
+    }
+}
+
 final fun (kotlin/CharSequence).io.ktor.http.cio.internals/parseDecLong(): kotlin/Long // io.ktor.http.cio.internals/parseDecLong|parseDecLong@kotlin.CharSequence(){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/decodeChunked(io.ktor.utils.io/ByteReadChannel): io.ktor.utils.io/WriterJob // io.ktor.http.cio/decodeChunked|decodeChunked@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/decodeChunked(io.ktor.utils.io/ByteReadChannel, kotlin/Long): io.ktor.utils.io/WriterJob // io.ktor.http.cio/decodeChunked|decodeChunked@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel;kotlin.Long){}[0]
+final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/parseMultipart(io.ktor.utils.io/ByteReadChannel, io.ktor.http.cio/HttpHeadersMap, kotlin/Long = ...): kotlinx.coroutines.channels/ReceiveChannel<io.ktor.http.cio/MultipartEvent> // io.ktor.http.cio/parseMultipart|parseMultipart@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel;io.ktor.http.cio.HttpHeadersMap;kotlin.Long){}[0]
+final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/parseMultipart(io.ktor.utils.io/ByteReadChannel, kotlin/CharSequence, kotlin/Long?, kotlin/Long = ...): kotlinx.coroutines.channels/ReceiveChannel<io.ktor.http.cio/MultipartEvent> // io.ktor.http.cio/parseMultipart|parseMultipart@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel;kotlin.CharSequence;kotlin.Long?;kotlin.Long){}[0]
 final fun io.ktor.http.cio/encodeChunked(io.ktor.utils.io/ByteWriteChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ReaderJob // io.ktor.http.cio/encodeChunked|encodeChunked(io.ktor.utils.io.ByteWriteChannel;kotlin.coroutines.CoroutineContext){}[0]
 final fun io.ktor.http.cio/expectHttpBody(io.ktor.http.cio/Request): kotlin/Boolean // io.ktor.http.cio/expectHttpBody|expectHttpBody(io.ktor.http.cio.Request){}[0]
 final fun io.ktor.http.cio/expectHttpBody(io.ktor.http/HttpMethod, kotlin/Long, kotlin/CharSequence?, io.ktor.http.cio/ConnectionOptions?, kotlin/CharSequence?): kotlin/Boolean // io.ktor.http.cio/expectHttpBody|expectHttpBody(io.ktor.http.HttpMethod;kotlin.Long;kotlin.CharSequence?;io.ktor.http.cio.ConnectionOptions?;kotlin.CharSequence?){}[0]

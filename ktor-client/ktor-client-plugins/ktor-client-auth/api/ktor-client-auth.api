@@ -1,6 +1,8 @@
 public final class io/ktor/client/plugins/auth/AuthConfig {
 	public fun <init> ()V
 	public final fun getProviders ()Ljava/util/List;
+	public final fun isUnauthorizedResponse ()Lkotlin/jvm/functions/Function2;
+	public final fun reAuthorizeOnResponse (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/client/plugins/auth/AuthKt {

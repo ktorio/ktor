@@ -192,6 +192,75 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testRoutingAcceptContentSubtypeWildcard() = testApplication {
+        routing {
+            route("image") {
+                accept(ContentType.Image.Any) {
+                    get { call.respondText { "Image" } }
+                }
+            }
+            route("any") {
+                accept(ContentType.Any) {
+                    get { call.respondText { "Any" } }
+                }
+            }
+        }
+
+        on("making request to /image with Accept image/png") {
+            client.get("/image") {
+                header(HttpHeaders.Accept, ContentType.Image.PNG)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Image", it.bodyAsText())
+            }
+        }
+
+        on("making request to /image with Accept */*") {
+            client.get("/image") {
+                header(HttpHeaders.Accept, ContentType.Any)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Image", it.bodyAsText())
+            }
+        }
+
+        on("making request to /any with Accept image/png") {
+            client.get("/any") {
+                header(HttpHeaders.Accept, ContentType.Image.PNG)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Any", it.bodyAsText())
+            }
+        }
+
+        on("making request to /any with Accept image/*") {
+            client.get("/any") {
+                header(HttpHeaders.Accept, ContentType.Image.Any)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Any", it.bodyAsText())
+            }
+        }
+
+        on("making request to /any with Accept */*") {
+            client.get("/any") {
+                header(HttpHeaders.Accept, ContentType.Any)
+            }.let {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("Any", it.bodyAsText())
+            }
+        }
+
+        on("making request to /image with Accept text/plain") {
+            client.get("/image") {
+                header(HttpHeaders.Accept, ContentType.Text.Plain)
+            }.let {
+                assertEquals(HttpStatusCode.BadRequest, it.status)
+            }
+        }
+    }
+
+    @Test
     fun testMostSpecificSelected() = testApplication {
         var path = ""
         routing {
