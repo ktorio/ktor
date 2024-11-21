@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server
@@ -7,7 +7,7 @@ package test.server
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
+import io.ktor.server.jetty.jakarta.*
 import test.server.tests.*
 import java.io.*
 import java.util.concurrent.*
