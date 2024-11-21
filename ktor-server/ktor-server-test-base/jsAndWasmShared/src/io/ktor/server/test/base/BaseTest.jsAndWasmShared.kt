@@ -38,6 +38,9 @@ actual abstract class BaseTest actual constructor() {
 
     actual fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult =
         runTestWithRealTime(timeout = timeout, testBody = block)
+
+    actual fun runTest(timeout: Duration, block: suspend CoroutineScope.() -> Unit): TestResult =
+        runTestWithRealTime(timeout = timeout, testBody = block)
 }
 
 private class UnhandledErrorsException(override val message: String) : Exception()

@@ -44,4 +44,7 @@ actual abstract class BaseTest actual constructor() {
 
     actual fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult =
         runTestWithRealTime(CoroutineName("test-$testName"), timeout, block)
+
+    actual fun runTest(timeout: Duration, block: suspend CoroutineScope.() -> Unit): TestResult =
+        runTestWithRealTime(CoroutineName("test-$testName"), timeout, block)
 }
