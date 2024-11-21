@@ -10,6 +10,13 @@ plugins {
 
 doctor {
     enableTestCaching = false
+
+    // Disable JAVA_HOME validation as we use "Daemon JVM discovery" feature
+    // https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria
+    javaHome {
+        ensureJavaHomeIsSet = false
+        ensureJavaHomeMatches = false
+    }
 }
 
 // Always monitor tasks on CI, but disable it locally by default with providing an option to opt-in.
