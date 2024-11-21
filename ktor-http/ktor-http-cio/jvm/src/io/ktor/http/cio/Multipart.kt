@@ -6,14 +6,15 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.ByteString
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import kotlinx.io.bytestring.*
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.produce
+import kotlinx.io.IOException
+import kotlinx.io.Source
+import kotlinx.io.bytestring.ByteString
 import java.io.EOFException
-import java.nio.*
+import java.nio.ByteBuffer
 
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]

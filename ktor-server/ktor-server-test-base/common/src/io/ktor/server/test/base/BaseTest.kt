@@ -12,4 +12,5 @@ expect abstract class BaseTest() {
     open val timeout: Duration
     fun collectUnhandledException(error: Throwable) // TODO: better name?
     fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult
+    fun runTest(timeout: Duration, block: suspend CoroutineScope.() -> Unit): TestResult
 }

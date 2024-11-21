@@ -98,13 +98,14 @@ A few things to remember:
 
 * Your code should conform to
   the official [Kotlin code style guide](https://kotlinlang.org/docs/reference/coding-conventions.html)
-  except that star imports should be always enabled
-  (ensure Preferences | Editor | Code Style | Kotlin, tab **Imports**, both `Use import with '*'` should be checked).
+  except that star imports should always be used for `io.ktor.*` packages.
+  Code style is managed by [EditorConfig](https://www.jetbrains.com/help/idea/editorconfig.html),
+  so make sure the EditorConfig plugin is enabled in the IDE.
 * Every new source file should have a copyright header.
 * Every public API (including functions, classes, objects and so on) should be documented,
   every parameter, property, return types and exceptions should be described properly.
-* A questionable and new API should be marked with the `@KtorExperimentalAPI` annotation.
-* A Public API that is not intended to be used by end-users that couldn't be made private/internal due to technical reasons,
+* A Public API which is not intended to be used by end-users that couldn't be made private/internal due to technical
+  reasons,
   should be marked with `@InternalAPI` annotation.
 
 ### Commit messages

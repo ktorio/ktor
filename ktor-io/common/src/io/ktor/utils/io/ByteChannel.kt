@@ -12,6 +12,7 @@ import kotlin.concurrent.Volatile
 import kotlin.coroutines.*
 import kotlin.jvm.*
 
+internal expect val DEVELOPMENT_MODE: Boolean
 internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
 
 /**
@@ -63,7 +64,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
-        if (flushBufferSize + _readBuffer.size >= min) return true
+        if (_readBuffer.size >= min) return true
 
         sleepWhile(Slot::Read) {
             flushBufferSize + _readBuffer.size < min && _closedCause.value == null
@@ -189,13 +190,16 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         // Resume the previous task
         when (previous) {
             is TaskType ->
-                previous.resume(ConcurrentIOException(slot.taskName()))
+                previous.resume(ConcurrentIOException(slot.taskName(), previous.created))
+
             is Slot.Task ->
                 previous.resume()
+
             is Slot.Closed -> {
                 slot.resume(previous.cause)
                 return
             }
+
             Slot.Empty -> {}
         }
 
@@ -219,6 +223,8 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         data class Closed(val cause: Throwable?) : Slot
 
         sealed interface Task : Slot {
+            val created: Throwable?
+
             val continuation: Continuation<Unit>
 
             fun taskName(): String
@@ -231,10 +237,30 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
         }
 
         class Read(override val continuation: Continuation<Unit>) : Task {
+            override var created: Throwable? = null
+
+            init {
+                if (DEVELOPMENT_MODE) {
+                    created = Throwable("ReadTask 0x${continuation.hashCode().toString(16)}").also {
+                        it.stackTraceToString()
+                    }
+                }
+            }
+
             override fun taskName(): String = "read"
         }
 
         class Write(override val continuation: Continuation<Unit>) : Task {
+            override var created: Throwable? = null
+
+            init {
+                if (DEVELOPMENT_MODE) {
+                    created = Throwable("WriteTask 0x${continuation.hashCode().toString(16)}").also {
+                        it.stackTraceToString()
+                    }
+                }
+            }
+
             override fun taskName(): String = "write"
         }
     }
@@ -243,4 +269,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 /**
  * Thrown when a coroutine awaiting I/O is replaced by another.
  */
-public class ConcurrentIOException(taskName: String) : IllegalStateException("Concurrent $taskName attempts")
+public class ConcurrentIOException(
+    taskName: String,
+    cause: Throwable? = null
+) : IllegalStateException("Concurrent $taskName attempts", cause)
