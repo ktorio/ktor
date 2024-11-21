@@ -27,6 +27,10 @@ final class io.ktor.http.cio.internals/MutableRange { // io.ktor.http.cio.intern
     final fun toString(): kotlin/String // io.ktor.http.cio.internals/MutableRange.toString|toString(){}[0]
 }
 
+final class io.ktor.http.cio.internals/UnsupportedMediaTypeExceptionCIO : kotlinx.io/IOException { // io.ktor.http.cio.internals/UnsupportedMediaTypeExceptionCIO|null[0]
+    constructor <init>(kotlin/String) // io.ktor.http.cio.internals/UnsupportedMediaTypeExceptionCIO.<init>|<init>(kotlin.String){}[0]
+}
+
 final class io.ktor.http.cio/CIOHeaders : io.ktor.http/Headers { // io.ktor.http.cio/CIOHeaders|null[0]
     constructor <init>(io.ktor.http.cio/HttpHeadersMap) // io.ktor.http.cio/CIOHeaders.<init>|<init>(io.ktor.http.cio.HttpHeadersMap){}[0]
 
