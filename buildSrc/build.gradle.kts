@@ -42,6 +42,7 @@ dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 
+// Should be synced with gradle/gradle-daemon-jvm.properties
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(21)
 }
