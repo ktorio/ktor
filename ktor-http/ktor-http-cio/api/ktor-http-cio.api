@@ -155,3 +155,7 @@ public final class io/ktor/http/cio/internals/MutableRange {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/http/cio/internals/UnsupportedMediaTypeExceptionCIO : java/io/IOException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
