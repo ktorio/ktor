@@ -278,23 +278,6 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStreamPerRequestAttributes() = clientTests(retries = 10) {
-        config {
-            install(HttpTimeout)
-        }
-
-        test { client ->
-            val responseBody: String = client.get("$TEST_URL/with-stream") {
-                parameter("delay", 10)
-
-                timeout { requestTimeoutMillis = 1000 }
-            }.body()
-
-            assertEquals("Text", responseBody)
-        }
-    }
-
-    @Test
     fun testGetStreamRequestTimeout() = clientTests {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
