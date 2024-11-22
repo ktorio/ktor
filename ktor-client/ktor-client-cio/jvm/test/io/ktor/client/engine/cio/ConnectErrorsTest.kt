@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -11,26 +11,26 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit5.*
-import org.junit.jupiter.api.extension.*
-import java.io.*
-import java.net.*
-import java.util.concurrent.*
-import javax.net.ssl.*
-import kotlin.concurrent.*
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import java.io.File
+import java.net.ConnectException
+import java.net.ServerSocket
+import java.net.SocketException
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+import kotlin.concurrent.thread
 import kotlin.test.*
 
 @CoroutinesTimeout(5 * 60 * 1000)
-@ExtendWith(RetrySupport::class)
 class ConnectErrorsTest {
 
     private val serverSocket = ServerSocket(0, 1)
@@ -40,7 +40,7 @@ class ConnectErrorsTest {
         serverSocket.close()
     }
 
-    @RetryableTest(3)
+    @Test
     fun testConnectAfterConnectionErrors(): Unit = runBlocking {
         val client = HttpClient(CIO) {
             engine {
@@ -84,7 +84,7 @@ class ConnectErrorsTest {
         }
     }
 
-    @RetryableTest(3)
+    @Test
     fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10(): Unit = runBlocking {
         val client = HttpClient(CIO)
 
@@ -110,7 +110,7 @@ class ConnectErrorsTest {
         }
     }
 
-    @RetryableTest(3)
+    @Test
     fun testResponseErrorWithNoLengthChunkedAndConnectionClosedWithHttp11(): Unit = runBlocking {
         val client = HttpClient(CIO)
 
@@ -183,7 +183,7 @@ class ConnectErrorsTest {
         }
     }
 
-    @RetryableTest(3)
+    @Test
     fun testLateServerStart(): Unit = runBlocking {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)

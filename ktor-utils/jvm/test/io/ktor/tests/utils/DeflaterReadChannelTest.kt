@@ -1,25 +1,24 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.utils
 
-import io.ktor.junit.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit5.*
-import org.junit.jupiter.api.extension.*
-import java.io.*
-import java.nio.*
-import java.util.zip.*
-import kotlin.random.*
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.nio.ByteBuffer
+import java.util.zip.GZIPInputStream
+import kotlin.random.Random
 import kotlin.test.*
 
 @CoroutinesTimeout(60_000)
-@ExtendWith(RetrySupport::class)
 class DeflaterReadChannelTest : CoroutineScope {
     private val testJob = Job()
     override val coroutineContext get() = testJob + Dispatchers.Unconfined
@@ -114,7 +113,7 @@ class DeflaterReadChannelTest : CoroutineScope {
         testWriteChannel(text, asyncOf(text))
     }
 
-    @RetryableTest(3)
+    @Test
     fun testFaultyGzippedBiggerThan8k() {
         val text = buildString {
             for (i in 1..16 * 1024 * 1024) {

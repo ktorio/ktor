@@ -1,14 +1,16 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.extensions.*
-import java.io.*
-import java.time.temporal.*
-import javax.security.auth.x500.*
-import kotlin.test.*
+import java.io.File
+import java.time.temporal.ChronoUnit
+import javax.security.auth.x500.X500Principal
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class CertificatesTest {
 
@@ -137,10 +139,10 @@ class CertificatesTest {
             algorithm = HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA).name,
             keyAlias = "customAlias",
             keyPassword = "customPassword",
-            keySizeInBits = 128,
+            keySizeInBits = 256,
         )
 
-        assertHasPrivateKey(keyStore, alias = "customAlias", password = "customPassword", algorithm = "EC", size = 128)
+        assertHasPrivateKey(keyStore, alias = "customAlias", password = "customPassword", algorithm = "EC", size = 256)
         assertHasX509Certificate(keyStore, alias = "customAlias", algorithm = "SHA256withECDSA")
     }
 

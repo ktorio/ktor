@@ -8,8 +8,11 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.debug.CoroutineInfo
+import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -44,10 +47,17 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         }
     }
 
-    fun shouldSkip(engine: HttpClientEngineContainer, skipEngines: List<String>, onlyWithEngine: String?): Boolean =
-        skipEngines.any { shouldSkip(engine.toString(), it, onlyWithEngine) }
+    private fun shouldSkip(
+        engine: HttpClientEngineContainer,
+        skipEngines: List<String>,
+        onlyWithEngine: String?
+    ): Boolean {
+        val engineName = engine.toString()
+        return onlyWithEngine != null && !onlyWithEngine.equals(engineName, ignoreCase = true) ||
+            skipEngines.any { shouldSkip(engineName, it) }
+    }
 
-    fun shouldSkip(engineName: String, skipEngine: String, onlyWithEngine: String?): Boolean {
+    private fun shouldSkip(engineName: String, skipEngine: String): Boolean {
         val locale = Locale.getDefault()
         val skipEngineArray = skipEngine.lowercase(locale).split(":")
 
@@ -61,9 +71,8 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         val engineShouldBeSkipped = "*" == skipEngineName || engineName.lowercase(locale) == skipEngineName.lowercase(
             locale
         )
-        val notOnlyEngine = onlyWithEngine != null && engineName.lowercase(locale) != onlyWithEngine.lowercase(locale)
 
-        return (engineShouldBeSkipped && platformShouldBeSkipped) || notOnlyEngine
+        return engineShouldBeSkipped && platformShouldBeSkipped
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
