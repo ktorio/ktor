@@ -11,10 +11,7 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 
 fun Project.configureJvm() {
-    val compileJdk = when (name) {
-        in jdk11Modules -> 11
-        else -> 8
-    }
+    val compileJdk = project.requiredJdkVersion
 
     kotlin {
         jvm()
