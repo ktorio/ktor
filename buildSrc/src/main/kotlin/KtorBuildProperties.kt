@@ -19,7 +19,15 @@ val HOST_NAME = when {
 val currentJdk = JavaVersion.current().majorVersion.toInt()
 
 val Project.requiredJdkVersion: Int
-    get() = if (name in jdk11Modules) 11 else 8
+    get() = when {
+        name in jdk17Modules -> 17
+        name in jdk11Modules -> 11
+        else -> 8
+    }
+
+private val jdk17Modules = setOf(
+    "ktor-server-jte",
+)
 
 private val jdk11Modules = setOf(
     "ktor-client-java",
