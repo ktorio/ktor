@@ -11,7 +11,7 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.*
 
 fun Project.configureJvm() {
-    val jdk = when (name) {
+    val compileJdk = when (name) {
         in jdk11Modules -> 11
         else -> 8
     }
@@ -56,7 +56,7 @@ fun Project.configureJvm() {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaLauncher(jdk)
+        configureJavaToolchain(compileJdk)
     }
 
     tasks.register<Test>("stressTest") {
@@ -69,7 +69,7 @@ fun Project.configureJvm() {
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaLauncher(jdk)
+        configureJavaToolchain(compileJdk)
     }
 
     val configuredVersion: String by rootProject.extra
@@ -86,15 +86,31 @@ fun Project.configureJvm() {
 }
 
 /**
- * JUnit 5 requires Java 11+
+ * On local machine use for tests the JDK used for compilation.
+ * On CI use the default JDK.
  */
-fun Test.configureJavaLauncher(jdk: Int) {
-    if (jdk < 11) {
-        val javaToolchains = project.extensions.getByType<JavaToolchainService>()
-        val customLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of("11")
-        }
-        javaLauncher = customLauncher
+private fun Test.configureJavaToolchain(compileJdk: Int) {
+    // JUnit 5 requires JDK 11+
+    val testJdk = (if (CI) currentJdk else compileJdk).coerceAtLeast(11)
+    val javaToolchains = project.the<JavaToolchainService>()
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(testJdk)
+    }
+
+    if (testJdk >= 16) {
+        // Allow reflective access from tests
+        jvmArgs(
+            "--add-opens=java.base/java.net=ALL-UNNAMED",
+            "--add-opens=java.base/java.time=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+        )
+    }
+
+    if (testJdk >= 21) {
+        // coroutines-debug use dynamic agent loading under the hood.
+        // Remove as soon as the issue is fixed: https://youtrack.jetbrains.com/issue/KT-62096/
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
     }
 }
 
