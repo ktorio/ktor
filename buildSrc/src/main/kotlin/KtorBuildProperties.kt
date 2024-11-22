@@ -16,7 +16,24 @@ val HOST_NAME = when {
     else -> error("Unknown os name `$OS_NAME`")
 }
 
-val currentJdk = JavaVersion.current().majorVersion.toInt()
+private var _testJdk = 0
+
+/**
+ * Retrieves the JDK version for running tests.
+ *
+ * Takes the version from property "test.jdk" or uses Gradle JDK by default.
+ * For example, to run tests against JDK 8, run test task with flag "-Ptest.jdk=8"
+ * or put this property to `gradle.properties`.
+ */
+val Project.testJdk: Int
+    get() {
+        if (_testJdk == 0) {
+            _testJdk = rootProject.properties["test.jdk"]?.toString()?.toInt()
+                ?: JavaVersion.current().majorVersion.toInt()
+            logger.info("Running tests against JDK $_testJdk")
+        }
+        return _testJdk
+    }
 
 val Project.requiredJdkVersion: Int
     get() = when {
