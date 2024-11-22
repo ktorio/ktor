@@ -7,13 +7,11 @@ package io.ktor.server.test.base
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.locks.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.test.*
-import kotlin.time.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.TestResult
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-@Suppress("FunctionName")
 actual abstract class BaseTest actual constructor() {
     actual open val timeout: Duration = 10.seconds
 
@@ -29,8 +27,10 @@ actual abstract class BaseTest actual constructor() {
         }
     }
 
-    @AfterTest
-    fun _verifyErrors() {
+    actual open fun beforeTest() {
+    }
+
+    actual open fun afterTest() {
         if (errors.isEmpty()) return
 
         val error = UnhandledErrorsException(
@@ -44,11 +44,16 @@ actual abstract class BaseTest actual constructor() {
         throw error // suppressed exceptions print wrong in idea
     }
 
-    actual fun runTest(block: suspend CoroutineScope.() -> Unit): TestResult =
-        runTestWithRealTime(timeout = timeout, testBody = block)
-
-    actual fun runTest(timeout: Duration, block: suspend CoroutineScope.() -> Unit): TestResult =
-        runTestWithRealTime(timeout = timeout, testBody = block)
+    actual fun runTest(
+        timeout: Duration, block: suspend CoroutineScope.() -> Unit
+    ): TestResult = runTestWithRealTime(timeout = timeout) {
+        beforeTest()
+        try {
+            block()
+        } finally {
+            afterTest()
+        }
+    }
 }
 
 private class UnhandledErrorsException(override val message: String) : Exception()

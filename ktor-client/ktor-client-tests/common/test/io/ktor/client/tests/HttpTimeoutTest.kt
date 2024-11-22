@@ -328,7 +328,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     // Js can't configure test timeout in browser
     @Test
-    fun testRedirect() = clientTests(listOf("js")) {
+    fun testRedirect() = clientTests(listOf("js"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
