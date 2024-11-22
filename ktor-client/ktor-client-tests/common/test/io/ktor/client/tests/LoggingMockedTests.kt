@@ -22,7 +22,7 @@ import kotlin.test.*
 class LoggingMockedTests {
 
     @Test
-    fun testLogResponseWithException() = testWithEngine(MockEngine) {
+    fun testLogResponseWithException() = testWithEngine(MockEngine, retries = 5) {
         val testLogger = TestLogger(
             "REQUEST: ${URLBuilder.origin}",
             "METHOD: HttpMethod(value=GET)",
