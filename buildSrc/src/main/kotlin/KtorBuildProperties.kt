@@ -34,6 +34,7 @@ private val jdk11Modules = setOf(
     "ktor-client-jetty-jakarta",
     "ktor-server-jetty-jakarta",
     "ktor-server-jetty-test-http2-jakarta",
-    "ktor-server-tomcat-jakarta",
+    "ktor-server-openapi",
     "ktor-server-servlet-jakarta",
+    "ktor-server-tomcat-jakarta",
 )
