@@ -11,6 +11,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
+import io.ktor.util.AttributeKey
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -30,6 +31,12 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
 internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
+ * The content types that are excluded from the `Accept` header for this specific request. Use the
+ * [exclude] `HttpRequestBuilder` extension to set this attribute on a request.
+ */
+internal val ExcludedContentTypes: AttributeKey<List<ContentType>> = AttributeKey("ExcludedContentTypesAttr")
+
+/**
  * A [ContentNegotiation] configuration that is used during installation.
  */
 @KtorDsl
@@ -47,6 +54,12 @@ public class ContentNegotiationConfig : Configuration {
     internal val registrations = mutableListOf<ConverterRegistration>()
 
     /**
+     * By default, `Accept` headers for registered content types will have no q value (implicit 1.0). Set this to
+     * change that behavior. This is useful to override the preferred `Accept` content types on a per-request basis.
+     */
+    public var defaultAcceptHeaderQValue: Double? = null
+
+    /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
      */
     public override fun <T : ContentConverter> register(
@@ -54,8 +67,8 @@ public class ContentNegotiationConfig : Configuration {
         converter: T,
         configuration: T.() -> Unit
     ) {
-        val matcher = when (contentType) {
-            ContentType.Application.Json -> JsonContentTypeMatcher
+        val matcher = when {
+            contentType.match(ContentType.Application.Json) -> JsonContentTypeMatcher
             else -> defaultMatcher(contentType)
         }
         register(contentType, converter, matcher, configuration)
@@ -140,11 +153,25 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
     val ignoredTypes: Set<KClass<*>> = pluginConfig.ignoredTypes
 
     suspend fun convertRequest(request: HttpRequestBuilder, body: Any): OutgoingContent? {
-        registrations.forEach {
-            LOGGER.trace("Adding Accept=${it.contentTypeToSend.contentType} header for ${request.url}")
+        val requestRegistrations = if (request.attributes.contains(ExcludedContentTypes)) {
+            val excluded = request.attributes[ExcludedContentTypes]
+            registrations.filter { registration -> excluded.none { registration.contentTypeToSend.match(it) } }
+        } else {
+            registrations
+        }
 
-            if (request.headers.contains(HttpHeaders.Accept, it.contentTypeToSend.toString())) return@forEach
-            request.accept(it.contentTypeToSend)
+        val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
+        requestRegistrations.forEach {
+            if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
+                // automatically added headers get a lower content type priority, so user-specified accept headers
+                //  with higher q or implicit q=1 will take precedence
+                val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
+                    null -> it.contentTypeToSend
+                    else -> it.contentTypeToSend.withParameter("q", qValue.toString())
+                }
+                LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
+                request.accept(contentTypeToSend)
+            }
         }
 
         if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
@@ -251,3 +278,14 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
 }
 
 public class ContentConverterException(message: String) : Exception(message)
+
+/**
+ * Excludes the given [ContentType] from the list of types that will be sent in the `Accept` header by
+ * the [ContentNegotiation] plugin. Can be used to not accept specific types for particular requests.
+ * This can be called multiple times to exclude multiple content types, or multiple content types can
+ * be passed in a single call.
+ */
+public fun HttpRequestBuilder.exclude(vararg contentType: ContentType) {
+    val excludedContentTypes = attributes.getOrNull(ExcludedContentTypes).orEmpty()
+    attributes.put(ExcludedContentTypes, excludedContentTypes + contentType)
+}
