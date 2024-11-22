@@ -37,7 +37,8 @@ actual abstract class BaseTest actual constructor() {
     }
 
     actual fun runTest(
-        timeout: Duration, block: suspend CoroutineScope.() -> Unit
+        timeout: Duration,
+        block: suspend CoroutineScope.() -> Unit
     ): TestResult = runTestWithRealTime(timeout = timeout) {
         beforeTest()
         try {
