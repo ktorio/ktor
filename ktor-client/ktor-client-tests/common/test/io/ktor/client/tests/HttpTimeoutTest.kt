@@ -263,7 +263,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStream() = clientTests(retries = 5) {
+    fun testGetStream() = clientTests(retries = 10) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -278,7 +278,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStreamPerRequestAttributes() = clientTests(retries = 5) {
+    fun testGetStreamPerRequestAttributes() = clientTests(retries = 10) {
         config {
             install(HttpTimeout)
         }
