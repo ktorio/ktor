@@ -54,6 +54,14 @@ public class ContentType private constructor(
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
+     * The `this` type must be a more specific type than the [pattern] type. In other words:
+     *
+     * ```kotlin
+     * ContentType("a", "b").match(ContentType("a", "b").withParameter("foo", "bar")) === false
+     * ContentType("a", "b").withParameter("foo", "bar").match(ContentType("a", "b")) === true
+     * ContentType("a", "*").match(ContentType("a", "b")) === false
+     * ContentType("a", "b").match(ContentType("a", "*")) === true
+     * ```
      */
     public fun match(pattern: ContentType): Boolean {
         if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
