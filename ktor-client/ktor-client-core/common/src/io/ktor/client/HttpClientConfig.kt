@@ -8,7 +8,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.collections.set
 
 /**
  * A mutable [HttpClient] configuration used to adjust settings, install plugins and interceptors.
@@ -40,7 +39,7 @@ import kotlin.collections.set
  * ```
  * ## Configuring [HttpClientEngine]
  *
- * If the engine is specified explicitly, engine specific properties will be available in the engine block:
+ * If the engine is specified explicitly, engine-specific properties will be available in the engine block:
  * ```kotlin
  * val client = HttpClient(CIO) { // HttpClientConfig<CIOEngineConfig>.() -> Unit
  *     engine { // CIOEngineConfig.() -> Unit
@@ -127,6 +126,18 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
 
     /**
      * Installs the specified [plugin] and optionally configures it using the [configure] block.
+     *
+     * ```kotlin
+     * val client = HttpClient {
+     *     install(ContentNegotiation) {
+     *         // configuration block
+     *         json()
+     *     }
+     * }
+     * ```
+     *
+     * If the plugin is already installed, the Configuration block will be applied to the existing configuration class.
+     *
      * Learn more from [Plugins](https://ktor.io/docs/http-client-plugins.html).
      */
     public fun <TBuilder : Any, TPlugin : Any> install(
@@ -156,6 +167,8 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     /**
      * Installs an interceptor defined by [block].
      * The [key] parameter is used as a unique name, that also prevents installing duplicated interceptors.
+     *
+     * If the [key] is already used, the new interceptor will replace the old one.
      */
     public fun install(key: String, block: HttpClient.() -> Unit) {
         customInterceptors[key] = block
