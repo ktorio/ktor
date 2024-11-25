@@ -26,6 +26,7 @@ public final class io/ktor/serialization/kotlinx/KotlinxWebsocketSerializationCo
 }
 
 public final class io/ktor/serialization/kotlinx/SerializerLookupKt {
+	public static final fun guessSerializer (Ljava/lang/Object;Lkotlinx/serialization/modules/SerializersModule;)Lkotlinx/serialization/KSerializer;
 	public static final fun serializerForTypeInfo (Lkotlinx/serialization/modules/SerializersModule;Lio/ktor/util/reflect/TypeInfo;)Lkotlinx/serialization/KSerializer;
 }
 

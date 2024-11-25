@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.json
 
@@ -13,7 +13,7 @@ import io.ktor.utils.io.core.*
  * Client json serializer.
  */
 @Deprecated(
-    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client", // ktlint-disable max-line-length
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migration-to-20x.html#serialization-client", // ktlint-disable max-line-length
     level = DeprecationLevel.ERROR
 )
 public interface JsonSerializer {
@@ -30,6 +30,6 @@ public interface JsonSerializer {
     /**
      * Read content from response using information specified in [type].
      */
-    @Suppress("DEPRECATION")
+
     public fun read(type: TypeInfo, body: Input): Any
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.velocity
@@ -9,7 +9,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -20,139 +19,125 @@ import io.ktor.server.velocity.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.apache.velocity.runtime.resource.loader.*
 import org.apache.velocity.runtime.resource.util.*
 import java.util.zip.*
 import kotlin.test.*
 import kotlin.text.Charsets
 
-@Suppress("DEPRECATION")
 class VelocityTest {
     @Test
-    fun testName() {
-        withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
+    fun testName() = testApplication {
+        setUpTestTemplates()
+        install(ConditionalHeaders)
+        routing {
+            val model = mapOf("id" to 1, "title" to "Hello, World!")
 
-                get("/") {
-                    call.respond(VelocityContent("test.vl", model, "e"))
-                }
+            get("/") {
+                call.respond(VelocityContent("test.vl", model, "e"))
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                assertNotNull(response.content)
-                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
-                assertEquals(expectedContent, response.content!!.lines())
+        client.get("/").let { response ->
+            val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+            assertEquals(expectedContent, response.bodyAsText().lines())
 
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
-            }
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
         }
     }
 
     @Test
-    fun testCompression() {
-        withTestApplication {
-            application.setUpTestTemplates()
-            application.install(Compression) {
-                gzip { minimumSize(10) }
+    fun testCompression() = testApplication {
+        setUpTestTemplates()
+        install(Compression) {
+            gzip { minimumSize(10) }
+        }
+        install(ConditionalHeaders)
+
+        routing {
+            val model = mapOf("id" to 1, "title" to "Hello, World!")
+
+            get("/") {
+                call.respond(VelocityContent("test.vl", model, "e"))
             }
-            application.install(ConditionalHeaders)
+        }
 
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
+        client.get("/") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }.let { response ->
+            val content = GZIPInputStream(response.bodyAsChannel().toInputStream()).reader().readText()
+            val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+            assertEquals(expectedContent, content.lines())
 
-                get("/") {
-                    call.respond(VelocityContent("test.vl", model, "e"))
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.AcceptEncoding, "gzip")
-            }.response.let { response ->
-                val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
-                assertEquals(expectedContent, content.lines())
-
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
-            }
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
         }
     }
 
     @Test
-    fun testWithoutEtag() {
-        withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
+    fun testWithoutEtag() = testApplication {
+        setUpTestTemplates()
+        install(ConditionalHeaders)
 
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Hello, World!")
+        routing {
+            val model = mapOf("id" to 1, "title" to "Hello, World!")
 
-                get("/") {
-                    call.respond(VelocityContent("test.vl", model))
-                }
+            get("/") {
+                call.respond(VelocityContent("test.vl", model))
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").response.let { response ->
-                val content = response.content
-                assertNotNull(content)
-                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
-                assertEquals(expectedContent, content.lines())
+        client.get("/").let { response ->
+            val content = response.bodyAsText()
+            val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+            assertEquals(expectedContent, content.lines())
 
-                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals(null, response.headers[HttpHeaders.ETag])
-            }
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(null, response.headers[HttpHeaders.ETag])
         }
     }
 
     @Test
-    fun canRespondAppropriately() {
-        withTestApplication {
-            application.setUpTestTemplates()
-            application.install(ConditionalHeaders)
+    fun canRespondAppropriately() = testApplication {
+        setUpTestTemplates()
+        install(ConditionalHeaders)
 
-            application.routing {
-                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+        routing {
+            val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
-                get("/") {
-                    call.respondTemplate("test.vl", model)
-                }
+            get("/") {
+                call.respondTemplate("test.vl", model)
             }
+        }
 
-            val call = handleRequest(HttpMethod.Get, "/")
+        val response = client.get("/")
 
-            with(call.response) {
-                assertNotNull(content)
+        with(response) {
+            val lines = bodyAsText().lines()
 
-                val lines = content!!.lines()
-
-                assertEquals("<p>Hello, 1</p>", lines[0])
-                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
-            }
+            assertEquals("<p>Hello, 1</p>", lines[0])
+            assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
         }
     }
 
     @Test
     fun testContentNegotiationInvokedAfter() = testApplication {
-        application {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, alwaysFailingConverter)
-            }
-            setUpTestTemplates()
-            install(ConditionalHeaders)
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, alwaysFailingConverter)
+        }
+        setUpTestTemplates()
+        install(ConditionalHeaders)
 
-            routing {
-                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+        routing {
+            val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
-                get("/") {
-                    call.respondTemplate("test.vl", model)
-                }
+            get("/") {
+                call.respondTemplate("test.vl", model)
             }
         }
 
@@ -161,7 +146,7 @@ class VelocityTest {
         assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
     }
 
-    private fun Application.setUpTestTemplates() {
+    private fun TestApplicationBuilder.setUpTestTemplates() {
         val bax = "$"
 
         install(Velocity) {

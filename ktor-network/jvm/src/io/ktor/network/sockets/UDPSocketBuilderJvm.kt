@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 
-internal actual fun UDPSocketBuilder.Companion.connectUDP(
+internal actual fun connectUDP(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     localAddress: SocketAddress?,
@@ -25,7 +25,7 @@ internal actual fun UDPSocketBuilder.Companion.connectUDP(
     return DatagramSocketImpl(this, selector)
 }
 
-internal actual fun UDPSocketBuilder.Companion.bindUDP(
+internal actual fun bindUDP(
     selector: SelectorManager,
     localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions

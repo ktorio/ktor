@@ -1,16 +1,13 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.tomcat.jakarta
 
-import io.ktor.junit.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.jakarta.*
-import org.junit.jupiter.api.extension.ExtendWith
-import kotlin.test.*
+import kotlin.test.Ignore
 
-@ExtendWith(RetrySupport::class)
 class TomcatWebSocketTest :
     WebSocketEngineSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
 
@@ -20,15 +17,5 @@ class TomcatWebSocketTest :
 
     @Ignore
     override fun testFragmentedFlagsFromTheFirstFrame() {
-    }
-
-    @RetryableTest(3)
-    override fun testWebSocketGenericSequence() {
-        super.testWebSocketGenericSequence()
-    }
-
-    @RetryableTest(3)
-    override fun testConnectionWithContentType() {
-        super.testConnectionWithContentType()
     }
 }

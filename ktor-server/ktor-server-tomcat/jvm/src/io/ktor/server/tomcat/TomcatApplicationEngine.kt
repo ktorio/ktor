@@ -142,15 +142,11 @@ public class TomcatApplicationEngine(
     private val stopped = atomic(false)
 
     override fun start(wait: Boolean): TomcatApplicationEngine {
-        addShutdownHook(monitor) {
-            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
-        }
-
         server.start()
 
         val connectors = server.service.findConnectors().zip(configuration.connectors)
             .map { it.second.withPort(it.first.localPort) }
-        resolvedConnectors.complete(connectors)
+        resolvedConnectorsDeferred.complete(connectors)
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
         cancellationDeferred = stopServerOnCancellation(

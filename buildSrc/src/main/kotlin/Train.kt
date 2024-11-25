@@ -1,17 +1,19 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+import internal.*
 import org.gradle.api.*
+import org.gradle.api.provider.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.dsl.*
 
 fun Project.filterSnapshotTests() {
-    val build_snapshot_train: String? by extra
-    if (build_snapshot_train?.toBoolean() != true) return
+    if (!buildSnapshotTrain) return
 
     println("Hacking test tasks, removing stress and flaky tests")
     subprojects {
-        tasks.withType<Test>().all {
+        tasks.withType<Test>().configureEach {
             exclude("**/*ServerSocketTest*")
             exclude("**/*NettyStressTest*")
             exclude("**/*CIOMultithreadedTest*")
@@ -46,35 +48,50 @@ fun Project.filterSnapshotTests() {
 }
 
 fun Project.setupTrainForSubproject() {
-    val build_snapshot_train: String? by extra
-    if (build_snapshot_train?.toBoolean() != true) {
-        return
-    }
-
-    val atomicfu_version: String by extra
-    val coroutines_version: String by extra
-    val serialization_version: String by extra
-
-    extra["kotlin_version"] = rootProject.properties["kotlin_snapshot_version"]
-    val kotlin_version: String by extra
-    println("Using Kotlin $kotlin_version for project $this")
     val deployVersion = properties["DeployVersion"]
     if (deployVersion != null) version = deployVersion
 
-    val skipSnapshotChecks = rootProject.properties["skip_snapshot_checks"] != null
-    if (!skipSnapshotChecks) {
-        check(version, atomicfu_version, "atomicfu")
-        check(version, coroutines_version, "coroutines")
-        check(version, serialization_version, "serialization")
-    }
-    repositories {
-        mavenLocal()
-        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
+    if (buildSnapshotTrain && !rootProject.hasProperty("skip_snapshot_checks")) {
+        check(version, rootProject.libs.versions.atomicfu, "atomicfu")
+        check(version, rootProject.libs.versions.coroutines, "coroutines")
+        check(version, rootProject.libs.versions.serialization, "serialization")
     }
 }
 
-private fun check(version: Any, libVersion: String, libName: String) {
-    if (version != libVersion) {
-        error("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
+private val Project.buildSnapshotTrain: Boolean
+    get() = rootProject.findProperty("build_snapshot_train")?.toString().toBoolean()
+
+private fun check(version: Any, libVersionProvider: Provider<String>, libName: String) {
+    val libVersion = libVersionProvider.get()
+    check(version == libVersion) {
+        "Current deploy version is $version, but $libName version is not overridden ($libVersion)"
     }
+}
+
+private var resolvedKotlinApiVersion: KotlinVersion? = null
+
+fun Project.getKotlinApiVersion(): KotlinVersion =
+    resolvedKotlinApiVersion ?: resolveKotlinApiVersion().also { resolvedKotlinApiVersion = it }
+
+private fun Project.resolveKotlinApiVersion(): KotlinVersion {
+    val apiVersion = rootProject.findProperty("kotlin_api_version")
+        ?.let { KotlinVersion.fromVersion(it.toString()) }
+        ?: KotlinVersion.KOTLIN_2_0
+    logger.info("Kotlin API version: $apiVersion")
+
+    return apiVersion
+}
+
+private var resolvedKotlinLanguageVersion: KotlinVersion? = null
+
+fun Project.getKotlinLanguageVersion(): KotlinVersion =
+    resolvedKotlinLanguageVersion ?: resolveKotlinLanguageVersion().also { resolvedKotlinLanguageVersion = it }
+
+private fun Project.resolveKotlinLanguageVersion(): KotlinVersion {
+    val languageVersion = rootProject.findProperty("kotlin_language_version")
+        ?.let { KotlinVersion.fromVersion(it.toString()) }
+        ?: KotlinVersion.KOTLIN_2_0
+    logger.info("Kotlin language version: $languageVersion")
+
+    return languageVersion
 }

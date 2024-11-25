@@ -6,7 +6,6 @@ package io.ktor.client.engine.js.compatibility
 
 import io.ktor.client.engine.js.*
 import io.ktor.client.engine.js.browser.*
-import io.ktor.client.engine.js.node.*
 import io.ktor.client.fetch.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
@@ -19,18 +18,16 @@ internal suspend fun commonFetch(
     init: RequestInit,
     config: JsClientEngineConfig,
 ): org.w3c.fetch.Response = suspendCancellableCoroutine { continuation ->
-    val controller = AbortController()
-    init.signal = controller.signal
-
-    continuation.invokeOnCancellation {
-        controller.abort()
-    }
-
-    val promise: Promise<org.w3c.fetch.Response> = when (PlatformUtils.platform) {
-        Platform.Browser -> fetch(input, init)
+    val promise: Promise<org.w3c.fetch.Response> = when {
+        PlatformUtils.IS_BROWSER -> fetch(input, init)
         else -> {
-            val nodeFetch = makeRequire<JsAny>("node-fetch")
-            makeJsCall<Promise<org.w3c.fetch.Response>>(nodeFetch, input.toJsString(), init, config.nodeOptions)
+            val options = makeJsCall<RequestInit>(
+                jsObjectAssign(),
+                makeJsObject<RequestInit>(),
+                init,
+                config.nodeOptions,
+            )
+            fetch(input, options)
         }
     }
 
@@ -50,16 +47,11 @@ private fun abortControllerCtorBrowser(): AbortController =
     js("AbortController")
 
 internal fun AbortController(): AbortController {
-    val ctor = when (PlatformUtils.platform) {
-        Platform.Browser -> abortControllerCtorBrowser()
-        else -> makeRequire("abort-controller")
-    }
+    val ctor = abortControllerCtorBrowser()
     return makeJsNew(ctor)
 }
 
 internal fun CoroutineScope.readBody(
     response: org.w3c.fetch.Response
-): ByteReadChannel = when (PlatformUtils.platform) {
-    Platform.Node -> readBodyNode(response)
-    else -> readBodyBrowser(response)
-}
+): ByteReadChannel =
+    readBodyBrowser(response)

@@ -1,30 +1,30 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
 
+import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
+import io.ktor.server.websocket.WebSockets
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class WebSocketWithContentNegotiationTest {
 
     @Test
-    fun test(): Unit = withTestApplication {
-        application.install(WebSockets)
-        application.install(ContentNegotiation) {
+    fun test(): Unit = testApplication {
+        install(WebSockets)
+
+        install(ContentNegotiation) {
             val converter = object : ContentConverter {
                 override suspend fun serialize(
                     contentType: ContentType,
@@ -41,14 +41,17 @@ class WebSocketWithContentNegotiationTest {
             register(ContentType.Any, converter)
         }
 
-        application.routing {
+        routing {
             webSocket("/") {
-                outgoing.send(Frame.Text("OK"))
+                send("OK")
             }
         }
 
-        handleWebSocketConversation("/", {}) { incoming, _ ->
-            incoming.receive()
+        val client = createClient {
+            install(io.ktor.client.plugins.websocket.WebSockets)
+        }
+        client.webSocket("/", request = {}) {
+            assertEquals("OK", incoming.receive().readBytes().toString(Charsets.UTF_8))
         }
     }
 }

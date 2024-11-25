@@ -1,55 +1,71 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.jvm.nio
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
+import kotlinx.io.*
+import kotlinx.io.Buffer
+import kotlinx.io.unsafe.*
 import java.nio.*
 import java.nio.channels.*
+import kotlin.coroutines.*
 
 /**
- * Copies up to [limit] bytes from blocking NIO channel to CIO [ch]. It does suspend if no space available for writing
- * in the destination channel but may block if source NIO channel blocks.
+ * Converts a [ReadableByteChannel] to a [ByteReadChannel], enabling asynchronous reading of bytes.
  *
- * @return number of bytes were copied
+ * @param context the [CoroutineContext] to execute the read operation. Defaults to [Dispatchers.IO].
+ * @return a [ByteReadChannel] for reading bytes asynchronously from the given [ReadableByteChannel].
  */
-public suspend fun ReadableByteChannel.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
-    require(limit >= 0L) { "Limit shouldn't be negative: $limit" }
-    if (this is SelectableChannel && !isBlocking) {
-        throw IllegalArgumentException("Non-blocking channels are not supported")
-    }
+public fun ReadableByteChannel.toByteReadChannel(
+    context: CoroutineContext = Dispatchers.IO,
+): ByteReadChannel = RawSourceChannel(asSource(), context)
 
-    var copied = 0L
-    var eof = false
+/**
+ * Converts a [ReadableByteChannel] into a [RawSource].
+ *
+ * This extension function wraps the given [ReadableByteChannel] into a [RawSource],
+ * enabling efficient reading of bytes from the channel as a source of data.
+ *
+ * @return a [RawSource] representation of the [ReadableByteChannel].
+ */
+public fun ReadableByteChannel.asSource(): RawSource =
+    ReadableByteChannelSource(this)
 
-    val copy: (ByteBuffer) -> Unit = { bb ->
-        val rem = limit - copied
-        if (rem < bb.remaining()) {
-            val l = bb.limit()
-            bb.limit(bb.position() + rem.toInt())
-            val rc = read(bb)
-            if (rc == -1) {
-                eof = true
-            } else copied += rc
-            bb.limit(l)
-        } else {
-            val rc = read(bb)
-            if (rc == -1) {
-                eof = true
-            } else copied += rc
+/**
+ * A data source that reads from a [ReadableByteChannel].
+ *
+ * This class implements the [RawSource] interface, allowing for the reading
+ * of bytes from a [ReadableByteChannel] into a [Buffer].
+ *
+ * @property channel The [ReadableByteChannel] from which bytes are read.
+ */
+private open class ReadableByteChannelSource(
+    private val channel: ReadableByteChannel,
+) : RawSource {
+    @OptIn(UnsafeIoApi::class)
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+        if (byteCount <= 0L) return 0L
+
+        var readTotal: Int
+        val actualByteCount = minOf(byteCount, Int.MAX_VALUE.toLong()).toInt()
+
+        UnsafeBufferOperations.writeToTail(sink, 1) { data, pos, limit ->
+            val maxToCopy = minOf(actualByteCount, limit - pos)
+            val buffer = ByteBuffer.wrap(data, pos, maxToCopy)
+            readTotal = channel.read(buffer)
+            maxOf(readTotal, 0)
         }
+
+        return readTotal.toLong()
     }
 
-    val needFlush = !ch.autoFlush
-    while (copied < limit && !eof) {
-        ch.write(1, copy)
-        if (needFlush) ch.flush()
-    }
+    override fun close() =
+        channel.close()
 
-    return copied
+    override fun toString(): String =
+        "ReadableByteChannelSource($channel)"
 }
-
-/**
- * Copies up to [limit] bytes from a blocking NIO pipe to CIO [ch]. A shortcut to copyTo with
- * NIO readable channel receiver
- *
- * @return number of bytes copied
- */
-public suspend fun Pipe.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long = source().copyTo(ch, limit)

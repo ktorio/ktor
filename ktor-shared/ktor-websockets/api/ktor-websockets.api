@@ -53,8 +53,13 @@ public final class io/ktor/websocket/DefaultWebSocketSession$DefaultImpls {
 }
 
 public final class io/ktor/websocket/DefaultWebSocketSessionKt {
+	public static final field PINGER_DISABLED J
 	public static final fun DefaultWebSocketSession (Lio/ktor/websocket/WebSocketSession;JJ)Lio/ktor/websocket/DefaultWebSocketSession;
 	public static synthetic fun DefaultWebSocketSession$default (Lio/ktor/websocket/WebSocketSession;JJILjava/lang/Object;)Lio/ktor/websocket/DefaultWebSocketSession;
+	public static final fun getPingInterval (Lio/ktor/websocket/DefaultWebSocketSession;)Lkotlin/time/Duration;
+	public static final fun getTimeout (Lio/ktor/websocket/DefaultWebSocketSession;)J
+	public static final fun setPingInterval-6Au4x4Y (Lio/ktor/websocket/DefaultWebSocketSession;Lkotlin/time/Duration;)V
+	public static final fun setTimeout-HG0u8IE (Lio/ktor/websocket/DefaultWebSocketSession;J)V
 }
 
 public abstract class io/ktor/websocket/Frame {
@@ -74,8 +79,8 @@ public abstract class io/ktor/websocket/Frame {
 }
 
 public final class io/ktor/websocket/Frame$Binary : io/ktor/websocket/Frame {
-	public fun <init> (ZLio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (ZLjava/nio/ByteBuffer;)V
+	public fun <init> (ZLkotlinx/io/Source;)V
 	public fun <init> (Z[B)V
 	public fun <init> (Z[BZZZ)V
 	public synthetic fun <init> (Z[BZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -83,9 +88,9 @@ public final class io/ktor/websocket/Frame$Binary : io/ktor/websocket/Frame {
 
 public final class io/ktor/websocket/Frame$Close : io/ktor/websocket/Frame {
 	public fun <init> ()V
-	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Lio/ktor/websocket/CloseReason;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
+	public fun <init> (Lkotlinx/io/Source;)V
 	public fun <init> ([B)V
 }
 
@@ -94,24 +99,24 @@ public final class io/ktor/websocket/Frame$Companion {
 }
 
 public final class io/ktor/websocket/Frame$Ping : io/ktor/websocket/Frame {
-	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
+	public fun <init> (Lkotlinx/io/Source;)V
 	public fun <init> ([B)V
 }
 
 public final class io/ktor/websocket/Frame$Pong : io/ktor/websocket/Frame {
-	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
 	public fun <init> (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/DisposableHandle;)V
 	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/DisposableHandle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlinx/io/Source;)V
 	public fun <init> ([BLkotlinx/coroutines/DisposableHandle;)V
 	public synthetic fun <init> ([BLkotlinx/coroutines/DisposableHandle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/websocket/Frame$Text : io/ktor/websocket/Frame {
 	public fun <init> (Ljava/lang/String;)V
-	public fun <init> (ZLio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (ZLjava/nio/ByteBuffer;)V
+	public fun <init> (ZLkotlinx/io/Source;)V
 	public fun <init> (Z[B)V
 	public fun <init> (Z[BZZZ)V
 	public synthetic fun <init> (Z[BZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V

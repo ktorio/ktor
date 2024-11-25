@@ -1,180 +1,239 @@
 [versions]
-kotlin-version = "1.9.22"
-kotlinx-html-version = "0.11.0"
-kotlinx-datetime = "0.5.0"
-coroutines-version = "1.8.0"
-atomicfu-version = "0.23.2"
-serialization-version = "1.6.1" # Do not upgrade, 1.6.2 breaks maven publishing!
-ktlint-version = "3.15.0"
 
-netty-version = "4.1.106.Final"
-netty-tcnative-version = "2.0.62.Final"
+kotlin = "2.0.21"
+kotlinx-html = "0.11.0"
+kotlinx-datetime = "0.6.1"
+kotlinx-io = "0.5.4"
+coroutines = "1.9.0"
+atomicfu = "0.26.0"
+serialization = "1.7.3"
+binaryCompatibilityValidator = "0.16.3"
+dokka = "1.9.20"
+kover = "0.8.3"
+ktlint = "3.15.0"
+kotlinx-browser = "0.2"
 
-jetty-version = "9.4.53.v20231009"
-jetty-jakarta-version = "11.0.20"
-jetty-alpn-api-version = "1.1.3.v20160715"
-jetty-alpn-boot-version = "8.1.13.v20181017"
-jetty-alpn-openjdk8 = "9.4.53.v20231009"
+# Used for test server in buildSrc
+ktor = "3.1.0-eap-1153"
 
-tomcat-version = "9.0.85"
-tomcat-jakarta-version = "10.1.18"
+netty = "4.1.115.Final"
+netty-tcnative = "2.0.69.Final"
 
-apache-version = "4.1.5"
-apache5-version = "5.3.1"
-apacheds-version = "2.0.0.AM27"
-okhttp-version = "4.12.0"
-okio-version = "3.7.0"
+jetty = "9.4.56.v20240826"
+jetty-jakarta = "11.0.24"
+jetty-alpn-api = "1.1.3.v20160715"
+jetty-alpn-boot = "8.1.13.v20181017"
+jetty-alpn-openjdk8 = "9.4.56.v20240826"
 
-json-simple-version = "1.1.1"
-gson-version = "2.10.1"
-jackson-version = "2.16.1"
+tomcat = "9.0.97"
+tomcat-jakarta = "10.1.31"
 
-junit-version = "5.10.2"
-slf4j-version = "2.0.11"
-logback-version = "1.3.5"
+apache = "4.1.5"
+apache5 = "5.3.1"
+apacheds = "2.0.0.AM27"
+okhttp = "4.12.0"
+okio = "3.9.1"
 
-dropwizard-version = "4.2.25"
-micrometer-version = "1.12.4"
+json-simple = "1.1.1"
+gson = "2.11.0"
+jackson = "2.18.1"
 
-jansi-version = "2.4.1"
-typesafe-version = "1.4.3"
+junit = "5.11.3"
+slf4j = "2.0.16"
+logback = "1.5.12"
 
-mockk-version = "1.13.9"
+dropwizard = "4.2.28"
+micrometer = "1.13.6"
 
-java-jwt-version = "4.4.0"
+jansi = "2.4.1"
+typesafe = "1.4.3"
 
-jwks-rsa-version = "0.22.1"
-mustache-version = "0.9.11"
-freemarker-version = "2.3.32"
-pebble-version = "3.2.2"
-velocity-version = "2.3"
-velocity-tools-version = "3.1"
-webjars-locator-version = "0.53"
-webjars-jquery-version = "3.6.4"
-thymeleaf-version = "3.1.2.RELEASE"
-javax-servlet-version = "4.0.1"
-jakarta-servlet-version = "5.0.0"
+mockk = "1.13.13"
 
-node-fetch-version = "2.6.7"
-abort-controller-version = "3.0.0"
-ws-version = "8.5.0"
-xmlutil-version = "0.86.3"
-yamlkt-version = "0.13.0"
+java-jwt = "4.4.0"
 
-swagger-codegen-version = "3.0.52"
-swagger-codegen-generators-version = "1.0.46"
-swagger-parser-version = "2.1.20"
+jwks-rsa = "0.22.1"
+mustache = "0.9.14"
+freemarker = "2.3.33"
+pebble = "3.2.2"
+velocity = "2.4.1"
+velocity-tools = "3.1"
+webjars-locator = "0.59"
+webjars-jquery = "3.7.1"
+thymeleaf = "3.1.2.RELEASE"
+jte = "3.1.15"
+
+javax-servlet = "4.0.1"
+jakarta-servlet = "5.0.0"
+
+ws = "8.5.0"
+xmlutil = "0.90.3"
+yamlkt = "0.13.0"
+
+swagger-codegen = "3.0.64"
+swagger-codegen-generators = "1.0.54"
+swagger-parser = "2.1.24"
+
+puppeteer = "21.5.0"
+tomlj = "1.1.1"
+
+develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.0.2"
+gradleDoctor = "0.10.0"
 
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-version" }
-kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin-version" }
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin-version" }
-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin-version" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin-version" }
 
-kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu-version" }
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
-kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines-version" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines-version" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines-version" }
-kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines-version" }
-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "coroutines-version" }
+ktor-network-tls-certificates = { module = "io.ktor:ktor-network-tls-certificates", version.ref = "ktor" }
+ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-caching-headers = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktor" }
+ktor-server-conditional-headers = { module = "io.ktor:ktor-server-conditional-headers", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
+ktor-server-jetty = { module = "io.ktor:ktor-server-jetty", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization-version" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization-version" }
-kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "serialization-version" }
-kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization-version" }
+kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
+kotlinx-atomicfu-gradlePlugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 
-kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html-version" }
+kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "coroutines" }
+
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-serialization-json-io = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-io", version.ref = "serialization" }
+kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "serialization" }
+kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization" }
+
+kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
-netty-handler = { module = "io.netty:netty-handler", version.ref = "netty-version" }
-netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty-version" }
-netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty-version" }
-netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty-version" }
-netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcnative-version" }
-netty-tcnative-boringssl-static = { module = "io.netty:netty-tcnative-boringssl-static", version.ref = "netty-tcnative-version" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
-tomcat-catalina = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat-version" }
-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-version" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
-tomcat-catalina-jakarta = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat-jakarta-version" }
-tomcat-embed-core-jakarta = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-jakarta-version" }
+kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "ktlint" }
 
-jetty-client = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty-version" }
-jetty-http2-server = { module = "org.eclipse.jetty.http2:http2-server", version.ref = "jetty-version" }
-jetty-http2-client = { module = "org.eclipse.jetty.http2:http2-client", version.ref = "jetty-version" }
-jetty-http2-client-transport = { module = "org.eclipse.jetty.http2:http2-http-client-transport", version.ref = "jetty-version" }
-jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty-version" }
-jetty-servlets = { module = "org.eclipse.jetty:jetty-servlets", version.ref = "jetty-version" }
-jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty-version" }
-jetty-alpn-server = { module = "org.eclipse.jetty:jetty-alpn-server", version.ref = "jetty-version" }
-jetty-alpn-java-server = { module = "org.eclipse.jetty:jetty-alpn-java-server", version.ref = "jetty-version" }
-jetty-alpn-java-client = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty-version" }
+dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
-jetty-alpn-api = { module = "org.eclipse.jetty.alpn:alpn-api", version.ref = "jetty-alpn-api-version" }
-jetty-alpn-boot = { module = "org.mortbay.jetty.alpn:alpn-boot", version.ref = "jetty-alpn-boot-version" }
+netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
+netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
+netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
+netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcnative" }
+netty-tcnative-boringssl-static = { module = "io.netty:netty-tcnative-boringssl-static", version.ref = "netty-tcnative" }
+
+tomcat-catalina = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat" }
+tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
+
+tomcat-catalina-jakarta = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat-jakarta" }
+tomcat-embed-core-jakarta = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-jakarta" }
+
+jetty-client = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty" }
+jetty-http2-server = { module = "org.eclipse.jetty.http2:http2-server", version.ref = "jetty" }
+jetty-http2-client = { module = "org.eclipse.jetty.http2:http2-client", version.ref = "jetty" }
+jetty-http2-client-transport = { module = "org.eclipse.jetty.http2:http2-http-client-transport", version.ref = "jetty" }
+jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+jetty-servlets = { module = "org.eclipse.jetty:jetty-servlets", version.ref = "jetty" }
+jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty" }
+jetty-alpn-server = { module = "org.eclipse.jetty:jetty-alpn-server", version.ref = "jetty" }
+jetty-alpn-java-server = { module = "org.eclipse.jetty:jetty-alpn-java-server", version.ref = "jetty" }
+jetty-alpn-java-client = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty" }
+
+jetty-alpn-api = { module = "org.eclipse.jetty.alpn:alpn-api", version.ref = "jetty-alpn-api" }
+jetty-alpn-boot = { module = "org.mortbay.jetty.alpn:alpn-boot", version.ref = "jetty-alpn-boot" }
 jetty-alpn-openjdk8-server = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-server", version.ref = "jetty-alpn-openjdk8" }
 jetty-alpn-openjdk8-client = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-client", version.ref = "jetty-alpn-openjdk8" }
 
-jetty-client-jakarta = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty-jakarta-version" }
-jetty-http2-server-jakarta = { module = "org.eclipse.jetty.http2:http2-server", version.ref = "jetty-jakarta-version" }
-jetty-http2-client-jakarta = { module = "org.eclipse.jetty.http2:http2-client", version.ref = "jetty-jakarta-version" }
-jetty-http2-client-transport-jakarta = { module = "org.eclipse.jetty.http2:http2-http-client-transport", version.ref = "jetty-jakarta-version" }
-jetty-server-jakarta = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty-jakarta-version" }
-jetty-servlets-jakarta = { module = "org.eclipse.jetty:jetty-servlets", version.ref = "jetty-jakarta-version" }
-jetty-servlet-jakarta = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty-jakarta-version" }
-jetty-alpn-server-jakarta = { module = "org.eclipse.jetty:jetty-alpn-server", version.ref = "jetty-jakarta-version" }
-jetty-alpn-java-server-jakarta = { module = "org.eclipse.jetty:jetty-alpn-java-server", version.ref = "jetty-jakarta-version" }
-jetty-alpn-java-client-jakarta = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty-jakarta-version" }
+jetty-client-jakarta = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty-jakarta" }
+jetty-http2-server-jakarta = { module = "org.eclipse.jetty.http2:http2-server", version.ref = "jetty-jakarta" }
+jetty-http2-client-jakarta = { module = "org.eclipse.jetty.http2:http2-client", version.ref = "jetty-jakarta" }
+jetty-http2-client-transport-jakarta = { module = "org.eclipse.jetty.http2:http2-http-client-transport", version.ref = "jetty-jakarta" }
+jetty-server-jakarta = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty-jakarta" }
+jetty-servlets-jakarta = { module = "org.eclipse.jetty:jetty-servlets", version.ref = "jetty-jakarta" }
+jetty-servlet-jakarta = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty-jakarta" }
+jetty-alpn-server-jakarta = { module = "org.eclipse.jetty:jetty-alpn-server", version.ref = "jetty-jakarta" }
+jetty-alpn-java-server-jakarta = { module = "org.eclipse.jetty:jetty-alpn-java-server", version.ref = "jetty-jakarta" }
+jetty-alpn-java-client-jakarta = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty-jakarta" }
 
-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "json-simple-version" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson-version" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-version" }
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson-version" }
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-version" }
+json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "json-simple" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-smile = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-smile", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 
-jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi-version" }
-typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-version" }
-java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt-version" }
-jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa-version" }
+jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
+typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
+jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa" }
 
-mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-version" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-version" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
-junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-version" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
-apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version.ref = "apache-version" }
-apache-client5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "apache5-version" }
-apacheds-server = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "apacheds-version" }
-apacheds-core = { module = "org.apache.directory.server:apacheds-core-integ", version.ref = "apacheds-version" }
+apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version.ref = "apache" }
+apache-client5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "apache5" }
+apacheds-server = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "apacheds" }
+apacheds-core = { module = "org.apache.directory.server:apacheds-core-integ", version.ref = "apacheds" }
 
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp-version" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio-version" }
-okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttp-version" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttp" }
 
-dropwizard-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "dropwizard-version" }
-dropwizard-jvm = { module = "io.dropwizard.metrics:metrics-jvm", version.ref = "dropwizard-version" }
-micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer-version" }
+dropwizard-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "dropwizard" }
+dropwizard-jvm = { module = "io.dropwizard.metrics:metrics-jvm", version.ref = "dropwizard" }
+micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 
-mustache = { module = "com.github.spullara.mustache.java:compiler", version.ref = "mustache-version" }
-freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker-version" }
-pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble-version" }
-velocity = { module = "org.apache.velocity:velocity-engine-core", version.ref = "velocity-version" }
-velocity-tools = { module = "org.apache.velocity.tools:velocity-tools-generic", version.ref = "velocity-tools-version" }
-webjars-locator = { module = "org.webjars:webjars-locator-core", version.ref = "webjars-locator-version" }
-webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery-version" }
-thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf-version" }
+mustache = { module = "com.github.spullara.mustache.java:compiler", version.ref = "mustache" }
+freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
+pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
+velocity = { module = "org.apache.velocity:velocity-engine-core", version.ref = "velocity" }
+velocity-tools = { module = "org.apache.velocity.tools:velocity-tools-generic", version.ref = "velocity-tools" }
+webjars-locator = { module = "org.webjars:webjars-locator-core", version.ref = "webjars-locator" }
+webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery" }
+thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
+jte = { module = "gg.jte:jte", version.ref = "jte" }
+jte-kotlin = { module = "gg.jte:jte-kotlin", version.ref = "jte" }
 
-javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet-version" }
-jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-version" }
+javax-servlet = { module = "javax.servlet:javax.servlet-api", version.ref = "javax-servlet" }
+jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet" }
 
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil-version" }
-yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt-version" }
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
+yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt" }
 
-swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen-version" }
-swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators-version" }
-swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser-version" }
+swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen" }
+swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators" }
+swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
+
+tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+
+develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
+develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
+
+[plugins]
+
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+
+doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }

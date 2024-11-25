@@ -1,22 +1,21 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 package io.ktor.serialization.test
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import java.nio.charset.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 public abstract class AbstractServerSerializationTest {
     private val uc = "\u0422"
 
@@ -29,13 +28,13 @@ public abstract class AbstractServerSerializationTest {
     protected abstract fun simpleDeserializeList(t: ByteArray, charset: Charset = Charsets.UTF_8): List<MyEntity>
 
     private fun withTestSerializingApplication(
-        block: suspend TestApplicationEngine.() -> Unit
-    ): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
+        block: suspend ApplicationTestBuilder.() -> Unit
+    ) = testApplication {
+        install(ContentNegotiation) {
             configureContentNegotiation(defaultContentType)
         }
 
-        application.routing {
+        routing {
             get("/list") {
                 call.respond(testEntities)
             }
@@ -69,17 +68,14 @@ public abstract class AbstractServerSerializationTest {
             }
         }
 
-        runBlocking {
-            block()
-        }
+        block()
     }
 
     @Test
     public fun testEntityNoAccept(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/entity").let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            val bytes = call.response.byteContent
-            assertNotNull(bytes)
+        client.get("/entity").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            val bytes = response.bodyAsBytes()
             val entity = simpleDeserialize(bytes)
             assertEquals(777, entity.id)
         }
@@ -87,12 +83,11 @@ public abstract class AbstractServerSerializationTest {
 
     @Test
     public fun testEntityWithAccept(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/entity") {
-            addHeader(HttpHeaders.Accept, defaultContentType.toString())
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            val bytes = call.response.byteContent
-            assertNotNull(bytes)
+        client.get("/entity") {
+            header(HttpHeaders.Accept, defaultContentType.toString())
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            val bytes = response.bodyAsBytes()
             val entity = simpleDeserialize(bytes)
             assertEquals(777, entity.id)
         }
@@ -100,12 +95,11 @@ public abstract class AbstractServerSerializationTest {
 
     @Test
     public fun testDumpWithMultipleAccept(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/entity") {
-            addHeader(HttpHeaders.Accept, "$defaultContentType;q=1,text/plain;q=0.9")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-            val bytes = call.response.byteContent
-            assertNotNull(bytes)
+        client.get("/entity") {
+            header(HttpHeaders.Accept, "$defaultContentType;q=1,text/plain;q=0.9")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            val bytes = response.bodyAsBytes()
             val entity = simpleDeserialize(bytes)
             assertEquals(777, entity.id)
         }
@@ -113,59 +107,56 @@ public abstract class AbstractServerSerializationTest {
 
     @Test
     public fun testListNoAcceptUtf8(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/list").let { call -> verifyListResponse(call.response, Charsets.UTF_8) }
+        client.get("/list").let { response -> verifyListResponse(response, Charsets.UTF_8) }
     }
 
     @Test
     public fun testListAcceptUtf16(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/list") {
-            addHeader("Accept-Charset", "UTF-16")
-        }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
+        client.get("/list") {
+            header(HttpHeaders.AcceptCharset, "UTF-16")
+        }.let { response -> verifyListResponse(response, Charsets.UTF_16) }
     }
 
     @Test
     public open fun testFlowNoAcceptUtf8(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/flow").let { call ->
-            verifyListResponse(call.response, Charsets.UTF_8)
-            assertEquals("chunked", call.response.headers[HttpHeaders.TransferEncoding])
+        client.get("/flow").let { response ->
+            verifyListResponse(response, Charsets.UTF_8)
+            assertEquals("chunked", response.headers[HttpHeaders.TransferEncoding])
         }
     }
 
     @Test
     public open fun testFlowAcceptUtf16(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/flow") {
-            addHeader("Accept-Charset", "UTF-16")
-        }.let { call -> verifyListResponse(call.response, Charsets.UTF_16) }
+        client.get("/flow") {
+            header(HttpHeaders.AcceptCharset, "UTF-16")
+        }.let { response -> verifyListResponse(response, Charsets.UTF_16) }
     }
 
-    private fun verifyListResponse(response: TestApplicationResponse, charset: Charset) {
-        assertEquals(HttpStatusCode.OK, response.status())
-        val bytes = response.byteContent
-        assertNotNull(bytes)
+    private suspend fun verifyListResponse(response: HttpResponse, charset: Charset) {
+        assertEquals(HttpStatusCode.OK, response.status)
+        val bytes = response.bodyAsBytes()
         val listEntity = simpleDeserializeList(bytes, charset)
         assertEquals(testEntities, listEntity)
     }
 
     @Test
     public open fun testMap(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Get, "/map") {
-            addHeader("Accept", "application/json")
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
+        client.get("/map") {
+            header(HttpHeaders.Accept, "application/json")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""", response.bodyAsText())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
+            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
 
-        handleRequest(HttpMethod.Post, "/map") {
-            addHeader("Accept", "text/plain")
-            addHeader("Content-Type", "application/json")
+        client.post("/map") {
+            header(HttpHeaders.Accept, "text/plain")
+            header(HttpHeaders.ContentType, "application/json")
             setBody("""{"id":1.0,"title":"Hello, World!","unicode":"$uc"}""")
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertNotNull(response.content)
-            assertEquals(listOf("""id=1.0, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("""id=1.0, title=Hello, World!, unicode=$uc""", response.bodyAsText())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -174,23 +165,23 @@ public abstract class AbstractServerSerializationTest {
     @Test
     public fun testPostEntity(): Unit = withTestSerializingApplication {
         val body = testEntities.first()
-        handleRequest(HttpMethod.Post, "/entity") {
-            addHeader("Content-Type", defaultContentType.toString())
+        client.post("/entity") {
+            header(HttpHeaders.ContentType, defaultContentType.toString())
             setBody(simpleSerialize(body))
-        }.response.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status())
-            assertEquals(body, simpleDeserialize(response.byteContent!!))
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(body, simpleDeserialize(response.bodyAsBytes()))
         }
     }
 
     @Test
     public open fun testReceiveNullValue(): Unit = withTestSerializingApplication {
-        handleRequest(HttpMethod.Post, "/null") {
-            addHeader(HttpHeaders.ContentType, "application/json")
+        client.post("/null") {
+            header(HttpHeaders.ContentType, "application/json")
             setBody("null")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
         }
     }
 

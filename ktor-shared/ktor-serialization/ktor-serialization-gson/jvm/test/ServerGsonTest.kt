@@ -1,13 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import com.google.gson.*
 import com.google.gson.reflect.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import io.ktor.serialization.test.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -16,7 +17,6 @@ import io.ktor.server.testing.*
 import java.nio.charset.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ServerGsonTest : AbstractServerSerializationTest() {
     private val gson = Gson()
     override val defaultContentType: ContentType = ContentType.Application.Json
@@ -41,13 +41,13 @@ class ServerGsonTest : AbstractServerSerializationTest() {
     private data class TextPlainData(val x: Int)
 
     @Test
-    fun testGsonOnTextAny(): Unit = withTestApplication {
-        application.install(ContentNegotiation) {
+    fun testGsonOnTextAny() = testApplication {
+        install(ContentNegotiation) {
             gson()
             register(contentType = ContentType.Text.Any, converter = GsonConverter())
         }
 
-        application.routing {
+        routing {
             post("/") {
                 val instance = call.receive<TextPlainData>()
                 assertEquals(TextPlainData(777), instance)
@@ -55,30 +55,30 @@ class ServerGsonTest : AbstractServerSerializationTest() {
             }
         }
 
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader(HttpHeaders.ContentType, "text/plain")
+        client.post("/") {
+            header(HttpHeaders.ContentType, "text/plain")
             setBody("{\"x\": 777}")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
         }
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader(HttpHeaders.ContentType, "application/json")
+        client.post("/") {
+            header(HttpHeaders.ContentType, "application/json")
             setBody("{\"x\": 777}")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
         }
     }
 
     @Test
-    fun testReceiveValuesMap() = withTestApplication {
-        application.install(ContentNegotiation) {
+    fun testReceiveValuesMap() = testApplication {
+        install(ContentNegotiation) {
             gson()
             register(contentType = ContentType.Text.Any, converter = GsonConverter())
         }
 
-        application.routing {
+        routing {
             post("/") {
                 val json = call.receive<JsonObject>()
 
@@ -96,12 +96,12 @@ class ServerGsonTest : AbstractServerSerializationTest() {
             }
         }
 
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader(HttpHeaders.ContentType, "application/json")
+        client.post("/") {
+            header(HttpHeaders.ContentType, "application/json")
             setBody("{ hello: { ktor : world } }")
-        }.let {
-            assertEquals(HttpStatusCode.OK, it.response.status())
-            assertEquals("OK", it.response.content)
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
         }
     }
 }

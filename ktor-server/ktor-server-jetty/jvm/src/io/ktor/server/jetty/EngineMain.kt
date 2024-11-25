@@ -10,6 +10,10 @@ import io.ktor.server.engine.*
 /**
  * Jetty engine
  */
+@Deprecated(
+    "The ktor-server-jetty module is deprecated and will be removed in the next major release as it " +
+        "references an outdated version of Jetty. Please use the ktor-server-jetty-jakarta module instead."
+)
 public object EngineMain {
     /**
      * Main function for starting EngineMain with Jetty
@@ -18,9 +22,9 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, Jetty) {
+        val server = EmbeddedServer(config.rootConfig, Jetty) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.rootConfig.environment.config)
         }
         server.start(true)
     }

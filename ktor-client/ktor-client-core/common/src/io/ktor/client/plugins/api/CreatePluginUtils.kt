@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.api
@@ -48,20 +48,26 @@ public fun <PluginConfigT : Any> createClientPlugin(
     name: String,
     createConfiguration: () -> PluginConfigT,
     body: ClientPluginBuilder<PluginConfigT>.() -> Unit
-): ClientPlugin<PluginConfigT> =
-    object : ClientPlugin<PluginConfigT> {
-        override val key: AttributeKey<ClientPluginInstance<PluginConfigT>> = AttributeKey(name)
+): ClientPlugin<PluginConfigT> = ClientPluginImpl(name, createConfiguration, body)
 
-        override fun prepare(block: PluginConfigT.() -> Unit): ClientPluginInstance<PluginConfigT> {
-            val config = createConfiguration().apply(block)
-            return ClientPluginInstance(config, name, body)
-        }
+private class ClientPluginImpl<PluginConfigT : Any>(
+    name: String,
+    private val createConfiguration: () -> PluginConfigT,
+    private val body: ClientPluginBuilder<PluginConfigT>.() -> Unit
+) : ClientPlugin<PluginConfigT> {
 
-        @OptIn(InternalAPI::class)
-        override fun install(plugin: ClientPluginInstance<PluginConfigT>, scope: HttpClient) {
-            plugin.install(scope)
-        }
+    override val key: AttributeKey<ClientPluginInstance<PluginConfigT>> = AttributeKey(name)
+
+    override fun prepare(block: PluginConfigT.() -> Unit): ClientPluginInstance<PluginConfigT> {
+        val config = createConfiguration().apply(block)
+        return ClientPluginInstance(key, config, body)
     }
+
+    @OptIn(InternalAPI::class)
+    override fun install(plugin: ClientPluginInstance<PluginConfigT>, scope: HttpClient) {
+        plugin.install(scope)
+    }
+}
 
 /**
  * Creates a [ClientPlugin] with empty config that can be installed into an [HttpClient].

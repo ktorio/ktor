@@ -1,43 +1,50 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server
 
 import org.gradle.api.*
-import test.server.*
-import test.server.startServer
+import org.gradle.api.logging.*
+import org.gradle.api.provider.Provider
+import org.gradle.api.services.*
+import org.gradle.api.tasks.testing.*
+import org.gradle.kotlin.dsl.*
 import java.io.*
-import java.util.concurrent.atomic.AtomicInteger
 
 class TestServerPlugin : Plugin<Project> {
-    private var server: Closeable? = null
-    private val activeTasks = AtomicInteger(0)
-
-    fun start() {
-        val count = activeTasks.incrementAndGet()
-        if (count == 1) {
-            server = startServer()
-        }
-    }
-
-    fun stop() {
-        val count = activeTasks.decrementAndGet()
-        if (count == 0) {
-            server!!.close()
-            server = null
-        }
-    }
 
     override fun apply(target: Project) {
-        target.configure(target.tasks, object : Action<Task> {
-            override fun execute(task: Task) {
-                task.doFirst(object : Action<Task> {
-                    override fun execute(t: Task) {
-                        start()
-                    }
-                })
-            }
-        })
+        val testServerService = TestServerService.registerIfAbsent(target)
+
+        target.tasks.withType<AbstractTestTask>().configureEach {
+            usesService(testServerService)
+            // Trigger server start if it is not started yet
+            doFirst("start test server") { testServerService.get() }
+        }
+    }
+}
+
+private abstract class TestServerService : BuildService<BuildServiceParameters.None>, AutoCloseable {
+
+    private val logger = Logging.getLogger("TestServerService")
+    private val server: Closeable
+
+    init {
+        logger.lifecycle("Starting test server...")
+        server = startServer()
+        logger.lifecycle("Test server started.")
+    }
+
+    override fun close() {
+        logger.lifecycle("Stopping test server...")
+        server.close()
+        logger.lifecycle("Test server stopped.")
+    }
+
+    companion object {
+        fun registerIfAbsent(project: Project): Provider<TestServerService> {
+            return project.gradle.sharedServices.registerIfAbsent("testServer", TestServerService::class)
+        }
     }
 }

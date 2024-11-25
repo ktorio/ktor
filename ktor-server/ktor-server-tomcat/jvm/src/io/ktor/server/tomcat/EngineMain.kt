@@ -10,6 +10,10 @@ import io.ktor.server.engine.*
 /**
  * Tomcat engine
  */
+@Deprecated(
+    "The ktor-server-tomcat module is deprecated and will be removed in the next major release as it " +
+        "references an outdated version of Tomcat. Please use the ktor-server-tomcat-jakarta module instead."
+)
 public object EngineMain {
     /**
      * Main function for starting EngineMain with Tomcat
@@ -18,9 +22,9 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, Tomcat) {
+        val server = EmbeddedServer(config.rootConfig, Tomcat) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.rootConfig.environment.config)
         }
         server.start(true)
     }

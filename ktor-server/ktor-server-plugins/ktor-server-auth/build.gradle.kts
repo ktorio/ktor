@@ -17,13 +17,6 @@ kotlin {
                 api(libs.kotlinx.serialization.json)
             }
         }
-        commonTest {
-            dependencies {
-                api(project(":ktor-client:ktor-client-cio"))
-                api(project(":ktor-client:ktor-client-mock"))
-                api(project(":ktor-server:ktor-server-test-base"))
-            }
-        }
         jvmTest {
             dependencies {
                 api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))

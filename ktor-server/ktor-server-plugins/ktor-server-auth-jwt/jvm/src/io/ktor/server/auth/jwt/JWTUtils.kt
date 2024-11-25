@@ -89,18 +89,24 @@ internal suspend fun verifyAndValidate(
     jwtVerifier: JWTVerifier?,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
-    validate: suspend ApplicationCall.(JWTCredential) -> Principal?
-): Principal? {
+    validate: suspend ApplicationCall.(JWTCredential) -> Any?
+): Any? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (cause: JWTVerificationException) {
-        JWTLogger.trace("Token verification failed", cause)
+        JWTLogger.debug("JWT verification failed: ${cause.message}", cause)
         null
     } ?: return null
 
     val payload = jwt.parsePayload()
     val credentials = JWTCredential(payload)
-    return validate(call, credentials)
+    val principal = validate(call, credentials)
+
+    if (principal == null) {
+        JWTLogger.debug("JWT validation failed: Custom validation returned null")
+    }
+
+    return principal
 }
 
 internal fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {

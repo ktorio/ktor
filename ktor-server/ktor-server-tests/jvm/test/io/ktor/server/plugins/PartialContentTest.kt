@@ -1,12 +1,13 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.conditionalheaders.*
@@ -17,10 +18,9 @@ import io.ktor.server.testing.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import java.io.*
+import kotlinx.io.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class PartialContentTest {
 
     private val localPath = "plugins/StaticContentTest.kt"
@@ -29,77 +29,79 @@ class PartialContentTest {
     private val content = "test_string".repeat(100).toByteArray()
     private val lastModifiedTime = getTimeMillis()
 
-    private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.() -> Unit): Unit =
-        withTestApplication {
-            application.install(ConditionalHeaders)
-            application.install(CachingHeaders)
-            application.install(PartialContent) {
-                maxRangeCount?.let { this.maxRangeCount = it }
-            }
-            application.install(AutoHeadResponse)
-            application.routing {
-                route(localPath) {
-                    handle {
-                        val channel = ByteReadChannel(content)
-                        call.respond(
-                            object : OutgoingContent.ReadChannelContent() {
-                                override val contentType: ContentType = ContentType.Application.OctetStream
-                                override val contentLength: Long = content.size.toLong()
-                                override fun readFrom(): ByteReadChannel = channel
-                            }.apply {
-                                versions += LastModifiedVersion(GMTDate(lastModifiedTime))
-                                versions += EntityTagVersion(fileEtag)
-                            }
-                        )
-                    }
+    private fun withRangeApplication(
+        maxRangeCount: Int? = null,
+        test: suspend ApplicationTestBuilder.() -> Unit
+    ) = testApplication {
+        install(ConditionalHeaders)
+        install(CachingHeaders)
+        install(PartialContent) {
+            maxRangeCount?.let { this.maxRangeCount = it }
+        }
+        install(AutoHeadResponse)
+        routing {
+            route(localPath) {
+                handle {
+                    val channel = ByteReadChannel(content)
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            override val contentType: ContentType = ContentType.Application.OctetStream
+                            override val contentLength: Long = content.size.toLong()
+                            override fun readFrom(): ByteReadChannel = channel
+                        }.apply {
+                            versions += LastModifiedVersion(GMTDate(lastModifiedTime))
+                            versions += EntityTagVersion(fileEtag)
+                        }
+                    )
                 }
             }
-
-            test()
         }
 
+        test()
+    }
+
     @Test
-    fun testCustomMaxRangeCountAcceptedRange(): Unit = withRangeApplication(maxRangeCount = 2) {
-        handleRequest(HttpMethod.Get, localPath) {
-            addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
-        }.let { result ->
-            assertEquals(HttpStatusCode.PartialContent, result.response.status())
-            assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
-            assertNotNull(result.response.headers[HttpHeaders.LastModified])
-            checkContentLength(result)
+    fun testCustomMaxRangeCountAcceptedRange() = withRangeApplication(maxRangeCount = 2) {
+        client.get(localPath) {
+            header(HttpHeaders.Range, "bytes=0-0,2-2")
+        }.let { response ->
+            assertEquals(HttpStatusCode.PartialContent, response.status)
+            assertEquals(null, response.headers[HttpHeaders.ContentRange])
+            assertNotNull(response.headers[HttpHeaders.LastModified])
+            checkContentLength(response)
         }
     }
 
     @Test
-    fun testMultipleRanges(): Unit = withRangeApplication {
+    fun testMultipleRanges() = withRangeApplication {
         // multiple ranges
-        handleRequest(HttpMethod.Get, localPath) {
-            addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
-        }.let { result ->
-            checkContentLength(result)
-            val lines = result.response.content!!.lines()
+        client.get(localPath) {
+            header(HttpHeaders.Range, "bytes=0-0,2-2")
+        }.let { response ->
+            checkContentLength(response)
+            val lines = response.bodyAsText().lines()
             assertTrue(lines[0] == contentType || lines[1] == contentType)
 
-            assertMultipart(result) { parts ->
+            assertMultipart(response) { parts ->
                 assertEquals(listOf("t", "t"), parts)
             }
         }
     }
 
-    private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
-        assertEquals(HttpStatusCode.PartialContent, result.response.status())
-        assertNotNull(result.response.headers[HttpHeaders.LastModified])
-        val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
+    private suspend fun assertMultipart(response: HttpResponse, block: (List<String>) -> Unit) {
+        assertEquals(HttpStatusCode.PartialContent, response.status)
+        assertNotNull(response.headers[HttpHeaders.LastModified])
+        val contentType = ContentType.parse(response.headers[HttpHeaders.ContentType]!!)
         assertTrue(contentType.match(ContentType.MultiPart.ByteRanges))
         assertNotNull(contentType.parameter("boundary"))
 
-        val parts = result.response.content!!.reader().buffered().parseMultipart(contentType.parameter("boundary")!!)
+        val parts = response.bodyAsChannel().parseMultipart(contentType.parameter("boundary")!!)
         assertTrue { parts.isNotEmpty() }
 
         block(parts)
     }
 
-    private fun BufferedReader.parseMultipart(boundary: String): List<String> {
+    private suspend fun ByteReadChannel.parseMultipart(boundary: String): List<String> {
         val parts = ArrayList<String>()
         do {
             // according to rfc1341
@@ -122,7 +124,7 @@ class PartialContentTest {
             parts.add(
                 buildString {
                     repeat(length) {
-                        append(read().toChar())
+                        append(readByte().toInt().toChar())
                     }
                 }
             )
@@ -131,16 +133,16 @@ class PartialContentTest {
         return parts
     }
 
-    private fun BufferedReader.findLineWithBoundary(boundary: String): String? {
+    private suspend fun ByteReadChannel.findLineWithBoundary(boundary: String): String? {
         do {
-            val line = readLine() ?: return null
+            val line = readUTF8Line() ?: return null
             if (line.contains(boundary)) return line
         } while (true)
     }
 
-    private fun BufferedReader.scanHeaders() = Headers.build {
+    private suspend fun ByteReadChannel.scanHeaders() = Headers.build {
         do {
-            val line = readLine()
+            val line = readUTF8Line()
             if (line.isNullOrBlank()) break
 
             val (header, value) = line.chomp(":") { throw IOException("Illegal header line $line") }
@@ -174,23 +176,10 @@ class PartialContentTest {
         }
     }
 
-    private fun File.readChars(from: Int, toInclusive: Int = from): String {
-        require(from <= toInclusive)
-
-        val result = CharArray(toInclusive - from + 1)
-        reader().use { input ->
-            if (from > 0) {
-                assertEquals(from.toLong(), input.skip(from.toLong()))
-            }
-            assertEquals(result.size, input.read(result))
-        }
-        return String(result)
-    }
-
-    private fun checkContentLength(result: TestApplicationCall) {
+    private suspend fun checkContentLength(response: HttpResponse) {
         assertEquals(
-            result.response.byteContent!!.size,
-            result.response.headers[HttpHeaders.ContentLength]!!.toInt()
+            response.bodyAsBytes().size,
+            response.headers[HttpHeaders.ContentLength]!!.toInt()
         )
     }
 }

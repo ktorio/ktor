@@ -1,5 +1,58 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    ":label(dependencies)"
+  ],
+  "rebaseWhen": "conflicted",
+  "packageRules": [
+    {
+      "description": "Allow EAPs for Ktor dependencies and use custom versioning to detect a build number",
+      "extends": [
+        "schedule:weekly"
+      ],
+      "matchPackageNames": [
+        "io.ktor:*"
+      ],
+      "fetchChangeLogs": "off",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$"
+    },
+    {
+      "description": "False positive dependency findings.",
+      "matchDepNames": [
+        "macosX64:linuxX64"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update Jetty 9.x used in ktor-server-jetty",
+      "matchPackageNames": [
+        "org.eclipse.jetty*"
+      ],
+      "matchCurrentVersion": "[,10.0.0)",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update Tomcat 9.x used in ktor-server-tomcat",
+      "matchPackageNames": [
+        "org.apache.tomcat*"
+      ],
+      "matchCurrentVersion": "[,10.0.0)",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not update Develocity as server may not support a newer version",
+      "matchPackageNames": [
+        "com.gradle:develocity-gradle-plugin*"
+      ],
+      "enabled": false
+    }
   ]
 }

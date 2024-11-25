@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.metrics.dropwizard
@@ -9,92 +9,86 @@ import com.codahale.metrics.jvm.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.junit.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Assertions.assertAll
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class DropwizardMetricsTests {
 
     @Test
-    fun `meter is registered for a given path`(): Unit = withTestApplication {
+    fun `meter is registered for a given path`() = testApplication {
         val testRegistry = MetricRegistry()
 
-        application.install(DropwizardMetrics) {
+        install(DropwizardMetrics) {
             registry = testRegistry
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 call.respond("hello")
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         assertEquals(1, testRegistry.meter("ktor.calls./uri/(method:GET).200").count)
     }
 
     @Test
-    fun `should not throw exception if metric already registered`(): Unit = withTestApplication {
+    fun `should not throw exception if metric already registered`() = testApplication {
         val testRegistry = MetricRegistry()
         testRegistry.register("jvm.memory", MemoryUsageGaugeSet())
 
-        application.install(DropwizardMetrics) {
+        install(DropwizardMetrics) {
             registry = testRegistry
             baseName = ""
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 call.respond("hello")
             }
         }
 
-        handleRequest {
-            uri = "/uri"
-        }
+        client.request("/uri")
 
         assertEquals(1, testRegistry.meter("/uri/(method:GET).200").count)
     }
 
     @Test
-    fun `jvm metrics are not registered when disabled in config`(): Unit = withTestApplication {
+    fun `jvm metrics are not registered when disabled in config`() = testApplication {
         val testRegistry = MetricRegistry()
 
-        application.install(DropwizardMetrics) {
+        install(DropwizardMetrics) {
             registry = testRegistry
             registerJvmMetricSets = false
         }
+        startApplication()
 
         assertEquals(setOf("ktor.calls.active", "ktor.calls.duration", "ktor.calls.exceptions"), testRegistry.names)
     }
 
     @Test
-    fun `should prefix all metrics with baseName`(): Unit = withTestApplication {
+    fun `should prefix all metrics with baseName`() = testApplication {
         val prefix = "foo.bar"
         val registry = MetricRegistry()
-        application.install(DropwizardMetrics) {
+        install(DropwizardMetrics) {
             baseName = prefix
             registerJvmMetricSets = false
             this.registry = registry
         }
 
-        application.routing {
+        routing {
             get("/uri") {
                 call.respond("hello")
             }
         }
 
-        handleRequest { uri = "/uri" }
+        client.request("/uri")
 
         assertAll(registry.names, "All registry names should start with prefix $prefix") { name ->
             name.startsWith(prefix)
@@ -143,8 +137,8 @@ class DropwizardMetricsTests {
         }
 
         val response = client.options("") {
-            header("Access-Control-Request-Method", "GET")
-            header("Origin", "https://ktor.io")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+            header(HttpHeaders.Origin, "https://ktor.io")
         }
 
         assertEquals(HttpStatusCode.OK, response.status)

@@ -3,9 +3,11 @@
  */
 
 package io.ktor.tests.resources
+
 import io.ktor.resources.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -37,7 +39,7 @@ class ResourcesTestJvm {
     )
 
     @Test
-    fun locationClassWithBigNumbers() = withResourcesApplication {
+    fun locationClassWithBigNumbers() = testResourcesApplication {
         val bd = BigDecimal("123456789012345678901234567890")
         val bi = BigDecimal("123456789012345678901234567890")
 

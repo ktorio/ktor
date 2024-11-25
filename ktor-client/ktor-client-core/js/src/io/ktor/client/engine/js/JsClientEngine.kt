@@ -16,10 +16,10 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
+import kotlin.js.Promise
 
 internal class JsClientEngine(
     override val config: JsClientEngineConfig,
@@ -31,7 +31,7 @@ internal class JsClientEngine(
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val clientConfig = data.attributes[CLIENT_CONFIG]
@@ -42,6 +42,13 @@ internal class JsClientEngine(
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(clientConfig, callContext)
+
+        val controller = AbortController()
+        rawRequest.signal = controller.signal
+        callContext.job.invokeOnCompletion(onCancelling = true) {
+            controller.abort()
+        }
+
         val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
@@ -66,7 +73,7 @@ internal class JsClientEngine(
     // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
     // so it can be accessed inside js("") function
     @Suppress("UNUSED_PARAMETER", "UnsafeCastFromDynamic", "UNUSED_VARIABLE", "LocalVariableName")
-    private fun createWebSocket(
+    private suspend fun createWebSocket(
         urlString_capturingHack: String,
         headers: Headers
     ): WebSocket {
@@ -74,10 +81,11 @@ internal class JsClientEngine(
             headerName.equals("sec-websocket-protocol", true)
         }
         val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
-        return when (PlatformUtils.platform) {
-            Platform.Browser -> js("new WebSocket(urlString_capturingHack, protocols)")
+        return when {
+            PlatformUtils.IS_BROWSER -> js("new WebSocket(urlString_capturingHack, protocols)")
             else -> {
-                val ws_capturingHack = js("eval('require')('ws')")
+                val ws_import: Promise<dynamic> = js("import('w' + 's')")
+                val ws_capturingHack = ws_import.await().default
                 val headers_capturingHack: dynamic = object {}
                 headers.forEach { name, values ->
                     headers_capturingHack[name] = values.joinToString(",")
@@ -96,14 +104,14 @@ internal class JsClientEngine(
         val urlString = request.url.toString()
         val socket: WebSocket = createWebSocket(urlString, request.headers)
 
+        val session = JsWebSocketSession(callContext, socket)
+
         try {
             socket.awaitConnection()
         } catch (cause: Throwable) {
             callContext.cancel(CancellationException("Failed to connect to $urlString", cause))
             throw cause
         }
-
-        val session = JsWebSocketSession(callContext, socket)
 
         return HttpResponseData(
             HttpStatusCode.SwitchingProtocols,

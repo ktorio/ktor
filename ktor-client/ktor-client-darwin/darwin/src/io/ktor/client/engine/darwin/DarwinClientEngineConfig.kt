@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin
@@ -33,9 +33,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
             replaceWith = ReplaceWith("this.configureRequest(value)"),
             level = DeprecationLevel.ERROR
         )
-        set(value) {
-            field = value
-        }
+        set
 
     /**
      * A session configuration.
@@ -46,9 +44,7 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
             replaceWith = ReplaceWith("this.configureSession(value)"),
             level = DeprecationLevel.ERROR
         )
-        set(value) {
-            field = value
-        }
+        set
 
     /**
      * Handles the challenge of HTTP responses [NSURLSession].
@@ -108,9 +104,31 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      * If the preconfigured session is set, [configureSession] and [handleChallenge] blocks will be ignored.
      *
      * The [session] must be created with [KtorNSURLSessionDelegate] as a delegate.
+     *
+     * ```
+     * val delegate = KtorNSURLSessionDelegate()
+     * val session = NSURLSession.sessionWithConfiguration(
+     *     NSURLSessionConfiguration.defaultSessionConfiguration(),
+     *     delegate,
+     *     delegateQueue = null
+     * )
+     *
+     * usePreconfiguredSession(session, delegate)
+     * ```
+     *
      * @see [KtorNSURLSessionDelegate] for details.
      */
     public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorNSURLSessionDelegate) {
+        requireNotNull(session.delegate) {
+            """
+                Invalid session: delegate field is null
+                Possible solutions:
+
+                1. Ensure that you set a valid delegate when creating the `session`. For more details, see `KtorNSURLSessionDelegate`.
+
+                2. If you're only modifying session configuration, consider using `configureSession` instead of `usePreconfiguredSession`.
+            """.trimIndent()
+        }
         sessionAndDelegate = session to delegate
     }
 

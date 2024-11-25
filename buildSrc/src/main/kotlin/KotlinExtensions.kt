@@ -37,6 +37,16 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.commonTest(block: KotlinSourceSe
     block(sourceSet)
 }
 
+fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixMain(block: KotlinSourceSet.() -> Unit) {
+    val sourceSet = findByName("jvmAndPosixMain") ?: getByName("jvmMain")
+    block(sourceSet)
+}
+
+fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixTest(block: KotlinSourceSet.() -> Unit) {
+    val sourceSet = findByName("jvmAndPosixTest") ?: getByName("jvmTest")
+    block(sourceSet)
+}
+
 fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndNixMain(block: KotlinSourceSet.() -> Unit) {
     val sourceSet = findByName("jvmAndNixMain") ?: getByName("jvmMain")
     block(sourceSet)

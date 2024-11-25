@@ -1,49 +1,18 @@
 /*
- * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 pluginManagement {
-    repositories {
-        mavenCentral()
-        google()
-        gradlePluginPortal()
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "kotlinx-atomicfu") {
-                useModule("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${requested.version}")
-            }
-        }
-    }
+    includeBuild("gradle-settings-conventions")
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    id("conventions-dependency-resolution-management")
+    id("conventions-develocity")
 }
 
 rootProject.name = "ktor"
-
-val native_targets_enabled = !extra.has("disable_native_targets")
-val CACHE_USER = System.getenv("GRADLE_CACHE_USER")
-
-if (CACHE_USER != null) {
-    val CACHE_PASSWORD = System.getenv("GRADLE_CACHE_PASSWORD")
-    buildCache {
-        remote(HttpBuildCache::class) {
-            isPush = true
-            setUrl("https://ktor-gradle-cache.teamcity.com/cache/")
-            credentials {
-                username = CACHE_USER
-                password = CACHE_PASSWORD
-            }
-        }
-    }
-}
-
-val fullVersion = System.getProperty("java.version", "8.0.0")
-val versionComponents = fullVersion
-    .split(".")
-    .take(2)
-    .filter { it.isNotBlank() }
-    .map { Integer.parseInt(it) }
-
-val currentJdk = if (versionComponents[0] == 1) versionComponents[1] else versionComponents[0]
 
 include(":ktor-server")
 include(":ktor-server:ktor-server-core")
@@ -66,14 +35,12 @@ include(":ktor-client:ktor-client-apache")
 include(":ktor-client:ktor-client-apache5")
 include(":ktor-client:ktor-client-android")
 include(":ktor-client:ktor-client-cio")
-if (native_targets_enabled) {
-    include(":ktor-client:ktor-client-curl")
-    include(":ktor-client:ktor-client-ios")
-    include(":ktor-client:ktor-client-darwin")
-    include(":ktor-client:ktor-client-darwin-legacy")
-    include(":ktor-client:ktor-client-winhttp")
-}
-if (currentJdk >= 11) {
+include(":ktor-client:ktor-client-curl")
+include(":ktor-client:ktor-client-ios")
+include(":ktor-client:ktor-client-darwin")
+include(":ktor-client:ktor-client-darwin-legacy")
+include(":ktor-client:ktor-client-winhttp")
+if (JavaVersion.current() >= JavaVersion.VERSION_11) {
     include(":ktor-client:ktor-client-java")
     include(":ktor-client:ktor-client-jetty-jakarta")
     include(":ktor-server:ktor-server-servlet-jakarta")

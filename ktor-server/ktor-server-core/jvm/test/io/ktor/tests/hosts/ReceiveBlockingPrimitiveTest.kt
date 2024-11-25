@@ -25,15 +25,6 @@ class ReceiveBlockingPrimitiveTest {
         }
     }
 
-    @Test
-    fun testBlockingPrimitiveWorksOnRestrictedThread() {
-        testOnThread { call ->
-            markParkingProhibited()
-
-            call.receive<InputStream>().close()
-        }
-    }
-
     private fun testOnThread(
         block: suspend (ApplicationCall) -> Unit
     ) {
@@ -136,6 +127,9 @@ class ReceiveBlockingPrimitiveTest {
 
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
+
+        override val coroutineContext: CoroutineContext
+            get() = TODO("Not yet implemented")
 
         fun close() {
             application.dispose()

@@ -12,6 +12,10 @@ import io.ktor.server.engine.*
 /**
  * An [ApplicationEngineFactory] providing a Tomcat-based [ApplicationEngine]
  */
+@Deprecated(
+    "The ktor-server-tomcat module is deprecated and will be removed in the next major release as it " +
+        "references an outdated version of Tomcat. Please use the ktor-server-tomcat-jakarta module instead."
+)
 public object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
 
     override fun configuration(

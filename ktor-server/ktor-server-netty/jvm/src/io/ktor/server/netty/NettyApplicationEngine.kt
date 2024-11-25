@@ -210,17 +210,13 @@ public class NettyApplicationEngine(
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
-        addShutdownHook(monitor) {
-            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
-        }
-
         try {
             channels = bootstraps.zip(configuration.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
             val connectors = channels!!.zip(configuration.connectors)
                 .map { it.second.withPort(it.first.localAddress().port) }
-            resolvedConnectors.complete(connectors)
+            resolvedConnectorsDeferred.complete(connectors)
         } catch (cause: BindException) {
             terminate()
             throw cause

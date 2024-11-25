@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth.ldap
 
-import org.apache.directory.api.ldap.codec.api.LdapApiService
+import org.apache.directory.api.ldap.codec.api.*
 import org.apache.directory.api.util.*
 import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.api.*
@@ -24,7 +24,7 @@ annotation class LDAPServerExtensionTest
  * This is an adaption of the LDAP functionality found in
  * `org.apache.directory.server.core.integ.FrameworkRunner` for JUnit5.
  */
-@CreateLdapServer(transports = [ CreateTransport(protocol = "LDAP") ])
+@CreateLdapServer(transports = [CreateTransport(protocol = "LDAP")])
 class LDAPServerExtension : BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
     private var directoryService: DirectoryService? = null

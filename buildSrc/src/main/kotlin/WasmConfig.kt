@@ -1,62 +1,35 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import internal.*
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
+import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.gradle.targets.js.ir.*
 import java.io.*
 
 fun Project.configureWasm() {
-    configureWasmTasks()
-
     kotlin {
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs {
+            nodejs { useMochaForTests() }
+            if (project.targetIsEnabled("wasmJs.browser")) browser { useKarmaForTests() }
+        }
+
         sourceSets {
-            val wasmJsTest by getting {
+            wasmJsMain {
                 dependencies {
-                    implementation(npm("puppeteer", Versions.puppeteer))
+                    implementation(libs.kotlinx.browser)
+                }
+            }
+            wasmJsTest {
+                dependencies {
+                    implementation(npm("puppeteer", libs.versions.puppeteer.get()))
                 }
             }
         }
     }
 
-    configureWasmTestTasks()
-}
-
-private fun Project.configureWasmTasks() {
-    kotlin {
-        @OptIn(ExperimentalWasmDsl::class)
-        wasmJs {
-            nodejs {
-                testTask(
-                    Action {
-                        useMocha {
-                            timeout = "10000"
-                        }
-                    }
-                )
-            }
-
-            browser {
-                testTask(
-                    Action {
-                        useKarma {
-                            useChromeHeadlessWasmGc()
-                            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-private fun Project.configureWasmTestTasks() {
-    val shouldRunWasmBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
-    if (shouldRunWasmBrowserTest) return
-
-    val cleanWasmJsBrowserTest by tasks.getting
-    val wasmJsBrowserTest by tasks.getting
-    cleanWasmJsBrowserTest.onlyIf { false }
-    wasmJsBrowserTest.onlyIf { false }
+    configureJsTestTasks(target = "wasmJs")
 }

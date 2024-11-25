@@ -11,6 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import org.apache.http.*
 import org.apache.http.nio.*
 import org.apache.http.nio.ContentEncoder
@@ -18,7 +19,7 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-@kotlin.Suppress("BlockingMethodInNonBlockingContext")
+@Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
     @OptIn(InternalAPI::class)
@@ -85,9 +86,9 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
     @Test
-    fun testProducingReadChannelContent() = runBlocking {
+    fun testProducingReadChannelContent() = runTest {
         val content = ByteChannel(true)
         val body = object : OutgoingContent.ReadChannelContent() {
             override fun readFrom(): ByteReadChannel = content
@@ -126,7 +127,7 @@ class RequestProducerTest {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testProducingWriteChannelContent() = runBlocking {
+    fun testProducingWriteChannelContent() = runTest {
         val body = ChannelWriterContent(
             body = {
                 writeStringUtf8("x")
@@ -165,10 +166,14 @@ class RequestProducerTest {
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingWriteChannelContentOnScale() = runBlocking {
-        repeat(5000) {
-            val chunk = (0 until 10_000).map { it.toByte() }.toByteArray()
+        val sampleSize = 4 * 1024 * 1024
+        val expected = (0 until sampleSize).map { it.toByte() }.toByteArray()
+        repeat(1000) {
             val body = ChannelWriterContent(
-                body = { writeFully(chunk) },
+                body = {
+                    for (i in 0 until sampleSize)
+                        writeByte(i.toByte())
+                },
                 contentType = null
             )
             val producer = producer(body, coroutineContext)
@@ -177,7 +182,7 @@ class RequestProducerTest {
             val ioctrl = TestIOControl()
 
             val result = async {
-                val result = ByteArray(10000)
+                val result = ByteArray(sampleSize)
                 encoder.channel.readFully(result)
                 result
             }
@@ -189,7 +194,7 @@ class RequestProducerTest {
                 }
             }
 
-            assertEquals(chunk.toList(), result.await().toList())
+            assertEquals(expected.encodeBase64(), result.await().encodeBase64())
             producer.close()
         }
     }
@@ -226,6 +231,7 @@ private class TestEncoder : ContentEncoder {
         src.limit()
     }
 
+    @OptIn(InternalAPI::class)
     override fun complete() {
         channel.close()
     }

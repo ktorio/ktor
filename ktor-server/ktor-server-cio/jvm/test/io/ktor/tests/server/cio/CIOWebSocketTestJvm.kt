@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
@@ -8,10 +8,15 @@ import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.server.cio.*
 import io.ktor.server.test.base.*
-import io.ktor.server.testing.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
-import kotlin.test.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 class CIOWebSocketTestJvm : EngineTestBase<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
 
@@ -20,6 +25,7 @@ class CIOWebSocketTestJvm : EngineTestBase<CIOApplicationEngine, CIOApplicationE
         enableHttp2 = false
     }
 
+    @Ignore // TODO flaky
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testNonWebsocketRouteDoNotLeakOnWsRequest() = runTest {

@@ -90,8 +90,8 @@ public sealed class OutgoingContent {
         } else {
             GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
                 val source = readFrom()
-                source.discard(range.start)
-                val limit = range.endInclusive - range.start + 1
+                source.discard(range.first)
+                val limit = range.last - range.first + 1
                 source.copyTo(channel, limit)
             }.channel
         }
@@ -156,12 +156,18 @@ public sealed class OutgoingContent {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?): Unit = delegate.setProperty(key, value)
 
         public fun delegate(): OutgoingContent = delegate
+
+        /**
+         * Returns a copy of this implementation of [ContentWrapper] with provided [OutgoingContent]
+         */
+        public abstract fun copy(delegate: OutgoingContent): ContentWrapper
     }
 }
 
 /**
- * Check if current [OutgoingContent] doesn't contains content
+ * Check if current [OutgoingContent] doesn't contain content
  */
+@InternalAPI
 public fun OutgoingContent.isEmpty(): Boolean = when (this) {
     is OutgoingContent.NoContent -> true
     is OutgoingContent.ContentWrapper -> delegate().isEmpty()

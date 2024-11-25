@@ -5,6 +5,7 @@
 package io.ktor.serialization.kotlinx
 
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.modules.*
@@ -34,7 +35,8 @@ private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSeriali
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<Any> = when (value) {
+@InternalAPI
+public fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<Any> = when (value) {
     null -> String.serializer().nullable
     is List<*> -> ListSerializer(value.elementSerializer(module))
     is Array<*> -> value.firstOrNull()?.let { guessSerializer(it, module) } ?: ListSerializer(String.serializer())
@@ -51,7 +53,7 @@ internal fun guessSerializer(value: Any?, module: SerializersModule): KSerialize
     }
 } as KSerializer<Any>
 
-@OptIn(ExperimentalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { guessSerializer(it, module) }.distinctBy { it.descriptor.serialName }

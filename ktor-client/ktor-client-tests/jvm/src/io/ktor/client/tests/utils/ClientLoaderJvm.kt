@@ -1,17 +1,19 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
-import kotlinx.coroutines.debug.junit5.*
-import org.junit.jupiter.api.extension.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.debug.CoroutineInfo
+import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import java.util.*
-import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -19,36 +21,43 @@ import kotlin.time.Duration.Companion.seconds
  */
 actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
 
-    private val engines: List<HttpClientEngineContainer> by lazy {
-        HttpClientEngineContainer::class.java.let { engineContainerClass ->
-            ServiceLoader.load(engineContainerClass, engineContainerClass.classLoader).toList()
-        }
-    }
+    @OptIn(InternalAPI::class)
+    private val engines: List<HttpClientEngineContainer> by lazy { loadServices<HttpClientEngineContainer>() }
 
     /**
      * Perform test against all clients from dependencies.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,
+        retries: Int,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
+        DebugProbes.install()
         for (engine in engines) {
             if (shouldSkip(engine, skipEngines, onlyWithEngine)) {
                 continue
             }
             runBlocking {
                 withTimeout(timeoutSeconds.seconds.inWholeMilliseconds) {
-                    testWithEngine(engine.factory, this@ClientLoader, timeoutSeconds * 1000L, block)
+                    testWithEngine(engine.factory, this@ClientLoader, timeoutSeconds * 1000L, retries, block)
                 }
             }
         }
     }
 
-    fun shouldSkip(engine: HttpClientEngineContainer, skipEngines: List<String>, onlyWithEngine: String?): Boolean =
-        skipEngines.any { shouldSkip(engine.toString(), it, onlyWithEngine) }
+    private fun shouldSkip(
+        engine: HttpClientEngineContainer,
+        skipEngines: List<String>,
+        onlyWithEngine: String?
+    ): Boolean {
+        val engineName = engine.toString()
+        return onlyWithEngine != null && !onlyWithEngine.equals(engineName, ignoreCase = true) ||
+            skipEngines.any { shouldSkip(engineName, it) }
+    }
 
-    fun shouldSkip(engineName: String, skipEngine: String, onlyWithEngine: String?): Boolean {
+    private fun shouldSkip(engineName: String, skipEngine: String): Boolean {
         val locale = Locale.getDefault()
         val skipEngineArray = skipEngine.lowercase(locale).split(":")
 
@@ -62,14 +71,21 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         val engineShouldBeSkipped = "*" == skipEngineName || engineName.lowercase(locale) == skipEngineName.lowercase(
             locale
         )
-        val notOnlyEngine = onlyWithEngine != null && engineName.lowercase(locale) != onlyWithEngine.lowercase(locale)
 
-        return (engineShouldBeSkipped && platformShouldBeSkipped) || notOnlyEngine
+        return engineShouldBeSkipped && platformShouldBeSkipped
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
+
+        println("Thread Dump")
+        Thread.getAllStackTraces().forEach { (thread, stackTrace) ->
+            println("Thread: $thread")
+            stackTrace.forEach {
+                println("\t$it")
+            }
+        }
     }
 
     /**

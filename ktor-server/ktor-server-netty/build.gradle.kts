@@ -1,3 +1,9 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+
 description = ""
 
 val jetty_alpn_api_version: String by extra
@@ -46,7 +52,6 @@ kotlin.sourceSets {
     }
 }
 
-val jvmTest: org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest by tasks
-jvmTest.apply {
+tasks.named<KotlinJvmTest>("jvmTest") {
     systemProperty("enable.http2", "true")
 }

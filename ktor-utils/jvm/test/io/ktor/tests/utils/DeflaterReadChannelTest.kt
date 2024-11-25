@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.utils
@@ -9,13 +9,14 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit5.*
-import java.io.*
-import java.nio.*
-import java.util.zip.*
-import kotlin.random.*
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.nio.ByteBuffer
+import java.util.zip.GZIPInputStream
+import kotlin.random.Random
 import kotlin.test.*
-import kotlin.test.Test
 
 @CoroutinesTimeout(60_000)
 class DeflaterReadChannelTest : CoroutineScope {
@@ -115,7 +116,7 @@ class DeflaterReadChannelTest : CoroutineScope {
     @Test
     fun testFaultyGzippedBiggerThan8k() {
         val text = buildString {
-            for (i in 1..65536) {
+            for (i in 1..16 * 1024 * 1024) {
                 append(' ' + Random.nextInt(32, 126) % 32)
             }
         }
@@ -123,7 +124,17 @@ class DeflaterReadChannelTest : CoroutineScope {
         testFaultyWriteChannel(asyncOf(text))
     }
 
-    private fun asyncOf(text: String): ByteReadChannel = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)))
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun asyncOf(text: String): ByteReadChannel = GlobalScope.writer {
+        var current = 0
+        while (current < text.length) {
+            val size = Random.nextInt(1, 16)
+            val end = minOf(current + size, text.length)
+            channel.writeFully(text.substring(current, end).toByteArray(Charsets.UTF_8))
+            current = end
+        }
+    }.channel
+
     private fun asyncOf(bb: ByteBuffer): ByteReadChannel = ByteReadChannel(bb)
 
     private fun InputStream.ungzip() = GZIPInputStream(this)
@@ -164,6 +175,9 @@ class DeflaterReadChannelTest : CoroutineScope {
             }
         }
 
-        assertFailsWith(IOException::class) { throw deflateInputChannel!!.closedCause!! }
+        deflateInputChannel.let { channel ->
+            assertNotNull(channel)
+            assertIs<IOException>(channel.closedCause)
+        }
     }
 }

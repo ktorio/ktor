@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION_ERROR")
 
@@ -52,7 +52,7 @@ public expect fun defaultSerializer(): JsonSerializer
  * @property acceptContentTypes that are allowed when receiving content
  */
 @Deprecated(
-    "Please use ContentNegotiation plugin: https://ktor.io/docs/migrating-2.html#serialization-client",
+    "Please use ContentNegotiation plugin: https://ktor.io/docs/migration-to-20x.html#serialization-client",
     level = DeprecationLevel.ERROR
 )
 public class JsonPlugin internal constructor(
@@ -233,7 +233,7 @@ public class JsonPlugin internal constructor(
  * Install [JsonPlugin].
  */
 @Deprecated(
-    "Please use ContentNegotiation plugin: https://ktor.io/docs/migrating-2.html#serialization-client",
+    "Please use ContentNegotiation plugin: https://ktor.io/docs/migration-to-20x.html#serialization-client",
     level = DeprecationLevel.ERROR
 )
 public fun HttpClientConfig<*>.Json(block: JsonPlugin.Config.() -> Unit) {

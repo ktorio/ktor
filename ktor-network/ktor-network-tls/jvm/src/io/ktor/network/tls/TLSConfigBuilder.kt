@@ -127,7 +127,7 @@ public class NoPrivateKeyException(
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {
 
-    override fun createCopy(): NoPrivateKeyException? = NoPrivateKeyException(alias, store).also {
+    override fun createCopy(): NoPrivateKeyException = NoPrivateKeyException(alias, store).also {
         it.initCause(this)
     }
 }

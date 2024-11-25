@@ -6,6 +6,8 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -17,6 +19,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
 
@@ -54,12 +57,12 @@ class WebSocketTest : ClientLoader() {
     @Test
     fun testExceptionIfWebsocketIsNotInstalled() = testSuspend {
         val client = HttpClient()
-        kotlin.test.assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             client.webSocketSession()
         }.let {
             assertContains(it.message!!, WebSockets.key.name)
         }
-        kotlin.test.assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             client.webSocket {}
         }.let {
             assertContains(it.message!!, WebSockets.key.name)
@@ -149,7 +152,7 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            kotlin.test.assertFailsWith<IllegalStateException> {
+            assertFailsWith<IllegalStateException> {
                 client.wss("$TEST_WEBSOCKET_SERVER/websockets/echo") { error("THIS IS AN ERROR !!!!") }
             }.let {
                 assertEquals("THIS IS AN ERROR !!!!", it.message)
@@ -320,6 +323,97 @@ class WebSocketTest : ClientLoader() {
                     send("test")
                 }
             }
+        }
+    }
+
+    @Ignore // TODO KTOR-7088
+    @Test
+    fun testImmediateReceiveAfterConnect() = clientTests(
+        ENGINES_WITHOUT_WS + "Darwin" + "js" // TODO KTOR-7088
+    ) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            withTimeout(10_000) {
+                coroutineScope {
+                    val defs = (1..100).map {
+                        async {
+                            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                                val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
+                                assertNotNull(frame)
+                                assertIs<Frame.Text>(frame)
+                            }
+                        }
+                    }
+                    defs.awaitAll()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithValidRefreshToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", "invalid") }
+                    refreshTokens { BearerTokens("valid", "valid") }
+                }
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS + "Js" + "Darwin", retries = 5) {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("valid", "valid") }
+                }
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("Hello from server", frame.readText())
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+        config {
+            install(WebSockets)
+
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", "invalid") }
+                    refreshTokens { BearerTokens("invalid", "invalid") }
+                }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {}
+            }
+            client.close()
         }
     }
 }

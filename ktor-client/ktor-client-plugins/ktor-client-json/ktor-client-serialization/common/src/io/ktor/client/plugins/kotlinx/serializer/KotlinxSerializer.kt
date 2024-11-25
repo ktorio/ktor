@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
 
@@ -20,7 +20,7 @@ import kotlinx.serialization.modules.*
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
 @Deprecated(
-    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migrating-2.html#serialization-client", // ktlint-disable max-line-length
+    "Please use ContentNegotiation plugin and its converters: https://ktor.io/docs/migration-to-20x.html#serialization-client", // ktlint-disable max-line-length
     level = DeprecationLevel.ERROR
 )
 public class KotlinxSerializer(

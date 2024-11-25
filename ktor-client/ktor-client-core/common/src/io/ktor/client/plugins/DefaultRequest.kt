@@ -71,7 +71,23 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 val originalUrlString = context.url.toString()
                 val defaultRequest = DefaultRequestBuilder().apply {
                     headers.appendAll(this@intercept.context.headers)
+                    val userHeaders = headers.build()
                     plugin.block(this)
+
+                    // KTOR-6946 User's headers should have higher priority
+                    userHeaders.entries().forEach { (key, oldValues) ->
+                        val newValues = headers.getAll(key)
+                        if (newValues == null) {
+                            headers.appendAll(key, oldValues)
+                            return@forEach
+                        }
+
+                        if (newValues == oldValues || key == HttpHeaders.Cookie) return@forEach
+
+                        headers.remove(key)
+                        headers.appendAll(key, oldValues)
+                        headers.appendMissing(key, newValues)
+                    }
                 }
                 val defaultUrl = defaultRequest.url.build()
                 mergeUrls(defaultUrl, context.url)

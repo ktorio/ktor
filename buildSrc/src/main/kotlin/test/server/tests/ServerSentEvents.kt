@@ -77,6 +77,20 @@ internal fun Application.serverSentEvents() {
                     }
                 )
             }
+
+            post {
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent("Hello"))
+                    }
+                )
+
+            }
+
+            get("/content-type-text-plain") {
+                call.response.header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+                call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }
@@ -89,24 +103,31 @@ private suspend fun ApplicationCall.respondSseEvents(events: Flow<SseEvent>) {
 
 private suspend fun ByteWriteChannel.writeSseEvents(events: Flow<SseEvent>): Unit = events.collect { event ->
     if (event.id != null) {
-        writeStringUtf8("id: ${event.id}\n")
+        writeStringUtf8WithNewlineAndFlush("id: ${event.id}")
     }
     if (event.event != null) {
-        writeStringUtf8("event: ${event.event}\n")
+        writeStringUtf8WithNewlineAndFlush("event: ${event.event}")
     }
     if (event.data != null) {
         for (dataLine in event.data.lines()) {
-            writeStringUtf8("data: $dataLine\n")
+            writeStringUtf8WithNewlineAndFlush("data: $dataLine")
         }
     }
     if (event.retry != null) {
-        writeStringUtf8("retry: ${event.retry}\n")
+        writeStringUtf8WithNewlineAndFlush("retry: ${event.retry}")
     }
 
     if (event.comments != null) {
         for (dataLine in event.comments.lines()) {
-            writeStringUtf8(": $dataLine\n")
+            writeStringUtf8WithNewlineAndFlush(": $dataLine")
         }
+    }
+    writeStringUtf8WithNewlineAndFlush()
+}
+
+private suspend fun ByteWriteChannel.writeStringUtf8WithNewlineAndFlush(data: String? = null) {
+    if (data != null) {
+        writeStringUtf8(data)
     }
     writeStringUtf8("\n")
     flush()

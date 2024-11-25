@@ -118,6 +118,12 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         val metricName = pluginConfig.metricName
         val activeRequestsGaugeName = "$metricName.active"
         val registry = pluginConfig.registry
+
+        registry.config().meterFilter(object : MeterFilter {
+            override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
+                if (id.name == metricName) pluginConfig.distributionStatisticConfig.merge(config) else config
+        })
+
         val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
         val measureKey = AttributeKey<CallMeasure>("micrometerMetrics")
 
@@ -136,10 +142,6 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
             return this
         }
 
-        registry.config().meterFilter(object : MeterFilter {
-            override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                if (id.name == metricName) pluginConfig.distributionStatisticConfig.merge(config) else config
-        })
         pluginConfig.meterBinders.forEach { it.bindTo(pluginConfig.registry) }
 
         @OptIn(InternalAPI::class)
@@ -164,7 +166,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
             throw cause
         }
 
-        application.monitor.subscribe(Routing.RoutingCallStarted) { call ->
+        application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
             call.attributes[measureKey].route = call.route.parent.toString()
         }
     }

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.http.cio
 
@@ -8,9 +8,11 @@ import io.ktor.http.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.test.*
+import kotlinx.io.*
 import kotlin.test.*
 
-@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {
@@ -182,7 +184,7 @@ class MultipartTest {
                 "resolve": {
                     "modules": [
                         "node_modules" // this works well
-                        //"/absolute/path/to/dir/node_modules"   // this doens't
+                        //"/absolute/path/to/dir/node_modules"   // this doesn't
                     ]
                 }
             ```
@@ -208,7 +210,6 @@ class MultipartTest {
 
         assertEquals("Hello", title.body.readRemaining().readText())
         val fileContent = file.body.readRemaining().readText()
-//        println(fileContent)
         assertEquals(380, fileContent.length)
     }
 
@@ -336,6 +337,17 @@ class MultipartTest {
         }
     }
 
+    @Test
+    fun testParseContentType() = runTest {
+        fun testContentType(contentType: String) {
+            parseMultipart(ByteReadChannel.Empty, "$contentType; boundary=A", 0L)
+        }
+
+        testContentType("multipart/mixed")
+        testContentType("Multipart/mixed")
+        assertFailsWith<IOException> { testContentType("multi-part/mixed") }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testEmptyPayload() = runBlocking {
@@ -409,7 +421,8 @@ class MultipartTest {
             val events = parseMultipart(
                 input,
                 "multipart/form-data; boundary=boundary",
-                body.length.toLong()
+                body.length.toLong(),
+                Long.MAX_VALUE
             ).toList()
 
             assertEquals(1, events.size)

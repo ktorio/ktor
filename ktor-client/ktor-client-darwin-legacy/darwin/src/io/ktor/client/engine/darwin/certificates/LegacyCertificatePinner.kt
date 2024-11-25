@@ -108,7 +108,7 @@ import platform.Security.*
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
 @OptIn(UnsafeNumber::class)
-public data class LegacyCertificatePinner internal constructor(
+public data class LegacyCertificatePinner(
     private val pinnedCertificates: Set<LegacyPinnedCertificate>,
     private val validateTrust: Boolean
 ) : ChallengeHandler {

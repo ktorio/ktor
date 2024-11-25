@@ -1,18 +1,22 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = "Ktor network utilities"
 
 kotlin {
     createCInterop("network", nixTargets()) {
-        defFile = projectDir.resolve("nix/interop/network.def")
+        definitionFile = projectDir.resolve("nix/interop/network.def")
     }
 
     sourceSets {
-        jvmAndNixMain {
+        jvmAndPosixMain {
             dependencies {
                 api(project(":ktor-utils"))
             }
         }
 
-        jvmAndNixTest {
+        jvmAndPosixTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
             }

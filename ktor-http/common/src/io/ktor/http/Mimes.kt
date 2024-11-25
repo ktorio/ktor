@@ -69,6 +69,8 @@ private val rawMimes: String
 .avi,video/avi
 .avi,video/msvideo
 .avi,video/x-msvideo
+.avif,image/avif
+.avifs,image/avif
 .avs,video/avs-video
 .aw,application/applixware
 .azf,application/vnd.airzip.filesecure.azf
@@ -338,6 +340,8 @@ private val rawMimes: String
 .hbci,application/vnd.hbci
 .hdf,application/x-hdf
 .help,application/x-helpfile
+.heic,image/heic
+.heif,image/heif
 .hgl,application/vnd.hp-hpgl
 .hh,text/plain
 .hh,text/x-h
@@ -428,6 +432,7 @@ private val rawMimes: String
 .jpgv,video/jpeg
 .jpm,video/jpm
 .jps,image/x-jps
+.js,text/javascript
 .js,application/javascript
 .json,application/json
 .jut,image/jutvision

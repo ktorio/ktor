@@ -52,7 +52,7 @@ public open class ServletApplicationEngine : KtorServlet() {
         val applicationIdPath = "ktor.application.id"
 
         val combinedConfig = parametersConfig
-            .withFallback(ConfigLoader.load(parametersConfig.tryGetString(configPath)))
+            .withFallback(load(parametersConfig.tryGetString(configPath)))
 
         val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
 
@@ -61,7 +61,7 @@ public open class ServletApplicationEngine : KtorServlet() {
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
         }
-        val applicationProperties = applicationProperties(environment) {
+        val applicationProperties = serverConfig(environment) {
             rootPath = servletContext.contextPath ?: "/"
         }
         val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)

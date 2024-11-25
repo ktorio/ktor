@@ -13,10 +13,7 @@ import kotlin.js.*
  */
 public actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES).toJsArray()
-    when (PlatformUtils.platform) {
-        Platform.Node -> _crypto.randomFillSync(buffer)
-        else -> _crypto.getRandomValues(buffer)
-    }
+    _crypto.getRandomValues(buffer)
     return hex(buffer.toByteArray())
 }
 
@@ -41,24 +38,14 @@ public actual fun Digest(name: String): Digest = object : Digest {
     }
 }
 
-private fun requireCrypto(): Crypto = js("eval('require')('crypto')")
-private fun windowCrypto(): Crypto = js("(window ? (window.crypto ? window.crypto : window.msCrypto) : self.crypto)")
-
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
-private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable due to evaluation order
-    when (PlatformUtils.platform) {
-        Platform.Node -> requireCrypto()
-        else -> windowCrypto()
-    }
-}
+private val _crypto: Crypto = js("(globalThis ? globalThis.crypto : (window.crypto || window.msCrypto))")
 
 private external class Crypto {
     val subtle: SubtleCrypto
 
     fun getRandomValues(array: Int8Array)
-
-    fun randomFillSync(array: Int8Array)
 }
 
 private external class SubtleCrypto {

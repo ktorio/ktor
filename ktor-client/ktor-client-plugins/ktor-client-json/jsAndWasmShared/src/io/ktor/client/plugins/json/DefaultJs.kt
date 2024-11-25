@@ -15,6 +15,5 @@ import io.ktor.utils.io.*
 public actual fun defaultSerializer(): JsonSerializer =
     serializersStore.first()
 
-@Suppress("KDocMissingDocumentation")
 @InternalAPI
 public val serializersStore: MutableList<JsonSerializer> = mutableListOf()
