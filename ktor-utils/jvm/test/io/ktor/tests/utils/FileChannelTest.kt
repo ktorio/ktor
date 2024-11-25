@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.utils
@@ -15,7 +15,6 @@ import java.io.*
 import kotlin.test.*
 import kotlin.test.Test
 
-@ExtendWith(RetrySupport::class)
 class FileChannelTest {
     private val sandbox = File("build/files")
     private lateinit var temp: File
@@ -73,7 +72,6 @@ class FileChannelTest {
         assertEquals(byteArrayOf(7, 8, 9).toList(), temp.readChannel().toInputStream().use { it.readBytes().toList() })
     }
 
-    @RetryableTest // random failures on Windows agent
     @Test
     fun `readChannel should not lock file pre read`() {
         // Arrange
