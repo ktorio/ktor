@@ -28,6 +28,8 @@ internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
  *
  * This interface provides a set of properties and methods that define the
  * contract for configuring, executing, and managing HTTP requests within the engine.
+ *
+ * See also [HttpClientEngineBase] for a base implementation that handles common engine functionality.
  */
 public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
