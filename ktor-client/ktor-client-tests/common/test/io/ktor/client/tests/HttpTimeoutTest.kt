@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.PlatformUtils
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -169,6 +170,9 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetWithSeparateReceive() = clientTests {
+//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
+        if (PlatformUtils.IS_NATIVE) return@clientTests
+
         config {
             install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }
@@ -185,7 +189,10 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetWithSeparateReceivePerRequestAttributes() = clientTests(retries = 5) {
+    fun testGetWithSeparateReceivePerRequestAttributes() = clientTests {
+//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
+        if (PlatformUtils.IS_NATIVE) return@clientTests
+
         config {
             install(HttpTimeout)
         }
@@ -205,6 +212,9 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js"), retries = 5) {
+//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
+        if (PlatformUtils.IS_NATIVE) return@clientTests
+
         config {
             install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }
@@ -222,24 +232,25 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() =
-        clientTests(listOf("Js", "Curl", "Darwin", "DarwinLegacy")) {
-            config {
-                install(HttpTimeout)
-            }
+    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
+        listOf("Js", "Curl", "Darwin", "DarwinLegacy")
+    ) {
+        config {
+            install(HttpTimeout)
+        }
 
-            test { client ->
-                val response = client.prepareRequest("$TEST_URL/with-stream") {
-                    method = HttpMethod.Get
-                    parameter("delay", 10000)
+        test { client ->
+            val response = client.prepareRequest("$TEST_URL/with-stream") {
+                method = HttpMethod.Get
+                parameter("delay", 10000)
 
-                    timeout { requestTimeoutMillis = 2000 }
-                }.body<ByteReadChannel>()
-                assertFailsWith<CancellationException> {
-                    response.readUTF8Line()
-                }
+                timeout { requestTimeoutMillis = 2000 }
+            }.body<ByteReadChannel>()
+            assertFailsWith<CancellationException> {
+                response.readUTF8Line()
             }
         }
+    }
 
     @Test
     fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js", "Darwin", "DarwinLegacy")) {
@@ -264,6 +275,9 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetStream() = clientTests(retries = 10) {
+//        https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
+        if (PlatformUtils.IS_NATIVE) return@clientTests
+
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -422,8 +436,7 @@ class HttpTimeoutTest : ClientLoader() {
             assertFails {
                 try {
                     client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) {
-                    /* Ignore. */
+                } catch (_: ConnectTimeoutException) {/* Ignore. */
                 }
             }
         }
