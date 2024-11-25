@@ -173,6 +173,10 @@ public abstract interface class io/ktor/utils/io/ChannelJob {
 	public abstract fun getJob ()Lkotlinx/coroutines/Job;
 }
 
+public final class io/ktor/utils/io/CloseHookByteWriteChannelKt {
+	public static final fun onClose (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
 public final class io/ktor/utils/io/ConcurrentIOException : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

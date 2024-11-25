@@ -14,7 +14,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -309,7 +308,7 @@ public fun CoroutineScope.reader(
         }
     }
 
-    return ReaderJob(channel, job)
+    return ReaderJob(channel.onClose { job.join() }, job)
 }
 
 /**
