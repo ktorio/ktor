@@ -81,8 +81,9 @@ actual abstract class EngineTestBase<
         System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
     }
 
-    @BeforeEach
-    fun setUpBase() {
+    override fun beforeTest() {
+        super.beforeTest()
+
         val method = testMethod.orElseThrow { AssertionError("Method $testName not found") }
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
@@ -95,8 +96,7 @@ actual abstract class EngineTestBase<
         testLog.trace("Starting server on port $port (SSL $sslPort)")
     }
 
-    @AfterEach
-    fun tearDownBase() {
+    override fun afterTest() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
@@ -105,6 +105,7 @@ actual abstract class EngineTestBase<
             testJob.cancel()
             FreePorts.recycle(port)
             FreePorts.recycle(sslPort)
+            super.afterTest()
         }
     }
 
