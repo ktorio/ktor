@@ -1,17 +1,12 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.tasks.*
 
-fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
-    kotlinOptions {
-        if (platformType == KotlinPlatformType.jvm && !IDEA_ACTIVE) {
-            allWarningsAsErrors = true
-        }
-
-        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-        freeCompilerArgs += "-Xexpect-actual-classes"
+fun KotlinCompilationTask<*>.configureCompilerOptions() {
+    compilerOptions {
+        progressiveMode.set(true)
+        freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 }

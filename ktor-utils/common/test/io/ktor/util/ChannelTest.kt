@@ -6,8 +6,8 @@ package io.ktor.util
 
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.test.*
 
 class ChannelTest {
@@ -46,10 +46,10 @@ class ChannelTest {
         }
 
         val firstResult = async(Dispatchers.Unconfined) {
-            first.readRemaining().readBytes()
+            first.readRemaining().readByteArray()
         }
         val secondResult = async(Dispatchers.Unconfined) {
-            second.readRemaining().readBytes()
+            second.readRemaining().readByteArray()
         }
 
         val results = listOf(firstResult, secondResult).awaitAll()
@@ -68,20 +68,20 @@ class ChannelTest {
 
         val message = "Expected reason"
 
-        launch(Dispatchers.Unconfined) {
+        launch(Dispatchers.Default) {
             source.cancel(IllegalStateException(message))
         }
 
-        assertFailsWithMessage(message) {
-            val firstResult = GlobalScope.async(Dispatchers.Unconfined) {
-                first.readRemaining().readBytes()
+        assertFailsWith<IOException> {
+            val firstResult = GlobalScope.async(Dispatchers.Default) {
+                first.readRemaining().readByteArray()
             }
             firstResult.await()
         }
 
-        assertFailsWithMessage(message) {
-            val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readBytes()
+        assertFailsWith<IOException> {
+            val secondResult = GlobalScope.async(Dispatchers.Default) {
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }
@@ -90,7 +90,7 @@ class ChannelTest {
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testCopyToBothCancelFirstReader() = testSuspend {
-        val data = ByteArray(16 * 1024) { it.toByte() }
+        val data = ByteArray(16 * 1024 * 1024) { it.toByte() }
         val source = ByteChannel()
         val first = ByteChannel()
         val second = ByteChannel()
@@ -101,27 +101,28 @@ class ChannelTest {
 
         val sourceResult = GlobalScope.async(Dispatchers.Unconfined) {
             source.writeFully(data)
+            source.writeFully(data)
             source.close()
         }
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWithMessage(message) {
+        assertFailsWith<IOException> {
             sourceResult.await()
         }
 
-        assertFailsWithMessage(message) {
+        assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readBytes()
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
     @Test
     fun testCopyToBothCancelSecondReader() = testSuspend {
-        val data = ByteArray(16 * 1024) { it.toByte() }
+        val data = ByteArray(16 * 1024 * 1024) { it.toByte() }
         val source = ByteChannel()
         val first = ByteChannel()
         val second = ByteChannel()
@@ -132,34 +133,23 @@ class ChannelTest {
 
         val sourceResult = GlobalScope.async(Dispatchers.Unconfined) {
             source.writeFully(data)
+            source.writeFully(data)
             source.close()
         }
 
         first.cancel(IllegalStateException(message))
 
-        assertFailsWithMessage(message) {
+        assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readBytes()
+                second.readRemaining().readByteArray()
             }
             secondResult.await()
         }
 
-        assertFailsWithMessage(message) {
+        assertFailsWith<IOException>(message) {
             sourceResult.await()
         }
     }
-}
-
-private inline fun assertFailsWithMessage(message: String, block: () -> Unit) {
-    var fail = false
-    try {
-        block()
-    } catch (cause: Throwable) {
-        assertEquals(message, cause.message)
-        fail = true
-    }
-
-    assertTrue(fail)
 }
 
 private fun assertArrayEquals(expected: ByteArray, actual: ByteArray) {

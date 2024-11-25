@@ -10,7 +10,6 @@ package io.ktor.util
 @JsName("AttributesJsFn")
 public actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
 
-@Suppress("KDocMissingDocumentation")
 public class AttributesJs : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()
 

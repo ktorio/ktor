@@ -1,63 +1,57 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:Suppress("UNUSED_VARIABLE")
 
+import internal.*
 import org.gradle.api.*
+import org.gradle.internal.extensions.stdlib.*
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import java.io.*
+import kotlin.toString
 
 fun Project.configureJs() {
-    configureJsTasks()
-
     kotlin {
+        js {
+            if (project.targetIsEnabled("js.nodeJs")) nodejs { useMochaForTests() }
+            if (project.targetIsEnabled("js.browser")) browser { useKarmaForTests() }
+
+            binaries.library()
+        }
+
         sourceSets {
-            val jsTest by getting {
+            jsTest {
                 dependencies {
-                    implementation(npm("puppeteer", Versions.puppeteer))
+                    implementation(npm("puppeteer", libs.versions.puppeteer.get()))
                 }
             }
         }
     }
 
-    configureJsTestTasks()
+    configureJsTestTasks(target = "js")
 }
 
-private fun Project.configureJsTasks() {
-    kotlin {
-        js(IR) {
-            nodejs {
-                testTask(
-                    Action {
-                        useMocha {
-                            timeout = "10000"
-                        }
-                    }
-                )
-            }
-
-            browser {
-                testTask(
-                    Action {
-                        useKarma {
-                            useChromeHeadless()
-                            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
-                        }
-                    }
-                )
-            }
-
-            binaries.library()
+internal fun KotlinJsSubTargetDsl.useMochaForTests() {
+    testTask {
+        useMocha {
+            timeout = "10000"
         }
     }
 }
 
-private fun Project.configureJsTestTasks() {
+internal fun KotlinJsSubTargetDsl.useKarmaForTests() {
+    testTask {
+        useKarma {
+            useChromeHeadless()
+            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
+        }
+    }
+}
+
+internal fun Project.configureJsTestTasks(target: String) {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunJsBrowserTest) return
 
-    val cleanJsBrowserTest by tasks.getting
-    val jsBrowserTest by tasks.getting
-    cleanJsBrowserTest.onlyIf { false }
-    jsBrowserTest.onlyIf { false }
+    tasks.maybeNamed("clean${target.capitalized()}BrowserTest") { onlyIf { false } }
+    tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
 }

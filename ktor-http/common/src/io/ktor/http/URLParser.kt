@@ -57,6 +57,12 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
         return this
     }
 
+    if (protocol.name == "about") {
+        require(slashCount == 0)
+        host = urlString.substring(startIndex, endIndex)
+        return this
+    }
+
     if (slashCount >= 2) {
         loop@ while (true) {
             val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
@@ -179,10 +185,10 @@ private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: In
 
     host = urlString.substring(startIndex, colonIndex)
 
-    if (colonIndex + 1 < endIndex) {
-        port = urlString.substring(colonIndex + 1, endIndex).toInt()
+    port = if (colonIndex + 1 < endIndex) {
+        urlString.substring(colonIndex + 1, endIndex).toInt()
     } else {
-        port = DEFAULT_PORT
+        DEFAULT_PORT
     }
 }
 

@@ -15,7 +15,7 @@ import kotlinx.atomicfu.*
  *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
-public actual abstract class NetworkAddress constructor(
+public actual abstract class NetworkAddress(
     public val hostname: String,
     public val port: Int,
     explicitAddress: Any? = null

@@ -5,6 +5,8 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
@@ -15,13 +17,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import java.time.*
 import java.util.concurrent.*
 import kotlin.math.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class OAuth1aSignatureTest {
     @Test
     fun testSignatureBaseString() {
@@ -82,7 +82,6 @@ class OAuth1aSignatureTest {
     }
 }
 
-@Suppress("DEPRECATION")
 class OAuth1aFlowTest {
     private var testClient: HttpClient? = null
 
@@ -175,7 +174,6 @@ class OAuth1aFlowTest {
     }
 
     private val executor = Executors.newSingleThreadExecutor()
-    private val dispatcher = executor.asCoroutineDispatcher()
 
     private val settings = OAuthServerSettings.OAuth1aServerSettings(
         name = "oauth1a",
@@ -192,102 +190,88 @@ class OAuth1aFlowTest {
     }
 
     @Test
-    fun testRequestToken() {
-        withTestApplication {
-            application.configureServer("http://localhost/login?redirected=true")
+    fun testRequestToken() = testApplication {
+        configureServer("http://localhost/login?redirected=true")
 
-            val result = handleRequest(HttpMethod.Get, "/login")
+        val response = client.config { followRedirects = false }
+            .get("/login")
 
-            waitExecutor()
+        waitExecutor()
 
-            assertEquals(HttpStatusCode.Found, result.response.status())
-            assertNull(result.response.content)
-            assertEquals(
-                "https://login-server-com/oauth/authorize?oauth_token=token1",
-                result.response.headers[HttpHeaders.Location],
-                "Redirect target location is not valid"
-            )
-        }
+        assertEquals(HttpStatusCode.Found, response.status)
+        assertTrue(response.bodyAsText().isEmpty())
+        assertEquals(
+            "https://login-server-com/oauth/authorize?oauth_token=token1",
+            response.headers[HttpHeaders.Location],
+            "Redirect target location is not valid"
+        )
     }
 
     @Test
-    fun testRequestTokenWrongConsumerKey() {
-        withTestApplication {
-            application.configureServer(
-                "http://localhost/login?redirected=true",
-                mutateSettings = {
-                    OAuthServerSettings.OAuth1aServerSettings(
-                        name,
-                        requestTokenUrl,
-                        authorizeUrl,
-                        accessTokenUrl,
-                        "badConsumerKey",
-                        consumerSecret
-                    )
-                }
-            )
-
-            val result = handleRequest(HttpMethod.Get, "/login")
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
-        }
-    }
-
-    @Test
-    fun testRequestTokenFailedRedirect() {
-        withTestApplication {
-            application.configureServer("http://localhost/login")
-
-            val result = handleRequest(HttpMethod.Get, "/login")
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Unauthorized, result.response.status())
-        }
-    }
-
-    @Test
-    fun testAccessToken() {
-        withTestApplication {
-            application.configureServer()
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1"
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertFalse { result.response.content!!.contains("[]") }
-        }
-    }
-
-    @Test
-    fun testAccessTokenWrongVerifier() {
-        withTestApplication {
-            application.configureServer()
-
-            val result = handleRequest(
-                HttpMethod.Get,
-                "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2"
-            )
-
-            waitExecutor()
-
-            assertEquals(HttpStatusCode.Found, result.response.status())
-            assertNotNull(result.response.headers[HttpHeaders.Location])
-            assertTrue {
-                result.response.headers[HttpHeaders.Location]!!
-                    .startsWith("https://login-server-com/oauth/authorize")
+    fun testRequestTokenWrongConsumerKey() = testApplication {
+        configureServer(
+            "http://localhost/login?redirected=true",
+            mutateSettings = {
+                OAuthServerSettings.OAuth1aServerSettings(
+                    name,
+                    requestTokenUrl,
+                    authorizeUrl,
+                    accessTokenUrl,
+                    "badConsumerKey",
+                    consumerSecret
+                )
             }
+        )
+
+        val response = client.get("/login")
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun testRequestTokenFailedRedirect() = testApplication {
+        configureServer("http://localhost/login")
+
+        val response = client.get("/login")
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun testAccessToken() = testApplication {
+        configureServer()
+
+        val response = client.get("/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue { response.bodyAsText().startsWith("Ho, ") }
+        assertFalse { response.bodyAsText().contains("[]") }
+    }
+
+    @Test
+    fun testAccessTokenWrongVerifier() = testApplication {
+        configureServer()
+
+        val response = client.config { followRedirects = false }
+            .get("/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2")
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.Found, response.status)
+        assertNotNull(response.headers[HttpHeaders.Location])
+        assertTrue {
+            response.headers[HttpHeaders.Location]!!
+                .startsWith("https://login-server-com/oauth/authorize")
         }
     }
 
-    private fun Application.configureServer(
+    private fun ApplicationTestBuilder.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
         OAuthServerSettings.OAuth1aServerSettings = { this }
@@ -349,7 +333,7 @@ private interface TestingOAuthServer {
 
 private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     val environment = createTestEnvironment {}
-    val props = applicationProperties(environment) {
+    val props = serverConfig(environment) {
         module {
             routing {
                 post("/oauth/request_token") {
@@ -464,7 +448,7 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
         }
     }
     val embeddedServer = EmbeddedServer(props, TestEngine)
-    embeddedServer.start()
+    embeddedServer.start(wait = false)
     return embeddedServer.engine.client.config {
         expectSuccess = false
     }

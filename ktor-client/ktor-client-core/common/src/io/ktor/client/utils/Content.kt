@@ -13,10 +13,8 @@ import kotlin.coroutines.*
 /**
  * Concrete [OutgoingContent] without a payload.
  */
-public object EmptyContent : OutgoingContent.NoContent() {
+public data object EmptyContent : OutgoingContent.NoContent() {
     override val contentLength: Long = 0
-
-    override fun toString(): String = "EmptyContent"
 }
 
 /**

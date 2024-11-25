@@ -7,6 +7,7 @@ package io.ktor.test.dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
 import kotlin.coroutines.*
+import kotlin.time.*
 
 /**
  * Test runner for js suspend tests.
@@ -16,7 +17,6 @@ public actual fun testSuspend(
     context: CoroutineContext,
     timeoutMillis: Long,
     block: suspend CoroutineScope.() -> Unit
-): TestResult = GlobalScope.promise(block = {
-    withTimeout(timeoutMillis, block)
-    null
-}, context = context)
+): TestResult = runTest(context = context, timeout = timeoutMillis.toDuration(DurationUnit.MILLISECONDS)) {
+    block()
+}

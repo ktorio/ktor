@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.contentnegotiation.tests
@@ -10,7 +10,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -19,19 +18,66 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
 
     @Serializable
     data class Wrapper(val value: String)
 
-    fun startServer(testApplicationEngine: Application) {
-        testApplicationEngine.install(ContentNegotiation) {
+    @Test
+    open fun testBadlyFormattedJson() = testApplication {
+        configureUnwrappingRoute()
+
+        client.post("/") {
+            header("Content-Type", "application/json")
+            setBody(""" {"value" : "bad_json" """)
+        }.let { response ->
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+    }
+
+    @Test
+    open fun testJsonWithNullValue() = testApplication {
+        configureUnwrappingRoute()
+
+        client.post("/") {
+            header("Content-Type", "application/json")
+            setBody(""" {"val" : "bad_json" } """)
+        }.let { response ->
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+    }
+
+    @Test
+    open fun testClearValidJson() = testApplication {
+        configureUnwrappingRoute()
+
+        client.post("/") {
+            header("Content-Type", "application/json")
+            setBody(""" {"value" : "value" }""")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    open fun testValidJsonWithExtraFields() = testApplication {
+        configureUnwrappingRoute()
+
+        client.post("/") {
+            header("Content-Type", "application/json")
+            setBody(""" {"value" : "value", "val" : "bad_json" } """)
+        }.let { response ->
+            assertEquals(extraFieldResult, response.status)
+        }
+    }
+
+    private fun ApplicationTestBuilder.configureUnwrappingRoute() {
+        install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
 
-        testApplicationEngine.routing {
+        routing {
             post("/") {
                 val wrapper = call.receive<Wrapper>()
                 call.respond(wrapper.value)
@@ -40,55 +86,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testBadlyFormattedJson(): Unit = withTestApplication {
-        startServer(application)
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Content-Type", "application/json")
-            setBody(""" {"value" : "bad_json" """)
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-    }
-
-    @Test
-    open fun testJsonWithNullValue(): Unit = withTestApplication {
-        startServer(application)
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Content-Type", "application/json")
-            setBody(""" {"val" : "bad_json" } """)
-        }.let { call ->
-            assertEquals(HttpStatusCode.BadRequest, call.response.status())
-        }
-    }
-
-    @Test
-    open fun testClearValidJson(): Unit = withTestApplication {
-        startServer(application)
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Content-Type", "application/json")
-            setBody(""" {"value" : "value" }""")
-        }.let { call ->
-            assertEquals(HttpStatusCode.OK, call.response.status())
-        }
-    }
-
-    @Test
-    open fun testValidJsonWithExtraFields(): Unit = withTestApplication {
-        startServer(application)
-
-        handleRequest(HttpMethod.Post, "/") {
-            addHeader("Content-Type", "application/json")
-            setBody(""" {"value" : "value", "val" : "bad_json" } """)
-        }.let { call ->
-            assertEquals(extraFieldResult, call.response.status())
-        }
-    }
-
-    @Test
-    open fun testSendJsonStringServer(): Unit = testApplication {
+    open fun testSendJsonStringServer() = testApplication {
         routing {
             get("/") {
                 call.respond("abc")
@@ -105,7 +103,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringServer(): Unit = testApplication {
+    open fun testReceiveJsonStringServer() = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()
             register(ContentType.Application.Json, converter)
@@ -126,7 +124,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testReceiveJsonStringClient(): Unit = testApplication {
+    open fun testReceiveJsonStringClient() = testApplication {
         routing {
             get("/") {
                 call.respond(TextContent("\"abc\"", ContentType.Application.Json))
@@ -144,7 +142,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testSendJsonStringClient(): Unit = testApplication {
+    open fun testSendJsonStringClient() = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()
@@ -167,7 +165,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullServer(): Unit = testApplication {
+    open fun testJsonNullServer() = testApplication {
         install(ContentNegotiation) {
             register(ContentType.Application.Json, converter)
         }
@@ -188,7 +186,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     }
 
     @Test
-    open fun testJsonNullClient(): Unit = testApplication {
+    open fun testJsonNullClient() = testApplication {
         routing {
             post("/") {
                 val request = call.receive<String>()

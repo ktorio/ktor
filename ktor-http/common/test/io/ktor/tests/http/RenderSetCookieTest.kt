@@ -22,16 +22,15 @@ class RenderSetCookieTest {
     }
 
     @Test
-    fun renderCookieThrowsOnNotEncodedExtensions() {
+    fun renderCookieExtensionsWithNotRecommendedSymbols() {
         val cookie = Cookie(
             "name",
             "value",
             encoding = CookieEncoding.BASE64_ENCODING,
             extensions = mapOf("foo" to "b,ar")
         )
-        assertFailsWith<IllegalArgumentException> {
-            renderSetCookieHeader(cookie)
-        }
+        val rendered = renderSetCookieHeader(cookie)
+        assertEquals("name=dmFsdWU=; foo=b,ar; \$x-enc=BASE64_ENCODING", rendered)
     }
 
     @Test

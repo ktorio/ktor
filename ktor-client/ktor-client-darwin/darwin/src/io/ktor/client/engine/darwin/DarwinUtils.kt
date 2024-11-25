@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.*
 
@@ -112,5 +113,4 @@ internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R)
     }
 }
 
-@Suppress("KDocMissingDocumentation")
 public class DarwinHttpRequestException(public val origin: NSError) : IOException("Exception in http request: $origin")

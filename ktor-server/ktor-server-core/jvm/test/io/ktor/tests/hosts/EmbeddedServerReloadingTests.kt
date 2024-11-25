@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused", "UNUSED_PARAMETER")
@@ -7,8 +7,8 @@
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
+import io.ktor.client.request.*
 import io.ktor.events.*
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
@@ -36,7 +36,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -62,7 +62,7 @@ class EmbeddedServerReloadingTests {
             )
         }
 
-        val props = applicationProperties(environment)
+        val props = serverConfig(environment)
         val server = EmbeddedServer(props, DummyEngineFactory)
 
         server.start()
@@ -85,7 +85,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -111,7 +111,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -137,7 +137,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -164,7 +164,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -191,7 +191,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -217,7 +217,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -244,7 +244,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -270,7 +270,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -294,7 +294,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -319,7 +319,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -343,7 +343,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -367,7 +367,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -393,7 +393,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -417,7 +417,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -443,7 +443,7 @@ class EmbeddedServerReloadingTests {
                 )
             )
         }
-        val props = applicationProperties(environment) {
+        val props = serverConfig(environment) {
             developmentMode = false
         }
         val server = EmbeddedServer(props, DummyEngineFactory)
@@ -542,7 +542,7 @@ class EmbeddedServerReloadingTests {
     @Test
     fun `application is available before environment start`() {
         val env = dummyEnv()
-        val props = applicationProperties(env)
+        val props = serverConfig(env)
         val server = EmbeddedServer(props, DummyEngineFactory)
         val app = server.application
         server.start()
@@ -552,7 +552,7 @@ class EmbeddedServerReloadingTests {
     @Test
     fun `completion handler is invoked when attached before environment start`() {
         val env = dummyEnv()
-        val props = applicationProperties(env)
+        val props = serverConfig(env)
         val server = EmbeddedServer(props, DummyEngineFactory)
         val job = server.application.coroutineContext[Job]!!
 
@@ -571,7 +571,7 @@ class EmbeddedServerReloadingTests {
 
     @Test
     fun `interceptor is invoked when added before environment start`() {
-        val server = EmbeddedServer(applicationProperties(), TestEngine) {}
+        val server = EmbeddedServer(serverConfig(), TestEngine) {}
         val engine = server.engine
         server.application.intercept(ApplicationCallPipeline.Plugins) {
             call.response.header("Custom", "Value")
@@ -585,7 +585,8 @@ class EmbeddedServerReloadingTests {
                 }
             }
 
-            assertEquals("Value", engine.handleRequest(HttpMethod.Get, "/").response.headers["Custom"])
+            val response = runBlocking { engine.client.get("/") }
+            assertEquals("Value", response.headers["Custom"])
         } catch (cause: Throwable) {
             fail("Failed with an exception: ${cause.message}")
         } finally {

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 repositories {
     google()
@@ -30,8 +30,8 @@ kotlin {
             kotlin.srcDir("android/test")
             dependencies {
                 implementation(project(":ktor-client:ktor-client-cio"))
-                implementation(kotlin("test-junit5"))
-                implementation("org.mockito:mockito-core:3.12.4")
+                implementation(libs.kotlin.test.junit5)
+                implementation("org.mockito:mockito-core:5.14.2")
             }
         }
     }

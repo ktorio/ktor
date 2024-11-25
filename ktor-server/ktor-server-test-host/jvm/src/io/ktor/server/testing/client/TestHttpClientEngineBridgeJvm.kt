@@ -1,8 +1,8 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// ktlint-disable filename
 package io.ktor.server.testing.client
 
 import io.ktor.client.engine.*
@@ -29,7 +29,7 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
         val sessionDeferred = CompletableDeferred<WebSocketSession>()
-        val call = app.handleWebSocketConversationNonBlocking(
+        val call = app.handleWebSocketConversation(
             url,
             { with(engine) { appendRequestHeaders(headers, content) } },
             awaitCallback = false,

@@ -5,7 +5,6 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.experimental.*
 
@@ -31,6 +30,7 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,
+        retries: Int,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         if (skipEngines.any { it.startsWith("native") }) return

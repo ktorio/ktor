@@ -50,7 +50,7 @@ internal class SocketImpl<out S : SocketChannel>(
             if (channel.finishConnect()) {
                 // TCP has a well known self-connect problem, which client can connect to the client itself
                 // without any program listen on the port.
-                if (selfConnect()) {
+                if (inetSelfConnect()) {
                     if (java7NetworkApisAvailable) {
                         channel.close()
                     } else {
@@ -74,7 +74,7 @@ internal class SocketImpl<out S : SocketChannel>(
         interestOp(SelectInterest.CONNECT, state)
     }
 
-    private fun selfConnect(): Boolean {
+    private fun inetSelfConnect(): Boolean {
         val localAddress = if (java7NetworkApisAvailable) {
             channel.localAddress
         } else {
@@ -92,6 +92,10 @@ internal class SocketImpl<out S : SocketChannel>(
 
         val localInetSocketAddress = localAddress as? java.net.InetSocketAddress
         val remoteInetSocketAddress = remoteAddress as? java.net.InetSocketAddress
+
+        if (localInetSocketAddress == null && remoteInetSocketAddress == null) {
+            return false
+        }
 
         val localHostAddress = localInetSocketAddress?.address?.hostAddress ?: ""
         val remoteHostAddress = remoteInetSocketAddress?.address?.hostAddress ?: ""

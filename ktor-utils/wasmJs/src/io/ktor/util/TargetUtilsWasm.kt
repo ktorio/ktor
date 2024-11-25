@@ -15,7 +15,7 @@ private fun toJsArrayImpl(vararg x: Byte): Int8Array = js("new Int8Array(x)")
 public actual fun ByteArray.toJsArray(): Int8Array = toJsArrayImpl(*this)
 
 public actual fun Int8Array.toByteArray(): ByteArray =
-    ByteArray(this.length) { this.get(it) }
+    ByteArray(this.length) { this[it] }
 
 @Suppress("DEPRECATION_ERROR")
 internal actual suspend fun Promise<ArrayBuffer>.awaitBuffer(): ArrayBuffer =

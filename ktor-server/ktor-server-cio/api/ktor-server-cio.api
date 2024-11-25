@@ -10,7 +10,9 @@ public final class io/ktor/server/cio/CIOApplicationEngine : io/ktor/server/engi
 	public fun <init> (Lio/ktor/server/application/ApplicationEnvironment;Lio/ktor/events/Events;ZLio/ktor/server/cio/CIOApplicationEngine$Configuration;Lkotlin/jvm/functions/Function0;)V
 	public final fun getConfiguration ()Lio/ktor/server/cio/CIOApplicationEngine$Configuration;
 	public fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
+	public fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun stop (JJ)V
+	public fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/cio/CIOApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {

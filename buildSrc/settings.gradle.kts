@@ -1,22 +1,29 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
-pluginManagement {
-    val build_snapshot_train: String? by settings
-    repositories {
-        maven("https://plugins.gradle.org/m2")
-        if (build_snapshot_train?.toBoolean() == true) {
-            mavenLocal()
-        }
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
-    }
+pluginManagement {
+    includeBuild("../gradle-settings-conventions")
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention")
+    id("conventions-dependency-resolution-management")
 }
 
 dependencyResolutionManagement {
-    versionCatalogs {
-        val libs by creating {
-            from(files("../gradle/libs.versions.toml"))
+    // Additional repositories for buildSrc dependencies
+    @Suppress("UnstableApiUsage")
+    repositories {
+        gradlePluginPortal()
+
+        exclusiveContent {
+            forRepository {
+                maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") { name = "KtorEAP" }
+            }
+            filter { includeGroup("io.ktor") }
         }
     }
 }
+
+rootProject.name = "buildSrc"

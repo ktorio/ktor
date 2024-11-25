@@ -22,14 +22,15 @@ import kotlin.native.concurrent.*
  * See [Json] for more details.
  */
 
-public val DefaultJson: Json = Json {
-    encodeDefaults = true
-    isLenient = true
-    allowSpecialFloatingPointValues = true
-    allowStructuredMapKeys = true
-    prettyPrint = false
-    useArrayPolymorphism = false
-}
+public val DefaultJson: Json =
+    Json {
+        encodeDefaults = true
+        isLenient = true
+        allowSpecialFloatingPointValues = true
+        allowStructuredMapKeys = true
+        prettyPrint = false
+        useArrayPolymorphism = false
+    }
 
 /**
  * Registers the `application/json` (or another specified [contentType]) content type
@@ -55,4 +56,21 @@ public fun Configuration.json(
     contentType: ContentType = ContentType.Application.Json
 ) {
     serialization(contentType, json)
+}
+
+/**
+ * Registers the `application/json` (or another specified [contentType]) content type
+ * to the [ContentNegotiation] plugin using kotlinx.serialization.
+ *
+ * This uses the experimental JSON support for kotlinx-io to stream content more efficiently.
+ *
+ * @param json A JSON instance used for serialization and deserialization. Defaults to an instance of DefaultJson.
+ * @param contentType The content type to be associated with the JSON converter. Defaults to ContentType.Application.Json.
+ */
+@ExperimentalSerializationApi
+public fun Configuration.jsonIo(
+    json: Json = DefaultJson,
+    contentType: ContentType = ContentType.Application.Json
+) {
+    register(contentType, ExperimentalJsonConverter(json))
 }

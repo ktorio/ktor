@@ -120,14 +120,14 @@ public abstract class JWTPayloadHolder(
  * @param payload JWT
  * @see Payload
  */
-public class JWTCredential(payload: Payload) : Credential, JWTPayloadHolder(payload)
+public class JWTCredential(payload: Payload) : JWTPayloadHolder(payload)
 
 /**
  * A JWT principal that consists of the specified [payload].
  * @param payload JWT
  * @see Payload
  */
-public class JWTPrincipal(payload: Payload) : Principal, JWTPayloadHolder(payload)
+public class JWTPrincipal(payload: Payload) : JWTPayloadHolder(payload)
 
 /**
  * A JWT verifier function used to verify a token format and its signature.
@@ -152,17 +152,26 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         val call = context.call
         val token = authHeader(call)
         if (token == null) {
+            JWTLogger.debug("JWT authentication failed: No credentials provided")
             context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes, challengeFunction)
             return
         }
 
         try {
-            val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticationFunction)
+            val jwtVerifier = verifier(token)
+            if (jwtVerifier == null) {
+                JWTLogger.debug("JWT authentication failed: Unable to create JWT verifier")
+                context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes, challengeFunction)
+                return
+            }
+
+            val principal = verifyAndValidate(call, jwtVerifier, token, schemes, authenticationFunction)
             if (principal != null) {
                 context.principal(name, principal)
                 return
             }
 
+            JWTLogger.debug("JWT authentication failed: Invalid credentials")
             context.bearerChallenge(
                 AuthenticationFailedCause.InvalidCredentials,
                 realm,
@@ -171,7 +180,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
             )
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
-            JWTLogger.trace("JWT verification failed", cause)
+            JWTLogger.debug("JWT authentication failed: $message", cause)
             context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
         }
     }
@@ -296,7 +305,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * Allows you to perform additional validations on the JWT payload.
          * @return a principal (usually an instance of [JWTPrincipal]) or `null`
          */
-        public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
+        public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Any?) {
             authenticationFunction = validate
         }
 

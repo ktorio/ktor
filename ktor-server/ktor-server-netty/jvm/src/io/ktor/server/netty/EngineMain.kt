@@ -18,9 +18,9 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.applicationProperties, Netty) {
+        val server = EmbeddedServer(config.rootConfig, Netty) {
             takeFrom(config.engineConfig)
-            loadConfiguration(config.applicationProperties.environment.config)
+            loadConfiguration(config.rootConfig.environment.config)
         }
         server.start(true)
     }

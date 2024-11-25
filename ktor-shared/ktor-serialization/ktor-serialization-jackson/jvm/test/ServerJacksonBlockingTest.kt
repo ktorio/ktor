@@ -19,7 +19,6 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-@Suppress("DEPRECATION")
 class ServerJacksonBlockingTest {
     private val dispatcher = UnsafeDispatcher()
 
@@ -29,8 +28,8 @@ class ServerJacksonBlockingTest {
     }
 
     @Test
-    fun testReceive(): Unit = testApplication {
-        testApplicationProperties {
+    fun testReceive() = testApplication {
+        serverConfig {
             parentCoroutineContext = dispatcher
         }
         application {

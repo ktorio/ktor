@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -24,6 +24,26 @@ class UrlTest {
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
         assertEquals(urlString, "$url")
+    }
+
+    @Test
+    fun testSegments() {
+        val full = Url("https://ktor.io/docs")
+        val absoluteWithTrailing = Url("/docs/")
+        val absolute = Url("/docs")
+        val relative = Url("docs")
+        val relativeWithTrailing = Url("docs/")
+        val empty = Url("https://ktor.io")
+        val emptyWithTrailing = Url("http://ktor.io/")
+
+        val expected = listOf("docs")
+        assertContentEquals(expected, full.segments)
+        assertContentEquals(expected, absolute.segments)
+        assertContentEquals(expected, absoluteWithTrailing.segments)
+        assertContentEquals(expected, relative.segments)
+        assertContentEquals(expected, relativeWithTrailing.segments)
+        assertContentEquals(emptyList<String>(), empty.segments)
+        assertContentEquals(emptyList(), emptyWithTrailing.segments)
     }
 
     @Test
@@ -315,5 +335,34 @@ class UrlTest {
         assertTrue(Url("hello").isRelativePath)
         assertTrue(Url("").isRelativePath)
         assertTrue(Url("hello/world").isRelativePath)
+    }
+
+    @Test
+    fun testParseUrl() {
+        val url = parseUrl("https://ktor.io/docs")
+        assertNotNull(url)
+        assertEquals("https", url.protocol.name)
+        assertEquals("ktor.io", url.host)
+
+        assertEquals(null, parseUrl("incorrecturl"))
+        assertEquals(null, parseUrl("http://localhost:7000Value"))
+    }
+
+    @Test
+    fun testAboutUrl() {
+        val aboutBlankUrl = Url("about:blank")
+        assertEquals("about:blank", aboutBlankUrl.toString())
+        assertEquals("about", aboutBlankUrl.protocol.name)
+        assertEquals("blank", aboutBlankUrl.host)
+
+        val aboutVersionUrl = Url("about:version")
+        assertEquals("about:version", aboutVersionUrl.toString())
+        assertEquals("about", aboutVersionUrl.protocol.name)
+        assertEquals("version", aboutVersionUrl.host)
+
+        val urlHttp = Url("about")
+        assertEquals("localhost", urlHttp.host)
+        assertEquals(URLProtocol.HTTP, urlHttp.protocol)
+        assertTrue(urlHttp.rawSegments.contains("about"))
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.client.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
@@ -13,10 +17,7 @@ import kotlinx.coroutines.*
 import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import kotlin.test.*
-
-/*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+import kotlin.time.Duration.Companion.seconds
 
 class DarwinEngineTest {
 
@@ -189,6 +190,27 @@ class DarwinEngineTest {
         }
     }
 
+    // Issue: KTOR-7355
+    @Test
+    fun testOverrideDefaultSessionWithoutDelegate() {
+        val result = runCatching {
+            HttpClient(Darwin) {
+                engine {
+                    usePreconfiguredSession(
+                        session = NSURLSession.sessionWithConfiguration(
+                            NSURLSessionConfiguration.defaultSessionConfiguration()
+                        ),
+                        delegate = KtorNSURLSessionDelegate(),
+                    )
+                }
+            }
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            result.getOrThrow()
+        }
+    }
+
     @Test
     fun testConfigureRequest(): Unit = runBlocking {
         val client = HttpClient(Darwin) {
@@ -236,13 +258,13 @@ class DarwinEngineTest {
     fun testWebSocketPingInterval() = testSuspend {
         val client = HttpClient(Darwin) {
             install(WebSockets) {
-                pingInterval = 1000
+                pingInterval = 1.seconds
             }
         }
 
         assertFailsWith<TimeoutCancellationException> {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                withTimeout(5000) {
+                withTimeout(5.seconds) {
                     for (frame in incoming) {
                     }
                 }

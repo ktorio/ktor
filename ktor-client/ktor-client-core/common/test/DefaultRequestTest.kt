@@ -1,4 +1,3 @@
-
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
@@ -249,6 +248,26 @@ class DefaultRequestTest {
         }
 
         request.execute()
+    }
+
+    @Test
+    fun testDefaultRequestConfigDoesntOverrideUserHeaders() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.headers[HttpHeaders.ContentType] ?: "")
+                }
+            }
+
+            defaultRequest {
+                contentType(ContentType.Application.Json)
+            }
+        }
+        val response = client.get("/") {
+            contentType(ContentType.Application.Xml)
+        }
+
+        assertEquals("application/xml", response.bodyAsText())
     }
 }
 

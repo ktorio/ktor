@@ -153,10 +153,19 @@ internal class JavaHttpWebSocket(
             }
         }
 
-        webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+        var status = HttpStatusCode.SwitchingProtocols
+        try {
+            webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+        } catch (cause: WebSocketHandshakeException) {
+            if (cause.response.statusCode() == HttpStatusCode.Unauthorized.value) {
+                status = HttpStatusCode.Unauthorized
+            } else {
+                throw cause
+            }
+        }
 
         return HttpResponseData(
-            HttpStatusCode.SwitchingProtocols,
+            status,
             requestTime,
             Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,

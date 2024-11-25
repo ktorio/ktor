@@ -35,8 +35,10 @@ public actual fun YamlConfig(path: String?): YamlConfig? {
 private fun configFromString(content: String): YamlConfig {
     val yaml = Yaml.decodeYamlFromString(content) as? YamlMap
         ?: throw ApplicationConfigurationException("Config should be a YAML dictionary")
-    @Suppress("DEPRECATION")
+
     return YamlConfig(yaml).apply { checkEnvironmentVariables() }
 }
 
-internal actual fun getEnvironmentValue(key: String): String? = System.getenv(key)
+internal actual fun getSystemPropertyOrEnvironmentVariable(key: String): String? {
+    return System.getProperty(key) ?: System.getenv(key)
+}

@@ -8,6 +8,7 @@ package io.ktor.server.test.base
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,7 +16,7 @@ import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
@@ -35,7 +36,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-@Suppress("KDocMissingDocumentation")
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
     TConfiguration : ApplicationEngine.Configuration
@@ -81,8 +81,9 @@ actual abstract class EngineTestBase<
         System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
     }
 
-    @BeforeEach
-    fun setUpBase() {
+    override fun beforeTest() {
+        super.beforeTest()
+
         val method = testMethod.orElseThrow { AssertionError("Method $testName not found") }
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
@@ -95,21 +96,21 @@ actual abstract class EngineTestBase<
         testLog.trace("Starting server on port $port (SSL $sslPort)")
     }
 
-    @AfterEach
-    fun tearDownBase() {
+    override fun afterTest() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
-            server?.stop(0, 200, TimeUnit.MILLISECONDS)
+            server?.stop(0, 500, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()
             FreePorts.recycle(port)
             FreePorts.recycle(sslPort)
+            super.afterTest()
         }
     }
 
     protected open fun createServer(
-        log: org.slf4j.Logger? = null,
+        log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
@@ -130,7 +131,7 @@ actual abstract class EngineTestBase<
                 }
             }
         }
-        val properties = applicationProperties(environment) {
+        val properties = serverConfig(environment) {
             this.parentCoroutineContext = parent
             module(module)
         }
@@ -161,10 +162,10 @@ actual abstract class EngineTestBase<
 
     protected actual open fun plugins(application: Application, routingConfig: Route.() -> Unit) {
         application.install(CallLogging)
-        application.install(Routing, routingConfig)
+        application.install(RoutingRoot, routingConfig)
     }
 
-    protected actual fun createAndStartServer(
+    protected actual suspend fun createAndStartServer(
         log: Logger?,
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
@@ -199,7 +200,7 @@ actual abstract class EngineTestBase<
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    protected actual fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+    protected actual suspend fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -215,11 +216,9 @@ actual abstract class EngineTestBase<
         }
 
         return try {
-            runBlocking {
-                starting.join()
-                @OptIn(ExperimentalCoroutinesApi::class)
-                starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-            }
+            starting.join()
+            @OptIn(ExperimentalCoroutinesApi::class)
+            starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
         } catch (t: Throwable) { // InterruptedException?
             starting.cancel()
             listOf(t)
@@ -247,7 +246,7 @@ actual abstract class EngineTestBase<
 
     protected fun findFreePort(): Int = FreePorts.select()
 
-    protected actual fun withUrl(
+    protected actual suspend fun withUrl(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
@@ -273,36 +272,26 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private fun withUrl(
+    private suspend fun withUrl(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ) = runBlocking {
-        HttpClient(CIO) {
-            engine {
-                https.trustManager = trustManager
-                https.serverName = "localhost"
-                requestTimeout = 0
-            }
-            followRedirects = false
-            expectSuccess = false
-        }.use { client ->
-            client.prepareRequest {
-                url.takeFrom(urlString)
-                builder()
-            }.execute { response ->
-                block(response, port)
-            }
+    ) {
+        client.prepareRequest {
+            url.takeFrom(urlString)
+            builder()
+        }.execute { response ->
+            block(response, port)
         }
     }
 
-    private fun withHttp2(
+    private suspend fun withHttp2(
         url: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ): Unit = runBlocking {
+    ) {
         HttpClient(Apache) {
             followRedirects = false
             expectSuccess = false
@@ -326,6 +315,7 @@ actual abstract class EngineTestBase<
         lateinit var keyStore: KeyStore
         lateinit var sslContext: SSLContext
         lateinit var trustManager: X509TrustManager
+        lateinit var client: HttpClient
 
         @BeforeAll
         @JvmStatic
@@ -336,6 +326,25 @@ actual abstract class EngineTestBase<
             sslContext = SSLContext.getInstance("TLS")
             sslContext.init(null, tmf.trustManagers, null)
             trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+
+            client = HttpClient(CIO) {
+                engine {
+                    https.trustManager = trustManager
+                    https.serverName = "localhost"
+                    requestTimeout = 0
+                }
+
+                followRedirects = false
+                expectSuccess = false
+
+                install(HttpRequestRetry)
+            }
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun cleanup() {
+            client.close()
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")

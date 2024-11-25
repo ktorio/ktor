@@ -11,7 +11,7 @@ import kotlin.coroutines.intrinsics.*
 internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     context: TContext,
-    private val blocks: List<PipelineInterceptorFunction<TSubject, TContext>>
+    private val blocks: List<PipelineInterceptor<TSubject, TContext>>
 ) : PipelineContext<TSubject, TContext>(context) {
 
     override val coroutineContext: CoroutineContext get() = continuation.context
@@ -128,7 +128,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             val next = blocks[currentIndex]
 
             try {
-                val result = next(this, subject, continuation)
+                val result = pipelineStartCoroutineUninterceptedOrReturn(next, this, subject, continuation)
                 if (result === COROUTINE_SUSPENDED) return false
             } catch (cause: Throwable) {
                 resumeRootWith(Result.failure(cause))

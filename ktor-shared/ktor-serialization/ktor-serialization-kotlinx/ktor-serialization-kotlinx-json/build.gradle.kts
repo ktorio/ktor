@@ -9,11 +9,17 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
             api(libs.kotlinx.serialization.json)
+            api(libs.kotlinx.serialization.json.io)
         }
     }
     jvmTest {
+        @Suppress("ktlint:standard:max-line-length")
         dependencies {
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")) // ktlint-disable max-line-length
+            api(
+                project(
+                    ":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"
+                )
+            )
         }
     }
     commonTest {

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.serialization.gson
 
@@ -17,7 +17,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.*
 import kotlin.reflect.*
-import kotlin.reflect.jvm.*
 
 /**
  * A content converter that uses [Gson]
@@ -85,14 +84,13 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
     }
 }
 
-@Suppress("DEPRECATION")
 internal fun Gson.isExcluded(type: KClass<*>) =
     excluder().excludeClass(type.java, false)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class ExcludedTypeGsonException(
     private val type: KClass<*>
-) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),
+) : Exception("Type ${type.java.name} is excluded so couldn't be used in receive"),
     CopyableThrowable<ExcludedTypeGsonException> {
 
     override fun createCopy(): ExcludedTypeGsonException = ExcludedTypeGsonException(type).also {

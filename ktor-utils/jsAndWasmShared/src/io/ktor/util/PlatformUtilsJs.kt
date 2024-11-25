@@ -11,7 +11,7 @@ internal actual val PlatformUtils.isDevelopmentMode: Boolean
 internal actual val PlatformUtils.isNewMemoryModel: Boolean
     get() = true
 
-private fun hasNodeApi(): Boolean = js(
+internal fun hasNodeApi(): Boolean = js(
 """
 (typeof process !== 'undefined' 
     && process.versions != null 
@@ -22,6 +22,3 @@ private fun hasNodeApi(): Boolean = js(
     && window.process.versions.node != null)
 """
 )
-
-public actual val PlatformUtils.platform: Platform
-    get() = if (hasNodeApi()) Platform.Node else Platform.Browser

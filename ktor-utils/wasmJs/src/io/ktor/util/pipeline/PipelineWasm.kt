@@ -4,21 +4,15 @@
 
 package io.ktor.util.pipeline
 
+import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
-internal actual fun <TSubject : Any, TContext : Any>
-    PipelineInterceptor<TSubject, TContext>.toFunction(): PipelineInterceptorFunction<TSubject, TContext> =
-    { scope, subject, c ->
-        val wrappedBlock: suspend () -> Unit = {
-            scope.this@toFunction(subject)
-        }
-        wrappedBlock.startCoroutineUninterceptedOrReturn(c)
-    }
-
-internal actual fun <TSubject : Any, TContext : Any>
-    PipelineInterceptorFunction<TSubject, TContext>.toInterceptor(): PipelineInterceptor<TSubject, TContext> =
-    { subject: TSubject ->
-        suspendCoroutineUninterceptedOrReturn { c ->
-            this@toInterceptor(this, subject, c)
-        }
-    }
+internal actual fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUninterceptedOrReturn(
+    interceptor: PipelineInterceptor<TSubject, TContext>,
+    context: PipelineContext<TSubject, TContext>,
+    subject: TSubject,
+    continuation: Continuation<Unit>
+): Any? {
+    val coroutine: suspend () -> Unit = { interceptor.invoke(context, subject) }
+    return coroutine.startCoroutineUninterceptedOrReturn(continuation)
+}

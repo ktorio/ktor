@@ -10,8 +10,8 @@ import java.util.*
 import kotlin.concurrent.*
 
 internal object FreePorts {
-    private val CAPACITY = 20
-    private val CAPACITY_LOW = 10
+    private const val CAPACITY = 20
+    private const val CAPACITY_LOW = 10
 
     private val found = Collections.synchronizedSet(HashSet<Int>())
     private val free = Collections.synchronizedList(LinkedList<Int>())
@@ -20,7 +20,7 @@ internal object FreePorts {
         allocate(CAPACITY)
     }
 
-    public fun select(): Int {
+    fun select(): Int {
         if (free.size < CAPACITY_LOW) {
             thread(name = "free-port-population") {
                 allocate(CAPACITY - free.size)
@@ -37,7 +37,7 @@ internal object FreePorts {
         }
     }
 
-    public fun recycle(port: Int) {
+    fun recycle(port: Int) {
         if (port in found && checkFreePort(port)) {
             free.add(port)
         }

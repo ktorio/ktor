@@ -1,10 +1,12 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = ""
 
 kotlin.sourceSets {
-    jvmAndNixMain {
+    commonMain {
         dependencies {
-            api(kotlin("test"))
-
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
@@ -22,7 +24,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-request-validation"))
 
-            implementation(kotlin("test-junit5"))
+            implementation(libs.kotlin.test.junit5)
 
             implementation(libs.kotlinx.coroutines.debug)
         }

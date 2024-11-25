@@ -20,7 +20,6 @@ private fun tryGetEventDataAsString(data: JsAny): String? =
 private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
     js("data instanceof ArrayBuffer ? data : null")
 
-@Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
     private val websocket: WebSocket
@@ -57,64 +56,61 @@ internal class JsWebSocketSession(
         websocket.binaryType = BinaryType.ARRAYBUFFER
 
         websocket.addEventListener(
-            "message",
-            callback = { it: JsAny ->
-                val event = it.unsafeCast<MessageEvent>()
+            "message"
+        ) { it: JsAny ->
+            val event = it.unsafeCast<MessageEvent>()
 
-                val data = event.data
-                if (data == null) {
-                    val error = IllegalStateException("Empty message - no data for: ${event.type}")
+            val data = event.data
+            if (data == null) {
+                val error = IllegalStateException("Empty message - no data for: ${event.type}")
+                _closeReason.completeExceptionally(error)
+                throw error
+            }
+
+            val dataAsString = tryGetEventDataAsString(data)
+            val frame: Frame = if (dataAsString != null) {
+                Frame.Text(dataAsString)
+            } else {
+                val dataAsBuffer = tryGetEventDataAsArrayBuffer(data)
+                if (dataAsBuffer != null) {
+                    Frame.Binary(false, Uint8Array(dataAsBuffer).asByteArray())
+                } else {
+                    val error = IllegalStateException("Unknown frame type: ${event.type}")
                     _closeReason.completeExceptionally(error)
                     throw error
                 }
-
-                val dataAsString = tryGetEventDataAsString(data)
-                val frame: Frame
-                if (dataAsString != null) {
-                    frame = Frame.Text(dataAsString)
-                } else {
-                    val dataAsBuffer = tryGetEventDataAsArrayBuffer(data)
-                    if (dataAsBuffer != null) {
-                        frame = Frame.Binary(false, Uint8Array(dataAsBuffer).asByteArray())
-                    } else {
-                        val error = IllegalStateException("Unknown frame type: ${event.type}")
-                        _closeReason.completeExceptionally(error)
-                        throw error
-                    }
-                }
-
-                _incoming.trySend(frame)
             }
-        )
+
+            _incoming.trySend(frame)
+        }
 
         websocket.addEventListener(
-            "error",
-            callback = { it: JsAny ->
-                val cause = WebSocketException("$it")
-                _closeReason.completeExceptionally(cause)
-                _incoming.close(cause)
-                _outgoing.cancel()
-            }
-        )
+            "error"
+        ) { it: JsAny ->
+            val cause = WebSocketException("$it")
+            _closeReason.completeExceptionally(cause)
+            _incoming.close(cause)
+            _outgoing.cancel()
+        }
 
         websocket.addEventListener(
-            "close",
-            callback = { it: JsAny ->
-                val closeEvent = it.unsafeCast<CloseEvent>()
-                val reason = CloseReason(closeEvent.code, closeEvent.reason)
-                _closeReason.complete(reason)
-                _incoming.trySend(Frame.Close(reason))
-                _incoming.close()
-                _outgoing.cancel()
-            }
-        )
+            "close"
+        ) { it: JsAny ->
+            val closeEvent = it.unsafeCast<CloseEvent>()
+            val reason = CloseReason(closeEvent.code, closeEvent.reason)
+            _closeReason.complete(reason)
+            _incoming.trySend(Frame.Close(reason))
+            _incoming.close()
+            _outgoing.cancel()
+        }
 
         launch {
             _outgoing.consumeEach {
                 when (it.frameType) {
                     FrameType.TEXT -> {
                         val text = it.data
-                        websocket.send(String(text))
+
+                        websocket.send(text.decodeToString(0, 0 + text.size))
                     }
                     FrameType.BINARY -> {
                         val source = it.data.asJsArray()
@@ -177,7 +173,7 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     private fun Short.isReservedStatusCode(): Boolean {
         return CloseReason.Codes.byCode(this).let { resolved ->
-            @Suppress("DEPRECATION")
+
             resolved == null || resolved == CloseReason.Codes.CLOSED_ABNORMALLY
         }
     }

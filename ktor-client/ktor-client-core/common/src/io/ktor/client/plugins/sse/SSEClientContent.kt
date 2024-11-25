@@ -25,4 +25,8 @@ public class SSEClientContent(
     }.build()
 
     override fun toString(): String = "SSEClientContent"
+
+    override fun copy(delegate: OutgoingContent): SSEClientContent {
+        return SSEClientContent(reconnectionTime, showCommentEvents, showRetryEvents, delegate)
+    }
 }

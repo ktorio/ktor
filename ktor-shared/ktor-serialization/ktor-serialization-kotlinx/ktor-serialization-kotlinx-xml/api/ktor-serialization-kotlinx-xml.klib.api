@@ -1,0 +1,12 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-serialization-kotlinx-xml>
+final val io.ktor.serialization.kotlinx.xml/DefaultXml // io.ktor.serialization.kotlinx.xml/DefaultXml|{}DefaultXml[0]
+    final fun <get-DefaultXml>(): nl.adaptivity.xmlutil.serialization/XML // io.ktor.serialization.kotlinx.xml/DefaultXml.<get-DefaultXml>|<get-DefaultXml>(){}[0]
+
+final fun (io.ktor.serialization/Configuration).io.ktor.serialization.kotlinx.xml/xml(nl.adaptivity.xmlutil.serialization/XML = ..., io.ktor.http/ContentType = ...) // io.ktor.serialization.kotlinx.xml/xml|xml@io.ktor.serialization.Configuration(nl.adaptivity.xmlutil.serialization.XML;io.ktor.http.ContentType){}[0]

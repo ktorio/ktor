@@ -1,11 +1,16 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 description = ""
 
 val jetty_alpn_boot_version: String? by extra
 
 kotlin.sourceSets {
-    jvmAndNixMain {
+    commonMain {
         dependencies {
             api(project(":ktor-server:ktor-server-test-host"))
+            api(libs.kotlin.test)
         }
     }
 
@@ -22,22 +27,8 @@ kotlin.sourceSets {
                 api(libs.jetty.alpn.boot)
             }
 
-            api(kotlin("test"))
             api(libs.junit)
             implementation(libs.kotlinx.coroutines.debug)
-        }
-    }
-
-    jvmTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-            api(kotlin("test"))
-        }
-    }
-
-    jvmAndNixTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-config-yaml"))
         }
     }
 }

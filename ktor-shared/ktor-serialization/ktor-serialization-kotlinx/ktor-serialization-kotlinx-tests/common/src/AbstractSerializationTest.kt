@@ -11,9 +11,9 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.io.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -135,7 +135,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
     protected suspend inline fun <reified T : Any> ContentConverter.testSerialize(data: T): ByteArray {
         return when (
             val content =
@@ -148,7 +148,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
                     content.writeTo(channel)
                     channel.close()
                 }
-                channel.readRemaining().readBytes()
+                channel.readRemaining().readByteArray()
             }
 
             else -> error("Failed to get serialized $data")

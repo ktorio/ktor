@@ -2,6 +2,7 @@ build
 .gradle
 .gradletasknamecache
 .idea/*
+!.idea/externalDependencies.xml
 !.idea/runConfigurations
 !.idea/runConfigurations/*
 !.idea/vcs.xml
@@ -9,9 +10,7 @@ build
 !.idea/dictionaries/*
 !.idea/copyright
 !.idea/copyright/*
-!.idea/codeStyles
-!.idea/codeStyles/*
-!.idea/icon.png
+!.idea/icon.svg
 out
 *.iml
 .vscode
@@ -40,3 +39,6 @@ hs_err_pid*.log
 gradle-user-home
 
 .fleet
+.kotlin
+
+scan-journal.log

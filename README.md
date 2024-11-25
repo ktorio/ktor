@@ -8,8 +8,8 @@
 </div>
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
-[![Maven Central](https://img.shields.io/maven-central/v/io.ktor/ktor)](https://mvnrepository.com/artifact/io.ktor)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.8.22-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Maven Central](https://img.shields.io/maven-central/v/io.ktor/ktor-server)](https://central.sonatype.com/search?namespace=io.ktor)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.0.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Slack channel](https://img.shields.io/badge/chat-slack-green.svg?logo=slack)](https://kotlinlang.slack.com/messages/ktor/)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Contribute with Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/ktorio/ktor)
@@ -53,7 +53,7 @@ fun main(args: Array<String>) {
 You also can use [Ktor Gradle Plugin](https://github.com/ktorio/ktor-build-plugins) to configure bom, run tasks and deployment:
 ```kotlin
 plugins {
-    id("io.ktor.plugin") version "2.3.4"
+    id("io.ktor.plugin") version "3.0.0"
 }
 
 dependencies {

@@ -8,12 +8,21 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import kotlinx.io.*
 import kotlin.test.*
+import kotlin.time.*
 
 /**
  * Tests client request with multi-part form data.
  */
 class MultiPartFormDataTest : ClientLoader() {
+
+    private val fileDispositionHeaders = Headers.build {
+        append(
+            HttpHeaders.ContentDisposition,
+            """form-data; name="file"; filename="test.png""""
+        )
+    }
 
     @Test
     fun testMultiPartFormData() = clientTests(listOf("native")) {
@@ -22,16 +31,7 @@ class MultiPartFormDataTest : ClientLoader() {
                 setBody(
                     MultiPartFormDataContent(
                         formData {
-                            append(
-                                "file",
-                                ByteArray(1024 * 1024),
-                                Headers.build {
-                                    append(
-                                        HttpHeaders.ContentDisposition,
-                                        """form-data; name="file"; filename="test.png""""
-                                    )
-                                }
-                            )
+                            append("file", ByteArray(1024 * 1024), fileDispositionHeaders)
                         }
                     )
                 )

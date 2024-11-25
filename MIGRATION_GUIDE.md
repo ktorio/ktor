@@ -1,8 +1,8 @@
 ## Ktor Migration Guide
 
-### [Migrating from 2.0.x to 2.2.x](https://ktor.io/docs/migrating-2-2.html)
+### [Migrating from 2.0.x to 2.2.x](https://ktor.io/docs/migration-to-22x.html)
 
-### [Migrating from 1.6.x to 2.0.x](https://ktor.io/docs/migrating-2.html)
+### [Migrating from 1.6.x to 2.0.x](https://ktor.io/docs/migration-to-20x.html)
 
 
 ### Migrating to 1.6.x

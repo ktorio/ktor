@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx.json
@@ -98,7 +98,6 @@ internal fun TypeInfo.argumentTypeInfo(): TypeInfo {
     val elementType = kotlinType!!.arguments[0].type!!
     return TypeInfo(
         elementType.classifier as KClass<*>,
-        elementType.platformType,
         elementType
     )
 }

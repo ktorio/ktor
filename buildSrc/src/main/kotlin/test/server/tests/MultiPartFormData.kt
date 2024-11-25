@@ -10,7 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.*
 
 private const val TEST_FILE_SIZE = 1024 * 1024
 
@@ -18,11 +18,11 @@ internal fun Application.multiPartFormDataTest() {
     routing {
         route("multipart") {
             post {
-                call.receiveMultipart().forEachPart {
+                call.receiveMultipart(formFieldLimit = TEST_FILE_SIZE + 1L).forEachPart {
                     try {
                         if (it is PartData.FileItem) {
                             val array = ByteArray(TEST_FILE_SIZE)
-                            it.provider().readFully(array, 0, TEST_FILE_SIZE)
+                            it.provider().readFully(array)
                         }
                     } finally {
                         it.dispose()

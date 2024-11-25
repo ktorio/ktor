@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http.auth
 
@@ -394,22 +394,22 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             stale: Boolean? = null,
             algorithm: String = "MD5"
         ): Parameterized = Parameterized(
-            AuthScheme.Digest,
-            linkedMapOf<String, String>().apply {
-                put("realm", realm)
-                put("nonce", nonce)
+            authScheme = AuthScheme.Digest,
+            parameters = linkedMapOf<String, String>().apply {
+                put("realm", realm.quote())
+                put("nonce", nonce.quote())
                 if (domain.isNotEmpty()) {
-                    put("domain", domain.joinToString(" "))
+                    put("domain", domain.joinToString(" ").quote())
                 }
                 if (opaque != null) {
-                    put("opaque", opaque)
+                    put("opaque", opaque.quote())
                 }
                 if (stale != null) {
                     put("stale", stale.toString())
                 }
                 put("algorithm", algorithm)
             },
-            HeaderValueEncoding.QUOTED_ALWAYS
+            encoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED
         )
     }
 

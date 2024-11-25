@@ -53,10 +53,6 @@ public open class JettyApplicationEngineBase(
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
-        addShutdownHook(monitor) {
-            stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
-        }
-
         server.start()
         cancellationDeferred = stopServerOnCancellation(
             applicationProvider(),
@@ -66,7 +62,7 @@ public open class JettyApplicationEngineBase(
 
         val connectors = server.connectors.zip(configuration.connectors)
             .map { it.second.withPort((it.first as ServerConnector).localPort) }
-        resolvedConnectors.complete(connectors)
+        resolvedConnectorsDeferred.complete(connectors)
 
         monitor.raiseCatching(ServerReady, environment, environment.log)
 

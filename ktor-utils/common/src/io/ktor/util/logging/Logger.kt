@@ -25,3 +25,10 @@ public expect val Logger.isTraceEnabled: Boolean
 public fun Logger.error(exception: Throwable) {
     error(exception.message ?: "Exception of type ${exception::class}", exception)
 }
+
+/**
+ * Check `isTraceEnabled` flag before logging to save some memory allocations.
+ */
+public inline fun Logger.trace(message: () -> String) {
+    if (isTraceEnabled) trace(message())
+}
