@@ -1,7 +1,7 @@
 {
-  build: {
-    dockerfile: "./Dockerfile"
+  "build": {
+    "dockerfile": "./Dockerfile"
   },
   "updateRemoteUserUID": true,
-  remoteUser: "developer"
+  "remoteUser": "developer"
 }
