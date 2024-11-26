@@ -21,8 +21,8 @@ import kotlinx.coroutines.*
 import kotlinx.io.asSource
 import kotlinx.io.buffered
 import java.io.*
-import kotlin.test.*
 import kotlin.io.use
+import kotlin.test.*
 import kotlin.text.toByteArray
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(

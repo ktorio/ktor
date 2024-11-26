@@ -2,10 +2,10 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.jetbrains.dokka.gradle.*
-import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.tasks.*
-import org.jetbrains.kotlin.konan.target.*
+import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.konan.target.HostManager
 
 val releaseVersion: String? by extra
 val eapVersion: String? by extra
@@ -56,11 +56,7 @@ apply(from = "gradle/compatibility.gradle")
 plugins {
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.binaryCompatibilityValidator)
-    alias(libs.plugins.doctor)
-}
-
-doctor {
-    enableTestCaching = false
+    conventions.gradleDoctor
 }
 
 subprojects {
