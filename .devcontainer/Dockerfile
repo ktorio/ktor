@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM eclipse-temurin:21-jdk-noble
+FROM eclipse-temurin:21-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
@@ -20,14 +20,15 @@ RUN <<EOT
 
   apt-get update
   apt-get install --yes --no-install-recommends \
-    ca-certificates curl fonts-liberation git \
+    git util-linux openssh-server \
+    ca-certificates curl fonts-liberation \
     libasound2t64 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libcurl4 libcurl4-gnutls-dev \
     libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libncurses6 libnspr4 \
     libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 \
     libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release \
     nodejs npm \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
-    unzip wget xdg-utils sudo
+    zip unzip wget xdg-utils sudo
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
@@ -48,3 +49,57 @@ WORKDIR $HOME
 
 # Change shell back to bash from jshell
 CMD ["/bin/bash"]
+
+
+# Dev image with installed Android sdkmanager
+FROM dev AS dev-android
+
+# Specify build tools version.
+# Use the latest available version by default.
+# https://developer.android.com/tools/releases/build-tools
+ARG build_tools="35.0.0"
+ENV ANDROID_BUILD_TOOLS_VERSION=$build_tools
+
+# Define Android environment variables
+# https://developer.android.com/tools/variables
+# Keep in mind, variable can't be declared and used in the same ENV instructuion
+ENV ANDROID_HOME="/opt/android-sdk" \
+    ANDROID_USER_HOME="$HOME/.android"
+ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
+ENV PATH="$PATH:$ANDROID_HOME/platform-tools"
+ENV PATH="$PATH:$ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION"
+
+# Commandline Tools revisions: https://dl.google.com/android/repository/repository2-3.xml
+# NOTE: Remember to update cmdline-tools-package.xml on commandlinetools update.
+ARG commandlinetools_url=https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
+ARG commandlinetools_sha1=47e61d3bb57b5e907a74f225a767a767a8b4d7a5
+
+WORKDIR $ANDROID_HOME
+RUN <<EOF
+  # Download and install Android Commandline Tools
+  wget --quiet --output-document=commandlinetools.zip ${commandlinetools_url}
+  echo "$commandlinetools_sha1 commandlinetools.zip" | sha1sum --check
+
+  unzip -qq commandlinetools.zip -d tmp/
+  mkdir cmdline-tools/
+  mv tmp/cmdline-tools cmdline-tools/latest
+  rm -rf tmp commandlinetools.zip
+
+  # Workaround for "Warning: File .android/repositories.cfg could not be loaded."
+  mkdir --parents ${ANDROID_USER_HOME}
+  touch "$ANDROID_USER_HOME/repositories.cfg"
+
+  # Accept licenses and install build tools and platform tools
+  # https://developer.android.com/tools/releases/build-tools
+  # https://developer.android.com/tools/releases/platform-tools
+  (yes || true) | sdkmanager --licenses
+  (yes || true) | sdkmanager \
+    "build-tools;$ANDROID_BUILD_TOOLS_VERSION" \
+    "platform-tools"
+  rm -rf "$ANDROID_USER_HOME/cache"
+EOF
+
+# Make cmdline-tools visible for sdkmanager
+COPY cmdline-tools-package.xml "cmdline-tools/latest/package.xml"
+
+WORKDIR $HOME
