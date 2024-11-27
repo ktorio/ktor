@@ -357,6 +357,7 @@ final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/cancel() // io.kt
 final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/close() // io.ktor.utils.io/close|close@io.ktor.utils.io.ByteWriteChannel(){}[0]
 final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/close(kotlin/Throwable?) // io.ktor.utils.io/close|close@io.ktor.utils.io.ByteWriteChannel(kotlin.Throwable?){}[0]
 final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/counted(): io.ktor.utils.io/CountedByteWriteChannel // io.ktor.utils.io/counted|counted@io.ktor.utils.io.ByteWriteChannel(){}[0]
+final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/onClose(kotlin.coroutines/SuspendFunction0<kotlin/Unit>): io.ktor.utils.io/ByteWriteChannel // io.ktor.utils.io/onClose|onClose@io.ktor.utils.io.ByteWriteChannel(kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/rethrowCloseCauseIfNeeded() // io.ktor.utils.io/rethrowCloseCauseIfNeeded|rethrowCloseCauseIfNeeded@io.ktor.utils.io.ByteWriteChannel(){}[0]
 final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/cancel() // io.ktor.utils.io/cancel|cancel@io.ktor.utils.io.ChannelJob(){}[0]
 final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/getCancellationException(): kotlin.coroutines.cancellation/CancellationException // io.ktor.utils.io/getCancellationException|getCancellationException@io.ktor.utils.io.ChannelJob(){}[0]
