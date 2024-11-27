@@ -2,8 +2,9 @@
 
 FROM eclipse-temurin:21-jdk-noble
 
-RUN <<EOF
-  # Install required dependencies
+ARG USERNAME=developer
+ARG USER_UID=1001
+ARG USER_GID=$USER_UID
 
 # Use Bash in "strict mode" to run scripts
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
@@ -26,10 +27,24 @@ RUN <<EOT
     libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release \
     nodejs npm \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
-    unzip wget xdg-utils
+    unzip wget xdg-utils sudo
   apt-get clean
   rm -rf /var/lib/apt/lists/*
-EOF
+EOT
+
+# Create non-root user
+RUN <<EOT
+  groupadd --gid $USER_GID $USERNAME
+  useradd --uid $USER_UID --gid $USER_GID --create-home $USERNAME
+  echo "$USERNAME ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME
+  chmod 0440 /etc/sudoers.d/$USERNAME
+EOT
+
+# Switch user and default shell
+USER $USERNAME
+ENV HOME=/home/$USERNAME \
+    SHELL=/bin/bash
+WORKDIR $HOME
 
 # Change shell back to bash from jshell
 CMD ["/bin/bash"]
