@@ -14,6 +14,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.remaining
 import kotlinx.io.*
 import kotlin.test.*
 
@@ -105,7 +106,11 @@ class RespondFunctionsTest {
         routing {
             get("text") {
                 val source = Buffer().also { it.writeString("Hello") }
-                call.respondSource(source, contentType = ContentType.Text.Plain)
+                call.respondSource(
+                    source,
+                    contentType = ContentType.Text.Plain,
+                    contentLength = source.remaining
+                )
             }
         }
 

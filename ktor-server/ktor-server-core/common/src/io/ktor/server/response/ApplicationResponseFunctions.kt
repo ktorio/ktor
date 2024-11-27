@@ -157,13 +157,15 @@ public suspend fun ApplicationCall.respondBytes(
  * @param source The binary data source of the content to be responded with.
  * @param contentType An optional [ContentType], unspecified by default
  * @param status An optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param contentLength An optional value included in the Content-Length header, also truncating content
  */
 public suspend fun ApplicationCall.respondSource(
-    source: Source,
+    source: RawSource,
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
+    contentLength: Long? = null,
 ) {
-    respond(ChannelWriterContent({ writeBuffer(source) }, contentType, status, source.remaining))
+    respond(ChannelWriterContent({ writeBuffer(source) }, contentType, status, contentLength))
 }
 
 /**

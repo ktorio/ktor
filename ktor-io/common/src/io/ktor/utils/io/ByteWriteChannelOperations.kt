@@ -11,7 +11,6 @@ import kotlinx.io.*
 import kotlinx.io.Buffer
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeByte(value: Byte) {
@@ -62,7 +61,7 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writeBuffer(value: Source) {
+public suspend fun ByteWriteChannel.writeBuffer(value: RawSource) {
     writeBuffer.transferFrom(value)
     flushIfNeeded()
 }
