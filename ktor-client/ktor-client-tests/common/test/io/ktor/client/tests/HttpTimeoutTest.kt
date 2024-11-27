@@ -436,7 +436,7 @@ class HttpTimeoutTest : ClientLoader() {
             assertFails {
                 try {
                     client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) {/* Ignore. */
+                } catch (_: ConnectTimeoutException) { /* Ignore. */
                 }
             }
         }
