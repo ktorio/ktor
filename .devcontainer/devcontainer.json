@@ -2,6 +2,6 @@
   "build": {
     "dockerfile": "./Dockerfile"
   },
-  "updateRemoteUserUID": true,
-  "remoteUser": "developer"
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+  "updateRemoteUserUID": true
 }

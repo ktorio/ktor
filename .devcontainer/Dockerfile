@@ -11,13 +11,7 @@ RUN apt update \
       nodejs npm \
       openjdk-11-jdk openjdk-17-jdk openjdk-21-jdk openjdk-8-jdk \
       unzip wget xdg-utils \
-    && apt clean \
-    && mkdir -p /etc/sudoers.d \
-    && useradd -m -s /bin/bash developer \
-    && echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd \
-    && chmod 0440 /etc/sudoers.d/nopasswd
-
-USER developer
+    && apt clean
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 
