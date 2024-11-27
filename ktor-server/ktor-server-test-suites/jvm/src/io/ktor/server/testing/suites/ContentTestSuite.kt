@@ -17,12 +17,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.InputStream
+import kotlinx.coroutines.*
+import kotlinx.io.asSource
+import kotlinx.io.buffered
+import java.io.*
+import kotlin.io.use
 import kotlin.test.*
+import kotlin.text.toByteArray
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -813,6 +814,41 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 byte = input.read()
                 readingStarted = true
             } while (byte >= 0)
+        }
+    }
+
+    @Test
+    fun respondSourceFromInputStream() = runTest {
+        val testString = "test".repeat(100)
+        createAndStartServer {
+            get("/raw") {
+                call.respondSource(
+                    testString.toByteArray().inputStream().asSource(),
+                    contentType = ContentType.Text.Plain
+                )
+            }
+            get("/buffered") {
+                call.respondSource(
+                    testString.toByteArray().inputStream().asSource().buffered(),
+                    contentType = ContentType.Text.Plain
+                )
+            }
+            get("/truncated") {
+                call.respondSource(
+                    testString.toByteArray().inputStream().asSource(),
+                    contentType = ContentType.Text.Plain,
+                    contentLength = 20
+                )
+            }
+        }
+        withUrl("/raw") {
+            assertEquals(testString, bodyAsText(), "Unbuffered input stream content mismatch")
+        }
+        withUrl("/buffered") {
+            assertEquals(testString, bodyAsText(), "Buffered input stream content mismatch")
+        }
+        withUrl("/truncated") {
+            assertEquals(testString.substring(0, 20), bodyAsText(), "Buffered input stream content mismatch")
         }
     }
 

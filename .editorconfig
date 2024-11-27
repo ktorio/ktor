@@ -24,3 +24,6 @@ ktlint_standard_comment-wrapping = disabled
 [*.kts]
 # Always use wildcard imports in scripts
 ij_kotlin_name_count_to_use_star_import = 2
+
+[*.properties]
+ij_properties_keep_blank_lines = true
