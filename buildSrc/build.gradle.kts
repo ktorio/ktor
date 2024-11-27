@@ -15,6 +15,7 @@ dependencies {
 
     implementation(libs.kotlinter)
     implementation(libs.develocity)
+    implementation(libs.gradleDoctor)
 
     implementation(libs.ktor.server.default.headers)
     implementation(libs.ktor.server.netty)
