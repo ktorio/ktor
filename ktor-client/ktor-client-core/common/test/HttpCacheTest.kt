@@ -10,13 +10,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
 
 class HttpCacheTest {
 
     @Test
-    fun `should not mix ETags when Authorization header is present`() = testApplication {
+    fun shouldNotMixETagsWhenAuthorizationHeaderIsPresent() = testApplication {
         application {
             routing {
                 get("/me") {
@@ -70,7 +71,7 @@ class HttpCacheTest {
     }
 
     @Test
-    fun `should mix ETags when Authorization header is present and client is not shared`() = testApplication {
+    fun shouldMixETagsWhenAuthorizationHeaderIsPresentAndClientIsNotShared() = testApplication {
         application {
             routing {
                 get("/me") {
