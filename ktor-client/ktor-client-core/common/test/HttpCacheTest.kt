@@ -2,13 +2,16 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.cache.*
+import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -120,5 +123,38 @@ class HttpCacheTest {
                 }
             ).joinAll()
         }
+    }
+
+    @Test
+    fun testCacheOfModifiedResponses() = testApplication {
+        routing {
+            get("/hello") {
+                call.response.header(HttpHeaders.CacheControl, "max-age=10")
+                call.respondText("Hello")
+            }
+        }
+
+        fun createBodyTransformingPlugin(name: String, transform: (String) -> String) = createClientPlugin(name) {
+            client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
+                val content = transform(response.bodyAsText())
+                val newResponse = response.call.wrap(
+                    content = ByteReadChannel(content),
+                    headers = Headers.build { append(HttpHeaders.ContentLength, content.length.toString()) },
+                ).response
+                proceedWith(newResponse)
+            }
+        }
+
+        val client = createClient {
+            install(createBodyTransformingPlugin("BeforeCache") { "before($it)" })
+            install(HttpCache)
+            install(createBodyTransformingPlugin("AfterCache") { "after($it)" })
+        }
+
+        val firstResponse = client.get("/hello").bodyAsText()
+        val secondResponse = client.get("/hello").bodyAsText()
+
+        assertEquals("after(before(Hello))", firstResponse)
+        assertEquals(firstResponse, secondResponse)
     }
 }
