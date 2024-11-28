@@ -145,10 +145,10 @@ public class HttpCache private constructor(
         }
 
         override fun install(plugin: HttpCache, scope: HttpClient) {
-            val CachePhase = PipelinePhase("Cache")
-            scope.sendPipeline.insertPhaseAfter(HttpSendPipeline.State, CachePhase)
+            val cacheRequestPhase = PipelinePhase("Cache")
+            scope.sendPipeline.insertPhaseAfter(HttpSendPipeline.State, cacheRequestPhase)
 
-            scope.sendPipeline.intercept(CachePhase) { content ->
+            scope.sendPipeline.intercept(cacheRequestPhase) { content ->
                 if (content !is OutgoingContent.NoContent) return@intercept
                 if (context.method != HttpMethod.Get || !context.url.protocol.canStore()) return@intercept
 
@@ -195,7 +195,10 @@ public class HttpCache private constructor(
                 }
             }
 
-            scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
+            val cacheResponsePhase = PipelinePhase("Cache")
+            scope.receivePipeline.insertPhaseAfter(HttpReceivePipeline.State, cacheResponsePhase)
+
+            scope.receivePipeline.intercept(cacheResponsePhase) { response ->
                 if (response.call.request.method != HttpMethod.Get) return@intercept
 
                 if (plugin.useOldStorage) {
