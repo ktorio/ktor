@@ -4,7 +4,6 @@
 
 package io.ktor.client.call
 
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 
