@@ -131,7 +131,6 @@ actual constructor(
         val starting = GlobalScope.async {
             server.startSuspend(wait = false)
             _port = server.engine.resolvedConnectors().first().port
-            delay(500)
         }
 
         return try {
