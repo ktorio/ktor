@@ -20,6 +20,8 @@ internal fun checkContentLength(contentLength: Long?, bodySize: Long, method: Ht
     if (contentLength == null || contentLength < 0 || method == HttpMethod.Head) return
 
     if (contentLength != bodySize) {
-        throw IllegalStateException("Content-Length mismatch: expected $contentLength bytes, but received $bodySize bytes")
+        throw IllegalStateException(
+            "Content-Length mismatch: expected $contentLength bytes, but received $bodySize bytes"
+        )
     }
 }

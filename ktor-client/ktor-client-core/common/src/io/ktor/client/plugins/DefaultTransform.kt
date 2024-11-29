@@ -80,7 +80,7 @@ public fun HttpClient.defaultTransformers() {
             ByteArray::class -> {
                 val bytes = body.toByteArray()
                 val contentLength = context.response.contentLength()
-                
+
                 if (context.request.method != HttpMethod.Head) {
                     checkContentLength(contentLength, bytes.size.toLong())
                 }

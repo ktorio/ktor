@@ -42,10 +42,12 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCache")
  */
 public class HttpCache private constructor(
     @Deprecated(
-        "This will become internal", level = DeprecationLevel.ERROR
+        "This will become internal",
+        level = DeprecationLevel.ERROR
     ) @Suppress("DEPRECATION_ERROR") internal val publicStorage: HttpCacheStorage,
     @Deprecated(
-        "This will become internal", level = DeprecationLevel.ERROR
+        "This will become internal",
+        level = DeprecationLevel.ERROR
     ) @Suppress("DEPRECATION_ERROR") internal val privateStorage: HttpCacheStorage,
     private val publicStorageNew: CacheStorage,
     private val privateStorageNew: CacheStorage,
@@ -207,7 +209,9 @@ public class HttpCache private constructor(
                     val cachedData = plugin.cacheResponse(response)
                     if (cachedData != null) {
                         val reusableResponse = cachedData.createResponse(
-                            scope, response.request, response.coroutineContext
+                            scope,
+                            response.request,
+                            response.coroutineContext
                         )
                         proceedWith(reusableResponse)
                         return@intercept
@@ -228,7 +232,8 @@ public class HttpCache private constructor(
         }
 
         internal suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithCache(
-            scope: HttpClient, cachedCall: HttpClientCall
+            scope: HttpClient,
+            cachedCall: HttpClientCall
         ) {
             finish()
             scope.monitor.raise(HttpResponseFromCache, cachedCall.response)
@@ -237,7 +242,9 @@ public class HttpCache private constructor(
 
         @OptIn(InternalAPI::class)
         private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
-            cachedResponse: CachedResponseData, scope: HttpClient, callContext: CoroutineContext
+            cachedResponse: CachedResponseData,
+            scope: HttpClient,
+            callContext: CoroutineContext
         ) {
             val request = context.build()
             val response = HttpResponseData(
@@ -314,7 +321,10 @@ public class HttpCache private constructor(
     }
 
     private suspend fun findResponse(
-        storage: CacheStorage, varyKeys: Map<String, String>, url: Url, request: HttpRequest
+        storage: CacheStorage,
+        varyKeys: Map<String, String>,
+        url: Url,
+        request: HttpRequest
     ): CachedResponseData? = when {
         varyKeys.isNotEmpty() -> {
             storage.find(url, varyKeys)
