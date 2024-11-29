@@ -8,3 +8,5 @@ import kotlinx.coroutines.*
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher
     get() = IO
+
+internal actual fun <T> runBlockingBridge(block: suspend CoroutineScope.() -> T): T = runBlocking(block = block)

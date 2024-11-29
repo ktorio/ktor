@@ -113,7 +113,8 @@ actual constructor(
         // as far as we have retry loop on call side
         val starting = GlobalScope.async {
             server.start(wait = false)
-            delay(500)
+            // await for a server to be started
+            server.engine.resolvedConnectors()
         }
 
         return try {

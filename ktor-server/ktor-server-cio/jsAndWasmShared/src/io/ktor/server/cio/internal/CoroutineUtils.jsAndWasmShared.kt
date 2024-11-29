@@ -7,6 +7,7 @@ package io.ktor.server.cio.internal
 import kotlinx.coroutines.*
 
 internal actual val Dispatchers.IOBridge: CoroutineDispatcher
-    get() = IO
+    get() = Default
 
-internal actual fun <T> runBlockingBridge(block: suspend CoroutineScope.() -> T): T = runBlocking(block = block)
+internal actual fun <T> runBlockingBridge(block: suspend CoroutineScope.() -> T): T =
+    error("runBlocking is not supported on JS and WASM")

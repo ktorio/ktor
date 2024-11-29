@@ -12,7 +12,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-hsts"))
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
-            implementation(project(":ktor-server:ktor-server-test-base"))
+            api(project(":ktor-server:ktor-server-test-base"))
         }
     }
 

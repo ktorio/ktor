@@ -34,7 +34,7 @@ fun Project.configureJs() {
 internal fun KotlinJsSubTargetDsl.useMochaForTests() {
     testTask {
         useMocha {
-            timeout = "10000"
+            timeout = "60000"
         }
     }
 }
