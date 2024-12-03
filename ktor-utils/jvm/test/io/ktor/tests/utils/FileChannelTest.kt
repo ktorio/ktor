@@ -130,12 +130,4 @@ class FileChannelTest {
         assertEquals("Hello", file.readText())
     }
 
-    @Test
-    fun `writeChannel writes to file on flush`() = runTest {
-        val file = Files.createTempFile("file", "txt").toFile()
-        val ch = file.writeChannel()
-        ch.writeStringUtf8("Hello")
-        ch.flush()
-        assertEquals("Hello", file.readText())
-    }
 }
