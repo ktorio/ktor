@@ -55,8 +55,9 @@ class MultipartServerTest {
 
         val partData = InputProvider(size = null) {
             Buffer().apply {
-                for (i in 0 until TEST_FILE_SIZE)
+                for (i in 0 until TEST_FILE_SIZE) {
                     writeByte(i.toByte())
+                }
             }
         }
         val timeTaken = measureTime {

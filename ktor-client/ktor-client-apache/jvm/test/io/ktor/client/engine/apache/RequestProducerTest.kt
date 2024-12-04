@@ -171,8 +171,9 @@ class RequestProducerTest {
         repeat(1000) {
             val body = ChannelWriterContent(
                 body = {
-                    for (i in 0 until sampleSize)
+                    for (i in 0 until sampleSize) {
                         writeByte(i.toByte())
+                    }
                 },
                 contentType = null
             )
