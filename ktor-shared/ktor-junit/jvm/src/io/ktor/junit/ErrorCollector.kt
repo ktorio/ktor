@@ -42,8 +42,9 @@ class ErrorCollector : TestExecutionExceptionHandler, ParameterResolver, AfterEa
             currentErrors.isEmpty() -> {}
             currentErrors.size == 1 -> throw currentErrors.single()
             else -> {
-                for (e in currentErrors)
+                for (e in currentErrors) {
                     e.printStackTrace()
+                }
 
                 throw MultipleFailureException(currentErrors)
             }
