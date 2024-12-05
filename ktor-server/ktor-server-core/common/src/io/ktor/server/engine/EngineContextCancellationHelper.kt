@@ -32,7 +32,7 @@ public fun ApplicationEngine.stopServerOnCancellation(
 public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val completableJob: CompletableJob = Job(parent = this)
 
-    GlobalScope.launch(this + Dispatchers.IOBridge) {
+    GlobalScope.launch(this + Dispatchers.IOBridge + CoroutineName("cancellation-watcher")) {
         var cancelled = false
         try {
             completableJob.join()
