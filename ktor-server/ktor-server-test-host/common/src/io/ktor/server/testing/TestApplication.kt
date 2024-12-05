@@ -56,8 +56,10 @@ public interface ClientProvider {
  * @see [testApplication]
  */
 public class TestApplication internal constructor(
-    private val builder: ApplicationTestBuilder
-) : ClientProvider by builder {
+    createServer: () -> EmbeddedServer<TestApplicationEngine, TestApplicationEngine.Configuration>,
+    clientProvider: ClientProvider,
+    private val externalServices: ExternalServicesBuilder,
+) : ClientProvider by clientProvider {
 
     internal enum class State {
         Created, Starting, Started, Stopped
@@ -65,8 +67,8 @@ public class TestApplication internal constructor(
 
     private val state = atomic(State.Created)
 
-    internal val externalApplications by lazy { builder.externalServices.externalApplications }
-    internal val server by lazy { builder.embeddedServer }
+    internal val externalApplications by lazy { externalServices.externalApplications }
+    internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
     /**
@@ -75,8 +77,8 @@ public class TestApplication internal constructor(
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
-                builder.embeddedServer.start()
-                builder.externalServices.externalApplications.values.forEach { it.start() }
+                server.start()
+                externalServices.externalApplications.values.forEach { it.start() }
             } finally {
                 state.value = State.Started
                 applicationStarting.complete()
@@ -92,8 +94,8 @@ public class TestApplication internal constructor(
      */
     public fun stop() {
         state.value = State.Stopped
-        builder.embeddedServer.stop()
-        builder.externalServices.externalApplications.values.forEach { it.stop() }
+        server.stop()
+        externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
 }
@@ -273,7 +275,13 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client: HttpClient by lazy { createClient { } }
 
-    internal val application: TestApplication by lazy { TestApplication(this) }
+    internal val application: TestApplication by lazy {
+        TestApplication(
+            createServer = { embeddedServer },
+            clientProvider = this,
+            externalServices = externalServices,
+        )
+    }
 
     /**
      * Starts instance of [TestApplication].
