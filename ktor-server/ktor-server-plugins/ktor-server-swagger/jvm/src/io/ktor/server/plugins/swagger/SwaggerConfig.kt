@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.swagger
@@ -28,4 +28,9 @@ public class SwaggerConfig {
      * Swagger package location
      */
     public var packageLocation: String = "https://unpkg.com/swagger-ui-dist"
+
+    /**
+     * Swagger favicon location
+     */
+    public var faviconLocation: String = "https://unpkg.com/swagger-ui-dist@$version/favicon-32x32.png"
 }
