@@ -15,10 +15,12 @@ import io.ktor.server.testing.client.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A client attached to [TestApplication].
@@ -105,10 +107,7 @@ public class TestApplication internal constructor(
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
-    val builder = ApplicationTestBuilder()
-    val testApplication = TestApplication(builder)
-    builder.block()
-    return testApplication
+    return ApplicationTestBuilder().apply(block).application
 }
 
 /**
