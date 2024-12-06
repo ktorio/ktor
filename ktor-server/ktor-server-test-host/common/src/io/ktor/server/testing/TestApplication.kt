@@ -15,10 +15,12 @@ import io.ktor.server.testing.client.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A client attached to [TestApplication].
@@ -54,8 +56,10 @@ public interface ClientProvider {
  * @see [testApplication]
  */
 public class TestApplication internal constructor(
-    private val builder: ApplicationTestBuilder
-) : ClientProvider by builder {
+    createServer: () -> EmbeddedServer<TestApplicationEngine, TestApplicationEngine.Configuration>,
+    clientProvider: ClientProvider,
+    private val externalServices: ExternalServicesBuilder,
+) : ClientProvider by clientProvider {
 
     internal enum class State {
         Created, Starting, Started, Stopped
@@ -63,8 +67,8 @@ public class TestApplication internal constructor(
 
     private val state = atomic(State.Created)
 
-    internal val externalApplications by lazy { builder.externalServices.externalApplications }
-    internal val server by lazy { builder.embeddedServer }
+    internal val externalApplications by lazy { externalServices.externalApplications }
+    internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
     /**
@@ -73,8 +77,8 @@ public class TestApplication internal constructor(
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
-                builder.embeddedServer.start()
-                builder.externalServices.externalApplications.values.forEach { it.start() }
+                server.start()
+                externalServices.externalApplications.values.forEach { it.start() }
             } finally {
                 state.value = State.Started
                 applicationStarting.complete()
@@ -90,8 +94,8 @@ public class TestApplication internal constructor(
      */
     public fun stop() {
         state.value = State.Stopped
-        builder.embeddedServer.stop()
-        builder.externalServices.externalApplications.values.forEach { it.stop() }
+        server.stop()
+        externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
 }
@@ -105,10 +109,7 @@ public class TestApplication internal constructor(
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
-    val builder = ApplicationTestBuilder()
-    val testApplication = TestApplication(builder)
-    builder.block()
-    return testApplication
+    return ApplicationTestBuilder().apply(block).application
 }
 
 /**
@@ -274,7 +275,13 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client: HttpClient by lazy { createClient { } }
 
-    internal val application: TestApplication by lazy { TestApplication(this) }
+    internal val application: TestApplication by lazy {
+        TestApplication(
+            createServer = { embeddedServer },
+            clientProvider = this,
+            externalServices = externalServices,
+        )
+    }
 
     /**
      * Starts instance of [TestApplication].
