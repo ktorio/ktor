@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.io.readByteArray
 
 internal fun Application.encodingTestServer() {
     routing {
@@ -71,6 +72,27 @@ internal fun Application.encodingTestServer() {
                                 appendLine("I will not introduce deadlocks.")
                         }
                     }
+                }
+            }
+            route("/gzip-with-content-length") {
+                get {
+                    val content = "Hello, world"
+                    val compressed: ByteArray = GZipEncoder.encode(ByteReadChannel(content.toByteArray()))
+                        .readRemaining().readByteArray()
+
+                    call.respond(object : OutgoingContent.ReadChannelContent() {
+
+                        override val contentLength: Long = compressed.size.toLong()
+                        override val contentType: ContentType = ContentType.Text.Plain
+                        override val headers: Headers = Headers.build {
+                            append(HttpHeaders.ContentEncoding, "gzip")
+                        }
+
+                        override fun readFrom(): ByteReadChannel {
+                            return ByteReadChannel(compressed)
+                        }
+
+                    })
                 }
             }
         }

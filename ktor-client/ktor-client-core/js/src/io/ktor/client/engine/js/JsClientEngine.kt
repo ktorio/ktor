@@ -158,8 +158,9 @@ private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
         append(key, value)
     }
 
-    Unit
+    dropCompressionHeaders()
 }
+
 
 /**
  * Wrapper for javascript `error` objects.
