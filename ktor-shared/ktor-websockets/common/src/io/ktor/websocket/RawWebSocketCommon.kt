@@ -33,7 +33,7 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
     private val output: ByteWriteChannel,

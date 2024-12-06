@@ -184,7 +184,6 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
-@OptIn(InternalAPI::class)
 private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
     val bc = ByteChannel()
     if (actorChannel.trySend(bc).isSuccess) {

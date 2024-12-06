@@ -12,7 +12,6 @@ import kotlin.test.*
 
 class MultiPartFormDataContentTest {
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testMultiPartFormDataContentHasCorrectPrefix() = testSuspend {
         val formData = MultiPartFormDataContent(
@@ -234,7 +233,6 @@ class MultiPartFormDataContentTest {
         return bytes.decodeToString(0, 0 + bytes.size)
     }
 
-    @OptIn(InternalAPI::class)
     private suspend fun MultiPartFormDataContent.readBytes(): ByteArray = coroutineScope {
         val channel = ByteChannel()
         val writeJob = launch {
