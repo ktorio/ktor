@@ -19,10 +19,16 @@ class RespondFunctionsJvmTest {
     fun testRespondBytes() = testApplication {
         routing {
             get("/output-stream") {
-                call.respondOutputStream(contentLength = 2) { write(1); write(2) }
+                call.respondOutputStream(contentLength = 2) {
+                    write(1)
+                    write(2)
+                }
             }
             get("/text-writer") {
-                call.respondTextWriter(contentLength = 2) { write(1); write(2) }
+                call.respondTextWriter(contentLength = 2) {
+                    write(1)
+                    write(2)
+                }
             }
         }
 
