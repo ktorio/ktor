@@ -9,9 +9,11 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.*
 import java.io.*
+import java.nio.file.Files
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -117,4 +119,15 @@ class FileChannelTest {
         // Assert (we cannot delete if there is a file handle open on it)
         assertTrue(temp.delete())
     }
+
+    @Test
+    fun `writeChannel finishes on close`() = runTest {
+        val file = Files.createTempFile("file", "txt").toFile()
+        val ch = file.writeChannel()
+        ch.writeStringUtf8("Hello")
+        ch.flushAndClose()
+        assertEquals(5, file.length())
+        assertEquals("Hello", file.readText())
+    }
+
 }

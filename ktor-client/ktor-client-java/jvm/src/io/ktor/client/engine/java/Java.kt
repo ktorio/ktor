@@ -25,7 +25,7 @@ import io.ktor.client.engine.*
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
  */
-public object Java : HttpClientEngineFactory<JavaHttpConfig> {
+public data object Java : HttpClientEngineFactory<JavaHttpConfig> {
     override fun create(block: JavaHttpConfig.() -> Unit): HttpClientEngine =
         JavaHttpEngine(JavaHttpConfig().apply(block))
 }

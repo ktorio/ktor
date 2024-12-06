@@ -6,6 +6,7 @@ package io.ktor.server.engine
 
 import io.ktor.events.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.internal.*
 import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -34,7 +35,14 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
 
     public fun start(wait: Boolean = false): EmbeddedServer<TEngine, TConfiguration>
 
+    public suspend fun startSuspend(wait: Boolean = false): EmbeddedServer<TEngine, TConfiguration>
+
     public fun stop(
+        gracePeriodMillis: Long = engineConfig.shutdownGracePeriod,
+        timeoutMillis: Long = engineConfig.shutdownGracePeriod
+    )
+
+    public suspend fun stopSuspend(
         gracePeriodMillis: Long = engineConfig.shutdownGracePeriod,
         timeoutMillis: Long = engineConfig.shutdownGracePeriod
     )

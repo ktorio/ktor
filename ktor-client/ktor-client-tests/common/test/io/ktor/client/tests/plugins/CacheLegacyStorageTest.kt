@@ -569,7 +569,7 @@ class CacheLegacyStorageTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
+    fun testPublicAndPrivateCache() = clientTests(listOf("native:*")) {
         val publicStorage = HttpCacheStorage.Unlimited()
         val privateStorage = HttpCacheStorage.Unlimited()
         config {

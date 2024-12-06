@@ -5,7 +5,6 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
 /**
@@ -53,7 +52,3 @@ public expect class RequestResponseBuilder() {
      */
     public fun release()
 }
-
-private const val SP: Byte = 0x20
-private const val CR: Byte = 0x0d
-private const val LF: Byte = 0x0a

@@ -71,9 +71,17 @@ actual constructor(
         return this
     }
 
+    public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        return withContext(Dispatchers.IOBridge) { start(wait) }
+    }
+
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
         destroy(application)
+    }
+
+    public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
+        withContext(Dispatchers.IOBridge) { stop(gracePeriodMillis, timeoutMillis) }
     }
 
     private fun destroy(application: Application) {

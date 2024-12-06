@@ -74,7 +74,7 @@ class EventsTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectEvent() = clientTests(listOf("js")) {
+    fun testRedirectEvent() = clientTests(listOf("Js")) {
         test { client ->
             counter.value = 0
             client.monitor.subscribe(HttpResponseRedirectEvent) {
