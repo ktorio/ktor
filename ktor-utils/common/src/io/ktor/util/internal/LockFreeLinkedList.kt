@@ -4,8 +4,9 @@
 
 package io.ktor.util.internal
 
-import kotlinx.atomicfu.*
-import kotlin.jvm.*
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.loop
+import kotlin.jvm.JvmField
 
 /*
  * Copied from kotlinx.coroutines
@@ -587,8 +588,8 @@ public open class LockFreeLinkedListNode {
 
         final override fun complete(op: AtomicOp<*>, failure: Any?) {
             val success = failure == null
-            val affectedNode = affectedNode ?: run { check(!success); return }
-            val originalNext = originalNext ?: run { check(!success); return }
+            val affectedNode = affectedNode ?: return check(!success)
+            val originalNext = originalNext ?: return check(!success)
             val update = if (success) updatedNext(affectedNode, originalNext) else originalNext
             if (affectedNode._next.compareAndSet(op, update)) {
                 if (success) finishOnSuccess(affectedNode, originalNext)

@@ -413,7 +413,10 @@ public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
 public suspend inline fun HttpClient.get(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = get { url(urlString); block() }
+): HttpResponse = get {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s POST request with the specified [url] and
@@ -424,7 +427,10 @@ public suspend inline fun HttpClient.get(
 public suspend inline fun HttpClient.post(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = post { url(urlString); block() }
+): HttpResponse = post {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s PUT request with the specified [url] and
@@ -435,7 +441,10 @@ public suspend inline fun HttpClient.post(
 public suspend inline fun HttpClient.put(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = put { url(urlString); block() }
+): HttpResponse = put {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s DELETE request with the specified [url] and
@@ -446,7 +455,10 @@ public suspend inline fun HttpClient.put(
 public suspend inline fun HttpClient.delete(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = delete { url(urlString); block() }
+): HttpResponse = delete {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s OPTIONS request with the specified [url] and
@@ -457,7 +469,10 @@ public suspend inline fun HttpClient.delete(
 public suspend inline fun HttpClient.options(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = options { url(urlString); block() }
+): HttpResponse = options {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s PATCH request with the specified [url] and
@@ -468,7 +483,10 @@ public suspend inline fun HttpClient.options(
 public suspend inline fun HttpClient.patch(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = patch { url(urlString); block() }
+): HttpResponse = patch {
+    url(urlString)
+    block()
+}
 
 /**
  * Executes an [HttpClient]'s HEAD request with the specified [url] and
@@ -479,7 +497,10 @@ public suspend inline fun HttpClient.patch(
 public suspend inline fun HttpClient.head(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = head { url(urlString); block() }
+): HttpResponse = head {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s GET request with the specified [url] and
@@ -488,7 +509,10 @@ public suspend inline fun HttpClient.head(
 public suspend inline fun HttpClient.prepareGet(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = prepareGet { url(urlString); block() }
+): HttpStatement = prepareGet {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s POST request with the specified [url] and
@@ -497,7 +521,10 @@ public suspend inline fun HttpClient.prepareGet(
 public suspend inline fun HttpClient.preparePost(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = preparePost { url(urlString); block() }
+): HttpStatement = preparePost {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s PUT request with the specified [url] and
@@ -506,7 +533,10 @@ public suspend inline fun HttpClient.preparePost(
 public suspend inline fun HttpClient.preparePut(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = preparePut { url(urlString); block() }
+): HttpStatement = preparePut {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s DELETE request with the specified [url] and
@@ -515,7 +545,10 @@ public suspend inline fun HttpClient.preparePut(
 public suspend inline fun HttpClient.prepareDelete(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = prepareDelete { url(urlString); block() }
+): HttpStatement = prepareDelete {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s OPTIONS request with the specified [url] and
@@ -524,7 +557,10 @@ public suspend inline fun HttpClient.prepareDelete(
 public suspend inline fun HttpClient.prepareOptions(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = prepareOptions { url(urlString); block() }
+): HttpStatement = prepareOptions {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s PATCH request with the specified [url] and
@@ -533,7 +569,10 @@ public suspend inline fun HttpClient.prepareOptions(
 public suspend inline fun HttpClient.preparePatch(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = preparePatch { url(urlString); block() }
+): HttpStatement = preparePatch {
+    url(urlString)
+    block()
+}
 
 /**
  * Prepares an [HttpClient]'s HEAD request with the specified [url] and
@@ -542,4 +581,7 @@ public suspend inline fun HttpClient.preparePatch(
 public suspend inline fun HttpClient.prepareHead(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = prepareHead { url(urlString); block() }
+): HttpStatement = prepareHead {
+    url(urlString)
+    block()
+}

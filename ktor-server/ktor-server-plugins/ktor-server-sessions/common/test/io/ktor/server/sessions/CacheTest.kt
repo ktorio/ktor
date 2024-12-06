@@ -4,8 +4,10 @@
 
 package io.ktor.server.sessions
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class CacheTest {
@@ -13,7 +15,10 @@ class CacheTest {
     fun testBaseSimpleCase() = runTest {
         var counter = 0
 
-        val cache = BaseCache<Int, String> { counter++; it.toString() }
+        val cache = BaseCache<Int, String> {
+            counter++
+            it.toString()
+        }
 
         assertEquals("1", cache.getOrCompute(1))
         assertEquals(1, counter)
@@ -30,7 +35,10 @@ class CacheTest {
         val latch = Job()
         var ref = ""
 
-        val cache = BaseCache<Int, String> { if (it == 0) latch.join(); it.toString() }
+        val cache = BaseCache<Int, String> {
+            if (it == 0) latch.join()
+            it.toString()
+        }
 
         assertEquals("1", cache.getOrCompute(1))
         val th = launch(Dispatchers.Default) {
@@ -47,14 +55,17 @@ class CacheTest {
 
     @Test
     fun testPeek() = runTest {
-        val cache = BaseCache<Int, String> { fail(""); }
+        val cache = BaseCache<Int, String> { fail("") }
         assertNull(cache.peek(1))
     }
 
     @Test
     fun testInvalidate() = runTest {
         var counter = 0
-        val cache = BaseCache<Int, String> { counter++; it.toString() }
+        val cache = BaseCache<Int, String> {
+            counter++
+            it.toString()
+        }
 
         assertEquals("1", cache.getOrCompute(1))
         assertEquals(1, counter)
@@ -78,7 +89,10 @@ class CacheTest {
         class ExpectedException : Exception()
 
         var counter = 0
-        val cache = BaseCache<Int, String> { counter++; throw ExpectedException() }
+        val cache = BaseCache<Int, String> {
+            counter++
+            throw ExpectedException()
+        }
 
         assertFailsWith<ExpectedException> {
             cache.getOrCompute(1)
