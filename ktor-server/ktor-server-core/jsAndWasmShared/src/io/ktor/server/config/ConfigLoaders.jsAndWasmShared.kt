@@ -20,7 +20,6 @@ public actual val configLoaders: List<ConfigLoader>
 
 private val _configLoaders: MutableList<ConfigLoader> = mutableListOf()
 
-@OptIn(InternalAPI::class)
 public fun addConfigLoader(loader: ConfigLoader) {
     _configLoaders.add(loader)
 }

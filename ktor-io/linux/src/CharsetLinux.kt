@@ -156,7 +156,6 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
 internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,

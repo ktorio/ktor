@@ -13,7 +13,6 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Test runner for js suspend tests.
  */
-@OptIn(DelicateCoroutinesApi::class)
 public actual fun testSuspend(
     context: CoroutineContext,
     timeoutMillis: Long,

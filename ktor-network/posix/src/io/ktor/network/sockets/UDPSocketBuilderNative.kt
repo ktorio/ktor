@@ -9,7 +9,7 @@ import io.ktor.network.util.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun connectUDP(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
@@ -50,7 +50,7 @@ internal actual fun connectUDP(
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun bindUDP(
     selector: SelectorManager,
     localAddress: SocketAddress?,

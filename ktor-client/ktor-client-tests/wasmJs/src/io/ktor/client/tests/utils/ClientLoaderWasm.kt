@@ -16,7 +16,6 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     /**
      * Perform test against all clients from dependencies.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,

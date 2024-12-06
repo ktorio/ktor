@@ -86,7 +86,7 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingReadChannelContent() = runTest {
         val content = ByteChannel(true)
@@ -232,7 +232,6 @@ private class TestEncoder : ContentEncoder {
         src.limit()
     }
 
-    @OptIn(InternalAPI::class)
     override fun complete() {
         channel.close()
     }

@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun Application.serializationTestServer() {
     routing {
         route("/json") {

@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlin.math.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,

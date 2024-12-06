@@ -30,7 +30,6 @@ public expect fun testSuspend(
 // kotlinx.coroutines.test.runTest uses `virtual` time by default, which is not what we want sometimes
 // probably in almost all places it should be fine to use virtual time
 // and change dispatcher in those places where needed
-@OptIn(ExperimentalCoroutinesApi::class)
 public fun runTestWithRealTime(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = 60.seconds,

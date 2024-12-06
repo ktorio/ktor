@@ -15,7 +15,6 @@ private const val CHUNK_BUFFER_SIZE = 4096L
  * Split source [ByteReadChannel] into 2 new ones.
  * Cancel of one channel in split (input or both outputs) cancels other channels.
  */
-@OptIn(InternalAPI::class)
 public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)

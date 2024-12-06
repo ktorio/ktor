@@ -52,7 +52,6 @@ internal suspend fun PipelineContext<Any, HttpRequestBuilder>.interceptSendLegac
     }
 }
 
-@OptIn(InternalAPI::class)
 internal suspend fun PipelineContext<HttpResponse, Unit>.interceptReceiveLegacy(
     response: HttpResponse,
     plugin: HttpCache,

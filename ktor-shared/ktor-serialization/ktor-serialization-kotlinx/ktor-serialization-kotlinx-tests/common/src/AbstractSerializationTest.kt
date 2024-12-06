@@ -136,7 +136,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     protected suspend inline fun <reified T : Any> ContentConverter.testSerialize(data: T): ByteArray {
         return when (
             val content =
