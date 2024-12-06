@@ -206,7 +206,7 @@ internal class SessionSerializerReflection<T : Any>(
                         .filterAssignable(type)
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
-                        ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
+                        ?.withUnsafe { apply { addAll(value.map { coerceType(contentType, it) }) } }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
             }
@@ -226,7 +226,7 @@ internal class SessionSerializerReflection<T : Any>(
                         .filterAssignable(type)
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
-                        ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
+                        ?.withUnsafe { apply { addAll(value.map { coerceType(contentType, it) }) } }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
             }
