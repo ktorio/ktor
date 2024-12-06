@@ -25,7 +25,6 @@ class TrySkipDelimiterTest {
         assertTrue(ch.isClosedForRead)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testSmokeWithOffsetShift(): Unit = runTest {
         ch.writeFully(byteArrayOf(9, 1, 2, 3))
@@ -38,7 +37,6 @@ class TrySkipDelimiterTest {
         assertTrue(ch.isClosedForRead)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testEmpty(): Unit = runTest {
         ch.close()
@@ -47,7 +45,6 @@ class TrySkipDelimiterTest {
         assertFalse(ch.skipDelimiterOrEof(delimiter))
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testFull(): Unit = runTest {
         ch.writeFully(byteArrayOf(1, 2))
@@ -58,7 +55,6 @@ class TrySkipDelimiterTest {
         assertTrue(ch.isClosedForRead)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testIncomplete(): Unit = runTest {
         ch.writeFully(byteArrayOf(1, 2))
@@ -70,7 +66,6 @@ class TrySkipDelimiterTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testOtherBytes(): Unit = runTest {
         ch.writeFully(byteArrayOf(7, 8))

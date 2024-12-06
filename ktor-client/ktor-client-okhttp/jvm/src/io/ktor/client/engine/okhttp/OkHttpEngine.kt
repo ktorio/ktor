@@ -44,7 +44,6 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestsJob[Job]!!.join()

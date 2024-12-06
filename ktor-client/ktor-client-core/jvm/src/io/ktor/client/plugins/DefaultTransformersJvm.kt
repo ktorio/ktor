@@ -14,7 +14,6 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import java.io.*
 
-@OptIn(InternalAPI::class)
 internal actual fun HttpClient.platformResponseDefaultTransformers() {
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
         if (body !is ByteReadChannel) return@intercept
