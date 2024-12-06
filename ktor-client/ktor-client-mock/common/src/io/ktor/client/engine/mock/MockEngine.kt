@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.mock
@@ -25,7 +25,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 
-    private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
+    private val _requestHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
 
     private var invocationCount: Int = 0
@@ -39,7 +39,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     /**
      * History of executed requests.
      */
-    public val requestHistory: List<HttpRequestData> get() = _requestsHistory
+    public val requestHistory: List<HttpRequestData> get() = _requestHistory
 
     /**
      * History of sent responses.
@@ -67,7 +67,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         }
 
         synchronized(mutex) {
-            _requestsHistory.add(data)
+            _requestHistory.add(data)
             _responseHistory.add(response)
         }
 

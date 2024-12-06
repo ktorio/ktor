@@ -5,15 +5,16 @@
 package io.ktor.network.util
 
 import io.ktor.network.sockets.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.convert
+import platform.posix.AF_UNIX
 
 internal val SocketAddress.address: NativeSocketAddress get() {
     val explicitAddress = resolve().firstOrNull()
     return explicitAddress ?: error("Failed to resolve address for $this")
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun SocketAddress.resolve(): List<NativeSocketAddress> = when (this) {
     is InetSocketAddress -> getAddressInfo(hostname, port)
     is UnixSocketAddress -> listOf(NativeUnixSocketAddress(AF_UNIX.convert(), path))

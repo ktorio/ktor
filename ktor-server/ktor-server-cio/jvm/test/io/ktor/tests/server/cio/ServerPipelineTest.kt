@@ -25,7 +25,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(InternalAPI::class)
 class ServerPipelineTest : CoroutineScope {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcher = Dispatchers.IO.limitedParallelism(8)
 
     private val job: CompletableJob = SupervisorJob()

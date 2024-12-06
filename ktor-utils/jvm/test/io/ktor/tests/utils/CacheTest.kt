@@ -7,15 +7,23 @@ package io.ktor.tests.utils
 import io.ktor.util.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.*
-import kotlin.test.*
+import kotlin.concurrent.thread
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class CacheTest {
 
     @Test
     fun testGet() {
         val counter = AtomicInteger(0)
-        val cache = LRUCache<Int, Int>({ counter.incrementAndGet(); it }, {}, 2)
+        val cache = LRUCache<Int, Int>(
+            supplier = {
+                counter.incrementAndGet()
+                it
+            },
+            close = {},
+            maxSize = 2,
+        )
 
         for (i in 0 until 10) {
             assertEquals(i, cache[i])
@@ -28,7 +36,14 @@ class CacheTest {
     fun testClose() {
         val counter = AtomicInteger(0)
         val lastRemoved = AtomicInteger(-1)
-        val cache = LRUCache<Int, Int>({ counter.incrementAndGet(); it }, { lastRemoved.set(it) }, 2)
+        val cache = LRUCache<Int, Int>(
+            supplier = {
+                counter.incrementAndGet()
+                it
+            },
+            close = { lastRemoved.set(it) },
+            maxSize = 2,
+        )
 
         for (i in 0 until 10) {
             assertEquals(i, cache[i])
@@ -47,7 +62,14 @@ class CacheTest {
         val created = AtomicInteger(0)
         val closed = AtomicInteger(0)
 
-        val cache = LRUCache<Int, Int>({ created.incrementAndGet(); it }, { closed.incrementAndGet() }, 2)
+        val cache = LRUCache<Int, Int>(
+            supplier = {
+                created.incrementAndGet()
+                it
+            },
+            close = { closed.incrementAndGet() },
+            maxSize = 2,
+        )
 
         (1..100).map {
             thread {
@@ -68,7 +90,14 @@ class CacheTest {
     fun testWithoutCaching() {
         val counter = AtomicInteger(0)
         val lastRemoved = AtomicInteger(-1)
-        val cache = LRUCache<Int, Int>({ counter.incrementAndGet(); it }, { lastRemoved.set(it) }, 0)
+        val cache = LRUCache<Int, Int>(
+            supplier = {
+                counter.incrementAndGet()
+                it
+            },
+            close = { lastRemoved.set(it) },
+            maxSize = 0,
+        )
 
         for (i in 0 until 10) {
             assertEquals(i, cache[i])

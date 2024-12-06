@@ -403,16 +403,18 @@ class ContentTest : ClientLoader(5 * 60) {
                 HttpResponseValidator {
                     validateResponse { response ->
                         val channel = response.rawContent
-                        for (i in 0..100)
+                        for (i in 0..100) {
                             assertEquals(expected, channel.readByteArray(expected.length).decodeToString())
+                        }
                     }
                 }
             }.get("$TEST_SERVER/content/big-plain-text").bodyAsText()
 
             val lines = responseText.trim().lines()
             assertEquals(10_000, lines.size, "Should be same number of lines")
-            for ((i, line) in lines.withIndex())
+            for ((i, line) in lines.withIndex()) {
                 assertEquals(expected.trim(), line, "Difference on line $i")
+            }
         }
     }
 

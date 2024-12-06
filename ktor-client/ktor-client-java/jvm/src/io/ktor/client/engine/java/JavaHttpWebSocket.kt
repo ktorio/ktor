@@ -113,7 +113,6 @@ internal class JavaHttpWebSocket(
             }
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()

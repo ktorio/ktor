@@ -2,6 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("ktlint")
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
 package io.ktor.junit.coroutines
@@ -19,8 +20,6 @@ import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
-
-/* ktlint-disable */
 
 //----------------------------------------------------------------------------------------------------------------------
 // The implementation was copied from kotlinx.coroutines with Java 8 compatibility fixes
@@ -361,7 +360,8 @@ internal class CoroutinesTimeoutExtension internal constructor(
     ): T =
         runWithTimeoutDumpingCoroutines(
             methodName, testTimeoutMs, cancelOnTimeout,
-            { CoroutinesTimeoutException(testTimeoutMs) }, { invocation.proceed() })
+            { CoroutinesTimeoutException(testTimeoutMs) }, { invocation.proceed() }
+        )
 }
 
 
@@ -440,5 +440,3 @@ private fun Throwable.attachStacktraceFrom(thread: Thread) {
     val stackTrace = thread.stackTrace
     this.stackTrace = stackTrace
 }
-
-/* ktlint-disable */

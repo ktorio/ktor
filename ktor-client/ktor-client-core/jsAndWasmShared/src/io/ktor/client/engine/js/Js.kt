@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
@@ -28,5 +28,6 @@ public expect open class JsClientEngineConfig : HttpClientEngineConfig
 /**
  * Creates a [Js] client engine.
  */
+@Suppress("FunctionName")
 @JsName("JsClient")
 public fun JsClient(): HttpClientEngineFactory<JsClientEngineConfig> = Js

@@ -314,7 +314,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     open fun testUpgrade() = runTest {
         val completed = CompletableDeferred<Unit>()

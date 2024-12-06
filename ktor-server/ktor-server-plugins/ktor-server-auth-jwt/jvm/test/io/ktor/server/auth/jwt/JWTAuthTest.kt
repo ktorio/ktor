@@ -69,7 +69,10 @@ class JWTAuthTest {
             jwt(name = "first") {
                 realm = "realm1"
                 verifier(issuer, audience, algorithm)
-                validate { validated.add("1"); currentPrincipal(it) }
+                validate {
+                    validated.add("1")
+                    currentPrincipal(it)
+                }
                 challenge { _, _ ->
                     call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
                 }
@@ -77,7 +80,10 @@ class JWTAuthTest {
             jwt(name = "second") {
                 realm = "realm2"
                 verifier(issuer, audience, algorithm)
-                validate { validated.add("2"); currentPrincipal(it) }
+                validate {
+                    validated.add("2")
+                    currentPrincipal(it)
+                }
                 challenge { _, _ ->
                     call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom2", Charsets.UTF_8)))
                 }

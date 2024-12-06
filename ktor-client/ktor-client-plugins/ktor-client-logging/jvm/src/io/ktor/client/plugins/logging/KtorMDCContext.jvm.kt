@@ -5,9 +5,9 @@
 package io.ktor.client.plugins.logging
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.slf4j.*
 import kotlin.coroutines.*
 
+@Suppress("FunctionName")
 @InternalAPI
 public actual fun MDCContext(): CoroutineContext.Element {
     return kotlinx.coroutines.slf4j.MDCContext()

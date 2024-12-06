@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config.yaml
@@ -16,7 +16,7 @@ private fun init() {
     addConfigLoader(YamlConfigLoader())
 }
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "unused")
 @OptIn(ExperimentalStdlibApi::class)
 @EagerInitialization
 private val initHook = init()
@@ -26,6 +26,7 @@ private val initHook = init()
  * On JVM, loads a configuration from application resources, if exist; otherwise, reads a configuration from a file.
  * On Native, always reads a configuration from a file.
  */
+@Suppress("ktlint:standard:function-naming")
 public actual fun YamlConfig(path: String?): YamlConfig? {
     val resolvedPath = when {
         path != null && path.endsWith(".yaml") -> path

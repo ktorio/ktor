@@ -112,7 +112,6 @@ public class MultiPartFormDataContent(
         contentLength = rawLength
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun writeTo(channel: ByteWriteChannel) {
         try {
             for (part in rawParts) {

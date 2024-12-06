@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.compression
 
@@ -26,7 +26,9 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.Conten
 public class ContentEncodingConfig {
 
     public enum class Mode(internal val request: Boolean, internal val response: Boolean) {
-        CompressRequest(true, false), DecompressResponse(false, true), All(true, true)
+        CompressRequest(true, false),
+        DecompressResponse(false, true),
+        All(true, true),
     }
 
     internal val encoders: MutableMap<String, ContentEncoder> = CaseInsensitiveMap()
@@ -217,6 +219,7 @@ internal object ReceiveStateHook : ClientHook<suspend (HttpResponse) -> HttpResp
  *
  * @param block: a [ContentEncoding] configuration.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.ContentEncoding(
     mode: ContentEncodingConfig.Mode = ContentEncodingConfig.Mode.DecompressResponse,
     block: ContentEncodingConfig.() -> Unit = {

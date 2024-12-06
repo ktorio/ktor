@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -22,6 +22,7 @@ import java.nio.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
+@Suppress("FunctionName")
 @OptIn(InternalAPI::class)
 internal fun ApacheRequestProducer(
     requestData: HttpRequestData,

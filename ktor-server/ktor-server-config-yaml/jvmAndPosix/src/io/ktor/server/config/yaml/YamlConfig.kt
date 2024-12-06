@@ -1,6 +1,7 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 package io.ktor.server.config.yaml
 
 import io.ktor.server.config.*
@@ -27,6 +28,7 @@ public class YamlConfigLoader : ConfigLoader {
  * On JVM, loads a configuration from application resources, if exists; otherwise, reads a configuration from a file.
  * On Native, always reads a configuration from a file.
  */
+@Suppress("ktlint:standard:function-naming")
 public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**

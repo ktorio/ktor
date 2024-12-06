@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.contentnegotiation
@@ -78,8 +78,9 @@ class RequestConverterTest {
         }.bodyAsText()
 
         try {
+            @Suppress("ktlint:standard:max-line-length")
             assertEquals(
-                "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass", // ktlint-disable max-line-length
+                "Cannot transform this request's content to io.ktor.server.plugins.contentnegotiation.NonSerializableClass",
                 responseFoo
             )
         } catch (cause: Throwable) {
