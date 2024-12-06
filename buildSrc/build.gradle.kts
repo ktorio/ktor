@@ -12,6 +12,7 @@ plugins {
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.kotlin.serialization)
+    implementation(kotlin("compiler-embeddable", libs.versions.kotlin.get()))
 
     implementation(libs.kotlinter)
     implementation(libs.develocity)
