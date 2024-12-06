@@ -42,7 +42,7 @@ internal fun Url.toNSUrl(): NSURL {
 
     components.percentEncodedPath = when {
         pathEncoded -> encodedPath
-        else -> pathSegments.joinToString("/").sanitize(NSCharacterSet.URLPathAllowedCharacterSet)
+        else -> rawSegments.joinToString("/").sanitize(NSCharacterSet.URLPathAllowedCharacterSet)
     }
 
     when {

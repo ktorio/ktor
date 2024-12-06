@@ -8,7 +8,10 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 private const val TEST_URL = "$TEST_SERVER/compression"
 
@@ -121,4 +124,5 @@ class ContentEncodingTest : ClientLoader() {
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
+
 }

@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.statement.readRawBytes
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
@@ -28,7 +29,7 @@ class ConnectionTest : ClientLoader() {
 
                 response.also {
                     assertTrue(it.status.isSuccess())
-                    assertTrue(it.readBytes().isEmpty())
+                    assertTrue(it.readRawBytes().isEmpty())
                 }
             }
         }

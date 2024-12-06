@@ -160,7 +160,7 @@ public fun Appendable.appendUrlFullPath(
 /**
  * Checks if [Url] has absolute path.
  */
-public val Url.isAbsolutePath: Boolean get() = pathSegments.firstOrNull() == ""
+public val Url.isAbsolutePath: Boolean get() = rawSegments.firstOrNull() == ""
 
 /**
  * Checks if [Url] has absolute path.
