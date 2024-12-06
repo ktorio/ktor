@@ -39,9 +39,8 @@ system you use for development:
 Run the following commands to install `libcurl` and `libncurses`:
 
 ```bash
-sudo apt-get update
-sudo apt-get install libncurses5 libncursesw5 libtinfo5
-sudo apt-get install libcurl4-openssl-dev
+sudo apt update
+sudo apt install libncurses-dev libtinfo-dev libcurl4-openssl-dev
 ```
 
 **macOS** 
