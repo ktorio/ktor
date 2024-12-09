@@ -50,11 +50,12 @@ fun Project.configureJvm() {
         }
     }
 
+    val testJdk = project.testJdk
     val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaToolchain(compileJdk)
+        configureJavaToolchain(compileJdk, testJdk)
     }
 
     tasks.register<Test>("stressTest") {
@@ -67,7 +68,7 @@ fun Project.configureJvm() {
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaToolchain(compileJdk)
+        configureJavaToolchain(compileJdk, testJdk)
     }
 
     val configuredVersion: String by rootProject.extra
@@ -83,14 +84,32 @@ fun Project.configureJvm() {
     }
 }
 
-/**
- * On local machine use for tests the JDK used for compilation.
- * On CI use the default JDK.
- */
-private fun Test.configureJavaToolchain(compileJdk: Int) {
-    val testJdk = if (CI) currentJdk else compileJdk
-    val javaToolchains = project.the<JavaToolchainService>()
+private var _testJdk = 0
 
+/**
+ * Retrieves the JDK version for running tests.
+ *
+ * Takes the version from property "test.jdk" or uses Gradle JDK by default.
+ * For example, to run tests against JDK 8, run test task with flag "-Ptest.jdk=8"
+ * or put this property to `gradle.properties`.
+ */
+private val Project.testJdk: Int
+    get() {
+        if (_testJdk == 0) {
+            _testJdk = rootProject.properties["test.jdk"]?.toString()?.toInt() ?: currentJdk
+            logger.info("Running tests against JDK $_testJdk")
+        }
+        return _testJdk
+    }
+
+/** Configure tests against different JDK versions. */
+private fun Test.configureJavaToolchain(compileJdk: Int, testJdk: Int) {
+    if (testJdk < compileJdk) {
+        enabled = false
+        return
+    }
+
+    val javaToolchains = project.the<JavaToolchainService>()
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(testJdk)
     }
