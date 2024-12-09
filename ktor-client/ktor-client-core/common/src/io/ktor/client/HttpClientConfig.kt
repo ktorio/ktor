@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
 /**
  * A mutable [HttpClient] configuration used to adjust settings, install plugins and interceptors.
  *
- * This class is available as block in [HttpClient] constructor or [HttpClient.config] builder:
+ * This configuration can be provided as a lambda in the [HttpClient] constructor or the [HttpClient.config] builder:
  * ```kotlin
  * val client = HttpClient { // HttpClientConfig<Engine>()
  *     // Configure engine settings
