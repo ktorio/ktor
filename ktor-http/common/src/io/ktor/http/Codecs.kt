@@ -90,7 +90,8 @@ public fun String.encodeURLPath(
             continue
         }
 
-        if (!encodeEncoded && current == '%' &&
+        if (!encodeEncoded &&
+            current == '%' &&
             index + 2 < this@encodeURLPath.length &&
             this@encodeURLPath[index + 1] in HEX_ALPHABET &&
             this@encodeURLPath[index + 2] in HEX_ALPHABET

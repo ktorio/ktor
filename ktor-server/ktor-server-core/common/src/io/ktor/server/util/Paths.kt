@@ -41,7 +41,9 @@ private fun List<String>.filterComponentsImpl(startIndex: Int): List<String> {
 
 private fun MutableList<String>.processAndReplaceComponent(component: String) {
     if (component.isEmpty() ||
-        component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords
+        component == "." ||
+        component == "~" ||
+        component.toUpperCasePreservingASCIIRules() in ReservedWords
     ) {
         return
     }

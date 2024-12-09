@@ -41,8 +41,10 @@ public data class PinnedCertificate(
                 other = pattern,
                 otherOffset = 3,
                 length = suffixLength
-            ) && (prefixLength == 0 || hostname[prefixLength - 1] == '.')
+            ) &&
+                (prefixLength == 0 || hostname[prefixLength - 1] == '.')
         }
+
         pattern.startsWith("*.") -> {
             // With * there must be a prefix so include the dot in regionMatches().
             val suffixLength = pattern.length - 1
@@ -52,8 +54,10 @@ public data class PinnedCertificate(
                 other = pattern,
                 otherOffset = 1,
                 length = suffixLength
-            ) && hostname.lastIndexOf('.', prefixLength - 1) == -1
+            ) &&
+                hostname.lastIndexOf('.', prefixLength - 1) == -1
         }
+
         else -> hostname == pattern
     }
 
@@ -68,8 +72,8 @@ public data class PinnedCertificate(
          */
         public fun new(pattern: String, pin: String): PinnedCertificate {
             require(
-                pattern.startsWith("*.") && pattern.indexOf("*", 1) == -1 ||
-                    pattern.startsWith("**.") && pattern.indexOf("*", 2) == -1 ||
+                (pattern.startsWith("*.") && pattern.indexOf("*", 1) == -1) ||
+                    (pattern.startsWith("**.") && pattern.indexOf("*", 2) == -1) ||
                     pattern.indexOf("*") == -1
             ) {
                 "Unexpected pattern: $pattern"
@@ -84,6 +88,7 @@ public data class PinnedCertificate(
                         hash = hash
                     )
                 }
+
                 pin.startsWith(HASH_ALGORITHM_SHA_256) -> {
                     val hash = pin.substring(HASH_ALGORITHM_SHA_256.length)
                     PinnedCertificate(
@@ -92,6 +97,7 @@ public data class PinnedCertificate(
                         hash = hash
                     )
                 }
+
                 else -> throw IllegalArgumentException(
                     "Pins must start with '$HASH_ALGORITHM_SHA_256' or '$HASH_ALGORITHM_SHA_1': $pin"
                 )

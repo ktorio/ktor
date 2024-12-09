@@ -102,7 +102,8 @@ public class XForwardedHeadersConfig {
             var proxiesCount = 0
             while (
                 hosts.lastIndex >= proxiesCount &&
-                forValues != null && forValues.lastIndex >= proxiesCount &&
+                forValues != null &&
+                forValues.lastIndex >= proxiesCount &&
                 hosts[hosts.size - proxiesCount - 1].trim() == forValues[forValues.size - proxiesCount - 1].trim()
             ) {
                 proxiesCount++
