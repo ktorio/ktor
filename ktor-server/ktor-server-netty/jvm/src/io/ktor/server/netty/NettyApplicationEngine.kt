@@ -9,17 +9,25 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
-import io.netty.bootstrap.*
-import io.netty.channel.*
-import io.netty.channel.epoll.*
-import io.netty.channel.kqueue.*
-import io.netty.channel.socket.*
-import io.netty.channel.socket.nio.*
-import io.netty.handler.codec.http.*
-import kotlinx.coroutines.*
-import java.net.*
-import java.util.concurrent.*
-import kotlin.reflect.*
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.Channel
+import io.netty.channel.ChannelOption
+import io.netty.channel.ChannelPipeline
+import io.netty.channel.EventLoopGroup
+import io.netty.channel.epoll.Epoll
+import io.netty.channel.epoll.EpollServerSocketChannel
+import io.netty.channel.kqueue.KQueue
+import io.netty.channel.kqueue.KQueueServerSocketChannel
+import io.netty.channel.socket.ServerSocketChannel
+import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.http.HttpObjectDecoder
+import io.netty.handler.codec.http.HttpServerCodec
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import java.net.BindException
+import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
 
 private val AFTER_CALL_PHASE = PipelinePhase("After")
 
@@ -157,7 +165,7 @@ public class NettyApplicationEngine(
         workerEventGroup.asCoroutineDispatcher()
     }
 
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     private var channels: List<Channel>? = null
     internal val bootstraps: List<ServerBootstrap> by lazy {
@@ -224,7 +232,7 @@ public class NettyApplicationEngine(
 
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -243,7 +251,7 @@ public class NettyApplicationEngine(
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        cancellationDeferred?.complete()
+        cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 

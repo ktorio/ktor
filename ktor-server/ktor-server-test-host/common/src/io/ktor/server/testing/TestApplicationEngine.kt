@@ -18,9 +18,10 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
 @PublicAPICandidate("2.2.0")
@@ -39,7 +40,7 @@ public class TestApplicationEngine(
 ) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
     private val testEngineJob = Job(applicationProvider().parentCoroutineContext[Job])
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext =
         applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
@@ -144,7 +145,7 @@ public class TestApplicationEngine(
 
     override fun start(wait: Boolean): ApplicationEngine {
         check(testEngineJob.isActive) { "Test engine is already completed" }
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -157,7 +158,7 @@ public class TestApplicationEngine(
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
-            cancellationDeferred?.complete()
+            cancellationJob?.complete()
             client.close()
             engine.close()
             monitor.raise(ApplicationStopPreparing, environment)
