@@ -39,7 +39,7 @@ import io.ktor.utils.io.*
  * ```
  * ## Configuring [HttpClientEngine]
  *
- * If the engine is specified explicitly, engine-specific properties will be available in the engine block:
+ * If the engine is specified explicitly, engine-specific properties will be available in the `engine` block:
  * ```kotlin
  * val client = HttpClient(CIO) { // HttpClientConfig<CIOEngineConfig>.() -> Unit
  *     engine { // CIOEngineConfig.() -> Unit
