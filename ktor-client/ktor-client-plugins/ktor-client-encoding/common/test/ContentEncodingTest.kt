@@ -9,6 +9,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.Platform
+import io.ktor.util.PlatformUtils
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
@@ -125,9 +127,14 @@ class ContentEncodingTest : ClientLoader() {
 
     @Test
     fun testGzipWithContentLengthWithoutPlugin() = clientTests {
+        if (!PlatformUtils.IS_JS && !PlatformUtils.IS_WASM_JS) return@clientTests
+
         test { client ->
-            client.get("$TEST_URL/gzip-with-content-length")
+            val content = client.get("$TEST_URL/gzip-with-content-length")
                 .bodyAsBytes()
+                .decodeToString()
+
+            assertEquals("Hello, world", content)
         }
     }
 }
