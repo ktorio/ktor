@@ -11,8 +11,12 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
@@ -156,5 +160,13 @@ class HttpCacheTest {
 
         assertEquals("after(before(Hello))", firstResponse)
         assertEquals(firstResponse, secondResponse)
+    }
+
+    private fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
+        return if (!PlatformUtils.IS_BROWSER) {
+            testApplication(EmptyCoroutineContext, block)
+        } else {
+            runTest { println("Skipping test on browser") }
+        }
     }
 }
