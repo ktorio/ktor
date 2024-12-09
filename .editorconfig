@@ -18,7 +18,6 @@ ktlint_standard_annotation = disabled
 ktlint_standard_class-naming = disabled
 ktlint_standard_class-signature = disabled
 ktlint_standard_comment-wrapping = disabled
-ktlint_standard_condition-wrapping = disabled
 ktlint_standard_filename = disabled
 ktlint_standard_function-expression-body = disabled
 ktlint_standard_function-signature = disabled

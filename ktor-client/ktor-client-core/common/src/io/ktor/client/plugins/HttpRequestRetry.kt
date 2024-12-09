@@ -240,11 +240,12 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
         maxRetries: Int,
         shouldRetry: HttpRetryShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean,
         call: HttpClientCall
-    ) = retryCount < maxRetries && shouldRetry(
-        HttpRetryShouldRetryContext(retryCount + 1),
-        call.request,
-        call.response
-    )
+    ) = retryCount < maxRetries &&
+        shouldRetry(
+            HttpRetryShouldRetryContext(retryCount + 1),
+            call.request,
+            call.response
+        )
 
     fun shouldRetryOnException(
         retryCount: Int,
@@ -252,11 +253,12 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
         shouldRetry: HttpRetryShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean,
         subRequest: HttpRequestBuilder,
         cause: Throwable
-    ) = retryCount < maxRetries && shouldRetry(
-        HttpRetryShouldRetryContext(retryCount + 1),
-        subRequest,
-        cause
-    )
+    ) = retryCount < maxRetries &&
+        shouldRetry(
+            HttpRetryShouldRetryContext(retryCount + 1),
+            subRequest,
+            cause
+        )
 
     fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
         val subRequest = HttpRequestBuilder().takeFrom(request)

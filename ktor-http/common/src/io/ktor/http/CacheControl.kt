@@ -98,14 +98,13 @@ public abstract class CacheControl(public val visibility: Visibility?) {
         }
 
         override fun equals(other: Any?): Boolean {
-            return other === this || (
+            return other === this ||
                 other is MaxAge &&
-                    other.maxAgeSeconds == maxAgeSeconds &&
-                    other.proxyMaxAgeSeconds == proxyMaxAgeSeconds &&
-                    other.mustRevalidate == mustRevalidate &&
-                    other.proxyRevalidate == proxyRevalidate &&
-                    other.visibility == visibility
-                )
+                other.maxAgeSeconds == maxAgeSeconds &&
+                other.proxyMaxAgeSeconds == proxyMaxAgeSeconds &&
+                other.mustRevalidate == mustRevalidate &&
+                other.proxyRevalidate == proxyRevalidate &&
+                other.visibility == visibility
         }
 
         override fun hashCode(): Int {
