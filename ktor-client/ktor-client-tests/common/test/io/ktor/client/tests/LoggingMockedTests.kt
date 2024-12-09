@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
@@ -18,6 +18,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class LoggingMockedTests {
 
@@ -299,7 +300,6 @@ class LoggingMockedTests {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testCanStream() = testWithEngine(MockEngine) {
         val channel = ByteChannel(autoFlush = true)
@@ -332,7 +332,8 @@ class LoggingMockedTests {
 
             channel.writeStringUtf8("Hello world!\n")
 
-            withTimeout(5_000) { // the bug will cause this to timeout
+            // the bug will cause this to timeout
+            withTimeout(5.seconds) {
                 content.collect {
                     channel.close()
                 }

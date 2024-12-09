@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.fetch
@@ -34,7 +34,7 @@ public external interface Uint8Array : JsAny {
         target: JsNumber,
         start: JsNumber,
         end: JsNumber? = definedExternally
-    ): Uint8Array /* this */
+    ): Uint8Array // this
 
     public fun every(
         callbackfn: (value: JsNumber, index: JsNumber, array: Uint8Array) -> JsAny,
@@ -45,7 +45,7 @@ public external interface Uint8Array : JsAny {
         value: JsNumber,
         start: JsNumber? = definedExternally,
         end: JsNumber? = definedExternally
-    ): Uint8Array /* this */
+    ): Uint8Array // this
 
     public fun filter(
         callbackfn: (value: JsNumber, index: JsNumber, array: Uint8Array) -> JsAny,
@@ -147,7 +147,7 @@ public external interface Uint8Array : JsAny {
         thisArg: JsAny? = definedExternally
     ): Boolean
 
-    public fun sort(compareFn: ((a: JsNumber, b: JsNumber) -> JsNumber)? = definedExternally): Uint8Array /* this */
+    public fun sort(compareFn: ((a: JsNumber, b: JsNumber) -> JsNumber)? = definedExternally): Uint8Array // this
 
     public fun subarray(begin: JsNumber? = definedExternally, end: JsNumber? = definedExternally): Uint8Array
 

@@ -9,8 +9,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlin.coroutines.CoroutineContext
 
 internal data class RequestTask(
     val request: HttpRequestData,
@@ -19,9 +19,11 @@ internal data class RequestTask(
 )
 
 @OptIn(InternalAPI::class)
-internal fun HttpRequestData.requiresDedicatedConnection(): Boolean = listOf(headers, body.headers).any {
-    it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
-} || method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts() || isSseRequest()
+internal fun HttpRequestData.requiresDedicatedConnection(): Boolean =
+    listOf(headers, body.headers).any { it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade) } ||
+        method !in listOf(HttpMethod.Get, HttpMethod.Head) ||
+        containsCustomTimeouts() ||
+        isSseRequest()
 
 internal data class ConnectionResponseTask(
     val requestTime: GMTDate,

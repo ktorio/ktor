@@ -10,8 +10,10 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
+@Suppress("ktlint:standard:statement-wrapping")
 class ServerURLBuilderTest {
 
     @Test

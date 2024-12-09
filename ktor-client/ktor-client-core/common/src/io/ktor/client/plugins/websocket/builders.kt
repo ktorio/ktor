@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.websocket
 
@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 /**
  * Installs the [WebSockets] plugin using the [config] as configuration.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) {
     install(WebSockets) {
         config()
@@ -44,7 +45,9 @@ public suspend fun HttpClient.webSocketSession(
                 session.outgoing.invokeOnClose {
                     if (it != null) {
                         sessionCompleted.completeExceptionally(it)
-                    } else sessionCompleted.complete(Unit)
+                    } else {
+                        sessionCompleted.complete(Unit)
+                    }
                 }
                 sessionCompleted.await()
             }

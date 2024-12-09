@@ -9,14 +9,13 @@ import io.ktor.client.engine.winhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import platform.winhttp.*
 
 @OptIn(ExperimentalForeignApi::class)
 internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : Closeable {
 
-    @OptIn(ExperimentalForeignApi::class)
     private var hSession: COpaquePointer
     private val closed = atomic(false)
     private val timeoutConfigured = atomic(false)

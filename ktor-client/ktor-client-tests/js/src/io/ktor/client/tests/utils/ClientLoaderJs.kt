@@ -1,14 +1,13 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 
 /**
  * Helper interface to test client.
@@ -17,7 +16,6 @@ actual abstract class ClientLoader actual constructor(private val timeoutSeconds
     /**
      * Perform test against all clients from dependencies.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     actual fun clientTests(
         skipEngines: List<String>,
         onlyWithEngine: String?,

@@ -10,7 +10,6 @@ import kotlinx.coroutines.*
 /**
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @InternalAPI
 public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,

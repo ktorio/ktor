@@ -139,7 +139,6 @@ internal abstract class NIOSocketImpl<out S>(
     private val AtomicReference<out ChannelJob?>.completedOrNotStarted: Boolean
         get() = get().let { it == null || it.isCompleted }
 
-    @OptIn(InternalCoroutinesApi::class)
     private val AtomicReference<out ChannelJob?>.exception: Throwable?
         get() = get()?.takeIf { it.isCancelled }
             ?.getCancellationException()?.cause // TODO it should be completable deferred or provide its own exception

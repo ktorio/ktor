@@ -1,6 +1,7 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 import io.ktor.utils.io.charsets.*
@@ -89,7 +90,8 @@ public fun String.encodeURLPath(
             continue
         }
 
-        if (!encodeEncoded && current == '%' &&
+        if (!encodeEncoded &&
+            current == '%' &&
             index + 2 < this@encodeURLPath.length &&
             this@encodeURLPath[index + 1] in HEX_ALPHABET &&
             this@encodeURLPath[index + 2] in HEX_ALPHABET

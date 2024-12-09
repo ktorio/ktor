@@ -15,10 +15,9 @@ import java.io.*
 private val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
 val Project.hasCommon: Boolean get() = files.any { it.name == "common" }
 val Project.hasJvmAndPosix: Boolean get() = hasCommon || files.any { it.name == "jvmAndPosix" }
-val Project.hasJvmAndNix: Boolean get() = hasCommon || files.any { it.name == "jvmAndNix" }
 val Project.hasPosix: Boolean get() = hasCommon || hasJvmAndPosix || files.any { it.name == "posix" }
 val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
-val Project.hasNix: Boolean get() = hasPosix || hasJvmAndNix || files.any { it.name == "nix" }
+val Project.hasNix: Boolean get() = hasPosix || files.any { it.name == "nix" }
 val Project.hasLinux: Boolean get() = hasNix || files.any { it.name == "linux" }
 val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
 val Project.hasAndroidNative: Boolean get() = hasPosix || files.any { it.name == "androidNative" }
@@ -26,7 +25,7 @@ val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "wind
 val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWasmShared" }
 val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
 val Project.hasWasmJs: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
-val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndNix || hasJvmAndPosix || files.any { it.name == "jvm" }
+val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndPosix || files.any { it.name == "jvm" }
 
 val Project.hasExplicitNative: Boolean
     get() = hasNix || hasPosix || hasLinux || hasAndroidNative || hasDarwin || hasDesktop || hasWindows
@@ -108,11 +107,6 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
         group("jvmAndPosix") {
             withJvm()
             group("posix")
-        }
-
-        group("jvmAndNix") {
-            withJvm()
-            group("nix")
         }
 
         group("desktop") {

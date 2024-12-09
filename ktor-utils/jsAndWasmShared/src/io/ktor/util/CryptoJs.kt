@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util
 
@@ -40,6 +40,7 @@ public actual fun Digest(name: String): Digest = object : Digest {
 
 // Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
 // JS IR backend doesn't reserve names accessed inside js("") calls
+@Suppress("ObjectPropertyName")
 private val _crypto: Crypto = js("(globalThis ? globalThis.crypto : (window.crypto || window.msCrypto))")
 
 private external class Crypto {
