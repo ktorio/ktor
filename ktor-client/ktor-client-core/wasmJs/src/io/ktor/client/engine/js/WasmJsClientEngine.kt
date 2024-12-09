@@ -169,6 +169,8 @@ internal fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
         val value = this@mapToKtor.get(key)!!
         append(key, value)
     }
+
+    dropCompressionHeaders()
 }
 
 /**

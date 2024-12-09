@@ -6,8 +6,11 @@ package io.ktor.client.plugins.compression
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.Platform
+import io.ktor.util.PlatformUtils
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
@@ -119,6 +122,19 @@ class ContentEncodingTest : ClientLoader() {
         test { client ->
             val response = client.get("$TEST_URL/big-plain-text")
             assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun testGzipWithContentLengthWithoutPlugin() = clientTests {
+        if (!PlatformUtils.IS_JS && !PlatformUtils.IS_WASM_JS) return@clientTests
+
+        test { client ->
+            val content = client.get("$TEST_URL/gzip-with-content-length")
+                .bodyAsBytes()
+                .decodeToString()
+
+            assertEquals("Hello, world", content)
         }
     }
 }
