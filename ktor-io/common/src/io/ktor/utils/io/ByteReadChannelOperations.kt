@@ -14,7 +14,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -357,6 +356,9 @@ public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
     return max - remaining
 }
 
+private const val CR: Byte = '\r'.code.toByte()
+private const val LF: Byte = '\n'.code.toByte()
+
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF and CRLF as a line delimiter.
@@ -372,62 +374,41 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return false
 
-    var consumed = 0
-    while (!isClosedForRead) {
-        awaitContent()
+    Buffer().use { lineBuffer ->
+        while (!isClosedForRead) {
+            while (!readBuffer.exhausted()) {
+                when (val b = readBuffer.readByte()) {
+                    CR -> {
+                        // Check if LF follows CR after awaiting
+                        if (readBuffer.exhausted()) awaitContent()
+                        if (readBuffer.buffer[0] == LF) {
+                            readBuffer.discard(1)
+                        }
+                        out.append(lineBuffer.readString())
+                        return true
+                    }
 
-        val cr = readBuffer.indexOf('\r'.code.toByte())
-        val lf = readBuffer.indexOf('\n'.code.toByte())
+                    LF -> {
+                        out.append(lineBuffer.readString())
+                        return true
+                    }
 
-        // No new line separator
-        if (cr == -1L && lf == -1L) {
-            if (max == Int.MAX_VALUE) {
-                val value = readBuffer.readString()
-                out.append(value)
-            } else {
-                val count = minOf(max - consumed, readBuffer.remaining.toInt())
-                consumed += count
-                out.append(readBuffer.readString(count.toLong()))
-
-                if (consumed == max) throw TooLongLineException("Line exceeds limit of $max characters")
+                    else -> lineBuffer.writeByte(b)
+                }
+            }
+            if (lineBuffer.size >= max) {
+                throw TooLongLineException("Line exceeds limit of $max characters")
             }
 
-            continue
+            awaitContent()
         }
 
-        // CRLF fully in buffer
-        if (cr >= 0 && lf == cr + 1) {
-            val count = if (max != Int.MAX_VALUE) cr else minOf(max - consumed, cr.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == cr) readBuffer.discard(2)
-            return true
-        }
-
-        // CR in buffer before LF
-        if (cr >= 0 && (lf == -1L || cr < lf)) {
-            val count = if (max != Int.MAX_VALUE) cr else minOf(max - consumed, cr.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == cr) readBuffer.discard(1)
-
-            // Check if LF follows CR after awaiting
-            if (readBuffer.exhausted()) awaitContent()
-            if (readBuffer.buffer[0] == '\n'.code.toByte()) {
-                readBuffer.discard(1)
+        return (lineBuffer.size > 0).also { remaining ->
+            if (remaining) {
+                out.append(lineBuffer.readString())
             }
-
-            return true
-        }
-
-        // LF in buffer before CR
-        if (lf >= 0) {
-            val count = if (max != Int.MAX_VALUE) lf else minOf(max - consumed, lf.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == lf) readBuffer.discard(1)
-            return true
         }
     }
-
-    return true
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
