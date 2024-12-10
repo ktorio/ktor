@@ -11,11 +11,18 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.sse.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlin.test.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 class ServerSentEventsTest {
 
@@ -289,6 +296,31 @@ class ServerSentEventsTest {
                 "data: {\"id\":0,\"prices\":[100,200]}",
             client.get("/json").bodyAsText().trim()
         )
+    }
+
+    @Test
+    fun testHeartbeat() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                heartbeat {
+                    duration = 100.milliseconds
+                    event = ServerSentEvent("heartbeat")
+                }
+
+                send("Hello")
+                delay(200.milliseconds)
+            }
+        }
+
+        val client = createSseClient()
+        val events = mutableListOf<ServerSentEvent>()
+        client.sse {
+            incoming.collect { events.add(it) }
+        }
+        assertTrue { events.size > 1 }
+        assertTrue { events.filter { it.data == "Hello" }.size == 1 }
+        assertTrue { events.any { it.data == "heartbeat" } }
     }
 
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {
