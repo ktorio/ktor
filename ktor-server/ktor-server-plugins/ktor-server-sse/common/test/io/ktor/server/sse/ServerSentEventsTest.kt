@@ -11,11 +11,19 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.sse.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlin.test.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.milliseconds
 
 class ServerSentEventsTest {
 
@@ -289,6 +297,42 @@ class ServerSentEventsTest {
                 "data: {\"id\":0,\"prices\":[100,200]}",
             client.get("/json").bodyAsText().trim()
         )
+    }
+
+    @Test
+    fun testHeartbeat() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                heartbeat {
+                    duration = 10.milliseconds
+                    event = ServerSentEvent("heartbeat")
+                }
+
+                repeat (4) {
+                    send("Hello")
+                    delay(10.milliseconds)
+                }
+            }
+        }
+
+        val client = createSseClient()
+
+        var hellos = 0
+        var heartbeats = 0
+        withTimeout(5_000) {
+            client.sse {
+                incoming.collect { event ->
+                    when (event.data) {
+                        "Hello" -> hellos++
+                        "heartbeat" -> heartbeats++
+                    }
+                    if (hellos > 3 && heartbeats > 3) {
+                        cancel()
+                    }
+                }
+            }
+        }
     }
 
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {
