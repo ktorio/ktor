@@ -4,8 +4,8 @@
 
 package io.ktor.utils.io.core
 
-import kotlinx.io.*
 import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 
 /**
  * Read the specified number of bytes specified (optional, read all remaining by default)
