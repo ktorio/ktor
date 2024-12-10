@@ -41,7 +41,7 @@ internal class CurlClientEngine(
 
             val status = HttpStatusCode.fromValue(status)
 
-            val headers = filterCurlHeaders(rawHeaders)
+            val headers = filterCurlHeaders(data.method, rawHeaders)
             rawHeaders.release()
 
             val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
@@ -71,10 +71,10 @@ internal class CurlClientEngine(
  *
  * We need to filter out the headers that are no longer valid.
  */
-internal fun filterCurlHeaders(raw: HttpHeadersMap): Headers {
+internal fun filterCurlHeaders(method: HttpMethod, raw: HttpHeadersMap): Headers {
     val builder = raw.toBuilder()
 
-    if (builder.contains(HttpHeaders.ContentEncoding)) {
+    if (builder.contains(HttpHeaders.ContentEncoding) && method != HttpMethod.Head && method != HttpMethod.Options) {
         builder.remove(HttpHeaders.ContentEncoding)
         builder.remove(HttpHeaders.ContentLength)
     }

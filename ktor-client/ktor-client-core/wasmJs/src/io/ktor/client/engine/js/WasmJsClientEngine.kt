@@ -62,7 +62,7 @@ internal class JsClientEngine(
 
         val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
-        val headers = rawResponse.headers.mapToKtor()
+        val headers = rawResponse.headers.mapToKtor(data.method)
         val version = HttpProtocolVersion.HTTP_1_1
 
         val body = CoroutineScope(callContext).readBody(rawResponse)
@@ -162,12 +162,16 @@ private fun eventAsString(event: Event): String =
 private fun getKeys(headers: org.w3c.fetch.Headers): JsArray<JsString> =
     js("Array.from(headers.keys())")
 
-internal fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+internal fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod): Headers = buildHeaders {
     val keys = getKeys(this@mapToKtor)
     for (i in 0 until keys.length) {
         val key = keys[i].toString()
         val value = this@mapToKtor.get(key)!!
         append(key, value)
+    }
+
+    if (method != HttpMethod.Head || method == HttpMethod.Options) {
+        dropCompressionHeaders()
     }
 }
 

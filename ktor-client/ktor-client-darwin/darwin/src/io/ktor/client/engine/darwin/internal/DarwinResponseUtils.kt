@@ -8,6 +8,17 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import platform.Foundation.*
 
-internal fun NSHTTPURLResponse.readHeaders(): Headers = buildHeaders {
+internal fun NSHTTPURLResponse.readHeaders(method: HttpMethod): Headers = buildHeaders {
     allHeaderFields.mapKeys { (key, value) -> append(key as String, value as String) }
+
+    if (method != HttpMethod.Head && method != HttpMethod.Options) {
+        dropCompressionHeaders()
+    }
+}
+
+internal fun HeadersBuilder.dropCompressionHeaders() {
+    if (contains(HttpHeaders.ContentEncoding)) {
+        remove(HttpHeaders.ContentEncoding)
+        remove(HttpHeaders.ContentLength)
+    }
 }

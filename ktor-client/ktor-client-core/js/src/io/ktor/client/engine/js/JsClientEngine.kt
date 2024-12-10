@@ -52,7 +52,7 @@ internal class JsClientEngine(
         val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
-        val headers = rawResponse.headers.mapToKtor()
+        val headers = rawResponse.headers.mapToKtor(data.method)
         val version = HttpProtocolVersion.HTTP_1_1
 
         val body = CoroutineScope(callContext).readBody(rawResponse)
@@ -153,13 +153,16 @@ private fun Event.asString(): String = buildString {
     append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
-private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+private fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
 
-    Unit
+    if (method != HttpMethod.Head || method == HttpMethod.Options) {
+        dropCompressionHeaders()
+    }
 }
+
 
 /**
  * Wrapper for javascript `error` objects.
