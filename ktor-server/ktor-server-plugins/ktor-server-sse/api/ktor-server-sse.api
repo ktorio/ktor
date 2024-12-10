@@ -1,6 +1,8 @@
 public final class io/ktor/server/sse/RoutingKt {
 	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
 	public static final fun sse (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function2;)V
+	public static final fun sse (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/sse/SSEKt {
@@ -9,9 +11,12 @@ public final class io/ktor/server/sse/SSEKt {
 
 public final class io/ktor/server/sse/SSEServerContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
 	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function2;)V
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getHandle ()Lkotlin/jvm/functions/Function2;
+	public final fun getSerialize ()Lkotlin/jvm/functions/Function2;
 	public fun toString ()Ljava/lang/String;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -26,5 +31,13 @@ public abstract interface class io/ktor/server/sse/ServerSSESession : kotlinx/co
 public final class io/ktor/server/sse/ServerSSESession$DefaultImpls {
 	public static fun send (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun send$default (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/server/sse/ServerSSESessionWithSerialization : io/ktor/server/sse/ServerSSESession {
+	public abstract fun getSerializer ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class io/ktor/server/sse/ServerSSESessionWithSerialization$DefaultImpls {
+	public static fun send (Lio/ktor/server/sse/ServerSSESessionWithSerialization;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
