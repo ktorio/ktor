@@ -1,11 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine
 
 import io.ktor.util.*
-import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -38,20 +37,5 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
  */
 public class ClientEngineClosedException(override val cause: Throwable? = null) :
     IllegalStateException("Client already closed")
-
-/**
- * Closes [CoroutineDispatcher] if it's [CloseableCoroutineDispatcher] or [Closeable].
- */
-@OptIn(ExperimentalCoroutinesApi::class)
-private fun CoroutineDispatcher.close() {
-    try {
-        when (this) {
-            is CloseableCoroutineDispatcher -> close()
-            is Closeable -> close()
-        }
-    } catch (ignore: Throwable) {
-        // Some closeable dispatchers like Dispatchers.IO can't be closed.
-    }
-}
 
 internal expect fun ioDispatcher(): CoroutineDispatcher
