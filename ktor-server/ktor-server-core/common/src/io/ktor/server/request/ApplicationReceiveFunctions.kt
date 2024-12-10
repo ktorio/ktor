@@ -188,9 +188,11 @@ public var ApplicationCall.formFieldLimit: Long
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
 public suspend inline fun ApplicationCall.receiveMultipart(
-    formFieldLimit: Long = DEFAULT_FORM_FIELD_MAX_SIZE
+    formFieldLimit: Long? = null
 ): MultiPartData {
-    this.formFieldLimit = formFieldLimit
+    if (formFieldLimit != null) {
+        this.formFieldLimit = formFieldLimit
+    }
     return receive()
 }
 
