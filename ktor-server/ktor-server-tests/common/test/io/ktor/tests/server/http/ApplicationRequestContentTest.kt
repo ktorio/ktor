@@ -211,7 +211,6 @@ class ApplicationRequestContentTest {
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testDoubleReceiveChannels() = testApplication {
         install(DoubleReceive)

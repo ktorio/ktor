@@ -9,29 +9,31 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
-import platform.windows.*
+import platform.windows.DWORDVar
+import platform.windows.ERROR_INSUFFICIENT_BUFFER
+import platform.windows.GetLastError
 import platform.windows.SECURITY_FLAG_IGNORE_CERT_CN_INVALID
 import platform.windows.SECURITY_FLAG_IGNORE_CERT_DATE_INVALID
 import platform.windows.SECURITY_FLAG_IGNORE_UNKNOWN_CA
 import platform.winhttp.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalForeignApi::class)
-internal class WinHttpRequest @OptIn(ExperimentalForeignApi::class) constructor(
+internal class WinHttpRequest(
     hSession: COpaquePointer,
     data: HttpRequestData,
     config: WinHttpClientEngineConfig
 ) : Closeable {
     private val connect: WinHttpConnect
 
-    @OptIn(ExperimentalForeignApi::class)
     private val hRequest: COpaquePointer
     private val closed = atomic(false)
     private val requestClosed = atomic(false)
 
-    @OptIn(ExperimentalForeignApi::class)
     private val connectReference: StableRef<WinHttpConnect>
 
     init {

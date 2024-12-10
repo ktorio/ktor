@@ -5,9 +5,9 @@
 package io.ktor.client.engine.apache5
 
 import io.ktor.client.engine.*
-import org.apache.hc.client5.http.config.*
-import org.apache.hc.client5.http.impl.async.*
-import javax.net.ssl.*
+import org.apache.hc.client5.http.config.RequestConfig
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import javax.net.ssl.SSLContext
 
 /**
  * A configuration for the [Apache5] client engine.
@@ -56,7 +56,7 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      */
     public fun customizeRequest(block: RequestConfig.Builder.() -> Unit) {
         val current = customRequest
-        customRequest = { current(); block(); this }
+        customRequest = { current().apply(block) }
     }
 
     /**
@@ -64,6 +64,6 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      */
     public fun customizeClient(block: HttpAsyncClientBuilder.() -> Unit) {
         val current = customClient
-        customClient = { current(); block(); this }
+        customClient = { current().apply(block) }
     }
 }

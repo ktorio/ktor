@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.auth.HeaderValueEncoding
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -22,7 +21,7 @@ import kotlinx.atomicfu.*
 public fun AuthConfig.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
-        this@digest.providers += DigestAuthProvider(_credentials, realm, algorithmName)
+        this@digest.providers += DigestAuthProvider(credentials, realm, algorithmName)
     }
 }
 
@@ -52,7 +51,7 @@ public class DigestAuthConfig {
     public var realm: String? = null
 
     @Suppress("DEPRECATION_ERROR")
-    internal var _credentials: suspend () -> DigestAuthCredentials? = {
+    internal var credentials: suspend () -> DigestAuthCredentials? = {
         DigestAuthCredentials(username = username, password = password)
     }
 
@@ -60,7 +59,7 @@ public class DigestAuthConfig {
      * Allows you to specify authentication credentials.
      */
     public fun credentials(block: suspend () -> DigestAuthCredentials?) {
-        _credentials = block
+        credentials = block
     }
 }
 

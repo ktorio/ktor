@@ -314,7 +314,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     open fun testUpgrade() = runTest {
         val completed = CompletableDeferred<Unit>()
@@ -497,9 +496,13 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
     protected fun clearSocketResponses(responses: Sequence<String>) =
         responses.filterNot { line ->
-            line.startsWith("Date") || line.startsWith("Server") ||
-                line.startsWith("Content-") || line.toIntOrNull() != null ||
-                line.isBlank() || line.startsWith("Connection") || line.startsWith("Keep-Alive")
+            line.startsWith("Date") ||
+                line.startsWith("Server") ||
+                line.startsWith("Content-") ||
+                line.toIntOrNull() != null ||
+                line.isBlank() ||
+                line.startsWith("Connection") ||
+                line.startsWith("Keep-Alive")
         }
             .map { it.trim() }
             .joinToString(separator = "\n")

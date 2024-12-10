@@ -14,7 +14,6 @@ class HeadersJvmTest {
     private val ch = ByteChannel(true)
     private val builder = CharArrayBuilder()
 
-    @OptIn(InternalAPI::class)
     @AfterTest
     fun tearDown() {
         ch.close()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -349,7 +349,7 @@ class OAuth2Test {
                     call.authentication.allFailures.all {
                         it is OAuth2RedirectError && it.error == "access_denied"
                     }
-                } // ktlint-disable max-line-length
+                }
             }
         }
         val call = noRedirectsClient().get(

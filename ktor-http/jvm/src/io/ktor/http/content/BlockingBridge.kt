@@ -4,8 +4,9 @@
 
 package io.ktor.http.content
 
-import kotlinx.coroutines.*
-import java.lang.reflect.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.lang.reflect.Method
 
 private val isParkingAllowedFunction: Method? by lazy {
     try {
@@ -32,9 +33,8 @@ internal suspend fun withBlocking(block: suspend () -> Unit) {
 }
 
 private fun safeToRunInPlace(): Boolean {
-    val isParkingAllowed = isParkingAllowedFunction
-    return isParkingAllowed != null && try {
-        isParkingAllowed.invoke(null) == true
+    return try {
+        isParkingAllowedFunction?.invoke(null) == true
     } catch (cause: Throwable) {
         false
     }

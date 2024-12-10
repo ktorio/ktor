@@ -35,7 +35,6 @@ public class WebSocketWriter(
      */
     public val outgoing: SendChannel<Frame> get() = queue
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val writeLoopJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
         pool.useInstance { writeLoop(it) }
     }

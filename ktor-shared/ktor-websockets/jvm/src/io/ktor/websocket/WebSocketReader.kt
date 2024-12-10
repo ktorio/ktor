@@ -34,7 +34,6 @@ public class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
         val buffer = pool.borrow()
         try {

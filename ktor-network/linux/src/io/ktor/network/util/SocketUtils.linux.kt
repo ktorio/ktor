@@ -2,10 +2,13 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("FunctionName")
+
 package io.ktor.network.util
 
 import kotlinx.cinterop.*
-import platform.linux.*
+import platform.linux.inet_ntop
+import platform.linux.sockaddr_un
 import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
@@ -39,7 +42,7 @@ internal actual fun pack_sockaddr_un(
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_recvfrom(
     __fd: Int,
     __buf: CValuesRef<ByteVar>?,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.cache.storage
@@ -22,6 +22,7 @@ import java.security.*
  * @param directory directory to store cache data.
  * @param dispatcher dispatcher to use for file operations.
  */
+@Suppress("FunctionName")
 public fun FileStorage(
     directory: File,
     dispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -86,7 +87,6 @@ private class FileCacheStorage(
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))
 
-    @OptIn(InternalAPI::class)
     private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {

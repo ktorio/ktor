@@ -73,7 +73,6 @@ public open class HttpClientCall(
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [body].
      */
-    @OptIn(InternalAPI::class)
     public suspend fun bodyNullable(info: TypeInfo): Any? {
         try {
             if (response.instanceOf(info.type)) return response
@@ -107,7 +106,6 @@ public open class HttpClientCall(
      * @throws DoubleReceiveException If already called [body].
      * @throws NullPointerException If content is `null`.
      */
-    @OptIn(InternalAPI::class)
     public suspend fun body(info: TypeInfo): Any = bodyNullable(info)!!
 
     override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
