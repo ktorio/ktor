@@ -71,7 +71,6 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
         if (!mode.request) return@onCallReceive
         decode(call, options)
     }
-
 }
 
 @OptIn(InternalAPI::class)
