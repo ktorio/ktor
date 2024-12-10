@@ -84,7 +84,7 @@ internal class JsClientEngine(
         return when {
             PlatformUtils.IS_BROWSER -> js("new WebSocket(urlString_capturingHack, protocols)")
             else -> {
-                val ws_import: Promise<dynamic> = js("import('w' + 's')")
+                val ws_import: Promise<dynamic> = js("import('ws')")
                 val ws_capturingHack = ws_import.await().default
                 val headers_capturingHack: dynamic = object {}
                 headers.forEach { name, values ->
