@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -78,7 +78,8 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], listening on [host]:[port].
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
+@Suppress("ktlint:standard:max-line-length")
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -104,7 +105,8 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 /**
  * Creates an embedded server with the given [factory], listening on given [connectors].
  */
-public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer( // ktlint-disable max-line-length
+@Suppress("ktlint:standard:max-line-length")
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(),
     watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),

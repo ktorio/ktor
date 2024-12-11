@@ -33,7 +33,7 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
     private val output: ByteWriteChannel,
@@ -55,18 +55,20 @@ internal class RawWebSocketCommon(
 
     private val writerJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
         try {
-            mainLoop@ while (true) when (val message = _outgoing.receive()) {
-                is Frame -> {
-                    output.writeFrame(message, masking)
-                    output.flush()
-                    if (message is Frame.Close) break@mainLoop
-                }
+            mainLoop@ while (true) {
+                when (val message = _outgoing.receive()) {
+                    is Frame -> {
+                        output.writeFrame(message, masking)
+                        output.flush()
+                        if (message is Frame.Close) break@mainLoop
+                    }
 
-                is FlushRequest -> {
-                    message.complete()
-                }
+                    is FlushRequest -> {
+                        message.complete()
+                    }
 
-                else -> throw IllegalArgumentException("unknown message $message")
+                    else -> throw IllegalArgumentException("unknown message $message")
+                }
             }
             _outgoing.close()
         } catch (cause: ChannelWriteException) {
@@ -79,9 +81,11 @@ internal class RawWebSocketCommon(
             output.flushAndClose()
         }
 
-        while (true) when (val message = _outgoing.tryReceive().getOrNull() ?: break) {
-            is FlushRequest -> message.complete()
-            else -> {}
+        while (true) {
+            when (val message = _outgoing.tryReceive().getOrNull() ?: break) {
+                is FlushRequest -> message.complete()
+                else -> {}
+            }
         }
     }
 

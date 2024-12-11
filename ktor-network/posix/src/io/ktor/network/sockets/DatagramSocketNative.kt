@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -23,12 +23,12 @@ internal class DatagramSocketNative(
     private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
 ) : BoundDatagramSocket, ConnectedDatagramSocket, CoroutineScope {
-    private val _context: CompletableJob = Job(parent[Job])
+    private val context: CompletableJob = Job(parent[Job])
 
-    override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _context
+    override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + context
 
     override val socketContext: Job
-        get() = _context
+        get() = context
 
     override val localAddress: SocketAddress
         get() = getLocalAddress(descriptor).toSocketAddress()
@@ -61,8 +61,8 @@ internal class DatagramSocketNative(
 
     override fun close() {
         receiver.cancel()
-        _context.complete()
-        _context.invokeOnCompletion {
+        context.complete()
+        context.invokeOnCompletion {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
             // Descriptor is closed by the selector manager
             selector.notifyClosed(selectable)
@@ -78,7 +78,7 @@ internal class DatagramSocketNative(
         }
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class)
     private fun tryReadDatagram(): Datagram? = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()

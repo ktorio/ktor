@@ -4,9 +4,13 @@
 
 package io.ktor.network.sockets
 
-import java.io.*
-import java.lang.reflect.*
-import java.nio.channels.*
+import java.io.IOException
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.nio.channels.DatagramChannel
+import java.nio.channels.ServerSocketChannel
+import java.nio.channels.SocketChannel
 
 private const val SO_REUSEPORT = "SO_REUSEPORT"
 
@@ -32,9 +36,8 @@ internal object SocketOptionsPlatformCapabilities {
         val socketChannelClass = Class.forName("java.nio.channels.SocketChannel")
 
         socketChannelClass.methods.firstOrNull { method ->
-            method.modifiers.let { modifiers ->
-                Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            } && method.name == "setOption" &&
+            method.modifiers.let { modifiers -> Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) } &&
+                method.name == "setOption" &&
                 method.parameterTypes.size == 2 &&
                 method.returnType == socketChannelClass &&
                 method.parameterTypes[0] == socketOptionType &&
@@ -49,9 +52,7 @@ internal object SocketOptionsPlatformCapabilities {
         val socketChannelClass = Class.forName("java.nio.channels.ServerSocketChannel")
 
         socketChannelClass.methods.firstOrNull { method ->
-            method.modifiers.let { modifiers ->
-                Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
-            } &&
+            method.modifiers.let { modifiers -> Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) } &&
                 method.name == "setOption" &&
                 method.parameterTypes.size == 2 &&
                 method.returnType == socketChannelClass &&

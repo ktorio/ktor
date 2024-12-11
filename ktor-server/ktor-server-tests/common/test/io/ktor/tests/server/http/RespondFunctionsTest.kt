@@ -29,7 +29,10 @@ class RespondFunctionsTest {
                 call.respondBytes { ByteArray(10) { it.toByte() } }
             }
             get("/bytes-writer") {
-                call.respondBytesWriter(contentLength = 2) { writeByte(1); writeByte(2) }
+                call.respondBytesWriter(contentLength = 2) {
+                    writeByte(1)
+                    writeByte(2)
+                }
             }
         }
 

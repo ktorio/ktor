@@ -5,7 +5,7 @@
 package io.ktor.utils.io.charsets
 
 import kotlinx.io.*
-import org.khronos.webgl.*
+import org.khronos.webgl.Int8Array
 
 /**
  * Find a charset by name.
@@ -41,9 +41,9 @@ public actual abstract class Charset(internal val _name: String) {
     public companion object {
         public fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            if (name == "ISO-8859-1" || name == "iso-8859-1" ||
+            if ((name == "ISO-8859-1" || name == "iso-8859-1") ||
                 name.replace('_', '-').let { it == "iso-8859-1" || it.lowercase() == "iso-8859-1" } ||
-                name == "latin1" || name == "Latin1"
+                (name == "latin1" || name == "Latin1")
             ) {
                 return Charsets.ISO_8859_1
             }
@@ -52,9 +52,10 @@ public actual abstract class Charset(internal val _name: String) {
 
         public fun isSupported(charset: String): Boolean = when {
             charset == "UTF-8" || charset == "utf-8" || charset == "UTF8" || charset == "utf8" -> true
-            charset == "ISO-8859-1" || charset == "iso-8859-1" || charset.replace('_', '-').let {
-                it == "iso-8859-1" || it.lowercase() == "iso-8859-1"
-            } || charset == "latin1" -> true
+            (charset == "ISO-8859-1" || charset == "iso-8859-1") ||
+                charset.replace('_', '-')
+                    .let { it == "iso-8859-1" || it.lowercase() == "iso-8859-1" } ||
+                charset == "latin1" -> true
 
             else -> false
         }

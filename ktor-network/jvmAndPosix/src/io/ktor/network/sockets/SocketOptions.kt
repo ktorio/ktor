@@ -9,7 +9,6 @@ internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
 /**
  * Socket options builder
  */
-@OptIn(ExperimentalUnsignedTypes::class)
 public sealed class SocketOptions(
     protected val customOptions: MutableMap<Any, Any?>
 ) {

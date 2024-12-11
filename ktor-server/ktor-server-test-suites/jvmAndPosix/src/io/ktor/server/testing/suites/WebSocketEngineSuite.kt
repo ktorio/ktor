@@ -684,15 +684,17 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         replyCloseFrame: Boolean = true
     ) {
         loop@
-        while (true) when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
-            is Frame.Ping -> continue@loop
-            is Frame.Close -> {
-                assertEquals(closeCode, frame.readReason()?.code)
-                if (replyCloseFrame) socket.close()
-                break@loop
-            }
+        while (true) {
+            when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
+                is Frame.Ping -> continue@loop
+                is Frame.Close -> {
+                    assertEquals(closeCode, frame.readReason()?.code)
+                    if (replyCloseFrame) socket.close()
+                    break@loop
+                }
 
-            else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
+                else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
+            }
         }
     }
 
@@ -730,10 +732,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     private suspend fun ByteReadChannel.readLineISOCrLf(): String {
         val sb = StringBuilder(256)
 
-        while (true) when (val rc = readByte().toInt()) {
-            -1, 0x0a -> return sb.toString()
-            0x0d -> {}
-            else -> sb.append(rc.toChar())
+        while (true) {
+            when (val rc = readByte().toInt()) {
+                -1, 0x0a -> return sb.toString()
+                0x0d -> {}
+                else -> sb.append(rc.toChar())
+            }
         }
     }
 

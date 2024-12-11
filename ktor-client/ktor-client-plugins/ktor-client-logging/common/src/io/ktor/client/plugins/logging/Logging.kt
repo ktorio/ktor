@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.logging
@@ -242,6 +242,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 /**
  * Configures and installs [Logging] in [HttpClient].
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.Logging(block: LoggingConfig.() -> Unit = {}) {
     install(Logging, block)
 }

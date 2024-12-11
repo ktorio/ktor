@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -14,7 +14,7 @@ class CodecTest {
     private val urlPath = "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana\u2013Champaign_logo.svg"
     private val surrogateSymbolUrlPath = "/path/🐕"
 
-    @Test /*(timeout = 1000L)*/
+    @Test
     @Ignore
     fun testDecodeRandom() {
         val chars = "+%0123abc"

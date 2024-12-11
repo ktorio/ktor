@@ -506,7 +506,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
             dump()
 
-            /* use for debugging */
+            // Uncomment for debugging
 //        if (conns.any { !it.isDone }) {
 //             TimeUnit.SECONDS.sleep(500)
 //        }
@@ -660,7 +660,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
         ApplicationCallPipeline(environment = createTestEnvironment()).items
-            .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback } // fallback will reply with 404 and not 500
+            // fallback will reply with 404 and not 500
+            .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback }
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {

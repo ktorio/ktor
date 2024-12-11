@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -44,7 +44,7 @@ actual constructor(
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var recreateInstance: Boolean = false
-    private var _applicationClassLoader: ClassLoader? = null
+    private var applicationClassLoader: ClassLoader? = null
     private var packageWatchKeys = emptyList<WatchKey>()
 
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
@@ -56,7 +56,7 @@ actual constructor(
 
     private val modulesNames: List<String> = configModulesNames
 
-    private var _applicationInstance: Application? = Application(
+    private var applicationInstance: Application? = Application(
         environment,
         rootConfig.developmentMode,
         rootConfig.rootPath,
@@ -88,13 +88,13 @@ actual constructor(
         applicationInstanceLock.write {
             destroyApplication()
             val (application, classLoader) = createApplication()
-            _applicationInstance = application
-            _applicationClassLoader = classLoader
+            applicationInstance = application
+            applicationClassLoader = classLoader
         }
     }
 
     private fun currentApplication(): Application = applicationInstanceLock.read {
-        val currentApplication = _applicationInstance ?: error("EmbeddedServer was stopped")
+        val currentApplication = applicationInstance ?: error("EmbeddedServer was stopped")
 
         if (!rootConfig.developmentMode) {
             return@read currentApplication
@@ -125,11 +125,11 @@ actual constructor(
         applicationInstanceLock.write {
             destroyApplication()
             val (application, classLoader) = createApplication()
-            _applicationInstance = application
-            _applicationClassLoader = classLoader
+            applicationInstance = application
+            applicationClassLoader = classLoader
         }
 
-        return@read _applicationInstance ?: error("EmbeddedServer was stopped")
+        return@read applicationInstance ?: error("EmbeddedServer was stopped")
     }
 
     private fun createApplication(): Pair<Application, ClassLoader> {
@@ -179,7 +179,8 @@ actual constructor(
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
-            url !in coreUrls && watchPatterns.any { pattern -> checkUrlMatches(url, pattern) } &&
+            url !in coreUrls &&
+                watchPatterns.any { pattern -> checkUrlMatches(url, pattern) } &&
                 !(url.path ?: "").startsWith(jre)
         }
 
@@ -199,16 +200,16 @@ actual constructor(
     }
 
     private fun destroyApplication() {
-        val currentApplication = _applicationInstance
-        val applicationClassLoader = _applicationClassLoader
-        _applicationInstance = null
-        _applicationClassLoader = null
+        val currentApplication = applicationInstance
+        val currentApplicationClassLoader = applicationClassLoader
+        applicationInstance = null
+        applicationClassLoader = null
 
         if (currentApplication != null) {
             safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
                 currentApplication.dispose()
-                (applicationClassLoader as? OverridingClassLoader)?.close()
+                (currentApplicationClassLoader as? OverridingClassLoader)?.close()
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy application instance.", e)
             }
@@ -277,8 +278,8 @@ actual constructor(
 
                 throw cause
             }
-            _applicationInstance = application
-            _applicationClassLoader = classLoader
+            applicationInstance = application
+            applicationClassLoader = classLoader
         }
 
         CoroutineScope(application.coroutineContext).launch {
@@ -313,7 +314,7 @@ actual constructor(
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
-        val newInstance = if (recreateInstance || _applicationInstance == null) {
+        val newInstance = if (recreateInstance || applicationInstance == null) {
             Application(
                 environment,
                 rootConfig.developmentMode,
@@ -324,7 +325,7 @@ actual constructor(
             )
         } else {
             recreateInstance = true
-            _applicationInstance!!
+            applicationInstance!!
         }
 
         safeRaiseEvent(ApplicationStarting, newInstance)

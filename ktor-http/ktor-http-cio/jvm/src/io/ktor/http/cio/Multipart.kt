@@ -166,7 +166,7 @@ public fun CoroutineScope.parseMultipart(
 
 private val CrLf = ByteString("\r\n".toByteArray())
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 private fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteString,
     input: ByteReadChannel,

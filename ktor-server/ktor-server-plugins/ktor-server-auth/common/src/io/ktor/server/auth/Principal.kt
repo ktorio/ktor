@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -31,7 +31,9 @@ internal class CombinedPrincipal {
             .firstOrNull { (name, principal) ->
                 if (provider != null) {
                     name == provider && klass.isInstance(principal)
-                } else klass.isInstance(principal)
+                } else {
+                    klass.isInstance(principal)
+                }
             }?.second as? T
     }
 

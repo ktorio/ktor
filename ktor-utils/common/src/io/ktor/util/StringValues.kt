@@ -280,7 +280,10 @@ public open class StringValuesBuilderImpl(
     }
 
     private fun ensureListForKey(name: String): MutableList<String> {
-        return values[name] ?: mutableListOf<String>().also { validateName(name); values[name] = it }
+        return values[name] ?: mutableListOf<String>().also {
+            validateName(name)
+            values[name] = it
+        }
     }
 }
 

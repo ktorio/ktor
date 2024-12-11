@@ -1,7 +1,9 @@
 public final class io/ktor/server/plugins/defaultheaders/DefaultHeadersConfig {
 	public fun <init> ()V
+	public final fun getCachedDateText$ktor_server_default_headers ()Ljava/lang/String;
 	public final fun getClock ()Lio/ktor/server/plugins/defaultheaders/DefaultHeadersConfig$Clock;
 	public final fun header (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun setCachedDateText$ktor_server_default_headers (Ljava/lang/String;)V
 	public final fun setClock (Lio/ktor/server/plugins/defaultheaders/DefaultHeadersConfig$Clock;)V
 }
 

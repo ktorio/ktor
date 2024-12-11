@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.*
@@ -44,16 +44,6 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixMain(block: KotlinSou
 
 fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixTest(block: KotlinSourceSet.() -> Unit) {
     val sourceSet = findByName("jvmAndPosixTest") ?: getByName("jvmTest")
-    block(sourceSet)
-}
-
-fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndNixMain(block: KotlinSourceSet.() -> Unit) {
-    val sourceSet = findByName("jvmAndNixMain") ?: getByName("jvmMain")
-    block(sourceSet)
-}
-
-fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndNixTest(block: KotlinSourceSet.() -> Unit) {
-    val sourceSet = findByName("jvmAndNixTest") ?: getByName("jvmTest")
     block(sourceSet)
 }
 

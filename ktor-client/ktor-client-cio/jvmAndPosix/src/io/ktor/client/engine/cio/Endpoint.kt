@@ -92,7 +92,6 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
-    @OptIn(InternalAPI::class)
     private suspend fun makeDedicatedRequest(
         request: HttpRequestData,
         callContext: CoroutineContext

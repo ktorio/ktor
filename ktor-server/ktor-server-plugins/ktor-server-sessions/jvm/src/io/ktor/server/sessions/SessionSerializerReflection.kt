@@ -1,8 +1,7 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-// ktlint-disable experimental:argument-list-wrapping
 package io.ktor.server.sessions
 
 import io.ktor.http.*
@@ -207,7 +206,7 @@ internal class SessionSerializerReflection<T : Any>(
                         .filterAssignable(type)
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
-                        ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
+                        ?.withUnsafe { apply { addAll(value.map { coerceType(contentType, it) }) } }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
             }
@@ -227,7 +226,7 @@ internal class SessionSerializerReflection<T : Any>(
                         .filterAssignable(type)
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
-                        ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
+                        ?.withUnsafe { apply { addAll(value.map { coerceType(contentType, it) }) } }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
             }

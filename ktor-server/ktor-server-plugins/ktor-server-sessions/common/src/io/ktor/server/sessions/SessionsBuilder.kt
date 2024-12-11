@@ -325,7 +325,9 @@ internal constructor(
      * Specifies a serializer used to serialize session data.
      */
     public var serializer: SessionSerializer<S>
-        set(value) { _serializer = value }
+        set(value) {
+            _serializer = value
+        }
         get() = _serializer ?: defaultSerializer
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()

@@ -14,7 +14,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 
-@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+@OptIn(DelicateCoroutinesApi::class)
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ContentWrapper -> delegate().toByteArray()
     is OutgoingContent.ByteArrayContent -> bytes()
@@ -32,7 +32,7 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 }
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+@OptIn(DelicateCoroutinesApi::class)
 public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()

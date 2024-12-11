@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -155,7 +155,7 @@ internal object ReceiveError : ClientHook<suspend (HttpRequest, Throwable) -> Th
     }
 }
 
-private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
+private fun HttpRequest(builder: HttpRequestBuilder): HttpRequest = object : HttpRequest {
     override val call: HttpClientCall get() = error("Call is not initialized")
     override val method: HttpMethod = builder.method
     override val url: Url = builder.url.build()
@@ -169,6 +169,7 @@ private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
 /**
  * Install [HttpCallValidator] with [block] configuration.
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidatorConfig.() -> Unit) {
     install(HttpCallValidator, block)
 }

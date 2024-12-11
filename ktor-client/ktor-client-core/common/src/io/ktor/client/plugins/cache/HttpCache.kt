@@ -144,7 +144,6 @@ public class HttpCache private constructor(
             }
         }
 
-        @OptIn(InternalAPI::class)
         override fun install(plugin: HttpCache, scope: HttpClient) {
             val CachePhase = PipelinePhase("Cache")
             scope.sendPipeline.insertPhaseAfter(HttpSendPipeline.State, CachePhase)

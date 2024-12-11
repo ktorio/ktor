@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING", "KDocMissingDocumentation")
@@ -148,6 +148,6 @@ fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Un
     test = block
 }
 
-fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit) { // ktlint-disable no-unit-return
+fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit) {
     after = block
 }

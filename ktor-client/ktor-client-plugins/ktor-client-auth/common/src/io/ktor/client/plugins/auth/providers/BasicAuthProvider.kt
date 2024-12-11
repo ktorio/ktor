@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -20,7 +20,7 @@ import io.ktor.utils.io.core.*
 @KtorDsl
 public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
-        this@basic.providers.add(BasicAuthProvider(_credentials, realm, _sendWithoutRequest))
+        this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest))
     }
 }
 
@@ -52,11 +52,11 @@ public class BasicAuthConfig {
      */
     public var realm: String? = null
 
-    @Suppress("DEPRECATION_ERROR")
+    @Suppress("DEPRECATION_ERROR", "PropertyName")
     internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { sendWithoutRequest }
 
     @Suppress("DEPRECATION_ERROR")
-    internal var _credentials: suspend () -> BasicAuthCredentials? = {
+    internal var credentials: suspend () -> BasicAuthCredentials? = {
         BasicAuthCredentials(username = username, password = password)
     }
 
@@ -71,7 +71,7 @@ public class BasicAuthConfig {
      * Allows you to specify authentication credentials.
      */
     public fun credentials(block: suspend () -> BasicAuthCredentials?) {
-        _credentials = block
+        credentials = block
     }
 }
 

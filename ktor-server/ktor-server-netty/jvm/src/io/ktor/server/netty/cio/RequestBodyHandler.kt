@@ -151,7 +151,7 @@ internal class RequestBodyHandler(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
             val e = try {

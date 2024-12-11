@@ -62,7 +62,10 @@ public class TestApplication internal constructor(
 ) : ClientProvider by clientProvider {
 
     internal enum class State {
-        Created, Starting, Started, Stopped
+        Created,
+        Starting,
+        Started,
+        Stopped,
     }
 
     private val state = atomic(State.Created)
@@ -202,7 +205,10 @@ public open class TestApplicationBuilder {
     public fun engine(block: TestApplicationEngine.Configuration.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = engineConfig
-        engineConfig = { oldBuilder(); block() }
+        engineConfig = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**
@@ -213,7 +219,10 @@ public open class TestApplicationBuilder {
     public fun serverConfig(block: ServerConfigBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = applicationProperties
-        applicationProperties = { oldBuilder(); block() }
+        applicationProperties = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**
@@ -224,7 +233,10 @@ public open class TestApplicationBuilder {
     public fun environment(block: ApplicationEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = environmentBuilder
-        environmentBuilder = { oldBuilder(); block() }
+        environmentBuilder = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**

@@ -76,7 +76,6 @@ internal class NettyHttp1ApplicationResponse(
         return responseMessage
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()

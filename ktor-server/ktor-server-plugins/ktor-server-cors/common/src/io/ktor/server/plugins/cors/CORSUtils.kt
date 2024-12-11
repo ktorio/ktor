@@ -51,9 +51,11 @@ internal fun corsCheckOrigins(
     originPredicates: List<(String) -> Boolean>,
 ): Boolean {
     val normalizedOrigin = normalizeOrigin(origin)
-    return allowsAnyHost || normalizedOrigin in hostsNormalized || hostsWithWildcard.any { (prefix, suffix) ->
-        normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
-    } || originPredicates.any { it(origin) }
+    return allowsAnyHost ||
+        normalizedOrigin in hostsNormalized ||
+        hostsWithWildcard
+            .any { (prefix, suffix) -> normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix) } ||
+        originPredicates.any { it(origin) }
 }
 
 internal fun corsCheckRequestHeaders(
@@ -86,9 +88,9 @@ internal fun isValidOrigin(origin: String): Boolean {
     val protoDelimiter = origin.indexOf("://")
     if (protoDelimiter <= 0) return false
 
-    val protoValid = origin[0].isLetter() && origin.subSequence(0, protoDelimiter).all { ch ->
-        ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.'
-    }
+    val protoValid = origin[0].isLetter() &&
+        origin.subSequence(0, protoDelimiter)
+            .all { ch -> ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.' }
 
     if (!protoValid) return false
 

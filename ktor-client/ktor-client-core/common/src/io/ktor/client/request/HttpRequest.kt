@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.request
 
@@ -294,7 +294,7 @@ public operator fun HttpRequestBuilder.Companion.invoke(
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-public fun HttpRequestBuilder.url(urlString: String) { // ktlint-disable filename
+public fun HttpRequestBuilder.url(urlString: String) {
     url.takeFrom(urlString)
 }
 

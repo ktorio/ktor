@@ -53,7 +53,7 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         onlyWithEngine: String?
     ): Boolean {
         val engineName = engine.toString()
-        return onlyWithEngine != null && !onlyWithEngine.equals(engineName, ignoreCase = true) ||
+        return (onlyWithEngine != null && !onlyWithEngine.equals(engineName, ignoreCase = true)) ||
             skipEngines.any { shouldSkip(engineName, it) }
     }
 
@@ -68,9 +68,8 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
         }
 
         val platformShouldBeSkipped = "*" == platform || OS_NAME == platform
-        val engineShouldBeSkipped = "*" == skipEngineName || engineName.lowercase(locale) == skipEngineName.lowercase(
-            locale
-        )
+        val engineShouldBeSkipped = "*" == skipEngineName ||
+            engineName.lowercase(locale) == skipEngineName.lowercase(locale)
 
         return engineShouldBeSkipped && platformShouldBeSkipped
     }
@@ -92,8 +91,8 @@ actual abstract class ClientLoader actual constructor(val timeoutSeconds: Int) {
      * Issues to fix before unlock:
      * 1. Pinger & Ponger in ws
      * 2. Nonce generator
+     * Then @After should be added to the function
      */
-    // @After
     @OptIn(ExperimentalCoroutinesApi::class)
     fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {

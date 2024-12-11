@@ -151,7 +151,6 @@ internal class ApacheResponseConsumer(
         responseChannel.cancel(mappedCause)
     }
 
-    @OptIn(InternalAPI::class)
     internal fun close() {
         channel.close()
         consumerJob.complete()
