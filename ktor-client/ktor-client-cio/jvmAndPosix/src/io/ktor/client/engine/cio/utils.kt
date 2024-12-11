@@ -53,7 +53,7 @@ internal suspend fun writeHeaders(
     val expected = headers[HttpHeaders.Expect]
 
     try {
-        val normalizedUrl = if (url.pathSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
+        val normalizedUrl = if (url.rawSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
         val urlString = if (overProxy) normalizedUrl.toString() else normalizedUrl.fullPath
 
         builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
