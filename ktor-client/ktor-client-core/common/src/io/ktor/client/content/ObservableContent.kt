@@ -5,22 +5,28 @@
 package io.ktor.client.content
 
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Callback that can be registered to listen for upload/download progress.
- * @param bytesSentTotal number of transmitted bytes.
- * @param contentLength body size. Can be null if the size is unknown.
+ *
+ * This class is used for callbacks in [HttpRequestBuilder.onDownload] and [HttpRequestBuilder.onUpload].
  */
 public fun interface ProgressListener {
     /**
      * Invokes every time some data is flushed through the [ByteReadChannel].
+     *
+     * @param bytesSentTotal number of transmitted bytes.
+     * @param contentLength body size. Can be null if the size is unknown.
      */
     public suspend fun onProgress(bytesSentTotal: Long, contentLength: Long?)
 }

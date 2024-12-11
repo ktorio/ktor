@@ -13,27 +13,85 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 internal val CALL_COROUTINE = CoroutineName("call-context")
 internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
 
 /**
  * Serves as the base interface for an [HttpClient]'s engine.
+ *
+ * An `HttpClientEngine` represents the underlying network implementation that
+ * performs HTTP requests and handles responses.
+ * Developers can implement this interface to create custom engines for use with [HttpClient].
+ *
+ * This interface provides a set of properties and methods that define the
+ * contract for configuring, executing, and managing HTTP requests within the engine.
+ *
+ * For a base implementation that handles common engine functionality, see [HttpClientEngineBase].
  */
 public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
-     * Specifies [CoroutineDispatcher] for I/O operations.
+     * Specifies the [CoroutineDispatcher] for I/O operations in the engine.
+     *
+     * This dispatcher is used for all network-related operations, such as
+     * sending requests and receiving responses.
+     * By default, it should be optimized for I/O tasks.
+     *
+     * Example:
+     * ```kotlin
+     * override val dispatcher: CoroutineDispatcher = Dispatchers.IO
+     * ```
      */
     public val dispatcher: CoroutineDispatcher
 
     /**
-     * Provides access to an engine's configuration.
+     * Provides access to the engine's configuration via [HttpClientEngineConfig].
+     *
+     * The [config] object stores user-defined parameters or settings that control
+     * how the engine operates. When creating a custom engine, this property
+     * should return the specific configuration implementation.
+     *
+     * Example:
+     * ```kotlin
+     * override val config: HttpClientEngineConfig = CustomEngineConfig()
+     * ```
      */
     public val config: HttpClientEngineConfig
 
     /**
-     * Set of supported engine extensions.
+     * Specifies the set of capabilities supported by this HTTP client engine.
+     *
+     * Capabilities provide a mechanism for plugins and other components to
+     * determine whether the engine supports specific features such as timeouts,
+     * WebSocket communication, HTTP/2, HTTP/3, or other advanced networking
+     * capabilities. This allows seamless integration of features based on the
+     * engine's functionality.
+     *
+     * Each capability is represented as an instance of [HttpClientEngineCapability],
+     * which can carry additional metadata or configurations for the capability.
+     *
+     * Example:
+     * ```kotlin
+     * override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(
+     *     WebSocketCapability,
+     *     Http2Capability,
+     *     TimeoutCapability
+     * )
+     * ```
+     *
+     * **Usage in Plugins**:
+     * Plugins can check if the engine supports a specific capability before
+     * applying behavior:
+     * ```kotlin
+     * if (engine.supportedCapabilities.contains(WebSocketCapability)) {
+     *     // Configure WebSocket-specific settings
+     * }
+     * ```
+     *
+     * When implementing a custom engine, ensure this property accurately reflects
+     * the engine's abilities to avoid unexpected plugin behavior or runtime errors.
      */
     public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
@@ -42,13 +100,25 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
         get() = !(coroutineContext[Job]?.isActive ?: false)
 
     /**
-     * Creates a new [HttpClientCall] specific for this engine, using a request [data].
+     * Executes an HTTP request and produces an HTTP response.
+     *
+     * This function takes [HttpRequestData], which contains all details of the HTTP request,
+     * and returns [HttpResponseData] with the server's response, including headers, status code, and body.
+     *
+     * @param data The [HttpRequestData] representing the request to be executed.
+     * @return An [HttpResponseData] object containing the server's response.
      */
     @InternalAPI
     public suspend fun execute(data: HttpRequestData): HttpResponseData
 
     /**
-     * Installs the engine to [HttpClient].
+     * Installs the engine into an [HttpClient].
+     *
+     * This method is called when the engine is being set up within an `HttpClient`.
+     * Use it to register interceptors, validate configuration, or prepare the engine
+     * for use with the client.
+     *
+     * @param client The [HttpClient] instance to which the engine is being installed.
      */
     @InternalAPI
     public fun install(client: HttpClient) {
@@ -105,16 +175,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
             require(supportedCapabilities.contains(requestedExtension)) { "Engine doesn't support $requestedExtension" }
         }
     }
-}
-
-/**
- * A factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].
- */
-public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
-    /**
-     * Creates a new [HttpClientEngine] optionally specifying a [block] configuring [T].
-     */
-    public fun create(block: T.() -> Unit = {}): HttpClientEngine
 }
 
 /**
