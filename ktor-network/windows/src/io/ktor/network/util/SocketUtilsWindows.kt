@@ -6,6 +6,7 @@
 
 package io.ktor.network.util
 
+import io.ktor.network.interop.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import platform.posix.AF_INET
@@ -37,6 +38,14 @@ private val initSocketsIfNeeded by lazy {
         val lpWSAData = alloc<WSADATA>()
         WSAStartup(0x0202u, lpWSAData.ptr).check { it == 0 }
     }
+}
+
+internal val isAFUnixSupported by lazy {
+    initSocketsIfNeeded
+    val s = socket(platform.posix.AF_UNIX, SOCK_STREAM, 0)
+    if (s == INVALID_SOCKET) return@lazy false
+    platform.posix.closesocket(s)
+    true
 }
 
 internal actual fun initSocketsIfNeeded() {
@@ -115,11 +124,15 @@ internal actual fun ktor_inet_ntop(
     size: UInt
 ): CPointer<ByteVar>? = inet_ntop(family, src, dst, size.convert())
 
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun <T> unpack_sockaddr_un(
     sockaddr: sockaddr,
     block: (family: UShort, path: String) -> T
 ): T {
-    error("Address ${sockaddr.sa_family} is not supported on Windows")
+    check(isAFUnixSupported) { "Address ${sockaddr.sa_family} is not supported on Windows" }
+
+    val address = sockaddr.ptr.reinterpret<sockaddr_un>().pointed
+    return block(address.sun_family.convert(), address.sun_path.toKString())
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -128,7 +141,14 @@ internal actual fun pack_sockaddr_un(
     path: String,
     block: (address: CPointer<sockaddr>, size: UInt) -> Unit
 ) {
-    error("Address $family is not supported on Windows")
+    check(isAFUnixSupported) { "Address $family is not supported on Windows" }
+
+    cValue<sockaddr_un> {
+        strcpy(sun_path, path)
+        sun_family = family.convert()
+
+        block(ptr.reinterpret(), sizeOf<sockaddr_un>().convert())
+    }
 }
 
 internal actual val reusePortFlag: Int? = null // Unsupported on Windows
