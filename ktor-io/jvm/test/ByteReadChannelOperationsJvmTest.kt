@@ -2,7 +2,6 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
