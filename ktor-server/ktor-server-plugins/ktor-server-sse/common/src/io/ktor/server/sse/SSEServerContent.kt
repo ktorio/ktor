@@ -53,6 +53,8 @@ public class SSEServerContent(
                 session?.handle()
             }
         } finally {
+            val heartbeatJob = call.attributes.getOrNull(heartbeatJobKey)
+            heartbeatJob?.cancel()
             session?.close()
         }
     }
