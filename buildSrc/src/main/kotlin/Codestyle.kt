@@ -10,7 +10,7 @@ fun Project.configureCodestyle() {
     apply(plugin = "org.jmailen.kotlinter")
 
     kotlinter.apply {
-        ignoreFailures = true
+        ignoreLintFailures = true
         reporters = arrayOf("checkstyle", "plain")
     }
 
