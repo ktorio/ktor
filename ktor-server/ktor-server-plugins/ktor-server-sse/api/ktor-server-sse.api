@@ -1,3 +1,11 @@
+public final class io/ktor/server/sse/Heartbeat {
+	public fun <init> ()V
+	public final fun getDuration-UwyO8pc ()J
+	public final fun getEvent ()Lio/ktor/sse/ServerSentEvent;
+	public final fun setDuration-LRDsOJo (J)V
+	public final fun setEvent (Lio/ktor/sse/ServerSentEvent;)V
+}
+
 public final class io/ktor/server/sse/RoutingKt {
 	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static final fun sse (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)V
@@ -31,6 +39,10 @@ public abstract interface class io/ktor/server/sse/ServerSSESession : kotlinx/co
 public final class io/ktor/server/sse/ServerSSESession$DefaultImpls {
 	public static fun send (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun send$default (Lio/ktor/server/sse/ServerSSESession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/sse/ServerSSESessionKt {
+	public static final fun heartbeat (Lio/ktor/server/sse/ServerSSESession;Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract interface class io/ktor/server/sse/ServerSSESessionWithSerialization : io/ktor/server/sse/ServerSSESession {
