@@ -2,13 +2,11 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import internal.*
-import org.gradle.api.*
-import org.gradle.internal.extensions.stdlib.*
-import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
-import java.io.*
-import kotlin.toString
+import internal.capitalized
+import internal.libs
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.invoke
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
 
 fun Project.configureJs() {
     kotlin {
@@ -34,7 +32,8 @@ fun Project.configureJs() {
 internal fun KotlinJsSubTargetDsl.useMochaForTests() {
     testTask {
         useMocha {
-            timeout = "10000"
+            // Disable timeout as we use individual timeouts for tests
+            timeout = "0"
         }
     }
 }
@@ -43,7 +42,7 @@ internal fun KotlinJsSubTargetDsl.useKarmaForTests() {
     testTask {
         useKarma {
             useChromeHeadless()
-            useConfigDirectory(File(project.rootProject.projectDir, "karma"))
+            useConfigDirectory(project.rootProject.file("karma"))
         }
     }
 }
