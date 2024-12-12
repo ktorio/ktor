@@ -5,7 +5,6 @@
 package io.ktor.server.config
 
 import io.ktor.server.engine.*
-import io.ktor.utils.io.*
 
 internal actual val CONFIG_PATH: List<String>
     get() = listOfNotNull(
