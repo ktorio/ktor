@@ -18,6 +18,11 @@ with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23
 
 ### Building the project
 
+> [!IMPORTANT]
+> This project requires JDK 21.
+> Make sure you have JDK 21 installed before attempting to build the project.
+> If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
+
 Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
 To build the projects and produce the corresponding artifacts, use
