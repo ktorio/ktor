@@ -10,7 +10,7 @@ serialization = "1.7.3"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "1.9.20"
 kover = "0.9.0"
-ktlint = "4.5.0"
+kotlinter = "5.0.0"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
@@ -227,7 +227,7 @@ tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
 
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
-kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "ktlint" }
+kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
 
 [plugins]
