@@ -17,8 +17,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
-            api(libs.kotlin.test)
-            api(libs.kotlinx.coroutines.test)
+            api(project(":ktor-shared:ktor-test-base"))
         }
     }
     commonTest {
@@ -46,7 +45,7 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api(project(":ktor-shared:ktor-junit"))
+            api(project(":ktor-shared:ktor-test-base"))
             api(libs.logback.classic)
             implementation(libs.kotlinx.coroutines.debug)
         }

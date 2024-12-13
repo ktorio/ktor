@@ -4,18 +4,18 @@
 
 package io.ktor.server.metrics.dropwizard
 
-import com.codahale.metrics.*
-import com.codahale.metrics.jvm.*
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.junit.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import org.junit.jupiter.api.Assertions.*
-import kotlin.test.*
+import io.ktor.test.junit.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import kotlin.test.Test
 
 class DropwizardMetricsTests {
 
