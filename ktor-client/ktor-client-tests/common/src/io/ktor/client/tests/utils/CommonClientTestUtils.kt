@@ -6,9 +6,9 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.test.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -45,16 +45,14 @@ private fun testWithClient(
     timeout: Duration,
     retries: Int,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = runTest(timeout = timeout) {
+) = runTestWithData(listOf(client), timeout = timeout, retries = retries) {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
-    retryTest(retries) {
-        concurrency(builder.concurrency) { threadId ->
-            repeat(builder.repeatCount) { attempt ->
-                @Suppress("UNCHECKED_CAST")
-                client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-                    .use { client -> builder.test(TestInfo(threadId, attempt), client) }
-            }
+    concurrency(builder.concurrency) { threadId ->
+        repeat(builder.repeatCount) { attempt ->
+            @Suppress("UNCHECKED_CAST")
+            client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+                .use { client -> builder.test(TestInfo(threadId, attempt), client) }
         }
     }
 
@@ -70,15 +68,14 @@ fun <T : HttpClientEngineConfig> testWithEngine(
     timeout: Duration = 1.minutes,
     retries: Int = 1,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = runTest(timeout = timeout) {
-    performTestWithEngine(factory, loader, retries, block)
+) = runTestWithData(listOf(factory), timeout = timeout, retries = retries) {
+    performTestWithEngine(factory, loader, block)
 }
 
 @OptIn(DelicateCoroutinesApi::class)
 suspend fun <T : HttpClientEngineConfig> performTestWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
-    retries: Int = 1,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) {
     val builder = TestClientBuilder<T>().apply { block() }
@@ -90,41 +87,27 @@ suspend fun <T : HttpClientEngineConfig> performTestWithEngine(
         }
     }
 
-    retryTest(retries) {
-        withContext(Dispatchers.Default.limitedParallelism(1)) {
-            concurrency(builder.concurrency) { threadId ->
-                repeat(builder.repeatCount) { attempt ->
-                    val client = HttpClient(factory, block = builder.config)
+    withContext(Dispatchers.Default.limitedParallelism(1)) {
+        concurrency(builder.concurrency) { threadId ->
+            repeat(builder.repeatCount) { attempt ->
+                val client = HttpClient(factory, block = builder.config)
 
-                    client.use {
-                        builder.test(TestInfo(threadId, attempt), it)
-                    }
+                client.use {
+                    builder.test(TestInfo(threadId, attempt), it)
+                }
 
-                    try {
-                        val job = client.coroutineContext[Job]!!
-                        while (job.isActive) {
-                            yield()
-                        }
-                    } catch (cause: Throwable) {
-                        client.cancel("Test failed", cause)
-                        throw cause
-                    } finally {
-                        builder.after(client)
+                try {
+                    val job = client.coroutineContext[Job]!!
+                    while (job.isActive) {
+                        yield()
                     }
+                } catch (cause: Throwable) {
+                    client.cancel("Test failed", cause)
+                    throw cause
+                } finally {
+                    builder.after(client)
                 }
             }
-        }
-    }
-}
-
-internal suspend fun <T> retryTest(attempts: Int, block: suspend () -> T): T {
-    var currentAttempt = 0
-    while (true) {
-        try {
-            return block()
-        } catch (cause: Throwable) {
-            if (currentAttempt >= attempts) throw cause
-            currentAttempt++
         }
     }
 }
