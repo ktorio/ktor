@@ -9,7 +9,8 @@ import io.ktor.client.engine.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Web url for tests.
@@ -31,20 +32,20 @@ const val TCP_SERVER: String = "http://127.0.0.1:8082"
  */
 fun testWithEngine(
     engine: HttpClientEngine,
-    timeoutMillis: Long = 60 * 1000L,
+    timeout: Duration = 1.minutes,
     retries: Int = 1,
     block: suspend TestClientBuilder<*>.() -> Unit
-) = testWithClient(HttpClient(engine), timeoutMillis, retries, block)
+) = testWithClient(HttpClient(engine), timeout, retries, block)
 
 /**
  * Perform test with selected [client].
  */
 private fun testWithClient(
     client: HttpClient,
-    timeout: Long,
+    timeout: Duration,
     retries: Int,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-) = runTest(timeout = timeout.milliseconds) {
+) = runTest(timeout = timeout) {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
     retryTest(retries) {
@@ -66,10 +67,10 @@ private fun testWithClient(
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
-    timeoutMillis: Long = 60L * 1000L,
+    timeout: Duration = 1.minutes,
     retries: Int = 1,
     block: suspend TestClientBuilder<T>.() -> Unit
-) = runTest(timeout = timeoutMillis.milliseconds) {
+) = runTest(timeout = timeout) {
     performTestWithEngine(factory, loader, retries, block)
 }
 
