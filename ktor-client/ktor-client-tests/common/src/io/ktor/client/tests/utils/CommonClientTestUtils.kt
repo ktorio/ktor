@@ -16,6 +16,11 @@ import kotlin.time.Duration.Companion.milliseconds
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
+ * Web url with TLS for tests.
+ */
+const val TEST_SERVER_TLS: String = "https://127.0.0.1:8089"
+
+/**
  * Websocket server url for tests.
  */
 const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
