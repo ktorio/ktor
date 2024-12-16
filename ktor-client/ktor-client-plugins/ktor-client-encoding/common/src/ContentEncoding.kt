@@ -116,7 +116,8 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         val encodings =
             response.headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() } ?: run {
                 LOGGER.trace(
-                    "Empty or no Content-Encoding header in response. " + "Skipping ContentEncoding for ${response.call.request.url}"
+                    "Empty or no Content-Encoding header in response. " +
+                        "Skipping ContentEncoding for ${response.call.request.url}"
                 )
                 return response
             }
@@ -136,7 +137,8 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
                 if (name.equals(
                         HttpHeaders.ContentEncoding,
                         ignoreCase = true
-                    ) || name.equals(HttpHeaders.ContentLength, ignoreCase = true)
+                    ) ||
+                    name.equals(HttpHeaders.ContentLength, ignoreCase = true)
                 ) {
                     return@forEach
                 }
