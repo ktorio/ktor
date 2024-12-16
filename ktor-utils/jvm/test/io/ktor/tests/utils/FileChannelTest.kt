@@ -129,5 +129,4 @@ class FileChannelTest {
         assertEquals(5, file.length())
         assertEquals("Hello", file.readText())
     }
-
 }
