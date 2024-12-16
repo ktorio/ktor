@@ -85,13 +85,15 @@ class ByteReadChannelOperationsJvmTest {
         var count = 0
         val numberOfLines = 200_000
         val channel = writer(Dispatchers.IO) {
-            for (line in generateSequence { "line ${lineNumber++}\n" }.take(numberOfLines))
+            for (line in generateSequence { "line ${lineNumber++}\n" }.take(numberOfLines)) {
                 channel.writeStringUtf8(line)
+            }
         }.channel
         val out = StringBuilder()
         val time = measureTime {
-            while (channel.readUTF8LineTo(out) && count < numberOfLines)
+            while (channel.readUTF8LineTo(out) && count < numberOfLines) {
                 count++
+            }
         }
 
         assertEquals(numberOfLines, count)
