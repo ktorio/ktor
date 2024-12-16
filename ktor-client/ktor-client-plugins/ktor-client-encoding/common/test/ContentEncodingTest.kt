@@ -34,8 +34,9 @@ class ContentEncodingTest : ClientLoader() {
         }
     }
 
+    // Note: JS is decompressed before hitting the client, so the response does not appear compressed
     @Test
-    fun testDeflate() = clientTests(listOf("native:CIO")) {
+    fun testDeflate() = clientTests(listOf("native:CIO", "js")) {
         config {
             ContentEncoding {
                 deflate()
@@ -51,7 +52,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZip() = clientTests(listOf("native:CIO")) {
+    fun testGZip() = clientTests(listOf("native:CIO", "js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -67,7 +68,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZipEmpty() = clientTests {
+    fun testGZipEmpty() = clientTests(listOf("js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -82,7 +83,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGzipByteArray() = clientTests {
+    fun testGzipByteArray() = clientTests(listOf("js")) {
         config {
             ContentEncoding {
                 gzip()
