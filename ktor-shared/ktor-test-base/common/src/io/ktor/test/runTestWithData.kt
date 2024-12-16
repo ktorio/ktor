@@ -11,6 +11,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /**
  * Represents a test case with associated data and retry attempt information.
@@ -20,13 +22,28 @@ import kotlin.time.Duration.Companion.minutes
  */
 data class TestCase<T>(val data: T, val retry: Int)
 
+/** Represents a failed test execution with the [cause] of failure. */
+data class TestFailure<T>(
+    override val testCase: TestCase<T>,
+    val cause: Throwable,
+    override val duration: Duration,
+) : TestExecutionResult<T>
+
+/** Represents a successful test execution. */
+data class TestSuccess<T>(
+    override val testCase: TestCase<T>,
+    override val duration: Duration,
+) : TestExecutionResult<T>
+
 /**
- * Represents a failure that occurred during the execution of a test case, along with the associated test data.
- *
- * @param cause The exception that caused the test to fail.
- * @param data The data associated with the test case that failed.
+ * The result of a test execution. Can be [TestFailure] or [TestSuccess].
+ * @property testCase The test case associated with this execution.
+ * @property duration The duration of the test execution.
  */
-data class TestFailure<T>(val cause: Throwable, val data: T)
+sealed interface TestExecutionResult<T> {
+    val testCase: TestCase<T>
+    val duration: Duration
+}
 
 /**
  * Executes multiple test cases with retry capabilities and timeout control.
@@ -70,12 +87,15 @@ fun <T> runTestWithData(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = 1.minutes,
     retries: Int = 1,
-    afterEach: (TestCase<T>, Throwable?) -> Unit = { _, _ -> },
+    afterEach: (TestExecutionResult<T>) -> Unit = {},
     handleFailures: (List<TestFailure<T>>) -> Unit = ::defaultAggregatedError,
     afterAll: () -> Unit = {},
     test: suspend TestScope.(TestCase<T>) -> Unit,
 ): TestResult {
     check(retries >= 0) { "Retries count shouldn't be negative but it is $retries" }
+
+    val timeSource = TimeSource.Monotonic
+    var start: TimeMark? = null
 
     val failures = mutableListOf<TestFailure<T>>()
     return runTestForEach(testCases) { data ->
@@ -84,15 +104,17 @@ fun <T> runTestWithData(
 
             testWithRecover(
                 recover = { cause ->
-                    afterEach(testCase, cause)
+                    val failure = TestFailure(testCase, cause, start?.elapsedNow() ?: Duration.ZERO)
+                    afterEach(failure)
                     // Don't rethrow the exception on the last retry,
                     // save it instead to pass in handleFailures later
-                    if (retry == retries) failures += TestFailure(cause, data) else throw cause
+                    if (retry == retries) failures += failure else throw cause
                 }
             ) {
                 runTest(context, timeout = timeout) {
+                    start = timeSource.markNow()
                     test(testCase)
-                    afterEach(testCase, null)
+                    afterEach(TestSuccess(testCase, start?.elapsedNow() ?: Duration.ZERO))
                 }
             }
         }
@@ -105,8 +127,8 @@ fun <T> runTestWithData(
 private fun defaultAggregatedError(failures: List<TestFailure<*>>): Nothing {
     val message = buildString {
         appendLine("Test execution failed:")
-        for ((cause, data) in failures) {
-            appendLine("  Test case '$data' failed:")
+        for ((testCase, cause) in failures) {
+            appendLine("  Test case '${testCase.data}' failed:")
             appendLine(cause.stackTraceToString().prependIndent("    "))
         }
     }
