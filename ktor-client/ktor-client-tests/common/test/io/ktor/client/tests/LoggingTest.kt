@@ -11,7 +11,6 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
-import io.ktor.client.statement.readRawBytes
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
