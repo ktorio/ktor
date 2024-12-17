@@ -10,17 +10,17 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.utils.EmptyContent
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -84,6 +84,78 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     val stdFormat = pluginConfig.standardFormat
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
+
+    fun logRequestStdFormat(request: HttpRequestBuilder) {
+        if (level == LogLevel.NONE) return
+
+        val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
+
+        if (request.method == HttpMethod.Get) {
+            logger.log("--> ${request.method.value} $uri")
+        } else if (request.body is OutgoingContent.WriteChannelContent || request.body is OutgoingContent.ReadChannelContent) {
+            logger.log("--> ${request.method.value} $uri (unknown-byte body)")
+        } else {
+            val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
+
+            val body = request.body
+            var contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
+            if (contentLength == null && request.method != HttpMethod.Get && body is OutgoingContent && body.contentLength != null) {
+                contentLength = body.contentLength
+            }
+
+            if (level.headers && contentLength != null) {
+                logger.log("--> ${request.method.value} $uri")
+            } else {
+                val size = calcRequestBodySize(request.body, headers)
+                logger.log("--> ${request.method.value} $uri ($size-byte body)")
+            }
+        }
+
+        if (level.headers || level == LogLevel.BODY) {
+            val headers = HeadersBuilder().apply {
+                val body = request.body
+                if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
+                    body.contentType?.let {
+                        appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
+                    }
+                    body.contentLength?.let {
+                        appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
+                    }
+                }
+                appendAll(request.headers)
+            }.build()
+
+            for ((name, values) in headers.entries()) {
+                logger.log("$name: ${values.joinToString(separator = ", ")}")
+            }
+
+            logger.log("--> END ${request.method.value}")
+        }
+    }
+
+    fun logResponseStdFormat(response: HttpResponse) {
+        if (level == LogLevel.NONE) return
+
+        var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+        val request = response.request
+        val duration = response.responseTime.timestamp - response.requestTime.timestamp
+
+        if (level.headers && contentLength != null) {
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
+        } else if (level.info && contentLength != null) {
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $contentLength-byte body)")
+        } else {
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, unknown-byte body)")
+        }
+
+        if (level.headers || level == LogLevel.BODY) {
+            for ((name, values) in response.headers.entries()) {
+                logger.log("$name: ${values.joinToString(separator = ", ")}")
+            }
+
+            logger.log("<-- END HTTP")
+        }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     suspend fun logRequestBody(
@@ -173,56 +245,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         if (stdFormat) {
-            if (level == LogLevel.NONE) return@on
-
-            val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
-
-            if (request.method == HttpMethod.Get) {
-                logger.log("--> ${request.method.value} $uri")
-            } else {
-                val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
-                val (size, content) = calcRequestBodySize(request.body, headers)
-
-                val body = request.body
-                var contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
-                if (contentLength == null && request.method != HttpMethod.Get && body is OutgoingContent && body.contentLength != null) {
-                    contentLength = body.contentLength
-                }
-
-                if (level.headers && contentLength != null) {
-                    logger.log("--> ${request.method.value} $uri")
-                } else {
-                    logger.log("--> ${request.method.value} $uri ($size-byte body)")
-                }
-
-                if (request.body != content) {
-                    proceedWith(content)
-                }
-            }
-
-            if (level.headers) {
-                val headers = HeadersBuilder().apply {
-                    val body = request.body
-                    if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
-                        body.contentType?.let {
-                            appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
-                        }
-                        body.contentLength?.let {
-                            appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
-                        }
-                    }
-                    appendAll(request.headers)
-                }.build()
-
-                for ((name, values) in headers.entries()) {
-                    logger.log("$name: ${values.joinToString(separator = ", ")}")
-                }
-
-                logger.log("--> END ${request.method.value}")
-
-                return@on
-            }
-
+            logRequestStdFormat(request)
             return@on
         }
 
@@ -242,48 +265,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ResponseAfterEncodingHook) { response ->
-        if (!stdFormat || level == LogLevel.NONE) return@on
-
-        var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
-        val request = response.request
-        val duration = response.responseTime.timestamp - response.requestTime.timestamp
-
-        if (level.headers && contentLength != null) {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
-        } else {
-            val (size, channel) = calcResponseBodySize(response, response.headers)
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
-
-            if (channel != response.rawContent) {
-                proceedWith(object : HttpResponse() {
-                    override val call: HttpClientCall
-                        get() = response.call
-                    override val status: HttpStatusCode
-                        get() =  response.status
-                    override val version: HttpProtocolVersion
-                        get() = response.version
-                    override val requestTime: GMTDate
-                        get() = response.requestTime
-                    override val responseTime: GMTDate
-                        get() = response.responseTime
-
-                    @InternalAPI
-                    override val rawContent: ByteReadChannel
-                        get() = channel
-                    override val headers: Headers
-                        get() = response.headers
-                    override val coroutineContext: CoroutineContext
-                        get() = response.coroutineContext
-                })
-            }
-        }
-
-        if (level.headers) {
-            for ((name, values) in response.headers.entries()) {
-                logger.log("$name: ${values.joinToString(separator = ", ")}")
-            }
-
-            logger.log("<-- END HTTP")
+        if (stdFormat) {
+            logResponseStdFormat(response)
         }
     }
 
@@ -367,62 +350,17 @@ private fun Url.pathQuery(): String {
     }
 }
 
-private const val READ_LIMIT = 4096L
-
 @OptIn(DelicateCoroutinesApi::class)
-private suspend fun calcRequestBodySize(content: Any, headers: Headers): Pair<Long, OutgoingContent> {
-    if (content !is OutgoingContent) {
-        error("Unhandled ${content::class.simpleName}")
-    }
+private fun calcRequestBodySize(content: Any, headers: Headers): Long {
+    check(content is OutgoingContent)
 
     return when(content) {
-        is OutgoingContent.ByteArrayContent -> Pair(content.bytes().size.toLong(), content)
+        is OutgoingContent.ByteArrayContent -> content.bytes().size.toLong()
         is OutgoingContent.ContentWrapper -> calcRequestBodySize(content.delegate(), content.headers)
-        is OutgoingContent.NoContent -> Pair(0, content)
-        is OutgoingContent.ProtocolUpgrade -> Pair(0, content)
-        is OutgoingContent.ReadChannelContent -> {
-            val (origChannel, newChannel) = content.readFrom().split(GlobalScope)
-
-            var len = 0L
-            while (!newChannel.isClosedForRead) {
-                val source = newChannel.readRemaining(READ_LIMIT)
-                len += source.remaining
-            }
-
-            Pair(len, LoggedContent(content, origChannel))
-        }
-        is OutgoingContent.WriteChannelContent -> {
-            val channel = ByteChannel()
-            content.writeTo(channel)
-            channel.close()
-            val (origChannel, newChannel) = channel.split(GlobalScope)
-
-            var len = 0L
-            while (!newChannel.isClosedForRead) {
-                val source = newChannel.readRemaining(READ_LIMIT)
-                len += source.remaining
-            }
-
-            return Pair(len, LoggedContent(content, origChannel))
-        }
+        is OutgoingContent.NoContent -> 0
+        is OutgoingContent.ProtocolUpgrade -> 0
+        else -> error("Unable to calculate the size for type ${content::class.simpleName}")
     }
-}
-
-@OptIn(InternalAPI::class)
-private suspend fun calcResponseBodySize(response: HttpResponse, headers: Headers): Pair<Long, ByteReadChannel> {
-    headers[HttpHeaders.ContentLength]?.toLongOrNull()?.let {
-        return Pair(it, response.rawContent)
-    }
-
-    val (origChannel, newChannel) = response.rawContent.split(response)
-
-    var len = 0L
-    while (!newChannel.isClosedForRead) {
-        val source = newChannel.readRemaining(4096)
-        len += source.remaining
-    }
-
-    return Pair(len, origChannel)
 }
 
 /**
