@@ -23,14 +23,16 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
         if (copyTask == null) {
             copyTask = CopyFromSourceTask()
             if (!content.compareAndSet(null, copyTask)) {
-                copyTask = content.value
+                // second thread, read from copy
+                copyTask = content.value!!
             } else {
+                // first thread, read from origin
                 return copyTask.start()
             }
         }
 
         return GlobalScope.writer {
-            val body = copyTask!!.awaitImpatiently()
+            val body = copyTask.awaitImpatiently()
             channel.writeFully(body)
         }.channel
     }
@@ -44,12 +46,9 @@ internal class ByteChannelReplay(private val origin: ByteReadChannel) {
     private inner class CopyFromSourceTask(
         val savedResponse: CompletableDeferred<ByteArray> = CompletableDeferred()
     ) {
-        lateinit var writerJob: WriterJob
+        private val writerJob: WriterJob by lazy { receiveBody() }
 
-        fun start(): ByteReadChannel {
-            writerJob = receiveBody()
-            return writerJob.channel
-        }
+        fun start() = writerJob.channel
 
         @OptIn(DelicateCoroutinesApi::class)
         fun receiveBody(): WriterJob = GlobalScope.writer(Dispatchers.Unconfined) {
