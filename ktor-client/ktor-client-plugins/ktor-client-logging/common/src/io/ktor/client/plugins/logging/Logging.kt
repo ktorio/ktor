@@ -92,8 +92,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (request.method == HttpMethod.Get) {
             logger.log("--> ${request.method.value} $uri")
-        } else if (request.body is OutgoingContent.WriteChannelContent || request.body is OutgoingContent.ReadChannelContent) {
-            logger.log("--> ${request.method.value} $uri (unknown-byte body)")
         } else {
             val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
 
@@ -105,6 +103,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
             if (level.headers && contentLength != null) {
                 logger.log("--> ${request.method.value} $uri")
+            } else if (level.info && contentLength != null) {
+                logger.log("--> ${request.method.value} $uri ($contentLength-byte body)")
+            } else if (request.body is OutgoingContent.WriteChannelContent || request.body is OutgoingContent.ReadChannelContent) {
+                logger.log("--> ${request.method.value} $uri (unknown-byte body)")
             } else {
                 val size = calcRequestBodySize(request.body, headers)
                 logger.log("--> ${request.method.value} $uri ($size-byte body)")
