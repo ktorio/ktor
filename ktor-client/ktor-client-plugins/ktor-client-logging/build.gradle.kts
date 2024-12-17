@@ -22,6 +22,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-encoding"))
         }
     }
 }

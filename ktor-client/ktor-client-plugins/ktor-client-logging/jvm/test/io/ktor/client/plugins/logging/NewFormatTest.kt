@@ -6,12 +6,14 @@ package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.writeStringUtf8
@@ -206,6 +208,31 @@ class NewFormatTest {
         client.prepareGet("/").execute { response ->
             log.assertLogEqual("--> GET /")
                 .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 10-byte body\)"""))
+                .assertNoMoreLogs()
+        }
+    }
+
+    @Test
+    fun basicPostWithGzip() = runTest {
+        HttpClient(MockEngine) {
+            install(Logging) {
+                level = LogLevel.INFO
+                logger = log
+                standardFormat = true
+            }
+            install(ContentEncoding) { gzip() }
+
+            engine {
+                addHandler {
+                    val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
+                }
+            }
+        }.use { client ->
+            client.post("/")
+
+            log.assertLogEqual("--> POST / (0-byte body)")
+                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 1024-byte body\)"""))
                 .assertNoMoreLogs()
         }
     }
