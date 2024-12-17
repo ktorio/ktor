@@ -14,6 +14,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.GMTDate
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -21,6 +22,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -135,14 +137,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    fun logResponseStdFormat(response: HttpResponse) {
-        if (level == LogLevel.NONE) return
+    suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
+        if (level == LogLevel.NONE) return response
 
         var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
-        if (level.headers && contentLength != null) {
+        if ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null) {
             logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
         } else if (level.info && contentLength != null) {
             logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $contentLength-byte body)")
@@ -154,9 +156,45 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             for ((name, values) in response.headers.entries()) {
                 logger.log("$name: ${values.joinToString(separator = ", ")}")
             }
+        }
 
+        if (level.body) {
+            if (contentLength != null && contentLength == 0L) {
+                logger.log("<-- END HTTP")
+                return response
+            }
+
+            val (origChannel, newChannel) = response.rawContent.split(response)
+            logger.log("")
+            logger.log(newChannel.readRemaining().readText())
+            logger.log("<-- END HTTP")
+
+            return object : HttpResponse() {
+                override val call: HttpClientCall
+                    get() = response.call
+                override val status: HttpStatusCode
+                    get() =  response.status
+                override val version: HttpProtocolVersion
+                    get() = response.version
+                override val requestTime: GMTDate
+                    get() = response.requestTime
+                override val responseTime: GMTDate
+                    get() = response.responseTime
+
+                @InternalAPI
+                override val rawContent: ByteReadChannel
+                    get() = origChannel
+                override val headers: Headers
+                    get() = response.headers
+                override val coroutineContext: CoroutineContext
+                    get() = response.coroutineContext
+            }
+        }
+
+        if (level.headers) {
             logger.log("<-- END HTTP")
         }
+        return response
     }
 
     @OptIn(DelicateCoroutinesApi::class)

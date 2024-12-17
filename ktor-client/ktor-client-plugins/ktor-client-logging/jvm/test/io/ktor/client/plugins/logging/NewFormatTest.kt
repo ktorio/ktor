@@ -391,8 +391,23 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyGetWithResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("hello!") }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 6")
+            .assertLogEqual("")
+            .assertLogEqual("hello!")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
     }
