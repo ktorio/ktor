@@ -10,6 +10,7 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.EmptyContent
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -173,17 +174,51 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (stdFormat) {
             val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
+
             if (request.method == HttpMethod.Get) {
                 logger.log("--> ${request.method.value} $uri")
             } else {
                 val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
                 val (size, content) = calcRequestBodySize(request.body, headers)
 
-                logger.log("--> ${request.method.value} $uri ($size-byte body)")
+                val body = request.body
+                var contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
+                if (contentLength == null && request.method != HttpMethod.Get && body is OutgoingContent && body.contentLength != null) {
+                    contentLength = body.contentLength
+                }
+
+                if (level.headers && contentLength != null) {
+                    logger.log("--> ${request.method.value} $uri")
+                } else {
+                    logger.log("--> ${request.method.value} $uri ($size-byte body)")
+                }
 
                 if (request.body != content) {
                     proceedWith(content)
                 }
+            }
+
+            if (level.headers) {
+                val headers = HeadersBuilder().apply {
+                    val body = request.body
+                    if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
+                        body.contentType?.let {
+                            appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
+                        }
+                        body.contentLength?.let {
+                            appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
+                        }
+                    }
+                    appendAll(request.headers)
+                }.build()
+
+                for ((name, values) in headers.entries()) {
+                    logger.log("$name: ${values.joinToString(separator = ", ")}")
+                }
+
+                logger.log("--> END ${request.method.value}")
+
+                return@on
             }
 
             return@on
@@ -207,34 +242,47 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     on(ResponseAfterEncodingHook) { response ->
         if (!stdFormat) return@on
 
-        val (size, channel) = calcResponseBodySize(response, response.headers)
-
-        if (channel != response.rawContent) {
-            proceedWith(object : HttpResponse() {
-                override val call: HttpClientCall
-                    get() = response.call
-                override val status: HttpStatusCode
-                    get() =  response.status
-                override val version: HttpProtocolVersion
-                    get() = response.version
-                override val requestTime: GMTDate
-                    get() = response.requestTime
-                override val responseTime: GMTDate
-                    get() = response.responseTime
-
-                @InternalAPI
-                override val rawContent: ByteReadChannel
-                    get() = channel
-                override val headers: Headers
-                    get() = response.headers
-                override val coroutineContext: CoroutineContext
-                    get() = response.coroutineContext
-            })
-        }
-
+        var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
-        logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
+
+        if (level.headers && contentLength != null) {
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
+        } else {
+            val (size, channel) = calcResponseBodySize(response, response.headers)
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
+
+            if (channel != response.rawContent) {
+                proceedWith(object : HttpResponse() {
+                    override val call: HttpClientCall
+                        get() = response.call
+                    override val status: HttpStatusCode
+                        get() =  response.status
+                    override val version: HttpProtocolVersion
+                        get() = response.version
+                    override val requestTime: GMTDate
+                        get() = response.requestTime
+                    override val responseTime: GMTDate
+                        get() = response.responseTime
+
+                    @InternalAPI
+                    override val rawContent: ByteReadChannel
+                        get() = channel
+                    override val headers: Headers
+                        get() = response.headers
+                    override val coroutineContext: CoroutineContext
+                        get() = response.coroutineContext
+                })
+            }
+        }
+
+        if (level.headers) {
+            for ((name, values) in response.headers.entries()) {
+                logger.log("$name: ${values.joinToString(separator = ", ")}")
+            }
+
+            logger.log("<-- END HTTP")
+        }
     }
 
     on(ResponseHook) { response ->
@@ -323,10 +371,6 @@ private const val READ_LIMIT = 4096L
 private suspend fun calcRequestBodySize(content: Any, headers: Headers): Pair<Long, OutgoingContent> {
     if (content !is OutgoingContent) {
         error("Unhandled ${content::class.simpleName}")
-    }
-
-    headers[HttpHeaders.ContentLength]?.toLongOrNull()?.let {
-        return Pair(it, content)
     }
 
     return when(content) {
