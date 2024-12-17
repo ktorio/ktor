@@ -204,38 +204,41 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    on(ResponseHook) { response ->
-        if (stdFormat)  {
-            val (size, channel) = calcResponseBodySize(response, response.headers)
+    on(ResponseAfterEncodingHook) { response ->
+        if (!stdFormat) return@on
 
-            if (channel != response.rawContent) {
-                proceedWith(object : HttpResponse() {
-                    override val call: HttpClientCall
-                        get() = response.call
-                    override val status: HttpStatusCode
-                        get() =  response.status
-                    override val version: HttpProtocolVersion
-                        get() = response.version
-                    override val requestTime: GMTDate
-                        get() = response.requestTime
-                    override val responseTime: GMTDate
-                        get() = response.responseTime
+        val (size, channel) = calcResponseBodySize(response, response.headers)
 
-                    @InternalAPI
-                    override val rawContent: ByteReadChannel
-                        get() = channel
-                    override val headers: Headers
-                        get() = response.headers
-                    override val coroutineContext: CoroutineContext
-                        get() = response.coroutineContext
-                })
-            }
+        if (channel != response.rawContent) {
+            proceedWith(object : HttpResponse() {
+                override val call: HttpClientCall
+                    get() = response.call
+                override val status: HttpStatusCode
+                    get() =  response.status
+                override val version: HttpProtocolVersion
+                    get() = response.version
+                override val requestTime: GMTDate
+                    get() = response.requestTime
+                override val responseTime: GMTDate
+                    get() = response.responseTime
 
-            val request = response.request
-            val duration = response.responseTime.timestamp - response.requestTime.timestamp
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
-            return@on
+                @InternalAPI
+                override val rawContent: ByteReadChannel
+                    get() = channel
+                override val headers: Headers
+                    get() = response.headers
+                override val coroutineContext: CoroutineContext
+                    get() = response.coroutineContext
+            })
         }
+
+        val request = response.request
+        val duration = response.responseTime.timestamp - response.requestTime.timestamp
+        logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
+    }
+
+    on(ResponseHook) { response ->
+        if (stdFormat) return@on
 
         if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) return@on
 
@@ -393,7 +396,6 @@ private object ResponseHook : ClientHook<suspend ResponseHook.Context.(response:
 
     class Context(private val context: PipelineContext<HttpResponse, Unit>) {
         suspend fun proceed() = context.proceed()
-        suspend fun proceedWith(response: HttpResponse) = context.proceedWith(response)
     }
 
     override fun install(
@@ -401,6 +403,24 @@ private object ResponseHook : ClientHook<suspend ResponseHook.Context.(response:
         handler: suspend Context.(response: HttpResponse) -> Unit
     ) {
         client.receivePipeline.intercept(HttpReceivePipeline.State) {
+            handler(Context(this), subject)
+        }
+    }
+}
+
+private object ResponseAfterEncodingHook : ClientHook<suspend ResponseAfterEncodingHook.Context.(response: HttpResponse) -> Unit> {
+
+    class Context(private val context: PipelineContext<HttpResponse, Unit>) {
+        suspend fun proceedWith(response: HttpResponse) = context.proceedWith(response)
+    }
+
+    override fun install(
+        client: HttpClient,
+        handler: suspend Context.(response: HttpResponse) -> Unit
+    ) {
+        val afterState = PipelinePhase("AfterState")
+        client.receivePipeline.insertPhaseAfter(HttpReceivePipeline.State, afterState)
+        client.receivePipeline.intercept(afterState) {
             handler(Context(this), subject)
         }
     }
