@@ -174,6 +174,21 @@ class NewFormatTest {
     }
 
     @Test
+    fun basicPostReadChannelWithContentLength() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(object : OutgoingContent.ReadChannelContent() {
+                override val contentLength: Long?
+                    get() = 11
+                override fun readFrom() = ByteReadChannel("hello world")
+            })
+        }
+
+        log.assertLogEqual("--> POST / (11-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun basicPostConsumedRequestBody() = testWithLevel(LogLevel.INFO, handle = {
         respondWithLength(it.body.toByteReadPacket().readByteArray())
     }) { client ->
@@ -199,6 +214,23 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (unknown-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun basicPostWriteChannelWithContentLength() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(object : OutgoingContent.WriteChannelContent() {
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    channel.writeStringUtf8("hello world")
+                }
+                override val contentLength: Long?
+                    get() = 11
+            })
+        }
+
+        log.assertLogEqual("--> POST / (11-byte body)")
             .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
