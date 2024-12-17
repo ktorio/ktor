@@ -9,10 +9,12 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.TextContent
 import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -233,6 +235,110 @@ class NewFormatTest {
 
             log.assertLogEqual("--> POST / (0-byte body)")
                 .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 1024-byte body\)"""))
+                .assertNoMoreLogs()
+        }
+    }
+
+    @Test
+    fun headersGet() = testWithLevel(LogLevel.HEADERS, handle = { respondOk() }) { client ->
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun headersPost() = testWithLevel(LogLevel.HEADERS, handle = { respondOk() }) { client ->
+        client.post("/post") {
+            setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
+        }
+
+        log.assertLogEqual("--> POST /post")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK /post HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun customHeaders() = testWithLevel(LogLevel.HEADERS, handle = {
+        respond("hello", headers = Headers.build {
+            append("Custom-Response", "value")
+        })
+    }) { client ->
+        client.get("/") {
+            setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
+            header("Custom-Request", "value")
+        }
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Custom-Request: value")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 5-byte body\)"""))
+            .assertLogEqual("Custom-Response: value")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun noBodiesSizesWhenHasContentLengths() = testWithLevel(LogLevel.HEADERS, handle = {
+        respond("bye", headers = Headers.build {
+            append("Content-Length", "3")
+        })
+    }) { client ->
+        client.post("/") {
+            setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
+        }
+
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 3")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun headersPostWithGzip() = runTest {
+        HttpClient(MockEngine) {
+            install(Logging) {
+                level = LogLevel.HEADERS
+                logger = log
+                standardFormat = true
+            }
+            install(ContentEncoding) { gzip() }
+
+            engine {
+                addHandler {
+                    val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
+                }
+            }
+        }.use { client ->
+            client.post("/")
+
+            log.assertLogEqual("--> POST /")
+                .assertLogEqual("Accept-Encoding: gzip")
+                .assertLogEqual("Accept-Charset: UTF-8")
+                .assertLogEqual("Accept: */*")
+                .assertLogEqual("--> END POST")
+                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 1024-byte body\)"""))
+                .assertLogEqual("<-- END HTTP")
                 .assertNoMoreLogs()
         }
     }
