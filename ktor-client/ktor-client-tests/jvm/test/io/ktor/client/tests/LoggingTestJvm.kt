@@ -5,15 +5,16 @@
 package io.ktor.client.tests
 
 import io.ktor.client.plugins.logging.*
-import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.slf4j.*
-import org.slf4j.*
-import kotlin.test.*
+import kotlinx.coroutines.withContext
+import org.slf4j.MDC
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 private class LoggerWithMdc : Logger {
     val logs = mutableListOf<Pair<String, String>>()
@@ -27,7 +28,7 @@ private class LoggerWithMdc : Logger {
     }
 }
 
-class LoggingTestJvm : ClientLoader(timeoutSeconds = 1000000) {
+class LoggingTestJvm : ClientLoader(timeout = 1000000.seconds) {
 
     @OptIn(InternalAPI::class)
     @Test

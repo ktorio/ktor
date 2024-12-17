@@ -21,7 +21,7 @@ class JsonTest : ClientLoader() {
     data class Result<T>(val message: String, val data: T)
 
     @Test
-    fun testUserGenerics() = clientTests(listOf("js")) {
+    fun testUserGenerics() = clientTests(listOf("Js")) {
         config {
             install(ContentNegotiation) { json() }
         }

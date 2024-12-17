@@ -14,17 +14,18 @@ import java.io.*
 
 private val Project.files: Array<File> get() = project.projectDir.listFiles() ?: emptyArray()
 val Project.hasCommon: Boolean get() = files.any { it.name == "common" }
+val Project.hasNonJvm: Boolean get() = files.any { it.name == "nonJvm" }
 val Project.hasJvmAndPosix: Boolean get() = hasCommon || files.any { it.name == "jvmAndPosix" }
-val Project.hasPosix: Boolean get() = hasCommon || hasJvmAndPosix || files.any { it.name == "posix" }
+val Project.hasPosix: Boolean get() = hasCommon || hasNonJvm || hasJvmAndPosix || files.any { it.name == "posix" }
 val Project.hasDesktop: Boolean get() = hasPosix || files.any { it.name == "desktop" }
 val Project.hasNix: Boolean get() = hasPosix || files.any { it.name == "nix" }
 val Project.hasLinux: Boolean get() = hasNix || files.any { it.name == "linux" }
 val Project.hasDarwin: Boolean get() = hasNix || files.any { it.name == "darwin" }
 val Project.hasAndroidNative: Boolean get() = hasPosix || files.any { it.name == "androidNative" }
 val Project.hasWindows: Boolean get() = hasPosix || files.any { it.name == "windows" }
-val Project.hasJsAndWasmShared: Boolean get() = files.any { it.name == "jsAndWasmShared" }
-val Project.hasJs: Boolean get() = hasCommon || files.any { it.name == "js" } || hasJsAndWasmShared
-val Project.hasWasmJs: Boolean get() = hasCommon || files.any { it.name == "wasmJs" } || hasJsAndWasmShared
+val Project.hasJsAndWasmShared: Boolean get() = hasCommon || hasNonJvm || files.any { it.name == "jsAndWasmShared" }
+val Project.hasJs: Boolean get() = hasJsAndWasmShared || files.any { it.name == "js" }
+val Project.hasWasmJs: Boolean get() = hasJsAndWasmShared || files.any { it.name == "wasmJs" }
 val Project.hasJvm: Boolean get() = hasCommon || hasJvmAndPosix || files.any { it.name == "jvm" }
 
 val Project.hasExplicitNative: Boolean
@@ -113,6 +114,11 @@ private val hierarchyTemplate = KotlinHierarchyTemplate {
             group("linux")
             group("windows")
             group("macos")
+        }
+
+        group("nonJvm") {
+            group("posix")
+            group("jsAndWasmShared")
         }
     }
 }

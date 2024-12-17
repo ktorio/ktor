@@ -327,7 +327,7 @@ class HttpTimeoutTest : ClientLoader() {
     // Fix https://youtrack.jetbrains.com/issue/KTOR-7885
     @Ignore
     @Test
-    fun testRedirect() = clientTests(listOf("js"), retries = 5) {
+    fun testRedirect() = clientTests(listOf("Js"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
@@ -344,7 +344,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     // Js can't configure test timeout in browser
     @Test
-    fun testRedirectPerRequestAttributes() = clientTests(listOf("js")) {
+    fun testRedirectPerRequestAttributes() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout)
         }
@@ -429,7 +429,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "win:*")) {
+    fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "jvm/win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -445,7 +445,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -460,7 +460,9 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "native:CIO", "Java", "Apache5")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(
+        listOf("Js", "native:CIO", "Curl", "Java", "Apache5")
+    ) {
         config {
             install(HttpTimeout)
         }
@@ -477,7 +479,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Java")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
@@ -491,7 +493,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        listOf("Js", "Android", "Apache5", "native:CIO", "Java")
+        listOf("Js", "Android", "Apache5", "native:CIO", "Curl", "Java")
     ) {
         config {
             install(HttpTimeout)
