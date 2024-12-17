@@ -173,6 +173,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         if (stdFormat) {
+            if (level == LogLevel.NONE) return@on
+
             val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
 
             if (request.method == HttpMethod.Get) {
@@ -240,7 +242,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ResponseAfterEncodingHook) { response ->
-        if (!stdFormat) return@on
+        if (!stdFormat || level == LogLevel.NONE) return@on
 
         var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request

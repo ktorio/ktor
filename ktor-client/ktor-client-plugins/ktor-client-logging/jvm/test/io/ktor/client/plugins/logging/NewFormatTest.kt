@@ -55,7 +55,7 @@ class NewFormatTest {
         }
 
         fun assertNoMoreLogs(): MemLogger {
-            assertTrue(message = "More ${loggedLines.size - currentLine} logs present, expected none") { currentLine >= loggedLines.size }
+            assertTrue(message = "There are ${loggedLines.size - currentLine} more logs, expected none") { currentLine >= loggedLines.size }
             return this
         }
     }
@@ -341,6 +341,12 @@ class NewFormatTest {
                 .assertLogEqual("<-- END HTTP")
                 .assertNoMoreLogs()
         }
+    }
+
+    @Test
+    fun noLoggingWhenLevelNone() = testWithLevel(LogLevel.NONE, handle = { respondOk() }) { client ->
+        client.get("/")
+        log.assertNoMoreLogs()
     }
 
     private fun testWithLevel(lvl: LogLevel, handle: MockRequestHandler, test: suspend (HttpClient) -> Unit) = runTest {
