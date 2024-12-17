@@ -13,10 +13,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -30,6 +33,8 @@ public class LoggingConfig {
     internal val sanitizedHeaders = mutableListOf<SanitizedHeader>()
 
     private var _logger: Logger? = null
+
+    public var standardFormat: Boolean = false
 
     /**
      * Specifies a [Logger] instance.
@@ -75,6 +80,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     val level: LogLevel = pluginConfig.level
     val filters: List<(HttpRequestBuilder) -> Boolean> = pluginConfig.filters
     val sanitizedHeaders: List<SanitizedHeader> = pluginConfig.sanitizedHeaders
+    val stdFormat = pluginConfig.standardFormat
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
@@ -165,6 +171,24 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return@on
         }
 
+        if (stdFormat) {
+            val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
+            if (request.method == HttpMethod.Get) {
+                logger.log("--> ${request.method.value} $uri")
+            } else {
+                val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
+                val (size, content) = calcRequestBodySize(request.body, headers)
+
+                logger.log("--> ${request.method.value} $uri ($size-byte body)")
+
+                if (request.body != content) {
+                    proceedWith(content)
+                }
+            }
+
+            return@on
+        }
+
         val loggedRequest = try {
             logRequest(request)
         } catch (_: Throwable) {
@@ -181,6 +205,38 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ResponseHook) { response ->
+        if (stdFormat)  {
+            val (size, channel) = calcResponseBodySize(response, response.headers)
+
+            if (channel != response.rawContent) {
+                proceedWith(object : HttpResponse() {
+                    override val call: HttpClientCall
+                        get() = response.call
+                    override val status: HttpStatusCode
+                        get() =  response.status
+                    override val version: HttpProtocolVersion
+                        get() = response.version
+                    override val requestTime: GMTDate
+                        get() = response.requestTime
+                    override val responseTime: GMTDate
+                        get() = response.responseTime
+
+                    @InternalAPI
+                    override val rawContent: ByteReadChannel
+                        get() = channel
+                    override val headers: Headers
+                        get() = response.headers
+                    override val coroutineContext: CoroutineContext
+                        get() = response.coroutineContext
+                })
+            }
+
+            val request = response.request
+            val duration = response.responseTime.timestamp - response.requestTime.timestamp
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $size-byte body)")
+            return@on
+        }
+
         if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) return@on
 
         val callLogger = response.call.attributes[ClientCallLogger]
@@ -201,6 +257,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ReceiveHook) { call ->
+        if (stdFormat) {
+            return@on
+        }
+
         if (level == LogLevel.NONE || call.attributes.contains(DisableLogging)) {
             return@on
         }
@@ -239,6 +299,83 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     ResponseObserver.install(ResponseObserver.prepare { onResponse(observer) }, client)
 }
 
+private fun Url.pathQuery(): String {
+    return buildString {
+        if (encodedPath.isEmpty()) {
+            append("/")
+        } else {
+            append(encodedPath)
+        }
+
+        if (encodedQuery.isEmpty()) return@buildString
+
+        append("?")
+        append(encodedQuery)
+    }
+}
+
+private const val READ_LIMIT = 4096L
+
+@OptIn(DelicateCoroutinesApi::class)
+private suspend fun calcRequestBodySize(content: Any, headers: Headers): Pair<Long, OutgoingContent> {
+    if (content !is OutgoingContent) {
+        error("Unhandled ${content::class.simpleName}")
+    }
+
+    headers[HttpHeaders.ContentLength]?.toLongOrNull()?.let {
+        return Pair(it, content)
+    }
+
+    return when(content) {
+        is OutgoingContent.ByteArrayContent -> Pair(content.bytes().size.toLong(), content)
+        is OutgoingContent.ContentWrapper -> calcRequestBodySize(content.delegate(), content.headers)
+        is OutgoingContent.NoContent -> Pair(0, content)
+        is OutgoingContent.ProtocolUpgrade -> Pair(0, content)
+        is OutgoingContent.ReadChannelContent -> {
+            val (origChannel, newChannel) = content.readFrom().split(GlobalScope)
+
+            var len = 0L
+            while (!newChannel.isClosedForRead) {
+                val source = newChannel.readRemaining(READ_LIMIT)
+                len += source.remaining
+            }
+
+            Pair(len, LoggedContent(content, origChannel))
+        }
+        is OutgoingContent.WriteChannelContent -> {
+            val channel = ByteChannel()
+            content.writeTo(channel)
+            channel.close()
+            val (origChannel, newChannel) = channel.split(GlobalScope)
+
+            var len = 0L
+            while (!newChannel.isClosedForRead) {
+                val source = newChannel.readRemaining(READ_LIMIT)
+                len += source.remaining
+            }
+
+            return Pair(len, LoggedContent(content, origChannel))
+        }
+    }
+}
+
+@OptIn(InternalAPI::class)
+private suspend fun calcResponseBodySize(response: HttpResponse, headers: Headers): Pair<Long, ByteReadChannel> {
+    headers[HttpHeaders.ContentLength]?.toLongOrNull()?.let {
+        return Pair(it, response.rawContent)
+    }
+
+    val (origChannel, newChannel) = response.rawContent.split(response)
+
+    var len = 0L
+    while (!newChannel.isClosedForRead) {
+        val source = newChannel.readRemaining(4096)
+        len += source.remaining
+    }
+
+    return Pair(len, origChannel)
+}
+
 /**
  * Configures and installs [Logging] in [HttpClient].
  */
@@ -256,6 +393,7 @@ private object ResponseHook : ClientHook<suspend ResponseHook.Context.(response:
 
     class Context(private val context: PipelineContext<HttpResponse, Unit>) {
         suspend fun proceed() = context.proceed()
+        suspend fun proceedWith(response: HttpResponse) = context.proceedWith(response)
     }
 
     override fun install(
