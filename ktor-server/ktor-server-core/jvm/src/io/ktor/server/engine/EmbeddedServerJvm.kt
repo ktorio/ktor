@@ -100,27 +100,9 @@ actual constructor(
             return@read currentApplication
         }
 
-        val changes = packageWatchKeys.flatMap { it.pollEvents() }
-        if (changes.isEmpty()) {
+        if (getFileChanges().isNullOrEmpty()) {
             return@read currentApplication
         }
-
-        environment.log.info("Changes in application detected.")
-
-        var count = changes.size
-        while (true) {
-            Thread.sleep(200)
-            val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
-            if (moreChanges.isEmpty()) {
-                break
-            }
-
-            environment.log.debug("Waiting for more changes.")
-            count += moreChanges.size
-        }
-
-        environment.log.debug("Changes to $count files caused application restart.")
-        changes.take(5).forEach { environment.log.debug("...  ${it.context()}") }
 
         applicationInstanceLock.write {
             destroyApplication()
@@ -130,6 +112,39 @@ actual constructor(
         }
 
         return@read applicationInstance ?: error("EmbeddedServer was stopped")
+    }
+
+    private fun getFileChanges(): List<WatchEvent<*>>? {
+        try {
+            val changes = packageWatchKeys.flatMap { it.pollEvents() }
+            if (changes.isEmpty()) {
+                return changes
+            }
+
+            environment.log.info("Changes in application detected.")
+
+            var count = changes.size
+            while (true) {
+                Thread.sleep(200)
+                val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
+                if (moreChanges.isEmpty()) {
+                    break
+                }
+
+                environment.log.debug("Waiting for more changes.")
+                count += moreChanges.size
+            }
+
+            environment.log.debug("Changes to $count files caused application restart.")
+            changes.take(5).forEach { environment.log.debug("...  {}", it.context()) }
+            return changes
+        } catch (e: InterruptedException) {
+            environment.log.debug("Watch service was interrupted", e)
+            return null
+        } catch (e: ClosedWatchServiceException) {
+            environment.log.debug("Watch service was closed", e)
+            return null
+        }
     }
 
     private fun createApplication(): Pair<Application, ClassLoader> {
@@ -383,10 +398,7 @@ actual constructor(
     }
 
     private fun cleanupWatcher() {
-        try {
-            watcher?.close()
-        } catch (_: NoClassDefFoundError) {
-        }
+        runCatching { watcher?.close() }
     }
 }
 

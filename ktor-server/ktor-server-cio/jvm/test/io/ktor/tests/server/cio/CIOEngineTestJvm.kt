@@ -7,8 +7,10 @@ package io.ktor.tests.server.cio
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.suites.*
-import kotlin.system.*
-import kotlin.test.*
+import kotlin.system.measureTimeMillis
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
