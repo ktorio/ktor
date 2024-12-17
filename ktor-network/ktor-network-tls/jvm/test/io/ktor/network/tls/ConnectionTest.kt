@@ -4,10 +4,10 @@
 
 package io.ktor.network.tls
 
-import io.ktor.junit.coroutines.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.test.junit.coroutines.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.ServerBootstrap

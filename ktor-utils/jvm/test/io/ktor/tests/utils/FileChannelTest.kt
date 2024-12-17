@@ -4,7 +4,7 @@
 
 package io.ktor.tests.utils
 
-import io.ktor.junit.*
+import io.ktor.test.junit.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*

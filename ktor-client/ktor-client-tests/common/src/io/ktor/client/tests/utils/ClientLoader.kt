@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
+import io.ktor.test.*
 import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -14,6 +14,8 @@ internal expect val enginesToTest: Iterable<HttpClientEngineFactory<HttpClientEn
 internal expect val platformName: String
 internal expect fun platformDumpCoroutines()
 internal expect fun platformWaitForAllCoroutines()
+
+private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
 
 /**
  * Helper interface to test client.
@@ -26,39 +28,38 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         skipEngines: List<String> = emptyList(),
         onlyWithEngine: String? = null,
         retries: Int = 1,
+        timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): TestResult = runTest(timeout = timeout) {
+    ): TestResult {
         val skipPatterns = skipEngines.map(SkipEnginePattern::parse)
+        val (selectedEngines, skippedEngines) = enginesToTest
+            .partition { shouldRun(it.engineName, skipPatterns, onlyWithEngine) }
+        if (skippedEngines.isNotEmpty()) println("Skipped engines: ${skippedEngines.joinToString { it.engineName }}")
 
-        val failures: List<TestFailure> = enginesToTest.mapNotNull { engineFactory ->
-            val engineName = engineFactory.engineName
+        return runTestWithData(
+            selectedEngines,
+            timeout = timeout,
+            retries = retries,
+            handleFailures = ::aggregatedAssertionError,
+        ) { (engine, retry) ->
+            val retrySuffix = if (retry > 0) " [$retry]" else ""
+            println("Run test with engine ${engine.engineName}$retrySuffix")
+            performTestWithEngine(engine, this@ClientLoader, block)
+        }
+    }
 
-            if (shouldRun(engineName, skipPatterns, onlyWithEngine)) {
-                try {
-                    println("Run test with engine $engineName")
-                    // run test here
-                    performTestWithEngine(engineFactory, this@ClientLoader, retries, block)
-                    null // engine test passed
-                } catch (cause: Throwable) {
-                    // engine test failed, save failure to report after run for every engine.
-                    TestFailure(engineName, cause)
-                }
-            } else {
-                println("Skipping test with engine $engineName")
-                null // engine skipped
+    private fun aggregatedAssertionError(failures: List<ClientTestFailure>): Nothing {
+        val message = buildString {
+            val engineNames = failures.map { it.data.engineName }
+            if (failures.size > 1) {
+                appendLine("Test failed for engines: ${engineNames.joinToString()}")
+            }
+            failures.forEachIndexed { index, (cause, _) ->
+                appendLine("Test failed for engine '$platformName:${engineNames[index]}' with:")
+                appendLine(cause.stackTraceToString().prependIndent("  "))
             }
         }
-
-        if (failures.isNotEmpty()) {
-            val message = buildString {
-                appendLine("Test failed for engines: ${failures.map { it.engineName }}")
-                failures.forEach {
-                    appendLine("Test failed for engine '$platformName:${it.engineName}' with:")
-                    appendLine(it.cause.stackTraceToString().prependIndent("  "))
-                }
-            }
-            throw AssertionError(message)
-        }
+        throw AssertionError(message)
     }
 
     private fun shouldRun(
@@ -132,5 +133,3 @@ private data class SkipEnginePattern(
         }
     }
 }
-
-private class TestFailure(val engineName: String, val cause: Throwable)

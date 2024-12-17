@@ -5,7 +5,7 @@
 @file:Suppress("ktlint")
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
-package io.ktor.junit.coroutines
+package io.ktor.test.junit.coroutines
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes

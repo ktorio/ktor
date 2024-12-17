@@ -4,10 +4,10 @@
 
 package io.ktor.network.sockets.tests
 
-import io.ktor.junit.*
-import io.ktor.junit.coroutines.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.junit.*
+import io.ktor.test.junit.coroutines.*
 import io.ktor.utils.io.*
 import io.mockk.*
 import kotlinx.coroutines.asCoroutineDispatcher

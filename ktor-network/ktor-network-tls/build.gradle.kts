@@ -12,7 +12,7 @@ kotlin.sourceSets {
     }
     jvmTest {
         dependencies {
-            api(project(":ktor-shared:ktor-junit"))
+            api(project(":ktor-shared:ktor-test-base"))
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(libs.netty.handler)
             api(libs.mockk)
