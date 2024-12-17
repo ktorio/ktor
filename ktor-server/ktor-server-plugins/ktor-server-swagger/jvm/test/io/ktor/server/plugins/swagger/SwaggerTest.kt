@@ -34,6 +34,48 @@ class SwaggerTest {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
+                    deepLinking: false,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    layout: 'StandaloneLayout'
+                });
+            }</script>
+              </body>
+            </html>
+
+            """.trimIndent(),
+            response
+        )
+    }
+
+    @Test
+    fun testSwaggerAllowDeepLinking() = testApplication {
+        routing {
+            swaggerUI("swagger") {
+                deepLinking = true
+            }
+        }
+
+        val response = client.get("/swagger").bodyAsText()
+        assertEquals(
+            """
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Swagger UI</title>
+                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui.css" rel="stylesheet">
+              </head>
+              <body>
+                <div id="swagger-ui"></div>
+                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script>window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                    url: '/swagger/documentation.yaml',
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -74,6 +116,7 @@ class SwaggerTest {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
+                    deepLinking: false,
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
