@@ -77,7 +77,7 @@ public class LoggingConfig {
  *
  * You can learn more from [Logging](https://ktor.io/docs/client-logging.html).
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", ::LoggingConfig) {
     val logger: Logger = pluginConfig.logger
     val level: LogLevel = pluginConfig.level
@@ -87,7 +87,45 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
-    fun logRequestStdFormat(request: HttpRequestBuilder) {
+
+    suspend fun logOutgoingContent(content: OutgoingContent, process: (ByteReadChannel) -> ByteReadChannel = { it }): Pair<OutgoingContent?, Long> {
+        return when(content) {
+            is OutgoingContent.ByteArrayContent -> {
+                val text = process(ByteReadChannel(content.bytes())).readRemaining().readText()
+                logger.log(text)
+                Pair(null, text.length.toLong())
+            }
+            is OutgoingContent.ContentWrapper -> {
+                logOutgoingContent(content.delegate(), process)
+            }
+            is OutgoingContent.NoContent -> {
+                logger.log("")
+                Pair(null, 0L)
+            }
+            is OutgoingContent.ProtocolUpgrade -> {
+                logger.log("")
+                Pair(null, 0L)
+            }
+            is OutgoingContent.ReadChannelContent -> {
+                val (origChannel, newChannel) = content.readFrom().split(GlobalScope)
+                val text = process(newChannel).readRemaining().readText()
+                logger.log(text)
+                Pair(LoggedContent(content, origChannel), text.length.toLong())
+            }
+            is OutgoingContent.WriteChannelContent -> {
+                val channel = ByteChannel()
+                content.writeTo(channel)
+                channel.close()
+
+                val (origChannel, newChannel) = channel.split(GlobalScope)
+                val text = process(newChannel).readRemaining().readText()
+                logger.log(text)
+                Pair(LoggedContent(content, origChannel), text.length.toLong())
+            }
+        }
+    }
+
+    suspend fun logRequestStdFormat(request: HttpRequestBuilder) {
         if (level == LogLevel.NONE) return
 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
@@ -104,6 +142,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
 
             if (level.headers && contentLength != null) {
+                logger.log("--> ${request.method.value} $uri")
+            } else if (headers.contains(HttpHeaders.ContentEncoding)) {
                 logger.log("--> ${request.method.value} $uri")
             } else if (level.info && contentLength != null) {
                 logger.log("--> ${request.method.value} $uri ($contentLength-byte body)")
@@ -134,8 +174,30 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
 
             logger.log("--> END ${request.method.value}")
+            return
+        }
+
+        if (level.body) {
+            logger.log("")
+            val body = request.body
+
+            if (body is OutgoingContent) {
+                if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
+                    val (newBody, size) = logOutgoingContent(body) { channel ->
+                        GZipEncoder.decode(channel)
+                    }
+
+                    logger.log("--> END ${request.method.value} ($size-byte, gzipped)")
+                } else {
+                    val (newBody, size) = logOutgoingContent(body)
+                    logger.log("--> END ${request.method.value} ($size-byte)")
+                }
+
+                logger.log("--> END ${request.method.value}")
+            }
         }
     }
+
 
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
         if (level == LogLevel.NONE) return response
@@ -145,6 +207,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         if ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null) {
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
+        } else if (response.headers[HttpHeaders.ContentEncoding] == "gzip") {
             logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
         } else if (level.info && contentLength != null) {
             logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $contentLength-byte body)")
