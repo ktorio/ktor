@@ -129,75 +129,71 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         if (level == LogLevel.NONE) return
 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
-
-        if (request.method == HttpMethod.Get) {
-            logger.log("--> ${request.method.value} $uri")
-        } else {
-            val headers = HeadersBuilder().apply { appendAll(request.headers) }.build()
-
-            val body = request.body
-            var contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
-            if (contentLength == null && request.method != HttpMethod.Get && body is OutgoingContent && body.contentLength != null) {
-                contentLength = body.contentLength
+        val body = request.body
+        val headers = HeadersBuilder().apply {
+            if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
+                body.contentType?.let {
+                    appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
+                }
+                body.contentLength?.let {
+                    appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
+                }
             }
+            appendAll(request.headers)
+        }.build()
 
-            if (level.headers && contentLength != null) {
-                logger.log("--> ${request.method.value} $uri")
-            } else if (level.headers && contentLength == null) {
-                logger.log("--> ${request.method.value} $uri")
-            }else if (headers.contains(HttpHeaders.ContentEncoding)) {
-                logger.log("--> ${request.method.value} $uri")
-            } else if (level.info && contentLength != null) {
-                logger.log("--> ${request.method.value} $uri ($contentLength-byte body)")
-            } else if (request.body is OutgoingContent.WriteChannelContent || request.body is OutgoingContent.ReadChannelContent) {
-                logger.log("--> ${request.method.value} $uri (unknown-byte body)")
-            } else {
+        val contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
+        val startLine = when {
+            (request.method == HttpMethod.Get)
+                || ((level.headers || level.body) && contentLength != null)
+                || (level.headers && contentLength == null)
+                || headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
+
+            level.info && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
+
+            body is OutgoingContent.WriteChannelContent
+                || body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
+
+            else -> {
                 val size = calcRequestBodySize(request.body, headers)
-                logger.log("--> ${request.method.value} $uri ($size-byte body)")
+                "--> ${request.method.value} $uri ($size-byte body)"
             }
         }
 
-        if (level.headers || level == LogLevel.BODY) {
-            val headers = HeadersBuilder().apply {
-                val body = request.body
-                if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
-                    body.contentType?.let {
-                        appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
-                    }
-                    body.contentLength?.let {
-                        appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
-                    }
-                }
-                appendAll(request.headers)
-            }.build()
+        logger.log(startLine)
 
-            for ((name, values) in headers.entries()) {
-                logger.log("$name: ${values.joinToString(separator = ", ")}")
-            }
+        if (!level.headers && level != LogLevel.BODY) {
+            return
+        }
 
+        for ((name, values) in headers.entries()) {
+            logger.log("$name: ${values.joinToString(separator = ", ")}")
+        }
+
+        if (level != LogLevel.BODY || request.method == HttpMethod.Get) {
             logger.log("--> END ${request.method.value}")
             return
         }
 
-        if (level.body) {
-            logger.log("")
-            val body = request.body
+        logger.log("")
 
-            if (body is OutgoingContent) {
-                if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
-                    val (newBody, size) = logOutgoingContent(body) { channel ->
-                        GZipEncoder.decode(channel)
-                    }
-
-                    logger.log("--> END ${request.method.value} ($size-byte, gzipped)")
-                } else {
-                    val (newBody, size) = logOutgoingContent(body)
-                    logger.log("--> END ${request.method.value} ($size-byte)")
-                }
-
-                logger.log("--> END ${request.method.value}")
-            }
+        if (body !is OutgoingContent) {
+            logger.log("--> END ${request.method.value}")
+            return
         }
+
+        val endLine = if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
+            val (newBody, size) = logOutgoingContent(body) { channel ->
+                GZipEncoder.decode(channel)
+            }
+
+            "--> END ${request.method.value} ($size-byte, gzipped)"
+        } else {
+            val (newBody, size) = logOutgoingContent(body)
+            "--> END ${request.method.value} ($size-byte)"
+        }
+
+        logger.log(endLine)
     }
 
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
@@ -207,59 +203,60 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val request = response.request
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
-        if ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null) {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)")
-        } else if (response.headers[HttpHeaders.ContentEncoding] == "gzip") {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)")
-        } else if (level.info && contentLength != null) {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)")
-        } else {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)")
+        val startLine = when {
+            ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null)
+                || (response.headers[HttpHeaders.ContentEncoding] == "gzip") -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
+
+            level.info && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
+
+            else -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
         }
 
-        if (level.headers || level == LogLevel.BODY) {
-            for ((name, values) in response.headers.entries()) {
-                logger.log("$name: ${values.joinToString(separator = ", ")}")
-            }
+        logger.log(startLine)
+
+        if (!level.headers && level != LogLevel.BODY) {
+            return response
         }
 
-        if (level.body) {
-            if (contentLength != null && contentLength == 0L) {
-                logger.log("<-- END HTTP")
-                return response
-            }
+        for ((name, values) in response.headers.entries()) {
+            logger.log("$name: ${values.joinToString(separator = ", ")}")
+        }
 
-            val (origChannel, newChannel) = response.rawContent.split(response)
-            logger.log("")
-            logger.log(newChannel.readRemaining().readText())
+        if (!level.body) {
             logger.log("<-- END HTTP")
-
-            return object : HttpResponse() {
-                override val call: HttpClientCall
-                    get() = response.call
-                override val status: HttpStatusCode
-                    get() =  response.status
-                override val version: HttpProtocolVersion
-                    get() = response.version
-                override val requestTime: GMTDate
-                    get() = response.requestTime
-                override val responseTime: GMTDate
-                    get() = response.responseTime
-
-                @InternalAPI
-                override val rawContent: ByteReadChannel
-                    get() = origChannel
-                override val headers: Headers
-                    get() = response.headers
-                override val coroutineContext: CoroutineContext
-                    get() = response.coroutineContext
-            }
+            return response
         }
 
-        if (level.headers) {
-            logger.log("<-- END HTTP")
+        if (contentLength != null && contentLength == 0L) {
+            logger.log("<-- END HTTP (${duration}ms, $contentLength-byte body)")
+            return response
         }
-        return response
+
+        val (origChannel, newChannel) = response.rawContent.split(response)
+        logger.log("")
+        logger.log(newChannel.readRemaining().readText())
+        logger.log("<-- END HTTP")
+
+        return object : HttpResponse() {
+            override val call: HttpClientCall
+                get() = response.call
+            override val status: HttpStatusCode
+                get() =  response.status
+            override val version: HttpProtocolVersion
+                get() = response.version
+            override val requestTime: GMTDate
+                get() = response.requestTime
+            override val responseTime: GMTDate
+                get() = response.responseTime
+
+            @InternalAPI
+            override val rawContent: ByteReadChannel
+                get() = origChannel
+            override val headers: Headers
+                get() = response.headers
+            override val coroutineContext: CoroutineContext
+                get() = response.coroutineContext
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
