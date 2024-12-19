@@ -262,7 +262,7 @@ public final class io/ktor/http/ContentTypesKt {
 	public static final fun withCharsetIfNeeded (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;)Lio/ktor/http/ContentType;
 }
 
-public final class io/ktor/http/Cookie {
+public final class io/ktor/http/Cookie : java/io/Serializable {
 	public static final field Companion Lio/ktor/http/Cookie$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -966,7 +966,7 @@ public final class io/ktor/http/URLParserKt {
 	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 }
 
-public final class io/ktor/http/URLProtocol {
+public final class io/ktor/http/URLProtocol : java/io/Serializable {
 	public static final field Companion Lio/ktor/http/URLProtocol$Companion;
 	public fun <init> (Ljava/lang/String;I)V
 	public final fun component1 ()Ljava/lang/String;
@@ -1026,7 +1026,7 @@ public final class io/ktor/http/UnsafeHeaderException : java/lang/IllegalArgumen
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class io/ktor/http/Url {
+public final class io/ktor/http/Url : java/io/Serializable {
 	public static final field Companion Lio/ktor/http/Url$Companion;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEncodedFragment ()Ljava/lang/String;
@@ -1053,11 +1053,21 @@ public final class io/ktor/http/Url {
 }
 
 public final class io/ktor/http/Url$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/http/UrlKt {
 	public static final fun getAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getProtocolWithAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
+}
+
+public final class io/ktor/http/UrlSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lio/ktor/http/UrlSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/http/Url;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/http/Url;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
 public final class io/ktor/http/auth/AuthScheme {

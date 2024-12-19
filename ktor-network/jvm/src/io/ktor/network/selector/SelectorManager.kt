@@ -64,7 +64,6 @@ public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
  * Select interest kind
  * @property [flag] to be set in NIO selector
  */
-
 public actual enum class SelectInterest(public val flag: Int) {
     READ(SelectionKey.OP_READ),
     WRITE(SelectionKey.OP_WRITE),
