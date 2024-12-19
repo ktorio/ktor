@@ -29,21 +29,21 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class NewFormatTest {
-    class MemLogger : Logger {
+    class LogRecorder : Logger {
         private val loggedLines = mutableListOf<String>()
         private var currentLine = 0
         override fun log(message: String) {
             loggedLines.add(message)
         }
 
-        fun assertLogEqual(msg: String): MemLogger {
+        fun assertLogEqual(msg: String): LogRecorder {
             assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
             assertEquals(msg, loggedLines[currentLine])
             currentLine++
             return this
         }
 
-        fun assertLogMatch(regex: Regex): MemLogger {
+        fun assertLogMatch(regex: Regex): LogRecorder {
             assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
             assertTrue(message = "Regex '$regex' doesn't match '${loggedLines[currentLine]}'") {
                 regex.matches(
@@ -54,17 +54,17 @@ class NewFormatTest {
             return this
         }
 
-        fun assertNoMoreLogs(): MemLogger {
+        fun assertNoMoreLogs(): LogRecorder {
             assertTrue(message = "There are ${loggedLines.size - currentLine} more logs, expected none") { currentLine >= loggedLines.size }
             return this
         }
     }
 
-    private lateinit var log: MemLogger
+    private lateinit var log: LogRecorder
 
     @BeforeEach
     fun setup() {
-        log = MemLogger()
+        log = LogRecorder()
     }
 
     @Test
@@ -377,6 +377,47 @@ class NewFormatTest {
                 .assertNoMoreLogs()
         }
     }
+
+//    @Test
+//    fun bodyWithGzip() = runTest {
+//        HttpClient(MockEngine) {
+//            install(Logging) {
+//                level = LogLevel.BODY
+//                logger = log
+//                standardFormat = true
+//            }
+//            install(ContentEncoding) { gzip() }
+//
+//            engine {
+//                addHandler {
+//                    val channel = GZipEncoder.encode(ByteReadChannel("response".repeat(1024)))
+//
+//                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
+//                }
+//            }
+//        }.use { client ->
+//            client.post("/") {
+//                val channel = GZipEncoder.encode(ByteReadChannel("request".repeat(1024)))
+//                header(HttpHeaders.ContentEncoding, "gzip")
+//                setBody(channel)
+//            }
+//
+//            log.assertLogEqual("--> POST /")
+//                .assertLogEqual("Content-Type: application/octet-stream")
+//                .assertLogEqual("Content-Encoding: gzip")
+//                .assertLogEqual("Accept-Encoding: gzip")
+//                .assertLogEqual("Accept-Charset: UTF-8")
+//                .assertLogEqual("Accept: */*")
+//                .assertLogEqual("")
+//                .assertLogEqual("request".repeat(1024))
+//                .assertLogEqual("--> END POST (7168-byte, gzipped)")
+//                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+//                .assertLogEqual("")
+//                .assertLogEqual("response".repeat(1024))
+//                .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 111-byte body, gzipped\)"""))
+//                .assertNoMoreLogs()
+//        }
+//    }
 
     @Test
     fun noLoggingWhenLevelNone() = testWithLevel(LogLevel.NONE, handle = { respondWithLength() }) { client ->
