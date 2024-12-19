@@ -1,3 +1,16 @@
+# 3.0.3
+> Published 18 December 2024
+
+### Bugfixes
+* "Module not found" errors when executing browserProductionWebpack task since 3.0.2 ([KTOR-7912](https://youtrack.jetbrains.com/issue/KTOR-7912))
+* Darwin: "IllegalStateException: Content-Length mismatch" on requesting gzipped content ([KTOR-7943](https://youtrack.jetbrains.com/issue/KTOR-7943))
+* JS/WASM fails with "IllegalStateException: Content-Length mismatch" on requesting gzipped content ([KTOR-7934](https://youtrack.jetbrains.com/issue/KTOR-7934))
+* FormFieldLimit is overwritten by default arg ([KTOR-7946](https://youtrack.jetbrains.com/issue/KTOR-7946))
+* A Performance issue reading with ByteReadChannel.readUTF8LineTo request body ([KTOR-7941](https://youtrack.jetbrains.com/issue/KTOR-7941))
+* Installing HttpCache before ContentEncoding prevents response body to be decoded ([KTOR-7830](https://youtrack.jetbrains.com/issue/KTOR-7830))
+* TestApplication.stop() doesn't stop the application anymore ([KTOR-7682](https://youtrack.jetbrains.com/issue/KTOR-7682))
+* File is not commited after closing writeChannel() of the file ([KTOR-7845](https://youtrack.jetbrains.com/issue/KTOR-7845))
+
 # 3.0.2
 > Published 3 December 2024
 
