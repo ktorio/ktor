@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.compression
@@ -36,7 +36,7 @@ class ContentEncodingTest : ClientLoader() {
 
     // Note: JS is decompressed before hitting the client, so the response does not appear compressed
     @Test
-    fun testDeflate() = clientTests(listOf("native:CIO", "js")) {
+    fun testDeflate() = clientTests(except("native:CIO", "Js")) {
         config {
             ContentEncoding {
                 deflate()
@@ -52,7 +52,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZip() = clientTests(listOf("native:CIO", "js")) {
+    fun testGZip() = clientTests(except("native:CIO", "Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -68,7 +68,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZipEmpty() = clientTests(listOf("js")) {
+    fun testGZipEmpty() = clientTests(except("Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -83,7 +83,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGzipByteArray() = clientTests(listOf("js")) {
+    fun testGzipByteArray() = clientTests(except("Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -100,7 +100,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testDisableDecompression() = clientTests(listOf("OkHttp", "Js")) {
+    fun testDisableDecompression() = clientTests(except("OkHttp", "Js")) {
         config {
             ContentEncoding(mode = ContentEncodingConfig.Mode.CompressRequest) {
                 gzip()
@@ -115,7 +115,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testNoEncoding() = clientTests(listOf("OkHttp")) {
+    fun testNoEncoding() = clientTests(except("OkHttp")) {
         config {
             install(ContentEncoding)
         }

@@ -75,7 +75,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testETagCache() = clientTests(listOf("Js")) {
+    fun testETagCache() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -99,7 +99,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testReuseCacheStorage() = clientTests(listOf("Js")) {
+    fun testReuseCacheStorage() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -124,7 +124,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testLastModified() = clientTests(listOf("Js")) {
+    fun testLastModified() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -148,7 +148,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testVary() = clientTests(listOf("Js")) {
+    fun testVary() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -205,7 +205,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testVaryStale() = clientTests(listOf("Js")) {
+    fun testVaryStale() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -263,7 +263,7 @@ class CacheTest : ClientLoader() {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testNoVaryIn304() = clientTests(listOf("Js")) {
+    fun testNoVaryIn304() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -545,7 +545,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testNoStoreRequest() = clientTests(listOf("Js")) {
+    fun testNoStoreRequest() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -571,7 +571,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testNoCacheRequest() = clientTests(listOf("Js")) {
+    fun testNoCacheRequest() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -603,7 +603,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestWithMaxAge0() = clientTests(listOf("Js")) {
+    fun testRequestWithMaxAge0() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {

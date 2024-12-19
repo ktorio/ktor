@@ -27,15 +27,13 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
      * Perform test against all clients from dependencies.
      */
     fun clientTests(
-        skipEngines: List<String> = emptyList(),
-        onlyWithEngine: String? = null,
+        rule: EngineSelectionRule = EngineSelectionRule { true },
         retries: Int = 1,
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {
-        val skipPatterns = skipEngines.map(SkipEnginePattern::parse)
         val (selectedEngines, skippedEngines) = enginesToTest
-            .partition { shouldRun(it.engineName, skipPatterns, onlyWithEngine) }
+            .partition { rule.shouldRun(it.engineName) }
         val reporter = TestReporter()
 
         return runTestWithData(
@@ -68,21 +66,6 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         throw AssertionError(message)
     }
 
-    private fun shouldRun(
-        engineName: String,
-        skipEnginePatterns: List<SkipEnginePattern>,
-        onlyWithEngine: String?
-    ): Boolean {
-        val lowercaseEngineName = engineName.lowercase()
-        if (onlyWithEngine != null && onlyWithEngine.lowercase() != lowercaseEngineName) return false
-
-        skipEnginePatterns.forEach {
-            if (it.matches(lowercaseEngineName)) return false
-        }
-
-        return true
-    }
-
     /**
      * Print coroutines in debug mode.
      */
@@ -93,6 +76,21 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
     // 2. Nonce generator
     // @After
     fun waitForAllCoroutines(): Unit = platformWaitForAllCoroutines()
+
+    /** Defines that test should be executed only with the specified [engine]. */
+    fun only(engine: String): EngineSelectionRule {
+        val lowercaseEngineName = engine.lowercase()
+        return EngineSelectionRule { it.lowercase() == lowercaseEngineName }
+    }
+
+    /** Excludes the specified [engines] from test execution. */
+    fun except(vararg engines: String): EngineSelectionRule = except(engines.asList())
+
+    /** Excludes the specified [engines] from test execution. */
+    fun except(engines: List<String>): EngineSelectionRule {
+        val skipPatterns = engines.map(SkipEnginePattern::parse)
+        return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }
+    }
 
     private class TestReporter {
         private val lines: MutableList<String> = mutableListOf()
@@ -169,6 +167,15 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
 internal val HttpClientEngineFactory<*>.engineName: String
     get() = this::class.simpleName!!
 
+/**
+ * Decides whether an engine should be tested or not.
+ * @see ClientLoader.except
+ * @see ClientLoader.only
+ */
+fun interface EngineSelectionRule {
+    fun shouldRun(engineName: String): Boolean
+}
+
 private data class SkipEnginePattern(
     val skippedPlatform: String?, // null means * or empty
     val skippedEngine: String?, // null means * or empty
@@ -176,7 +183,7 @@ private data class SkipEnginePattern(
     fun matches(engineName: String): Boolean {
         var result = true
         if (skippedEngine != null) {
-            result = result && engineName == skippedEngine
+            result = result && engineName.lowercase() == skippedEngine
         }
         if (result && skippedPlatform != null) {
             result = result && platformName.startsWith(skippedPlatform)

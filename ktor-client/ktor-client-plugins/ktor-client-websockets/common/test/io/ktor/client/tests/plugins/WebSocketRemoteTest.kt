@@ -19,7 +19,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private val skipEngines = listOf("Android", "Apache", "Curl")
 
     @Test
-    fun testRemotePingPong() = clientTests(skipEngines) {
+    fun testRemotePingPong() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -35,7 +35,7 @@ class WebSocketRemoteTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testSecureRemotePingPong() = clientTests(skipEngines) {
+    fun testSecureRemotePingPong() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -50,7 +50,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLogging() = clientTests(skipEngines) {
+    fun testWithLogging() = clientTests(except(skipEngines)) {
         config {
             install(Logging) {
                 level = LogLevel.ALL
@@ -67,7 +67,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSessionClose() = clientTests(skipEngines) {
+    fun testSessionClose() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -80,7 +80,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSessionTermination() = clientTests(skipEngines) {
+    fun testSessionTermination() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -93,7 +93,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testBadCloseReason() = clientTests(skipEngines) {
+    fun testBadCloseReason() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -106,7 +106,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testNotFound() = clientTests(skipEngines) {
+    fun testNotFound() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
             expectSuccess = true
@@ -146,7 +146,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private class CustomException : Exception()
 
     @Test
-    fun testErrorHandling() = clientTests(skipEngines) {
+    fun testErrorHandling() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }

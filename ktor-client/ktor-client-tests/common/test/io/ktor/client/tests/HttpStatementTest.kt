@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -38,7 +38,7 @@ class HttpStatementTest : ClientLoader() {
     }
 
     @Test
-    fun testGZipFromSavedResponse() = clientTests(listOf("native:CIO")) {
+    fun testGZipFromSavedResponse() = clientTests(except("native:CIO")) {
         config {
             ContentEncoding {
                 gzip()

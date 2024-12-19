@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -70,7 +70,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSession() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketSession() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -85,7 +85,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testParallelWebsocketSessions() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testParallelWebsocketSessions() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -115,7 +115,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testWebsocketWithDefaultRequest() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
             defaultRequest {
@@ -135,7 +135,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSessionWithError() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketSessionWithError() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -146,7 +146,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionWss() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testExceptionWss() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
         }
@@ -161,7 +161,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebSocketSerialization() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebSocketSerialization() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
                 contentConverter = customContentConverter
@@ -181,7 +181,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebSocketSerializationWithExplicitTypeInfo() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebSocketSerializationWithExplicitTypeInfo() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
                 contentConverter = customContentConverter
@@ -201,7 +201,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testSerializationWithNoConverter() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testSerializationWithNoConverter() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
             }
@@ -223,7 +223,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestTimeoutIsNotApplied() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testRequestTimeoutIsNotApplied() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
 
@@ -244,7 +244,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCountPong() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testCountPong() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
         }
@@ -260,7 +260,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancellingScope() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testCancellingScope() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -277,7 +277,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketRequiringSubProtocolWithSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketRequiringSubProtocolWithSubProtocol() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -297,7 +297,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -312,7 +312,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testIncomingOverflow() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testIncomingOverflow() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -329,7 +329,7 @@ class WebSocketTest : ClientLoader() {
     @Ignore // TODO KTOR-7088
     @Test
     fun testImmediateReceiveAfterConnect() = clientTests(
-        ENGINES_WITHOUT_WS + "Darwin" + "Js" // TODO KTOR-7088
+        except(ENGINES_WITHOUT_WS + "Darwin" + "Js") // TODO KTOR-7088
     ) {
         config {
             install(WebSockets)
@@ -354,7 +354,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
 
@@ -376,7 +376,10 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS + "Js" + "Darwin", retries = 5) {
+    fun testAuthenticationWithValidInitialToken() = clientTests(
+        except(ENGINES_WITHOUT_WS + "Js" + "Darwin"),
+        retries = 5
+    ) {
         config {
             install(WebSockets)
 
@@ -397,7 +400,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testAuthenticationWithInvalidToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
 

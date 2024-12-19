@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
@@ -15,7 +15,7 @@ private const val TEST_SIZE: Int = 100
 class WebSocketJvmTest : ClientLoader(100000.seconds) {
 
     @Test
-    fun testWebSocketDeflateBinary() = clientTests(listOf("Android", "Apache", "Apache5")) {
+    fun testWebSocketDeflateBinary() = clientTests(except("Android", "Apache", "Apache5")) {
         config {
             WebSockets {
                 extensions {
@@ -39,7 +39,7 @@ class WebSocketJvmTest : ClientLoader(100000.seconds) {
     }
 
     @Test
-    fun testWebSocketDeflateNoContextTakeover() = clientTests(listOf("Android", "Apache", "Apache5")) {
+    fun testWebSocketDeflateNoContextTakeover() = clientTests(except("Android", "Apache", "Apache5")) {
         config {
             WebSockets {
                 extensions {

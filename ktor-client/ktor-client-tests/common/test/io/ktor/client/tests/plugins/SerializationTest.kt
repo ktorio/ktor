@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests.plugins
 
@@ -18,7 +18,7 @@ class MyCustomObject(val message: String)
 
 class SerializationTest : ClientLoader() {
     @Test
-    fun testSendCustomObject() = clientTests(listOf("native:CIO")) {
+    fun testSendCustomObject() = clientTests(except("native:CIO")) {
         config {
             install(ContentNegotiation) { json() }
         }
@@ -35,7 +35,7 @@ class SerializationTest : ClientLoader() {
     }
 
     @Test
-    fun testSendStringWithSerialization() = clientTests(listOf("native:CIO")) {
+    fun testSendStringWithSerialization() = clientTests(except("native:CIO")) {
         config {
             install(ContentNegotiation) { json() }
         }
@@ -52,7 +52,7 @@ class SerializationTest : ClientLoader() {
     }
 
     @Test
-    fun testSendStringWithSerializationIgnoring() = clientTests(listOf("native:CIO")) {
+    fun testSendStringWithSerializationIgnoring() = clientTests(except("native:CIO")) {
         config {
             install(ContentNegotiation) {
                 clearIgnoredTypes()

@@ -63,7 +63,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testWithExternalTimeout() = clientTests(listOf("Android")) {
+    fun testWithExternalTimeout() = clientTests(except("Android")) {
         config {
             install(HttpTimeout)
         }
@@ -211,7 +211,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Js"), retries = 5) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js"), retries = 5) {
 //      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
         if (PlatformUtils.IS_NATIVE) return@clientTests
 
@@ -233,7 +233,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        listOf("Js", "Curl", "Darwin", "DarwinLegacy")
+        except("Js", "Curl", "Darwin", "DarwinLegacy")
     ) {
         config {
             install(HttpTimeout)
@@ -253,7 +253,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(listOf("Curl", "Js", "Darwin", "DarwinLegacy")) {
+    fun testGetAfterTimeout() = clientTests(except("Curl", "Js", "Darwin", "DarwinLegacy")) {
         config {
             install(HttpTimeout)
         }
@@ -327,7 +327,7 @@ class HttpTimeoutTest : ClientLoader() {
     // Fix https://youtrack.jetbrains.com/issue/KTOR-7885
     @Ignore
     @Test
-    fun testRedirect() = clientTests(listOf("Js"), retries = 5) {
+    fun testRedirect() = clientTests(except("Js"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
@@ -344,7 +344,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     // Js can't configure test timeout in browser
     @Test
-    fun testRedirectPerRequestAttributes() = clientTests(listOf("Js")) {
+    fun testRedirectPerRequestAttributes() = clientTests(except("Js")) {
         config {
             install(HttpTimeout)
         }
@@ -429,7 +429,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "jvm/win:*")) {
+    fun testConnectionRefusedException() = clientTests(except("Js", "native:*", "jvm/win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -445,7 +445,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Curl", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(except("Js", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -461,7 +461,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutReadPerRequestAttributes() = clientTests(
-        listOf("Js", "native:CIO", "Curl", "Java", "Apache5")
+        except("Js", "native:CIO", "Curl", "Java", "Apache5")
     ) {
         config {
             install(HttpTimeout)
@@ -479,7 +479,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Curl", "Java")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(except("Js", "Android", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
@@ -493,7 +493,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        listOf("Js", "Android", "Apache5", "native:CIO", "Curl", "Java")
+        except("Js", "Android", "Apache5", "native:CIO", "Curl", "Java")
     ) {
         config {
             install(HttpTimeout)
