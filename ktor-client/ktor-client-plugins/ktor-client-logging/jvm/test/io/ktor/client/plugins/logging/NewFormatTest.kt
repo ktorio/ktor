@@ -469,9 +469,62 @@ class NewFormatTest {
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
-            .assertLogEqual("<-- END HTTP")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
+
+    @Test
+    fun bodyGet204() = testWithLevel(LogLevel.BODY, handle = {
+        respond("", status = HttpStatusCode.NoContent, headers = Headers.build {
+            append(HttpHeaders.ContentLength, "0")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 204 No Content / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyGet205() = testWithLevel(LogLevel.BODY, handle = {
+        respond("", status = HttpStatusCode.ResetContent, headers = Headers.build {
+            append(HttpHeaders.ContentLength, "0")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 205 Reset Content / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+//    @Test
+//    fun bodyPost() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+//        client.post("/") {
+//            setBody("test")
+//        }
+//        log.assertLogEqual("--> POST /")
+//            .assertLogEqual("Content-Type: text/plain; charset=UTF-8")
+//            .assertLogEqual("Content-Length: 4")
+//            .assertLogEqual("Accept-Charset: UTF-8")
+//            .assertLogEqual("Accept: */*")
+//            .assertLogEqual("")
+//            .assertLogEqual("test")
+//            .assertLogEqual("--> END POST (4-byte body)")
+//            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+//            .assertLogEqual("Content-Length: 0")
+//            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+//            .assertNoMoreLogs()
+//    }
 
     @Test
     fun bodyGetWithResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("hello!") }) { client ->
