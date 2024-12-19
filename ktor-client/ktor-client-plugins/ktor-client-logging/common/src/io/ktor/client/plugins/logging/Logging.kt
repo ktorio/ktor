@@ -143,7 +143,9 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
             if (level.headers && contentLength != null) {
                 logger.log("--> ${request.method.value} $uri")
-            } else if (headers.contains(HttpHeaders.ContentEncoding)) {
+            } else if (level.headers && contentLength == null) {
+                logger.log("--> ${request.method.value} $uri")
+            }else if (headers.contains(HttpHeaders.ContentEncoding)) {
                 logger.log("--> ${request.method.value} $uri")
             } else if (level.info && contentLength != null) {
                 logger.log("--> ${request.method.value} $uri ($contentLength-byte body)")
@@ -198,7 +200,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
         if (level == LogLevel.NONE) return response
 
@@ -207,13 +208,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         if ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null) {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)")
         } else if (response.headers[HttpHeaders.ContentEncoding] == "gzip") {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms)")
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)")
         } else if (level.info && contentLength != null) {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, $contentLength-byte body)")
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)")
         } else {
-            logger.log("<-- ${response.status} ${request.url.pathQuery()} ${response.version} (${duration}ms, unknown-byte body)")
+            logger.log("<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)")
         }
 
         if (level.headers || level == LogLevel.BODY) {

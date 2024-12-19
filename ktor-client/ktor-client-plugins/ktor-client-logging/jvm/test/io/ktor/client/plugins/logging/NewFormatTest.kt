@@ -68,11 +68,17 @@ class NewFormatTest {
     }
 
     @Test
+    fun noLoggingWhenLevelNone() = testWithLevel(LogLevel.NONE, handle = { respondWithLength() }) { client ->
+        client.get("/")
+        log.assertNoMoreLogs()
+    }
+
+    @Test
     fun basicGet() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -83,9 +89,8 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (5-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
-
     }
 
     @Test
@@ -93,7 +98,7 @@ class NewFormatTest {
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 404 Not Found / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 404 Not Found / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -102,7 +107,7 @@ class NewFormatTest {
         client.get("/some/resource")
 
         log.assertLogEqual("--> GET /some/resource")
-            .assertLogMatch(Regex("""<-- 200 OK /some/resource HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK /some/resource \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -111,20 +116,16 @@ class NewFormatTest {
         client.get("/?a=1&b=2&c=3")
 
         log.assertLogEqual("--> GET /?a=1&b=2&c=3")
-            .assertLogMatch(Regex("""<-- 200 OK /\?a=1&b=2&c=3 HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK /\?a=1&b=2&c=3 \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
     @Test
-    fun basicGetNonEmptyBody() = testWithLevel(LogLevel.INFO, handle = {
-        respond("hello", headers = Headers.build {
-            append(HttpHeaders.ContentLength, "5")
-        })
-    }) { client ->
+    fun basicGetNonEmptyBody() = testWithLevel(LogLevel.INFO, handle = { respondWithLength("hello") }) { client ->
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 5-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 5-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -133,9 +134,8 @@ class NewFormatTest {
         client.post("/")
 
         log.assertLogEqual("--> POST / (0-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
-
     }
 
     @Test
@@ -155,7 +155,7 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (0-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
 
     }
@@ -169,7 +169,7 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -184,7 +184,7 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (11-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -199,7 +199,7 @@ class NewFormatTest {
         assertEquals("hello", response.bodyAsText())
 
         log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 5-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 5-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -214,7 +214,7 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -231,7 +231,7 @@ class NewFormatTest {
         }
 
         log.assertLogEqual("--> POST / (11-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 0-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -241,7 +241,7 @@ class NewFormatTest {
     }) { client ->
         client.prepareGet("/").execute { response ->
             log.assertLogEqual("--> GET /")
-                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, 10-byte body\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 10-byte body\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -268,7 +268,7 @@ class NewFormatTest {
             client.post("/")
 
             log.assertLogEqual("--> POST / (0-byte body)")
-                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, unknown-byte body\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -281,7 +281,7 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -299,7 +299,27 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK /post HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun headersNoLength() = testWithLevel(LogLevel.HEADERS, handle = { respondWithLength() }) { client ->
+        client.post("/post") {
+            setBody(object : OutgoingContent.WriteChannelContent() {
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    channel.writeStringUtf8("test")
+                }
+            })
+        }
+
+        log.assertLogEqual("--> POST /post")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -321,9 +341,27 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Custom-Response: value")
             .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun headersResponseBody() = testWithLevel(LogLevel.HEADERS, handle = {
+        respondWithLength("test", contentType = ContentType.Text.Html)
+    }) { client ->
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 4")
+            .assertLogEqual("Content-Type: text/html")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
     }
@@ -342,8 +380,9 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 3")
+            .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
     }
@@ -372,7 +411,7 @@ class NewFormatTest {
                 .assertLogEqual("Accept-Charset: UTF-8")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END POST")
-                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, unknown-byte body\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
                 .assertLogEqual("<-- END HTTP")
                 .assertNoMoreLogs()
         }
@@ -411,7 +450,7 @@ class NewFormatTest {
 //                .assertLogEqual("")
 //                .assertLogEqual("request".repeat(1024))
 //                .assertLogEqual("--> END POST (7168-byte, gzipped)")
-//                .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
 //                .assertLogEqual("")
 //                .assertLogEqual("response".repeat(1024))
 //                .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 111-byte body, gzipped\)"""))
@@ -419,11 +458,7 @@ class NewFormatTest {
 //        }
 //    }
 
-    @Test
-    fun noLoggingWhenLevelNone() = testWithLevel(LogLevel.NONE, handle = { respondWithLength() }) { client ->
-        client.get("/")
-        log.assertNoMoreLogs()
-    }
+
 
     @Test
     fun bodyGet() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
@@ -432,7 +467,7 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -445,8 +480,9 @@ class NewFormatTest {
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 6")
+            .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
             .assertLogEqual("hello!")
             .assertLogEqual("<-- END HTTP")
@@ -454,10 +490,14 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = { respond(ByteReadChannel("test")) }) { client ->
+    fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = {
+        respond(ByteReadChannel("test"), headers = Headers.build {
+            append(HttpHeaders.TransferEncoding, "chunked")
+        })
+    }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / HTTP/1.1 \(\d+ms, unknown-byte body\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -467,17 +507,19 @@ class NewFormatTest {
         })
     }
 
-    private fun MockRequestHandleScope.respondWithLength(body: String, status: HttpStatusCode = HttpStatusCode.OK, headers: Headers = Headers.Empty): HttpResponseData {
+    private fun MockRequestHandleScope.respondWithLength(body: String, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
         return respond(ByteReadChannel(body), headers = Headers.build {
             appendAll(headers)
             append("Content-Length", body.length.toString())
+            set("Content-Type", contentType.toString())
         }, status = status)
     }
 
-    private fun MockRequestHandleScope.respondWithLength(body: ByteArray, status: HttpStatusCode = HttpStatusCode.OK, headers: Headers = Headers.Empty): HttpResponseData {
+    private fun MockRequestHandleScope.respondWithLength(body: ByteArray, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
         return respond(ByteReadChannel(body), headers = Headers.build {
             appendAll(headers)
             append("Content-Length", body.size.toString())
+            set("Content-Type", contentType.toString())
         }, status = status)
     }
 
