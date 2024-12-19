@@ -204,7 +204,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         val startLine = when {
-            ((level == LogLevel.HEADERS || level == LogLevel.BODY) && contentLength != null)
+            level == LogLevel.BODY || (level == LogLevel.HEADERS && contentLength != null)
                 || (response.headers[HttpHeaders.ContentEncoding] == "gzip") -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
 
             level.info && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"

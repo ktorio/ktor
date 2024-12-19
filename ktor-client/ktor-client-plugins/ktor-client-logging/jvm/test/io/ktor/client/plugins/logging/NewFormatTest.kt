@@ -543,6 +543,22 @@ class NewFormatTest {
     }
 
     @Test
+    fun bodyChunkedResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondChunked(ByteReadChannel("hello!")) }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Transfer-Encoding: chunked")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("")
+            .assertLogEqual("hello!")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = {
         respond(ByteReadChannel("test"), headers = Headers.build {
             append(HttpHeaders.TransferEncoding, "chunked")
@@ -558,6 +574,14 @@ class NewFormatTest {
         return respond("", headers = Headers.build {
             append("Content-Length", "0")
         })
+    }
+
+    private fun MockRequestHandleScope.respondChunked(body: ByteReadChannel, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
+        return respond(body, headers = Headers.build {
+            appendAll(headers)
+            append("Transfer-Encoding", "chunked")
+            set("Content-Type", contentType.toString())
+        }, status = status)
     }
 
     private fun MockRequestHandleScope.respondWithLength(body: String, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
