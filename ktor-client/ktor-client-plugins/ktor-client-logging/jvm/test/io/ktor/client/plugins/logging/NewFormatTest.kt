@@ -473,7 +473,7 @@ class NewFormatTest {
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Content-Length: 55")
             .assertLogEqual("")
-            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 55-byte body omitted\)"""))
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, encoded 55-byte body omitted\)"""))
             .assertNoMoreLogs()
     }
 
@@ -493,7 +493,7 @@ class NewFormatTest {
             .assertLogEqual("Content-Encoding: br")
             .assertLogEqual("Content-Length: 2")
             .assertLogEqual("")
-            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 2-byte body omitted\)"""))
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, encoded 2-byte body omitted\)"""))
             .assertNoMoreLogs()
     }
 
@@ -624,6 +624,91 @@ class NewFormatTest {
             .assertLogEqual("")
             .assertLogEqual("hello!")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 6-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyResponseIsStreaming() = testWithLevel(LogLevel.BODY, handle = {
+        respondChunked(ByteReadChannel("""
+          |event: add
+          |data: 73857293
+          |
+          |event: remove
+          |data: 2153
+          |
+          |event: add
+          |data: 113411
+          |
+          |
+          """.trimMargin()), contentType = ContentType.Text.EventStream)
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Transfer-Encoding: chunked")
+            .assertLogEqual("Content-Type: text/event-stream")
+            .assertLogEqual("<-- END HTTP (streaming)")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyGetMalformedCharset() = testWithLevel(LogLevel.BODY, handle = {
+        respond("test", headers = Headers.build {
+            append(HttpHeaders.ContentType, "text/html; charset=0")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Type: text/html; charset=0")
+            .assertLogEqual("")
+            .assertLogEqual("test")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 4-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyResponseBodyIsBinary() = testWithLevel(LogLevel.BODY, handle = {
+        respond(byteArrayOf((0x89).toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a), headers = Headers.build {
+            append(HttpHeaders.ContentType, "image/png; charset=utf-8")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Type: image/png; charset=utf-8")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary body omitted\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyResponseBodyIsBinaryContentLength() = testWithLevel(LogLevel.BODY, handle = {
+        val data = byteArrayOf((0x89).toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
+        respond(data, headers = Headers.build {
+            append(HttpHeaders.ContentType, "image/png; charset=utf-8")
+            append(HttpHeaders.ContentLength, data.size.toString())
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Type: image/png; charset=utf-8")
+            .assertLogEqual("Content-Length: 8")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 8-byte body omitted\)"""))
             .assertNoMoreLogs()
     }
 
