@@ -65,7 +65,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     if (protocol.name == "tel") {
         require(slashCount == 0)
-        parseTel(urlString, startIndex, endIndex)
+        host = urlString.substring(startIndex, endIndex)
         return this
     }
 
@@ -162,59 +162,6 @@ private fun URLBuilder.parseMailto(urlString: String, startIndex: Int, endIndex:
 
     user = urlString.substring(startIndex, delimiter).decodeURLPart()
     host = urlString.substring(delimiter + 1, endIndex)
-}
-
-private fun URLBuilder.parseTel(urlString: String, startIndex: Int, endIndex: Int) {
-    host = urlString.substring(startIndex, endIndex)
-    val parameters = host.substringAfter(";", "").split(";")
-
-    if (!host.startsWith("+")) {
-        parameters
-            .find { it.startsWith("phone-context=") }
-            ?.removePrefix("phone-context=")
-            ?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException(
-                "Invalid tel URI: local number requires a non-empty 'phone-context' parameter"
-            )
-    }
-
-    val parameterNames = mutableSetOf<String>()
-    for (param in parameters) {
-        val name = param.substringBefore("=")
-        if (!parameterNames.add(name)) {
-            throw IllegalArgumentException("Invalid tel URI: duplicate parameter '$name'")
-        }
-    }
-
-    val isdnIndex = parameters.indexOfFirst { it.startsWith("isdn-subaddress=") }
-    val extensionIndex = parameters.indexOfFirst { it.startsWith("extension=") }
-    val contextIndex = parameters.indexOfFirst { it.startsWith("phone-context=") }
-    val otherParameters = parameters.filterNot { it.startsWith("isdn-subaddress=")
-        || it.startsWith("extension=")
-        || it.startsWith("phone-context=") }
-
-    if (isdnIndex != -1 && isdnIndex > 0) {
-        throw IllegalArgumentException("Invalid tel URI: 'isdn-subaddress' must appear first if present")
-    }
-
-    if (extensionIndex != -1 && extensionIndex > 0) {
-        throw IllegalArgumentException("Invalid tel URI: 'extension' must appear first if present")
-    }
-
-    if ((isdnIndex != -1 || extensionIndex != -1) && (contextIndex > 0 && contextIndex != 1)) {
-        throw IllegalArgumentException(
-            "Invalid tel URI: 'phone-context' must appear after 'isdn-subaddress' or 'extension'")
-    }
-
-    if (isdnIndex == -1 && extensionIndex == -1 && (contextIndex > 0 && contextIndex != 0)) {
-        throw IllegalArgumentException(
-            "Invalid tel URI: 'phone-context' must appear first if present")
-    }
-
-    if (otherParameters.sorted() != otherParameters) {
-        throw IllegalArgumentException("Invalid tel URI: parameters must be in lexicographical order")
-    }
-
 }
 
 private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: Int): Int {

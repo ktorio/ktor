@@ -382,29 +382,5 @@ class UrlTest {
         assertEquals("tel:+1-408-555-5555;extension=ext;phone-context=context", telUrlWithParams.toString())
         assertEquals("tel", telUrlWithParams.protocol.name)
         assertEquals("+1-408-555-5555;extension=ext;phone-context=context", telUrlWithParams.host)
-
-        assertFailsWith<URLParserException> {
-            Url("tel:1-408-555-5555")
-        }
-
-        assertFailsWith<URLParserException> {
-            Url("tel:+1-408-555-5555;extension=ext1;extension=ext2")
-        }
-
-        assertFailsWith<URLParserException> {
-            Url("tel:+1-408-555-5555;extension=ext1;isdn-subaddress=isdn")
-        }
-
-        assertFailsWith<URLParserException> {
-            Url("tel:+1-408-555-5555;phone-context=context;extension=ext")
-        }
-
-        assertFailsWith<URLParserException> {
-            Url("tel:+1-408-555-5555;param1=p;phone-context=context")
-        }
-
-        assertFailsWith<URLParserException> {
-            Url("tel:+1-408-555-5555;paramB=p;paramA=p")
-        }
     }
 }
