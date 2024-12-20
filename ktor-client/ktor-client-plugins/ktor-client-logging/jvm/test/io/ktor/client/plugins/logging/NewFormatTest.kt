@@ -23,9 +23,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
+import java.net.UnknownHostException
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class NewFormatTest {
@@ -721,6 +723,21 @@ class NewFormatTest {
         client.get("/")
         log.assertLogEqual("--> GET /")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun connectFailed() = testWithLevel(LogLevel.INFO, handle = { respondOk() }) { client ->
+        client.sendPipeline.intercept(HttpSendPipeline.Engine) {
+            throw UnknownHostException("reason")
+        }
+
+        assertFailsWith<UnknownHostException> {
+            client.get("/")
+        }
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("<-- HTTP FAILED: java.net.UnknownHostException: reason")
             .assertNoMoreLogs()
     }
 
