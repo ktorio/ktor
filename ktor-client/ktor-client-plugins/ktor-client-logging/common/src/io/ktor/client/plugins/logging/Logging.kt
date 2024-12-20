@@ -90,7 +90,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     fun isNone(): Boolean = level == LogLevel.NONE
     fun isInfo(): Boolean = level == LogLevel.INFO
     fun isHeaders(): Boolean = level == LogLevel.HEADERS
-    fun isBody(): Boolean = level == LogLevel.BODY
+    fun isBody(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
 
     suspend fun logOutgoingContent(content: OutgoingContent, process: (ByteReadChannel) -> ByteReadChannel = { it }): Pair<OutgoingContent?, Long> {
         return when(content) {
