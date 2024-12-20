@@ -432,11 +432,7 @@ class MultipartTest {
 
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
         val boundary = parseBoundaryInternal(headerValue)
-        val actualBoundary = String(
-            boundary.array(),
-            boundary.arrayOffset() + boundary.position(),
-            boundary.remaining()
-        )
+        val actualBoundary = String(boundary)
 
         assertEquals(expectedBoundary, actualBoundary)
     }

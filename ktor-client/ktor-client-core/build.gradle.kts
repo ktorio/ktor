@@ -8,6 +8,7 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-http"))
+            api(project(":ktor-http:ktor-http-cio"))
             api(project(":ktor-shared:ktor-events"))
             api(project(":ktor-shared:ktor-websocket-serialization"))
             api(project(":ktor-shared:ktor-sse"))
