@@ -239,6 +239,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return response
         }
 
+        if (response.contentType() == ContentType.Text.EventStream) {
+            logger.log("<-- END HTTP (streaming)")
+            return response
+        }
+
         val (origChannel, newChannel) = response.rawContent.split(response)
         logger.log("")
 
@@ -269,7 +274,16 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             logger.log(text)
             logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
         } else {
-            logger.log("<-- END HTTP (${duration}ms, binary $contentLength-byte body omitted)")
+            var type = "binary"
+            if (response.headers.contains(HttpHeaders.ContentEncoding)) {
+                type = "encoded"
+            }
+
+            if (contentLength != null) {
+                logger.log("<-- END HTTP (${duration}ms, $type $contentLength-byte body omitted)")
+            } else {
+                logger.log("<-- END HTTP (${duration}ms, $type body omitted)")
+            }
         }
 
         return object : HttpResponse() {
