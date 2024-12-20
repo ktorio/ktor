@@ -87,6 +87,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
+    fun isNone(): Boolean = level == LogLevel.NONE
+    fun isInfo(): Boolean = level == LogLevel.INFO
+    fun isHeaders(): Boolean = level == LogLevel.HEADERS
+    fun isBody(): Boolean = level == LogLevel.BODY
 
     suspend fun logOutgoingContent(content: OutgoingContent, process: (ByteReadChannel) -> ByteReadChannel = { it }): Pair<OutgoingContent?, Long> {
         return when(content) {
@@ -126,7 +130,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     suspend fun logRequestStdFormat(request: HttpRequestBuilder) {
-        if (level == LogLevel.NONE) return
+        if (isNone()) return
 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
         val body = request.body
@@ -145,11 +149,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val startLine = when {
             (request.method == HttpMethod.Get)
-                || ((level.headers || level.body) && contentLength != null)
-                || (level.headers && contentLength == null)
+                || ((isHeaders() || isBody()) && contentLength != null)
+                || (isHeaders() && contentLength == null)
                 || headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
 
-            level.info && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
+            isInfo() && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
 
             body is OutgoingContent.WriteChannelContent
                 || body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
@@ -170,7 +174,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             logger.log("$name: ${values.joinToString(separator = ", ")}")
         }
 
-        if (level != LogLevel.BODY || request.method == HttpMethod.Get) {
+        if (!isBody() || request.method == HttpMethod.Get) {
             logger.log("--> END ${request.method.value}")
             return
         }
@@ -197,24 +201,27 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
-        if (level == LogLevel.NONE) return response
+        if (isNone()) return response
 
         var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         val startLine = when {
-            level == LogLevel.BODY || (level == LogLevel.HEADERS && contentLength != null)
+            response.headers[HttpHeaders.TransferEncoding] == "chunked"
+                && (isInfo() || isHeaders()) ->  "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
+
+            isBody() || (isInfo() && contentLength == null) || (isHeaders() && contentLength != null)
                 || (response.headers[HttpHeaders.ContentEncoding] == "gzip") -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
 
-            level.info && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
+            isInfo() && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
 
             else -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
         }
 
         logger.log(startLine)
 
-        if (!level.headers && level != LogLevel.BODY) {
+        if (!isHeaders() && !isBody()) {
             return response
         }
 
@@ -222,7 +229,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             logger.log("$name: ${values.joinToString(separator = ", ")}")
         }
 
-        if (!level.body) {
+        if (!isBody()) {
             logger.log("<-- END HTTP")
             return response
         }
@@ -234,8 +241,9 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         val (origChannel, newChannel) = response.rawContent.split(response)
         logger.log("")
-        logger.log(newChannel.readRemaining().readText())
-        logger.log("<-- END HTTP")
+        val text = newChannel.readRemaining().readText()
+        logger.log(text)
+        logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
 
         return object : HttpResponse() {
             override val call: HttpClientCall
