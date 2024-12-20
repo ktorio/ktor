@@ -247,7 +247,7 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicPostWithGzip() = runTest {
+    fun basicGzippedBodyContentEncoding() = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
                 level = LogLevel.INFO
@@ -261,14 +261,16 @@ class NewFormatTest {
                     val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
                     respond(channel, headers = Headers.build {
                         append(HttpHeaders.ContentEncoding, "gzip")
+                        append(HttpHeaders.ContentLength, "29")
                     })
                 }
             }
         }.use { client ->
-            client.post("/")
+            val response = client.get("/")
+            assertEquals("a".repeat(1024), response.bodyAsText())
 
-            log.assertLogEqual("--> POST / (0-byte body)")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+            log.assertLogEqual("--> GET /")
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -388,7 +390,7 @@ class NewFormatTest {
     }
 
     @Test
-    fun headersPostWithGzip() = runTest {
+    fun headersGzippedResponseBodyContentEncoding() = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
                 level = LogLevel.HEADERS
@@ -538,12 +540,12 @@ class NewFormatTest {
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
             .assertLogEqual("hello!")
-            .assertLogEqual("<-- END HTTP")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 6-byte body\)"""))
             .assertNoMoreLogs()
     }
 
     @Test
-    fun bodyChunkedResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondChunked(ByteReadChannel("hello!")) }) { client ->
+    fun bodyResponseBodyChunked() = testWithLevel(LogLevel.BODY, handle = { respondChunked(ByteReadChannel("hello!")) }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
             .assertLogEqual("Accept-Charset: UTF-8")
@@ -554,7 +556,7 @@ class NewFormatTest {
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
             .assertLogEqual("hello!")
-            .assertLogEqual("<-- END HTTP")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 6-byte body\)"""))
             .assertNoMoreLogs()
     }
 
