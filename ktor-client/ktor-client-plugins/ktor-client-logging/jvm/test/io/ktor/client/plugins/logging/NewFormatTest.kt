@@ -478,6 +478,26 @@ class NewFormatTest {
     }
 
     @Test
+    fun bodyResponseBodyBrEncoded() = testWithLevel(LogLevel.BODY, handle = {
+        respond(byteArrayOf(0xC3.toByte(), 0x28), headers = Headers.build {
+            append(HttpHeaders.ContentEncoding, "br")
+            append(HttpHeaders.ContentLength, "2")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Encoding: br")
+            .assertLogEqual("Content-Length: 2")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 2-byte body omitted\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun bodyGzippedResponseBodyContentEncoding() = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
