@@ -211,10 +211,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             response.headers[HttpHeaders.TransferEncoding] == "chunked"
                 && (isInfo() || isHeaders()) ->  "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
 
+            isInfo() && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
+
             isBody() || (isInfo() && contentLength == null) || (isHeaders() && contentLength != null)
                 || (response.headers[HttpHeaders.ContentEncoding] == "gzip") -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
-
-            isInfo() && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
 
             else -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
         }
@@ -241,9 +241,36 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         val (origChannel, newChannel) = response.rawContent.split(response)
         logger.log("")
-        val text = newChannel.readRemaining().readText()
-        logger.log(text)
-        logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
+
+        val contentType = response.contentType()
+
+        val charset = if (contentType != null) {
+            contentType.charset() ?: Charsets.UTF_8
+        } else {
+            Charsets.UTF_8
+        }
+
+        var isBinary = false
+        val text = try {
+            charset.newDecoder().decode(newChannel.readRemaining())
+        } catch (_: MalformedInputException) {
+            isBinary = true
+            ""
+        }
+
+        for (ch in text) {
+            if (ch == '\ufffd') {
+                isBinary = true
+                break
+            }
+        }
+
+        if (!isBinary) {
+            logger.log(text)
+            logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
+        } else {
+            logger.log("<-- END HTTP (${duration}ms, binary $contentLength-byte body omitted)")
+        }
 
         return object : HttpResponse() {
             override val call: HttpClientCall
