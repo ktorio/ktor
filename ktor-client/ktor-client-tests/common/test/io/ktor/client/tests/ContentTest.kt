@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -99,7 +99,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testSendByteReadChannel() = clientTests(listOf("Js")) {
+    fun testSendByteReadChannel() = clientTests(except("Js")) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -120,7 +120,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testSendByteWriteChannel() = clientTests(listOf("Js")) {
+    fun testSendByteWriteChannel() = clientTests(except("Js")) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -146,7 +146,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy"), retries = 10) {
+    fun testString() = clientTests(except("Darwin", "CIO", "DarwinLegacy"), retries = 10) {
         test { client ->
             testStrings.forEach { content ->
                 val requestWithBody = client.echo<String>(content)
@@ -176,7 +176,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
+    fun testTextContent() = clientTests(except("Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
@@ -348,7 +348,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(onlyWithEngine = "CIO") {
+    fun testDownloadStreamResponseWithClose() = clientTests(only("CIO")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
             }
@@ -357,7 +357,7 @@ class ContentTest : ClientLoader() {
 
     // NSUrlSession buffers first 512 bytes
     @Test
-    fun testDownloadStream() = clientTests(listOf("Darwin", "DarwinLegacy")) {
+    fun testDownloadStream() = clientTests(except("Darwin", "DarwinLegacy")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream?delay=100").execute {
                 val channel = it.bodyAsChannel()

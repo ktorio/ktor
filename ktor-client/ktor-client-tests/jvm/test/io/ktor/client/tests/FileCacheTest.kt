@@ -19,7 +19,7 @@ class FileCacheTest : ClientLoader() {
     private val privateStorage = FileStorage(Files.createTempDirectory("cache-test-private").toFile())
 
     @Test
-    fun testVaryHeader() = clientTests(listOf("Js")) {
+    fun testVaryHeader() = clientTests(except("Js")) {
         config {
             install(HttpCache) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -77,7 +77,7 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    fun testReuseCacheStorage() = clientTests(listOf("Js")) {
+    fun testReuseCacheStorage() = clientTests(except("Js")) {
         config {
             install(HttpCache) {
                 publicStorage(this@FileCacheTest.publicStorage)
