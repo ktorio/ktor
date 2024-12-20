@@ -247,6 +247,21 @@ class NewFormatTest {
     }
 
     @Test
+    fun basicGzippedBody()  = testWithLevel(LogLevel.INFO, handle = {
+        val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+        respond(channel, headers = Headers.build {
+            append(HttpHeaders.ContentEncoding, "gzip")
+            append(HttpHeaders.ContentLength, "29")
+        })
+    }) { client ->
+        client.prepareGet("/").execute { response ->
+            log.assertLogEqual("--> GET /")
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 29-byte body\)"""))
+                .assertNoMoreLogs()
+        }
+    }
+
+    @Test
     fun basicGzippedBodyContentEncoding() = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
@@ -390,6 +405,28 @@ class NewFormatTest {
     }
 
     @Test
+    fun headersGzippedResponseBody() = testWithLevel(LogLevel.HEADERS, handle = {
+        val content = "a".repeat(1024)
+        val channel = GZipEncoder.encode(ByteReadChannel(content))
+        respond(channel, headers = Headers.build {
+            append(HttpHeaders.ContentEncoding, "gzip")
+            append(HttpHeaders.ContentLength, "29")
+        })
+    }) { client ->
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Encoding: gzip")
+            .assertLogEqual("Content-Length: 29")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun headersGzippedResponseBodyContentEncoding() = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
@@ -419,48 +456,58 @@ class NewFormatTest {
         }
     }
 
-//    @Test
-//    fun bodyWithGzip() = runTest {
-//        HttpClient(MockEngine) {
-//            install(Logging) {
-//                level = LogLevel.BODY
-//                logger = log
-//                standardFormat = true
-//            }
-//            install(ContentEncoding) { gzip() }
-//
-//            engine {
-//                addHandler {
-//                    val channel = GZipEncoder.encode(ByteReadChannel("response".repeat(1024)))
-//
-//                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
-//                }
-//            }
-//        }.use { client ->
-//            client.post("/") {
-//                val channel = GZipEncoder.encode(ByteReadChannel("request".repeat(1024)))
-//                header(HttpHeaders.ContentEncoding, "gzip")
-//                setBody(channel)
-//            }
-//
-//            log.assertLogEqual("--> POST /")
-//                .assertLogEqual("Content-Type: application/octet-stream")
-//                .assertLogEqual("Content-Encoding: gzip")
-//                .assertLogEqual("Accept-Encoding: gzip")
-//                .assertLogEqual("Accept-Charset: UTF-8")
-//                .assertLogEqual("Accept: */*")
-//                .assertLogEqual("")
-//                .assertLogEqual("request".repeat(1024))
-//                .assertLogEqual("--> END POST (7168-byte, gzipped)")
-//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
-//                .assertLogEqual("")
-//                .assertLogEqual("response".repeat(1024))
-//                .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 111-byte body, gzipped\)"""))
-//                .assertNoMoreLogs()
-//        }
-//    }
+    @Test
+    fun bodyGzippedResponseBody() = testWithLevel(LogLevel.BODY, handle = {
+        val channel = GZipEncoder.encode(ByteReadChannel("response".repeat(1024)))
+        respond(channel, headers = Headers.build {
+            append(HttpHeaders.ContentEncoding, "gzip")
+            append(HttpHeaders.ContentLength, "55")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Encoding: gzip")
+            .assertLogEqual("Content-Length: 55")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 55-byte body omitted\)"""))
+            .assertNoMoreLogs()
+    }
 
+    @Test
+    fun bodyGzippedResponseBodyContentEncoding() = runTest {
+        HttpClient(MockEngine) {
+            install(Logging) {
+                level = LogLevel.BODY
+                logger = log
+                standardFormat = true
+            }
+            install(ContentEncoding) { gzip() }
 
+            engine {
+                addHandler {
+                    val channel = GZipEncoder.encode(ByteReadChannel("response".repeat(1024)))
+                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
+                }
+            }
+        }.use { client ->
+            client.get("/")
+
+            log.assertLogEqual("--> GET /")
+                .assertLogEqual("Accept-Encoding: gzip")
+                .assertLogEqual("Accept-Charset: UTF-8")
+                .assertLogEqual("Accept: */*")
+                .assertLogEqual("--> END GET")
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogEqual("")
+                .assertLogEqual("response".repeat(1024))
+                .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 8192-byte body\)"""))
+                .assertNoMoreLogs()
+        }
+    }
 
     @Test
     fun bodyGet() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
