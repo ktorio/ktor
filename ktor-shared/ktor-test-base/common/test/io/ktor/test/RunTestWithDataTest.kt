@@ -36,7 +36,7 @@ class RunTestWithDataTest {
     fun testEmptyTestCases() = runTestWithData(
         testCases = emptyList<Int>(),
         test = { fail("Should not be called") },
-        afterEach = { _, _ -> fail("Should not be called") },
+        afterEach = { fail("Should not be called") },
         handleFailures = { fail("Should not be called") },
     )
     //endregion
@@ -128,7 +128,7 @@ class RunTestWithDataTest {
             },
             handleFailures = {
                 assertEquals(1, it.size)
-                assertEquals(1, it.single().data)
+                assertEquals(1, it.single().testCase.data)
                 assertEquals(2, successfulItem)
             },
         )
@@ -142,9 +142,9 @@ class RunTestWithDataTest {
             testCases = 1..3,
             retries = 1,
             timeout = 15.milliseconds,
-            afterEach = { (id, retry), error ->
-                val status = if (error == null) "succeeded" else "failed: ${error.message}"
-                executionLog.add("Test $id: attempt $retry $status")
+            afterEach = { result ->
+                val status = if (result is TestFailure) "failed: ${result.cause.message}" else "succeeded"
+                executionLog.add("Test ${result.testCase.data}: attempt ${result.testCase.retry} $status")
             },
             test = { (id, retry) ->
                 println("${id}x$retry")

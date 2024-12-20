@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -15,7 +15,7 @@ class ClientHeadersTest : ClientLoader() {
 
     @Test
     fun testHeadersReturnNullWhenMissing() = clientTests(
-        listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")
+        except("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")
     ) {
         test { client ->
             client.get("$TEST_SERVER/headers").let {
@@ -29,7 +29,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testContentNegotiationMediaType() = clientTests(listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy")) {
+    fun testContentNegotiationMediaType() = clientTests(except("Java", "Curl", "Js", "Darwin", "DarwinLegacy")) {
         test { client ->
             client.preparePost("$TEST_SERVER/content-type") {
                 contentType(ContentType.Application.Json)
@@ -42,7 +42,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testHeadersMerge() = clientTests(listOf("Js")) {
+    fun testHeadersMerge() = clientTests(except("Js")) {
         test { client ->
             client.get("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
@@ -64,7 +64,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testAcceptMerge() = clientTests(listOf("Js")) {
+    fun testAcceptMerge() = clientTests(except("Js")) {
         test { client ->
             val lines = client.get("$TCP_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
@@ -77,7 +77,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testSingleHostHeader() = clientTests(listOf("Js", "Android", "Java")) {
+    fun testSingleHostHeader() = clientTests(except("Js", "Android", "Java")) {
         test { client ->
             client.get("$TEST_SERVER/headers/host") {
                 header(HttpHeaders.Host, "CustomHost")
@@ -108,7 +108,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestHasContentLength() = clientTests(listOf("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")) {
+    fun testRequestHasContentLength() = clientTests(except("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")) {
         test { client ->
             val get = client.get("$TEST_SERVER/headers").bodyAsText()
             assertEquals("", get)
