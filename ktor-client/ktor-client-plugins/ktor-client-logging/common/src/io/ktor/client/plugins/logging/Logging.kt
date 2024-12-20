@@ -397,6 +397,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (stdFormat) {
             logRequestStdFormat(request)
+
+            try {
+                proceed()
+            } catch (cause: Throwable) {
+                logger.log("<-- HTTP FAILED: $cause")
+                throw cause
+            }
+
             return@on
         }
 
@@ -565,6 +573,7 @@ private object SendHook : ClientHook<suspend SendHook.Context.(response: HttpReq
 
     class Context(private val context: PipelineContext<Any, HttpRequestBuilder>) {
         suspend fun proceedWith(content: Any) = context.proceedWith(content)
+        suspend fun proceed() = context.proceed()
     }
 
     override fun install(
