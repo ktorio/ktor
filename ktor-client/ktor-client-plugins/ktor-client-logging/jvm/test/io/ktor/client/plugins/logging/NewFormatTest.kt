@@ -293,6 +293,18 @@ class NewFormatTest {
     }
 
     @Test
+    fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = {
+        respond(ByteReadChannel("test"), headers = Headers.build {
+            append(HttpHeaders.TransferEncoding, "chunked")
+        })
+    }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun headersGet() = testWithLevel(LogLevel.HEADERS, handle = { respondWithLength() }) { client ->
         client.get("/")
 
@@ -715,14 +727,18 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = {
-        respond(ByteReadChannel("test"), headers = Headers.build {
-            append(HttpHeaders.TransferEncoding, "chunked")
-        })
-    }) { client ->
+    fun allResponseBody() = testWithLevel(LogLevel.ALL, handle = { respondWithLength("hello!") }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 6")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("")
+            .assertLogEqual("hello!")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 6-byte body\)"""))
             .assertNoMoreLogs()
     }
 
