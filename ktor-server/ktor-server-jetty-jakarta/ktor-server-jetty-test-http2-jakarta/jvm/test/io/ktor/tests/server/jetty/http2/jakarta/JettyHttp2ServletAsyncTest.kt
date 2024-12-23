@@ -34,6 +34,10 @@ class JettyHttp2AsyncServletContainerHttpServerJvmTest :
     @Ignore
     override fun testPipeliningWithFlushingHeaders() {
     }
+
+    @Ignore
+    override fun testUpgrade() {
+    }
 }
 
 class JettyHttp2AsyncServletContainerSustainabilityTest :

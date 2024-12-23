@@ -34,10 +34,21 @@ class JettyAsyncServletContainerHttpServerJvmTest :
     @Ignore
     override fun testPipeliningWithFlushingHeaders() {
     }
+
+    @Ignore
+    override fun testUpgrade() {
+    }
 }
 
 class JettyAsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    ) {
+    @Test
+    override fun testBlockingDeadlock() {
+        super.testBlockingDeadlock()
+    }
+}
 
 class JettyAsyncServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

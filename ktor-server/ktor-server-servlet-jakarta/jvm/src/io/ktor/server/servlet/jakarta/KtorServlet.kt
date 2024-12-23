@@ -50,7 +50,10 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Unconfined +
         SupervisorJob() +
         CoroutineName("servlet") +
-        DefaultUncaughtExceptionHandler { logger }
+        DefaultUncaughtExceptionHandler {
+            // fallback in case the coroutine fails after servlet context is cleared
+            runCatching { logger }.getOrNull() ?: LoggerFactory.getLogger(servletName)
+        }
 
     /**
      * Called by the servlet container when loading the servlet (on load)
