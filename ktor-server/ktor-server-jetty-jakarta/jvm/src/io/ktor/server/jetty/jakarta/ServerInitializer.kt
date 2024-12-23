@@ -5,16 +5,18 @@
 package io.ktor.server.jetty.jakarta
 
 import io.ktor.server.engine.*
-import org.eclipse.jetty.alpn.server.*
-import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.*
-import org.eclipse.jetty.http2.server.*
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
+import org.eclipse.jetty.http.HttpVersion
+import org.eclipse.jetty.http2.HTTP2Cipher
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory
 import org.eclipse.jetty.server.*
-import org.eclipse.jetty.util.ssl.*
+import org.eclipse.jetty.util.ssl.SslContextFactory
 
 internal fun Server.initializeServer(
     configuration: JettyApplicationEngineBase.Configuration
 ) {
+    configuration.configureServer(this)
     configuration.connectors.map { ktorConnector ->
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
@@ -35,7 +37,7 @@ internal fun Server.initializeServer(
             }
             http2ConnectionFactory = HTTP2ServerConnectionFactory(httpConfig)
             alpnAvailable = true
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             // ALPN or HTTP/2 implemented is not available
             alpnConnectionFactory = null
             http2ConnectionFactory = null
