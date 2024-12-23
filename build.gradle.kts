@@ -59,8 +59,6 @@ subprojects {
     kotlin {
         if (!internalProjects.contains(project.name)) explicitApi()
 
-        setupJvmToolchain()
-
         compilerOptions {
             languageVersion = getKotlinLanguageVersion()
             apiVersion = getKotlinApiVersion()
@@ -89,12 +87,6 @@ fun configureDokka() {
 }
 
 configureDokka()
-
-fun Project.setupJvmToolchain() {
-    kotlin {
-        jvmToolchain(project.requiredJdkVersion)
-    }
-}
 
 subprojects {
     tasks.withType<KotlinCompilationTask<*>>().configureEach {
