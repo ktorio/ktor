@@ -11,10 +11,10 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.http2.frames.*
+import org.eclipse.jetty.http3.*
+import org.eclipse.jetty.http3.api.*
+import org.eclipse.jetty.http3.client.*
+import org.eclipse.jetty.http3.frames.*
 import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.*

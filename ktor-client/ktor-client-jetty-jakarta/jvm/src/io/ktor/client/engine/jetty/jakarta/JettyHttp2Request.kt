@@ -5,8 +5,8 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import kotlinx.coroutines.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.frames.*
+import org.eclipse.jetty.http3.api.*
+import org.eclipse.jetty.http3.frames.*
 import org.eclipse.jetty.util.*
 import java.nio.*
 import java.util.concurrent.atomic.*

@@ -5,14 +5,15 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.engine.*
-import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.http3.client.HTTP2Client
+import org.eclipse.jetty.http3.client.*
 import org.eclipse.jetty.util.ssl.*
 
 /**
  * A configuration for the [Jetty] client engine.
  */
 public class JettyEngineConfig : HttpClientEngineConfig() {
-    internal var config: (HTTP2Client) -> Unit = {}
+    internal var config: (HTTP3Client) -> Unit = {}
 
     /**
      * Allows you to configure [SSL](https://ktor.io/docs/client-ssl.html) settings for this engine.
@@ -27,7 +28,7 @@ public class JettyEngineConfig : HttpClientEngineConfig() {
     /**
      * Configures a raw Jetty client.
      */
-    public fun configureClient(block: (HTTP2Client) -> Unit) {
+    public fun configureClient(block: (HTTP3Client) -> Unit) {
         val current = config
         config = {
             current(it)

@@ -10,17 +10,17 @@ import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.http3.client.*
 
 @OptIn(InternalAPI::class)
-internal class JettyHttp2Engine(
+internal class JettyHttp3Engine(
     override val config: JettyEngineConfig
 ) : HttpClientEngineBase("ktor-jetty") {
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability)
 
     /**
-     * Cache that keeps least recently used [HTTP2Client] instances. Set "0" to avoid caching.
+     * Cache that keeps least recently used [HTTP3Client] instances. Set "0" to avoid caching.
      */
     internal val clientCache = createLRUCache(::createJettyClient, HTTP2Client::stop, config.clientCacheSize)
 
@@ -32,7 +32,7 @@ internal class JettyHttp2Engine(
     }
 
     /** Only for tests */
-    internal fun getOrCreateClient(data: HttpRequestData): HTTP2Client {
+    internal fun getOrCreateClient(data: HttpRequestData): HTTP3Client {
         return clientCache[data.getCapabilityOrNull(HttpTimeoutCapability)]
             ?: error("Http2Client can't be constructed because HttpTimeout plugin is not installed")
     }
