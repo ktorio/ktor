@@ -13,23 +13,17 @@ import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.eclipse.jetty.http.HostPortHttpField
-import org.eclipse.jetty.http.HttpFields
-import org.eclipse.jetty.http.HttpVersion
-import org.eclipse.jetty.http.MetaData
-import org.eclipse.jetty.http2.api.Session
-import org.eclipse.jetty.http2.client.HTTP2Client
-import org.eclipse.jetty.http2.client.HTTP2ClientSession
-import org.eclipse.jetty.http2.frames.HeadersFrame
-import org.eclipse.jetty.http2.frames.SettingsFrame
-import org.eclipse.jetty.util.Callback
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.*
+import org.eclipse.jetty.http.*
+import org.eclipse.jetty.http2.api.*
+import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.http2.client.internal.HTTP2ClientSession
+import org.eclipse.jetty.http2.frames.*
+import org.eclipse.jetty.io.Transport
+import org.eclipse.jetty.util.*
+import java.net.*
+import java.nio.*
+import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.executeRequest(
     client: HTTP2Client,
@@ -65,12 +59,20 @@ internal suspend fun HttpRequestData.executeRequest(
     )
 }
 
+internal val NoopListener = object : Session.Listener {}
+
 internal suspend fun HTTP2Client.connect(
     url: Url,
     config: JettyEngineConfig
-): Session = withPromise { promise ->
-    val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
-    connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
+): Session = withPromise { promise: Promise<Session> ->
+    connect(
+        Transport.TCP_IP,
+        config.sslContextFactory,
+        InetSocketAddress(url.host, url.port),
+        NoopListener,
+        promise,
+        mutableMapOf<String, Object>() as Map<String, Object>
+    )
 }
 
 @OptIn(InternalAPI::class)
