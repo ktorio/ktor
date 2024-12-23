@@ -155,6 +155,11 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             out.appendAbout(host)
             return out
         }
+
+        "tel" -> {
+            out.appendTel(host)
+            return out
+        }
     }
 
     out.append("://")
@@ -186,6 +191,11 @@ private fun Appendable.appendFile(host: String, encodedPath: String) {
 }
 
 private fun Appendable.appendAbout(host: String) {
+    append(":")
+    append(host)
+}
+
+private fun Appendable.appendTel(host: String) {
     append(":")
     append(host)
 }
