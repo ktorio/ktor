@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import internal.libs
@@ -71,15 +71,13 @@ fun Project.configureJvm() {
         configureJavaToolchain(compileJdk, testJdk)
     }
 
-    val configuredVersion: String by rootProject.extra
     tasks.named<Jar>("jvmJar") {
         manifest {
             attributes(
-                "Implementation-Title" to name,
-                "Implementation-Version" to configuredVersion
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version,
+                "Automatic-Module-Name" to project.javaModuleName(),
             )
-            val name = project.javaModuleName()
-            attributes("Automatic-Module-Name" to name)
         }
     }
 }
