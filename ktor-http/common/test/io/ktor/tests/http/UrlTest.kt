@@ -365,4 +365,22 @@ class UrlTest {
         assertEquals(URLProtocol.HTTP, urlHttp.protocol)
         assertTrue(urlHttp.rawSegments.contains("about"))
     }
+
+    @Test
+    fun testTelUrl() {
+        val globalTelUrl = Url("tel:+14085555555")
+        assertEquals("tel:+14085555555", globalTelUrl.toString())
+        assertEquals("tel", globalTelUrl.protocol.name)
+        assertEquals("+14085555555", globalTelUrl.host)
+
+        val localTelUrlWithContext = Url("tel:863-1234;phone-context=+1-914-555")
+        assertEquals("tel:863-1234;phone-context=+1-914-555", localTelUrlWithContext.toString())
+        assertEquals("tel", localTelUrlWithContext.protocol.name)
+        assertEquals("863-1234;phone-context=+1-914-555", localTelUrlWithContext.host)
+
+        val telUrlWithParams = Url("tel:+1-408-555-5555;extension=ext;phone-context=context")
+        assertEquals("tel:+1-408-555-5555;extension=ext;phone-context=context", telUrlWithParams.toString())
+        assertEquals("tel", telUrlWithParams.protocol.name)
+        assertEquals("+1-408-555-5555;extension=ext;phone-context=context", telUrlWithParams.host)
+    }
 }
