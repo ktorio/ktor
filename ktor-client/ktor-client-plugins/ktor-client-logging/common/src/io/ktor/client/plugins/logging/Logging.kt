@@ -7,6 +7,7 @@ package io.ktor.client.plugins.logging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.isSaved
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -204,6 +205,53 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         logger.log(endLine)
     }
 
+    suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel) {
+        logger.log("")
+
+        val contentType = response.contentType()
+
+        val charset = if (contentType != null) {
+            contentType.charset() ?: Charsets.UTF_8
+        } else {
+            Charsets.UTF_8
+        }
+
+        var isBinary = false
+        val text = try {
+            ""
+            charset.newDecoder().decode(body.readRemaining())
+        } catch (_: MalformedInputException) {
+            isBinary = true
+            ""
+        }
+
+        for (ch in text) {
+            if (ch == '\ufffd') {
+                isBinary = true
+                break
+            }
+        }
+
+        val duration = response.responseTime.timestamp - response.requestTime.timestamp
+        val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+
+        if (!isBinary) {
+            logger.log(text)
+            logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
+        } else {
+            var type = "binary"
+            if (response.headers.contains(HttpHeaders.ContentEncoding)) {
+                type = "encoded"
+            }
+
+            if (contentLength != null) {
+                logger.log("<-- END HTTP (${duration}ms, $type $contentLength-byte body omitted)")
+            } else {
+                logger.log("<-- END HTTP (${duration}ms, $type body omitted)")
+            }
+        }
+    }
+
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
         if (isNone()) return response
 
@@ -252,69 +300,58 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return response
         }
 
+        if (response.isSaved) {
+            logResponseBody(response, response.rawContent)
+            return response
+        }
+
         val (origChannel, newChannel) = response.rawContent.split(response)
-        logger.log("")
 
-        val contentType = response.contentType()
+        logResponseBody(response, newChannel)
 
-        val charset = if (contentType != null) {
-            contentType.charset() ?: Charsets.UTF_8
-        } else {
-            Charsets.UTF_8
-        }
+        val call = object : HttpClientCall(client) {
+            init {
+                val self = this
+                this.request = object : HttpRequest {
+                    override val call: HttpClientCall
+                        get() = self
+                    override val method: HttpMethod
+                        get() = request.method
+                    override val url: Url
+                        get() = request.url
+                    override val attributes: Attributes
+                        get() = request.attributes
+                    override val content: OutgoingContent
+                        get() = request.content
+                    override val headers: Headers
+                        get() = request.headers
+                }
+                this.response = object : HttpResponse() {
+                    override val call: HttpClientCall = self
+                    override val status: HttpStatusCode
+                        get() = response.status
+                    override val version: HttpProtocolVersion
+                        get() = response.version
+                    override val requestTime: GMTDate
+                        get() = response.requestTime
+                    override val responseTime: GMTDate
+                        get() = response.responseTime
 
-        var isBinary = false
-        val text = try {
-            charset.newDecoder().decode(newChannel.readRemaining())
-        } catch (_: MalformedInputException) {
-            isBinary = true
-            ""
-        }
-
-        for (ch in text) {
-            if (ch == '\ufffd') {
-                isBinary = true
-                break
+                    @InternalAPI
+                    override val rawContent: ByteReadChannel
+                        get() = origChannel
+                    override val headers: Headers
+                        get() = response.headers
+                    override val coroutineContext: CoroutineContext
+                        get() = response.coroutineContext
+                }
             }
         }
 
-        if (!isBinary) {
-            logger.log(text)
-            logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
-        } else {
-            var type = "binary"
-            if (response.headers.contains(HttpHeaders.ContentEncoding)) {
-                type = "encoded"
-            }
-
-            if (contentLength != null) {
-                logger.log("<-- END HTTP (${duration}ms, $type $contentLength-byte body omitted)")
-            } else {
-                logger.log("<-- END HTTP (${duration}ms, $type body omitted)")
-            }
-        }
-
-        return object : HttpResponse() {
-            override val call: HttpClientCall
-                get() = response.call
-            override val status: HttpStatusCode
-                get() =  response.status
-            override val version: HttpProtocolVersion
-                get() = response.version
-            override val requestTime: GMTDate
-                get() = response.requestTime
-            override val responseTime: GMTDate
-                get() = response.responseTime
-
-            @InternalAPI
-            override val rawContent: ByteReadChannel
-                get() = origChannel
-            override val headers: Headers
-                get() = response.headers
-            override val coroutineContext: CoroutineContext
-                get() = response.coroutineContext
-        }
+        return call.response
     }
+
+
 
     @OptIn(DelicateCoroutinesApi::class)
     suspend fun logRequestBody(
@@ -433,7 +470,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     on(ResponseAfterEncodingHook) { response ->
         if (stdFormat) {
-            logResponseStdFormat(response)
+            val newResponse = logResponseStdFormat(response)
+            if (newResponse != response) {
+                proceedWith(newResponse)
+            }
         }
     }
 
@@ -478,6 +518,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             callLogger.closeResponseLog()
             throw cause
         }
+    }
+
+    if (stdFormat) {
+        return@createClientPlugin
     }
 
     if (!level.body) return@createClientPlugin

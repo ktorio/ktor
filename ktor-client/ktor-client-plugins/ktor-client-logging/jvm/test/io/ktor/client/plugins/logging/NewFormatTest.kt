@@ -6,6 +6,7 @@ package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
@@ -796,6 +797,48 @@ class NewFormatTest {
 
         }
     }
+
+    @Test
+    fun responseValidatorReceivesResponseBody() = runTest {
+        HttpClient(MockEngine) {
+            install(Logging) {
+                level = LogLevel.BODY
+                logger = log
+                standardFormat = true
+            }
+
+            HttpResponseValidator {
+                validateResponse { response ->
+                    response.bodyAsText()
+                }
+            }
+
+            engine {
+                addHandler {
+                    respondWithLength("response body")
+                }
+            }
+        }.use { client ->
+            val response = client.get("/")
+            assertEquals("response body", response.bodyAsText())
+
+            log.assertLogEqual("--> GET /")
+                .assertLogEqual("Accept-Charset: UTF-8")
+                .assertLogEqual("Accept: */*")
+                .assertLogEqual("--> END GET")
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogEqual("Content-Length: 13")
+                .assertLogEqual("Content-Type: text/plain")
+                .assertLogEqual("")
+                .assertLogEqual("response body")
+                .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 13-byte body\)"""))
+                .assertNoMoreLogs()
+
+        }
+    }
+
+    // TODO: Test big response logging
+    // TODO: Check response body size for UTF-8 response string
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond("", headers = Headers.build {
