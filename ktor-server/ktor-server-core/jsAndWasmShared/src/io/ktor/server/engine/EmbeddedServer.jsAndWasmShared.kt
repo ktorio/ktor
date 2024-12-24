@@ -44,9 +44,7 @@ actual constructor(
 
     private val modules = rootConfig.modules
 
-    public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        addShutdownHook { stop() }
-
+    private fun prepareToStart() {
         safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }
@@ -65,14 +63,30 @@ actual constructor(
                 )
             }
         }
+    }
 
+    public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        addShutdownHook { stop() }
+        prepareToStart()
         engine.start(wait)
+        return this
+    }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
+        addShutdownHook { GlobalScope.launch { stopSuspend() } }
+        prepareToStart()
+        engine.startSuspend(wait)
         return this
     }
 
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
+        destroy(application)
+    }
+
+    public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
+        engine.stopSuspend(gracePeriodMillis, timeoutMillis)
         destroy(application)
     }
 

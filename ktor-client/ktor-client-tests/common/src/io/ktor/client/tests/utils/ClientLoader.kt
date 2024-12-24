@@ -90,7 +90,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
 }
 
 internal val HttpClientEngineFactory<*>.engineName: String
-    get() = this::class.simpleName!!
+    get() = this.toString()
 
 private data class SkipEnginePattern(
     val skippedPlatform: String?, // null means * or empty

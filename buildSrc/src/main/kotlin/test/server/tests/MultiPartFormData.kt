@@ -4,6 +4,7 @@
 
 package test.server.tests
 
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -33,6 +34,18 @@ internal fun Application.multiPartFormDataTest() {
             post("empty") {
                 call.receiveMultipart().readPart()
                 call.respond(HttpStatusCode.OK)
+            }
+            post("receive") {
+                val multipart = MultiPartFormDataContent(
+                    formData {
+                        append("text", "Hello, World!")
+                        append("file", ByteArray(1024) { it.toByte() }, Headers.build {
+                            append(HttpHeaders.ContentDisposition, """form-data; name="file"; filename="test.bin"""")
+                            append(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString())
+                        })
+                    }
+                )
+                call.respond(multipart)
             }
         }
     }
