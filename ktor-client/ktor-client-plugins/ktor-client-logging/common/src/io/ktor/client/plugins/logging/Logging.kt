@@ -171,7 +171,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         for ((name, values) in headers.entries()) {
-            logger.log("$name: ${values.joinToString(separator = ", ")}")
+            if (sanitizedHeaders.find { sh -> sh.predicate(name) } == null) {
+                logger.log("$name: ${values.joinToString(separator = ", ")}")
+            } else {
+                logger.log("$name: ██")
+            }
         }
 
         if (!isBody() || request.method == HttpMethod.Get) {
@@ -203,7 +207,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
         if (isNone()) return response
 
-        var contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+        val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
@@ -226,7 +230,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         for ((name, values) in response.headers.entries()) {
-            logger.log("$name: ${values.joinToString(separator = ", ")}")
+            if (sanitizedHeaders.find { sh -> sh.predicate(name) } == null) {
+                logger.log("$name: ${values.joinToString(separator = ", ")}")
+            } else {
+                logger.log("$name: ██")
+            }
         }
 
         if (!isBody()) {

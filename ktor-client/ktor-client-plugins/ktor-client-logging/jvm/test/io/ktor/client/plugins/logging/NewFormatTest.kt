@@ -757,6 +757,46 @@ class NewFormatTest {
             .assertNoMoreLogs()
     }
 
+    @Test
+    fun headersAreRedacted() = runTest {
+        HttpClient(MockEngine) {
+            install(Logging) {
+                level = LogLevel.HEADERS
+                logger = log
+                standardFormat = true
+                sanitizeHeader { it == "SeNsItIvE" }
+            }
+
+            engine {
+                addHandler {
+                    respondWithLength("", headers = Headers.build {
+                        append("SeNsItIvE", "value")
+                        append("Not-Sensitive", "value")
+                    })
+                }
+            }
+        }.use { client ->
+            client.get("/") {
+                header("SeNsItIvE", "value")
+                header("Not-Sensitive", "value")
+            }
+            log.assertLogEqual("--> GET /")
+                .assertLogEqual("SeNsItIvE: ██")
+                .assertLogEqual("Not-Sensitive: value")
+                .assertLogEqual("Accept-Charset: UTF-8")
+                .assertLogEqual("Accept: */*")
+                .assertLogEqual("--> END GET")
+                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogEqual("SeNsItIvE: ██")
+                .assertLogEqual("Not-Sensitive: value")
+                .assertLogEqual("Content-Length: 0")
+                .assertLogEqual("Content-Type: text/plain")
+                .assertLogEqual("<-- END HTTP")
+                .assertNoMoreLogs()
+
+        }
+    }
+
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond("", headers = Headers.build {
             append("Content-Length", "0")
