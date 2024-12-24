@@ -838,7 +838,22 @@ class NewFormatTest {
     }
 
     // TODO: Test big response logging
-    // TODO: Check response body size for UTF-8 response string
+
+    @Test
+    fun sizeInBytesForUtf8ResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("привет") }) { client ->
+        client.get("/")
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 12")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("")
+            .assertLogEqual("привет")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 12-byte body\)"""))
+            .assertNoMoreLogs()
+    }
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond("", headers = Headers.build {
@@ -857,7 +872,7 @@ class NewFormatTest {
     private fun MockRequestHandleScope.respondWithLength(body: String, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
         return respond(ByteReadChannel(body), headers = Headers.build {
             appendAll(headers)
-            append("Content-Length", body.length.toString())
+            append("Content-Length", body.toByteArray(Charsets.UTF_8).size.toString())
             set("Content-Type", contentType.toString())
         }, status = status)
     }

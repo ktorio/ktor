@@ -19,6 +19,7 @@ import io.ktor.util.date.GMTDate
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -237,7 +238,9 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (!isBinary) {
             logger.log(text)
-            logger.log("<-- END HTTP (${duration}ms, ${text.length}-byte body)")
+
+            val size = text.toByteArray().size
+            logger.log("<-- END HTTP (${duration}ms, $size-byte body)")
         } else {
             var type = "binary"
             if (response.headers.contains(HttpHeaders.ContentEncoding)) {
