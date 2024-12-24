@@ -19,11 +19,13 @@ import io.ktor.util.date.GMTDate
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.readText
+import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.io.Buffer
 import kotlin.coroutines.CoroutineContext
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
@@ -218,16 +220,18 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         var isBinary = false
-        val text = try {
-            ""
-            charset.newDecoder().decode(body.readRemaining())
-        } catch (_: MalformedInputException) {
-            isBinary = true
-            ""
+        val firstChunk = ByteArray(4096)
+        val firstRead = body.readAvailable(firstChunk)
+        val buffer = Buffer().apply { writeFully(firstChunk, 0, firstRead) }
+        val firstChunkText = charset.newDecoder().decode(buffer, firstRead)
+
+        var lastCharIndex = -1
+        for (ch in firstChunkText) {
+            lastCharIndex += 1
         }
 
-        for (ch in text) {
-            if (ch == '\ufffd') {
+        for ((i, ch) in firstChunkText.withIndex()) {
+            if (ch == '\ufffd' && i != lastCharIndex) {
                 isBinary = true
                 break
             }
@@ -237,9 +241,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
 
         if (!isBinary) {
-            logger.log(text)
+            val channel = ByteChannel()
+            channel.writeFully(firstChunk, 0, firstRead)
+            val copied = body.copyTo(channel)
+            channel.flushAndClose()
 
-            val size = text.toByteArray().size
+            logger.log(channel.readRemaining().readText(charset = charset))
+            val size = copied + firstRead
             logger.log("<-- END HTTP (${duration}ms, $size-byte body)")
         } else {
             var type = "binary"
