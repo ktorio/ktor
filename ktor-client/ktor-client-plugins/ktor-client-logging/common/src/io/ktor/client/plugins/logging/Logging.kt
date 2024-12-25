@@ -184,7 +184,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 null
             }
             is OutgoingContent.ReadChannelContent -> {
-                val (origChannel, newChannel) = content.readFrom().split(GlobalScope)
+                val (origChannel, newChannel) = content.readFrom().split(client)
                 logRequestBody(content, content.contentLength, headers, method, newChannel)
                 LoggedContent(content, origChannel)
             }
@@ -193,7 +193,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 content.writeTo(channel)
                 channel.close()
 
-                val (origChannel, newChannel) = channel.split(GlobalScope)
+                val (origChannel, newChannel) = channel.split(client)
                 logRequestBody(content, content.contentLength, headers, method, newChannel)
                 LoggedContent(content, origChannel)
             }

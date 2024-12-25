@@ -673,9 +673,6 @@ class NewFormatTest {
             .assertNoMoreLogs()
     }
 
-    // TODO: Test cancellation while logging the request (GlobalScope splitting)
-    // TODO: Test consumption of request body
-
     @Test
     fun bodyPostBinaryReadChannel() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.post("/") {
