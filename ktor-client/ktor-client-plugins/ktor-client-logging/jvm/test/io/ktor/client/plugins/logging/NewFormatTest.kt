@@ -16,9 +16,12 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
+import io.ktor.http.contentType
 import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.readText
+import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
@@ -610,24 +613,126 @@ class NewFormatTest {
             .assertNoMoreLogs()
     }
 
-//    @Test
-//    fun bodyPost() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
-//        client.post("/") {
-//            setBody("test")
-//        }
-//        log.assertLogEqual("--> POST /")
-//            .assertLogEqual("Content-Type: text/plain; charset=UTF-8")
-//            .assertLogEqual("Content-Length: 4")
-//            .assertLogEqual("Accept-Charset: UTF-8")
-//            .assertLogEqual("Accept: */*")
-//            .assertLogEqual("")
-//            .assertLogEqual("test")
-//            .assertLogEqual("--> END POST (4-byte body)")
-//            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
-//            .assertLogEqual("Content-Length: 0")
-//            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
-//            .assertNoMoreLogs()
-//    }
+    @Test
+    fun bodyPost() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody("test")
+        }
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Type: text/plain; charset=UTF-8")
+            .assertLogEqual("Content-Length: 4")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("test")
+            .assertLogEqual("--> END POST (4-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyPostReadChannel() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(ByteReadChannel("test"))
+            contentType(ContentType.Text.Plain)
+        }
+        log.assertLogEqual("--> POST / (unknown-byte body)")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("test")
+            .assertLogEqual("--> END POST (4-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyPostReadChannelNotConsumed() = testWithLevel(LogLevel.BODY, handle = {
+        assertEquals("test", it.body.toByteReadPacket().readText())
+        respondWithLength()
+    }) { client ->
+        client.post("/") {
+            setBody(ByteReadChannel("test"))
+            contentType(ContentType.Text.Plain)
+        }
+        log.assertLogEqual("--> POST / (unknown-byte body)")
+            .assertLogEqual("Content-Type: text/plain")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("test")
+            .assertLogEqual("--> END POST (4-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    // TODO: Test cancellation while logging the request (GlobalScope splitting)
+    // TODO: Test consumption of request body
+
+    @Test
+    fun bodyPostBinaryReadChannel() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(ByteReadChannel(byteArrayOf(0xC3.toByte(), 0x28)))
+        }
+        log.assertLogEqual("--> POST / (unknown-byte body)")
+            .assertLogEqual("Content-Type: application/octet-stream")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (binary body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyPostBinaryWriteChannel() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(object : OutgoingContent.WriteChannelContent() {
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    channel.writeFully(byteArrayOf(0xC3.toByte(), 0x28))
+                    channel.flushAndClose()
+                }
+            })
+        }
+        log.assertLogEqual("--> POST / (unknown-byte body)")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (binary body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyPostBinaryArrayContent() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            setBody(object : OutgoingContent.ByteArrayContent() {
+                override fun bytes(): ByteArray {
+                    return byteArrayOf(0xC3.toByte(), 0x28)
+                }
+            })
+        }
+        log.assertLogEqual("--> POST / (2-byte body)")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (binary 2-byte body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
 
     @Test
     fun bodyGetWithResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("hello!") }) { client ->
@@ -871,8 +976,6 @@ class NewFormatTest {
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 12-byte body\)"""))
             .assertNoMoreLogs()
     }
-
-    // TODO: Check partial content
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond("", headers = Headers.build {
