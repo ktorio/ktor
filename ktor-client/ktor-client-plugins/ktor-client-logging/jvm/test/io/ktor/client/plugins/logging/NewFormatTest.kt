@@ -974,6 +974,93 @@ class NewFormatTest {
             .assertNoMoreLogs()
     }
 
+    @Test
+    fun bodyGzippedRequestBodyContentLength() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            header(HttpHeaders.ContentEncoding, "gzip")
+            setBody(object : OutgoingContent.ReadChannelContent() {
+                override fun readFrom(): ByteReadChannel {
+                    return GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                }
+
+                override val contentLength: Long?
+                    get() = 29
+
+            })
+        }
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Length: 29")
+            .assertLogEqual("Content-Encoding: gzip")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (encoded 29-byte body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyGzippedRequestBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            header(HttpHeaders.ContentEncoding, "gzip")
+            setBody(object : OutgoingContent.ReadChannelContent() {
+                override fun readFrom(): ByteReadChannel {
+                    return GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                }
+            })
+        }
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Encoding: gzip")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (encoded body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun basicGzippedRequestBody() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            header(HttpHeaders.ContentEncoding, "gzip")
+            setBody(object : OutgoingContent.ReadChannelContent() {
+                override fun readFrom(): ByteReadChannel {
+                    return GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                }
+            })
+        }
+
+        log.assertLogEqual("--> POST /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun headersGzippedRequestBody() = testWithLevel(LogLevel.HEADERS, handle = { respondWithLength() }) { client ->
+        client.post("/") {
+            header(HttpHeaders.ContentEncoding, "gzip")
+            setBody(object : OutgoingContent.ReadChannelContent() {
+                override fun readFrom(): ByteReadChannel {
+                    return GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
+                }
+            })
+        }
+
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Encoding: gzip")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond("", headers = Headers.build {
             append("Content-Length", "0")
@@ -1020,7 +1107,3 @@ class NewFormatTest {
         }
     }
 }
-
-
-
-
