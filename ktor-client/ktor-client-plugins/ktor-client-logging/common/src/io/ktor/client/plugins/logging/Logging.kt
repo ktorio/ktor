@@ -109,9 +109,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         var isBinary = false
         val firstChunk = ByteArray(4096)
-        val firstRead = body.readAvailable(firstChunk)
-        val buffer = Buffer().apply { writeFully(firstChunk, 0, firstRead) }
-        val firstChunkText = charset.newDecoder().decode(buffer, firstRead)
+        val firstReadSize = body.readAvailable(firstChunk)
+
+        if (firstReadSize < 1) {
+            return Triple(false, 0L, body)
+        }
+
+        val buffer = Buffer().apply { writeFully(firstChunk, 0, firstReadSize) }
+        val firstChunkText = charset.newDecoder().decode(buffer, firstReadSize)
 
         var lastCharIndex = -1
         for (ch in firstChunkText) {
@@ -127,10 +132,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (!isBinary) {
             val channel = ByteChannel()
-            channel.writeFully(firstChunk, 0, firstRead)
+            channel.writeFully(firstChunk, 0, firstReadSize)
             val copied = body.copyTo(channel)
             channel.flushAndClose()
-            return Triple(isBinary, copied + firstRead, channel)
+            return Triple(isBinary, copied + firstReadSize, channel)
         }
 
         return Triple(isBinary, contentLength, body)
@@ -174,13 +179,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 logOutgoingContent(content.delegate(), method, headers, process)
             }
             is OutgoingContent.NoContent -> {
-                logger.log("")
-                logger.log("--> END ${method.value} (0-byte body)")
+                logger.log("--> END ${method.value}")
                 null
             }
             is OutgoingContent.ProtocolUpgrade -> {
-                logger.log("")
-                logger.log("--> END ${method.value} (0-byte body)")
+                logger.log("--> END ${method.value}")
                 null
             }
             is OutgoingContent.ReadChannelContent -> {
@@ -219,7 +222,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         val contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val startLine = when {
-            (request.method == HttpMethod.Get)
+            (request.method == HttpMethod.Get) || (request.method == HttpMethod.Head)
                 || ((isHeaders() || isBody()) && contentLength != null)
                 || (isHeaders() && contentLength == null)
                 || headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
@@ -249,7 +252,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
         }
 
-        if (!isBody() || request.method == HttpMethod.Get) {
+        if (!isBody() || request.method == HttpMethod.Get || request.method == HttpMethod.Head) {
             logger.log("--> END ${request.method.value}")
             return null
         }
@@ -276,8 +279,12 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         logger.log("")
 
         val (isBinary, size, newBody) = detectIfBinary(body, response.contentLength(), response.contentType(), response.headers)
-
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
+
+        if (size == 0L) {
+            logger.log("<-- END HTTP (${duration}ms, $size-byte body)")
+            return
+        }
 
         if (!isBinary) {
             val contentType = response.contentType()

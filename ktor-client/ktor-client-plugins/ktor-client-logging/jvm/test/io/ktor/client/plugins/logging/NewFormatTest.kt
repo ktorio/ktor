@@ -1040,6 +1040,49 @@ class NewFormatTest {
     }
 
     @Test
+    fun bodyHead() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.head("/")
+
+        log.assertLogEqual("--> HEAD /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END HEAD")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyEmptyPost() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.post("/")
+
+        log.assertLogEqual("--> POST / (0-byte body)")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bodyEmptyResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
     fun headersGzippedRequestBody() = testWithLevel(LogLevel.HEADERS, handle = { respondWithLength() }) { client ->
         client.post("/") {
             header(HttpHeaders.ContentEncoding, "gzip")
