@@ -102,7 +102,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
      * Detects if the body is a binary data
      * @return
      * Boolean: true if the body is a binary data.
-     * Long: body size if calculated.
+     * Long?: body size if calculated.
      * ByteReadChannel: body channel with the original data.
      */
     suspend fun detectIfBinary(body: ByteReadChannel, contentLength: Long?, contentType: ContentType?, headers: Headers): Triple<Boolean, Long?, ByteReadChannel> {
@@ -532,9 +532,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ReceiveHook) { call ->
-        if (stdFormat) {
-            return@on
-        }
+        if (stdFormat) return@on
 
         if (level == LogLevel.NONE || call.attributes.contains(DisableLogging)) {
             return@on
@@ -552,9 +550,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    if (stdFormat) {
-        return@createClientPlugin
-    }
+    if (stdFormat) return@createClientPlugin
 
     if (!level.body) return@createClientPlugin
 
