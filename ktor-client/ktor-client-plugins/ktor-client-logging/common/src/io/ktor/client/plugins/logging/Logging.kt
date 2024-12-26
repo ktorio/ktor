@@ -23,6 +23,7 @@ import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.io.Buffer
 
@@ -141,9 +142,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         if (!isBinary) {
             val channel = ByteChannel()
-            channel.writeFully(firstChunk, 0, firstReadSize)
-            val copied = body.copyTo(channel)
-            channel.flushAndClose()
+
+            val copied = client.async {
+                channel.writeFully(firstChunk, 0, firstReadSize)
+                val copied = body.copyTo(channel)
+                channel.flushAndClose()
+                copied
+            }.await()
+
             return Triple(isBinary, copied + firstReadSize, channel)
         }
 
@@ -202,8 +208,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
             is OutgoingContent.WriteChannelContent -> {
                 val channel = ByteChannel()
-                content.writeTo(channel)
-                channel.close()
+
+                client.launch {
+                    content.writeTo(channel)
+                    channel.close()
+                }
 
                 val (origChannel, newChannel) = channel.split(client)
                 logRequestBody(content, content.contentLength, headers, method, newChannel)
