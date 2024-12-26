@@ -108,7 +108,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         var isBinary = false
-        val firstChunk = ByteArray(4096)
+        val firstChunk = ByteArray(1024)
         val firstReadSize = body.readAvailable(firstChunk)
 
         if (firstReadSize < 1) {
