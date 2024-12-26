@@ -9,6 +9,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -1080,6 +1082,42 @@ class NewFormatTest {
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
+    }
+
+    @Test
+    fun binaryBodiesIntegrity() = testWithLevel(LogLevel.BODY, handle = {
+        assertContentEquals(genBinary(7777), it.body.toByteArray())
+        respondWithLength(genBinary(10 * 1024), contentType = ContentType.Application.OctetStream)
+    }) { client ->
+        val data = client.post("/") {
+            setBody(genBinary(7777))
+        }.bodyAsBytes()
+
+        assertContentEquals(genBinary(10 * 1024), data)
+
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Type: application/octet-stream")
+            .assertLogEqual("Content-Length: 7777")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--> END POST (binary 7777-byte body omitted)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 10240")
+            .assertLogEqual("Content-Type: application/octet-stream")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 10240-byte body omitted\)"""))
+            .assertNoMoreLogs()
+    }
+
+    private fun genBinary(size: Int): ByteArray {
+        return ByteArray(size) {
+            if (it % 2 == 0) {
+                0xC3.toByte()
+            } else {
+                0x28
+            }
+        }
     }
 
     @Test
