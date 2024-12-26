@@ -15,7 +15,6 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.date.GMTDate
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -26,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.io.Buffer
-import kotlin.coroutines.CoroutineContext
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -96,6 +94,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     fun isHeaders(): Boolean = level == LogLevel.HEADERS
     fun isBody(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
 
+    /**
+     * Detects if the body is a binary data
+     * @return
+     * Boolean: true if the body is a binary data.
+     * Long: body size if calculated.
+     * ByteReadChannel: body channel with the original data.
+     */
     suspend fun detectIfBinary(body: ByteReadChannel, contentLength: Long?, contentType: ContentType?, headers: Headers): Triple<Boolean, Long?, ByteReadChannel> {
         if (headers.contains(HttpHeaders.ContentEncoding)) {
             return Triple(true, contentLength, body)
@@ -209,7 +214,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
         val body = request.body
         val headers = HeadersBuilder().apply {
-            if (body is OutgoingContent && request.method != HttpMethod.Get && body !is EmptyContent) {
+            if (body is OutgoingContent && request.method != HttpMethod.Get && request.method != HttpMethod.Head && body !is EmptyContent) {
                 body.contentType?.let {
                     appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
                 }
@@ -240,7 +245,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         logger.log(startLine)
 
-        if (!level.headers && level != LogLevel.BODY) {
+        if (!isHeaders() && !isBody()) {
             return null
         }
 
@@ -367,49 +372,9 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         logResponseBody(response, newChannel)
 
-        val call = object : HttpClientCall(client) {
-            init {
-                val self = this
-                this.request = object : HttpRequest {
-                    override val call: HttpClientCall
-                        get() = self
-                    override val method: HttpMethod
-                        get() = request.method
-                    override val url: Url
-                        get() = request.url
-                    override val attributes: Attributes
-                        get() = request.attributes
-                    override val content: OutgoingContent
-                        get() = request.content
-                    override val headers: Headers
-                        get() = request.headers
-                }
-                this.response = object : HttpResponse() {
-                    override val call: HttpClientCall
-                        get() = self
-                    override val status: HttpStatusCode
-                        get() = response.status
-                    override val version: HttpProtocolVersion
-                        get() = response.version
-                    override val requestTime: GMTDate
-                        get() = response.requestTime
-                    override val responseTime: GMTDate
-                        get() = response.responseTime
-
-                    @InternalAPI
-                    override val rawContent: ByteReadChannel
-                        get() = origChannel
-                    override val headers: Headers
-                        get() = response.headers
-                    override val coroutineContext: CoroutineContext
-                        get() = response.coroutineContext
-                }
-            }
-        }
-
+        val call = response.call.wrapWithContent(origChannel)
         return call.response
     }
-
 
 
     @OptIn(DelicateCoroutinesApi::class)
