@@ -39,6 +39,10 @@ public class LoggingConfig {
 
     private var _logger: Logger? = null
 
+    /**
+     * If true, turns on the [OkHttp logging format](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L56).
+     * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
+     */
     public var standardFormat: Boolean = false
 
     /**
