@@ -15,7 +15,7 @@ kotlin {
                 api(libs.jetty.alpn.server.jakarta)
                 api(libs.jetty.alpn.java.server.jakarta)
                 api(libs.jetty.alpn.openjdk8.server)
-                api(libs.jetty.http2.server.jakarta)
+                api(libs.jetty.http3.server.jakarta)
             }
         }
         jvmTest {
