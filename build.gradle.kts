@@ -53,7 +53,6 @@ subprojects {
     apply(plugin = "ktorbuild.kmp")
     apply(plugin = "atomicfu-conventions")
 
-    configureTargets()
     if (CI) configureTestTasksOnCi()
 
     kotlin {
