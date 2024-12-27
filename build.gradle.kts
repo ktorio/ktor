@@ -57,10 +57,6 @@ subprojects {
     configureTargets()
     if (CI) configureTestTasksOnCi()
 
-    configurations {
-        maybeCreate("testOutput")
-    }
-
     kotlin {
         if (!internalProjects.contains(project.name)) explicitApi()
 

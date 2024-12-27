@@ -25,12 +25,4 @@ kotlin.sourceSets {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-request-validation"))
         }
     }
-
-    jvmTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-
-            api(libs.logback.classic)
-        }
-    }
 }
