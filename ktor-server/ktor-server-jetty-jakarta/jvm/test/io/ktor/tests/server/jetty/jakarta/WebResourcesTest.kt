@@ -10,11 +10,13 @@ import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.jakarta.*
 import io.ktor.server.testing.*
-import org.eclipse.jetty.server.handler.*
-import org.junit.jupiter.api.io.*
-import java.net.*
-import java.nio.file.*
-import kotlin.io.path.*
+import org.eclipse.jetty.server.handler.ContextHandler
+import org.junit.jupiter.api.io.TempDir
+import java.net.URL
+import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.writeText
 import kotlin.test.*
 
 private const val PlainTextContent = "plain text"
@@ -70,6 +72,10 @@ class WebResourcesTest {
         }
     }
 
+    /*
+    FIXME what is the replacement for ContextHandler.StaticContext?
+    Maybe ResourceHandler should be used, but there is no getResource() method
+     */
     private inner class TestContext : ContextHandler.StaticContext() {
         override fun getResource(path: String?): URL? {
             return when (path) {
