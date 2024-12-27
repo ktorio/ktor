@@ -23,7 +23,6 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-server:ktor-server-test-base"))
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api(libs.logback.classic)
             implementation(libs.kotlinx.coroutines.debug)
         }

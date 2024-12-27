@@ -17,7 +17,6 @@ kotlin.sourceSets {
             api(libs.jetty.servlet.jakarta)
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-jetty-jakarta"))
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
 
             api(libs.logback.classic)
         }

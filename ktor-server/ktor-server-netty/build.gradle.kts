@@ -44,8 +44,6 @@ kotlin.sourceSets {
             api(libs.netty.tcnative.boringssl.static)
             api(libs.mockk)
             api(libs.logback.classic)
-
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
         }
     }
 }

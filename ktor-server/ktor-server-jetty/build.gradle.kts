@@ -25,7 +25,6 @@ kotlin {
                 api(project(":ktor-server:ktor-server-test-suites"))
 
                 api(libs.jetty.servlet)
-                api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
                 api(libs.logback.classic)
             }
         }

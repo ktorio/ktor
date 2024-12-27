@@ -48,7 +48,3 @@ kotlin {
         }
     }
 }
-
-artifacts {
-    add("testOutput", tasks.named("jarTest"))
-}
