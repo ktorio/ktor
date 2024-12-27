@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import test.server.*
+import test.server.TestServerPlugin
 
 description = "Common tests for client"
 
@@ -17,8 +17,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
-            api(libs.kotlin.test)
-            api(libs.kotlinx.coroutines.test)
+            api(project(":ktor-shared:ktor-test-base"))
         }
     }
     commonTest {
@@ -46,9 +45,8 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(project(":ktor-shared:ktor-test-base"))
             api(libs.logback.classic)
-            api(libs.junit)
-            api(libs.kotlin.test.junit5)
             implementation(libs.kotlinx.coroutines.debug)
         }
     }
@@ -59,7 +57,7 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-apache5"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-            if (currentJdk >= 11) {
+            if (testJdk >= 11) {
                 runtimeOnly(project(":ktor-client:ktor-client-java"))
             }
             implementation(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))

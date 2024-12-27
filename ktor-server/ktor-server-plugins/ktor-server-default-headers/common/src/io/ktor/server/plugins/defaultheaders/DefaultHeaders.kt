@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.plugins.defaultheaders
 
@@ -10,7 +10,7 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 /**
  * A configuration for the [DefaultHeaders] plugin.
@@ -43,13 +43,7 @@ public class DefaultHeadersConfig {
         public fun now(): Long
     }
 
-    private val _cachedDateText = atomic("")
-
-    internal var cachedDateText: String
-        get() = _cachedDateText.value
-        set(value) {
-            _cachedDateText.value = value
-        }
+    internal var cachedDateText: String by atomic("")
 }
 
 /**

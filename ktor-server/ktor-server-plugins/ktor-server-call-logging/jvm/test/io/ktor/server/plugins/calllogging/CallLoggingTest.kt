@@ -520,9 +520,10 @@ class CallLoggingTest {
 
         client.get("/").apply {
             assertEquals(HttpStatusCode.BadRequest, status)
+            @Suppress("ktlint:standard:max-line-length")
             assertContains(
                 messages,
-                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception" // ktlint-disable max-line-length
+                "DEBUG: Unhandled: GET - /. Exception class io.ktor.server.plugins.BadRequestException: Message of exception"
             )
         }
     }

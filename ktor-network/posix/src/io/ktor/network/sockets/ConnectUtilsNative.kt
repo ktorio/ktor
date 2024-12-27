@@ -13,7 +13,7 @@ import platform.posix.*
 
 private const val DEFAULT_BACKLOG_SIZE = 50
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual suspend fun connect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
@@ -78,7 +78,7 @@ internal actual suspend fun connect(
     throw IOException("Failed to connect to $remoteAddress.", lastException)
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun bind(
     selector: SelectorManager,
     localAddress: SocketAddress?,

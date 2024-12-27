@@ -13,7 +13,7 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
+import io.ktor.test.junit.coroutines.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test

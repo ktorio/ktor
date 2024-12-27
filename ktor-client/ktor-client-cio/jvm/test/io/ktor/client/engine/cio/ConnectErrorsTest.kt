@@ -11,13 +11,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.test.junit.coroutines.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -102,7 +102,8 @@ class ConnectErrorsTest {
                             }
                             client.getInputStream().readBytes()
                         }
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
                 }
                 assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 thread.join()

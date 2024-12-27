@@ -1,6 +1,7 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 package io.ktor.client.plugins.contentnegotiation.tests
 
 import com.fasterxml.jackson.annotation.*
@@ -95,7 +96,8 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
                 Response.serializer(ListSerializer(User.serializer()))
             )
         }
-        get("/users-x") { // route for testing custom content type, namely "application/x-${contentSubtype}"
+        // route for testing custom content type, namely "application/x-${contentSubtype}"
+        get("/users-x") {
             call.respond(
                 """{"ok":true,"result":[{"name":"x","age":10},{"name":"y","age":45}]}""",
                 customContentType,

@@ -148,8 +148,9 @@ public actual open class SynchronizedObject {
         val currentThreadId = pthread_self()
         while (true) {
             val state = lock.value
+            @Suppress("ktlint:standard:max-line-length")
             require(currentThreadId == state.ownerThreadId) {
-                "Thin lock may be only released by the owner thread, expected: ${state.ownerThreadId}, real: $currentThreadId" // ktlint-disable max-line-length
+                "Thin lock may be only released by the owner thread, expected: ${state.ownerThreadId}, real: $currentThreadId"
             }
             when (state.status) {
                 Status.THIN -> {

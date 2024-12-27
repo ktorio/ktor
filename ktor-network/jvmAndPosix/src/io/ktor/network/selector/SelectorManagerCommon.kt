@@ -43,7 +43,10 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
  * Select interest kind.
  */
 public expect enum class SelectInterest {
-    READ, WRITE, ACCEPT, CONNECT;
+    READ,
+    WRITE,
+    ACCEPT,
+    CONNECT;
 
     public companion object {
         public val AllInterests: Array<SelectInterest>

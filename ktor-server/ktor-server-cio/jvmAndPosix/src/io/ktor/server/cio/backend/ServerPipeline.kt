@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio.backend
@@ -12,11 +12,10 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.io.IOException
+import kotlinx.io.*
 import kotlin.time.*
 
 /**
@@ -64,7 +63,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 throw io
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (parseFailed: Throwable) { // try to write 400 Bad Request
+            } catch (parseFailed: Throwable) {
+                // try to write 400 Bad Request
                 respondBadRequest(actorChannel)
                 break // end pipeline loop
             }
@@ -176,14 +176,14 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             if (isLastHttpRequest(version, connectionOptions)) break
         }
-    } catch (cause: IOException) { // already handled
+    } catch (cause: IOException) {
+        // already handled
         coroutineContext.cancel()
     } finally {
         actorChannel.close()
     }
 }
 
-@OptIn(InternalAPI::class)
 private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
     val bc = ByteChannel()
     if (actorChannel.trySend(bc).isSuccess) {

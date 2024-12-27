@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -38,7 +38,9 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
             val cause =
                 if (session == null) {
                     AuthenticationFailedCause.NoCredentials
-                } else AuthenticationFailedCause.InvalidCredentials
+                } else {
+                    AuthenticationFailedCause.InvalidCredentials
+                }
 
             @Suppress("NAME_SHADOWING")
             context.challenge(SessionAuthChallengeKey, cause) { challenge, call ->

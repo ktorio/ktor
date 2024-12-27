@@ -185,7 +185,8 @@ public class CORSConfig {
 
     private fun wildcardInFrontOfDomain(host: String): Boolean {
         val indexOfWildcard = host.indexOf(wildcardWithDot)
-        return wildcardWithDot in host && !host.endsWith(wildcardWithDot) &&
+        return wildcardWithDot in host &&
+            !host.endsWith(wildcardWithDot) &&
             (indexOfWildcard <= 0 || host.substringBefore(wildcardWithDot).endsWith("://"))
     }
 

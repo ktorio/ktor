@@ -14,13 +14,13 @@ import platform.winhttp.*
 @OptIn(ExperimentalForeignApi::class)
 internal typealias WinHttpStatusHandler = (statusInfo: LPVOID?, statusInfoLength: DWORD) -> Unit
 
-internal class WinHttpConnect @OptIn(ExperimentalForeignApi::class) constructor(
+@OptIn(ExperimentalForeignApi::class)
+internal class WinHttpConnect(
     private val hConnect: COpaquePointer
 ) : Closeable {
 
     private val closed = atomic(false)
 
-    @OptIn(ExperimentalForeignApi::class)
     val handlers = mutableMapOf<UInt, WinHttpStatusHandler>()
 
     val isClosed: Boolean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -161,7 +161,7 @@ internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: Appl
         }
 
         incoming && oldValue == null -> {
-            /* Deleted session should be cleared off */
+            // Deleted session should be cleared off
             provider.transport.clear(call)
             provider.tracker.clear(call)
         }

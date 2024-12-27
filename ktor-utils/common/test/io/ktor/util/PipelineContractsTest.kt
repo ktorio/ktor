@@ -19,8 +19,14 @@ class PipelineContractsTest {
 
     private val phase1 = PipelinePhase("A")
     private val phase2 = PipelinePhase("B")
-    private val interceptor1: PipelineInterceptor<Unit, Unit> = { v = 1; checkList.add("1") }
-    private val interceptor2: PipelineInterceptor<Unit, Unit> = { v = 2; checkList.add("2") }
+    private val interceptor1: PipelineInterceptor<Unit, Unit> = {
+        v = 1
+        checkList.add("1")
+    }
+    private val interceptor2: PipelineInterceptor<Unit, Unit> = {
+        v = 2
+        checkList.add("2")
+    }
 
     @Test
     fun testMergeEmpty() {

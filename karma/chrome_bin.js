@@ -21,7 +21,8 @@ config.set({
     "client": {
         captureConsole: true,
         "mocha": {
-            timeout: 10000
+            // Disable timeout as we use individual timeouts for tests
+            timeout: 0
         }
     }
 });

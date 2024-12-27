@@ -12,7 +12,6 @@ import kotlin.time.*
 /**
  * Test runner for js suspend tests.
  */
-@OptIn(DelicateCoroutinesApi::class)
 public actual fun testSuspend(
     context: CoroutineContext,
     timeoutMillis: Long,

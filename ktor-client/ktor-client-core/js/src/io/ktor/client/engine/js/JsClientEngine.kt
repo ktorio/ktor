@@ -52,7 +52,7 @@ internal class JsClientEngine(
         val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
-        val headers = rawResponse.headers.mapToKtor()
+        val headers = rawResponse.headers.mapToKtor(data.method, data.attributes)
         val version = HttpProtocolVersion.HTTP_1_1
 
         val body = CoroutineScope(callContext).readBody(rawResponse)
@@ -84,7 +84,7 @@ internal class JsClientEngine(
         return when {
             PlatformUtils.IS_BROWSER -> js("new WebSocket(urlString_capturingHack, protocols)")
             else -> {
-                val ws_import: Promise<dynamic> = js("import('w' + 's')")
+                val ws_import: Promise<dynamic> = js("import('ws')")
                 val ws_capturingHack = ws_import.await().default
                 val headers_capturingHack: dynamic = object {}
                 headers.forEach { name, values ->
@@ -153,12 +153,13 @@ private fun Event.asString(): String = buildString {
     append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
-private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+@OptIn(InternalAPI::class)
+private fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Attributes): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
 
-    Unit
+    dropCompressionHeaders(method, attributes)
 }
 
 /**

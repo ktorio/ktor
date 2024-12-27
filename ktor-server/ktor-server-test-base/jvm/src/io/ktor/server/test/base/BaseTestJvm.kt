@@ -2,14 +2,13 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-// ktlint-disable filename
 package io.ktor.server.test.base
 
-import io.ktor.junit.*
 import io.ktor.test.dispatcher.*
+import io.ktor.test.junit.*
+import io.ktor.test.junit.coroutines.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.test.TestResult
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo

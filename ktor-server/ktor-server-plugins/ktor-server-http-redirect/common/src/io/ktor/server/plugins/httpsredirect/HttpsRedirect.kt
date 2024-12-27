@@ -83,7 +83,10 @@ public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplica
         if (call.request.origin.scheme == "http" &&
             pluginConfig.excludePredicates.none { predicate -> predicate(call) }
         ) {
-            val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = pluginConfig.sslPort }
+            val redirectUrl = call.url {
+                protocol = URLProtocol.HTTPS
+                port = pluginConfig.sslPort
+            }
             if (!call.response.isCommitted) {
                 call.respondRedirect(redirectUrl, pluginConfig.permanentRedirect)
             }

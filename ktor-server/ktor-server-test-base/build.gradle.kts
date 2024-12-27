@@ -21,14 +21,11 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-apache"))
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
-            api(project(":ktor-shared:ktor-junit"))
+            api(project(":ktor-shared:ktor-test-base"))
 
             if (jetty_alpn_boot_version != null) {
                 api(libs.jetty.alpn.boot)
             }
-
-            api(libs.junit)
-            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 }

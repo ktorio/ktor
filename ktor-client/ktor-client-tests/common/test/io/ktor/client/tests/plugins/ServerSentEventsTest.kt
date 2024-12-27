@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.plugins
@@ -19,12 +19,14 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.single
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 
-class ServerSentEventsTest : ClientLoader(timeoutSeconds = 120) {
+class ServerSentEventsTest : ClientLoader() {
 
     @Test
     fun testExceptionIfSseIsNotInstalled() = testSuspend {

@@ -7,10 +7,7 @@ package io.ktor.util.date
 import kotlinx.serialization.*
 import kotlin.time.*
 
-/**
- * According to:
- * http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/time.h.html
- */
+// According to: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/time.h.html
 
 /**
  * Day of week

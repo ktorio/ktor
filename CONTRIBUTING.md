@@ -18,6 +18,11 @@ with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23
 
 ### Building the project
 
+> [!IMPORTANT]
+> This project requires JDK 21.
+> Make sure you have JDK 21 installed before attempting to build the project.
+> If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
+
 Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
 To build the projects and produce the corresponding artifacts, use
@@ -39,9 +44,8 @@ system you use for development:
 Run the following commands to install `libcurl` and `libncurses`:
 
 ```bash
-sudo apt-get update
-sudo apt-get install libncurses5 libncursesw5 libtinfo5
-sudo apt-get install libcurl4-openssl-dev
+sudo apt update
+sudo apt install libcurl4-openssl-dev libncurses-dev
 ```
 
 **macOS** 
@@ -50,8 +54,7 @@ The easiest way to install `libcurl` and `libncurses` on macOS is to use [Homebr
 Run the following commands:
 
 ```bash
-brew install curl
-brew install ncurses
+brew install curl ncurses
 ```
 
 If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.

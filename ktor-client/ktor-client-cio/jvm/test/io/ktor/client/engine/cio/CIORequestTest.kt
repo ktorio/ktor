@@ -16,11 +16,12 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.mockk.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit5.*
-import java.net.*
-import java.nio.channels.*
+import io.ktor.test.junit.coroutines.*
+import io.mockk.mockkStatic
+import io.mockk.verify
+import kotlinx.coroutines.delay
+import java.net.InetAddress
+import java.nio.channels.UnresolvedAddressException
 import kotlin.test.*
 
 @CoroutinesTimeout(60_000)

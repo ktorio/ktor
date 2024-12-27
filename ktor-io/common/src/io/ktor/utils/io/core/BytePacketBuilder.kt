@@ -18,6 +18,7 @@ public typealias BytePacketBuilder = Sink
 @OptIn(InternalIoApi::class)
 public val Sink.size: Int get() = buffer.size.toInt()
 
+@Suppress("FunctionName")
 public fun BytePacketBuilder(): Sink = kotlinx.io.Buffer()
 
 public fun Sink.append(value: CharSequence, startIndex: Int = 0, endIndex: Int = value.length) {

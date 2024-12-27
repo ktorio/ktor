@@ -29,7 +29,7 @@ apply(from = "gradle/verifier.gradle")
 extra["skipPublish"] = mutableListOf(
     "ktor-server-test-suites",
     "ktor-server-tests",
-    "ktor-junit",
+    "ktor-test-base",
 )
 
 // Point old artifact to new location
@@ -48,7 +48,7 @@ val disabledExplicitApiModeProjects = listOf(
     "ktor-server-test-suites",
     "ktor-server-tests",
     "ktor-client-content-negotiation-tests",
-    "ktor-junit"
+    "ktor-test-base"
 )
 
 apply(from = "gradle/compatibility.gradle")
@@ -131,13 +131,8 @@ fun configureDokka() {
 configureDokka()
 
 fun Project.setupJvmToolchain() {
-    val jdk = when (project.name) {
-        in jdk11Modules -> 11
-        else -> 8
-    }
-
     kotlin {
-        jvmToolchain(jdk)
+        jvmToolchain(project.requiredJdkVersion)
     }
 }
 

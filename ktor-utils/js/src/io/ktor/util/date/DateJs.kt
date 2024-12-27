@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.date
@@ -16,7 +16,7 @@ public actual fun GMTDate(timestamp: Long?): GMTDate {
     if (date.getTime().isNaN()) throw InvalidTimestampException(timestamp!!)
 
     with(date) {
-        /* from SUNDAY 0 -> MONDAY 0 */
+        // from SUNDAY 0 -> MONDAY 0
         val dayOfWeek = WeekDay.from((getUTCDay() + 6) % 7)
 
         val month = Month.from(getUTCMonth())

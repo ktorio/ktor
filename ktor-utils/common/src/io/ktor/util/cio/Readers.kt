@@ -32,6 +32,7 @@ public inline fun ByteWriteChannel.use(block: ByteWriteChannel.() -> Unit) {
         close(cause)
         throw cause
     } finally {
+        @Suppress("DEPRECATION")
         close()
     }
 }

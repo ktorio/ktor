@@ -16,8 +16,8 @@ import io.ktor.util.collections.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 internal class CIOEngine(
@@ -61,7 +61,6 @@ internal class CIOEngine(
         val requestJob = requestField[Job]!!
         val selector = selectorManager
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(parentContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestJob.join()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.routing
@@ -7,7 +7,7 @@ package io.ktor.tests.server.routing
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.Application
+import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -171,7 +171,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun routing_with_foo() = testRouting() { root ->
+    fun routing_with_foo() = testRouting { root ->
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
 
         on("resolving /foo") {

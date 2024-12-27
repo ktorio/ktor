@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.date
@@ -27,6 +27,7 @@ internal external class Date() {
     fun getUTCSeconds(): Int
 
     companion object {
+        @Suppress("FunctionName")
         fun UTC(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): Double
     }
 }

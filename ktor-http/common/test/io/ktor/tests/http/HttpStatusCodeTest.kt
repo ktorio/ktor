@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -9,27 +9,27 @@ import kotlin.test.*
 
 class HttpStatusCodeTest {
     @Test
-    fun HttpStatusCodeAll() {
+    fun httpStatusCodeAll() {
         assertEquals(53, HttpStatusCode.allStatusCodes.size)
     }
 
     @Test
-    fun HttpStatusCodeFromValue() {
+    fun httpStatusCodeFromValue() {
         assertEquals(HttpStatusCode.NotFound, HttpStatusCode.fromValue(404))
     }
 
     @Test
-    fun HttpStatusCodeConstructed() {
+    fun httpStatusCodeConstructed() {
         assertEquals(HttpStatusCode.NotFound, HttpStatusCode(404, "Not Found"))
     }
 
     @Test
-    fun HttpStatusCodeWithDescription() {
+    fun httpStatusCodeWithDescription() {
         assertEquals(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description("Missing Resource"))
     }
 
     @Test
-    fun HttpStatusCodeToString() {
+    fun httpStatusCodeToString() {
         assertEquals("404 Not Found", HttpStatusCode.NotFound.toString())
     }
 }

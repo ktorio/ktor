@@ -348,7 +348,7 @@ internal class URLBuilderTest {
         builder.appendPathSegments("path2")
 
         assertEquals(listOf("value1"), url.parameters.getAll("key"))
-        assertEquals(listOf("path1"), url.pathSegments)
+        assertEquals(listOf("path1"), url.rawSegments)
     }
 
     @Test
@@ -364,9 +364,9 @@ internal class URLBuilderTest {
         val url2 = builder.build()
 
         assertEquals(listOf("value1"), url1.parameters.getAll("key"))
-        assertEquals(listOf("path1"), url1.pathSegments)
+        assertEquals(listOf("path1"), url1.rawSegments)
         assertEquals(listOf("value1", "value2"), url2.parameters.getAll("key"))
-        assertEquals(listOf("path1", "path2"), url2.pathSegments)
+        assertEquals(listOf("path1", "path2"), url2.rawSegments)
     }
 
     @Test
@@ -410,7 +410,7 @@ internal class URLBuilderTest {
             assertEquals(segments, builder.pathSegments)
             assertEquals(path, builder.encodedPath)
 
-            assertEquals(segments, url.pathSegments)
+            assertEquals(segments, url.rawSegments)
         }
     }
 
@@ -436,7 +436,7 @@ internal class URLBuilderTest {
             assertEquals(segments, builder.pathSegments)
             assertEquals(urlString, builder.buildString())
 
-            assertEquals(segments, url.pathSegments)
+            assertEquals(segments, url.rawSegments)
         }
     }
 

@@ -30,7 +30,7 @@ kotlin {
         }
         jvmTest {
             dependencies {
-                implementation(project(":ktor-shared:ktor-junit"))
+                implementation(project(":ktor-shared:ktor-test-base"))
             }
         }
     }

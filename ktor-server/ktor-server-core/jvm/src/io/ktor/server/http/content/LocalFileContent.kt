@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -53,6 +53,7 @@ public fun LocalFileContent(
 /**
  * Creates an instance of [LocalPathContent] for a path designated by [relativePath] in a [baseDir]
  */
+@Suppress("FunctionName")
 @Deprecated(
     "Use LocalPathContent instead",
     ReplaceWith("LocalPathContent(baseDir, relativePath, contentType)", "io.ktor.server.http.content.LocalPathContent")

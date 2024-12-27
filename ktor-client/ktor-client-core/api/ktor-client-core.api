@@ -1516,6 +1516,10 @@ public final class io/ktor/client/utils/HeadersKt {
 	public static synthetic fun buildHeaders$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/Headers;
 }
 
+public final class io/ktor/client/utils/HeadersUtilsKt {
+	public static final fun dropCompressionHeaders (Lio/ktor/http/HeadersBuilder;Lio/ktor/http/HttpMethod;Lio/ktor/util/Attributes;)V
+}
+
 public final class io/ktor/client/utils/HttpResponseReceiveFail {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;)V
 	public final fun getCause ()Ljava/lang/Throwable;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -11,11 +11,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.PlatformUtils
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
+import kotlinx.io.IOException
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
@@ -327,7 +327,7 @@ class HttpTimeoutTest : ClientLoader() {
     // Fix https://youtrack.jetbrains.com/issue/KTOR-7885
     @Ignore
     @Test
-    fun testRedirect() = clientTests(listOf("js"), retries = 5) {
+    fun testRedirect() = clientTests(listOf("Js"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
@@ -344,7 +344,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     // Js can't configure test timeout in browser
     @Test
-    fun testRedirectPerRequestAttributes() = clientTests(listOf("js")) {
+    fun testRedirectPerRequestAttributes() = clientTests(listOf("Js")) {
         config {
             install(HttpTimeout)
         }
@@ -429,7 +429,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "win:*")) {
+    fun testConnectionRefusedException() = clientTests(listOf("Js", "native:*", "jvm/win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -438,14 +438,14 @@ class HttpTimeoutTest : ClientLoader() {
             assertFails {
                 try {
                     client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) { /* Ignore. */
+                } catch (_: ConnectTimeoutException) {
                 }
             }
         }
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -460,7 +460,9 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "native:CIO", "Java", "Apache5")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(
+        listOf("Js", "native:CIO", "Curl", "Java", "Apache5")
+    ) {
         config {
             install(HttpTimeout)
         }
@@ -477,7 +479,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Java")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Android", "native:CIO", "Curl", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
@@ -491,7 +493,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        listOf("Js", "Android", "Apache5", "native:CIO", "Java")
+        listOf("Js", "Android", "Apache5", "native:CIO", "Curl", "Java")
     ) {
         config {
             install(HttpTimeout)

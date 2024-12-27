@@ -12,7 +12,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForReadingImpl(
     userChannel: ByteChannel,
     descriptor: Int,

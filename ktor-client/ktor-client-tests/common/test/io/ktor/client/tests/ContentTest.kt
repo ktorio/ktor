@@ -18,8 +18,9 @@ import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.readByteArray
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -42,7 +43,7 @@ val testArrays = testSize.map {
     makeArray(it)
 }
 
-class ContentTest : ClientLoader(5 * 60) {
+class ContentTest : ClientLoader() {
 
     @Test
     fun testGetFormData() = clientTests {
@@ -403,16 +404,18 @@ class ContentTest : ClientLoader(5 * 60) {
                 HttpResponseValidator {
                     validateResponse { response ->
                         val channel = response.rawContent
-                        for (i in 0..100)
+                        for (i in 0..100) {
                             assertEquals(expected, channel.readByteArray(expected.length).decodeToString())
+                        }
                     }
                 }
             }.get("$TEST_SERVER/content/big-plain-text").bodyAsText()
 
             val lines = responseText.trim().lines()
             assertEquals(10_000, lines.size, "Should be same number of lines")
-            for ((i, line) in lines.withIndex())
+            for ((i, line) in lines.withIndex()) {
                 assertEquals(expected.trim(), line, "Difference on line $i")
+            }
         }
     }
 

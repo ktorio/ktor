@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -33,7 +33,9 @@ public suspend fun <T> Future<T>.suspendAwait(): T {
 private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
     if (t is IOException) {
         c.resumeWithException(ChannelWriteException("Write operation future failed", t))
-    } else c.resumeWithException(t)
+    } else {
+        c.resumeWithException(t)
+    }
 }
 
 /**
