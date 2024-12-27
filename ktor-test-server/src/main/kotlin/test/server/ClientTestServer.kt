@@ -4,7 +4,6 @@
 
 package test.server
 
-import io.ktor.client.tests.utils.tests.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.defaultheaders.*

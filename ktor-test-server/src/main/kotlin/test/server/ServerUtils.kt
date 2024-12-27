@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
+import kotlinx.io.readByteArray
 
 fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
@@ -32,6 +32,6 @@ internal suspend fun filenameContentTypeAndContentString(provider: () -> ByteRea
     val disposition: ContentDisposition = ContentDisposition.parse(dispositionHeader)
     val filename: String = disposition.parameter("filename") ?: ""
     val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ""
-    val content: String = provider().readRemaining().readBytes().let { "Content of ${it.size} bytes" }
+    val content: String = provider().readRemaining().readByteArray().let { "Content of ${it.size} bytes" }
     return "$filename$contentType$content"
 }
