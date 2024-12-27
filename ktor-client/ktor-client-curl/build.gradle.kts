@@ -1,4 +1,8 @@
-apply<test.server.TestServerPlugin>()
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+import ktorbuild.createCInterop
 
 val paths = listOf(
     "/opt/homebrew/opt/curl/include/",
@@ -19,23 +23,25 @@ val paths = listOf(
 
 plugins {
     id("kotlinx-serialization")
+    id("test-server")
 }
 
 kotlin {
-    createCInterop("libcurl", listOf("macosX64", "linuxX64", "mingwX64")) {
-        definitionFile = File(projectDir, "desktop/interop/libcurl.def")
-        includeDirs.headerFilterOnly(paths)
-    }
-
-    createCInterop("libcurl", listOf("macosArm64")) {
-        definitionFile = File(projectDir, "desktop/interop/libcurl_arm64.def")
-        includeDirs.headerFilterOnly(paths)
-    }
-
-    createCInterop("libcurl", listOf("linuxArm64")) {
-        definitionFile = File(projectDir, "desktop/interop/libcurl_linux_arm64.def")
-        includeDirs.headerFilterOnly(listOf("desktop/interop/linuxArm64/include/"))
-    }
+    createCInterop(
+        "libcurl",
+        sourceSet = "desktop",
+        definitionFilePath = { target ->
+            when (target) {
+                "macosArm64" -> "desktop/interop/libcurl_arm64.def"
+                "linuxArm64" -> "desktop/interop/libcurl_linux_arm64.def"
+                else -> "desktop/interop/libcurl.def"
+            }
+        },
+        configure = { target ->
+            val included = if (target == "linuxArm64") listOf("desktop/interop/linuxArm64/include/") else paths
+            includeDirs.headerFilterOnly(included)
+        }
+    )
 
     sourceSets {
         desktopMain {

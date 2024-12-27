@@ -6,9 +6,8 @@ description = "Ktor client JSON support"
 
 plugins {
     id("kotlinx-serialization")
+    id("test-server")
 }
-
-apply<test.server.TestServerPlugin>()
 
 kotlin {
     sourceSets {

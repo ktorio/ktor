@@ -4,7 +4,9 @@
 
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
-apply<test.server.TestServerPlugin>()
+plugins {
+    id("test-server")
+}
 
 kotlin.sourceSets {
     jvmMain {

@@ -4,6 +4,11 @@
 
 description = ""
 
+ktorBuild {
+    // The minimal JVM version required for Jetty 10+
+    jvmToolchain(11)
+}
+
 kotlin {
     sourceSets {
         jvmMain {
@@ -26,17 +31,8 @@ kotlin {
                 api(project(":ktor-server:ktor-server-test-suites"))
 
                 api(libs.jetty.servlet.jakarta)
-                api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
                 api(libs.logback.classic)
             }
         }
-    }
-}
-
-val jetty_alpn_boot_version: String? by extra
-
-dependencies {
-    if (jetty_alpn_boot_version != null) {
-        add("boot", libs.jetty.alpn.boot)
     }
 }

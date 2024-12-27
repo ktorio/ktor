@@ -4,8 +4,6 @@
 
 description = ""
 
-val jetty_alpn_boot_version: String? by extra
-
 kotlin.sourceSets {
     commonMain {
         dependencies {
@@ -33,10 +31,6 @@ kotlin.sourceSets {
             // so shouldn"t increase the size of the final artifact.
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
 
-            if (jetty_alpn_boot_version != null) {
-                api(libs.jetty.alpn.boot)
-            }
-
             api(libs.kotlin.test)
             api(libs.junit)
             implementation(libs.kotlinx.coroutines.debug)
@@ -45,7 +39,6 @@ kotlin.sourceSets {
 
     jvmTest {
         dependencies {
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api(project(":ktor-server:ktor-server-config-yaml"))
             api(libs.kotlin.test)
         }

@@ -18,8 +18,6 @@ subprojects {
 
             jvmTest {
                 dependencies {
-                    api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
-
                     // Version catalogs aren't accessible directly inside subprojects block
                     // https://github.com/gradle/gradle/issues/16634#issuecomment-809345790
                     api(rootProject.libs.logback.classic)

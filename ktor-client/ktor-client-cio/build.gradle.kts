@@ -4,7 +4,9 @@
 
 description = "CIO backend for ktor http client"
 
-apply<test.server.TestServerPlugin>()
+plugins {
+    id("test-server")
+}
 
 kotlin {
     sourceSets {
