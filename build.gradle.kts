@@ -2,8 +2,6 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.jetbrains.kotlin.konan.target.HostManager
-
 extra["globalM2"] = "${project.file("build")}/m2"
 extra["publishLocal"] = project.hasProperty("publishLocal")
 
@@ -24,10 +22,12 @@ extra["relocatedArtifacts"] = mapOf(
     "ktor-server-test-base" to "ktor-server-test-host",
 )
 
-extra["nonDefaultProjectStructure"] = mutableListOf(
-    "ktor-bom",
-    "ktor-java-modules-test",
-)
+val nonDefaultProjectStructure by extra {
+    listOf(
+        "ktor-bom",
+        "ktor-java-modules-test",
+    )
+}
 
 apply(from = "gradle/compatibility.gradle")
 
@@ -35,45 +35,26 @@ plugins {
     id("ktorbuild.base")
     alias(libs.plugins.binaryCompatibilityValidator)
     conventions.gradleDoctor
+    id("ktorbuild.dokka")
 }
 
 println("Build version: ${project.version}")
 
 subprojects {
-    apply(plugin = "ktorbuild.base")
+    when (project.name) {
+        in nonDefaultProjectStructure -> apply(plugin = "ktorbuild.base")
+        in internalProjects -> apply(plugin = "ktorbuild.project.internal")
 
-    extra["hostManager"] = HostManager()
-
-    setupTrainForSubproject()
-
-    val nonDefaultProjectStructure: List<String> by rootProject.extra
-    if (nonDefaultProjectStructure.contains(project.name)) return@subprojects
-
-    apply(plugin = "ktorbuild.kmp")
+        else -> {
+            apply(plugin = "ktorbuild.project.library")
+            configurePublication()
+        }
+    }
     apply(plugin = "atomicfu-conventions")
 
-    kotlin {
-        if (!internalProjects.contains(project.name)) explicitApi()
-    }
-
-    if (!internalProjects.contains(project.name)) {
-        configurePublication()
-    }
-
+    setupTrainForSubproject()
     configureCodestyle()
 }
 
 println("Using Kotlin compiler version: ${libs.versions.kotlin.get()}")
 filterSnapshotTests()
-
-fun configureDokka() {
-    allprojects {
-        plugins.apply("ktorbuild.dokka")
-    }
-
-    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().ignoreScripts = false
-    }
-}
-
-configureDokka()
