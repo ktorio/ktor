@@ -17,6 +17,8 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
+
     compilerOptions {
         progressiveMode = ktorBuild.kotlinLanguageVersion.map { it >= KotlinVersion.DEFAULT }
         apiVersion = ktorBuild.kotlinApiVersion
