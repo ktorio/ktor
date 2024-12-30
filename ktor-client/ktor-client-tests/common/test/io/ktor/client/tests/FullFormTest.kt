@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -68,7 +68,7 @@ class FullFormTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testCustomUrls() = clientTests(listOf("Darwin", "native:CIO", "DarwinLegacy")) {
+    fun testCustomUrls() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
         val urls = listOf(
             "https://google.com",
             "https://kotlinlang.org/"

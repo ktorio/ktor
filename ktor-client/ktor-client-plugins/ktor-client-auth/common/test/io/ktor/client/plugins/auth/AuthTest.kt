@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
 class AuthTest : ClientLoader() {
 
     @Test
-    fun testDigestAuthLegacy() = clientTests(listOf("Js", "native:*")) {
+    fun testDigestAuthLegacy() = clientTests(except("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -43,7 +43,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuth() = clientTests(listOf("Js", "native:*")) {
+    fun testDigestAuth() = clientTests(except("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -60,7 +60,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthPerRealm() = clientTests(listOf("Js", "native:*")) {
+    fun testDigestAuthPerRealm() = clientTests(except("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -84,7 +84,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthSHA256() = clientTests(listOf("Js", "native:*")) {
+    fun testDigestAuthSHA256() = clientTests(except("Js", "native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -101,7 +101,7 @@ class AuthTest : ClientLoader() {
 
     @Suppress("DEPRECATION_ERROR")
     @Test
-    fun testBasicAuthLegacy() = clientTests(listOf("Js")) {
+    fun testBasicAuthLegacy() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -117,7 +117,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuth() = clientTests(listOf("Js")) {
+    fun testBasicAuth() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -202,7 +202,7 @@ class AuthTest : ClientLoader() {
 
     @Suppress("DEPRECATION_ERROR")
     @Test
-    fun testUnauthorizedBasicAuthLegacy() = clientTests(listOf("Js")) {
+    fun testUnauthorizedBasicAuthLegacy() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -221,7 +221,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testUnauthorizedBasicAuth() = clientTests(listOf("Js")) {
+    fun testUnauthorizedBasicAuth() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -238,7 +238,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthMultiple() = clientTests(listOf("Js")) {
+    fun testBasicAuthMultiple() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -261,7 +261,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthMultipleNotSendWithoutRequest() = clientTests(listOf("Js")) {
+    fun testBasicAuthMultipleNotSendWithoutRequest() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -284,7 +284,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthPerRealm() = clientTests(listOf("Js")) {
+    fun testBasicAuthPerRealm() = clientTests(except("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -729,7 +729,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testMultipleChallengesInMultipleHeadersUnauthorized() = clientTests(listOf("Js")) {
+    fun testMultipleChallengesInMultipleHeadersUnauthorized() = clientTests(except("Js")) {
         test { client ->
             val response = client.get("$TEST_SERVER/auth/multiple/headers")
             assertEquals(HttpStatusCode.Unauthorized, response.status)

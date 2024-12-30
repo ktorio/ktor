@@ -9,6 +9,8 @@ import io.ktor.test.*
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 internal expect val enginesToTest: Iterable<HttpClientEngineFactory<HttpClientEngineConfig>>
 internal expect val platformName: String
@@ -18,63 +20,50 @@ internal expect fun platformWaitForAllCoroutines()
 private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
 
 /**
- * Helper interface to test client.
+ * Helper interface to test clients.
  */
 abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
     /**
      * Perform test against all clients from dependencies.
      */
     fun clientTests(
-        skipEngines: List<String> = emptyList(),
-        onlyWithEngine: String? = null,
+        rule: EngineSelectionRule = EngineSelectionRule { true },
         retries: Int = 1,
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {
-        val skipPatterns = skipEngines.map(SkipEnginePattern::parse)
         val (selectedEngines, skippedEngines) = enginesToTest
-            .partition { shouldRun(it.engineName, skipPatterns, onlyWithEngine) }
-        if (skippedEngines.isNotEmpty()) println("Skipped engines: ${skippedEngines.joinToString { it.engineName }}")
+            .partition { rule.shouldRun(it.engineName) }
+        val reporter = TestReporter()
 
         return runTestWithData(
             selectedEngines,
             timeout = timeout,
             retries = retries,
+            afterEach = { result -> reporter.testResult(result, retries) },
+            afterAll = {
+                reporter.skippedEngines(skippedEngines)
+                reporter.flush()
+            },
             handleFailures = ::aggregatedAssertionError,
         ) { (engine, retry) ->
-            val retrySuffix = if (retry > 0) " [$retry]" else ""
-            println("Run test with engine ${engine.engineName}$retrySuffix")
+            reporter.testTry(engine, retry, retries)
             performTestWithEngine(engine, this@ClientLoader, block)
         }
     }
 
     private fun aggregatedAssertionError(failures: List<ClientTestFailure>): Nothing {
         val message = buildString {
-            val engineNames = failures.map { it.data.engineName }
+            val engineNames = failures.map { it.testCase.data.engineName }
             if (failures.size > 1) {
                 appendLine("Test failed for engines: ${engineNames.joinToString()}")
             }
-            failures.forEachIndexed { index, (cause, _) ->
+            failures.forEachIndexed { index, (_, cause) ->
                 appendLine("Test failed for engine '$platformName:${engineNames[index]}' with:")
                 appendLine(cause.stackTraceToString().prependIndent("  "))
             }
         }
         throw AssertionError(message)
-    }
-
-    private fun shouldRun(
-        engineName: String,
-        skipEnginePatterns: List<SkipEnginePattern>,
-        onlyWithEngine: String?
-    ): Boolean {
-        val lowercaseEngineName = engineName.lowercase()
-        if (onlyWithEngine != null && onlyWithEngine.lowercase() != lowercaseEngineName) return false
-
-        skipEnginePatterns.forEach {
-            if (it.matches(lowercaseEngineName)) return false
-        }
-
-        return true
     }
 
     /**
@@ -87,10 +76,105 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
     // 2. Nonce generator
     // @After
     fun waitForAllCoroutines(): Unit = platformWaitForAllCoroutines()
+
+    /** Defines that test should be executed only with the specified [engine]. */
+    fun only(engine: String): EngineSelectionRule {
+        val lowercaseEngineName = engine.lowercase()
+        return EngineSelectionRule { it.lowercase() == lowercaseEngineName }
+    }
+
+    /** Excludes the specified [engines] from test execution. */
+    fun except(vararg engines: String): EngineSelectionRule = except(engines.asList())
+
+    /** Excludes the specified [engines] from test execution. */
+    fun except(engines: List<String>): EngineSelectionRule {
+        val skipPatterns = engines.map(SkipEnginePattern::parse)
+        return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }
+    }
+
+    private class TestReporter {
+        private val lines: MutableList<String> = mutableListOf()
+        private var pendingLine = ""
+
+        fun skippedEngines(skippedEngines: List<HttpClientEngineFactory<*>>) {
+            if (skippedEngines.isNotEmpty()) {
+                message("⊘ Skipped engines: ${skippedEngines.joinToString { it.engineName }}")
+            }
+        }
+
+        fun testTry(engine: HttpClientEngineFactory<*>, retry: Int, maxRetries: Int) {
+            if (retry == 0) {
+                message("▶ Run with ${engine.engineName}".padEnd(DESCRIPTION_COLUMN_WIDTH), flush = false)
+            } else {
+                printTriesCounter(retry, maxRetries)
+            }
+        }
+
+        fun testResult(testResult: TestExecutionResult<*>, maxRetries: Int) {
+            val retry = testResult.testCase.retry
+            val cause = (testResult as? TestFailure<*>)?.cause
+
+            val isFirstRetry = cause != null && retry == 0 && maxRetries > 0
+            if (isFirstRetry) {
+                message(flush = true)
+                printTriesCounter(retry, maxRetries)
+            }
+
+            printStatus(testResult, maxRetries)
+            if (cause != null) message("    └─ ${cause.message}")
+        }
+
+        private fun printTriesCounter(retry: Int, maxRetries: Int) {
+            message("  [${retry + 1}/${maxRetries + 1}]".padEnd(DESCRIPTION_COLUMN_WIDTH), flush = false)
+        }
+
+        private fun printStatus(testResult: TestExecutionResult<*>, maxRetries: Int) {
+            val status = when {
+                testResult is TestSuccess -> PASSED
+                testResult.testCase.retry == maxRetries -> FAILED
+                else -> RETRY
+            }
+            message("$status (${testResult.duration.format()})")
+        }
+
+        private fun Duration.format(): String = when {
+            this < 1.seconds -> toString(DurationUnit.MILLISECONDS)
+            else -> toString()
+        }
+
+        private fun message(message: String = "", flush: Boolean = true) {
+            pendingLine += message
+            if (flush) {
+                lines.add(pendingLine)
+                pendingLine = ""
+            }
+        }
+
+        fun flush() {
+            println(lines.joinToString("\n"))
+            lines.clear()
+        }
+
+        private companion object {
+            private const val PASSED = "✓ PASSED"
+            private const val FAILED = "✕ FAILED"
+            private const val RETRY = "• FAILED"
+            private const val DESCRIPTION_COLUMN_WIDTH = 20
+        }
+    }
 }
 
 internal val HttpClientEngineFactory<*>.engineName: String
     get() = this::class.simpleName!!
+
+/**
+ * Decides whether an engine should be tested or not.
+ * @see ClientLoader.except
+ * @see ClientLoader.only
+ */
+fun interface EngineSelectionRule {
+    fun shouldRun(engineName: String): Boolean
+}
 
 private data class SkipEnginePattern(
     val skippedPlatform: String?, // null means * or empty
@@ -99,7 +183,7 @@ private data class SkipEnginePattern(
     fun matches(engineName: String): Boolean {
         var result = true
         if (skippedEngine != null) {
-            result = result && engineName == skippedEngine
+            result = result && engineName.lowercase() == skippedEngine
         }
         if (result && skippedPlatform != null) {
             result = result && platformName.startsWith(skippedPlatform)

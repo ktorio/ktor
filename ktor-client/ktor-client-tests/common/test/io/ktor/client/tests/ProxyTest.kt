@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -19,7 +19,7 @@ data class ProxyResponse(val status: String)
 class ProxyTest : ClientLoader() {
 
     @Test
-    fun testHttpProxy() = clientTests(listOf("Js")) {
+    fun testHttpProxy() = clientTests(except("Js")) {
         config {
             engine {
                 proxy = ProxyBuilder.http(TCP_SERVER)
@@ -33,7 +33,7 @@ class ProxyTest : ClientLoader() {
     }
 
     @Test
-    fun testProxyWithSerialization() = clientTests(listOf("Js")) {
+    fun testProxyWithSerialization() = clientTests(except("Js")) {
         config {
             engine {
                 proxy = ProxyBuilder.http(TCP_SERVER)

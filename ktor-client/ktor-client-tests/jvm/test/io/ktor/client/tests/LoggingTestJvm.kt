@@ -31,7 +31,7 @@ class LoggingTestJvm : ClientLoader() {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testMdc() = clientTests(listOf("native:CIO")) {
+    fun testMdc() = clientTests(except("native:CIO")) {
         val testLogger = LoggerWithMdc()
 
         config {
