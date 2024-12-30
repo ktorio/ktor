@@ -1,56 +1,15 @@
+# curl version = 8.10.1
 package = libcurl
 headers = curl/curl.h
 headerFilter = curl/*
-compilerOpts.mingw_x64 = -DCURL_STATICLIB
 
-linkerOpts.osx =             -lcurl \
-                             -L/usr/lib64 \
-                             -L/usr/lib/x86_64-linux-gnu \
-                             -L/opt/local/lib \
-                             -L/usr/local/opt/curl/lib \
-                             -L/opt/homebrew/opt/curl/lib
+# there is no libz by default installed on windows, so we need to include it statically
+staticLibraries.mingw = libcurl.a libssl.a libcrypto.a libz.a
+compilerOpts.mingw = -DCURL_STATICLIB
 
-compilerOpts.osx =           -I/opt/local/include/ \
-                             -I/usr/bin/ \
-                             -I/usr/local/include/ \
-                             -I/usr/include/ \
-                             -I/usr/local/Cellar/curl/7.83.1/include/ \
-                             -I/usr/local/Cellar/curl/7.81.0/include/ \
-                             -I/usr/local/Cellar/curl/7.80.0_1/include/ \
-                             -I/usr/local/Cellar/curl/7.80.0/include/ \
-                             -I/usr/local/Cellar/curl/7.62.0/include/ \
-                             -I/usr/local/Cellar/curl/7.63.0/include/ \
-                             -I/usr/local/Cellar/curl/7.65.3/include/ \
-                             -I/usr/local/Cellar/curl/7.66.0/include/ \
-                             -I/opt/homebrew/opt/curl/include/
+# there is no need to use openssl on macos, as curl is built using out-of-the-box security framework
+staticLibraries.osx = libcurl.a
+linkerOpts.osx = -framework Security -framework SystemConfiguration
 
-linkerOpts.linux =           -lcurl \
-                             -L/usr/lib64 \
-                             -L/usr/lib/x86_64-linux-gnu \
-                             -L/opt/local/lib \
-                             -L/usr/local/opt/curl/lib \
-                             -L/opt/homebrew/opt/curl/lib
-
-compilerOpts.linux =         -I/usr/include/ \
-                             -I/usr/include/x86_64-linux-gnu/ \
-                             -I/opt/homebrew/opt/curl/include/
-
-staticLibraries.mingw_x64 = \
-libcurl.a \
-libssh2.a \
-libidn2.a \
-libpsl.a \
-libbrotlidec.a \
-libbrotlicommon.a \
-libunistring.a \
-libzstd.a \
-
-libraryPaths = desktop/interop/mingwX64/lib
-
-linkerOpts.mingw_x64 = -Wl,-Bstatic -lstdc++ -static  \
--lbcrypt \
--lcrypt32 \
--liconv \
--lwldap32 \
--lws2_32 \
--lz
+staticLibraries.linux = libcurl.a libssl.a libcrypto.a
+linkerOpts.linux = -lz

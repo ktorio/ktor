@@ -15,7 +15,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {

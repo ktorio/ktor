@@ -12,11 +12,11 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.junit.coroutines.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.test.junit.coroutines.*
 import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.delay

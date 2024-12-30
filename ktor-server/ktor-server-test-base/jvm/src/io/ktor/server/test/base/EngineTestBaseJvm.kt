@@ -11,13 +11,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.junit.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*

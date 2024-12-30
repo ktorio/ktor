@@ -7,6 +7,26 @@ package io.ktor.sse
 import io.ktor.utils.io.*
 
 /**
+ *  Server-sent event interface.
+ *
+ *  @property data data field of the event.
+ *  @property event string identifying the type of event.
+ *  @property id event ID.
+ *  @property retry reconnection time, in milliseconds to wait before reconnecting.
+ *  @property comments comment lines starting with a ':' character.
+ *
+ *  @see ServerSentEvent with default String parameter `data`
+ *  @see TypedServerSentEvent with parameterized parameter `data`
+ */
+public sealed interface ServerSentEventMetadata<T> {
+    public val data: T?
+    public val event: String?
+    public val id: String?
+    public val retry: Long?
+    public val comments: String?
+}
+
+/**
  *  Server-sent event.
  *
  *  @property data data field of the event.
@@ -14,22 +34,49 @@ import io.ktor.utils.io.*
  *  @property id event ID.
  *  @property retry reconnection time, in milliseconds to wait before reconnecting.
  *  @property comments comment lines starting with a ':' character.
+ *
+ *  @see TypedServerSentEvent with parameterized parameter `data`
  */
-public class ServerSentEvent(
-    public val data: String? = null,
-    public val event: String? = null,
-    public val id: String? = null,
-    public val retry: Long? = null,
-    public val comments: String? = null
-) {
-    override fun toString(): String {
-        return buildString {
-            appendField("data", data)
-            appendField("event", event)
-            appendField("id", id)
-            appendField("retry", retry)
-            appendField("", comments)
-        }
+public data class ServerSentEvent(
+    override val data: String? = null,
+    override val event: String? = null,
+    override val id: String? = null,
+    override val retry: Long? = null,
+    override val comments: String? = null
+) : ServerSentEventMetadata<String> {
+    override fun toString(): String = eventToString(data, event, id, retry, comments)
+}
+
+/**
+ *  Server-sent event with generic parameter [data].
+ *
+ *  @property data data field of the event.
+ *  @property event string identifying the type of event.
+ *  @property id event ID.
+ *  @property retry reconnection time, in milliseconds to wait before reconnecting.
+ *  @property comments comment lines starting with a ':' character.
+ *
+ *  @see ServerSentEvent with default String parameter `data`
+ */
+public data class TypedServerSentEvent<T>(
+    override val data: T? = null,
+    override val event: String? = null,
+    override val id: String? = null,
+    override val retry: Long? = null,
+    override val comments: String? = null
+) : ServerSentEventMetadata<T> {
+    @InternalAPI
+    public fun toString(serializer: (T) -> String): String =
+        eventToString(data?.let { serializer(it) }, event, id, retry, comments)
+}
+
+private fun eventToString(data: String?, event: String?, id: String?, retry: Long?, comments: String?): String {
+    return buildString {
+        appendField("data", data)
+        appendField("event", event)
+        appendField("id", id)
+        appendField("retry", retry)
+        appendField("", comments)
     }
 }
 
