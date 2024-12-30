@@ -14,6 +14,8 @@ plugins {
 
 rootProject.name = "ktor"
 
+includeBuild("ktor-test-server")
+
 include(":ktor-server")
 include(":ktor-server:ktor-server-core")
 include(":ktor-server:ktor-server-config-yaml")

@@ -43,6 +43,13 @@ pluginManagement {
             }
 
             mavenLocal()
+
+            exclusiveContent {
+                forRepository {
+                    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") { name = "KtorEAP" }
+                }
+                filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
+            }
         }
     }
 
