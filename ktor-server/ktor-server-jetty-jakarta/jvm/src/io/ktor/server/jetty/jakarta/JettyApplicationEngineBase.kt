@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty.jakarta
@@ -10,8 +10,6 @@ import io.ktor.server.engine.*
 import kotlinx.coroutines.CompletableJob
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
@@ -23,7 +21,7 @@ public open class JettyApplicationEngineBase(
     /**
      * Application engine configuration specifying engine-specific options such as parallelism level.
      */
-    public val configuration: Configuration,
+    private val configuration: Configuration,
     private val applicationProvider: () -> Application
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
 
@@ -40,10 +38,10 @@ public open class JettyApplicationEngineBase(
         /**
          * The duration of time that a connection can be idle before the connector takes action to close the connection.
          */
-        public var idleTimeout: Duration = 30.seconds
+        public var idleTimeout: Long = -1
     }
 
-    private var cancellationJob: CompletableJob? = null
+    private var cancellationDeferred: CompletableJob? = null
 
     /**
      * Jetty server instance being configuring and starting
@@ -55,7 +53,7 @@ public open class JettyApplicationEngineBase(
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
         server.start()
-        cancellationJob = stopServerOnCancellation(
+        cancellationDeferred = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -75,7 +73,7 @@ public open class JettyApplicationEngineBase(
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        cancellationJob?.complete()
+        cancellationDeferred?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeoutMillis
         server.stop()
