@@ -77,7 +77,8 @@ public class MicrometerMetricsConfig {
         JvmGcMetrics(),
         ProcessorMetrics(),
         JvmThreadMetrics(),
-        FileDescriptorMetrics()
+        FileDescriptorMetrics(),
+        UptimeMetrics(),
     )
 
     /**
