@@ -12,9 +12,9 @@ kotlin {
                 api(project(":ktor-server:ktor-server-servlet-jakarta"))
                 api(libs.jetty.server.jakarta)
                 api(libs.jetty.servlets.jakarta)
+                api(libs.jakarta.servlet)
                 api(libs.jetty.alpn.server.jakarta)
                 api(libs.jetty.alpn.java.server.jakarta)
-                api(libs.jetty.alpn.openjdk8.server)
                 api(libs.jetty.http2.server.jakarta)
             }
         }
