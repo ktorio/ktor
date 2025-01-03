@@ -61,7 +61,7 @@ private fun ParametersBuilder.appendParam(
                 decode -> query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
                 else -> query.substring(spaceNameIndex, spaceEndIndex)
             }
-            appendAll(name, listOf(""))
+            appendAll(name, emptyList())
         }
         return
     }
