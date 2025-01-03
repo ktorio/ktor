@@ -4,4 +4,6 @@
 
 package io.ktor.network.sockets.tests
 
-internal actual fun Any.supportsUnixDomainSockets(): Boolean = false
+import io.ktor.network.util.*
+
+internal actual fun Any.supportsUnixDomainSockets(): Boolean = isAFUnixSupported

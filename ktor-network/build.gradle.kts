@@ -8,6 +8,15 @@ kotlin {
     createCInterop("network", nixTargets()) {
         definitionFile = projectDir.resolve("nix/interop/network.def")
     }
+    createCInterop("un", androidNativeTargets()) {
+        definitionFile = projectDir.resolve("androidNative/interop/un.def")
+    }
+    createCInterop("un", iosTargets() + tvosTargets() + watchosTargets()) {
+        definitionFile = projectDir.resolve("darwin/interop/un.def")
+    }
+    createCInterop("afunix", windowsTargets()) {
+        definitionFile = projectDir.resolve("windows/interop/afunix.def")
+    }
 
     sourceSets {
         jvmAndPosixMain {
