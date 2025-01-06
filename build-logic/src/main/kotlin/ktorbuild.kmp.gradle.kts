@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
+    id("org.jetbrains.kotlinx.atomicfu")
 }
 
 kotlin {
