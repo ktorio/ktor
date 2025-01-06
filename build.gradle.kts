@@ -50,7 +50,6 @@ subprojects {
             configurePublication()
         }
     }
-    apply(plugin = "atomicfu-conventions")
 
     setupTrainForSubproject()
     configureCodestyle()
