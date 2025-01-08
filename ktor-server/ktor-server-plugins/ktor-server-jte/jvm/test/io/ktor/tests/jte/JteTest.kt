@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2012 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.jte
@@ -28,6 +28,8 @@ import java.util.zip.*
 import kotlin.test.*
 import kotlin.text.Charsets
 
+// TODO KTOR-8030: Enable tests after updating JTE
+@Ignore
 class JteTest {
 
     @Test
