@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
@@ -79,8 +79,8 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
 
     /** Defines that test should be executed only with the specified [engine]. */
     fun only(engine: String): EngineSelectionRule {
-        val lowercaseEngineName = engine.lowercase()
-        return EngineSelectionRule { it.lowercase() == lowercaseEngineName }
+        val pattern = EnginePattern.parse(engine)
+        return EngineSelectionRule { pattern.matches(it) }
     }
 
     /** Excludes the specified [engines] from test execution. */
@@ -88,7 +88,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
 
     /** Excludes the specified [engines] from test execution. */
     fun except(engines: List<String>): EngineSelectionRule {
-        val skipPatterns = engines.map(SkipEnginePattern::parse)
+        val skipPatterns = engines.map(EnginePattern::parse)
         return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }
     }
 
@@ -176,23 +176,23 @@ fun interface EngineSelectionRule {
     fun shouldRun(engineName: String): Boolean
 }
 
-private data class SkipEnginePattern(
-    val skippedPlatform: String?, // null means * or empty
-    val skippedEngine: String?, // null means * or empty
+private data class EnginePattern(
+    val matchingPlatform: String?, // null means * or empty
+    val matchingEngine: String?, // null means * or empty
 ) {
     fun matches(engineName: String): Boolean {
         var result = true
-        if (skippedEngine != null) {
-            result = result && engineName.lowercase() == skippedEngine
+        if (matchingEngine != null) {
+            result = result && engineName.lowercase() == matchingEngine
         }
-        if (result && skippedPlatform != null) {
-            result = result && platformName.startsWith(skippedPlatform)
+        if (result && matchingPlatform != null) {
+            result = result && platformName.startsWith(matchingPlatform)
         }
         return result
     }
 
     companion object {
-        fun parse(pattern: String): SkipEnginePattern {
+        fun parse(pattern: String): EnginePattern {
             val parts = pattern.lowercase().split(":").map { it.takeIf { it != "*" } }
             val platform: String?
             val engine: String?
@@ -207,13 +207,13 @@ private data class SkipEnginePattern(
                     engine = parts[1]
                 }
 
-                else -> error("Skip engine pattern should consist of two parts: PLATFORM:ENGINE or ENGINE")
+                else -> error("Engine pattern should consist of two parts: PLATFORM:ENGINE or ENGINE")
             }
 
             if (platform == null && engine == null) {
-                error("Skip engine pattern should consist of two parts: PLATFORM:ENGINE or ENGINE")
+                error("Engine pattern should consist of two parts: PLATFORM:ENGINE or ENGINE")
             }
-            return SkipEnginePattern(platform, engine)
+            return EnginePattern(platform, engine)
         }
     }
 }
