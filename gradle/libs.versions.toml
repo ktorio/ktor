@@ -9,7 +9,7 @@ atomicfu = "0.26.1"
 serialization = "1.7.3"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "1.9.20"
-kover = "0.9.0"
+kover = "0.9.1"
 ktlint = "4.5.0"
 kotlinx-browser = "0.3"
 
