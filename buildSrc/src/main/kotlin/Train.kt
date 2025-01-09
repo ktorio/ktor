@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-import internal.*
-import org.gradle.api.*
-import org.gradle.api.provider.*
-import org.gradle.api.tasks.testing.*
-import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.dsl.*
+import internal.libs
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 fun Project.filterSnapshotTests() {
     if (!buildSnapshotTrain) return
@@ -90,7 +90,7 @@ fun Project.getKotlinLanguageVersion(): KotlinVersion =
 private fun Project.resolveKotlinLanguageVersion(): KotlinVersion {
     val languageVersion = rootProject.findProperty("kotlin_language_version")
         ?.let { KotlinVersion.fromVersion(it.toString()) }
-        ?: KotlinVersion.KOTLIN_2_0
+        ?: KotlinVersion.KOTLIN_2_1
     logger.info("Kotlin language version: $languageVersion")
 
     return languageVersion

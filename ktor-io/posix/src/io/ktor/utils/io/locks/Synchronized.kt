@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.locks
@@ -7,10 +7,10 @@ package io.ktor.utils.io.locks
 import io.ktor.io.interop.mutex.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.*
-import platform.posix.*
+import platform.posix.pthread_self
+import platform.posix.pthread_t
 import kotlin.concurrent.AtomicNativePtr
 import kotlin.concurrent.AtomicReference
-import kotlin.native.concurrent.*
 import kotlin.native.internal.NativePtr
 
 /**
@@ -217,18 +217,13 @@ public actual open class SynchronizedObject {
         }
     }
 
-    @OptIn(FreezingIsDeprecated::class)
     protected class LockState(
         public val status: Status,
         public val nestedLocks: Int,
         public val waiters: Int,
         public val ownerThreadId: pthread_t? = null,
         public val mutex: CPointer<ktor_mutex_node_t>? = null
-    ) {
-        init {
-            freeze()
-        }
-    }
+    )
 
     protected enum class Status { UNLOCKED, THIN, FAT }
 
