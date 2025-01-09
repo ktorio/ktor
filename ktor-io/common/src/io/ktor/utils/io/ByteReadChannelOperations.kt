@@ -62,10 +62,28 @@ public suspend fun ByteReadChannel.readInt(): Int {
     return readBuffer.readInt()
 }
 
+/**
+ * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readFloat(): Float {
+    awaitUntilReadable(Float.SIZE_BYTES)
+    return readBuffer.readFloat()
+}
+
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readLong(): Long {
     awaitUntilReadable(Long.SIZE_BYTES)
     return readBuffer.readLong()
+}
+
+/**
+ * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readDouble(): Double {
+    awaitUntilReadable(Double.SIZE_BYTES)
+    return readBuffer.readDouble()
 }
 
 private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
