@@ -31,9 +31,7 @@ public suspend fun ByteWriteChannel.writeInt(value: Int) {
 }
 
 /**
- * Writes a 32-bit floating-point value to the current [ByteWriteChannel].
- *
- * @param value The floating-point value to be written to the channel.
+ * Writes a 32-bit floating-point [value] to the current [ByteWriteChannel].
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeFloat(value: Float) {
