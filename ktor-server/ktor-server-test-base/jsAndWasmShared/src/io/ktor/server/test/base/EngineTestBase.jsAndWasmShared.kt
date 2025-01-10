@@ -5,6 +5,7 @@
 package io.ktor.server.test.base
 
 import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -132,7 +133,6 @@ actual constructor(
         val starting = GlobalScope.async {
             server.startSuspend(wait = false)
             _port = server.engine.resolvedConnectors().first().port
-            delay(500)
         }
 
         return try {
@@ -161,7 +161,7 @@ actual constructor(
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient {
+        HttpClient(CIO) {
             followRedirects = false
             expectSuccess = false
 
