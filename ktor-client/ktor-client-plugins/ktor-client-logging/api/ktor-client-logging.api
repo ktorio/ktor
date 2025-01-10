@@ -39,10 +39,12 @@ public final class io/ktor/client/plugins/logging/LoggingConfig {
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLevel ()Lio/ktor/client/plugins/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/plugins/logging/Logger;
+	public final fun getStandardFormat ()Z
 	public final fun sanitizeHeader (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun sanitizeHeader$default (Lio/ktor/client/plugins/logging/LoggingConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setLevel (Lio/ktor/client/plugins/logging/LogLevel;)V
 	public final fun setLogger (Lio/ktor/client/plugins/logging/Logger;)V
+	public final fun setStandardFormat (Z)V
 }
 
 public final class io/ktor/client/plugins/logging/LoggingKt {
