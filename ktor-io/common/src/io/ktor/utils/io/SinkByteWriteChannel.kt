@@ -23,8 +23,7 @@ import kotlinx.io.*
  *
  * Please note that the channel will be buffered even if the sync is not.
  */
-public fun RawSink.asByteWriteChannel(): ByteWriteChannel = SinkByteWriteChannel(this).apply {
-}
+public fun RawSink.asByteWriteChannel(): ByteWriteChannel = SinkByteWriteChannel(this)
 
 private suspend fun x() {
     val rawSink: RawSink = Buffer()
