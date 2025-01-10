@@ -385,6 +385,7 @@ final fun (kotlinx.coroutines/CoroutineScope).io.ktor.utils.io/writer(kotlin.cor
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.utils.io/writer(kotlin.coroutines/CoroutineContext = ..., kotlin/Boolean = ..., kotlin.coroutines/SuspendFunction1<io.ktor.utils.io/WriterScope, kotlin/Unit>): io.ktor.utils.io/WriterJob // io.ktor.utils.io/writer|writer@kotlinx.coroutines.CoroutineScope(kotlin.coroutines.CoroutineContext;kotlin.Boolean;kotlin.coroutines.SuspendFunction1<io.ktor.utils.io.WriterScope,kotlin.Unit>){}[0]
 final fun (kotlinx.io/Buffer).io.ktor.utils.io.core/canRead(): kotlin/Boolean // io.ktor.utils.io.core/canRead|canRead@kotlinx.io.Buffer(){}[0]
 final fun (kotlinx.io/Buffer).io.ktor.utils.io.core/readBytes(kotlin/Int = ...): kotlin/ByteArray // io.ktor.utils.io.core/readBytes|readBytes@kotlinx.io.Buffer(kotlin.Int){}[0]
+final fun (kotlinx.io/RawSink).io.ktor.utils.io/asByteWriteChannel(): io.ktor.utils.io/ByteWriteChannel // io.ktor.utils.io/asByteWriteChannel|asByteWriteChannel@kotlinx.io.RawSink(){}[0]
 final fun (kotlinx.io/Sink).io.ktor.utils.io.core/append(kotlin/CharSequence, kotlin/Int = ..., kotlin/Int = ...) // io.ktor.utils.io.core/append|append@kotlinx.io.Sink(kotlin.CharSequence;kotlin.Int;kotlin.Int){}[0]
 final fun (kotlinx.io/Sink).io.ktor.utils.io.core/build(): kotlinx.io/Source // io.ktor.utils.io.core/build|build@kotlinx.io.Sink(){}[0]
 final fun (kotlinx.io/Sink).io.ktor.utils.io.core/writeFully(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...) // io.ktor.utils.io.core/writeFully|writeFully@kotlinx.io.Sink(kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
@@ -603,6 +604,12 @@ sealed class io.ktor.utils.io.errors/PosixException : kotlin/Exception { // io.k
         final fun forErrno(kotlin/Int = ..., kotlin/String? = ...): io.ktor.utils.io.errors/PosixException // io.ktor.utils.io.errors/PosixException.Companion.forErrno|forErrno(kotlin.Int;kotlin.String?){}[0]
     }
 }
+
+// Targets: [native]
+final fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/asSource(): kotlinx.io/RawSource // io.ktor.utils.io/asSource|asSource@io.ktor.utils.io.ByteReadChannel(){}[0]
+
+// Targets: [native]
+final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/asSink(): kotlinx.io/RawSink // io.ktor.utils.io/asSink|asSink@io.ktor.utils.io.ByteWriteChannel(){}[0]
 
 // Targets: [native]
 final fun (kotlinx.io/Sink).io.ktor.utils.io.core/write(kotlin/Function3<kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Long, kotlin/Long, kotlin/Long>): kotlin/Long // io.ktor.utils.io.core/write|write@kotlinx.io.Sink(kotlin.Function3<kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>,kotlin.Long,kotlin.Long,kotlin.Long>){}[0]
