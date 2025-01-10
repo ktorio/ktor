@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.test.base
 
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.test.junit.*
 import io.ktor.test.junit.coroutines.*
@@ -47,13 +48,20 @@ actual abstract class BaseTest actual constructor() {
 
     actual fun runTest(
         timeout: Duration,
+        retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
-        beforeTest()
-        try {
-            block()
-        } finally {
-            afterTest()
+    ): TestResult = retryTest(retries) { retry ->
+        runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
+            if (retry > 0) println("[Retry $retry/$retries]")
+            beforeTest()
+            try {
+                block()
+            } finally {
+                afterTest()
+            }
         }
     }
 }
+
+/** On JVM retries are disabled as we use test-retry Gradle plugin instead. */
+internal actual const val DEFAULT_RETRIES: Int = 0

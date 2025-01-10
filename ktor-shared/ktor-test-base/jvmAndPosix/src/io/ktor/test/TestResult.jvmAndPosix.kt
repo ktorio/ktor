@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.test
@@ -25,7 +25,7 @@ internal actual inline fun <T> runTestForEach(items: Iterable<T>, test: (T) -> T
     return DummyTestResult
 }
 
-internal actual inline fun retryTest(retries: Int, test: (Int) -> TestResult): TestResult {
+actual inline fun retryTest(retries: Int, test: (Int) -> TestResult): TestResult {
     lateinit var lastCause: Throwable
     repeat(retries + 1) { attempt ->
         try {

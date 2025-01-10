@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.test
@@ -14,7 +14,8 @@ internal actual inline fun testWithRecover(
 internal actual inline fun <T> runTestForEach(items: Iterable<T>, crossinline test: (T) -> TestResult): TestResult =
     items.fold(DummyTestResult) { acc, item -> acc.andThen { test(item) } }
 
-internal actual inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult =
+actual inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult =
     (1..retries).fold(test(0)) { acc, retry -> acc.catch { test(retry) } }
 
+@PublishedApi
 internal expect fun TestResult.catch(action: (Throwable) -> Any): TestResult
