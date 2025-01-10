@@ -106,7 +106,12 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
      * Long?: body size if calculated.
      * ByteReadChannel: body channel with the original data.
      */
-    suspend fun detectIfBinary(body: ByteReadChannel, contentLength: Long?, contentType: ContentType?, headers: Headers): Triple<Boolean, Long?, ByteReadChannel> {
+    suspend fun detectIfBinary(
+        body: ByteReadChannel,
+        contentLength: Long?,
+        contentType: ContentType?,
+        headers: Headers
+    ): Triple<Boolean, Long?, ByteReadChannel> {
         if (headers.contains(HttpHeaders.ContentEncoding)) {
             return Triple(true, contentLength, body)
         }
@@ -156,7 +161,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         return Triple(isBinary, contentLength, body)
     }
 
-    suspend fun logRequestBody(content: OutgoingContent, contentLength: Long?, headers: Headers, method: HttpMethod, body: ByteReadChannel) {
+    suspend fun logRequestBody(
+        content: OutgoingContent,
+        contentLength: Long?,
+        headers: Headers,
+        method: HttpMethod,
+        body: ByteReadChannel
+    ) {
         val (isBinary, size, newBody) = detectIfBinary(body, contentLength, content.contentType, headers)
 
         if (!isBinary) {
@@ -183,8 +194,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    suspend fun logOutgoingContent(content: OutgoingContent, method: HttpMethod, headers: Headers, process: (ByteReadChannel) -> ByteReadChannel = { it }): OutgoingContent? {
-        return when(content) {
+    suspend fun logOutgoingContent(
+        content: OutgoingContent,
+        method: HttpMethod,
+        headers: Headers,
+        process: (ByteReadChannel) -> ByteReadChannel = { it }
+    ): OutgoingContent? {
+        return when (content) {
             is OutgoingContent.ByteArrayContent -> {
                 val bytes = content.bytes()
                 logRequestBody(content, bytes.size.toLong(), headers, method, ByteReadChannel(bytes))
@@ -227,7 +243,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
         val body = request.body
         val headers = HeadersBuilder().apply {
-            if (body is OutgoingContent && request.method != HttpMethod.Get && request.method != HttpMethod.Head && body !is EmptyContent) {
+            if (body is OutgoingContent &&
+                request.method != HttpMethod.Get &&
+                request.method != HttpMethod.Head &&
+                body !is EmptyContent
+            ) {
                 body.contentType?.let {
                     appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
                 }
@@ -240,15 +260,16 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         val contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val startLine = when {
-            (request.method == HttpMethod.Get) || (request.method == HttpMethod.Head)
-                || ((isHeaders() || isBody()) && contentLength != null)
-                || (isHeaders() && contentLength == null)
-                || headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
+            (request.method == HttpMethod.Get) ||
+                (request.method == HttpMethod.Head) ||
+                ((isHeaders() || isBody()) && contentLength != null) ||
+                (isHeaders() && contentLength == null) ||
+                headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
 
             isInfo() && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
 
-            body is OutgoingContent.WriteChannelContent
-                || body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
+            body is OutgoingContent.WriteChannelContent ||
+                body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
 
             else -> {
                 val size = calcRequestBodySize(request.body, headers)
@@ -283,7 +304,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         val newContent = if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
-             logOutgoingContent(body, request.method, headers) { channel ->
+            logOutgoingContent(body, request.method, headers) { channel ->
                 GZipEncoder.decode(channel)
             }
         } else {
@@ -296,7 +317,12 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel) {
         logger.log("")
 
-        val (isBinary, size, newBody) = detectIfBinary(body, response.contentLength(), response.contentType(), response.headers)
+        val (isBinary, size, newBody) = detectIfBinary(
+            body,
+            response.contentLength(),
+            response.contentType(),
+            response.headers
+        )
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         if (size == 0L) {
@@ -336,13 +362,18 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         val startLine = when {
-            response.headers[HttpHeaders.TransferEncoding] == "chunked"
-                && (isInfo() || isHeaders()) ->  "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
+            response.headers[HttpHeaders.TransferEncoding] == "chunked" &&
+                (isInfo() || isHeaders()) ->
+                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
 
-            isInfo() && contentLength != null -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
+            isInfo() && contentLength != null ->
+                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
 
-            isBody() || (isInfo() && contentLength == null) || (isHeaders() && contentLength != null)
-                || (response.headers[HttpHeaders.ContentEncoding] == "gzip") -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
+            isBody() ||
+                (isInfo() && contentLength == null) ||
+                (isHeaders() && contentLength != null) ||
+                (response.headers[HttpHeaders.ContentEncoding] == "gzip") ->
+                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
 
             else -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
         }
@@ -388,7 +419,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val call = response.call.wrapWithContent(origChannel)
         return call.response
     }
-
 
     @OptIn(DelicateCoroutinesApi::class)
     suspend fun logRequestBody(
@@ -602,7 +632,7 @@ private fun Url.pathQuery(): String {
 private fun calcRequestBodySize(content: Any, headers: Headers): Long {
     check(content is OutgoingContent)
 
-    return when(content) {
+    return when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes().size.toLong()
         is OutgoingContent.ContentWrapper -> calcRequestBodySize(content.delegate(), content.headers)
         is OutgoingContent.NoContent -> 0
@@ -640,7 +670,8 @@ private object ResponseHook : ClientHook<suspend ResponseHook.Context.(response:
     }
 }
 
-private object ResponseAfterEncodingHook : ClientHook<suspend ResponseAfterEncodingHook.Context.(response: HttpResponse) -> Unit> {
+private object ResponseAfterEncodingHook :
+    ClientHook<suspend ResponseAfterEncodingHook.Context.(response: HttpResponse) -> Unit> {
 
     class Context(private val context: PipelineContext<HttpResponse, Unit>) {
         suspend fun proceedWith(response: HttpResponse) = context.proceedWith(response)

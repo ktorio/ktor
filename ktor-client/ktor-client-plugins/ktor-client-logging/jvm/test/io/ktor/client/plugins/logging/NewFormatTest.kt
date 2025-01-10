@@ -63,7 +63,9 @@ class NewFormatTest {
         }
 
         fun assertNoMoreLogs(): LogRecorder {
-            assertTrue(message = "There are ${loggedLines.size - currentLine} more logs, expected none") { currentLine >= loggedLines.size }
+            assertTrue(
+                message = "There are ${loggedLines.size - currentLine} more logs, expected none"
+            ) { currentLine >= loggedLines.size }
             return this
         }
     }
@@ -102,7 +104,10 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicGet404() = testWithLevel(LogLevel.INFO, handle = { respondWithLength("", HttpStatusCode.NotFound) }) { client ->
+    fun basicGet404() = testWithLevel(
+        LogLevel.INFO,
+        handle = { respondWithLength("", HttpStatusCode.NotFound) }
+    ) { client ->
         client.get("/")
 
         log.assertLogEqual("--> GET /")
@@ -165,7 +170,6 @@ class NewFormatTest {
         log.assertLogEqual("--> POST / (0-byte body)")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
-
     }
 
     @Test
@@ -182,7 +186,10 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicPostReadChannelWithContentLength() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
+    fun basicPostReadChannelWithContentLength() = testWithLevel(
+        LogLevel.INFO,
+        handle = { respondWithLength() }
+    ) { client ->
         client.post("/") {
             setBody(object : OutgoingContent.ReadChannelContent() {
                 override val contentLength: Long?
@@ -227,7 +234,10 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicPostWriteChannelWithContentLength() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
+    fun basicPostWriteChannelWithContentLength() = testWithLevel(
+        LogLevel.INFO,
+        handle = { respondWithLength() }
+    ) { client ->
         client.post("/") {
             setBody(object : OutgoingContent.WriteChannelContent() {
                 override suspend fun writeTo(channel: ByteWriteChannel) {
@@ -255,12 +265,15 @@ class NewFormatTest {
     }
 
     @Test
-    fun basicGzippedBody()  = testWithLevel(LogLevel.INFO, handle = {
+    fun basicGzippedBody() = testWithLevel(LogLevel.INFO, handle = {
         val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
-        respond(channel, headers = Headers.build {
-            append(HttpHeaders.ContentEncoding, "gzip")
-            append(HttpHeaders.ContentLength, "29")
-        })
+        respond(
+            channel,
+            headers = Headers.build {
+                append(HttpHeaders.ContentEncoding, "gzip")
+                append(HttpHeaders.ContentLength, "29")
+            }
+        )
     }) { client ->
         client.prepareGet("/").execute { response ->
             log.assertLogEqual("--> GET /")
@@ -282,10 +295,13 @@ class NewFormatTest {
             engine {
                 addHandler {
                     val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
-                    respond(channel, headers = Headers.build {
-                        append(HttpHeaders.ContentEncoding, "gzip")
-                        append(HttpHeaders.ContentLength, "29")
-                    })
+                    respond(
+                        channel,
+                        headers = Headers.build {
+                            append(HttpHeaders.ContentEncoding, "gzip")
+                            append(HttpHeaders.ContentLength, "29")
+                        }
+                    )
                 }
             }
         }.use { client ->
@@ -300,9 +316,12 @@ class NewFormatTest {
 
     @Test
     fun basicChunkedResponseBody() = testWithLevel(LogLevel.INFO, handle = {
-        respond(ByteReadChannel("test"), headers = Headers.build {
-            append(HttpHeaders.TransferEncoding, "chunked")
-        })
+        respond(
+            ByteReadChannel("test"),
+            headers = Headers.build {
+                append(HttpHeaders.TransferEncoding, "chunked")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -364,9 +383,12 @@ class NewFormatTest {
 
     @Test
     fun customHeaders() = testWithLevel(LogLevel.HEADERS, handle = {
-        respondWithLength("hello", headers = Headers.build {
-            append("Custom-Response", "value")
-        })
+        respondWithLength(
+            "hello",
+            headers = Headers.build {
+                append("Custom-Response", "value")
+            }
+        )
     }) { client ->
         client.get("/") {
             setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
@@ -428,10 +450,13 @@ class NewFormatTest {
     fun headersGzippedResponseBody() = testWithLevel(LogLevel.HEADERS, handle = {
         val content = "a".repeat(1024)
         val channel = GZipEncoder.encode(ByteReadChannel(content))
-        respond(channel, headers = Headers.build {
-            append(HttpHeaders.ContentEncoding, "gzip")
-            append(HttpHeaders.ContentLength, "29")
-        })
+        respond(
+            channel,
+            headers = Headers.build {
+                append(HttpHeaders.ContentEncoding, "gzip")
+                append(HttpHeaders.ContentLength, "29")
+            }
+        )
     }) { client ->
         client.get("/")
 
@@ -479,10 +504,13 @@ class NewFormatTest {
     @Test
     fun bodyGzippedResponseBody() = testWithLevel(LogLevel.BODY, handle = {
         val channel = GZipEncoder.encode(ByteReadChannel("response".repeat(1024)))
-        respond(channel, headers = Headers.build {
-            append(HttpHeaders.ContentEncoding, "gzip")
-            append(HttpHeaders.ContentLength, "55")
-        })
+        respond(
+            channel,
+            headers = Headers.build {
+                append(HttpHeaders.ContentEncoding, "gzip")
+                append(HttpHeaders.ContentLength, "55")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -499,10 +527,13 @@ class NewFormatTest {
 
     @Test
     fun bodyResponseBodyBrEncoded() = testWithLevel(LogLevel.BODY, handle = {
-        respond(byteArrayOf(0xC3.toByte(), 0x28), headers = Headers.build {
-            append(HttpHeaders.ContentEncoding, "br")
-            append(HttpHeaders.ContentLength, "2")
-        })
+        respond(
+            byteArrayOf(0xC3.toByte(), 0x28),
+            headers = Headers.build {
+                append(HttpHeaders.ContentEncoding, "br")
+                append(HttpHeaders.ContentLength, "2")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -519,9 +550,12 @@ class NewFormatTest {
 
     @Test
     fun detectResponseBodyAsTextualFor2ByteNonValidUTF8String() = testWithLevel(LogLevel.BODY, handle = {
-        respond(byteArrayOf(0xC3.toByte(), 0x28), headers = Headers.build {
-            append(HttpHeaders.ContentLength, "2")
-        })
+        respond(
+            byteArrayOf(0xC3.toByte(), 0x28),
+            headers = Headers.build {
+                append(HttpHeaders.ContentLength, "2")
+            }
+        )
     }) { client ->
 
         client.get("/")
@@ -583,9 +617,13 @@ class NewFormatTest {
 
     @Test
     fun bodyGet204() = testWithLevel(LogLevel.BODY, handle = {
-        respond("", status = HttpStatusCode.NoContent, headers = Headers.build {
-            append(HttpHeaders.ContentLength, "0")
-        })
+        respond(
+            "",
+            status = HttpStatusCode.NoContent,
+            headers = Headers.build {
+                append(HttpHeaders.ContentLength, "0")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -600,9 +638,13 @@ class NewFormatTest {
 
     @Test
     fun bodyGet205() = testWithLevel(LogLevel.BODY, handle = {
-        respond("", status = HttpStatusCode.ResetContent, headers = Headers.build {
-            append(HttpHeaders.ContentLength, "0")
-        })
+        respond(
+            "",
+            status = HttpStatusCode.ResetContent,
+            headers = Headers.build {
+                append(HttpHeaders.ContentLength, "0")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -750,7 +792,10 @@ class NewFormatTest {
     }
 
     @Test
-    fun bodyResponseBodyChunked() = testWithLevel(LogLevel.BODY, handle = { respondChunked(ByteReadChannel("hello!")) }) { client ->
+    fun bodyResponseBodyChunked() = testWithLevel(
+        LogLevel.BODY,
+        handle = { respondChunked(ByteReadChannel("hello!")) }
+    ) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
             .assertLogEqual("Accept-Charset: UTF-8")
@@ -767,7 +812,9 @@ class NewFormatTest {
 
     @Test
     fun bodyResponseIsStreaming() = testWithLevel(LogLevel.BODY, handle = {
-        respondChunked(ByteReadChannel("""
+        respondChunked(
+            ByteReadChannel(
+                """
           |event: add
           |data: 73857293
           |
@@ -778,7 +825,10 @@ class NewFormatTest {
           |data: 113411
           |
           |
-          """.trimMargin()), contentType = ContentType.Text.EventStream)
+                """.trimMargin()
+            ),
+            contentType = ContentType.Text.EventStream
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -794,9 +844,12 @@ class NewFormatTest {
 
     @Test
     fun bodyGetMalformedCharset() = testWithLevel(LogLevel.BODY, handle = {
-        respond("test", headers = Headers.build {
-            append(HttpHeaders.ContentType, "text/html; charset=0")
-        })
+        respond(
+            "test",
+            headers = Headers.build {
+                append(HttpHeaders.ContentType, "text/html; charset=0")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -813,9 +866,12 @@ class NewFormatTest {
 
     @Test
     fun bodyResponseBodyIsBinary() = testWithLevel(LogLevel.BODY, handle = {
-        respond(byteArrayOf((0x89).toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a), headers = Headers.build {
-            append(HttpHeaders.ContentType, "image/png; charset=utf-8")
-        })
+        respond(
+            byteArrayOf((0x89).toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a),
+            headers = Headers.build {
+                append(HttpHeaders.ContentType, "image/png; charset=utf-8")
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -832,10 +888,13 @@ class NewFormatTest {
     @Test
     fun bodyResponseBodyIsBinaryContentLength() = testWithLevel(LogLevel.BODY, handle = {
         val data = byteArrayOf((0x89).toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
-        respond(data, headers = Headers.build {
-            append(HttpHeaders.ContentType, "image/png; charset=utf-8")
-            append(HttpHeaders.ContentLength, data.size.toString())
-        })
+        respond(
+            data,
+            headers = Headers.build {
+                append(HttpHeaders.ContentType, "image/png; charset=utf-8")
+                append(HttpHeaders.ContentLength, data.size.toString())
+            }
+        )
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
@@ -893,10 +952,13 @@ class NewFormatTest {
 
             engine {
                 addHandler {
-                    respondWithLength("", headers = Headers.build {
-                        append("SeNsItIvE", "value")
-                        append("Not-Sensitive", "value")
-                    })
+                    respondWithLength(
+                        "",
+                        headers = Headers.build {
+                            append("SeNsItIvE", "value")
+                            append("Not-Sensitive", "value")
+                        }
+                    )
                 }
             }
         }.use { client ->
@@ -917,7 +979,6 @@ class NewFormatTest {
                 .assertLogEqual("Content-Type: text/plain")
                 .assertLogEqual("<-- END HTTP")
                 .assertNoMoreLogs()
-
         }
     }
 
@@ -956,12 +1017,14 @@ class NewFormatTest {
                 .assertLogEqual("response body")
                 .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 13-byte body\)"""))
                 .assertNoMoreLogs()
-
         }
     }
 
     @Test
-    fun sizeInBytesForUtf8ResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("привет") }) { client ->
+    fun sizeInBytesForUtf8ResponseBody() = testWithLevel(
+        LogLevel.BODY,
+        handle = { respondWithLength("привет") }
+    ) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
             .assertLogEqual("Accept-Charset: UTF-8")
@@ -977,7 +1040,10 @@ class NewFormatTest {
     }
 
     @Test
-    fun bodyGzippedRequestBodyContentLength() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
+    fun bodyGzippedRequestBodyContentLength() = testWithLevel(
+        LogLevel.BODY,
+        handle = { respondWithLength() }
+    ) { client ->
         client.post("/") {
             header(HttpHeaders.ContentEncoding, "gzip")
             setBody(object : OutgoingContent.ReadChannelContent() {
@@ -987,7 +1053,6 @@ class NewFormatTest {
 
                 override val contentLength: Long?
                     get() = 29
-
             })
         }
         log.assertLogEqual("--> POST /")
@@ -1143,36 +1208,70 @@ class NewFormatTest {
     }
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
-        return respond("", headers = Headers.build {
-            append("Content-Length", "0")
-        })
+        return respond(
+            "",
+            headers = Headers.build {
+                append("Content-Length", "0")
+            }
+        )
     }
 
-    private fun MockRequestHandleScope.respondChunked(body: ByteReadChannel, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
-        return respond(body, headers = Headers.build {
-            appendAll(headers)
-            append("Transfer-Encoding", "chunked")
-            set("Content-Type", contentType.toString())
-        }, status = status)
+    private fun MockRequestHandleScope.respondChunked(
+        body: ByteReadChannel,
+        status: HttpStatusCode = HttpStatusCode.OK,
+        contentType: ContentType = ContentType.Text.Plain,
+        headers: Headers = Headers.Empty
+    ): HttpResponseData {
+        return respond(
+            body,
+            headers = Headers.build {
+                appendAll(headers)
+                append("Transfer-Encoding", "chunked")
+                set("Content-Type", contentType.toString())
+            },
+            status = status
+        )
     }
 
-    private fun MockRequestHandleScope.respondWithLength(body: String, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
-        return respond(ByteReadChannel(body), headers = Headers.build {
-            appendAll(headers)
-            append("Content-Length", body.toByteArray(Charsets.UTF_8).size.toString())
-            set("Content-Type", contentType.toString())
-        }, status = status)
+    private fun MockRequestHandleScope.respondWithLength(
+        body: String,
+        status: HttpStatusCode = HttpStatusCode.OK,
+        contentType: ContentType = ContentType.Text.Plain,
+        headers: Headers = Headers.Empty
+    ): HttpResponseData {
+        return respond(
+            ByteReadChannel(body),
+            headers = Headers.build {
+                appendAll(headers)
+                append("Content-Length", body.toByteArray(Charsets.UTF_8).size.toString())
+                set("Content-Type", contentType.toString())
+            },
+            status = status
+        )
     }
 
-    private fun MockRequestHandleScope.respondWithLength(body: ByteArray, status: HttpStatusCode = HttpStatusCode.OK, contentType: ContentType = ContentType.Text.Plain, headers: Headers = Headers.Empty): HttpResponseData {
-        return respond(ByteReadChannel(body), headers = Headers.build {
-            appendAll(headers)
-            append("Content-Length", body.size.toString())
-            set("Content-Type", contentType.toString())
-        }, status = status)
+    private fun MockRequestHandleScope.respondWithLength(
+        body: ByteArray,
+        status: HttpStatusCode = HttpStatusCode.OK,
+        contentType: ContentType = ContentType.Text.Plain,
+        headers: Headers = Headers.Empty
+    ): HttpResponseData {
+        return respond(
+            ByteReadChannel(body),
+            headers = Headers.build {
+                appendAll(headers)
+                append("Content-Length", body.size.toString())
+                set("Content-Type", contentType.toString())
+            },
+            status = status
+        )
     }
 
-    private fun testWithLevel(lvl: LogLevel, handle: MockRequestHandler, test: suspend (HttpClient) -> Unit) = runTest {
+    private fun testWithLevel(
+        lvl: LogLevel,
+        handle: MockRequestHandler,
+        test: suspend (HttpClient) -> Unit
+    ) = runTest {
         HttpClient(MockEngine) {
             install(Logging) {
                 level = lvl
