@@ -36,7 +36,7 @@ class BaseTestTest : BaseTest() {
     }
 
     @Test
-    fun `runTest - retry should work collected exceptions`(): TestResult {
+    fun `runTest - retry should work with collected exceptions`(): TestResult {
         var retryCount = 0
         return runTest(retries = 1) {
             if (retryCount++ < 1) collectUnhandledException(Exception("This test should be retried"))
