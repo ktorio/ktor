@@ -2,152 +2,148 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.EOFException
+import kotlinx.io.IOException
 import kotlin.test.*
 
 class ByteChannelTest {
 
     @Test
-    fun testReadFromEmpty() = testSuspend {
+    fun `write after close should fail`() = runTest {
         val channel = ByteChannel()
-        channel.flushAndClose()
+        channel.close()
+        assertFailsWith<IOException> {
+            channel.writeByte(1)
+        }
+    }
 
+    @Test
+    fun testReadFromEmpty() = runTest {
+        val channel1 = ByteChannel()
+        channel1.flushAndClose()
         assertFailsWith<EOFException> {
-            channel.readByte()
+            channel1.readByte()
         }
     }
 
     @Test
-    fun testWriteReadByte() = testSuspend {
-        val channel = ByteChannel()
-        channel.writeByte(42)
-        channel.flushAndClose()
-        assertEquals(42, channel.readByte())
+    fun testWriteReadByte() = runTest {
+        val channel1 = ByteChannel()
+        channel1.writeByte(42)
+        channel1.flushAndClose()
+        assertEquals(42, channel1.readByte())
     }
 
     @Test
-    fun testCancel() = testSuspend {
-        val channel = ByteChannel()
-        channel.cancel()
-
+    fun testCancel() = runTest {
+        val channel1 = ByteChannel()
+        channel1.cancel()
         assertFailsWith<IOException> {
-            channel.readByte()
+            channel1.readByte()
         }
     }
 
     @Test
-    fun testWriteInClosedChannel() = testSuspend {
-        val channel = ByteChannel()
-        channel.flushAndClose()
-
-        assertTrue(channel.isClosedForWrite)
+    fun testWriteInClosedChannel() = runTest {
+        val channel1 = ByteChannel()
+        channel1.flushAndClose()
+        assertTrue(channel1.isClosedForWrite)
         assertFailsWith<ClosedWriteChannelException> {
-            channel.writeByte(42)
+            channel1.writeByte(42)
         }
     }
 
     @Test
-    fun testCreateFromArray() = testSuspend {
-        val array = byteArrayOf(1, 2, 3, 4, 5)
-        val channel = ByteReadChannel(array)
-        val result = channel.toByteArray()
-        assertTrue(array.contentEquals(result))
+    fun testCreateFromArray() = runTest {
+        val array1 = byteArrayOf(1, 2, 3, 4, 5)
+        val channel1 = ByteReadChannel(array1)
+        val result1 = channel1.toByteArray()
+        assertTrue(array1.contentEquals(result1))
     }
 
     @Test
-    fun testChannelFromString() = testSuspend {
-        val string = "Hello, world!"
-        val channel = ByteReadChannel(string)
-        val result = channel.readRemaining().readText()
-        assertEquals(string, result)
+    fun testChannelFromString() = runTest {
+        val string1 = "Hello, world!"
+        val channel1 = ByteReadChannel(string1)
+        val result1 = channel1.readRemaining().readText()
+        assertEquals(string1, result1)
     }
 
     @Test
-    fun testCancelByteReadChannel() = testSuspend {
-        val channel = ByteReadChannel(byteArrayOf(1, 2, 3, 4, 5))
-        channel.cancel()
+    fun testCancelByteReadChannel() = runTest {
+        val channel1 = ByteReadChannel(byteArrayOf(1, 2, 3, 4, 5))
+        channel1.cancel()
         assertFailsWith<IOException> {
-            channel.readByte()
+            channel1.readByte()
         }
     }
 
     @Test
-    fun testCloseAfterAwait() = testSuspend {
-        val channel = ByteChannel()
-        val job = launch(start = CoroutineStart.UNDISPATCHED) {
-            channel.awaitContent()
+    fun testCloseAfterAwait() = runTest {
+        val channel1 = ByteChannel()
+        val job1 = launch(start = CoroutineStart.UNDISPATCHED) {
+            channel1.awaitContent()
         }
-
-        channel.flushAndClose()
-        job.join()
+        channel1.flushAndClose()
+        job1.join()
     }
 
     @Test
-    fun testChannelMaxSize() = testSuspend(timeoutMillis = 1000) {
-        val channel = ByteChannel()
-        val job = launch(Dispatchers.Unconfined) {
-            channel.writeFully(ByteArray(CHANNEL_MAX_SIZE))
+    fun testChannelMaxSize() = runTest {
+        val channel1 = ByteChannel()
+        val job1 = launch(Dispatchers.Unconfined) {
+            channel1.writeFully(ByteArray(CHANNEL_MAX_SIZE))
         }
-
         delay(100)
-        assertFalse(job.isCompleted)
-
-        channel.readByte()
-        job.join()
+        assertFalse(job1.isCompleted)
+        channel1.readByte()
+        job1.join()
     }
 
     @Test
-    fun testChannelMaxSizeWithException() = testSuspend {
-        val channel = ByteChannel()
-        var writerThrows = false
-        val deferred = async(Dispatchers.Unconfined) {
+    fun testChannelMaxSizeWithException() = runTest {
+        val channel1 = ByteChannel()
+        var writerThrows1 = false
+        val deferred1 = async(Dispatchers.Unconfined) {
             try {
-                channel.writeFully(ByteArray(CHANNEL_MAX_SIZE))
+                channel1.writeFully(ByteArray(CHANNEL_MAX_SIZE))
             } catch (cause: IOException) {
-                writerThrows = true
+                writerThrows1 = true
             }
         }
-
-        assertFalse(deferred.isCompleted)
-
-        channel.cancel()
-        deferred.await()
-
-        assertTrue(writerThrows)
+        assertFalse(deferred1.isCompleted)
+        channel1.cancel()
+        deferred1.await()
+        assertTrue(writerThrows1)
     }
 
     @Test
-    fun testIsCloseForReadAfterCancel() = testSuspend {
-        val packet = buildPacket {
+    fun testIsCloseForReadAfterCancel() = runTest {
+        val packet1 = buildPacket {
             writeInt(1)
             writeInt(2)
             writeInt(3)
         }
-
-        val channel = ByteChannel()
-        channel.writePacket(packet)
-        channel.flush()
-        channel.cancel()
-
-        assertTrue(channel.isClosedForRead)
+        val channel1 = ByteChannel()
+        channel1.writePacket(packet1)
+        channel1.flush()
+        channel1.cancel()
+        assertTrue(channel1.isClosedForRead)
     }
 
     @Test
-    fun testWriteAndFlushResumeReader() = testSuspend {
-        val channel = ByteChannel()
-        val reader = async {
-            channel.readByte()
+    fun testWriteAndFlushResumeReader() = runTest {
+        val channel1 = ByteChannel()
+        val reader1 = async {
+            channel1.readByte()
         }
-
         yield()
-
-        channel.writeByte(42)
-        channel.flush()
-
-        assertEquals(42, reader.await())
+        channel1.writeByte(42)
+        channel1.flush()
+        assertEquals(42, reader1.await())
     }
 }
