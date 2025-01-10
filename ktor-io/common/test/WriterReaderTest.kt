@@ -6,42 +6,38 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class WriterReaderTest {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testWriterOnCancelled() = testSuspend {
-        val job = Job()
-        job.cancel()
-
-        val writer = GlobalScope.writer(coroutineContext = job) {
+    fun testWriterOnCancelled() = runTest {
+        val job1 = Job()
+        job1.cancel()
+        val writer1 = GlobalScope.writer(coroutineContext = job1) {
         }
-
         assertFailsWith<CancellationException> {
-            writer.channel.readByte()
+            writer1.channel.readByte()
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testReaderOnCancelled() = testSuspend {
-        val job = Job()
-        job.cancel()
-
-        val reader = GlobalScope.reader(coroutineContext = job) {
+    fun testReaderOnCancelled() = runTest {
+        val job1 = Job()
+        job1.cancel()
+        val reader1 = GlobalScope.reader(coroutineContext = job1) {
         }
-
         delay(100L)
-
         assertFailsWith<CancellationException> {
-            reader.channel.writeByte(42)
+            reader1.channel.writeByte(42)
         }
     }
 
     @Test
-    fun testReaderWaitsNestedLaunch() = testSuspend {
+    fun testReaderWaitsNestedLaunch() = runTest {
         val incoming = ByteChannel()
         val out = reader {
             launch {
@@ -57,7 +53,7 @@ class WriterReaderTest {
     }
 
     @Test
-    fun testWriterWaitsNestedLaunch() = testSuspend {
+    fun testWriterWaitsNestedLaunch() = runTest {
         val out = ByteChannel()
 
         val incoming = writer {

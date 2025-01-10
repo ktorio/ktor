@@ -111,7 +111,7 @@ class ByteChannelTest {
         val deferred1 = async(Dispatchers.Unconfined) {
             try {
                 channel1.writeFully(ByteArray(CHANNEL_MAX_SIZE))
-            } catch (cause: IOException) {
+            } catch (_: IOException) {
                 writerThrows1 = true
             }
         }
