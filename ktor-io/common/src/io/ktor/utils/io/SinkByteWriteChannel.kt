@@ -21,7 +21,7 @@ import kotlinx.io.*
  * (rawSink as Buffer).readString() // "Hello, world"
  * ```
  *
- * Please note that the channel will be buffered even if the sync is not.
+ * Please note that the channel will be buffered even if the sink is not.
  */
 public fun RawSink.asByteWriteChannel(): ByteWriteChannel = SinkByteWriteChannel(this)
 
