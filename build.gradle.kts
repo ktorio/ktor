@@ -27,6 +27,7 @@ val configuredVersion: String by extra
 apply(from = "gradle/verifier.gradle")
 
 val internalProjects = listOf(
+    "ktor-client-test-base",
     "ktor-client-tests",
     "ktor-server-test-base",
     "ktor-server-test-suites",
