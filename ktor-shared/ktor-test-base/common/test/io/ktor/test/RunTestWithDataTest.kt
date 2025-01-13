@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.test
@@ -101,9 +101,9 @@ class RunTestWithDataTest {
     fun testRetriesHaveIndependentTimeout() = runTestWithData(
         singleTestCase,
         retries = 1,
-        timeout = 30.milliseconds,
+        timeout = 50.milliseconds,
         test = { (_, retry) ->
-            realTimeDelay(20.milliseconds)
+            realTimeDelay(30.milliseconds)
             if (retry == 0) fail("Try again, please")
         },
     )
@@ -111,8 +111,8 @@ class RunTestWithDataTest {
     @Test
     fun testDifferentItemsHaveIndependentTimeout() = runTestWithData(
         testCases = 1..2,
-        timeout = 30.milliseconds,
-        test = { realTimeDelay(20.milliseconds) },
+        timeout = 50.milliseconds,
+        test = { realTimeDelay(30.milliseconds) },
     )
 
     @Test

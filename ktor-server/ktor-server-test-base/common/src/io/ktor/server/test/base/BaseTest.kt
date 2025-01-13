@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.test.base
@@ -16,21 +16,15 @@ expect abstract class BaseTest() {
     open fun afterTest()
 
     fun collectUnhandledException(error: Throwable) // TODO: better name?
-    fun runTest(timeout: Duration = 60.seconds, block: suspend CoroutineScope.() -> Unit): TestResult
+    fun runTest(
+        timeout: Duration = 60.seconds,
+        retries: Int = DEFAULT_RETRIES,
+        block: suspend CoroutineScope.() -> Unit
+    ): TestResult
 }
 
-fun BaseTest.runTest(
-    retry: Int,
-    timeout: Duration = this.timeout,
-    block: suspend CoroutineScope.() -> Unit
-): TestResult {
-    lateinit var lastCause: Throwable
-    repeat(retry) {
-        try {
-            return runTest(timeout, block)
-        } catch (cause: Throwable) {
-            lastCause = cause
-        }
-    }
-    throw lastCause
-}
+/**
+ * Defaults to `1` on all platforms except for JVM.
+ * On JVM retries are disabled as we use test-retry Gradle plugin instead.
+ */
+internal expect val DEFAULT_RETRIES: Int

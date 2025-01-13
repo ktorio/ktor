@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.test
@@ -18,4 +18,21 @@ expect inline fun TestResult.andThen(crossinline block: () -> Any): TestResult
 internal expect inline fun testWithRecover(noinline recover: (Throwable) -> Unit, test: () -> TestResult): TestResult
 
 internal expect inline fun <T> runTestForEach(items: Iterable<T>, crossinline test: (T) -> TestResult): TestResult
-internal expect inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult
+
+/**
+ * Executes a test function with retry capabilities.
+ *
+ * ```
+ * retryTest(retires = 2) { retry ->
+ *     runTest {
+ *         println("This test passes only on second retry. Current retry is $retry")
+ *         assertEquals(2, retry)
+ *     }
+ * }
+ * ```
+ *
+ * @param retries The number of retries to attempt after an initial failure. Must be a non-negative integer.
+ * @param test A test to execute, which accepts the current retry attempt (starting at 0) as an argument.
+ * @return A [TestResult] representing the outcome of the test after all attempts.
+ */
+expect inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult

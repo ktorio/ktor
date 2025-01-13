@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.test.base
 
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.locks.*
@@ -12,15 +13,14 @@ import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(InternalAPI::class)
 actual abstract class BaseTest actual constructor() {
     actual open val timeout: Duration = 10.seconds
 
     private val errors = mutableListOf<Throwable>()
 
-    @OptIn(InternalAPI::class)
     private val errorsLock = SynchronizedObject()
 
-    @OptIn(InternalAPI::class)
     actual fun collectUnhandledException(error: Throwable) {
         synchronized(errorsLock) {
             errors.add(error)
@@ -31,6 +31,9 @@ actual abstract class BaseTest actual constructor() {
     }
 
     actual open fun afterTest() {
+        val errors = synchronized(errorsLock) { errors.toList() }
+        this.errors.clear()
+
         if (errors.isEmpty()) return
 
         val error = UnhandledErrorsException(
@@ -46,15 +49,21 @@ actual abstract class BaseTest actual constructor() {
 
     actual fun runTest(
         timeout: Duration,
+        retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = runTestWithRealTime(timeout = timeout) {
-        beforeTest()
-        try {
-            block()
-        } finally {
-            afterTest()
+    ): TestResult = retryTest(retries) { retry ->
+        runTestWithRealTime(timeout = timeout) {
+            if (retry > 0) println("[Retry $retry/$retries]")
+            beforeTest()
+            try {
+                block()
+            } finally {
+                afterTest()
+            }
         }
     }
 }
+
+internal actual const val DEFAULT_RETRIES: Int = 1
 
 private class UnhandledErrorsException(override val message: String) : Exception()
