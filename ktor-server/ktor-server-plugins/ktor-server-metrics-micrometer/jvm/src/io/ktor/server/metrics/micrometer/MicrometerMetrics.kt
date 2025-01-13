@@ -4,6 +4,7 @@
 
 package io.ktor.server.metrics.micrometer
 
+import io.ktor.http.HttpMethod.Companion.DefaultMethods
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.application.hooks.Metrics
@@ -146,19 +147,22 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         @OptIn(InternalAPI::class)
         on(Metrics) { call ->
-            active?.incrementAndGet()
-            call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
+            if (call.request.httpMethod in DefaultMethods) {
+                active?.incrementAndGet()
+                call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
+            }
         }
 
         on(ResponseSent) { call ->
-            active?.decrementAndGet()
-            val measure = call.attributes[measureKey]
-            measure.timer.stop(
-                Timer.builder(metricName)
-                    .addDefaultTags(call, measure.throwable)
-                    .apply { pluginConfig.timerBuilder(this, call, measure.throwable) }
-                    .register(registry)
-            )
+            call.attributes.getOrNull(measureKey)?.let { measure ->
+                active?.decrementAndGet()
+                measure.timer.stop(
+                    Timer.builder(metricName)
+                        .addDefaultTags(call, measure.throwable)
+                        .apply { pluginConfig.timerBuilder(this, call, measure.throwable) }
+                        .register(registry)
+                )
+            }
         }
 
         on(CallFailed) { call, cause ->
@@ -167,7 +171,9 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         }
 
         application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
-            call.attributes[measureKey].route = call.route.parent.toString()
+            call.attributes.getOrNull(measureKey)?.let { measure ->
+                measure.route = call.route.parent.toString()
+            }
         }
     }
 
