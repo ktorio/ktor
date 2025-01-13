@@ -79,5 +79,4 @@ class ApplicationRequestContentTest {
             }
         }.joinAll()
     }
-
 }
