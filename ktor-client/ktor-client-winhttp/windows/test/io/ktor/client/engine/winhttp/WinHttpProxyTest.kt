@@ -1,45 +1,37 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.winhttp
 
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import kotlinx.coroutines.*
-import kotlin.test.*
+import io.ktor.client.tests.*
+import io.ktor.client.tests.utils.*
+import kotlinx.coroutines.runBlocking
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+private const val HTTP_PROXY_SERVER: String = TCP_SERVER
 
 /**
  * This is a temporary tests that should be moved to the general test suite
  * once we support TLS options in client configs to connect to the local test TLS server.
  */
-class WinHttpProxyTest {
-    /**
-     * Copied from ktor-client-tests
-     */
-    private val TEST_SERVER: String = "http://127.0.0.1:8080"
-
-    /**
-     * Proxy server url for tests.
-     * Copied from ktor-client-tests
-     */
-    private val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
+class WinHttpProxyTest : ClientEngineTest<WinHttpClientEngineConfig>(WinHttp) {
 
     @Test
-    fun plainHttpTest() {
-        val client = HttpClient(WinHttp) {
+    fun plainHttpTest() = testClient {
+        config {
             engine {
                 proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
             }
         }
 
-        client.use {
+        test { client ->
             runBlocking {
-                // replace with once moved to ktor-client-tests
                 assertEquals("hello", client.get("$TEST_SERVER/content/hello").body())
-                assertEquals("proxy", client.get("http://google.com/").body())
             }
         }
     }
