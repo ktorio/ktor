@@ -53,7 +53,7 @@ internal class MemoryCache(
     override fun dispose() {
         GlobalScope.launch {
             reader.discard()
-            fullBody?.discard()
         }
+        fullBody?.discard()
     }
 }
