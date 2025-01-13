@@ -6,7 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-internal const val INITIAL_MIMES_LIST_SIZE: Int = 1212
+internal const val INITIAL_MIMES_LIST_SIZE: Int = 1215
 
 private val rawMimes: String
     get() = """
@@ -688,6 +688,8 @@ application/xslt+xml,xslt
 application/xspf+xml,xspf
 application/xv+xml,mxml
 application/yang,yang
+application/yaml,yaml
+application/x-yaml,yaml
 application/yin+xml,yin
 application/zip,war
 audio/aac,aac
@@ -915,6 +917,7 @@ text/x-vcalendar,vcs
 text/x-vcard,vcf
 text/xml,xml
 text/yaml,yaml
+text/x-yaml,yaml
 video/3gpp,3gp
 video/3gpp2,3g2
 video/animaflex,afl

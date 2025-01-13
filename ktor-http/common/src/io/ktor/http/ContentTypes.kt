@@ -176,6 +176,7 @@ public class ContentType private constructor(
         public val Soap: ContentType = ContentType("application", "soap+xml")
         public val Xml: ContentType = ContentType("application", "xml")
         public val Xml_Dtd: ContentType = ContentType("application", "xml-dtd")
+        public val Yaml: ContentType = ContentType("application", "yaml")
         public val Zip: ContentType = ContentType("application", "zip")
         public val GZip: ContentType = ContentType("application", "gzip")
 
