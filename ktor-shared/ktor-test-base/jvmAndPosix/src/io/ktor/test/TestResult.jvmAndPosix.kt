@@ -26,6 +26,8 @@ internal actual inline fun <T> runTestForEach(items: Iterable<T>, test: (T) -> T
 }
 
 actual inline fun retryTest(retries: Int, test: (Int) -> TestResult): TestResult {
+    check(retries >= 0) { "Retries count shouldn't be negative but it is $retries" }
+
     lateinit var lastCause: Throwable
     repeat(retries + 1) { attempt ->
         try {

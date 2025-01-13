@@ -32,7 +32,7 @@ const val TCP_SERVER: String = "http://127.0.0.1:8082"
 fun testWithEngine(
     engine: HttpClientEngine,
     timeout: Duration = 1.minutes,
-    retries: Int = 1,
+    retries: Int = DEFAULT_RETRIES,
     block: suspend TestClientBuilder<*>.() -> Unit
 ) = testWithClient(HttpClient(engine), timeout, retries, block)
 
@@ -49,9 +49,12 @@ private fun testWithClient(
 
     concurrency(builder.concurrency) { threadId ->
         repeat(builder.repeatCount) { attempt ->
-            @Suppress("UNCHECKED_CAST")
-            client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-                .use { client -> builder.test(TestInfo(threadId, attempt), client) }
+            val coroutineScope = this
+            withContext(TestInfo(threadId, attempt)) {
+                @Suppress("UNCHECKED_CAST")
+                client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+                    .use { client -> builder.test(coroutineScope, client) }
+            }
         }
     }
 
@@ -65,7 +68,7 @@ fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
     timeout: Duration = 1.minutes,
-    retries: Int = 1,
+    retries: Int = DEFAULT_RETRIES,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = runTestWithData(listOf(factory), timeout = timeout, retries = retries) {
     performTestWithEngine(factory, loader, block)
@@ -91,8 +94,9 @@ suspend fun <T : HttpClientEngineConfig> performTestWithEngine(
             repeat(builder.repeatCount) { attempt ->
                 val client = HttpClient(factory, block = builder.config)
 
-                client.use {
-                    builder.test(TestInfo(threadId, attempt), it)
+                withContext(TestInfo(threadId, attempt)) {
+                    val coroutineScope = this
+                    client.use { builder.test(coroutineScope, it) }
                 }
 
                 try {
@@ -123,7 +127,7 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
 
 class TestClientBuilder<out T : HttpClientEngineConfig>(
     var config: HttpClientConfig<@UnsafeVariance T>.() -> Unit = {},
-    var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
+    var test: suspend CoroutineScope.(client: HttpClient) -> Unit = {},
     var after: suspend (client: HttpClient) -> Unit = {},
     var repeatCount: Int = 1,
     var dumpAfterDelay: Long = -1,
@@ -134,7 +138,7 @@ fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientCo
     config = block
 }
 
-fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
+fun TestClientBuilder<*>.test(block: suspend CoroutineScope.(client: HttpClient) -> Unit) {
     test = block
 }
 
