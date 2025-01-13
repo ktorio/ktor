@@ -41,9 +41,9 @@ final class io.ktor.client.plugins.logging/LoggingConfig { // io.ktor.client.plu
     final var logger // io.ktor.client.plugins.logging/LoggingConfig.logger|{}logger[0]
         final fun <get-logger>(): io.ktor.client.plugins.logging/Logger // io.ktor.client.plugins.logging/LoggingConfig.logger.<get-logger>|<get-logger>(){}[0]
         final fun <set-logger>(io.ktor.client.plugins.logging/Logger) // io.ktor.client.plugins.logging/LoggingConfig.logger.<set-logger>|<set-logger>(io.ktor.client.plugins.logging.Logger){}[0]
-    final var standardFormat // io.ktor.client.plugins.logging/LoggingConfig.standardFormat|{}standardFormat[0]
-        final fun <get-standardFormat>(): kotlin/Boolean // io.ktor.client.plugins.logging/LoggingConfig.standardFormat.<get-standardFormat>|<get-standardFormat>(){}[0]
-        final fun <set-standardFormat>(kotlin/Boolean) // io.ktor.client.plugins.logging/LoggingConfig.standardFormat.<set-standardFormat>|<set-standardFormat>(kotlin.Boolean){}[0]
+    final var okhttpFormat // io.ktor.client.plugins.logging/LoggingConfig.okhttpFormat|{}okhttpFormat[0]
+        final fun <get-okhttpFormat>(): kotlin/Boolean // io.ktor.client.plugins.logging/LoggingConfig.okhttpFormat.<get-okhttpFormat>|<get-okhttpFormat>(){}[0]
+        final fun <set-okhttpFormat>(kotlin/Boolean) // io.ktor.client.plugins.logging/LoggingConfig.okhttpFormat.<set-okhttpFormat>|<set-okhttpFormat>(kotlin.Boolean){}[0]
 
     final fun filter(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Boolean>) // io.ktor.client.plugins.logging/LoggingConfig.filter|filter(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Boolean>){}[0]
     final fun sanitizeHeader(kotlin/String = ..., kotlin/Function1<kotlin/String, kotlin/Boolean>) // io.ktor.client.plugins.logging/LoggingConfig.sanitizeHeader|sanitizeHeader(kotlin.String;kotlin.Function1<kotlin.String,kotlin.Boolean>){}[0]

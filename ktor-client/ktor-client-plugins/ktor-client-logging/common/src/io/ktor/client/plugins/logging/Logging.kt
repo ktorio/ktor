@@ -44,7 +44,7 @@ public class LoggingConfig {
      * If true, turns on the [OkHttp logging format](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L56).
      * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
      */
-    public var standardFormat: Boolean = false
+    public var okhttpFormat: Boolean = false
 
     /**
      * Specifies a [Logger] instance.
@@ -90,7 +90,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     val level: LogLevel = pluginConfig.level
     val filters: List<(HttpRequestBuilder) -> Boolean> = pluginConfig.filters
     val sanitizedHeaders: List<SanitizedHeader> = pluginConfig.sanitizedHeaders
-    val stdFormat = pluginConfig.standardFormat
+    val okHttpFormat = pluginConfig.okhttpFormat
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
@@ -272,7 +272,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
 
             else -> {
-                val size = calcRequestBodySize(request.body, headers)
+                val size = computeRequestBodySize(request.body, headers)
                 "--> ${request.method.value} $uri ($size-byte body)"
             }
         }
@@ -507,7 +507,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return@on
         }
 
-        if (stdFormat) {
+        if (okHttpFormat) {
             val content = logRequestStdFormat(request)
 
             try {
@@ -540,7 +540,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ResponseAfterEncodingHook) { response ->
-        if (stdFormat) {
+        if (okHttpFormat) {
             val newResponse = logResponseStdFormat(response)
             if (newResponse != response) {
                 proceedWith(newResponse)
@@ -549,7 +549,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ResponseHook) { response ->
-        if (stdFormat) return@on
+        if (okHttpFormat) return@on
 
         if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) return@on
 
@@ -571,7 +571,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     on(ReceiveHook) { call ->
-        if (stdFormat) return@on
+        if (okHttpFormat) return@on
 
         if (level == LogLevel.NONE || call.attributes.contains(DisableLogging)) {
             return@on
@@ -589,7 +589,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    if (stdFormat) return@createClientPlugin
+    if (okHttpFormat) return@createClientPlugin
 
     if (!level.body) return@createClientPlugin
 
@@ -621,20 +621,20 @@ private fun Url.pathQuery(): String {
             append(encodedPath)
         }
 
-        if (encodedQuery.isEmpty()) return@buildString
-
-        append("?")
-        append(encodedQuery)
+        if (!encodedQuery.isEmpty()) {
+            append("?")
+            append(encodedQuery)
+        }
     }
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun calcRequestBodySize(content: Any, headers: Headers): Long {
+private fun computeRequestBodySize(content: Any, headers: Headers): Long {
     check(content is OutgoingContent)
 
     return when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes().size.toLong()
-        is OutgoingContent.ContentWrapper -> calcRequestBodySize(content.delegate(), content.headers)
+        is OutgoingContent.ContentWrapper -> computeRequestBodySize(content.delegate(), content.headers)
         is OutgoingContent.NoContent -> 0
         is OutgoingContent.ProtocolUpgrade -> 0
         else -> error("Unable to calculate the size for type ${content::class.simpleName}")

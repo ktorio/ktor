@@ -36,7 +36,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class NewFormatTest {
+class OkHttpFormatTest {
     class LogRecorder : Logger {
         private val loggedLines = mutableListOf<String>()
         private var currentLine = 0
@@ -288,7 +288,7 @@ class NewFormatTest {
             install(Logging) {
                 level = LogLevel.INFO
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
             }
             install(ContentEncoding) { gzip() }
 
@@ -477,7 +477,7 @@ class NewFormatTest {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
             }
             install(ContentEncoding) { gzip() }
 
@@ -576,7 +576,7 @@ class NewFormatTest {
             install(Logging) {
                 level = LogLevel.BODY
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
             }
             install(ContentEncoding) { gzip() }
 
@@ -946,7 +946,7 @@ class NewFormatTest {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
                 sanitizeHeader { it == "SeNsItIvE" }
             }
 
@@ -988,7 +988,7 @@ class NewFormatTest {
             install(Logging) {
                 level = LogLevel.BODY
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
             }
 
             HttpResponseValidator {
@@ -1276,7 +1276,7 @@ class NewFormatTest {
             install(Logging) {
                 level = lvl
                 logger = log
-                standardFormat = true
+                okhttpFormat = true
             }
 
             engine {
