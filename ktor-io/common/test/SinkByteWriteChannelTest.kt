@@ -16,8 +16,9 @@ import kotlin.test.fail
 class SinkByteWriteChannelTest {
 
     @Test
-    fun testWriteByte() = runTest {
+    fun `write byte`() = runTest {
         val buffer = Buffer()
+        val sink = object : RawSink by buffer {}
         val channel = buffer.asByteWriteChannel()
         channel.writeByte(42)
         channel.flushAndClose()
@@ -55,8 +56,8 @@ class SinkByteWriteChannelTest {
 
     @Test
     fun `write after cancel should throw exception`() = runTest {
-        val buffer = Buffer()
-        val channel = buffer.asByteWriteChannel()
+        val sink = createSink()
+        val channel = sink.asByteWriteChannel()
         channel.close(IOException("Test"))
 
         assertFailsWith<IOException>("Test") {
@@ -66,13 +67,14 @@ class SinkByteWriteChannelTest {
 
     @Test
     fun `write after close should fail`() = runTest {
-        val buffer = Buffer()
-        val channel = buffer.asByteWriteChannel()
+        val sink = createSink()
+        val channel = sink.asByteWriteChannel()
         channel.flushAndClose()
 
         assertFailsWith<IOException> {
             channel.writeByte(42)
         }
     }
-}
 
+    private fun createSink(): RawSink = object : RawSink by Buffer() {}
+}

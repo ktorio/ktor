@@ -191,7 +191,7 @@ class ByteReadChannelOperationsTest {
                 With reading so keen, 
                 It stayed ever so lean, 
                 Parsing data in all sorts of lights.
-            """.trimIndent()
+        """.trimIndent()
         val delimiter1 = ", \n".encodeToByteString()
         val input1 = testString1.toByteChannel()
         for (line in testString1.lines()) {

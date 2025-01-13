@@ -73,6 +73,5 @@ class ByteReadChannelSourceTest {
 
         channel.asSource().close()
         assertTrue(cause.await() is IOException)
-
     }
 }

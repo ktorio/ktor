@@ -13,29 +13,24 @@ import kotlinx.io.*
  *
  * Example usage:
  * ```kotlin
- * val rawSink: RawSink = Buffer()
- * val channel: ByteWriteChannel = rawSink.asByteWriteChannel()
- * channel.writeString("hello, world!")
- * channel.flushAndClose()
-
- * (rawSink as Buffer).readString() // "Hello, world"
+ * suspend fun writeMessage(raw: RawSink) {
+ *     val channel = raw.asByteWriteChannel()
+ *     channel.writeByte(42)
+ *     channel.flushAndClose()
+ * }
+ *
+ * val buffer = Buffer()
+ * writeMessage(buffer)
+ * buffer.readByte() // 42
  * ```
  *
  * Please note that the channel will be buffered even if the sink is not.
  */
 public fun RawSink.asByteWriteChannel(): ByteWriteChannel = SinkByteWriteChannel(this)
 
-private suspend fun x() {
-    val rawSink: RawSink = Buffer()
-    val channel: ByteWriteChannel = rawSink.asByteWriteChannel()
-    channel.writeString("hello, world!")
-    channel.flushAndClose()
-
-    (rawSink as Buffer).readString() // "Hello, world"
-}
-
-internal class SinkByteWriteChannel(private val origin: RawSink) : ByteWriteChannel {
+internal class SinkByteWriteChannel(origin: RawSink) : ByteWriteChannel {
     val closed: AtomicRef<CloseToken?> = atomic(null)
+    private val buffer = origin.buffered()
 
     override val isClosedForWrite: Boolean
         get() = closed.value != null
@@ -47,7 +42,7 @@ internal class SinkByteWriteChannel(private val origin: RawSink) : ByteWriteChan
     override val writeBuffer: Sink
         get() {
             if (isClosedForWrite) throw closedCause ?: IOException("Channel is closed for write")
-            return origin as? Sink ?: origin.buffered()
+            return buffer
         }
 
     @OptIn(InternalAPI::class)
@@ -57,8 +52,8 @@ internal class SinkByteWriteChannel(private val origin: RawSink) : ByteWriteChan
 
     @OptIn(InternalAPI::class)
     override suspend fun flushAndClose() {
-        if (!closed.compareAndSet(expect = null, update = CLOSED)) return
         writeBuffer.flush()
+        if (!closed.compareAndSet(expect = null, update = CLOSED)) return
     }
 
     @OptIn(InternalAPI::class)

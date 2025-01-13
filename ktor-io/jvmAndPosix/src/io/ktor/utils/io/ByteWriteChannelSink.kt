@@ -11,6 +11,8 @@ import kotlinx.io.RawSink
 
 /**
  * Converts the current `ByteWriteChannel` instance into a `RawSink`.
+ *
+ * Please note: the [RawSink] produced by this operation uses [runBlocking] to flush the content.
  */
 public fun ByteWriteChannel.asSink(): RawSink = ByteWriteChannelSink(this)
 

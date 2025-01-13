@@ -10,8 +10,9 @@ import kotlinx.io.RawSource
 
 /**
  * Converts the current `ByteReadChannel` instance into a `RawSource`.
- *
  * This enables the usage of a `ByteReadChannel` as a `RawSource` for reading operations.
+ *
+ * Please note: the [RawSource] produced by this operation uses [runBlocking] to wait for the content to be available.
  *
  * @return a `RawSource` implementation that wraps the `ByteReadChannel`.
  */

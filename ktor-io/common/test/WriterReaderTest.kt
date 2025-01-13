@@ -2,12 +2,14 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.test.dispatcher.*
+import io.ktor.test.dispatcher.testSuspend
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class WriterReaderTest {
 
@@ -25,7 +27,7 @@ class WriterReaderTest {
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testReaderOnCancelled() = runTest {
+    fun testReaderOnCancelled() = testSuspend {
         val job1 = Job()
         job1.cancel()
         val reader1 = GlobalScope.reader(coroutineContext = job1) {
