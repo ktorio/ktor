@@ -50,9 +50,7 @@ subprojects {
         }
     }
 
-    setupTrainForSubproject()
     configureCodestyle()
 }
 
 println("Using Kotlin compiler version: ${libs.versions.kotlin.get()}")
-filterSnapshotTests()
