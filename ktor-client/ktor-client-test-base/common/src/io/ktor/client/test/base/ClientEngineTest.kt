@@ -2,10 +2,9 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.tests
+package io.ktor.client.test.base
 
 import io.ktor.client.engine.*
-import io.ktor.client.tests.utils.*
 import io.ktor.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

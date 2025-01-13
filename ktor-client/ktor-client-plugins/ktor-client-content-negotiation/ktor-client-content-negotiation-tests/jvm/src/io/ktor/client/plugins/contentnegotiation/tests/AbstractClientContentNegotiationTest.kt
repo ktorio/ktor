@@ -13,6 +13,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -68,6 +69,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
+
     protected fun TestClientBuilder<*>.configureClient(
         block: ContentNegotiationConfig.() -> Unit = {}
     ) {

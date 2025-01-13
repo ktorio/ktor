@@ -5,8 +5,7 @@
 package io.ktor.client.engine.winhttp
 
 import io.ktor.client.plugins.websocket.*
-import io.ktor.client.tests.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.websocket.*
 import kotlin.test.Test
 import kotlin.test.assertEquals

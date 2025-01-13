@@ -7,8 +7,7 @@ package io.ktor.client.engine.curl.test
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.tests.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -7,8 +7,7 @@ package io.ktor.client.engine.winhttp
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
