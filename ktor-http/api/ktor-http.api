@@ -175,6 +175,7 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getXlsx ()Lio/ktor/http/ContentType;
 	public final fun getXml ()Lio/ktor/http/ContentType;
 	public final fun getXml_Dtd ()Lio/ktor/http/ContentType;
+	public final fun getYaml ()Lio/ktor/http/ContentType;
 	public final fun getZip ()Lio/ktor/http/ContentType;
 }
 

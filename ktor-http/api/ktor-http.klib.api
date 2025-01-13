@@ -458,6 +458,8 @@ final class io.ktor.http/ContentType : io.ktor.http/HeaderValueWithParameters { 
             final fun <get-Xml>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Application.Xml.<get-Xml>|<get-Xml>(){}[0]
         final val Xml_Dtd // io.ktor.http/ContentType.Application.Xml_Dtd|{}Xml_Dtd[0]
             final fun <get-Xml_Dtd>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Application.Xml_Dtd.<get-Xml_Dtd>|<get-Xml_Dtd>(){}[0]
+        final val Yaml // io.ktor.http/ContentType.Application.Yaml|{}Yaml[0]
+            final fun <get-Yaml>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Application.Yaml.<get-Yaml>|<get-Yaml>(){}[0]
         final val Zip // io.ktor.http/ContentType.Application.Zip|{}Zip[0]
             final fun <get-Zip>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Application.Zip.<get-Zip>|<get-Zip>(){}[0]
     }
