@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.android
@@ -16,13 +16,15 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
-import java.io.*
-import java.security.*
-import javax.net.ssl.*
-import kotlin.test.*
+import java.io.File
+import java.security.KeyStore
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class AndroidSpecificHttpsTest : TestWithKtor() {
     override val server: EmbeddedServer<*, *> = embeddedServer(

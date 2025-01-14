@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.test
@@ -92,8 +92,6 @@ fun <T> runTestWithData(
     afterAll: () -> Unit = {},
     test: suspend TestScope.(TestCase<T>) -> Unit,
 ): TestResult {
-    check(retries >= 0) { "Retries count shouldn't be negative but it is $retries" }
-
     val timeSource = TimeSource.Monotonic
     var start: TimeMark? = null
 
@@ -125,6 +123,8 @@ fun <T> runTestWithData(
 }
 
 private fun defaultAggregatedError(failures: List<TestFailure<*>>): Nothing {
+    if (failures.size == 1) throw failures.first().cause
+
     val message = buildString {
         appendLine("Test execution failed:")
         for ((testCase, cause) in failures) {

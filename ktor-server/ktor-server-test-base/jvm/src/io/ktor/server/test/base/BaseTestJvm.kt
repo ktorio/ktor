@@ -62,6 +62,3 @@ actual abstract class BaseTest actual constructor() {
         }
     }
 }
-
-/** On JVM retries are disabled as we use test-retry Gradle plugin instead. */
-internal actual const val DEFAULT_RETRIES: Int = 0

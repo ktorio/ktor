@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -8,25 +8,27 @@ import io.ktor.client.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
-class CIOEngineTest {
+class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
 
     private val selectorManager = SelectorManager()
 
     @Test
-    fun testRequestTimeoutIgnoredWithWebSocket() = runTestWithRealTime {
-        val client = HttpClient(CIO) {
+    fun testRequestTimeoutIgnoredWithWebSocket() = testClient {
+        config {
             engine {
                 requestTimeout = 10
             }
@@ -34,23 +36,25 @@ class CIOEngineTest {
             install(WebSockets)
         }
 
-        var received = false
-        client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-            delay(20)
+        test { client ->
+            var received = false
+            client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                delay(20)
 
-            send(Frame.Text("Hello"))
+                send(Frame.Text("Hello"))
 
-            val response = incoming.receive() as Frame.Text
-            received = true
-            assertEquals("Hello", response.readText())
+                val response = incoming.receive() as Frame.Text
+                received = true
+                assertEquals("Hello", response.readText())
+            }
+
+            assertTrue(received)
         }
-
-        assertTrue(received)
     }
 
     @Test
-    fun testRequestTimeoutIgnoredWithSSE() = runTestWithRealTime {
-        val client = HttpClient(CIO) {
+    fun testRequestTimeoutIgnoredWithSSE() = testClient {
+        config {
             engine {
                 requestTimeout = 10
             }
@@ -58,25 +62,24 @@ class CIOEngineTest {
             install(SSE)
         }
 
-        var received = false
-        client.sse("$TEST_SERVER/sse/hello?delay=20") {
-            val response = incoming.single()
-            received = true
-            assertEquals("hello\r\nfrom server", response.data)
+        test { client ->
+            var received = false
+            client.sse("$TEST_SERVER/sse/hello?delay=20") {
+                val response = incoming.single()
+                received = true
+                assertEquals("hello\r\nfrom server", response.data)
+            }
+            assertTrue(received)
         }
-        assertTrue(received)
     }
 
     @Test
-    fun testExpectHeader() = runTestWithRealTime {
+    fun testExpectHeader() = testClient {
         val body = "Hello World"
 
-        withServerSocket { socket ->
-            val client = HttpClient(CIO)
-            launch {
-                sendExpectRequest(socket, client, body).apply {
-                    assertEquals(HttpStatusCode.OK, status)
-                }
+        withServerSocket { client, socket ->
+            sendExpectRequest(socket, client, body) {
+                assertEquals(HttpStatusCode.OK, status)
             }
 
             socket.accept().use {
@@ -96,13 +99,10 @@ class CIOEngineTest {
     }
 
     @Test
-    fun testNoExpectHeaderIfNoBody() = runTestWithRealTime {
-        withServerSocket { socket ->
-            val client = HttpClient(CIO)
-            launch {
-                sendExpectRequest(socket, client).apply {
-                    assertEquals(HttpStatusCode.OK, status)
-                }
+    fun testNoExpectHeaderIfNoBody() = testClient {
+        withServerSocket { client, socket ->
+            sendExpectRequest(socket, client) {
+                assertEquals(HttpStatusCode.OK, status)
             }
 
             socket.accept().use {
@@ -117,47 +117,41 @@ class CIOEngineTest {
     }
 
     @Test
-    fun testDontWaitForContinueResponse() = runTestWithRealTime {
-        withTimeout(30.seconds) {
-            val body = "Hello World\n"
+    fun testDontWaitForContinueResponse() = testClient(timeout = 30.seconds) {
+        config {
+            engine {
+                requestTimeout = 0
+            }
+        }
 
-            withServerSocket { socket ->
-                val client = HttpClient(CIO) {
-                    engine {
-                        requestTimeout = 0
-                    }
-                }
-                launch {
-                    sendExpectRequest(socket, client, body).apply {
-                        assertEquals(HttpStatusCode.OK, status)
-                    }
-                }
+        val body = "Hello World\n"
 
-                socket.accept().use {
-                    val readChannel = it.openReadChannel()
-                    val writeChannel = it.openWriteChannel()
+        withServerSocket { client, socket ->
+            sendExpectRequest(socket, client, body) {
+                assertEquals(HttpStatusCode.OK, status)
+            }
 
-                    val headers = readAvailableLines(readChannel)
-                    delay(2000)
-                    val actualBody = readAvailableLine(readChannel)
-                    assertTrue(headers.contains(EXPECT_HEADER))
-                    assertEquals(body, actualBody)
-                    writeOkResponse(writeChannel)
-                }
+            socket.accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
+
+                val headers = readAvailableLines(readChannel)
+                delay(2000)
+                val actualBody = readAvailableLine(readChannel)
+                assertTrue(headers.contains(EXPECT_HEADER))
+                assertEquals(body, actualBody)
+                writeOkResponse(writeChannel)
             }
         }
     }
 
     @Test
-    fun testRepeatRequestAfterExpectationFailed() = runTestWithRealTime {
+    fun testRepeatRequestAfterExpectationFailed() = testClient {
         val body = "Hello World"
 
-        withServerSocket { socket ->
-            val client = HttpClient(CIO)
-            launch {
-                sendExpectRequest(socket, client, body).apply {
-                    assertEquals(HttpStatusCode.OK, status)
-                }
+        withServerSocket { client, socket ->
+            sendExpectRequest(socket, client, body) {
+                assertEquals(HttpStatusCode.OK, status)
             }
 
             socket.accept().use {
@@ -178,7 +172,7 @@ class CIOEngineTest {
     }
 
     @Test
-    fun testErrorMessageWhenServerDontRespondWithUpgrade() = testWithEngine(CIO) {
+    fun testErrorMessageWhenServerDontRespondWithUpgrade() = testClient {
         config {
             install(WebSockets)
         }
@@ -192,13 +186,21 @@ class CIOEngineTest {
         }
     }
 
-    private suspend fun sendExpectRequest(socket: ServerSocket, client: HttpClient, body: String? = null) =
-        client.post {
-            val serverPort = (socket.localAddress as InetSocketAddress).port
-            url(host = TEST_SERVER_SOCKET_HOST, port = serverPort, path = "/")
-            header(HttpHeaders.Expect, "100-continue")
-            if (body != null) setBody(body)
+    private fun CoroutineScope.sendExpectRequest(
+        socket: ServerSocket,
+        client: HttpClient,
+        body: String? = null,
+        block: HttpResponse.() -> Unit = {}
+    ) {
+        launch {
+            client.post {
+                val serverPort = (socket.localAddress as InetSocketAddress).port
+                url(host = TEST_SERVER_SOCKET_HOST, port = serverPort, path = "/")
+                header(HttpHeaders.Expect, "100-continue")
+                if (body != null) setBody(body)
+            }.apply(block)
         }
+    }
 
     private suspend fun readAvailableLine(channel: ByteReadChannel): String {
         val buffer = ByteArray(1024)
@@ -236,10 +238,12 @@ class CIOEngineTest {
         }
     }
 
-    private suspend fun withServerSocket(block: suspend (ServerSocket) -> Unit) {
+    private fun TestClientBuilder<*>.withServerSocket(
+        block: suspend CoroutineScope.(HttpClient, ServerSocket) -> Unit,
+    ) = test { client ->
         selectorManager.use {
             aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
-                block(socket)
+                block(client, socket)
             }
         }
     }

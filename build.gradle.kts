@@ -26,9 +26,13 @@ val configuredVersion: String by extra
 
 apply(from = "gradle/verifier.gradle")
 
-extra["skipPublish"] = mutableListOf(
+val internalProjects = listOf(
+    "ktor-client-test-base",
+    "ktor-client-tests",
+    "ktor-server-test-base",
     "ktor-server-test-suites",
     "ktor-server-tests",
+    "ktor-client-content-negotiation-tests",
     "ktor-test-base",
 )
 
@@ -40,15 +44,6 @@ extra["relocatedArtifacts"] = mapOf(
 extra["nonDefaultProjectStructure"] = mutableListOf(
     "ktor-bom",
     "ktor-java-modules-test",
-)
-
-val disabledExplicitApiModeProjects = listOf(
-    "ktor-client-tests",
-    "ktor-server-test-base",
-    "ktor-server-test-suites",
-    "ktor-server-tests",
-    "ktor-client-content-negotiation-tests",
-    "ktor-test-base"
 )
 
 apply(from = "gradle/compatibility.gradle")
@@ -80,7 +75,7 @@ subprojects {
     }
 
     kotlin {
-        if (!disabledExplicitApiModeProjects.contains(project.name)) explicitApi()
+        if (!internalProjects.contains(project.name)) explicitApi()
 
         configureSourceSets()
         setupJvmToolchain()
@@ -91,8 +86,7 @@ subprojects {
         }
     }
 
-    val skipPublish: List<String> by rootProject.extra
-    if (!skipPublish.contains(project.name)) {
+    if (!internalProjects.contains(project.name)) {
         configurePublication()
     }
 
