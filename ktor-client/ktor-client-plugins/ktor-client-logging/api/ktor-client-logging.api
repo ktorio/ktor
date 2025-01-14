@@ -37,14 +37,22 @@ public final class io/ktor/client/plugins/logging/LoggerKt {
 public final class io/ktor/client/plugins/logging/LoggingConfig {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getFormat ()Lio/ktor/client/plugins/logging/LoggingFormat;
 	public final fun getLevel ()Lio/ktor/client/plugins/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/plugins/logging/Logger;
-	public final fun getOkhttpFormat ()Z
 	public final fun sanitizeHeader (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun sanitizeHeader$default (Lio/ktor/client/plugins/logging/LoggingConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun setFormat (Lio/ktor/client/plugins/logging/LoggingFormat;)V
 	public final fun setLevel (Lio/ktor/client/plugins/logging/LogLevel;)V
 	public final fun setLogger (Lio/ktor/client/plugins/logging/Logger;)V
-	public final fun setOkhttpFormat (Z)V
+}
+
+public final class io/ktor/client/plugins/logging/LoggingFormat : java/lang/Enum {
+	public static final field Default Lio/ktor/client/plugins/logging/LoggingFormat;
+	public static final field OkHttp Lio/ktor/client/plugins/logging/LoggingFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/plugins/logging/LoggingFormat;
+	public static fun values ()[Lio/ktor/client/plugins/logging/LoggingFormat;
 }
 
 public final class io/ktor/client/plugins/logging/LoggingKt {

@@ -30,6 +30,15 @@ import kotlinx.io.Buffer
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
 
+public enum class LoggingFormat {
+    Default,
+    /**
+     * [OkHttp logging format](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L56).
+     * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
+     */
+    OkHttp
+}
+
 /**
  * A configuration for the [Logging] plugin.
  */
@@ -40,11 +49,7 @@ public class LoggingConfig {
 
     private var _logger: Logger? = null
 
-    /**
-     * If true, turns on the [OkHttp logging format](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L56).
-     * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
-     */
-    public var okhttpFormat: Boolean = false
+    public var format: LoggingFormat = LoggingFormat.Default
 
     /**
      * Specifies a [Logger] instance.
@@ -90,7 +95,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     val level: LogLevel = pluginConfig.level
     val filters: List<(HttpRequestBuilder) -> Boolean> = pluginConfig.filters
     val sanitizedHeaders: List<SanitizedHeader> = pluginConfig.sanitizedHeaders
-    val okHttpFormat = pluginConfig.okhttpFormat
+    val okHttpFormat = pluginConfig.format == LoggingFormat.OkHttp
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 

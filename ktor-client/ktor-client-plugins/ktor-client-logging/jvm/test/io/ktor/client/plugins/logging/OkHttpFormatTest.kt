@@ -288,7 +288,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = LogLevel.INFO
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
             }
             install(ContentEncoding) { gzip() }
 
@@ -477,7 +477,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
             }
             install(ContentEncoding) { gzip() }
 
@@ -576,7 +576,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = LogLevel.BODY
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
             }
             install(ContentEncoding) { gzip() }
 
@@ -946,7 +946,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
                 sanitizeHeader { it == "SeNsItIvE" }
             }
 
@@ -988,7 +988,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = LogLevel.BODY
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
             }
 
             HttpResponseValidator {
@@ -1276,7 +1276,7 @@ class OkHttpFormatTest {
             install(Logging) {
                 level = lvl
                 logger = log
-                okhttpFormat = true
+                format = LoggingFormat.OkHttp
             }
 
             engine {
