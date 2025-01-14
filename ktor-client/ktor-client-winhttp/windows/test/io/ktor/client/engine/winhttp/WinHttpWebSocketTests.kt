@@ -1,26 +1,25 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.winhttp
 
-import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.test.base.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
-class WinHttpWebSocketTests {
-
-    private val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
+class WinHttpWebSocketTests : ClientEngineTest<WinHttpClientEngineConfig>(WinHttp) {
 
     @Test
-    fun testEcho() {
-        val client = HttpClient(WinHttp) {
+    fun testEcho() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 send(Frame.Text("Hello, world"))
 
@@ -33,12 +32,12 @@ class WinHttpWebSocketTests {
     }
 
     @Test
-    fun testEmptyFrame() {
-        val client = HttpClient(WinHttp) {
+    fun testEmptyFrame() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 send(Frame.Text(""))
 

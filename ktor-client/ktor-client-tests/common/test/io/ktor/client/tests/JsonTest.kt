@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -7,10 +7,12 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.*
-import kotlin.test.*
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.Serializable
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class JsonTest : ClientLoader() {
     @Serializable

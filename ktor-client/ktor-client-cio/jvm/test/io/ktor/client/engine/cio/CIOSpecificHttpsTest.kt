@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.tls.*
@@ -16,14 +17,18 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
-import java.io.*
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
-import kotlin.test.*
+import kotlinx.coroutines.cancel
+import org.junit.jupiter.api.BeforeAll
+import java.io.File
+import java.security.KeyStore
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.fail
 
 class CIOSpecificHttpsTest : TestWithKtor() {
 

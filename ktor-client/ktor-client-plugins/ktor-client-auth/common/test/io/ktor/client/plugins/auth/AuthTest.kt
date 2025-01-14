@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
@@ -11,14 +11,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import kotlin.test.*
-import kotlin.test.assertFailsWith
 
 class AuthTest : ClientLoader() {
 
