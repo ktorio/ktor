@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io.streams
 
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.asByteWriteChannel
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import kotlinx.io.Buffer
@@ -35,3 +37,18 @@ public fun InputStream.readPacketAtLeast(min: Int = 1): Source {
 
     return buffer
 }
+
+/**
+ * Converts this [OutputStream] into a [ByteWriteChannel], enabling asynchronous writing of byte sequences.
+ *
+ * ```kotlin
+ * val outputStream: OutputStream = FileOutputStream("file.txt")
+ * val channel: ByteWriteChannel = outputStream.asByteWriteChannel()
+ * channel.writeFully("Hello, World!".toByteArray())
+ * channel.flushAndClose() // Ensure the data is written to the OutputStream
+ * ```
+ *
+ * All operations on the [ByteWriteChannel] are buffered: the underlying [OutputStream] will be receiving bytes
+ * when the [ByteWriteChannel.flush] happens.
+ */
+public fun OutputStream.asByteWriteChannel(): ByteWriteChannel = asSink().asByteWriteChannel()

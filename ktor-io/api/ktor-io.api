@@ -115,6 +115,10 @@ public final class io/ktor/utils/io/ByteReadChannelOperations_jvmKt {
 	public static final fun skipDelimiter (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/utils/io/ByteReadChannelSourceKt {
+	public static final fun asSource (Lio/ktor/utils/io/ByteReadChannel;)Lkotlinx/io/RawSource;
+}
+
 public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun cancel (Ljava/lang/Throwable;)V
 	public abstract fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -171,6 +175,10 @@ public final class io/ktor/utils/io/ByteWriteChannelOperations_jvmKt {
 	public static synthetic fun writeAvailable$default (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
 	public static final fun writeByteBuffer (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeFully (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/utils/io/ByteWriteChannelSinkKt {
+	public static final fun asSink (Lio/ktor/utils/io/ByteWriteChannel;)Lkotlinx/io/RawSink;
 }
 
 public abstract interface class io/ktor/utils/io/ChannelJob {
@@ -277,6 +285,10 @@ public final class io/ktor/utils/io/ReaderScope : kotlinx/coroutines/CoroutineSc
 	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class io/ktor/utils/io/SinkByteWriteChannelKt {
+	public static final fun asByteWriteChannel (Lkotlinx/io/RawSink;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public final class io/ktor/utils/io/WriterJob : io/ktor/utils/io/ChannelJob {
@@ -594,6 +606,7 @@ public abstract class io/ktor/utils/io/pool/SingleInstancePool : io/ktor/utils/i
 }
 
 public final class io/ktor/utils/io/streams/StreamsKt {
+	public static final fun asByteWriteChannel (Ljava/io/OutputStream;)Lio/ktor/utils/io/ByteWriteChannel;
 	public static final fun asInput (Ljava/io/InputStream;)Lkotlinx/io/Source;
 	public static final fun inputStream (Lkotlinx/io/Source;)Ljava/io/InputStream;
 	public static final fun readPacketAtLeast (Ljava/io/InputStream;I)Lkotlinx/io/Source;

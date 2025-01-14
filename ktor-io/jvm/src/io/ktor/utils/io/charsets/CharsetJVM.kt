@@ -88,7 +88,6 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
 
 public actual typealias Charsets = kotlin.text.Charsets
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual open class MalformedInputException
 actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message
