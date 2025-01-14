@@ -1,17 +1,14 @@
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("DEPRECATION")
-
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DigestProviderTest {
@@ -66,8 +63,8 @@ class DigestProviderTest {
     }
 
     @Test
-    fun addRequestHeadersSetsExpectedAuthHeaderFields() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun addRequestHeadersSetsExpectedAuthHeaderFields() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         runIsApplicable(authAllFields)
         val authHeader = addRequestHeaders(authAllFields)
@@ -78,8 +75,8 @@ class DigestProviderTest {
     }
 
     @Test
-    fun addRequestHeadersMissingRealm() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun addRequestHeadersMissingRealm() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         @Suppress("DEPRECATION_ERROR")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
@@ -93,8 +90,8 @@ class DigestProviderTest {
     }
 
     @Test
-    fun addRequestHeadersChangedRealm() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun addRequestHeadersChangedRealm() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         @Suppress("DEPRECATION_ERROR")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", "wrong!")
@@ -104,8 +101,8 @@ class DigestProviderTest {
     }
 
     @Test
-    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         runIsApplicable(authMissingQopAndOpaque)
         val authHeader = addRequestHeaders(authMissingQopAndOpaque)
@@ -116,8 +113,8 @@ class DigestProviderTest {
     }
 
     @Test
-    fun testTokenWhenMissingRealmAndQop() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun testTokenWhenMissingRealmAndQop() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         @Suppress("DEPRECATION_ERROR")
         val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
