@@ -94,31 +94,31 @@ class ByteChannelTest {
 
     @Test
     fun testChannelMaxSize() = runTest {
-        val channel1 = ByteChannel()
-        val job1 = launch(Dispatchers.Unconfined) {
-            channel1.writeFully(ByteArray(CHANNEL_MAX_SIZE))
+        val channel = ByteChannel()
+        val job = launch(Dispatchers.Unconfined) {
+            channel.writeFully(ByteArray(CHANNEL_MAX_SIZE))
         }
         delay(100)
-        assertFalse(job1.isCompleted)
-        channel1.readByte()
-        job1.join()
+        assertFalse(job.isCompleted)
+        channel.readByte()
+        job.join()
     }
 
     @Test
     fun testChannelMaxSizeWithException() = runTest {
         val channel = ByteChannel()
-        var writerThrows1 = false
+        var writerThrows = false
         val deferred = async(Dispatchers.Unconfined) {
             try {
                 channel.writeFully(ByteArray(CHANNEL_MAX_SIZE))
             } catch (_: IOException) {
-                writerThrows1 = true
+                writerThrows = true
             }
         }
         assertFalse(deferred.isCompleted)
         channel.cancel()
         deferred.await()
-        assertTrue(writerThrows1)
+        assertTrue(writerThrows)
     }
 
     @Test
