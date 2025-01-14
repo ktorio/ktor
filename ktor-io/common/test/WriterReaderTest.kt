@@ -2,7 +2,7 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.test.dispatcher.testSuspend
+import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -16,25 +16,25 @@ class WriterReaderTest {
     @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testWriterOnCancelled() = runTest {
-        val job1 = Job()
-        job1.cancel()
-        val writer1 = GlobalScope.writer(coroutineContext = job1) {
+        val job = Job()
+        job.cancel()
+        val writer = GlobalScope.writer(coroutineContext = job) {
         }
         assertFailsWith<CancellationException> {
-            writer1.channel.readByte()
+            writer.channel.readByte()
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testReaderOnCancelled() = testSuspend {
-        val job1 = Job()
-        job1.cancel()
-        val reader1 = GlobalScope.reader(coroutineContext = job1) {
+    fun testReaderOnCancelled() = runTestWithRealTime {
+        val job = Job()
+        job.cancel()
+        val reader = GlobalScope.reader(coroutineContext = job) {
         }
         delay(100L)
         assertFailsWith<CancellationException> {
-            reader1.channel.writeByte(42)
+            reader.channel.writeByte(42)
         }
     }
 

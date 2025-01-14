@@ -20,139 +20,139 @@ class ByteReadChannelOperationsTest {
 
     @Test
     fun testReadPacketBig() = runTest {
-        val channel1 = ByteChannel()
+        val channel = ByteChannel()
         launch {
-            channel1.writeByteArray(ByteArray(8192))
-            channel1.writeByteArray(ByteArray(8192))
-            channel1.flush()
+            channel.writeByteArray(ByteArray(8192))
+            channel.writeByteArray(ByteArray(8192))
+            channel.flush()
         }
-        val packet1 = channel1.readPacket(8192 * 2)
-        assertEquals(8192 * 2, packet1.remaining)
-        packet1.close()
+        val packet = channel.readPacket(8192 * 2)
+        assertEquals(8192 * 2, packet.remaining)
+        packet.close()
     }
 
     @Test
     fun testReadRemaining() = runTest {
-        val packet1 = buildPacket {
+        val packet = buildPacket {
             writeInt(1)
             writeInt(2)
             writeInt(3)
         }
-        val channel1 = ByteChannel()
-        channel1.writePacket(packet1)
-        channel1.flushAndClose()
-        val first1 = channel1.readRemaining()
-        assertEquals(12, first1.remaining)
-        first1.close()
-        val second1 = channel1.readRemaining()
-        assertEquals(0, second1.remaining)
+        val channel = ByteChannel()
+        channel.writePacket(packet)
+        channel.flushAndClose()
+        val first = channel.readRemaining()
+        assertEquals(12, first.remaining)
+        first.close()
+        val second = channel.readRemaining()
+        assertEquals(0, second.remaining)
     }
 
     @Test
     fun testReadRemainingFromCancelled() = runTest {
-        val packet1 = buildPacket {
+        val packet = buildPacket {
             writeInt(1)
             writeInt(2)
             writeInt(3)
         }
-        val channel1 = ByteChannel()
-        channel1.writePacket(packet1)
-        channel1.flush()
-        channel1.cancel()
+        val channel = ByteChannel()
+        channel.writePacket(packet)
+        channel.flush()
+        channel.cancel()
         assertFailsWith<IOException> {
-            channel1.readRemaining()
+            channel.readRemaining()
         }
     }
 
     @Test
     fun readFully() = runTest {
-        val expected1 = ByteArray(10) { it.toByte() }
-        val actual1 = ByteArray(10)
-        val channel1 = ByteChannel()
-        channel1.writeFully(expected1)
-        channel1.flush()
-        channel1.readFully(actual1)
-        assertContentEquals(expected1, actual1)
-        actual1.fill(0)
-        channel1.writeFully(expected1, 0, 5)
-        channel1.flush()
-        channel1.readFully(actual1, 3, 8)
-        assertContentEquals(ByteArray(3) { 0 }, actual1.copyOfRange(0, 3))
-        assertContentEquals(expected1.copyOfRange(0, 5), actual1.copyOfRange(3, 8))
-        assertContentEquals(ByteArray(2) { 0 }, actual1.copyOfRange(8, 10))
+        val expected = ByteArray(10) { it.toByte() }
+        val actual = ByteArray(10)
+        val channel = ByteChannel()
+        channel.writeFully(expected)
+        channel.flush()
+        channel.readFully(actual)
+        assertContentEquals(expected, actual)
+        actual.fill(0)
+        channel.writeFully(expected, 0, 5)
+        channel.flush()
+        channel.readFully(actual, 3, 8)
+        assertContentEquals(ByteArray(3) { 0 }, actual.copyOfRange(0, 3))
+        assertContentEquals(expected.copyOfRange(0, 5), actual.copyOfRange(3, 8))
+        assertContentEquals(ByteArray(2) { 0 }, actual.copyOfRange(8, 10))
     }
 
     @Test
     fun skip() = runTest {
-        val ch1 = ByteChannel()
-        ch1.writeFully(byteArrayOf(1, 2, 3))
-        ch1.close()
-        val delimiter1 = ByteString(byteArrayOf(1, 2))
-        assertTrue(ch1.skipIfFound(delimiter1))
-        assertEquals(3, ch1.readByte())
-        assertTrue(ch1.isClosedForRead)
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.close()
+        val delimiter = ByteString(byteArrayOf(1, 2))
+        assertTrue(channel.skipIfFound(delimiter))
+        assertEquals(3, channel.readByte())
+        assertTrue(channel.isClosedForRead)
     }
 
     @Test
     fun skipExact() = runTest {
-        val ch1 = ByteChannel()
-        ch1.writeFully(byteArrayOf(1, 2))
-        ch1.close()
-        val delimiter1 = ByteString(byteArrayOf(1, 2))
-        assertTrue(ch1.skipIfFound(delimiter1))
-        assertTrue(ch1.isClosedForRead)
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2))
+        channel.close()
+        val delimiter = ByteString(byteArrayOf(1, 2))
+        assertTrue(channel.skipIfFound(delimiter))
+        assertTrue(channel.isClosedForRead)
     }
 
     @Test
     fun skipInvalid() = runTest {
-        val ch1 = ByteChannel()
-        ch1.writeFully(byteArrayOf(9, 1, 2, 3))
-        ch1.close()
-        val delimiter1 = ByteString(byteArrayOf(1, 2))
-        assertFalse(ch1.skipIfFound(delimiter1))
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(9, 1, 2, 3))
+        channel.close()
+        val delimiter = ByteString(byteArrayOf(1, 2))
+        assertFalse(channel.skipIfFound(delimiter))
     }
 
     @Test
     fun skipEndOfInput() = runTest {
-        val ch1 = ByteChannel()
-        ch1.writeFully(byteArrayOf(1, 2))
-        ch1.close()
-        val delimiter1 = ByteString(byteArrayOf(1, 2, 3))
-        assertFalse(ch1.skipIfFound(delimiter1))
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2))
+        channel.close()
+        val delimiter = ByteString(byteArrayOf(1, 2, 3))
+        assertFalse(channel.skipIfFound(delimiter))
     }
 
     @Test
     fun skipDelayed() = runTest {
-        val ch1 = ByteChannel()
-        val writer1 = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
-            ch1.writeByte(2)
-            ch1.writeByte(3)
-            ch1.close()
+        val channel = ByteChannel()
+        val writer = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
+            channel.writeByte(2)
+            channel.writeByte(3)
+            channel.close()
         }
-        ch1.writeByte(1)
-        ch1.flush()
-        writer1.start()
+        channel.writeByte(1)
+        channel.flush()
+        writer.start()
         val delimiter1 = ByteString(byteArrayOf(1, 2))
-        assertTrue(ch1.skipIfFound(delimiter1))
-        assertEquals(3, ch1.readByte())
-        assertTrue(ch1.isClosedForRead)
+        assertTrue(channel.skipIfFound(delimiter1))
+        assertEquals(3, channel.readByte())
+        assertTrue(channel.isClosedForRead)
     }
 
     @Test
     fun skipDelayedInvalid() = runTest {
-        val ch1 = ByteChannel()
-        val writer1 = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
-            ch1.writeByte(3)
-            ch1.writeByte(2)
-            ch1.flush()
+        val channel = ByteChannel()
+        val writer = launch(CoroutineName("writer"), start = CoroutineStart.LAZY) {
+            channel.writeByte(3)
+            channel.writeByte(2)
+            channel.flush()
         }
-        ch1.writeByte(1)
-        ch1.flush()
-        writer1.start()
-        val delimiter1 = ByteString(byteArrayOf(1, 2))
-        assertFalse(ch1.skipIfFound(delimiter1))
-        assertEquals(1, ch1.readByte())
-        ch1.close()
+        channel.writeByte(1)
+        channel.flush()
+        writer.start()
+        val delimiter = ByteString(byteArrayOf(1, 2))
+        assertFalse(channel.skipIfFound(delimiter))
+        assertEquals(1, channel.readByte())
+        channel.close()
     }
 
     @Test
@@ -164,41 +164,41 @@ class ByteReadChannelOperationsTest {
 
     @Test
     fun readUntilSingle() = runTest {
-        val actual1 = ByteChannel().also { out ->
+        val actual = ByteChannel().also { out ->
             "test some more".toByteChannel().readUntil(ByteString('o'.code.toByte()), out)
             out.close()
         }.readRemaining().readText()
-        assertEquals("test s", actual1)
+        assertEquals("test s", actual)
     }
 
     @Test
     fun readUntilSubstring() = runTest {
-        val testString1 = "This is a test--"
-        val delimiter1 = "--done"
-        val input1 = (testString1 + delimiter1).toByteChannel()
-        val output1 = ByteChannel().also {
-            input1.readUntil(delimiter1.encodeToByteString(), it)
+        val testString = "This is a test--"
+        val delimiter = "--done"
+        val input = (testString + delimiter).toByteChannel()
+        val output = ByteChannel().also {
+            input.readUntil(delimiter.encodeToByteString(), it)
             it.close()
         }
-        assertEquals(testString1, output1.readRemaining().readText())
+        assertEquals(testString, output.readRemaining().readText())
     }
 
     @Test
     fun readUntil() = runTest {
-        val testString1 = """
+        val testString = """
                 There once was a stream of bytes, 
                 Flowing through many nights, 
                 With reading so keen, 
                 It stayed ever so lean, 
                 Parsing data in all sorts of lights.
         """.trimIndent()
-        val delimiter1 = ", \n".encodeToByteString()
-        val input1 = testString1.toByteChannel()
-        for (line in testString1.lines()) {
+        val delimiter = ", \n".encodeToByteString()
+        val input = testString.toByteChannel()
+        for (line in testString.lines()) {
             val expected = line.trimEnd(',', ' ')
             val expectedLength = expected.length.toLong()
             val output = ByteChannel().also { out ->
-                assertEquals(expectedLength, input1.readUntil(delimiter1, out, ignoreMissing = true))
+                assertEquals(expectedLength, input.readUntil(delimiter, out, ignoreMissing = true))
                 out.flushAndClose()
             }
             val actual = output.readRemaining().readText()
@@ -208,36 +208,36 @@ class ByteReadChannelOperationsTest {
 
     @Test
     fun readUntilStart() = runTest {
-        val input1 = "This is a test".toByteChannel()
-        val actual1 = writer {
-            input1.readUntil("This".encodeToByteString(), channel, limit = 10, ignoreMissing = true)
+        val input = "This is a test".toByteChannel()
+        val actual = writer {
+            input.readUntil("This".encodeToByteString(), channel, limit = 10, ignoreMissing = true)
         }.channel.readRemaining().readText()
-        assertEquals("", actual1)
-        assertEquals(" is a test", input1.readRemaining().readText())
+        assertEquals("", actual)
+        assertEquals(" is a test", input.readRemaining().readText())
     }
 
     @Test
     fun readUntilLimit() = runTest {
-        val input1 = "This is a test of the readUntil limit".toByteChannel()
+        val input = "This is a test of the readUntil limit".toByteChannel()
         assertFailsWith<IOException> {
-            input1.readUntil("abc".encodeToByteString(), ByteChannel(), limit = 10, ignoreMissing = true)
+            input.readUntil("abc".encodeToByteString(), ByteChannel(), limit = 10, ignoreMissing = true)
         }
     }
 
     @Test
     fun readUntilMissing() = runTest {
-        val input1 = "It's not in here".toByteChannel()
+        val input = "It's not in here".toByteChannel()
         assertFailsWith<IOException> {
-            input1.readUntil("note".encodeToByteString(), ByteChannel())
+            input.readUntil("note".encodeToByteString(), ByteChannel())
         }
     }
 
     @Test
     fun skipIfFound() = runTest {
-        val input1 = "This is a test of the skipIfFound".toByteChannel()
-        assertFalse(input1.skipIfFound("Won't find this".encodeToByteString()))
-        assertTrue(input1.skipIfFound("This is a test of the ".encodeToByteString()))
-        assertEquals("skipIfFound", input1.readUTF8Line())
+        val input = "This is a test of the skipIfFound".toByteChannel()
+        assertFalse(input.skipIfFound("Won't find this".encodeToByteString()))
+        assertTrue(input.skipIfFound("This is a test of the ".encodeToByteString()))
+        assertEquals("skipIfFound", input.readUTF8Line())
     }
 
     // this test ensures we don't get stuck on awaitContent

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.asSource
 import io.ktor.utils.io.writeByte
@@ -14,10 +17,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-
-/*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 
 class ByteReadChannelSourceTest {
 

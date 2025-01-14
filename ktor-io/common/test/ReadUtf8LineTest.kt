@@ -14,47 +14,47 @@ class ReadUtf8LineTest {
 
     @Test
     fun testReadUtf8LineWithLongLineWithLimit() = runTest {
-        val lineSize1 = 1024
-        val line1 = "A".repeat(lineSize1)
-        val channel1 = writer {
+        val lineSize = 1024
+        val line = "A".repeat(lineSize)
+        val channel = writer {
             repeat(10) {
-                channel.writeStringUtf8(line1)
+                channel.writeStringUtf8(line)
             }
         }.channel
         assertFailsWith<TooLongLineException> {
-            channel1.readUTF8Line(8 * 1024)
+            channel.readUTF8Line(8 * 1024)
         }
     }
 
     @Test
     fun testNewLineAfterFlush() = runTest {
-        val channel1 = writer {
+        val channel = writer {
             channel.writeStringUtf8("4\r")
             channel.flush()
             delay(100)
             channel.writeStringUtf8("\n2\r\n")
         }.channel
-        val buffer1 = StringBuilder()
-        channel1.readUTF8LineTo(buffer1, 1024)
-        assertEquals("4", buffer1.toString())
-        buffer1.clear()
-        channel1.readUTF8LineTo(buffer1, 1024)
-        assertEquals("2", buffer1.toString())
+        val buffer = StringBuilder()
+        channel.readUTF8LineTo(buffer, 1024)
+        assertEquals("4", buffer.toString())
+        buffer.clear()
+        channel.readUTF8LineTo(buffer, 1024)
+        assertEquals("2", buffer.toString())
     }
 
     @Test
     fun testFlushBeforeNewLine() = runTest {
-        val channel1 = writer {
+        val channel = writer {
             channel.writeStringUtf8("4")
             channel.flush()
             delay(100)
             channel.writeStringUtf8("\r\n2\r\n")
         }.channel
-        val buffer1 = StringBuilder()
-        channel1.readUTF8LineTo(buffer1, 1024)
-        assertEquals("4", buffer1.toString())
-        buffer1.clear()
-        channel1.readUTF8LineTo(buffer1, 1024)
-        assertEquals("2", buffer1.toString())
+        val buffer = StringBuilder()
+        channel.readUTF8LineTo(buffer, 1024)
+        assertEquals("4", buffer.toString())
+        buffer.clear()
+        channel.readUTF8LineTo(buffer, 1024)
+        assertEquals("2", buffer.toString())
     }
 }
