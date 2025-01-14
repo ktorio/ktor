@@ -101,7 +101,7 @@ class SwaggerTest {
 
         val response = client.get("/openapi/documentation.yaml")
         val body = response.bodyAsText()
-        assertEquals("text/yaml; charset=UTF-8", response.contentType().toString())
+        assertEquals("application/yaml", response.contentType().toString())
         assertEquals("hello:\n  world".filter { it.isLetterOrDigit() }, body.filter { it.isLetterOrDigit() })
     }
 

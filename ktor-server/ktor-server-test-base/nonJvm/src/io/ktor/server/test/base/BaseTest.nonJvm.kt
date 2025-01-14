@@ -64,6 +64,4 @@ actual abstract class BaseTest actual constructor() {
     }
 }
 
-internal actual const val DEFAULT_RETRIES: Int = 1
-
 private class UnhandledErrorsException(override val message: String) : Exception()

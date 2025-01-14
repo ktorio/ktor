@@ -4,6 +4,7 @@
 
 package io.ktor.server.test.base
 
+import io.ktor.test.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
@@ -22,9 +23,3 @@ expect abstract class BaseTest() {
         block: suspend CoroutineScope.() -> Unit
     ): TestResult
 }
-
-/**
- * Defaults to `1` on all platforms except for JVM.
- * On JVM retries are disabled as we use test-retry Gradle plugin instead.
- */
-internal expect val DEFAULT_RETRIES: Int

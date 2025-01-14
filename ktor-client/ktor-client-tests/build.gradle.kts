@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 description = "Common tests for client"
@@ -12,9 +12,8 @@ plugins {
 kotlin.sourceSets {
     commonMain {
         dependencies {
+            api(project(":ktor-client:ktor-client-test-base"))
             api(project(":ktor-client:ktor-client-mock"))
-            api(project(":ktor-test-dispatcher"))
-            api(project(":ktor-shared:ktor-test-base"))
         }
     }
     commonTest {
@@ -29,7 +28,6 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json"))
-            api(libs.kotlin.test)
         }
     }
     jvmMain {
@@ -42,9 +40,7 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
             api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api(project(":ktor-shared:ktor-test-base"))
             api(libs.logback.classic)
-            implementation(libs.kotlinx.coroutines.debug)
         }
     }
 

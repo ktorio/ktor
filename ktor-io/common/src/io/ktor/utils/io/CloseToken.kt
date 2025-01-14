@@ -4,8 +4,8 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.errors.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CopyableThrowable
 import kotlinx.io.IOException
 
 internal val CLOSED = CloseToken(null)
