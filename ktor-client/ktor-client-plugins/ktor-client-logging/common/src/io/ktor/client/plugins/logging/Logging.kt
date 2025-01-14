@@ -32,8 +32,9 @@ private val DisableLogging = AttributeKey<Unit>("DisableLogging")
 
 public enum class LoggingFormat {
     Default,
+
     /**
-     * [OkHttp logging format](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L56).
+     * [OkHttp logging format](https://github.com/square/okhttp/blob/parent-4.12.0/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L48-L105).
      * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
      */
     OkHttp
@@ -49,6 +50,7 @@ public class LoggingConfig {
 
     private var _logger: Logger? = null
 
+    /** A general format for logging requests and responses. See [LoggingFormat]. */
     public var format: LoggingFormat = LoggingFormat.Default
 
     /**
@@ -242,7 +244,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    suspend fun logRequestStdFormat(request: HttpRequestBuilder): OutgoingContent? {
+    suspend fun logRequestOkHttpFormat(request: HttpRequestBuilder): OutgoingContent? {
         if (isNone()) return null
 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
@@ -359,7 +361,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
 
-    suspend fun logResponseStdFormat(response: HttpResponse): HttpResponse {
+    suspend fun logResponseOkHttpFormat(response: HttpResponse): HttpResponse {
         if (isNone()) return response
 
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
@@ -513,7 +515,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         if (okHttpFormat) {
-            val content = logRequestStdFormat(request)
+            val content = logRequestOkHttpFormat(request)
 
             try {
                 if (content != null) {
@@ -546,7 +548,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     on(ResponseAfterEncodingHook) { response ->
         if (okHttpFormat) {
-            val newResponse = logResponseStdFormat(response)
+            val newResponse = logResponseOkHttpFormat(response)
             if (newResponse != response) {
                 proceedWith(newResponse)
             }
