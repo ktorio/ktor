@@ -26,6 +26,17 @@ final enum class io.ktor.client.plugins.logging/LogLevel : kotlin/Enum<io.ktor.c
     final fun values(): kotlin/Array<io.ktor.client.plugins.logging/LogLevel> // io.ktor.client.plugins.logging/LogLevel.values|values#static(){}[0]
 }
 
+final enum class io.ktor.client.plugins.logging/LoggingFormat : kotlin/Enum<io.ktor.client.plugins.logging/LoggingFormat> { // io.ktor.client.plugins.logging/LoggingFormat|null[0]
+    enum entry Default // io.ktor.client.plugins.logging/LoggingFormat.Default|null[0]
+    enum entry OkHttp // io.ktor.client.plugins.logging/LoggingFormat.OkHttp|null[0]
+
+    final val entries // io.ktor.client.plugins.logging/LoggingFormat.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.plugins.logging/LoggingFormat> // io.ktor.client.plugins.logging/LoggingFormat.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.ktor.client.plugins.logging/LoggingFormat // io.ktor.client.plugins.logging/LoggingFormat.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.ktor.client.plugins.logging/LoggingFormat> // io.ktor.client.plugins.logging/LoggingFormat.values|values#static(){}[0]
+}
+
 abstract interface io.ktor.client.plugins.logging/Logger { // io.ktor.client.plugins.logging/Logger|null[0]
     abstract fun log(kotlin/String) // io.ktor.client.plugins.logging/Logger.log|log(kotlin.String){}[0]
 
@@ -35,6 +46,9 @@ abstract interface io.ktor.client.plugins.logging/Logger { // io.ktor.client.plu
 final class io.ktor.client.plugins.logging/LoggingConfig { // io.ktor.client.plugins.logging/LoggingConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.logging/LoggingConfig.<init>|<init>(){}[0]
 
+    final var format // io.ktor.client.plugins.logging/LoggingConfig.format|{}format[0]
+        final fun <get-format>(): io.ktor.client.plugins.logging/LoggingFormat // io.ktor.client.plugins.logging/LoggingConfig.format.<get-format>|<get-format>(){}[0]
+        final fun <set-format>(io.ktor.client.plugins.logging/LoggingFormat) // io.ktor.client.plugins.logging/LoggingConfig.format.<set-format>|<set-format>(io.ktor.client.plugins.logging.LoggingFormat){}[0]
     final var level // io.ktor.client.plugins.logging/LoggingConfig.level|{}level[0]
         final fun <get-level>(): io.ktor.client.plugins.logging/LogLevel // io.ktor.client.plugins.logging/LoggingConfig.level.<get-level>|<get-level>(){}[0]
         final fun <set-level>(io.ktor.client.plugins.logging/LogLevel) // io.ktor.client.plugins.logging/LoggingConfig.level.<set-level>|<set-level>(io.ktor.client.plugins.logging.LogLevel){}[0]
