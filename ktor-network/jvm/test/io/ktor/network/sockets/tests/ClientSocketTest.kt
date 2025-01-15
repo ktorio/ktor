@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.tests
@@ -7,10 +7,10 @@ package io.ktor.network.sockets.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.test.junit.*
-import io.ktor.test.junit.coroutines.*
 import io.ktor.utils.io.*
 import io.mockk.*
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.runBlocking
 import java.net.InetSocketAddress
 import java.net.ServerSocket

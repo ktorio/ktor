@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.test.junit.coroutines.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import java.io.IOException
 import java.nio.channels.CancelledKeyException
 import java.nio.channels.ClosedChannelException
