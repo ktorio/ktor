@@ -7,7 +7,7 @@ package io.ktor.client.tests.utils
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import io.ktor.server.engine.*
-import io.ktor.test.junit.coroutines.*
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory

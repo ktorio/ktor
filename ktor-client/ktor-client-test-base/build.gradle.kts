@@ -11,10 +11,4 @@ kotlin.sourceSets {
             api(project(":ktor-shared:ktor-test-base"))
         }
     }
-
-    jvmMain {
-        dependencies {
-            implementation(libs.kotlinx.coroutines.debug)
-        }
-    }
 }

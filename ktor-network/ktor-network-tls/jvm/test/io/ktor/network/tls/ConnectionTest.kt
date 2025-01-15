@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -7,7 +7,6 @@ package io.ktor.network.tls
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.certificates.*
-import io.ktor.test.junit.coroutines.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.ServerBootstrap
@@ -19,6 +18,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.IOException
