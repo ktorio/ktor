@@ -35,8 +35,25 @@ public class HttpRequestRetryConfig {
     internal lateinit var shouldRetry: HttpRetryShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean
     internal lateinit var shouldRetryOnException: HttpRetryShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean
     internal lateinit var delayMillis: HttpRetryDelayContext.(Int) -> Long
-    internal var modifyRequest: HttpRetryModifyRequestContext.(HttpRequestBuilder) -> Unit = {}
     internal var delay: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
+
+    /**
+     * Function that determines whether a request should be retried based on the response.
+     */
+    public val retryIf: (HttpRetryShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean)?
+        get() = if (::shouldRetry.isInitialized) shouldRetry else null
+
+    /**
+     * Function that determines whether a request should be retried based on the exception.
+     */
+    public val retryOnExceptionIf: (HttpRetryShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean)?
+        get() = if (::shouldRetryOnException.isInitialized) shouldRetryOnException else null
+
+    /**
+     * Indicated how the request should be modified before retrying.
+     */
+    public var modifyRequest: HttpRetryModifyRequestContext.(HttpRequestBuilder) -> Unit = {}
+        private set
 
     /**
      * The maximum amount of retries to perform for a request.

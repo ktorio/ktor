@@ -653,9 +653,16 @@ final class io.ktor.client.plugins/HttpRedirectConfig { // io.ktor.client.plugin
 final class io.ktor.client.plugins/HttpRequestRetryConfig { // io.ktor.client.plugins/HttpRequestRetryConfig|null[0]
     constructor <init>() // io.ktor.client.plugins/HttpRequestRetryConfig.<init>|<init>(){}[0]
 
+    final val retryIf // io.ktor.client.plugins/HttpRequestRetryConfig.retryIf|{}retryIf[0]
+        final fun <get-retryIf>(): kotlin/Function3<io.ktor.client.plugins/HttpRetryShouldRetryContext, io.ktor.client.request/HttpRequest, io.ktor.client.statement/HttpResponse, kotlin/Boolean>? // io.ktor.client.plugins/HttpRequestRetryConfig.retryIf.<get-retryIf>|<get-retryIf>(){}[0]
+    final val retryOnExceptionIf // io.ktor.client.plugins/HttpRequestRetryConfig.retryOnExceptionIf|{}retryOnExceptionIf[0]
+        final fun <get-retryOnExceptionIf>(): kotlin/Function3<io.ktor.client.plugins/HttpRetryShouldRetryContext, io.ktor.client.request/HttpRequestBuilder, kotlin/Throwable, kotlin/Boolean>? // io.ktor.client.plugins/HttpRequestRetryConfig.retryOnExceptionIf.<get-retryOnExceptionIf>|<get-retryOnExceptionIf>(){}[0]
+
     final var maxRetries // io.ktor.client.plugins/HttpRequestRetryConfig.maxRetries|{}maxRetries[0]
         final fun <get-maxRetries>(): kotlin/Int // io.ktor.client.plugins/HttpRequestRetryConfig.maxRetries.<get-maxRetries>|<get-maxRetries>(){}[0]
         final fun <set-maxRetries>(kotlin/Int) // io.ktor.client.plugins/HttpRequestRetryConfig.maxRetries.<set-maxRetries>|<set-maxRetries>(kotlin.Int){}[0]
+    final var modifyRequest // io.ktor.client.plugins/HttpRequestRetryConfig.modifyRequest|{}modifyRequest[0]
+        final fun <get-modifyRequest>(): kotlin/Function2<io.ktor.client.plugins/HttpRetryModifyRequestContext, io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> // io.ktor.client.plugins/HttpRequestRetryConfig.modifyRequest.<get-modifyRequest>|<get-modifyRequest>(){}[0]
 
     final fun constantDelay(kotlin/Long = ..., kotlin/Long = ..., kotlin/Boolean = ...) // io.ktor.client.plugins/HttpRequestRetryConfig.constantDelay|constantDelay(kotlin.Long;kotlin.Long;kotlin.Boolean){}[0]
     final fun delay(kotlin.coroutines/SuspendFunction1<kotlin/Long, kotlin/Unit>) // io.ktor.client.plugins/HttpRequestRetryConfig.delay|delay(kotlin.coroutines.SuspendFunction1<kotlin.Long,kotlin.Unit>){}[0]
