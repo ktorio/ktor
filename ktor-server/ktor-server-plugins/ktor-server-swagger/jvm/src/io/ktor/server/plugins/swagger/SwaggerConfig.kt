@@ -30,7 +30,7 @@ public class SwaggerConfig {
     public var packageLocation: String = "https://unpkg.com/swagger-ui-dist"
 
     /**
-     * Whether to allow deep linking in Swagger UI, as described here: https://swagger.io/docs/open-source-tools/swagger-ui/usage/deep-linking/
+     * Whether to allow [deep linking in Swagger UI](https://swagger.io/docs/open-source-tools/swagger-ui/usage/deep-linking/).
      *
      * Defaults to `false`.
      */
