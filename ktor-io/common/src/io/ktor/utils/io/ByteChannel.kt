@@ -37,7 +37,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val readBuffer: Source
         get() {
-            closedCause?.let { throw it }
+            _closedCause.value?.throwOrNull(::ClosedReadChannelException)
             if (_readBuffer.exhausted()) moveFlushToReadBuffer()
             return _readBuffer
         }
@@ -45,15 +45,15 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val writeBuffer: Sink
         get() {
-            closedCause?.let { throw it }
             if (isClosedForWrite) {
-                throw IOException("Channel is closed for write")
+                _closedCause.value?.throwOrNull(::ClosedWriteChannelException)
+                    ?: throw ClosedWriteChannelException()
             }
             return _writeBuffer
         }
 
     override val closedCause: Throwable?
-        get() = _closedCause.value?.cause
+        get() = _closedCause.value?.wrapCause()
 
     override val isClosedForWrite: Boolean
         get() = _closedCause.value != null
@@ -133,9 +133,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
         val closedToken = CloseToken(cause)
         _closedCause.compareAndSet(null, closedToken)
-        val actualCause = closedToken.cause
+        val wrappedCause = closedToken.wrapCause()
 
-        closeSlot(actualCause)
+        closeSlot(wrappedCause)
     }
 
     override fun toString(): String = "ByteChannel[${hashCode()}]"

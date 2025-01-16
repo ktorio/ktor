@@ -13,7 +13,7 @@ internal class SourceByteReadChannel(private val source: Source) : ByteReadChann
     private var closed: CloseToken? = null
 
     override val closedCause: Throwable?
-        get() = closed?.cause
+        get() = closed?.wrapCause()
 
     override val isClosedForRead: Boolean
         get() = source.exhausted()
