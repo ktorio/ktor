@@ -27,15 +27,21 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
-import org.slf4j.*
-import java.io.*
-import java.net.*
+import kotlinx.coroutines.debug.DebugProbes
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.slf4j.Marker
+import org.slf4j.event.Level
+import org.slf4j.helpers.AbstractLogger
+import java.io.File
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.Proxy
+import java.net.URL
 import java.util.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
-import kotlin.use
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -917,6 +923,57 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         assertTrue(failCause != null)
         assertIs<IOException>(failCause)
+    }
+
+    @Test
+    fun testOnCallRespondException() = runTest {
+        var loggedException: Throwable? = null
+        val log = object : AbstractLogger() {
+            override fun isTraceEnabled(): Boolean = false
+            override fun isTraceEnabled(marker: Marker?): Boolean = false
+            override fun isDebugEnabled(): Boolean = false
+            override fun isDebugEnabled(marker: Marker?): Boolean = false
+            override fun isInfoEnabled(): Boolean = false
+            override fun isInfoEnabled(marker: Marker?): Boolean = false
+            override fun isWarnEnabled(): Boolean = false
+            override fun isWarnEnabled(marker: Marker?): Boolean = false
+
+            override fun isErrorEnabled(): Boolean = true
+
+            override fun isErrorEnabled(marker: Marker?): Boolean = true
+
+            override fun getFullyQualifiedCallerName(): String = "TEST"
+
+            override fun handleNormalizedLoggingCall(
+                level: Level?,
+                marker: Marker?,
+                messagePattern: String?,
+                arguments: Array<out Any>?,
+                throwable: Throwable?
+            ) {
+                loggedException = throwable
+            }
+        }
+
+        createAndStartServer(log = log) {
+            application.install(
+                createApplicationPlugin("MyPlugin") {
+                    onCallRespond { _ ->
+                        error("oh nooooo")
+                    }
+                }
+            )
+
+            get {
+                call.respondText("hello world")
+            }
+        }
+
+        withUrl("") {
+            assertEquals(HttpStatusCode.InternalServerError, status)
+            assertNotNull(loggedException)
+            loggedException = null
+        }
     }
 }
 
