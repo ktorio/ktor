@@ -6,41 +6,22 @@ package io.ktor.utils.io
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CopyableThrowable
-import kotlinx.io.IOException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 internal val CLOSED = CloseToken(null)
 
-@Suppress("OPT_IN_USAGE")
-internal class CloseToken(origin: Throwable?) {
+@OptIn(ExperimentalCoroutinesApi::class)
+internal class CloseToken(private val origin: Throwable?) {
 
-    private val closedException: Throwable? = when {
-        origin == null -> null
-        origin is CancellationException -> {
-            if (origin is CopyableThrowable<*>) {
-                origin.createCopy()
-            } else {
-                CancellationException(origin.message ?: "Channel was cancelled", origin)
-            }
+    fun wrapCause(wrap: (Throwable?) -> Throwable = ::ClosedByteChannelException): Throwable? {
+        return when (origin) {
+            null -> null
+            is CopyableThrowable<*> -> origin.createCopy()
+            is CancellationException -> CancellationException(origin.message, origin)
+            else -> wrap(origin)
         }
-
-        origin is IOException && origin is CopyableThrowable<*> -> origin.createCopy()
-        else -> IOException(origin.message ?: "Channel was closed", origin)
     }
 
-    val cause: Throwable?
-        get() = when {
-            closedException == null -> null
-            (closedException is IOException) -> {
-                if (closedException is CopyableThrowable<*>) {
-                    closedException.createCopy()
-                } else {
-                    IOException(closedException.message, closedException)
-                }
-            }
-
-            closedException is CopyableThrowable<*> ->
-                closedException.createCopy() ?: CancellationException(closedException.message, closedException)
-
-            else -> CancellationException(closedException.message, closedException)
-        }
+    fun throwOrNull(wrap: (Throwable?) -> Throwable): Unit? =
+        wrapCause(wrap)?.let { throw it }
 }

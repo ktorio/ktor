@@ -4,7 +4,6 @@
 
 package io.ktor.util.cio
 
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
 
 /**
@@ -17,7 +16,7 @@ public open class ChannelIOException(message: String, exception: Throwable) : IO
  * An exception that is thrown when an IO error occurred during writing to the destination channel.
  * Usually it happens when a remote client closed the connection.
  */
-public class ChannelWriteException(message: String = "Cannot write to a channel", exception: Throwable) :
+public class ChannelWriteException(message: String = "Cannot write to channel", exception: Throwable) :
     ChannelIOException(message, exception)
 
 /**

@@ -47,7 +47,7 @@ internal class RawSourceChannel(
     private val buffer = Buffer()
 
     override val closedCause: Throwable?
-        get() = closedToken?.cause
+        get() = closedToken?.wrapCause()
 
     override val isClosedForRead: Boolean
         get() = closedToken != null && buffer.exhausted()

@@ -36,7 +36,7 @@ internal class SinkByteWriteChannel(origin: RawSink) : ByteWriteChannel {
         get() = closed.value != null
 
     override val closedCause: Throwable?
-        get() = closed.value?.cause
+        get() = closed.value?.wrapCause()
 
     @InternalAPI
     override val writeBuffer: Sink
