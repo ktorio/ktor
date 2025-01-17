@@ -34,22 +34,6 @@ fun Project.configureJvm() {
         }
     }
 
-    tasks.register<Jar>("jarTest") {
-        dependsOn(tasks.named("jvmTestClasses"))
-        archiveClassifier = "test"
-        from(kotlin.jvm().compilations["test"].output)
-    }
-
-    configurations {
-        val testCompile = findByName("testCompile") ?: return@configurations
-
-        val testOutput by creating {
-            extendsFrom(testCompile)
-        }
-        val boot by creating {
-        }
-    }
-
     val testJdk = project.testJdk
     val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
         maxHeapSize = "2g"
