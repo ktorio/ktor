@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 /*
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -92,7 +94,7 @@ internal fun generateX509Certificate(
     domains: List<String> = listOf("127.0.0.1", "localhost"),
     ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1")),
 ): X509Certificate {
-    val now = Instant.now()
+    val now = Clock.System.now()
     val certificateBytes = buildPacket {
         writeCertificate(
             issuer = issuer,
@@ -101,7 +103,7 @@ internal fun generateX509Certificate(
             signerKeyPair = signerKeyPair,
             algorithm = algorithm,
             validFrom = now,
-            validUntil = now.plus(validityDuration.toJavaDuration()),
+            validUntil = now.plus(validityDuration),
             domains = domains,
             ipAddresses = ipAddresses,
             keyType = keyType
@@ -203,8 +205,8 @@ private fun Sink.writeX509Info(
     issuer: X500Principal,
     subject: X500Principal,
     publicKey: PublicKey,
-    validFrom: Instant,
-    validUntil: Instant,
+    validFrom: kotlin.time.Instant,
+    validUntil: kotlin.time.Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
     keyType: KeyType = KeyType.Server
@@ -333,8 +335,8 @@ private fun Sink.writeCertificate(
     subject: X500Principal,
     publicKey: PublicKey,
     algorithm: String,
-    validFrom: Instant,
-    validUntil: Instant,
+    validFrom: kotlin.time.Instant,
+    validUntil: kotlin.time.Instant,
     domains: List<String>,
     ipAddresses: List<InetAddress>,
     signerKeyPair: KeyPair,
@@ -388,16 +390,16 @@ private fun Sink.writeDerBitString(array: ByteArray, unused: Int = 0) {
     writeFully(array)
 }
 
-private fun Sink.writeDerUTCTime(date: Instant) {
+private fun Sink.writeDerUTCTime(date: kotlin.time.Instant) {
     writeDerUTF8String(
-        DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
+        DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'").format(date.toJavaInstant().atZone(ZoneOffset.UTC)),
         0x17
     )
 }
 
-private fun Sink.writeDerGeneralizedTime(date: Instant) {
+private fun Sink.writeDerGeneralizedTime(date: kotlin.time.Instant) {
     writeDerUTF8String(
-        DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'").format(date.atZone(ZoneOffset.UTC)),
+        DateTimeFormatter.ofPattern("yyyyMMddHHmmss'Z'").format(date.toJavaInstant().atZone(ZoneOffset.UTC)),
         0x18
     )
 }
