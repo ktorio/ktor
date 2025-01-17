@@ -44,7 +44,6 @@ println("Build version: ${project.version}")
 subprojects {
     apply(plugin = "ktorbuild.base")
 
-    group = "io.ktor"
     extra["hostManager"] = HostManager()
 
     setupTrainForSubproject()
