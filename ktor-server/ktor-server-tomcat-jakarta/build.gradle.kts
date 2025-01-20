@@ -4,6 +4,11 @@
 
 description = ""
 
+ktorBuild {
+    // The minimal JVM version required for Tomcat 10
+    jvmToolchain(11)
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {
