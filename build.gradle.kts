@@ -49,8 +49,6 @@ subprojects {
             configurePublication()
         }
     }
-
-    configureCodestyle()
 }
 
 println("Using Kotlin compiler version: ${libs.versions.kotlin.get()}")
