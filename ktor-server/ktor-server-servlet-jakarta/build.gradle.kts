@@ -4,6 +4,10 @@
 
 description = ""
 
+ktorBuild {
+    jvmToolchain(11)
+}
+
 kotlin.sourceSets {
     jvmMain {
         dependencies {

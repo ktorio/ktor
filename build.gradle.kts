@@ -2,7 +2,6 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.konan.target.HostManager
 
@@ -51,21 +50,18 @@ subprojects {
     val nonDefaultProjectStructure: List<String> by rootProject.extra
     if (nonDefaultProjectStructure.contains(project.name)) return@subprojects
 
-    apply(plugin = "kotlin-multiplatform")
+    apply(plugin = "ktorbuild.kmp")
     apply(plugin = "atomicfu-conventions")
 
-    configureTargets()
     if (CI) configureTestTasksOnCi()
 
     kotlin {
         if (!internalProjects.contains(project.name)) explicitApi()
 
-        configureSourceSets()
-        setupJvmToolchain()
-
         compilerOptions {
             languageVersion = getKotlinLanguageVersion()
             apiVersion = getKotlinApiVersion()
+            progressiveMode = true
         }
     }
 
@@ -91,31 +87,8 @@ fun configureDokka() {
 
 configureDokka()
 
-fun Project.setupJvmToolchain() {
-    kotlin {
-        jvmToolchain(project.requiredJdkVersion)
-    }
-}
-
 subprojects {
     tasks.withType<KotlinCompilationTask<*>>().configureEach {
         configureCompilerOptions()
     }
-}
-
-fun KotlinMultiplatformExtension.configureSourceSets() {
-    sourceSets
-        .matching { it.name !in listOf("main", "test") }
-        .all {
-            val srcDir = if (name.endsWith("Main")) "src" else "test"
-            val resourcesPrefix = if (name.endsWith("Test")) "test-" else ""
-            val platform = name.dropLast(4)
-
-            kotlin.srcDir("$platform/$srcDir")
-            resources.srcDir("$platform/${resourcesPrefix}resources")
-
-            languageSettings.apply {
-                progressiveMode = true
-            }
-        }
 }
