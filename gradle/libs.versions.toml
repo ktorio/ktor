@@ -1,7 +1,7 @@
 [versions]
 
 kotlin = "2.1.0"
-kotlinx-html = "0.11.0"
+kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-io = "0.6.0"
 coroutines = "1.10.1"
@@ -22,14 +22,13 @@ netty-tcnative = "2.0.69.Final"
 jetty = "9.4.57.v20241219"
 jetty-jakarta = "11.0.24"
 jetty-alpn-api = "1.1.3.v20160715"
-jetty-alpn-boot = "8.1.13.v20181017"
 jetty-alpn-openjdk8 = "9.4.57.v20241219"
 
 tomcat = "9.0.98"
 tomcat-jakarta = "10.1.31"
 
 apache = "4.1.5"
-apache5 = "5.3.1"
+apache5 = "5.4.1"
 apacheds = "2.0.0.AM27"
 okhttp = "4.12.0"
 okio = "3.10.2"
@@ -128,6 +127,7 @@ kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.re
 
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
+dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
@@ -155,7 +155,6 @@ jetty-alpn-java-server = { module = "org.eclipse.jetty:jetty-alpn-java-server", 
 jetty-alpn-java-client = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty" }
 
 jetty-alpn-api = { module = "org.eclipse.jetty.alpn:alpn-api", version.ref = "jetty-alpn-api" }
-jetty-alpn-boot = { module = "org.mortbay.jetty.alpn:alpn-boot", version.ref = "jetty-alpn-boot" }
 jetty-alpn-openjdk8-server = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-server", version.ref = "jetty-alpn-openjdk8" }
 jetty-alpn-openjdk8-client = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-client", version.ref = "jetty-alpn-openjdk8" }
 
@@ -233,7 +232,6 @@ gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "grad
 [plugins]
 
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }

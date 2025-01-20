@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -7,6 +7,7 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.engine.*
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy
 import javax.net.ssl.SSLContext
 
 /**
@@ -46,6 +47,21 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      * Allows you to configure [SSL](https://ktor.io/docs/client-ssl.html) settings for this engine.
      */
     public var sslContext: SSLContext? = null
+
+    /**
+     * Specifies the policy for verifying hostnames during SSL/TLS connections.
+     *
+     * The policy determines when hostname verification occurs during the connection process:
+     * - During TLS handshake (by JSSE)
+     * - After TLS handshake (by HttpClient)
+     * - Or both (default)
+     *
+     * Default value is [HostnameVerificationPolicy.BOTH] which provides maximum security
+     * by performing verification at both stages.
+     *
+     * @see HostnameVerificationPolicy
+     */
+    public var sslHostnameVerificationPolicy: HostnameVerificationPolicy = HostnameVerificationPolicy.BOTH
 
     internal var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
 

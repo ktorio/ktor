@@ -1,10 +1,8 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 description = ""
-
-val jetty_alpn_boot_version: String? by extra
 
 kotlin.sourceSets {
     commonMain {
@@ -28,10 +26,6 @@ kotlin.sourceSets {
             // so shouldn"t increase the size of the final artifact.
             api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
 
-            if (jetty_alpn_boot_version != null) {
-                api(libs.jetty.alpn.boot)
-            }
-
             api(libs.kotlin.test)
             api(libs.junit)
             implementation(libs.kotlinx.coroutines.debug)
@@ -40,7 +34,6 @@ kotlin.sourceSets {
 
     jvmTest {
         dependencies {
-            api(project(":ktor-server:ktor-server-core", configuration = "testOutput"))
             api(project(":ktor-server:ktor-server-config-yaml"))
             api(libs.kotlin.test)
         }
