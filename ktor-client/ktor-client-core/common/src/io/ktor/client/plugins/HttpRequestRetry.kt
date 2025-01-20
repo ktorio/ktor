@@ -235,7 +235,6 @@ public class HttpRequestRetryConfig {
  * }
  * ```
  */
-@OptIn(InternalAPI::class)
 @Suppress("NAME_SHADOWING")
 public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClientPlugin(
     "RetryFeature",
@@ -317,9 +316,7 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
                 call = proceed(subRequest)
                 if (!shouldRetry(retryCount, maxRetries, shouldRetry, call)) {
                     // throws exception if body is corrupt
-                    if (call.response.isSaved && !call.response.rawContent.isClosedForRead) {
-                        call.response.readBytes(0)
-                    }
+                    call.response.throwOnInvalidResponseBody()
                     break
                 }
                 HttpRetryEventData(subRequest, ++retryCount, call.response, null)
@@ -430,4 +427,11 @@ private fun Throwable.isTimeoutException(): Boolean {
     return exception is HttpRequestTimeoutException ||
         exception is ConnectTimeoutException ||
         exception is SocketTimeoutException
+}
+
+@OptIn(InternalAPI::class)
+private suspend fun HttpResponse.throwOnInvalidResponseBody(): Boolean {
+    // wait for saved content to pass through intermediate processing
+    // if the encoding is wrong, then this will throw an exception
+    return isSaved && rawContent.awaitContent()
 }
