@@ -15,6 +15,7 @@ plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
     id("org.jetbrains.kotlinx.atomicfu")
+    id("ktorbuild.codestyle")
 }
 
 kotlin {
