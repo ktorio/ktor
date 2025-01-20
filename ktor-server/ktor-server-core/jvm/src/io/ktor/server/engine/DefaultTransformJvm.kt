@@ -45,7 +45,7 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
             rc,
             contentType,
             contentLength,
-            call.formFieldLimit
+            formFieldLimit = call.formFieldLimit
         )
     } catch (_: UnsupportedMediaTypeExceptionCIO) {
         throw UnsupportedMediaTypeException(ContentType.parse(contentType))

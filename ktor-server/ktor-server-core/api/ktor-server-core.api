@@ -1000,11 +1000,11 @@ public final class io/ktor/server/plugins/UnsupportedMediaTypeException : io/kto
 }
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsJvmKt {
+	public static final fun getDEFAULT_FORM_FIELD_LIMIT ()J
 	public static final fun receiveStream (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsKt {
-	public static final field DEFAULT_FORM_FIELD_MAX_SIZE J
 	public static final fun getFormFieldLimit (Lio/ktor/server/application/ApplicationCall;)J
 	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
