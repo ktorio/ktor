@@ -30,8 +30,8 @@ public actual suspend fun Socket.tls(
     return try {
         openTLSSession(this, reader, writer, config, coroutineContext)
     } catch (cause: Throwable) {
-        reader.cancel(cause)
-        writer.close(cause)
+//        reader.cancel(cause)
+//        writer.close(cause)
         close()
         throw cause
     }
