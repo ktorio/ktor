@@ -83,6 +83,12 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         return EngineSelectionRule { pattern.matches(it) }
     }
 
+    /** Includes the set of [engines] for the test */
+    fun only(vararg engines: String): EngineSelectionRule {
+        val includePatterns = engines.map(EnginePattern::parse)
+        return EngineSelectionRule { engineName -> includePatterns.any { it.matches(engineName) } }
+    }
+
     /** Excludes the specified [engines] from test execution. */
     fun except(vararg engines: String): EngineSelectionRule = except(engines.asList())
 
