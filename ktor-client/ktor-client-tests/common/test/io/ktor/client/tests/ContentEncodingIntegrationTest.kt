@@ -20,7 +20,7 @@ class ContentEncodingIntegrationTest : ClientLoader() {
 
     // GZipEncoder is implemented only on JVM.
     @Test
-    fun testGzipWithContentLengthWithoutPlugin() = clientTests(only("jvm:*")) {
+    fun testGzipWithContentLengthWithoutPlugin() = clientTests(only("jvm:*", "web:Js")) {
         test { client ->
             val response = client.get("$TEST_URL/gzip-with-content-length")
             val content = if (response.headers[HttpHeaders.ContentEncoding] == "gzip") {

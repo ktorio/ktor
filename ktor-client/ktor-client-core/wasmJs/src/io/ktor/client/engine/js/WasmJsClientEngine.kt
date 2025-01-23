@@ -173,7 +173,13 @@ internal fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Att
         append(key, value)
     }
 
-    dropCompressionHeaders(method, attributes)
+    // Content-Encoding is hidden for cross-origin calls,
+    // so browser requests should always ignore Content-Length
+    dropCompressionHeaders(
+        method,
+        attributes,
+        alwaysRemove = PlatformUtils.IS_BROWSER
+    )
 }
 
 /**

@@ -15,10 +15,16 @@ private val DecompressionListAttribute: AttributeKey<MutableList<String>> = Attr
  * (like js and Curl) to make sure all the plugins and checks work with the correct content length and encoding.
  */
 @InternalAPI
-public fun HeadersBuilder.dropCompressionHeaders(method: HttpMethod, attributes: Attributes) {
+public fun HeadersBuilder.dropCompressionHeaders(
+    method: HttpMethod,
+    attributes: Attributes,
+    alwaysRemove: Boolean = false,
+) {
     if (method == HttpMethod.Head || method == HttpMethod.Options) return
-    val header = get(HttpHeaders.ContentEncoding) ?: return
-    attributes.computeIfAbsent(DecompressionListAttribute) { mutableListOf<String>() }.add(header)
+    when (val header = get(HttpHeaders.ContentEncoding)) {
+        null -> if (!alwaysRemove) return
+        else -> attributes.computeIfAbsent(DecompressionListAttribute) { mutableListOf<String>() }.add(header)
+    }
     remove(HttpHeaders.ContentEncoding)
     remove(HttpHeaders.ContentLength)
 }

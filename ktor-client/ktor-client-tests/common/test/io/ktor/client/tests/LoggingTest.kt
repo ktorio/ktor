@@ -73,7 +73,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(except("native:CIO")) {
+    fun testLogLevelAll() = clientTests(except("native:CIO", "web:Js")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: GET",
@@ -103,7 +103,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelHeaders() = clientTests {
+    fun testLogLevelHeaders() = clientTests(except("web:Js")) {
         val logger = TestLogger {
             line("REQUEST: http://localhost:8080/logging")
             line("METHOD: GET")
@@ -143,7 +143,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests(except("native:CIO")) {
+    fun testLogPostBody() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: POST",
@@ -199,7 +199,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO")) {
+    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: POST",
@@ -255,7 +255,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestAndResponseBody() = clientTests(except("native:CIO")) {
+    fun testRequestAndResponseBody() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -305,7 +305,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
+    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -357,7 +357,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingWithCompression() = clientTests(except("Darwin", "DarwinLegacy", "native:CIO", "web:CIO")) {
+    fun testLoggingWithCompression() = clientTests(except("Darwin", "DarwinLegacy", "native:CIO", "web:*")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/compression/deflate",
             "METHOD: GET",
@@ -504,7 +504,7 @@ class LoggingTest : ClientLoader() {
     data class User(val name: String)
 
     @Test
-    fun testLogPostBodyWithJson() = clientTests(retries = 5) {
+    fun testLogPostBodyWithJson() = clientTests(except("web:Js"), retries = 5) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",

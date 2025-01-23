@@ -1557,7 +1557,8 @@ public final class io/ktor/client/utils/HeadersKt {
 }
 
 public final class io/ktor/client/utils/HeadersUtilsKt {
-	public static final fun dropCompressionHeaders (Lio/ktor/http/HeadersBuilder;Lio/ktor/http/HttpMethod;Lio/ktor/util/Attributes;)V
+	public static final fun dropCompressionHeaders (Lio/ktor/http/HeadersBuilder;Lio/ktor/http/HttpMethod;Lio/ktor/util/Attributes;Z)V
+	public static synthetic fun dropCompressionHeaders$default (Lio/ktor/http/HeadersBuilder;Lio/ktor/http/HttpMethod;Lio/ktor/util/Attributes;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/client/utils/HttpResponseReceiveFail {
