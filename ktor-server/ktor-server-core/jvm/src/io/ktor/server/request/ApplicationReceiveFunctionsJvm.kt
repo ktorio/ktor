@@ -14,3 +14,7 @@ import java.io.*
  */
 @Suppress("NOTHING_TO_INLINE")
 public suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
+
+@PublishedApi
+internal actual val DEFAULT_FORM_FIELD_LIMIT: Long
+    get() = System.getProperty("io.ktor.server.request.formFieldLimit")?.toLongOrNull() ?: (50 * 1024 * 1024L)
