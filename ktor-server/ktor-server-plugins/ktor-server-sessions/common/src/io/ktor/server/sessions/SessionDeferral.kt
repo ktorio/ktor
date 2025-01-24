@@ -6,6 +6,10 @@ package io.ktor.server.sessions
 
 import io.ktor.server.application.ApplicationCall
 
+/**
+ * System property flag to defer session data retrieval to the point of access rather than at the start of the
+ * call lifecycle.
+ */
 internal const val SESSIONS_DEFERRED_FLAG = "io.ktor.server.sessions.deferred"
 
 internal expect fun isDeferredSessionsEnabled(): Boolean
