@@ -499,6 +499,7 @@ public final class io/ktor/server/engine/BaseApplicationResponse$BodyLengthIsToo
 
 public final class io/ktor/server/engine/BaseApplicationResponse$Companion {
 	public final fun getEngineResponseAttributeKey ()Lio/ktor/util/AttributeKey;
+	public final fun setupFallbackResponse (Lio/ktor/server/engine/EnginePipeline;)V
 	public final fun setupSendPipeline (Lio/ktor/server/response/ApplicationSendPipeline;)V
 }
 
