@@ -56,13 +56,13 @@ class LoggingTest : ClientLoader() {
     fun testLoggingLevelBody() = clientTests(except("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "BODY Content-Type: null",
             "BODY START",
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: http://localhost:8080/logging",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
@@ -76,7 +76,7 @@ class LoggingTest : ClientLoader() {
     fun testLogLevelAll() = clientTests(except("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -87,7 +87,7 @@ class LoggingTest : ClientLoader() {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: http://localhost:8080/logging",
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
@@ -106,14 +106,14 @@ class LoggingTest : ClientLoader() {
     fun testLogLevelHeaders() = clientTests {
         val logger = TestLogger {
             line("REQUEST: http://localhost:8080/logging")
-            line("METHOD: HttpMethod(value=GET)")
+            line("METHOD: GET")
             line("COMMON HEADERS")
             line("-> Accept: */*")
             line("-> Accept-Charset: UTF-8")
             line("CONTENT HEADERS")
             line("-> Content-Length: 0")
             line("RESPONSE: 200 OK")
-            line("METHOD: HttpMethod(value=GET)")
+            line("METHOD: GET")
             line("FROM: http://localhost:8080/logging")
             line("COMMON HEADERS")
             optional("-> Connection: close")
@@ -128,9 +128,9 @@ class LoggingTest : ClientLoader() {
     fun testLogLevelInfo() = clientTests {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: http://localhost:8080/logging"
         )
         checkLog(logger, HttpMethod.Get, "", null, LogLevel.INFO)
@@ -146,7 +146,7 @@ class LoggingTest : ClientLoader() {
     fun testLogPostBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -158,7 +158,7 @@ class LoggingTest : ClientLoader() {
             content,
             "BODY END",
             "RESPONSE: 201 Created",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://localhost:8080/logging",
             "COMMON HEADERS",
             "???-> Connection: close",
@@ -202,7 +202,7 @@ class LoggingTest : ClientLoader() {
     fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -214,7 +214,7 @@ class LoggingTest : ClientLoader() {
             "�o",
             "BODY END",
             "RESPONSE: 201 Created",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://localhost:8080/logging/non-utf",
             "COMMON HEADERS",
             "???-> Connection: close",
@@ -258,7 +258,7 @@ class LoggingTest : ClientLoader() {
     fun testRequestAndResponseBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -270,7 +270,7 @@ class LoggingTest : ClientLoader() {
             "test",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://127.0.0.1:8080/content/echo",
             "COMMON HEADERS",
             "???-> Connection: close",
@@ -308,7 +308,7 @@ class LoggingTest : ClientLoader() {
     fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -320,7 +320,7 @@ class LoggingTest : ClientLoader() {
             "test",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://127.0.0.1:8080/content/echo",
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
@@ -360,7 +360,7 @@ class LoggingTest : ClientLoader() {
     fun testLoggingWithCompression() = clientTests(except("Darwin", "DarwinLegacy", "native:CIO", "web:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/compression/deflate",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -372,7 +372,7 @@ class LoggingTest : ClientLoader() {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: http://127.0.0.1:8080/compression/deflate",
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
@@ -409,7 +409,7 @@ class LoggingTest : ClientLoader() {
     fun testLoggingWithStreaming() = clientTests {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
-            "METHOD: HttpMethod(value=POST)"
+            "METHOD: POST"
         )
         config {
             Logging {
@@ -507,7 +507,7 @@ class LoggingTest : ClientLoader() {
     fun testLogPostBodyWithJson() = clientTests(retries = 5) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: application/json",
             "-> Accept-Charset: UTF-8",
@@ -519,7 +519,7 @@ class LoggingTest : ClientLoader() {
             "{\"name\":\"Ktor\"}",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://127.0.0.1:8080/content/echo",
             "COMMON HEADERS",
             "???-> connection: keep-alive",
