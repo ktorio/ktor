@@ -3,13 +3,20 @@ package = libcurl
 headers = curl/curl.h
 headerFilter = curl/*
 
+compilerOpts = -Idesktop/interop/include
+
 # there is no libz by default installed on windows, so we need to include it statically
 staticLibraries.mingw = libcurl.a libssl.a libcrypto.a libz.a
 compilerOpts.mingw = -DCURL_STATICLIB
+linkerOpts.mingw_x64 = -Ldesktop/interop/lib/mingwX64
 
 # there is no need to use openssl on macos, as curl is built using out-of-the-box security framework
 staticLibraries.osx = libcurl.a
 linkerOpts.osx = -framework Security -framework SystemConfiguration
+linkerOpts.osx_x64 = -Ldesktop/interop/lib/macosX64
+linkerOpts.osx_arm64 = -Ldesktop/interop/lib/macosArm64
 
 staticLibraries.linux = libcurl.a libssl.a libcrypto.a
 linkerOpts.linux = -lz
+linkerOpts.linux_x64 = -Ldesktop/interop/lib/linuxX64
+linkerOpts.linux_arm64 = -Ldesktop/interop/lib/linuxArm64
