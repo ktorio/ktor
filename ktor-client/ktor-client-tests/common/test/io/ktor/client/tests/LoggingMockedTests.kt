@@ -29,7 +29,7 @@ class LoggingMockedTests {
     fun testLogResponseWithException() = testWithEngine(MockEngine, retries = 5) {
         val testLogger = TestLogger(
             "REQUEST: ${URLBuilder.origin}",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -40,7 +40,7 @@ class LoggingMockedTests {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: ${URLBuilder.origin}",
             "COMMON HEADERS",
             "+++RESPONSE ${URLBuilder.origin} failed with exception: CustomError[PARSE ERROR]",
@@ -94,7 +94,7 @@ class LoggingMockedTests {
     fun testLogResponseWithExceptionSingle() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
             "REQUEST: ${URLBuilder.origin}",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -105,7 +105,7 @@ class LoggingMockedTests {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: ${URLBuilder.origin}",
             "COMMON HEADERS",
             "RESPONSE ${URLBuilder.origin} failed with exception: CustomError[PARSE ERROR]",
@@ -150,7 +150,7 @@ class LoggingMockedTests {
     fun testLoggingWithForm() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost/",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -168,7 +168,7 @@ class LoggingMockedTests {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=POST)",
+            "METHOD: POST",
             "FROM: http://localhost/",
             "COMMON HEADERS",
             "BODY Content-Type: null",
@@ -219,7 +219,7 @@ class LoggingMockedTests {
     fun testFilterRequest() = testWithEngine(MockEngine) {
         val testLogger = TestLogger(
             "REQUEST: http://somewhere/filtered_path",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
@@ -230,7 +230,7 @@ class LoggingMockedTests {
             "",
             "BODY END",
             "RESPONSE: 200 OK",
-            "METHOD: HttpMethod(value=GET)",
+            "METHOD: GET",
             "FROM: http://somewhere/filtered_path",
             "COMMON HEADERS",
             "BODY Content-Type: null",
@@ -264,7 +264,7 @@ class LoggingMockedTests {
     fun testSanitizeHeaders() = testWithEngine(MockEngine) {
         val testLogger = TestLogger {
             line("REQUEST: http://localhost/")
-            line("METHOD: HttpMethod(value=GET)")
+            line("METHOD: GET")
             line("COMMON HEADERS")
             line("-> Accept: */*")
             line("-> Accept-Charset: UTF-8")
@@ -273,7 +273,7 @@ class LoggingMockedTests {
             line("CONTENT HEADERS")
             line("-> Content-Length: 0")
             line("RESPONSE: 200 OK")
-            line("METHOD: HttpMethod(value=GET)")
+            line("METHOD: GET")
             line("FROM: http://localhost/")
             line("COMMON HEADERS")
             line("-> Sanitized: ***")
