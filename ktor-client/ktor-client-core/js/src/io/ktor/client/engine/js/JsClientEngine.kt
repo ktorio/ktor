@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
@@ -16,9 +16,11 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import org.w3c.dom.*
-import org.w3c.dom.events.*
-import kotlin.coroutines.*
+import org.w3c.dom.WebSocket
+import org.w3c.dom.events.Event
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
 
 internal class JsClientEngine(
@@ -31,7 +33,7 @@ internal class JsClientEngine(
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
+    @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val clientConfig = data.attributes[CLIENT_CONFIG]
@@ -42,14 +44,7 @@ internal class JsClientEngine(
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(clientConfig, callContext)
-
-        val controller = AbortController()
-        rawRequest.signal = controller.signal
-        callContext.job.invokeOnCompletion(onCancelling = true) {
-            controller.abort()
-        }
-
-        val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
+        val rawResponse = commonFetch(data.url.toString(), rawRequest, config, callContext.job)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor(data.method, data.attributes)

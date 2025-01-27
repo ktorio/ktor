@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
@@ -56,13 +56,8 @@ internal class JsClientEngine(
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(clientConfig, callContext)
-        val controller = AbortController()
-        rawRequest.signal = controller.signal
-        callContext.job.invokeOnCompletion(onCancelling = true) {
-            controller.abort()
-        }
+        val rawResponse = commonFetch(data.url.toString(), rawRequest, config, callContext.job)
 
-        val rawResponse = commonFetch(data.url.toString(), rawRequest, config)
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor(data.method, data.attributes)
         val version = HttpProtocolVersion.HTTP_1_1
