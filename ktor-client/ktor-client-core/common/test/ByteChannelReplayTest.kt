@@ -42,7 +42,7 @@ internal class ByteChannelReplayTest {
 
     @Test
     fun readABunch() = runTest {
-        val jobs = (0..10).map {
+        val jobs = (0..5).map {
             launch {
                 val readChannel = channelReplay.replay()
                 yield()

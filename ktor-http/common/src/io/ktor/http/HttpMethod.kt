@@ -9,6 +9,8 @@ package io.ktor.http
  * @property value contains method name
  */
 public data class HttpMethod(val value: String) {
+    override fun toString(): String = value
+
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     public companion object {
         public val Get: HttpMethod = HttpMethod("GET")
