@@ -6,6 +6,7 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
@@ -15,7 +16,6 @@ import java.nio.channels.ClosedChannelException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
-import kotlin.concurrent.Volatile
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.AfterTest
@@ -90,8 +90,9 @@ class ServerSocketTest : CoroutineScope {
     @Test
     fun testWrite() {
         val server = server { client ->
-            val channel = client.openWriteChannel(true)
-            channel.writeStringUtf8("123")
+            client.openWriteChannel(true).use {
+                writeStringUtf8("123")
+            }
         }
 
         client { socket ->
