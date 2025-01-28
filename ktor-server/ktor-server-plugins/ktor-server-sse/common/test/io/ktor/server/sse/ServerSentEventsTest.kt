@@ -305,7 +305,7 @@ class ServerSentEventsTest {
         routing {
             sse {
                 heartbeat {
-                    duration = 10.milliseconds
+                    period = 10.milliseconds
                     event = ServerSentEvent("heartbeat")
                 }
 
