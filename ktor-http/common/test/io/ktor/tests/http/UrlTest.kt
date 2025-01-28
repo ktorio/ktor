@@ -265,6 +265,15 @@ class UrlTest {
     }
 
     @Test
+    fun testForFileProtocolMinimalRepresentation() {
+        val result = Url("file:/var/www")
+        assertEquals("file", result.protocol.name)
+        assertEquals("", result.host)
+        assertEquals(listOf("var", "www"), result.rawSegments)
+        assertEquals("file:///var/www", result.toString())
+    }
+
+    @Test
     fun testForMailProtocol() {
         val expectedUrl = "mailto:abc@xyz.io"
         val resultUrl = Url(expectedUrl)

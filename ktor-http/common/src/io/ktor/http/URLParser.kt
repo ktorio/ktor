@@ -136,6 +136,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
 private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
     when (slashCount) {
+        1 -> {
+            host = ""
+            encodedPath = urlString.substring(startIndex, endIndex)
+        }
         2 -> {
             val nextSlash = urlString.indexOf('/', startIndex)
             if (nextSlash == -1 || nextSlash == endIndex) {
