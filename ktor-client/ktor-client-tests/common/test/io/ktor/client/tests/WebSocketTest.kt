@@ -312,6 +312,25 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    fun testResponseContainsSecWebsocketProtocolHeader() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol") {
+                header(HttpHeaders.SecWebSocketProtocol, "test-protocol")
+            }
+
+            try {
+                assertEquals(session.call.response.headers[HttpHeaders.SecWebSocketProtocol], "test-protocol")
+            } finally {
+                session.close()
+            }
+        }
+    }
+
+    @Test
     fun testIncomingOverflow() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
