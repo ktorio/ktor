@@ -39,6 +39,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val readBuffer: Source
         get() {
+            debug("read")
             _closedCause.value?.throwOrNull(::ClosedReadChannelException)
             if (_readBuffer.exhausted()) moveFlushToReadBuffer()
             return _readBuffer
@@ -47,6 +48,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val writeBuffer: Sink
         get() {
+            debug("write")
             if (isClosedForWrite) {
                 _closedCause.value?.throwOrNull(::ClosedWriteChannelException)
                     ?: throw ClosedWriteChannelException()
@@ -88,6 +90,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @OptIn(InternalAPI::class)
     override suspend fun flush() {
+        //debug("write")
         rethrowCloseCauseIfNeeded()
 
         flushWriteBuffer()
@@ -100,6 +103,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
     @InternalAPI
     public override fun flushWriteBuffer() {
+        debug("write")
         if (_writeBuffer.exhausted()) return
 
         synchronized(flushBufferMutex) {
