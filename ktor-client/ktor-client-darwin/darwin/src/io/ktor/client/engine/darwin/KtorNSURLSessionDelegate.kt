@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin
@@ -7,11 +7,12 @@ package io.ktor.client.engine.darwin
 import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
-import platform.darwin.*
-import kotlin.coroutines.*
+import platform.darwin.NSObject
+import kotlin.collections.set
+import kotlin.coroutines.CoroutineContext
 
 private const val HTTP_REQUESTS_INITIAL_CAPACITY = 32
 private const val WS_REQUESTS_INITIAL_CAPACITY = 16
@@ -77,7 +78,7 @@ public class KtorNSURLSessionDelegate(
         didOpenWithProtocol: String?
     ) {
         val wsSession = webSocketSessions[webSocketTask] ?: return
-        wsSession.didOpen()
+        wsSession.didOpen(didOpenWithProtocol)
     }
 
     override fun URLSession(
