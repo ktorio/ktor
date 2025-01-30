@@ -62,7 +62,6 @@ internal abstract class NIOSocketImpl<out S>(
     override fun close() {
         if (!closeFlag.compareAndSet(false, true)) return
 
-        readerJob.get()?.channel?.close()
         writerJob.get()?.cancel()
         checkChannels()
     }
