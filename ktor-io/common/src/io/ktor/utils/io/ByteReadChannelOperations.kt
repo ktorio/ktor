@@ -316,7 +316,6 @@ public fun CoroutineScope.reader(
             channel.close(cause)
         } finally {
             nested.join()
-            runCatching { channel.flushAndClose() }
         }
     }.apply {
         invokeOnCompletion {
