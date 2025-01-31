@@ -8,11 +8,12 @@ import io.ktor.client.engine.js.*
 import io.ktor.client.fetch.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.Response
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 internal fun CoroutineScope.readBodyBrowser(response: Response): ByteReadChannel {
     @Suppress("UnsafeCastFromDynamic")
@@ -31,13 +32,13 @@ internal fun CoroutineScope.channelFromStream(
             channel.flush()
         }
     } catch (cause: Throwable) {
-        reader.cancel(cause)
+        reader.cancel(cause).catch { /* ignore */ }.await()
         throw cause
     }
 }.channel
 
 internal suspend fun ReadableStreamDefaultReader<Uint8Array>.readChunk(): Uint8Array? =
-    suspendCancellableCoroutine { continuation ->
+    suspendCoroutine { continuation ->
         read().then {
             val chunk = it.value
             val result = if (it.done) null else chunk

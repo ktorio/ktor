@@ -28,9 +28,7 @@ internal suspend fun commonFetch(
     val controller = AbortController()
     init.signal = controller.signal
 
-    val abortOnCallCompletion = callJob.invokeOnCompletion(onCancelling = true) {
-        controller.abort()
-    }
+    callJob.invokeOnCompletion(onCancelling = true) { controller.abort() }
 
     val promise: Promise<org.w3c.fetch.Response> = when {
         PlatformUtils.IS_BROWSER -> fetch(input, init)
@@ -54,7 +52,7 @@ internal suspend fun commonFetch(
             continuation.resumeWithException(Error("Fail to fetch", JsError(it)))
             null
         }
-    ).finally { abortOnCallCompletion.dispose() }
+    )
 }
 
 private fun AbortController(): AbortController {
