@@ -17,13 +17,13 @@ class TCPSocketTest {
     @Test
     fun testEcho() = testSockets { selector ->
         val tcp = aSocket(selector).tcp()
-        val server = tcp.bind("127.0.0.1", 8000)
+        val server: ServerSocket = tcp.bind("127.0.0.1", port = 0)
 
         val serverConnectionPromise = async {
             server.accept()
         }
 
-        val clientConnection = tcp.connect("127.0.0.1", 8000)
+        val clientConnection = tcp.connect("127.0.0.1", port = server.port)
         val serverConnection = serverConnectionPromise.await()
 
         val clientOutput = clientConnection.openWriteChannel()
@@ -115,8 +115,7 @@ class TCPSocketTest {
                 server.accept()
             }
 
-            val port = (server.localAddress as InetSocketAddress).port
-            val client: Socket = tcp.connect("127.0.0.1", port)
+            val client: Socket = tcp.connect("127.0.0.1", server.port)
             val readChannel = client.openReadChannel()
             serverConnection.await()
 
@@ -130,29 +129,33 @@ class TCPSocketTest {
 
     @Test
     fun testConnectToNonExistingSocket() = testSockets(timeout = 10.seconds) { selector ->
+        val tcp = aSocket(selector).tcp()
+        val server = tcp.bind("127.0.0.1")
+        server.close()
+
         assertFailsWith<IOException> {
             aSocket(selector)
                 .tcp()
-                .connect("127.0.0.1", 8001) // there should be no server active on this port
+                .connect("127.0.0.1", server.port) // trying to connect to a port that was available but now closed
         }
     }
 
     @Test
     fun testDisconnect() = testSockets { selector ->
         val tcp = aSocket(selector).tcp()
-        val server = tcp.bind("127.0.0.1", 8003)
+        val server: ServerSocket = tcp.bind("127.0.0.1", port = 0)
 
         val serverConnectionPromise = async {
             server.accept()
         }
 
-        val clientConnection = tcp.connect("127.0.0.1", 8003)
+        val clientConnection = tcp.connect("127.0.0.1", port = server.port)
         val serverConnection = serverConnectionPromise.await()
 
         val serverInput = serverConnection.openReadChannel()
 
-        // Need to make sure reading from server is done first, which will suspend because there is nothing to read.
-        // Then close the connection from client side, which should cancel the reading because the socket disconnected.
+        // Need to make sure reading from the server is done first, which will suspend because there is nothing to read.
+        // Then close the connection from the client side, which should cancel the reading because the socket is disconnected.
         launch {
             delay(100)
             clientConnection.close()
