@@ -43,11 +43,11 @@ internal actual class SelectorHelper {
 
     actual fun requestTermination() {
         interestQueue.close()
-        closeQueue.close()
         wakeupSignal.signal()
     }
 
     private fun cleanup() {
+        closeQueue.close()
         while (true) {
             val event = closeQueue.removeFirstOrNull() ?: break
             closeDescriptor(event)
