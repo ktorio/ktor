@@ -269,10 +269,13 @@ sealed class io.ktor.network.sockets/SocketOptions { // io.ktor.network.sockets/
 
 final val io.ktor.network.sockets/isClosed // io.ktor.network.sockets/isClosed|@io.ktor.network.sockets.ASocket{}isClosed[0]
     final fun (io.ktor.network.sockets/ASocket).<get-isClosed>(): kotlin/Boolean // io.ktor.network.sockets/isClosed.<get-isClosed>|<get-isClosed>@io.ktor.network.sockets.ASocket(){}[0]
+final val io.ktor.network.sockets/port // io.ktor.network.sockets/port|@io.ktor.network.sockets.ServerSocket{}port[0]
+    final fun (io.ktor.network.sockets/ServerSocket).<get-port>(): kotlin/Int // io.ktor.network.sockets/port.<get-port>|<get-port>@io.ktor.network.sockets.ServerSocket(){}[0]
 
 final fun (io.ktor.network.sockets/AReadable).io.ktor.network.sockets/openReadChannel(): io.ktor.utils.io/ByteReadChannel // io.ktor.network.sockets/openReadChannel|openReadChannel@io.ktor.network.sockets.AReadable(){}[0]
 final fun (io.ktor.network.sockets/AWritable).io.ktor.network.sockets/openWriteChannel(kotlin/Boolean = ...): io.ktor.utils.io/ByteWriteChannel // io.ktor.network.sockets/openWriteChannel|openWriteChannel@io.ktor.network.sockets.AWritable(kotlin.Boolean){}[0]
 final fun (io.ktor.network.sockets/Socket).io.ktor.network.sockets/connection(): io.ktor.network.sockets/Connection // io.ktor.network.sockets/connection|connection@io.ktor.network.sockets.Socket(){}[0]
+final fun (io.ktor.network.sockets/SocketAddress).io.ktor.network.sockets/port(): kotlin/Int // io.ktor.network.sockets/port|port@io.ktor.network.sockets.SocketAddress(){}[0]
 final fun <#A: io.ktor.network.sockets/Configurable<#A, *>> (#A).io.ktor.network.sockets/tcpNoDelay(): #A // io.ktor.network.sockets/tcpNoDelay|tcpNoDelay@0:0(){0§<io.ktor.network.sockets.Configurable<0:0,*>>}[0]
 final fun io.ktor.network.selector/SelectorManager(kotlin.coroutines/CoroutineContext = ...): io.ktor.network.selector/SelectorManager // io.ktor.network.selector/SelectorManager|SelectorManager(kotlin.coroutines.CoroutineContext){}[0]
 final fun io.ktor.network.sockets/aSocket(io.ktor.network.selector/SelectorManager): io.ktor.network.sockets/SocketBuilder // io.ktor.network.sockets/aSocket|aSocket(io.ktor.network.selector.SelectorManager){}[0]
