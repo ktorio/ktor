@@ -10,6 +10,9 @@ import io.ktor.util.*
 /**
  * Creates a route with Rate-Limit rules applied to it.
  * This function accepts name of RateLimit providers defined in the [RateLimit] plugin configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.rateLimit)
+ *
  * @see [RateLimit]
  *
  * @param configuration names of RateLimit providers defined in the [RateLimit] plugin configuration.
@@ -38,6 +41,9 @@ public fun Route.rateLimit(
  * A rate-limited route node that is used by the [RateLimit] plugin
  * and usually created by the [Route.rateLimit] DSL function, so generally there is no need to instantiate it directly
  * unless you are writing an extension.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitRouteSelector)
+ *
  * @param name of rate-limit provider to be applied to this route.
  */
 public class RateLimitRouteSelector(public val name: RateLimitName) : RouteSelector() {

@@ -19,6 +19,9 @@ private val RN_BYTES = "\r\n".toByteArray()
  *
  * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormDataContent)
+ *
  * @param formData data to send.
  */
 public class FormDataContent(
@@ -36,6 +39,9 @@ public class FormDataContent(
  * [OutgoingContent] for a `multipart/form-data` formatted request.
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.MultiPartFormDataContent)
  *
  * @param parts form part data
  */

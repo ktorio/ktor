@@ -83,6 +83,8 @@ actual constructor(
 
     /**
      * Reload application: destroy it first and then create again
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EmbeddedServer.reload)
      */
     public fun reload() {
         applicationInstanceLock.write {

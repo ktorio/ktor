@@ -22,6 +22,8 @@ private const val TEST_SERVER_HTTPS = "https://localhost:8089/"
 /**
  * This is a temporary tests that should be moved to the general test suite
  * once we support TLS options in client configs to connect to the local test TLS server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.test.CurlProxyTest)
  */
 class CurlProxyTest : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 

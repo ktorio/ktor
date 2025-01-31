@@ -34,6 +34,8 @@ private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=J
  *
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.generateCertificate)
  */
 public fun generateCertificate(
     file: File? = null,
@@ -129,6 +131,8 @@ public enum class KeyType {
  *
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.generateCertificate)
  */
 public fun KeyStore.generateCertificate(
     file: File? = null,
@@ -175,6 +179,8 @@ public fun KeyStore.generateCertificate(
  * while their responding keys are private.
  *
  *  If [file] is set, all certificates are stored in a JKS keystore in [file] with [password].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.trustStore)
  */
 public fun KeyStore.trustStore(
     file: File? = null,

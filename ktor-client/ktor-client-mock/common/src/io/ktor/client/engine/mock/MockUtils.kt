@@ -50,6 +50,8 @@ public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
 
 /**
  * Send error response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respondError)
  */
 public fun MockRequestHandleScope.respondError(
     status: HttpStatusCode,
@@ -59,6 +61,8 @@ public fun MockRequestHandleScope.respondError(
 
 /**
  * Send ok response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respondOk)
  */
 public fun MockRequestHandleScope.respondOk(
     content: String = ""
@@ -66,6 +70,8 @@ public fun MockRequestHandleScope.respondOk(
 
 /**
  * Respond redirect with [location] in Location header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respondRedirect)
  */
 public fun MockRequestHandleScope.respondRedirect(
     location: String = ""
@@ -73,12 +79,16 @@ public fun MockRequestHandleScope.respondRedirect(
 
 /**
  * Send [HttpStatusCode.BadRequest] response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respondBadRequest)
  */
 public fun MockRequestHandleScope.respondBadRequest(): HttpResponseData =
     respond("Bad Request", HttpStatusCode.BadRequest)
 
 /**
  * Send response with specified string [content], [status] and [headers].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respond)
  */
 public fun MockRequestHandleScope.respond(
     content: String,
@@ -89,6 +99,8 @@ public fun MockRequestHandleScope.respond(
 
 /**
  * Send response with specified bytes [content], [status] and [headers].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respond)
  */
 public fun MockRequestHandleScope.respond(
     content: ByteArray,
@@ -98,6 +110,8 @@ public fun MockRequestHandleScope.respond(
 
 /**
  * Send response with specified [ByteReadChannel] [content], [status] and [headers].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.respond)
  */
 public fun MockRequestHandleScope.respond(
     content: ByteReadChannel,

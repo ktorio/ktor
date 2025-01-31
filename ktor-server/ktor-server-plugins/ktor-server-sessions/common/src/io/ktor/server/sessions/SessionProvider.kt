@@ -9,6 +9,9 @@ import kotlin.reflect.*
 /**
  * Specifies a provider for a session with the specific [name] and [type].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionProvider)
+ *
  * @param transport specifies the [SessionTransport] for this provider
  * @param tracker specifies the [SessionTracker] for this provider
  * @property name session name

@@ -8,16 +8,23 @@ import io.ktor.util.*
 
 /**
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Parameters)
  */
 public interface Parameters : StringValues {
     public companion object {
         /**
          * Empty [Parameters] instance
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Parameters.Companion.Empty)
          */
         public val Empty: Parameters = EmptyParameters
 
         /**
          * Builds a [Parameters] instance with the given [builder] function
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Parameters.Companion.build)
+         *
          * @param builder specifies a function to build a map
          */
         public inline fun build(builder: ParametersBuilder.() -> Unit): Parameters =
@@ -41,31 +48,44 @@ public class ParametersBuilderImpl(
 
 /**
  * Returns an empty [Parameters] instance
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parametersOf)
  */
 public fun parametersOf(): Parameters = Parameters.Empty
 
 /**
  * Creates a [Parameters] instance containing only single pair
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parametersOf)
  */
 public fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl(name, listOf(value))
 
 /**
  * Creates a [Parameters] instance containing only single pair of [name] with multiple [values]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parametersOf)
  */
 public fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 
 /**
  * Creates a [Parameters] instance from the entries of the given [map]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parametersOf)
  */
 public fun parametersOf(map: Map<String, List<String>>): Parameters = ParametersImpl(map)
 
 /**
  * Creates a [Parameters] instance from the specified [pairs]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parametersOf)
  */
 public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
 /**
  * Builds a [Parameters] instance with the given [builder] function
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parameters)
+ *
  * @param builder specifies a function to build a map
  */
 public fun parameters(builder: ParametersBuilder.() -> Unit): Parameters = Parameters.build(builder)
@@ -83,6 +103,8 @@ public class ParametersSingleImpl(name: String, values: List<String>) : Paramete
 
 /**
  * Plus operator function that creates a new parameters instance from the original one concatenating with [other]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.plus)
  */
 public operator fun Parameters.plus(other: Parameters): Parameters = when {
     caseInsensitiveName == other.caseInsensitiveName -> when {

@@ -20,37 +20,53 @@ private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType
 
 /**
  * A single act of communication between a client and server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall)
+ *
  * @see [io.ktor.server.request.ApplicationRequest]
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public interface ApplicationCall : CoroutineScope {
     /**
      * [Attributes] attached to this call.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.attributes)
      */
     public val attributes: Attributes
 
     /**
      * An [ApplicationRequest] that is a client request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.request)
      */
     public val request: ApplicationRequest
 
     /**
      * An [PipelineResponse] that is a server response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.response)
      */
     public val response: ApplicationResponse
 
     /**
      * An application being called.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.application)
      */
     public val application: Application
 
     /**
      * Parameters associated with this call.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.parameters)
      */
     public val parameters: Parameters
 
     /**
      * Receives content for this request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receiveNullable)
+     *
      * @param typeInfo instance specifying type to be received.
      * @return instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
@@ -59,6 +75,9 @@ public interface ApplicationCall : CoroutineScope {
 
     /**
      * Sends a [message] as a response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.respond)
+     *
      * @see [io.ktor.server.response.PipelineResponse]
      */
     public suspend fun respond(message: Any?, typeInfo: TypeInfo?)
@@ -66,6 +85,9 @@ public interface ApplicationCall : CoroutineScope {
 
 /**
  * A single act of communication between a client and server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PipelineCall)
+ *
  * @see [io.ktor.server.request.PipelineRequest]
  * @see [io.ktor.server.response.PipelineResponse]
  */
@@ -73,11 +95,15 @@ public interface PipelineCall : ApplicationCall {
 
     /**
      * An [PipelineRequest] that is a client request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PipelineCall.request)
      */
     public override val request: PipelineRequest
 
     /**
      * An [PipelineResponse] that is a server response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PipelineCall.response)
      */
     public override val response: PipelineResponse
 
@@ -109,11 +135,15 @@ public interface PipelineCall : ApplicationCall {
 
 /**
  * Indicates if a response is sent.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.isHandled)
  */
 public val ApplicationCall.isHandled: Boolean get() = response.isCommitted
 
 /**
  * The [TypeInfo] recorded from the last [call.receive<Type>()] call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.receiveType)
  */
 public var ApplicationCall.receiveType: TypeInfo
     get() = attributes[RECEIVE_TYPE_KEY]
@@ -123,5 +153,7 @@ public var ApplicationCall.receiveType: TypeInfo
 
 /**
  * Convenience extension property for pipeline interceptors with Application call contexts.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.call)
  */
 public val <C : ApplicationCall> PipelineContext<*, C>.call: C get() = context

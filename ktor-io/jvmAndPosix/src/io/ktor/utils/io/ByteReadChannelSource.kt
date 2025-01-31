@@ -14,6 +14,9 @@ import kotlinx.io.RawSource
  *
  * Please note: the [RawSource] produced by this operation uses [runBlocking] to wait for the content to be available.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.asSource)
+ *
  * @return a `RawSource` implementation that wraps the `ByteReadChannel`.
  */
 public fun ByteReadChannel.asSource(): RawSource = ByteReadChannelSource(this)

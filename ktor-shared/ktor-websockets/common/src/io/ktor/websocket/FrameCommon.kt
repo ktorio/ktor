@@ -11,6 +11,9 @@ import kotlinx.io.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame)
+ *
  * @property fin is it final fragment, should be always `true` for control frames and if no fragmentation is used
  * @property frameType enum value
  * @property data - a frame content or fragment content
@@ -30,16 +33,22 @@ public expect sealed class Frame private constructor(
 
     /**
      * First extension bit.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.rsv1)
      */
     public val rsv1: Boolean
 
     /**
      * Second extension bit.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.rsv2)
      */
     public val rsv2: Boolean
 
     /**
      * Third extension bit.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.rsv3)
      */
     public val rsv3: Boolean
 
@@ -54,6 +63,8 @@ public expect sealed class Frame private constructor(
      * In a RAW WebSocket session a big text frame could be fragmented
      * (separated into several text frames, so they have [fin] = false except the last one).
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Binary)
      */
     public class Binary public constructor(
         fin: Boolean,
@@ -73,6 +84,8 @@ public expect sealed class Frame private constructor(
      * Please note that a boundary between fragments could be in the middle of multi-byte (unicode) character
      * so don't apply String constructor to every fragment but use decoder loop instead of concatenate fragments first.
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Text)
      */
     public class Text public constructor(
         fin: Boolean,
@@ -89,6 +102,8 @@ public expect sealed class Frame private constructor(
     /**
      * Represents a low-level level close frame. It could be sent to indicate WebSocket session end.
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Close)
      */
     public class Close(data: ByteArray) : Frame {
         public constructor(reason: CloseReason)
@@ -99,6 +114,8 @@ public expect sealed class Frame private constructor(
     /**
      * Represents a low-level ping frame. Could be sent to test connection (peer should reply with [Pong]).
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Ping)
      */
     public class Ping(data: ByteArray) : Frame {
         public constructor(packet: Source)
@@ -107,6 +124,8 @@ public expect sealed class Frame private constructor(
     /**
      * Represents a low-level pong frame. Should be sent in reply to a [Ping] frame.
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Pong)
      */
     public class Pong(
         data: ByteArray,
@@ -117,12 +136,16 @@ public expect sealed class Frame private constructor(
 
     /**
      * Creates a frame copy.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.copy)
      */
     public fun copy(): Frame
 
     public companion object {
         /**
          * Create a particular [Frame] instance by the frame type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Companion.byType)
          */
         public fun byType(
             fin: Boolean,
@@ -138,6 +161,8 @@ public expect sealed class Frame private constructor(
 /**
  * Reads text content from the text frame.
  * Shouldn't be used for fragmented frames: such frames need to be reassembled first.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readText)
  */
 public fun Frame.Text.readText(): String {
     require(fin) { "Text could be only extracted from non-fragmented frame" }
@@ -146,6 +171,8 @@ public fun Frame.Text.readText(): String {
 
 /**
  * Reads binary content from the frame. For fragmented frames only returns this fragment.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readBytes)
  */
 public fun Frame.readBytes(): ByteArray {
     return data.copyOf()
@@ -153,6 +180,8 @@ public fun Frame.readBytes(): ByteArray {
 
 /**
  * Reads the close reason from the close frame or null if no close reason is provided.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readReason)
  */
 public fun Frame.Close.readReason(): CloseReason? {
     if (data.size < 2) {

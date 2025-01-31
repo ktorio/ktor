@@ -36,12 +36,16 @@ public enum class LoggingFormat {
     /**
      * [OkHttp logging format](https://github.com/square/okhttp/blob/parent-4.12.0/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/HttpLoggingInterceptor.kt#L48-L105).
      * Writes only application-level logs because the low-level HTTP communication is hidden within the engine implementations.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingFormat.OkHttp)
      */
     OkHttp
 }
 
 /**
  * A configuration for the [Logging] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig)
  */
 @KtorDsl
 public class LoggingConfig {
@@ -50,11 +54,17 @@ public class LoggingConfig {
 
     private var _logger: Logger? = null
 
-    /** A general format for logging requests and responses. See [LoggingFormat]. */
+    /**
+     * A general format for logging requests and responses. See [LoggingFormat].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.format)
+     */
     public var format: LoggingFormat = LoggingFormat.Default
 
     /**
      * Specifies a [Logger] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.logger)
      */
     public var logger: Logger
         get() = _logger ?: Logger.DEFAULT
@@ -64,11 +74,15 @@ public class LoggingConfig {
 
     /**
      * Specifies the logging level.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.level)
      */
     public var level: LogLevel = LogLevel.HEADERS
 
     /**
      * Allows you to filter log messages for calls matching a [predicate].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.filter)
      */
     public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
         filters.add(predicate)
@@ -80,6 +94,8 @@ public class LoggingConfig {
      * ```kotlin
      * sanitizeHeader { header -> header == HttpHeaders.Authorization }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.sanitizeHeader)
      */
     public fun sanitizeHeader(placeholder: String = "***", predicate: (String) -> Boolean) {
         sanitizedHeaders.add(SanitizedHeader(placeholder, predicate))
@@ -90,6 +106,8 @@ public class LoggingConfig {
  * A client's plugin that provides the capability to log HTTP calls.
  *
  * You can learn more from [Logging](https://ktor.io/docs/client-logging.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.Logging)
  */
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", ::LoggingConfig) {
@@ -650,6 +668,8 @@ private fun computeRequestBodySize(content: Any, headers: Headers): Long {
 
 /**
  * Configures and installs [Logging] in [HttpClient].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.Logging)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.Logging(block: LoggingConfig.() -> Unit = {}) {

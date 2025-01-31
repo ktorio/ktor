@@ -11,6 +11,8 @@ public typealias ChallengeFunction = suspend (AuthenticationProcedureChallenge, 
 
 /**
  * Represents an authentication challenging procedure requested by authentication mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProcedureChallenge)
  */
 public class AuthenticationProcedureChallenge {
     internal val register = mutableListOf<Pair<AuthenticationFailedCause, ChallengeFunction>>()
@@ -37,6 +39,8 @@ public class AuthenticationProcedureChallenge {
 
     /**
      * Represents whether a challenge is successfully sent to the client and challenging should be stopped.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProcedureChallenge.completed)
      */
     public var completed: Boolean
         get() = _completed.value
@@ -46,6 +50,8 @@ public class AuthenticationProcedureChallenge {
 
     /**
      * Completes a challenging procedure.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProcedureChallenge.complete)
      */
     public fun complete() {
         completed = true

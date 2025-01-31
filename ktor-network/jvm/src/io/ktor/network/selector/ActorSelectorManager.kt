@@ -14,6 +14,8 @@ import kotlin.coroutines.intrinsics.*
 
 /**
  * Default CIO selector manager implementation
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.ActorSelectorManager)
  */
 public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
@@ -135,6 +137,8 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
 
     /**
      * Publish current [selectable] interest
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.ActorSelectorManager.publishInterest)
      */
     override fun publishInterest(selectable: Selectable) {
         try {
@@ -169,6 +173,8 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
 
     /**
      * Close selector manager and release all resources
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.ActorSelectorManager.close)
      */
     override fun close() {
         closed = true

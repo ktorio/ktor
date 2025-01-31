@@ -40,6 +40,9 @@ public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuff
  * eg: it could be 4 bytes available for write but the provided byte buffer could have only 2 remaining bytes:
  * in this case you have to invoke write again (with decreased [min] accordingly).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeAvailable)
+ *
  * @param min amount of bytes available for write, should be positive
  * @param block to be invoked when at least [min] bytes free capacity available
  *

@@ -17,6 +17,8 @@ import kotlinx.atomicfu.*
 
 /**
  * Installs the client's [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.digest)
  */
 public fun AuthConfig.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
@@ -27,6 +29,8 @@ public fun AuthConfig.digest(block: DigestAuthConfig.() -> Unit) {
 
 /**
  * A configuration for [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig)
  */
 @KtorDsl
 public class DigestAuthConfig {
@@ -35,18 +39,24 @@ public class DigestAuthConfig {
 
     /**
      * Required: The username of the basic auth.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.username)
      */
     @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var username: String = ""
 
     /**
      * Required: The password of the basic auth.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.password)
      */
     @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var password: String = ""
 
     /**
      * (Optional) Specifies the realm of the current provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.realm)
      */
     public var realm: String? = null
 
@@ -57,6 +67,8 @@ public class DigestAuthConfig {
 
     /**
      * Allows you to specify authentication credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.credentials)
      */
     public fun credentials(block: suspend () -> DigestAuthCredentials?) {
         credentials = block
@@ -65,6 +77,8 @@ public class DigestAuthConfig {
 
 /**
  * Contains credentials for [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthCredentials)
  */
 public class DigestAuthCredentials(
     public val username: String,
@@ -75,6 +89,8 @@ public class DigestAuthCredentials(
  * An authentication provider for the Digest HTTP authentication scheme.
  *
  * You can learn more from [Digest authentication](https://ktor.io/docs/digest-client.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider)
  */
 public class DigestAuthProvider(
     private val credentials: suspend () -> DigestAuthCredentials?,

@@ -8,6 +8,8 @@ import io.ktor.network.selector.*
 
 /**
  * TCP socket builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TcpSocketBuilder)
  */
 public class TcpSocketBuilder internal constructor(
     private val selector: SelectorManager,
@@ -15,6 +17,8 @@ public class TcpSocketBuilder internal constructor(
 ) : Configurable<TcpSocketBuilder, SocketOptions.PeerSocketOptions> {
     /**
      * Connect to [hostname] and [port].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TcpSocketBuilder.connect)
      */
     public suspend fun connect(
         hostname: String,
@@ -24,6 +28,8 @@ public class TcpSocketBuilder internal constructor(
 
     /**
      * Bind server socket at [port] to listen to [hostname].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TcpSocketBuilder.bind)
      */
     public suspend fun bind(
         hostname: String = "0.0.0.0",
@@ -33,6 +39,8 @@ public class TcpSocketBuilder internal constructor(
 
     /**
      * Connect to [remoteAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TcpSocketBuilder.connect)
      */
     public suspend fun connect(
         remoteAddress: SocketAddress,
@@ -41,6 +49,8 @@ public class TcpSocketBuilder internal constructor(
 
     /**
      * Bind server socket to listen to [localAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TcpSocketBuilder.bind)
      */
     public suspend fun bind(
         localAddress: SocketAddress? = null,

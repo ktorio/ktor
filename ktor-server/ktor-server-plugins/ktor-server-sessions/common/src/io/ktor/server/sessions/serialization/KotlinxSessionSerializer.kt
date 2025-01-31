@@ -10,6 +10,8 @@ import kotlinx.serialization.modules.*
 
 /**
  * Returns a [SessionSerializer] based on `kotlinx.serialization` library.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.serialization.KotlinxSessionSerializer)
  */
 @Suppress("FunctionName")
 public inline fun <reified T : Any> KotlinxSessionSerializer(
@@ -20,6 +22,8 @@ public inline fun <reified T : Any> KotlinxSessionSerializer(
 
 /**
  * Returns a [SessionSerializer] based on `kotlinx.serialization` library.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.serialization.KotlinxSessionSerializer)
  */
 @Suppress("FunctionName")
 public fun <T : Any> KotlinxSessionSerializer(
@@ -34,6 +38,8 @@ public fun <T : Any> KotlinxSessionSerializer(
  * that is backward compatible with previous default serializer.
  * In general, it's discouraged to use this format, and it's recommended to migrate your sessions to another format,
  * such as JSON
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.serialization.KotlinxBackwardCompatibleSessionSerializer)
  */
 @Suppress("FunctionName")
 public inline fun <reified T : Any> KotlinxBackwardCompatibleSessionSerializer(
@@ -47,6 +53,8 @@ public inline fun <reified T : Any> KotlinxBackwardCompatibleSessionSerializer(
  * that is backward compatible with previous default serializer.
  * In general, it's discouraged to use this format, and it's recommended to migrate your sessions to another format,
  * such as JSON
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.serialization.KotlinxBackwardCompatibleSessionSerializer)
  */
 @Suppress("FunctionName")
 public fun <T : Any> KotlinxBackwardCompatibleSessionSerializer(

@@ -22,6 +22,9 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.sessions.Sessions")
  * sign and encrypt session data and more.
  *
  * You can learn more from [Sessions](https://ktor.io/docs/sessions.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Sessions)
+ *
  * @property providers list of session providers
  */
 public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin("Sessions", ::SessionsConfig) {

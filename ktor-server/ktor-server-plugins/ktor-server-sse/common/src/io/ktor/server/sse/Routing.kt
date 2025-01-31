@@ -13,6 +13,9 @@ import io.ktor.util.reflect.*
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
+ *
  * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
@@ -45,6 +48,9 @@ public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit)
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
+ *
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
  * endpoint. Inside the handler, you can use the functions provided by [ServerSSESessionWithSerialization]
  * to send events to the connected clients.
@@ -71,6 +77,9 @@ public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = proce
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *
  * @param path A URL path at which to handle Server-Sent Events (SSE) requests.
  * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
@@ -110,6 +119,9 @@ public fun Route.sse(
 /**
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *
  * @param serialize A function to serialize data objects into the `data` field of a `ServerSentEvent`.
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE

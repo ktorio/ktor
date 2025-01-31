@@ -26,6 +26,8 @@ import kotlin.io.path.pathString
  * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
  * to subsequent interceptors that a static file was served via the `ApplicationCall.isStaticContent()` extension
  * function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticFileLocationProperty)
  */
 public val StaticFileLocationProperty: AttributeKey<String> = AttributeKey("StaticFileLocation")
 
@@ -53,6 +55,8 @@ private val StaticContentAutoHead = createRouteScopedPlugin("StaticContentAutoHe
 
 /**
  * A config for serving static content
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig)
  */
 public class StaticContentConfig<Resource : Any> internal constructor() {
 
@@ -84,6 +88,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      *
      * The order in types is *important*.
      * It will determine the priority of serving one versus serving another.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.preCompressed)
      */
     public fun preCompressed(vararg types: CompressedFileType) {
         preCompressedFileTypes = types.toList()
@@ -91,6 +97,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Enables automatic response to a `HEAD` request for every file/resource that has a `GET` defined.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.enableAutoHeadResponse)
      */
     public fun enableAutoHeadResponse() {
         autoHeadResponse = true
@@ -98,6 +106,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures default [Resource] to respond with, when requested file is not found.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.default)
      */
     public fun default(path: String?) {
         this.defaultPath = path
@@ -108,6 +118,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * If the [block] returns `null`, default behaviour of guessing [ContentType] from the header will be used.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.contentType)
      */
     public fun contentType(block: (Resource) -> ContentType?) {
         contentType = { resource -> block(resource) ?: defaultContentType(resource) }
@@ -117,6 +129,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Configures [CacheControl] for requested static content.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.cacheControl)
      */
     public fun cacheControl(block: (Resource) -> List<CacheControl>) {
         cacheControl = block
@@ -127,6 +141,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Useful to add headers to the response, such as [HttpHeaders.ETag]
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.modify)
      */
     public fun modify(block: suspend (Resource, ApplicationCall) -> Unit) {
         modifier = block
@@ -138,6 +154,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Can be invoked multiple times.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.exclude)
      */
     public fun exclude(block: (Resource) -> Boolean) {
         val oldBlock = exclude
@@ -154,6 +172,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Configures file extension fallbacks.
      * When set, if a file is not found, the search will repeat with the given extensions added to the file name.
      * The first match will be served.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.extensions)
      */
     public fun extensions(vararg extensions: String) {
         this.extensions = extensions.toList()
@@ -169,6 +189,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
  * If the requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
  *
  * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFiles)
  */
 public fun Route.staticFiles(
     remotePath: String,
@@ -209,6 +231,8 @@ public fun Route.staticFiles(
  * If requested resource doesn't exist and no [index] specified, response will be 404 Not Found.
  *
  * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticResources)
  */
 public fun Route.staticResources(
     remotePath: String,
@@ -249,6 +273,8 @@ public fun Route.staticResources(
  * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
  * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticZip)
  */
 public fun Route.staticZip(
     remotePath: String,
@@ -316,6 +342,8 @@ private class ReloadingZipFileSystem(
  * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
  * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFileSystem)
  */
 public fun Route.staticFileSystem(
     remotePath: String,
@@ -362,6 +390,8 @@ public fun Route.staticFileSystem(
  * * The order in types is *important*. It will determine the priority of serving one versus serving another
  *
  * * This can't be disabled in a child route if it was enabled in the root route
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.preCompressed)
  */
 public fun Route.preCompressed(
     vararg types: CompressedFileType = CompressedFileType.entries.toTypedArray(),
@@ -376,6 +406,8 @@ public fun Route.preCompressed(
 
 /**
  * Base folder for relative files calculations for static content
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticRootFolder)
  */
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
@@ -394,12 +426,16 @@ private fun File?.combine(file: File) = when {
 
 /**
  * Create a block for static content
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.static)
  */
 @Deprecated("Please use `staticFiles` or `staticResources` instead")
 public fun Route.static(configure: Route.() -> Unit): Route = apply(configure)
 
 /**
  * Create a block for static content at specified [remotePath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.static)
  */
 @Deprecated("Please use `staticFiles` or `staticResources` instead")
 public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route =
@@ -407,6 +443,8 @@ public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route 
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.default)
  */
 
 @Deprecated("Please use `staticFiles` instead")
@@ -414,6 +452,8 @@ public fun Route.default(localPath: String): Unit = default(File(localPath))
 
 /**
  * Specifies [localPath] as a default file to serve when folder is requested
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.default)
  */
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.default(localPath: File) {
@@ -426,6 +466,8 @@ public fun Route.default(localPath: File) {
 
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
 
 @Deprecated("Please use `staticFiles` instead")
@@ -434,6 +476,8 @@ public fun Route.file(remotePath: String, localPath: String = remotePath): Unit 
 
 /**
  * Sets up routing to serve [localPath] file as [remotePath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.file(remotePath: String, localPath: File) {
@@ -446,6 +490,8 @@ public fun Route.file(remotePath: String, localPath: File) {
 
 /**
  * Sets up routing to serve all files from [folder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
 
 @Deprecated("Please use `staticFiles` instead")
@@ -453,6 +499,8 @@ public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
  * Sets up routing to serve all files from [folder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.files(folder: File) {
@@ -469,6 +517,8 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 
 /**
  * Base package for relative resources calculations for static content
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticBasePackage)
  */
 
 @Deprecated("Please use `staticResources` instead")
@@ -490,6 +540,8 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 
 /**
  * Sets up routing to serve [resource] as [remotePath] in [resourcePackage]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resource)
  */
 
 @Deprecated("Please use `staticResources` instead")
@@ -507,6 +559,8 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 
 /**
  * Sets up routing to serve all resources in [resourcePackage]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resources)
  */
 
 @Deprecated("Please use `staticResources` instead")
@@ -525,6 +579,8 @@ public fun Route.resources(resourcePackage: String? = null) {
 
 /**
  * Specifies [resource] as a default resources to serve when folder is requested
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.defaultResource)
  */
 
 @Deprecated("Please use `staticResources` instead")
@@ -542,6 +598,8 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
 
 /**
  *  Checks if the application call is requesting static content
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.isStaticContent)
  */
 public fun ApplicationCall.isStaticContent(): Boolean = attributes.contains(StaticFileLocationProperty)
 
@@ -718,11 +776,15 @@ private suspend fun ApplicationCall.respondStaticResource(
 
 /**
  * Wrapper on [FileSystem] for more specific delegation since we use only [getPath] method from it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.FileSystemPaths)
  */
 public interface FileSystemPaths {
     public companion object {
         /**
          * Creates a [FileSystemPaths] instance from a [FileSystem].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.FileSystemPaths.Companion.paths)
          */
         public fun FileSystem.paths(): FileSystemPaths = object : FileSystemPaths {
             override fun getPath(first: String, vararg more: String): Path = this@paths.getPath(first, *more)
@@ -732,6 +794,8 @@ public interface FileSystemPaths {
     /**
      * Converts a path string, or a sequence of strings that when joined form a path string, to a Path.
      * Equal to [FileSystem.getPath].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.FileSystemPaths.getPath)
      */
     public fun getPath(first: String, vararg more: String): Path
 }

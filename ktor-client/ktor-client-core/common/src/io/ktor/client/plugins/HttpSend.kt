@@ -15,21 +15,29 @@ import kotlinx.coroutines.*
 
 /**
  * HttpSend pipeline interceptor function
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpSendInterceptor)
  */
 public typealias HttpSendInterceptor = suspend Sender.(HttpRequestBuilder) -> HttpClientCall
 
 /**
  * This interface represents a request send pipeline interceptor chain
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.Sender)
  */
 public interface Sender {
     /**
      * Execute send pipeline. It could start pipeline execution or replace the call
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.Sender.execute)
      */
     public suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall
 }
 
 /**
  * This is an internal plugin that is always installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpSend)
  */
 public class HttpSend private constructor(
     private val maxSendCount: Int = 20
@@ -39,6 +47,8 @@ public class HttpSend private constructor(
     public class Config {
         /**
          * Maximum number of requests that can be sent during a call
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpSend.Config.maxSendCount)
          */
         public var maxSendCount: Int = 20
     }
@@ -47,6 +57,8 @@ public class HttpSend private constructor(
 
     /**
      * Install send pipeline starter interceptor
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpSend.intercept)
      */
     public fun intercept(block: HttpSendInterceptor) {
         interceptors += block
@@ -54,6 +66,8 @@ public class HttpSend private constructor(
 
     /**
      * A plugin's installation object
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpSend.Plugin)
      */
     public companion object Plugin : HttpClientPlugin<Config, HttpSend> {
         override val key: AttributeKey<HttpSend> = AttributeKey("HttpSend")
@@ -133,5 +147,7 @@ public class HttpSend private constructor(
  * Thrown when too many actual requests were sent during a client call.
  * It could be caused by infinite or too long redirect sequence.
  * Maximum number of requests is limited by [HttpSend.maxSendCount]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SendCountExceedException)
  */
 public class SendCountExceedException(message: String) : IllegalStateException(message)

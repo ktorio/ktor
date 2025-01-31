@@ -8,6 +8,8 @@ private const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
 
 /**
  * Socket options builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions)
  */
 public sealed class SocketOptions(
     protected val customOptions: MutableMap<Any, Any?>
@@ -45,21 +47,29 @@ public sealed class SocketOptions(
 
     /**
      * ToS value, [TypeOfService.UNDEFINED] by default, may not work with old JDK (will be silently ignored)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.typeOfService)
      */
     public var typeOfService: TypeOfService = TypeOfService.UNDEFINED
 
     /**
      * SO_REUSEADDR option
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.reuseAddress)
      */
     public var reuseAddress: Boolean = false
 
     /**
      * SO_REUSEPORT option, may not work with old JDK (will be silently ignored)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.reusePort)
      */
     public var reusePort: Boolean = false
 
     /**
      * TCP server socket options
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.AcceptorOptions)
      */
     public class AcceptorOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
@@ -71,6 +81,8 @@ public sealed class SocketOptions(
          * If the backlog is too small, it may overflow and upcoming requests will be
          * rejected by the underlying TCP implementation (usually with RST frame that
          * usually causes "connection reset by peer" error on the opposite side).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.AcceptorOptions.backlogSize)
          */
         public var backlogSize: Int = 511
 
@@ -83,6 +95,8 @@ public sealed class SocketOptions(
 
     /**
      * Represents TCP client or UDP socket options
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.PeerSocketOptions)
      */
     public open class PeerSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
@@ -90,11 +104,15 @@ public sealed class SocketOptions(
 
         /**
          * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.PeerSocketOptions.sendBufferSize)
          */
         public var sendBufferSize: Int = -1
 
         /**
          * Socket incoming buffer size (SO_RCVBUF), `-1` or `0` to make system decide
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.PeerSocketOptions.receiveBufferSize)
          */
         public var receiveBufferSize: Int = -1
 
@@ -127,6 +145,8 @@ public sealed class SocketOptions(
 
     /**
      * Represents UDP socket options
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.UDPSocketOptions)
      */
     public class UDPSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
@@ -134,6 +154,8 @@ public sealed class SocketOptions(
 
         /**
          * SO_BROADCAST socket option
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.UDPSocketOptions.broadcast)
          */
         public var broadcast: Boolean = false
 
@@ -153,28 +175,38 @@ public sealed class SocketOptions(
 
     /**
      * Represents TCP client socket options
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions)
      */
     public class TCPClientSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
     ) : PeerSocketOptions(customOptions) {
         /**
          * TCP_NODELAY socket option, useful to disable Nagle
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions.noDelay)
          */
         public var noDelay: Boolean = true
 
         /**
          * SO_LINGER option applied at socket close, not recommended to set to 0 however useful for debugging
          * Value of `-1` is the default and means that it is not set and system-dependant
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions.lingerSeconds)
          */
         public var lingerSeconds: Int = -1
 
         /**
          * SO_KEEPALIVE option is to enable/disable TCP keep-alive
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions.keepAlive)
          */
         public var keepAlive: Boolean? = null
 
         /**
          * Socket timeout (read and write).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.TCPClientSocketOptions.socketTimeout)
          */
         public var socketTimeout: Long = INFINITE_TIMEOUT_MS
 

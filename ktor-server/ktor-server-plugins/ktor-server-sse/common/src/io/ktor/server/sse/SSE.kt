@@ -34,5 +34,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.sse.SSE")
  *
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.SSE)
  */
 public val SSE: ApplicationPlugin<Unit> = createApplicationPlugin("SSE") {}

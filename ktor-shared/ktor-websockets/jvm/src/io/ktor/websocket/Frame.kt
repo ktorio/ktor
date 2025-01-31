@@ -12,6 +12,9 @@ import java.nio.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame)
+ *
  * @property fin is it final fragment, should be always `true` for control frames and if no fragmentation is used
  * @property frameType enum value
  * @property data - a frame content or fragment content
@@ -29,6 +32,8 @@ public actual sealed class Frame actual constructor(
 ) {
     /**
      * Frame content
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.buffer)
      */
     public val buffer: ByteBuffer = ByteBuffer.wrap(data)
 
@@ -37,6 +42,8 @@ public actual sealed class Frame actual constructor(
      * In a RAW web socket session a big text frame could be fragmented
      * (separated into several text frames so they have [fin] = false except the last one).
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Binary)
      */
     public actual class Binary actual constructor(
         fin: Boolean,
@@ -59,6 +66,8 @@ public actual sealed class Frame actual constructor(
      * Please note that a boundary between fragments could be in the middle of multi-byte (unicode) character
      * so don't apply String constructor to every fragment but use decoder loop instead of concatenate fragments first.
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Text)
      */
     public actual class Text actual constructor(
         fin: Boolean,
@@ -80,6 +89,8 @@ public actual sealed class Frame actual constructor(
     /**
      * Represents a low-level level close frame. It could be sent to indicate web socket session end.
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Close)
      */
     public actual class Close actual constructor(
         data: ByteArray
@@ -101,6 +112,8 @@ public actual sealed class Frame actual constructor(
     /**
      * Represents a low-level ping frame. Could be sent to test connection (peer should reply with [Pong]).
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Ping)
      */
     public actual class Ping actual constructor(
         data: ByteArray
@@ -112,6 +125,8 @@ public actual sealed class Frame actual constructor(
     /**
      * Represents a low-level pong frame. Should be sent in reply to a [Ping] frame.
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Pong)
      */
     public actual class Pong actual constructor(
         data: ByteArray,
@@ -130,6 +145,8 @@ public actual sealed class Frame actual constructor(
 
     /**
      * Creates a frame copy.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.copy)
      */
     public actual fun copy(): Frame = byType(fin, frameType, data.copyOf(), rsv1, rsv2, rsv3)
 
@@ -138,6 +155,8 @@ public actual sealed class Frame actual constructor(
 
         /**
          * Create a particular [Frame] instance by frame type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Companion.byType)
          */
         public actual fun byType(
             fin: Boolean,

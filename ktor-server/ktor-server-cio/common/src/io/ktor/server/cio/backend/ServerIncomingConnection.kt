@@ -9,6 +9,9 @@ import io.ktor.utils.io.*
 
 /**
  * Represents a server incoming connection. Usually it is a TCP connection but potentially could be other transport.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.ServerIncomingConnection)
+ *
  * @property input channel connected to incoming bytes end
  * @property output channel connected to outgoing bytes end
  * @property remoteAddress of the client (optional)

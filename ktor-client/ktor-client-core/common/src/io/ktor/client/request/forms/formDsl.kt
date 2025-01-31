@@ -14,6 +14,9 @@ import kotlin.contracts.*
 /**
  * A multipart form item. Use it to build a form in client.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormPart)
+ *
  * @param key multipart name
  * @param value content, could be [String], [Number], [ByteArray], [ByteReadPacket] or [InputProvider]
  * @param headers part headers, note that some servers may fail if an unknown header provided
@@ -24,6 +27,8 @@ public data class FormPart<T : Any>(val key: String, val value: T, val headers: 
  * Builds a multipart form from [values].
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.formData)
  */
 
 public fun formData(vararg values: FormPart<*>): List<PartData> {
@@ -72,18 +77,24 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
 
 /**
  * Build multipart form using [block] function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.formData)
  */
 public fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
  * A form builder type used in the [formData] builder function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder)
  */
 public class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     @InternalAPI
     public fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
@@ -92,6 +103,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: String, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -99,6 +112,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: Number, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -106,6 +121,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: Boolean, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -113,6 +130,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -120,6 +139,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: InputProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -127,6 +148,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[InputProvider(block)] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.appendInput)
      */
 
     public fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
@@ -135,6 +158,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[value] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: Source, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -142,6 +167,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[values] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, values: Iterable<String>, headers: Headers = Headers.Empty) {
         require(key.endsWith("[]")) {
@@ -154,6 +181,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[values] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, values: Array<String>, headers: Headers = Headers.Empty) {
         return append(key, values.asIterable(), headers)
@@ -161,6 +190,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a pair [key]:[ChannelProvider] with optional [headers].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun append(key: String, value: ChannelProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
@@ -168,6 +199,8 @@ public class FormBuilder internal constructor() {
 
     /**
      * Appends a form [part].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
     public fun <T : Any> append(part: FormPart<T>) {
         parts += part
@@ -178,6 +211,8 @@ public class FormBuilder internal constructor() {
 
 /**
  * Appends a form part with the specified [key] using [bodyBuilder] for its body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
 @OptIn(ExperimentalContracts::class)
@@ -196,6 +231,9 @@ public inline fun FormBuilder.append(
 /**
  * A reusable [Input] form entry.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.InputProvider)
+ *
  * @property size estimate for data produced by the block or `null` if no size estimation known
  * @param block: content generator
  */
@@ -204,6 +242,9 @@ public class InputProvider(public val size: Long? = null, public val block: () -
 
 /**
  * Supplies a new [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.ChannelProvider)
+ *
  * @property size is total number of bytes that can be read from [ByteReadChannel] or `null` if [size] is unknown
  * @param block returns a new [ByteReadChannel]
  */
@@ -211,6 +252,8 @@ public class ChannelProvider(public val size: Long? = null, public val block: ()
 
 /**
  * Appends a form part with the specified [key], [filename], and optional [contentType] using [bodyBuilder] for its body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
 @OptIn(ExperimentalContracts::class)

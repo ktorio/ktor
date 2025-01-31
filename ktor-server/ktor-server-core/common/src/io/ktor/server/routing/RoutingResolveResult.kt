@@ -9,16 +9,23 @@ import io.ktor.http.*
 /**
  * Represents a result of routing resolution.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveResult)
+ *
  * @property route specifies a routing node for successful resolution, or nearest one for failed.
  */
 public sealed class RoutingResolveResult(public val route: RoutingNode) {
     /**
      * Provides all captured values for this result.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveResult.parameters)
      */
     public abstract val parameters: Parameters
 
     /**
      * Represents a successful result
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveResult.Success)
      */
     public class Success internal constructor(
         route: RoutingNode,
@@ -37,6 +44,9 @@ public sealed class RoutingResolveResult(public val route: RoutingNode) {
 
     /**
      * Represents a failed result
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveResult.Failure)
+     *
      * @param reason provides information on reason of a failure
      */
     public class Failure internal constructor(

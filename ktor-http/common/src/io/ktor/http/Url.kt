@@ -14,6 +14,9 @@ import kotlinx.serialization.encoding.*
 /**
  * Represents an immutable URL
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url)
+ *
  * @property protocol
  * @property host name without port (domain)
  * @property port the specified port or protocol default port
@@ -77,6 +80,8 @@ public class Url internal constructor(
      * ```
      *
      * To address this issue, the current [pathSegments] property will be renamed to [rawSegments].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url.pathSegments)
      */
     @Deprecated(
         """
@@ -124,6 +129,8 @@ public class Url internal constructor(
      * val relative = Url("docs")
      * relative.segments == listOf("docs")
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url.rawSegments)
      */
     public val rawSegments: List<String> = pathSegments
 
@@ -142,6 +149,8 @@ public class Url internal constructor(
      * ```
      *
      * If you need to check for trailing slash and relative/absolute paths, please check the [rawSegments] property.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url.segments)
      **/
     public val segments: List<String> by lazy {
         if (pathSegments.isEmpty()) return@lazy emptyList()
@@ -237,6 +246,8 @@ public class Url internal constructor(
 
 /**
  * [Url] authority.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.authority)
  */
 public val Url.authority: String
     get() = buildString {
@@ -246,6 +257,8 @@ public val Url.authority: String
 
 /**
  * A [Url] protocol and authority.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.protocolWithAuthority)
  */
 public val Url.protocolWithAuthority: String
     get() = buildString {

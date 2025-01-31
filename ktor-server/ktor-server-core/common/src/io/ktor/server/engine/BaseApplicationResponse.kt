@@ -246,12 +246,16 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Thrown when there was already response sent but we are trying to respond again
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.ResponseAlreadySentException)
      */
     public class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 
     /**
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.InvalidHeaderForContent)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class InvalidHeaderForContent(
@@ -266,6 +270,8 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Content's body size doesn't match the provided one in `Content-Length` header
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.BodyLengthIsTooSmall)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooSmall(
@@ -280,6 +286,8 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Content's body size doesn't match the provided one in `Content-Length` header
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.BodyLengthIsTooLong)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooLong(
@@ -295,6 +303,8 @@ public abstract class BaseApplicationResponse(
          * Attribute key to access engine's response instance.
          * This is engine internal API and should be never used by end-users
          * unless you are writing your own engine implementation
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.Companion.EngineResponseAttributeKey)
          */
         public val EngineResponseAttributeKey: AttributeKey<BaseApplicationResponse> =
             AttributeKey("EngineResponse")
@@ -302,6 +312,8 @@ public abstract class BaseApplicationResponse(
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
          * to start response object processing via [respondOutgoingContent]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.Companion.setupSendPipeline)
          */
         public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { body ->

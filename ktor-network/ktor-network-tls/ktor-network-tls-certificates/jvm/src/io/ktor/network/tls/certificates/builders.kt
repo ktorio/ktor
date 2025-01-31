@@ -24,35 +24,49 @@ internal data class CertificateInfo(
 
 /**
  * Builder for certificate
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder)
  */
 public class CertificateBuilder internal constructor() {
     /**
      * Certificate hash algorithm
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.hash)
      */
     public var hash: HashAlgorithm = HashAlgorithm.SHA1
 
     /**
      * Certificate signature algorithm
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.sign)
      */
     public var sign: SignatureAlgorithm = SignatureAlgorithm.RSA
 
     /**
      * Certificate password (required)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.password)
      */
     public lateinit var password: String
 
     /**
      * The subject of the certificate, owner of the generated public key that we certify.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.subject)
      */
     public var subject: X500Principal = DEFAULT_PRINCIPAL
 
     /**
      * Number of days the certificate is valid
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.daysValid)
      */
     public var daysValid: Long = 3
 
     /**
      * Certificate key size in bits
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.keySizeInBits)
      */
     public var keySizeInBits: Int = 1024
 
@@ -61,16 +75,22 @@ public class CertificateBuilder internal constructor() {
      *
      * This determines the extensions that should be written in the certificate, such as [OID.ExtKeyUsage] (server or
      * client authentication), or [OID.BasicConstraints] to use the key as CA.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.keyType)
      */
     public var keyType: KeyType = KeyType.Server
 
     /**
      * Domains for which this certificate is valid (only relevant for [KeyType.Server], ignored for other key types).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.domains)
      */
     public var domains: List<String> = listOf("localhost")
 
     /**
      * IP addresses for which this certificate is valid (only relevant for [KeyType.Server], ignored for other key types).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.ipAddresses)
      */
     public var ipAddresses: List<InetAddress> = listOf(Inet4Address.getByName("127.0.0.1"))
 
@@ -90,6 +110,8 @@ public class CertificateBuilder internal constructor() {
      *
      * If this method is not called, this certificate will be self-signed by the subject (with the same generated key
      * as the one being certified).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.signWith)
      */
     public fun signWith(
         issuerKeyPair: KeyPair,
@@ -111,6 +133,8 @@ public class CertificateBuilder internal constructor() {
      *
      * If this method is not called, this certificate will be self-signed by the subject (with the same generated key
      * as the one being certified).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.CertificateBuilder.signWith)
      */
     public fun signWith(
         issuerKeyPair: KeyPair,
@@ -143,6 +167,8 @@ public class CertificateBuilder internal constructor() {
 
 /**
  * Builder for key store
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.KeyStoreBuilder)
  */
 public class KeyStoreBuilder internal constructor() {
     private val certificates = mutableMapOf<String, CertificateInfo>()
@@ -150,6 +176,8 @@ public class KeyStoreBuilder internal constructor() {
     /**
      * Generate a certificate and append to the key store.
      * If there is a certificate with the same [alias] then it will be replaced
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.KeyStoreBuilder.certificate)
      */
     public fun certificate(alias: String, block: CertificateBuilder.() -> Unit) {
         certificates[alias] = CertificateBuilder().apply(block).build()
@@ -171,11 +199,15 @@ public class KeyStoreBuilder internal constructor() {
 
 /**
  * Create a keystore and configure it in [block] function
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.buildKeyStore)
  */
 public fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStoreBuilder().apply(block).build()
 
 /**
  * Save [KeyStore] to [output] file with the specified [password]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.saveToFile)
  */
 public fun KeyStore.saveToFile(output: File, password: String) {
     output.parentFile?.mkdirs()

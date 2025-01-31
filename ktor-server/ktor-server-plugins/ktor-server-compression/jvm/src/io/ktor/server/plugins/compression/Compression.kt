@@ -16,6 +16,8 @@ import io.ktor.utils.io.*
 
 /**
  * List of [ContentEncoder] names that were used to decode request body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.appliedDecoders)
  */
 public val ApplicationRequest.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
@@ -51,6 +53,8 @@ internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
  * ```
  *
  * You can learn more from [Compression](https://ktor.io/docs/compression.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.Compression)
  */
 public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScopedPlugin(
     "Compression",

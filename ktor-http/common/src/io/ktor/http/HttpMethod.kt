@@ -6,6 +6,9 @@ package io.ktor.http
 
 /**
  * Represents an HTTP method (verb)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpMethod)
+ *
  * @property value contains method name
  */
 public data class HttpMethod(val value: String) {
@@ -25,6 +28,8 @@ public data class HttpMethod(val value: String) {
 
         /**
          * Parse HTTP method by [method] string
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpMethod.Companion.parse)
          */
         public fun parse(method: String): HttpMethod {
             return when (method) {
@@ -41,6 +46,8 @@ public data class HttpMethod(val value: String) {
 
         /**
          * A list of default HTTP methods
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpMethod.Companion.DefaultMethods)
          */
         public val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
     }

@@ -10,6 +10,8 @@ import kotlinx.io.*
 
 /**
  * For streaming input it should be [Input.endOfInput] instead.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.isEmpty)
  */
 @Deprecated("Use exhausted() instead", ReplaceWith("exhausted()"))
 public val Source.isEmpty: Boolean
@@ -18,6 +20,8 @@ public val Source.isEmpty: Boolean
 /**
  * For streaming input there is no reliable way to detect it without triggering bytes population from the underlying
  * source. Consider using [Input.endOfInput] or use [ByteReadPacket] instead.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.isNotEmpty)
  */
 @Deprecated(
     "This makes no sense for streaming inputs. Some use-cases are covered by exhausted() method",

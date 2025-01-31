@@ -110,6 +110,8 @@ class UrlTest {
     /**
      * https://tools.ietf.org/html/rfc1738#section-5
      * hsegment = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.http.UrlTest.testPath)
      */
     @Test
     fun testPath() {

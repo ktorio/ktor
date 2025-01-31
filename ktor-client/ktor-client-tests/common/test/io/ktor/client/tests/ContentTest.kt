@@ -394,6 +394,8 @@ class ContentTest : ClientLoader() {
     /**
      * This is a bit of an edge case where the initial content reader fails to read the response body
      * before a second reader comes in. When this happens, we simply cancel the initial reader.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.ContentTest.testSaveBody)
      */
     @OptIn(InternalAPI::class)
     @Test

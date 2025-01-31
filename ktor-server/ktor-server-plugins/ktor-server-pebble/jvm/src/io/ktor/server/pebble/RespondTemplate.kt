@@ -12,6 +12,9 @@ import java.util.*
 /**
  * Responds with the specified [template] passing a data [model].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.pebble.respondTemplate)
+ *
  * @see PebbleContent
  */
 public suspend fun ApplicationCall.respondTemplate(

@@ -24,6 +24,9 @@ private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
  * A reflection-based session serializer. Can be used for backward compatibility with previous versions.
  * A serialized format is textual and optimized for size as it could be transferred via HTTP headers or cookies.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.reflectionSessionSerializer)
+ *
  * @property T is a session instance class handled by this serializer
  */
 public inline fun <reified T : Any> reflectionSessionSerializer(): SessionSerializer<T> =
@@ -32,6 +35,9 @@ public inline fun <reified T : Any> reflectionSessionSerializer(): SessionSerial
 /**
  * A reflection-based session serializer. Can be used for backward compatibility with previous versions.
  * A serialized format is textual and optimized for size as it could be transferred via HTTP headers or cookies.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.reflectionSessionSerializer)
  *
  * @property typeInfo is a session instance class handled by this serializer
  */

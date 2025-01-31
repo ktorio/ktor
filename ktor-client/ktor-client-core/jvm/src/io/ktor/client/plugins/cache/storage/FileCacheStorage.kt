@@ -18,6 +18,9 @@ import java.security.*
 
 /**
  * Creates storage that uses file system to store cache data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.FileStorage)
+ *
  * @param directory directory to store cache data.
  * @param dispatcher dispatcher to use for file operations.
  */

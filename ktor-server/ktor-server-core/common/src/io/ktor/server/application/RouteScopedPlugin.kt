@@ -8,6 +8,9 @@ import io.ktor.server.routing.*
 
 /**
  * Defines a [Plugin](https://ktor.io/docs/plugins.html) that can be installed into a [RoutingNode].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.BaseRouteScopedPlugin)
+ *
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
  */
@@ -16,12 +19,18 @@ public interface BaseRouteScopedPlugin<TConfiguration : Any, TPlugin : Any> :
 
 /**
  * Defines a Plugin that can be installed into [RoutingNode]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.RouteScopedPlugin)
+ *
  * @param TConfiguration is the configuration object type for this Plugin
  */
 public interface RouteScopedPlugin<TConfiguration : Any> : BaseRouteScopedPlugin<TConfiguration, PluginInstance>
 
 /**
  * Finds the plugin [F] in the current [RoutingNode]. If not found, search in the parent [RoutingNode].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.findPluginInRoute)
  *
  * @return [F] instance or `null` if not found
  */

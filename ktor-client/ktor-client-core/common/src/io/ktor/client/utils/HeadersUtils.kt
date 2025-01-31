@@ -13,6 +13,8 @@ private val DecompressionListAttribute: AttributeKey<MutableList<String>> = Attr
 /**
  * This function should be used for engines which apply decompression but don't drop compression headers
  * (like js and Curl) to make sure all the plugins and checks work with the correct content length and encoding.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.dropCompressionHeaders)
  */
 @InternalAPI
 public fun HeadersBuilder.dropCompressionHeaders(

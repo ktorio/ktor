@@ -32,6 +32,8 @@ internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any?>("SSEDes
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSE)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
@@ -44,6 +46,9 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -70,6 +75,9 @@ public suspend fun HttpClient.serverSentEventsSession(
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -104,6 +112,9 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -133,6 +144,9 @@ public suspend fun HttpClient.serverSentEventsSession(
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -170,6 +184,9 @@ public suspend fun HttpClient.serverSentEvents(
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -212,6 +229,9 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -250,6 +270,9 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -275,6 +298,9 @@ public suspend fun HttpClient.sseSession(
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -307,6 +333,9 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -334,6 +363,9 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -359,6 +391,9 @@ public suspend fun HttpClient.sse(
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -391,6 +426,9 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
@@ -420,6 +458,9 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -465,6 +506,9 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -514,6 +558,9 @@ public suspend fun HttpClient.serverSentEventsSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
@@ -558,6 +605,9 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -610,6 +660,9 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -667,6 +720,9 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -722,6 +778,9 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
@@ -762,6 +821,9 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -817,6 +879,9 @@ public suspend fun HttpClient.sseSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
@@ -859,6 +924,9 @@ public suspend fun HttpClient.sseSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
@@ -899,6 +967,9 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
@@ -955,6 +1026,9 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object

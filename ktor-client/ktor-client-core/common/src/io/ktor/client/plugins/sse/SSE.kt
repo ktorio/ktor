@@ -24,6 +24,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
 
 /**
  * Indicates if a client engine supports Server-Sent Events (SSE).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSECapability)
  */
 public data object SSECapability : HttpClientEngineCapability<Unit>
 
@@ -70,6 +72,8 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  *
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSE)
  */
 @OptIn(InternalAPI::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
@@ -154,6 +158,8 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
 
 /**
  * Represents an exception which can be thrown during client SSE session.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEClientException)
  */
 public class SSEClientException(
     public val response: HttpResponse? = null,

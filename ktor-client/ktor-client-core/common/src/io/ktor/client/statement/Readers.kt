@@ -9,6 +9,8 @@ import kotlinx.io.*
 
 /**
  * Reads exactly [count] bytes of the [HttpResponse.rawContent].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readBytes)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(count).also {
@@ -24,6 +26,9 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * The content will retain its original
  * compression or encoding as received from the server.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readRawBytes)
+ *
  * @return the raw payload of the HTTP response as a byte array
  */
 @OptIn(InternalAPI::class)
@@ -38,6 +43,9 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemai
  *
  * If you need to read the content as decoded bytes, use the [bodyAsBytes()] method instead.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readBytes)
+ *
  * @return the raw payload of the HTTP response as a byte array
  */
 @OptIn(InternalAPI::class)
@@ -46,6 +54,8 @@ public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readRemainin
 
 /**
  * Efficiently discards the remaining bytes of [HttpResponse.rawContent].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.discardRemaining)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpResponse.discardRemaining() {

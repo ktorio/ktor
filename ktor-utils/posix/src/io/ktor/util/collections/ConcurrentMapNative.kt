@@ -9,6 +9,8 @@ import io.ktor.utils.io.locks.*
 
 /**
  * Ktor concurrent map implementation. Please do not use it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.ConcurrentMap)
  */
 @OptIn(InternalAPI::class)
 public actual class ConcurrentMap<Key, Value> public actual constructor(
@@ -19,6 +21,8 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
 
     /**
      * Computes [block] and inserts result in map. The [block] will be evaluated at most once.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.ConcurrentMap.computeIfAbsent)
      */
     public actual fun computeIfAbsent(key: Key, block: () -> Value): Value = synchronized(lock) {
         if (delegate.containsKey(key)) return delegate[key]!!

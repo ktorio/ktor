@@ -18,6 +18,9 @@ import kotlin.random.*
 /**
  * Creates a RAW web socket session from connection.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
  * @param input is a [ByteReadChannel] of connection
  * @param output is a [ByteWriteChannel] of connection
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
@@ -164,6 +167,8 @@ private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
 /**
  * Serializes WebSocket [Frame] and writes the bits into the [ByteWriteChannel].
  * If [masking] is true, then data will be masked with random mask
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.writeFrame)
  */
 @InternalAPI // used in tests
 public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
@@ -208,6 +213,9 @@ public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
 
 /**
  * Reads bits from [ByteReadChannel] and converts into a WebSocket [Frame].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readFrame)
  *
  * @param maxFrameSize maximum frame size that could be read
  * @param lastOpcode last read opcode

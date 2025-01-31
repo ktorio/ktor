@@ -9,38 +9,53 @@ import kotlinx.io.*
 
 /**
  * TLS secret key exchange type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType)
  */
 public enum class SecretExchangeType(public val jvmName: String) {
     /**
      * Elliptic Curve Diffie-Hellman Exchange.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType.ECDHE)
      */
     ECDHE("ECDHE_ECDSA"),
 
     /**
      * RSA key exchange.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType.RSA)
      */
     RSA("RSA")
 }
 
 /**
  * Cipher type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType)
  */
 public enum class CipherType {
     /**
      * Galois/Counter Mode.
      * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType.GCM)
      */
     GCM,
 
     /**
      * Cipher Block Chaining.
      * See also: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType.CBC)
      */
     CBC
 }
 
 /**
  * Represents a TLS cipher suite
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherSuite)
  *
  * @property code numeric cipher suite code
  * @property name cipher suite name
@@ -83,6 +98,8 @@ public data class CipherSuite(
  * CIO cipher suites collection
  * https://www.ietf.org/rfc/rfc5289.txt
  * https://tools.ietf.org/html/rfc5288#section-3
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites)
  */
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
 public object CIOCipherSuites {
@@ -140,6 +157,8 @@ public object CIOCipherSuites {
 
     /**
      * List of suites supported by current platform
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites.SupportedSuites)
      */
     public val SupportedSuites: List<CipherSuite> = listOf(
         ECDHE_ECDSA_AES256_SHA384,

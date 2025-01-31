@@ -20,6 +20,9 @@ import kotlin.coroutines.*
  * Class that continuously reads a [byteChannel] and
  * converts into Websocket [Frame] exposing them in [incoming].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketReader)
+ *
  * @param maxFrameSize maximum frame size that could be read
  */
 public class WebSocketReader(
@@ -58,6 +61,8 @@ public class WebSocketReader(
 
     /**
      * Channel receiving Websocket's [Frame] objects read from [byteChannel].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketReader.incoming)
      */
     public val incoming: ReceiveChannel<Frame> get() = queue
 

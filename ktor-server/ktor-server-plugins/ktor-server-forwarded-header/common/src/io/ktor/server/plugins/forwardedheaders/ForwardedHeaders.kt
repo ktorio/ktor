@@ -16,12 +16,16 @@ import io.ktor.utils.io.*
 
 /**
  * A key for the application call attribute that is used to cache parsed header values.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.FORWARDED_PARSED_KEY)
  */
 public val FORWARDED_PARSED_KEY: AttributeKey<List<ForwardedHeaderValue>> =
     AttributeKey("ForwardedParsedKey")
 
 /**
  * A configuration for the [ForwardedHeaders] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig)
  */
 @KtorDsl
 public class ForwardedHeadersConfig {
@@ -35,6 +39,8 @@ public class ForwardedHeadersConfig {
     /**
      * Custom logic to extract the value from the Forward headers when multiple values are present.
      * You need to modify [MutableOriginConnectionPoint] based on headers from [ForwardedHeaderValue].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig.extractValue)
      */
     public fun extractValue(block: (MutableOriginConnectionPoint, List<ForwardedHeaderValue>) -> Unit) {
         forwardedHeadersHandler = block
@@ -42,6 +48,8 @@ public class ForwardedHeadersConfig {
 
     /**
      * Takes the first value from the Forward header when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig.useFirstValue)
      */
     public fun useFirstValue() {
         extractValue { connectionPoint, headers ->
@@ -51,6 +59,8 @@ public class ForwardedHeadersConfig {
 
     /**
      * Takes the last value from Forward header when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig.useLastValue)
      */
     public fun useLastValue() {
         extractValue { connectionPoint, headers ->
@@ -60,6 +70,8 @@ public class ForwardedHeadersConfig {
 
     /**
      * Takes [proxiesCount] before the last value from Forward header when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig.skipLastProxies)
      */
     public fun skipLastProxies(proxiesCount: Int) {
         extractValue { connectionPoint, headers ->
@@ -70,6 +82,8 @@ public class ForwardedHeadersConfig {
     /**
      * Removes known [hosts] from the end of the list and takes the last value
      * from Forward headers when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeadersConfig.skipKnownProxies)
      */
     public fun skipKnownProxies(hosts: List<String>) {
         extractValue { connectionPoint, headers ->
@@ -133,6 +147,9 @@ public class ForwardedHeadersConfig {
 
 /**
  * Parsed a forwarded header value. All fields are optional as proxy could provide different fields.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeaderValue)
+ *
  * @property host field value (optional)
  * @property by field value (optional)
  * @property forParam field value (optional)
@@ -153,6 +170,8 @@ public data class ForwardedHeaderValue(
  *
  * To learn how to install and use [ForwardedHeaders], see
  * [Forwarded headers](https://ktor.io/docs/forward-headers.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.ForwardedHeaders)
  */
 public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createApplicationPlugin(
     "ForwardedHeaders",

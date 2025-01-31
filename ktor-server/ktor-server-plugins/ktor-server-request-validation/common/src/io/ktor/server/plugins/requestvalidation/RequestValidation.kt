@@ -12,15 +12,21 @@ import kotlinx.io.*
 
 /**
  * A result of validation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.ValidationResult)
  */
 public sealed class ValidationResult {
     /**
      * A successful result of validation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.ValidationResult.Valid)
      */
     public data object Valid : ValidationResult()
 
     /**
      * An unsuccessful result of validation. All errors are stored in the [reasons] list.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.ValidationResult.Invalid)
      */
     public class Invalid(
         /**
@@ -34,15 +40,21 @@ public sealed class ValidationResult {
 
 /**
  * A validator that should be registered with [RequestValidation] plugin
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.Validator)
  */
 public interface Validator {
     /**
      * Validates the [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.Validator.validate)
      */
     public suspend fun validate(value: Any): ValidationResult
 
     /**
      * Checks if the [value] should be checked by this validator.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.Validator.filter)
      */
     public fun filter(value: Any): Boolean
 }
@@ -63,6 +75,8 @@ public interface Validator {
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidation)
  */
 public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = createRouteScopedPlugin(
     "RequestValidation",
@@ -97,6 +111,9 @@ public val RequestValidation: RouteScopedPlugin<RequestValidationConfig> = creat
 
 /**
  * Thrown when validation fails.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationException)
+ *
  * @property value - invalid request body
  * @property reasons - combined reasons of all validation failures for this request
  */

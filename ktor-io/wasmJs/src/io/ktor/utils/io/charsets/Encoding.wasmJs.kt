@@ -38,11 +38,15 @@ public actual abstract class Charset(internal val _name: String) {
 
 /**
  * Check if a charset is supported by the current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.isSupported)
  */
 public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 
 /**
  * Find a charset by name.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.forName)
  */
 public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
 
@@ -56,6 +60,8 @@ public actual val CharsetEncoder.charset: Charset
 
 /**
  * Decoder's charset it is created for.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.charset)
  */
 public actual val CharsetDecoder.charset: Charset
     get() = _charset

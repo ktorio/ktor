@@ -11,6 +11,9 @@ import kotlin.coroutines.*
 
 /**
  * Represents a request scope.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.ServerRequestScope)
+ *
  * @property upgraded deferred should be completed on upgrade request
  * @property input channel connected to request body bytes stream
  * @property output channel connected to response body
@@ -27,6 +30,8 @@ public class ServerRequestScope internal constructor(
 ) : CoroutineScope {
     /**
      * Creates another request scope with same parameters except coroutine context
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.ServerRequestScope.withContext)
      */
     public fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(

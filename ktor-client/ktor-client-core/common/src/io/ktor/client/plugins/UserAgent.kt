@@ -20,6 +20,9 @@ public class UserAgentConfig(public var agent: String = "Ktor http-client")
 /**
  * A plugin that adds a `User-Agent` header to all requests.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.UserAgent)
+ *
  * @property agent a `User-Agent` header value.
  */
 public val UserAgent: ClientPlugin<UserAgentConfig> = createClientPlugin("UserAgent", ::UserAgentConfig) {
@@ -34,6 +37,8 @@ public val UserAgent: ClientPlugin<UserAgentConfig> = createClientPlugin("UserAg
 
 /**
  * Installs the [UserAgent] plugin with a browser-like user agent.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.BrowserUserAgent)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.BrowserUserAgent() {
@@ -45,6 +50,8 @@ public fun HttpClientConfig<*>.BrowserUserAgent() {
 
 /**
  * Installs the [UserAgent] plugin with a CURL user agent.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.CurlUserAgent)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.CurlUserAgent() {

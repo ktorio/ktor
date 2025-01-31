@@ -24,11 +24,16 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A client attached to [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider)
  */
 @KtorDsl
 public interface ClientProvider {
     /**
      * Returns a client with the default configuration.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
+     *
      * @see [testApplication]
      */
     public val client: HttpClient
@@ -45,6 +50,9 @@ public interface ClientProvider {
      *     }
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.createClient)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -53,6 +61,9 @@ public interface ClientProvider {
 
 /**
  * A configured instance of a test application running locally.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication)
+ *
  * @see [testApplication]
  */
 public class TestApplication internal constructor(
@@ -76,6 +87,8 @@ public class TestApplication internal constructor(
 
     /**
      * Starts this [TestApplication] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.start)
      */
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
@@ -94,6 +107,8 @@ public class TestApplication internal constructor(
 
     /**
      * Stops this [TestApplication] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.stop)
      */
     public fun stop() {
         state.value = State.Stopped
@@ -106,6 +121,9 @@ public class TestApplication internal constructor(
 /**
  * Creates an instance of [TestApplication] configured with the builder [block].
  * Make sure to call [TestApplication.stop] after your tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication)
+ *
  * @see [testApplication]
  */
 @KtorDsl
@@ -117,6 +135,8 @@ public fun TestApplication(
 
 /**
  * Registers mocks for external services.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ExternalServicesBuilder)
  */
 @KtorDsl
 public class ExternalServicesBuilder internal constructor(private val testApplicationBuilder: TestApplicationBuilder) {
@@ -128,6 +148,9 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
 
     /**
      * Registers a mock for an external service specified by [hosts] and configured with [block].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ExternalServicesBuilder.hosts)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -148,6 +171,8 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
 
 /**
  * A builder for [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder)
  */
 @KtorDsl
 public open class TestApplicationBuilder {
@@ -189,6 +214,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Builds mocks for external services using [ExternalServicesBuilder].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.externalServices)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -199,6 +227,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Adds a configuration block for the [TestApplicationEngine].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.engine)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -213,6 +244,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Adds a configuration block for the [ServerConfig].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.serverConfig)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -227,6 +261,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Builds an environment using [block].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.environment)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -241,6 +278,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Adds a module to [TestApplication].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.application)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -251,6 +291,8 @@ public open class TestApplicationBuilder {
 
     /**
      * Installs a [plugin] into [TestApplication]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.install)
      */
     @Suppress("UNCHECKED_CAST")
     @KtorDsl
@@ -264,6 +306,8 @@ public open class TestApplicationBuilder {
 
     /**
      * Installs routing into [TestApplication]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.routing)
      */
     @KtorDsl
     public fun routing(configuration: Route.() -> Unit) {
@@ -281,6 +325,8 @@ public open class TestApplicationBuilder {
 
 /**
  * A builder for a test that uses [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder)
  */
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
@@ -301,6 +347,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      * But it's still useful when you need to test your application lifecycle events.
      *
      * After calling this method, no modification of the application is allowed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.startApplication)
      */
     public suspend fun startApplication() {
         application.start()
@@ -349,6 +397,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  * [testApplication] loads all modules and properties specified in the configuration file automatically._
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
 @KtorDsl
 public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
@@ -386,6 +436,8 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
  * [testApplication] loads all modules and properties specified in the configuration file automatically.
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
 @KtorDsl
 public fun testApplication(

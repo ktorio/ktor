@@ -20,6 +20,8 @@ import kotlin.native.concurrent.*
  * - keys and values are quoted, non-quoted are not allowed
  *
  * See [Json] for more details.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.DefaultJson)
  */
 
 public val DefaultJson: Json =
@@ -48,6 +50,9 @@ public val DefaultJson: Json =
  * ```
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.json)
+ *
  * @param json a format instance (optional)
  * @param contentType to register with, `application/json` by default
  */
@@ -63,6 +68,9 @@ public fun Configuration.json(
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
  * This uses the experimental JSON support for kotlinx-io to stream content more efficiently.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.jsonIo)
  *
  * @param json A JSON instance used for serialization and deserialization. Defaults to an instance of DefaultJson.
  * @param contentType The content type to be associated with the JSON converter. Defaults to ContentType.Application.Json.

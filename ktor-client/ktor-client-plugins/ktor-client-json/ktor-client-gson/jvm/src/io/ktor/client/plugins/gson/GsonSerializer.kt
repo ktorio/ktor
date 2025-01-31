@@ -14,6 +14,8 @@ import io.ktor.utils.io.core.*
 
 /**
  * [JsonSerializer] using [Gson] as backend.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.gson.GsonSerializer)
  */
 @Suppress("ktlint:standard:max-line-length")
 @Deprecated(

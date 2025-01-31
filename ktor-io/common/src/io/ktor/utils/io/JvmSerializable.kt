@@ -4,7 +4,11 @@
 
 package io.ktor.utils.io
 
-/** Alias for `java.io.Serializable` on JVM. Empty interface otherwise. */
+/**
+ * Alias for `java.io.Serializable` on JVM. Empty interface otherwise.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.JvmSerializable)
+ */
 @InternalAPI
 public expect interface JvmSerializable
 

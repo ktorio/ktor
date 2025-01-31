@@ -20,6 +20,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
 /**
  * Occurs when receiving a response with a redirect message.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpResponseRedirectEvent)
  */
 public val HttpResponseRedirectEvent: EventDefinition<HttpResponse> = EventDefinition()
 
@@ -31,11 +33,15 @@ public class HttpRedirectConfig {
      * Only [HttpMethod.Get] and [HttpMethod.Head] are allowed for implicit redirection.
      *
      * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRedirectConfig.checkHttpMethod)
      */
     public var checkHttpMethod: Boolean = true
 
     /**
      * `true` allows a client to make a redirect with downgrading from HTTPS to plain HTTP.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRedirectConfig.allowHttpsDowngrade)
      */
     public var allowHttpsDowngrade: Boolean = false
 }

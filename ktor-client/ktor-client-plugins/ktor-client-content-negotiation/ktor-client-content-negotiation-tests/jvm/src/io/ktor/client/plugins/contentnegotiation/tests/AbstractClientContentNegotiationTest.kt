@@ -30,7 +30,11 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlin.test.*
 
-/** Base class for [ContentNegotiation] tests. */
+/**
+ * Base class for [ContentNegotiation] tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.tests.AbstractClientContentNegotiationTest)
+ */
 
 abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))

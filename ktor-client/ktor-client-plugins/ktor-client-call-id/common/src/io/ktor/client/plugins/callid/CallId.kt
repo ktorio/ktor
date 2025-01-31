@@ -15,6 +15,8 @@ internal typealias CallIdInterceptor = (request: HttpRequestBuilder, callId: Str
 
 /**
  * A configuration for [CallId] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig)
  */
 public class CallIdConfig {
 
@@ -23,6 +25,9 @@ public class CallIdConfig {
 
     /**
      * If set to `true`, adds a default generator that uses current [CoroutineContext] to retrieve a call ID.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.useCoroutineContext)
      *
      * @see withCallId
      * @see KtorCallIdContextElement
@@ -33,6 +38,8 @@ public class CallIdConfig {
      * Allows you to generate a call ID for an outgoing request.
      * Generates `null` if it is impossible to generate a call ID for some reason.
      * You can add multiple generators, and the first non-null value will be used.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.generate)
      */
     public fun generate(block: suspend (HttpRequestBuilder) -> String?) {
         generators.add(block)
@@ -40,6 +47,9 @@ public class CallIdConfig {
 
     /**
      * Allows you to add a call ID to the request.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.intercept)
      *
      * @see [addToHeader]
      */
@@ -49,6 +59,9 @@ public class CallIdConfig {
 
     /**
      * Adds a call ID to specified header named [header].
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.addToHeader)
      *
      * @see [intercept]
      */
@@ -70,6 +83,8 @@ public class CallIdConfig {
  * and add it to the [HttpHeaders.XRequestId]. See [CallIdConfig] if you want to change it.
  *
  * You can learn more from [CallId](https://ktor.io/docs/call-id.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallId)
  */
 public val CallId: ClientPlugin<CallIdConfig> = createClientPlugin("CallId", ::CallIdConfig) {
 

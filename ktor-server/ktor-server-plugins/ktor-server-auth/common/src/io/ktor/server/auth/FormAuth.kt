@@ -12,6 +12,9 @@ import io.ktor.server.response.*
 /**
  * A form-based authentication provider.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider)
+ *
  * @see [form]
  */
 public class FormAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
@@ -53,6 +56,8 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
 
     /**
      * A configuration for the [form]-based authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config)
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
@@ -63,16 +68,22 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
 
         /**
          * Specifies a POST parameter name used to fetch a username.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.userParamName)
          */
         public var userParamName: String = "user"
 
         /**
          * Specifies a POST parameter name used to fetch a password.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.passwordParamName)
          */
         public var passwordParamName: String = "password"
 
         /**
          * Specifies a response sent to the client if authentication fails.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.challenge)
          */
         public fun challenge(function: FormAuthChallengeFunction) {
             challengeFunction = function
@@ -80,6 +91,8 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
 
         /**
          * Specifies a redirect URL in a case of failed authentication.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.challenge)
          */
         public fun challenge(redirectUrl: String) {
             challenge {
@@ -89,6 +102,8 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
 
         /**
          * Specifies a redirect URL in a case of failed authentication.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.challenge)
          */
         public fun challenge(redirect: Url) {
             challenge(redirect.toString())
@@ -97,6 +112,8 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
         /**
          * Sets a validation function that checks a specified [UserPasswordCredential] instance and
          * returns principal [Any] in a case of successful authentication or null if authentication fails.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config.validate)
          */
         public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Any?) {
             authenticationFunction = body
@@ -110,6 +127,8 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
  * Installs the form-based [Authentication] provider.
  * Form-based authentication uses a web form to collect credential information and authenticate a user.
  * To learn how to configure it, see [Form-based authentication](https://ktor.io/docs/form.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.form)
  */
 public fun AuthenticationConfig.form(
     name: String? = null,
@@ -121,11 +140,15 @@ public fun AuthenticationConfig.form(
 
 /**
  * A context for [FormAuthChallengeFunction].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthChallengeContext)
  */
 public class FormAuthChallengeContext(public val call: ApplicationCall)
 
 /**
  * Specifies what to send back if form-based authentication fails.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthChallengeFunction)
  */
 public typealias FormAuthChallengeFunction = suspend FormAuthChallengeContext.(UserPasswordCredential?) -> Unit
 

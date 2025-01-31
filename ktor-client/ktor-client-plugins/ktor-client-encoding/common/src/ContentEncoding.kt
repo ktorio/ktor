@@ -21,6 +21,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.Conten
 
 /**
  * A configuration for the [ContentEncoding] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig)
  */
 @KtorDsl
 public class ContentEncodingConfig {
@@ -40,6 +42,9 @@ public class ContentEncodingConfig {
     /**
      * Installs the `gzip` encoder.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.gzip)
+     *
      * @param quality a priority value to use in the `Accept-Encoding` header.
      */
     public fun gzip(quality: Float? = null) {
@@ -49,6 +54,9 @@ public class ContentEncodingConfig {
     /**
      * Installs the `deflate` encoder.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.deflate)
+     *
      * @param quality a priority value to use in the `Accept-Encoding` header.
      */
     public fun deflate(quality: Float? = null) {
@@ -57,6 +65,9 @@ public class ContentEncodingConfig {
 
     /**
      * Installs the `identity` encoder.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.identity)
+     *
      * @param quality a priority value to use in the `Accept-Encoding` header.
      */
     public fun identity(quality: Float? = null) {
@@ -65,6 +76,9 @@ public class ContentEncodingConfig {
 
     /**
      * Installs a custom encoder.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.customEncoder)
      *
      * @param encoder a custom encoder to use.
      * @param quality a priority value to use in the `Accept-Encoding` header.
@@ -88,6 +102,8 @@ public class ContentEncodingConfig {
  * - Decodes content received from a server to obtain the original payload.
  *
  * You can learn more from [Content encoding](https://ktor.io/docs/content-encoding.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncoding)
  */
 @OptIn(InternalAPI::class)
 public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPlugin(
@@ -222,6 +238,9 @@ internal object ReceiveStateHook : ClientHook<suspend (HttpResponse) -> HttpResp
 /**
  * Installs or configures the [ContentEncoding] plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncoding)
+ *
  * @param block: a [ContentEncoding] configuration.
  */
 @Suppress("FunctionName")
@@ -248,6 +267,9 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
 /**
  * Compresses request body using [ContentEncoding] plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.compress)
+ *
  * @param contentEncoderName names of compression encoders to use, such as "gzip", "deflate", etc
  */
 public fun HttpRequestBuilder.compress(vararg contentEncoderName: String) {
@@ -257,6 +279,9 @@ public fun HttpRequestBuilder.compress(vararg contentEncoderName: String) {
 /**
  * Compress request body using [ContentEncoding] plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.compress)
+ *
  * @param contentEncoderNames names of compression encoders to use, such as "gzip", "deflate", etc
  */
 public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
@@ -265,6 +290,8 @@ public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
 
 /**
  * List of [ContentEncoder] names that were used to decode response body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.appliedDecoders)
  */
 public val HttpResponse.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()

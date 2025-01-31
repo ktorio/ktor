@@ -10,6 +10,9 @@ import kotlin.reflect.*
 
 /**
  * An authentication context for a call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext)
+ *
  * @param call instance of [ApplicationCall] this context is for.
  */
 public class AuthenticationContext(call: ApplicationCall) {
@@ -24,6 +27,8 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Retrieves an authenticated principal, or returns `null` if a user isn't authenticated.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.principal)
      */
     @Deprecated("Use accessor methods instead", level = DeprecationLevel.ERROR)
     public var principal: Any?
@@ -35,18 +40,24 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * All registered errors during auth procedure (only [AuthenticationFailedCause.Error]).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.allErrors)
      */
     public val allErrors: List<AuthenticationFailedCause.Error>
         get() = errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
 
     /**
      * All authentication failures during auth procedure including missing or invalid credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.allFailures)
      */
     public val allFailures: List<AuthenticationFailedCause>
         get() = errors.values.toList()
 
     /**
      * Appends an error to the errors list. Overwrites if already registered for the same [key].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.error)
      */
     public fun error(key: Any, cause: AuthenticationFailedCause) {
         errors[key] = cause
@@ -54,11 +65,15 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Gets an [AuthenticationProcedureChallenge] for this context.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.challenge)
      */
     public val challenge: AuthenticationProcedureChallenge = AuthenticationProcedureChallenge()
 
     /**
      * Sets an authenticated principal for this context.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.principal)
      */
     public fun principal(principal: Any) {
         _principal.add(null, principal)
@@ -66,6 +81,8 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Sets an authenticated principal for this context from provider with name [provider].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.principal)
      */
     public fun principal(provider: String? = null, principal: Any) {
         _principal.add(provider, principal)
@@ -73,6 +90,8 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Retrieves a principal of the type [T] from provider with name [provider], if any.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.principal)
      */
     public inline fun <reified T : Any> principal(provider: String? = null): T? {
         return principal(provider, T::class)
@@ -80,6 +99,8 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Retrieves a principal of the type [T], if any.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.principal)
      */
     public fun <T : Any> principal(provider: String?, klass: KClass<T>): T? {
         return _principal.get(provider, klass)
@@ -87,6 +108,8 @@ public class AuthenticationContext(call: ApplicationCall) {
 
     /**
      * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationContext.challenge)
      */
     public fun challenge(
         key: Any,

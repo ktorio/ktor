@@ -15,6 +15,8 @@ internal fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType): T
 
 /**
  * Check [this] is instance of [type].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.instanceOf)
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)
 
