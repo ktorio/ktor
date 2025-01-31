@@ -126,9 +126,16 @@ public fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChan
 public interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket, CoroutineScope
 
 /**
- * Represents a server bound socket ready for accepting connections
+ * Represents a server-bound socket ready for accepting connections
  */
 public interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
+
+/**
+ * The port number of the current server.
+ *
+ * @throws UnsupportedOperationException if the local socket address does not support a port.
+ */
+public val ServerSocket.port: Int get() = localAddress.port()
 
 public expect class SocketTimeoutException(message: String) : IOException
 
