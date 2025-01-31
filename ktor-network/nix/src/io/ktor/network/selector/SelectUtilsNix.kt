@@ -200,6 +200,7 @@ internal actual class SelectorHelper {
         for (event in watchSet) {
             if (event.descriptor in closeSet) {
                 completed.add(event)
+                event.fail(IOException("Selectable closed"))
                 continue
             }
 
