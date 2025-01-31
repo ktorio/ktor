@@ -13,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
 
 @OptIn(InternalCoroutinesApi::class)
@@ -39,10 +41,10 @@ internal suspend fun commonFetch(
 
     promise.then(
         onFulfilled = {
-            continuation.resumeWith(Result.success(it))
+            continuation.resume(it)
         },
         onRejected = {
-            continuation.resumeWith(Result.failure(Error("Fail to fetch", it)))
+            continuation.resumeWithException(Error("Fail to fetch", it))
         }
     ).finally { abortOnCallCompletion.dispose() }
 }
