@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.jetty)
     implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.sse)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.caching.headers)
     implementation(libs.ktor.server.conditional.headers)

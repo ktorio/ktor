@@ -4,7 +4,7 @@
 
 package io.ktor.client.plugins.sse
 
-import kotlin.time.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -15,6 +15,14 @@ import kotlin.time.Duration.Companion.milliseconds
 public class SSEConfig {
     internal var showCommentEvents = false
     internal var showRetryEvents = false
+    internal var allowReconnection = false
+
+    /**
+     * Allows the client to reconnect to the server if the connection is lost.
+     */
+    public fun allowReconnection() {
+        allowReconnection = true
+    }
 
     /**
      * The reconnection time. If the connection to the server is lost,
