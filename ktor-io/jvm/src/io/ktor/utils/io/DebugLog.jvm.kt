@@ -4,9 +4,16 @@
 
 package io.ktor.utils.io
 
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Paths
+import java.nio.file.StandardOpenOption.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.writer
+
+// Use the absolute path here,
+// otherwise you'll get a copy in every module when running many tests,
+// because gradlew kicks off a new process for every module test suite
+private const val OUTPUT = "invocations.txt"
 
 public data class Invocation(
     val instance: Int,
@@ -17,36 +24,49 @@ public data class Invocation(
 public data class ThreadDetails(
     val stackTrace: List<StackTraceElement>,
     val testName: String,
+    val timings: Set<Long>,
 ) {
     internal companion object {
         internal fun of(stackTrace: Array<StackTraceElement>): ThreadDetails =
             ThreadDetails(
                 stackTrace.drop(2).take(20),
-                stackTrace.getTestName()
+                stackTrace.getTestName(),
+                setOf(System.currentTimeMillis() - start)
             )
     }
+
+    internal fun addTime() =
+        ThreadDetails(stackTrace, testName, timings + (System.currentTimeMillis() - start))
 }
 
 private fun Array<StackTraceElement>.getTestName(): String =
     firstNotNullOfOrNull {
         testRegex.find(it.className)?.value
-    } ?: "???"
+    } ?: "(Unknown test)"
 
 private val testRegex = Regex("\\w+?[A-Z][a-z]+Test")
-private val exemptions = setOf(
+private val coroutineExemptions = setOf(
+    "await-free-space",
+    "close-write-channel"
+)
+private val testExemptions = setOf(
     "ByteChannelConcurrentTest",
     "ByteReadChannelOperationsTest",
 )
 
-private val invocations = ConcurrentHashMap<Invocation, ThreadDetails>().also { invocations ->
+private val start = System.currentTimeMillis()
+private val invocations = ConcurrentHashMap<Invocation, ThreadDetails>().also { addShutdownHook() }
+
+private fun addShutdownHook() {
     Runtime.getRuntime().addShutdownHook(Thread {
-        val outputFile = Paths.get("invocations.txt")
-        outputFile.writer().buffered().run {
+        Paths.get(OUTPUT).writer(UTF_8, APPEND, CREATE).buffered().run {
             try {
                 val byOperationOnInstance = invocations.keys.groupBy { (instance, operation) ->
                     "$instance-$operation"
                 }.filterValues { matches ->
-                    matches.size > 1 && invocations[matches.first()]!!.testName !in exemptions
+                    matches.size > 1 &&
+                        matches.all { it.coroutineName.substringBefore('#') !in coroutineExemptions } &&
+                        invocations[matches.first()]!!.testName !in testExemptions
                 }
                 appendLine("Total invocations:       ${invocations.keys.count()}")
                 appendLine("Contentious invocations: ${byOperationOnInstance.values.sumOf { it.size }}")
@@ -57,9 +77,10 @@ private val invocations = ConcurrentHashMap<Invocation, ThreadDetails>().also { 
                     appendLine("=".repeat(testName.length))
                     for (match in matches) {
                         val threadDetails = invocations[match]!!
-                        val (instance, operation, coroutineName) = match
+                        val (_, operation, coroutineName) = match
 
-                        appendLine("  $operation $coroutineName")
+                        appendLine("  [$operation] $coroutineName")
+                        appendLine("      times: ${threadDetails.timings.joinToString()}")
                         threadDetails.stackTrace.forEach {
                             appendLine("      $it ${it.className}")
                         }
@@ -68,8 +89,8 @@ private val invocations = ConcurrentHashMap<Invocation, ThreadDetails>().also { 
                 }
             } finally {
                 close()
-                println("Invocation report written to ${outputFile.toAbsolutePath()}")
-                println(outputFile.toFile().readText())
+                println("Invocation report written to ${Paths.get(OUTPUT).toAbsolutePath()}")
+                //println(Paths.get(OUTPUT).toFile().readText())
             }
         }
     })
@@ -94,6 +115,6 @@ public actual fun Any.debug(operation: String) {
     val invocation = Invocation(System.identityHashCode(this), operation, coroutineName)
     val stackTrace = currentThread.stackTrace
     if (!stackTrace.isInRunBlocking()) {
-        invocations[invocation] = ThreadDetails.of(stackTrace)
+        invocations[invocation] = invocations[invocation]?.addTime() ?: ThreadDetails.of(stackTrace)
     }
 }
