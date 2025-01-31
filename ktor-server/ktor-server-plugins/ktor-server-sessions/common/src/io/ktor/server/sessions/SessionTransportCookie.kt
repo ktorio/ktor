@@ -15,6 +15,9 @@ public const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days
  * for the specified cookie [name], and a specific cookie [configuration] after
  * applying/un-applying the specified transforms defined by [transformers].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportCookie)
+ *
  * @property name is a cookie name
  * @property configuration is a cookie configuration
  * @property transformers is a list of session transformers
@@ -77,10 +80,14 @@ public class SessionTransportCookie(
 
 /**
  * A configuration used to specify cookie attributes for [Sessions].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration)
  */
 public class CookieConfiguration {
     /**
      * Specifies the number of seconds until the cookie expires.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.maxAgeInSeconds)
      */
     public var maxAgeInSeconds: Long? = DEFAULT_SESSION_MAX_AGE
         set(newMaxAge) {
@@ -90,11 +97,15 @@ public class CookieConfiguration {
 
     /**
      * Specifies a cookie encoding.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.encoding)
      */
     public var encoding: CookieEncoding = CookieEncoding.URI_ENCODING
 
     /**
      * Specifies the host to which the cookie is sent.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.domain)
      */
     public var domain: String? = null
 
@@ -102,17 +113,23 @@ public class CookieConfiguration {
      * Cookie path
      *
      * Specifies the cookie path.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.path)
      */
     public var path: String? = "/"
 
     /**
      * Enables transferring cookies via a secure connection only and
      * protects session data from HTTPS downgrade attacks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.secure)
      */
     public var secure: Boolean = false
 
     /**
      * Specifies whether cookie access is forbidden from JavaScript.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.httpOnly)
      */
     public var httpOnly: Boolean = true
 
@@ -124,6 +141,8 @@ public class CookieConfiguration {
      *     cookie.extensions["SameSite"] = "lax"
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieConfiguration.extensions)
      */
     public val extensions: MutableMap<String, String?> = mutableMapOf()
 }

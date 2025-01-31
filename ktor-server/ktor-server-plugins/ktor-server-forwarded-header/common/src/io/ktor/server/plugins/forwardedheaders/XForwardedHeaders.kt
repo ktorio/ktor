@@ -14,12 +14,16 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [XForwardedHeaders] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig)
  */
 @KtorDsl
 public class XForwardedHeadersConfig {
     /**
      * Gets headers used to identify the original host requested by the client.
      * Default are `X-Forwarded-Server` and `X-Forwarded-Host`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.hostHeaders)
      */
     public val hostHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
 
@@ -27,24 +31,32 @@ public class XForwardedHeadersConfig {
      * Gets headers used to identify the protocol (HTTP or HTTPS) that a client used
      * to connect to a proxy or load balancer. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.protoHeaders)
      */
     public val protoHeaders: MutableList<String> = mutableListOf(HttpHeaders.XForwardedProto, "X-Forwarded-Protocol")
 
     /**
      * Gets headers used to identify the originating IP address of a client connecting to
      * a server through a proxy or a load balancer.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.forHeaders)
      */
     public val forHeaders: MutableList<String> = mutableListOf(HttpHeaders.XForwardedFor)
 
     /**
      * Gets headers used to identify whether HTTPS/TLS is used between
      * the client and the front-end server. Default are `X-Forwarded-SSL` and `Front-End-Https`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.httpsFlagHeaders)
      */
     public val httpsFlagHeaders: MutableList<String> = mutableListOf("X-Forwarded-SSL", "Front-End-Https")
 
     /**
      * Gets headers used to identify the destination port.
      * The default is `X-Forwarded-Port`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.portHeaders)
      */
     public val portHeaders: MutableList<String> = mutableListOf("X-Forwarded-Port")
 
@@ -57,6 +69,8 @@ public class XForwardedHeadersConfig {
     /**
      * Custom logic to extract the value from the X-Forward-* headers when multiple values are present.
      * You need to modify [MutableOriginConnectionPoint] based on headers from [XForwardedHeaderValues].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.extractEdgeProxy)
      */
     public fun extractEdgeProxy(block: (MutableOriginConnectionPoint, XForwardedHeaderValues) -> Unit) {
         xForwardedHeadersHandler = block
@@ -64,6 +78,8 @@ public class XForwardedHeadersConfig {
 
     /**
      * Takes the first value from the `X-Forward-*` headers when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.useFirstProxy)
      */
     public fun useFirstProxy() {
         extractEdgeProxy { connectionPoint, headers ->
@@ -73,6 +89,8 @@ public class XForwardedHeadersConfig {
 
     /**
      * Takes the last value from the `X-Forward-*` headers when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.useLastProxy)
      */
     public fun useLastProxy() {
         extractEdgeProxy { connectionPoint, headers ->
@@ -82,6 +100,8 @@ public class XForwardedHeadersConfig {
 
     /**
      * Takes the [proxiesCount]-before-last value from the `X-Forward-*` headers when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.skipLastProxies)
      */
     public fun skipLastProxies(proxiesCount: Int) {
         extractEdgeProxy { connectionPoint, headers ->
@@ -94,6 +114,8 @@ public class XForwardedHeadersConfig {
     /**
      * Removes known [hosts] from the end of the list and takes the last value
      * from `X-Forward-*` headers when multiple values are present.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.skipKnownProxies)
      * */
     public fun skipKnownProxies(hosts: List<String>) {
         extractEdgeProxy { connectionPoint, headers ->
@@ -183,6 +205,8 @@ public class XForwardedHeadersConfig {
 
 /**
  * Values of the `X-Forward-*` headers. Each property may contain multiple comma-separated values.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeaderValues)
  */
 public data class XForwardedHeaderValues(
     /**
@@ -213,6 +237,8 @@ public data class XForwardedHeaderValues(
  *
  * To learn how to install and use [XForwardedHeaders], see
  * [Forwarded headers](https://ktor.io/docs/forward-headers.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeaders)
  */
 public val XForwardedHeaders: ApplicationPlugin<XForwardedHeadersConfig> = createApplicationPlugin(
     "XForwardedHeaders",

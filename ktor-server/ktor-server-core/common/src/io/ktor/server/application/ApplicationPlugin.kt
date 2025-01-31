@@ -12,6 +12,9 @@ import kotlinx.coroutines.*
 
 /**
  * Defines an installable [Plugin](https://ktor.io/docs/plugins.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Plugin)
+ *
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
@@ -24,17 +27,24 @@ public interface Plugin<
     > {
     /**
      * A unique key that identifies a plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Plugin.key)
      */
     public val key: AttributeKey<TPlugin>
 
     /**
      * A plugin's installation script.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Plugin.install)
      */
     public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TPlugin
 }
 
 /**
  * Defines a [Plugin](https://ktor.io/docs/plugins.html) that is installed into Application.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.BaseApplicationPlugin)
+ *
  * @param TPipeline is the type of the pipeline this plugin is compatible with
  * @param TConfiguration is the configuration object type for this Plugin
  * @param TPlugin is the instance type of the Plugin object
@@ -47,6 +57,9 @@ public interface BaseApplicationPlugin<
 
 /**
  * Defines a [Plugin](https://ktor.io/docs/plugins.html) that is installed into Application.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationPlugin)
+ *
  * @param TConfiguration is the configuration object type for this Plugin
  */
 public interface ApplicationPlugin<out TConfiguration : Any> :
@@ -56,6 +69,8 @@ internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegi
 
 /**
  * Returns the existing plugin registry or registers and returns a new one.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.pluginRegistry)
  */
 public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
     get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
@@ -63,6 +78,9 @@ public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
 /**
  * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]
  * if the plugin is not installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.plugin)
+ *
  * @throws MissingApplicationPluginException
  * @param plugin [Plugin] to lookup
  * @return an instance of a plugin
@@ -76,6 +94,8 @@ public fun <A : Pipeline<*, PipelineCall>, F : Any> A.plugin(plugin: Plugin<*, *
 
 /**
  * Returns a plugin instance for this pipeline, or null if the plugin is not installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.pluginOrNull)
  */
 public fun <A : Pipeline<*, PipelineCall>, F : Any> A.pluginOrNull(plugin: Plugin<*, *, F>): F? {
     return pluginRegistry.getOrNull(plugin.key)
@@ -83,6 +103,8 @@ public fun <A : Pipeline<*, PipelineCall>, F : Any> A.pluginOrNull(plugin: Plugi
 
 /**
  * Installs a [plugin] into this pipeline, if it is not yet installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.install)
  */
 public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
     plugin: Plugin<P, B, F>,
@@ -177,6 +199,8 @@ private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TConte
 
 /**
  * Installs a [plugin] into this pipeline, if it is not yet installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.install)
  */
 @Deprecated(
     "Installing ApplicationPlugin into routing may lead to unexpected behaviour. " +
@@ -192,6 +216,8 @@ public fun <P : RoutingNode, B : Any, F : Any> P.install(
 
 /**
  * Uninstalls all plugins from the pipeline.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.uninstallAllPlugins)
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
@@ -207,6 +233,8 @@ public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
 
 /**
  * Uninstalls a [plugin] from the pipeline.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.uninstall)
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated(
@@ -220,6 +248,8 @@ public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
 
 /**
  * Uninstalls a plugin specified by [key] from the pipeline.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.uninstallPlugin)
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
@@ -237,6 +267,8 @@ public fun <A : Pipeline<*, PipelineCall>, F : Any> A.uninstallPlugin(key: Attri
 
 /**
  * Thrown on an attempt to install the plugin with the same key as for the already installed plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.DuplicateApplicationPluginException)
  */
 @Deprecated(
     message = "Please use DuplicatePluginException instead",
@@ -247,12 +279,17 @@ public open class DuplicateApplicationPluginException(message: String) : Excepti
 
 /**
  * Thrown on an attempt to install the plugin with the same key as for the already installed plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.DuplicatePluginException)
  */
 @Suppress("DEPRECATION_ERROR")
 public class DuplicatePluginException(message: String) : DuplicateApplicationPluginException(message)
 
 /**
  * Thrown on an attempt to access the plugin that is not yet installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.MissingApplicationPluginException)
+ *
  * @param key application plugin's attribute key
  */
 @OptIn(ExperimentalCoroutinesApi::class)

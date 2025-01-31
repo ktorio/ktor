@@ -11,6 +11,8 @@ import io.ktor.util.*
 
 /**
  * OAuth versions used in configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthVersion)
  */
 
 public enum class OAuthVersion {
@@ -20,12 +22,18 @@ public enum class OAuthVersion {
 
 /**
  * OAuth server settings.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings)
+ *
  * @property name configuration name
  * @property version OAuth version (1a or 2)
  */
 public sealed class OAuthServerSettings(public val name: String, public val version: OAuthVersion) {
     /**
      * OAuth1a server settings
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings.OAuth1aServerSettings)
+     *
      * @property requestTokenUrl OAuth server token request URL
      * @property authorizeUrl OAuth server authorization page URL
      * @property accessTokenUrl OAuth server access token request URL
@@ -46,6 +54,9 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
     /**
      * OAuth2 server settings
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings)
+     *
      * @property authorizeUrl OAuth server authorization page URL
      * @property accessTokenUrl OAuth server access token request URL
      * @property requestMethod HTTP request method to be used to acquire access token (see vendors documentation)
@@ -84,10 +95,15 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
 /**
  * OAuth callback parameters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback)
  */
 public sealed class OAuthCallback {
     /**
      * An OAuth1a token pair callback parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback.TokenPair)
+     *
      * @property token OAuth1a token
      * @property tokenSecret OAuth1a token secret
      */
@@ -95,6 +111,9 @@ public sealed class OAuthCallback {
 
     /**
      * An OAuth2 token callback parameter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback.TokenSingle)
+     *
      * @property token OAuth2 token provided by server
      * @property state passed from a client (ktor server) during authorization startup
      */
@@ -102,6 +121,9 @@ public sealed class OAuthCallback {
 
     /**
      * Oauth2 error callback parameters
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback.Error)
+     *
      * @property error the error code passed from the identity provider
      * @property errorDescription optionally passed, human-readable description of the error code
      */
@@ -110,10 +132,15 @@ public sealed class OAuthCallback {
 
 /**
  * An OAuth access token acquired from the server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAccessTokenResponse)
  */
 public sealed class OAuthAccessTokenResponse {
     /**
      * OAuth1a access token acquired from the server
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAccessTokenResponse.OAuth1a)
+     *
      * @property token itself
      * @property tokenSecret token secret to be used with [token]
      * @property extraParameters contains additional parameters provided by the server
@@ -126,6 +153,9 @@ public sealed class OAuthAccessTokenResponse {
 
     /**
      * OAuth2 access token acquired from the server
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAccessTokenResponse.OAuth2)
+     *
      * @property accessToken access token from server
      * @property tokenType OAuth2 token type (usually Bearer)
      * @property expiresIn token expiration timestamp
@@ -159,6 +189,8 @@ public sealed class OAuthAccessTokenResponse {
 
 /**
  * OAuth grant types constants.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthGrantTypes)
  */
 
 public object OAuthGrantTypes {

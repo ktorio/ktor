@@ -19,6 +19,8 @@ import kotlin.coroutines.*
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
  * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public actual suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
@@ -46,6 +48,8 @@ public actual suspend fun Socket.tls(
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
  * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
@@ -69,6 +73,8 @@ public suspend fun Socket.tls(
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
  * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())

@@ -11,6 +11,9 @@ import io.ktor.server.response.*
 /**
  * Responds with the specified [template] passing [params].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jte.respondTemplate)
+ *
  * @see JteContent
  */
 public suspend fun ApplicationCall.respondTemplate(
@@ -22,6 +25,9 @@ public suspend fun ApplicationCall.respondTemplate(
 
 /**
  * Responds with the specified [template] passing [params] as a vararg of [Pair].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jte.respondTemplate)
  *
  * @see JteContent
  */

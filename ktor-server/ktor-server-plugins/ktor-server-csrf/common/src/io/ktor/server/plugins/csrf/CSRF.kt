@@ -30,6 +30,9 @@ import io.ktor.server.request.*
  *  }
  *  ```
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRF)
+ *
  * @see io.ktor.server.sessions.SameSite for preventing cookies from being used when navigating from external sites
  */
 public val CSRF: RouteScopedPlugin<CSRFConfig> = createRouteScopedPlugin("CSRF", ::CSRFConfig) {

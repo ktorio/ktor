@@ -20,6 +20,8 @@ import kotlin.coroutines.*
  * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */
 @Suppress("UNUSED_PARAMETER")
 public fun InputStream.toByteReadChannel(
@@ -31,6 +33,8 @@ public fun InputStream.toByteReadChannel(
  * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */
 @Suppress("UNUSED_PARAMETER")
 @JvmName("toByteReadChannelWithArrayPool")

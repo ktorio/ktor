@@ -39,6 +39,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCache")
  * the client executes only the first request and skips the second one since data is already saved in a cache.
  *
  * You can learn more from [Caching](https://ktor.io/docs/client-caching.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache)
  */
 public class HttpCache private constructor(
     @Deprecated(
@@ -56,6 +58,8 @@ public class HttpCache private constructor(
 ) {
     /**
      * A configuration for the [HttpCache] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config)
      */
     @KtorDsl
     public class Config {
@@ -66,6 +70,8 @@ public class HttpCache private constructor(
         /**
          * Specifies if the client where this plugin is installed is shared among multiple users.
          * When set to true, all responses with `private` Cache-Control directive will not be cached.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.isShared)
          */
         public var isShared: Boolean = false
 
@@ -73,6 +79,8 @@ public class HttpCache private constructor(
          * Specifies a storage for public cache entries.
          *
          * [HttpCacheStorage.Unlimited] by default.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.publicStorage)
          */
         @Deprecated(
             "This will become internal. Use setter method instead with new storage interface",
@@ -91,6 +99,8 @@ public class HttpCache private constructor(
          * [HttpCacheStorage.Unlimited] by default.
          *
          * Consider using [HttpCacheStorage.Disabled] if the client is used as intermediate.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.privateStorage)
          */
         @Deprecated(
             "This will become internal. Use setter method instead with new storage interface",
@@ -107,6 +117,8 @@ public class HttpCache private constructor(
          * Specifies a storage for public cache entries.
          *
          * [CacheStorage.Unlimited] by default.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.publicStorage)
          */
         public fun publicStorage(storage: CacheStorage) {
             publicStorageNew = storage
@@ -118,6 +130,8 @@ public class HttpCache private constructor(
          * [CacheStorage.Unlimited] by default.
          *
          * Consider using [CacheStorage.Disabled] if the client is used as intermediate.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.privateStorage)
          */
         public fun privateStorage(storage: CacheStorage) {
             privateStorageNew = storage

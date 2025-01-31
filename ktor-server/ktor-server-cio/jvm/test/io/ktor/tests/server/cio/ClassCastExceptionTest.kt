@@ -26,6 +26,8 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
 
     /**
      * Regression test for KTOR-349
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.cio.ClassCastExceptionTest.testClassCastException)
      */
     @Test
     @NoHttp2

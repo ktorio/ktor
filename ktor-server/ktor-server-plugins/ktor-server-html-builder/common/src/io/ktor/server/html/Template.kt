@@ -6,6 +6,9 @@ package io.ktor.server.html
 
 /**
  * A template that expands inside [TOuter].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.Template)
+ *
  * @see [respondHtmlTemplate]
  */
 public interface Template<in TOuter> {
@@ -14,6 +17,9 @@ public interface Template<in TOuter> {
 
 /**
  * A placeholder that is inserted inside [TOuter].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.Placeholder)
+ *
  * @see [respondHtmlTemplate]
  */
 public open class Placeholder<TOuter> {
@@ -32,6 +38,9 @@ public open class Placeholder<TOuter> {
 
 /**
  * A placeholder that can be used to insert the content that appears multiple times (for example, list items).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.PlaceholderList)
+ *
  * @see [respondHtmlTemplate]
  */
 public open class PlaceholderList<TOuter, TInner> {
@@ -59,6 +68,8 @@ public open class PlaceholderList<TOuter, TInner> {
 
 /**
  * An item of a [PlaceholderList] when it is expanded.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.PlaceholderItem)
  */
 public class PlaceholderItem<TOuter>(public val index: Int, public val collection: List<PlaceholderItem<TOuter>>) :
     Placeholder<TOuter>() {
@@ -68,6 +79,8 @@ public class PlaceholderItem<TOuter>(public val index: Int, public val collectio
 
 /**
  * Inserts every element of [PlaceholderList].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.each)
  */
 public fun <TOuter, TInner> TOuter.each(
     items: PlaceholderList<TOuter, TInner>,
@@ -78,12 +91,16 @@ public fun <TOuter, TInner> TOuter.each(
 
 /**
  * Inserts [Placeholder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.insert)
  */
 public fun <TOuter> TOuter.insert(placeholder: Placeholder<TOuter>): Unit = placeholder.apply(this)
 
 /**
  * A placeholder that is also a [Template].
  * It can be used to insert child templates and create nested layouts.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.TemplatePlaceholder)
  */
 public open class TemplatePlaceholder<TTemplate> {
     private var content: TTemplate.() -> Unit = { }

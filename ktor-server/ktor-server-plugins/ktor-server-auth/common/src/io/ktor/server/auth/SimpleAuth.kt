@@ -7,6 +7,9 @@ package io.ktor.server.auth
 /**
  * A user's principal identified by [name].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserIdPrincipal)
+ *
  * @see [Authentication]
  * @property name of user
  */
@@ -14,6 +17,9 @@ public data class UserIdPrincipal(val name: String)
 
 /**
  * A user's credentials identified by [name] and [password].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserPasswordCredential)
  *
  * @see [Authentication]
  * @property name
@@ -26,6 +32,9 @@ public data class BearerTokenCredential(val token: String)
 /**
  * An in-memory table that keeps usernames and password hashes.
  * This allows you not to compromise user passwords if your data source is leaked.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserHashedTableAuth)
  *
  * @see [basic]
  * @see [form]
@@ -41,6 +50,8 @@ public class UserHashedTableAuth(public val digester: (String) -> ByteArray, pub
 
     /**
      * Authenticates a user by [credential] and returns a [UserIdPrincipal] instance if the [credential] pair is valid.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserHashedTableAuth.authenticate)
      */
     public fun authenticate(credential: UserPasswordCredential): UserIdPrincipal? {
         val userPasswordHash = table[credential.name]

@@ -14,6 +14,9 @@ import kotlin.jvm.*
 
 /**
  * Builds a route to match the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -22,6 +25,9 @@ public fun Route.route(path: String, build: Route.() -> Unit): Route =
 
 /**
  * Builds a route to match the specified HTTP [method] and [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -32,6 +38,9 @@ public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit
 
 /**
  * Builds a route to match the specified HTTP [method].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.method)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -42,6 +51,9 @@ public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
 
 /**
  * Builds a route to match a parameter with the specified [name] and [value].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.param)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -52,6 +64,9 @@ public fun Route.param(name: String, value: String, build: Route.() -> Unit): Ro
 
 /**
  * Builds a route to match a parameter with the specified [name] and captures its value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.param)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -62,6 +77,9 @@ public fun Route.param(name: String, build: Route.() -> Unit): Route {
 
 /**
  * Builds a route to capture an optional parameter with specified [name], if it exists.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.optionalParam)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -72,6 +90,9 @@ public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
 
 /**
  * Builds a route to match a header with the specified [name] and [value].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.header)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -82,6 +103,9 @@ public fun Route.header(name: String, value: String, build: Route.() -> Unit): R
 
 /**
  * Builds a route to match requests with the [HttpHeaders.Accept] header matching any of the specified [contentTypes].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.accept)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -92,6 +116,9 @@ public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Uni
 
 /**
  * Builds a route to match requests with the [HttpHeaders.ContentType] header matching the specified [contentType].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.contentType)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -102,6 +129,9 @@ public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit):
 
 /**
  * Builds a route to match `GET` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.get)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -111,6 +141,9 @@ public fun Route.get(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `GET` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.get)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -120,6 +153,9 @@ public fun Route.get(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -129,6 +165,9 @@ public fun Route.post(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `POST` requests receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -141,6 +180,9 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `POST` requests with the specified [path] receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -154,6 +196,9 @@ public inline fun <reified R : Any> Route.post(
 
 /**
  * Builds a route to match `POST` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -163,6 +208,9 @@ public fun Route.post(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `HEAD` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.head)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -172,6 +220,9 @@ public fun Route.head(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `HEAD` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.head)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -181,6 +232,9 @@ public fun Route.head(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -190,6 +244,9 @@ public fun Route.put(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -199,6 +256,9 @@ public fun Route.put(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PUT` requests receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -211,6 +271,9 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PUT` requests with the specified [path] receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -224,6 +287,9 @@ public inline fun <reified R : Any> Route.put(
 
 /**
  * Builds a route to match `PATCH` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -233,6 +299,9 @@ public fun Route.patch(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PATCH` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -242,6 +311,9 @@ public fun Route.patch(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `PATCH` requests receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -254,6 +326,9 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `PATCH` requests with the specified [path] receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -267,6 +342,9 @@ public inline fun <reified R : Any> Route.patch(
 
 /**
  * Builds a route to match `DELETE` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.delete)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -276,6 +354,9 @@ public fun Route.delete(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `DELETE` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.delete)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -285,6 +366,9 @@ public fun Route.delete(body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `OPTIONS` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.options)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -294,6 +378,9 @@ public fun Route.options(path: String, body: RoutingHandler): Route {
 
 /**
  * Builds a route to match `OPTIONS` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.options)
+ *
  * @see [Application.routing]
  */
 @KtorDsl
@@ -303,6 +390,8 @@ public fun Route.options(body: RoutingHandler): Route {
 
 /**
  * Creates a routing entry for the specified path.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.createRouteFromPath)
  */
 public fun Route.createRouteFromPath(path: String): Route {
     val parts = RoutingPath.parse(path).parts
@@ -324,10 +413,14 @@ public fun Route.createRouteFromPath(path: String): Route {
 
 /**
  * A helper object for building instances of [RouteSelector] from path segments.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentSelectorBuilder)
  */
 public object PathSegmentSelectorBuilder {
     /**
      * Builds a [RouteSelector] to match a path segment parameter with a prefix/suffix and name.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentSelectorBuilder.parseParameter)
      */
     public fun parseParameter(value: String): RouteSelector {
         val prefixIndex = value.indexOf('{')
@@ -352,6 +445,8 @@ public object PathSegmentSelectorBuilder {
 
     /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentSelectorBuilder.parseConstant)
      */
     public fun parseConstant(value: String): RouteSelector = when (value) {
         "*" -> PathSegmentWildcardRouteSelector
@@ -360,6 +455,8 @@ public object PathSegmentSelectorBuilder {
 
     /**
      * Parses a name out of segment specification.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentSelectorBuilder.parseName)
      */
     public fun parseName(value: String): String {
         val prefix = value.substringBefore('{', "")

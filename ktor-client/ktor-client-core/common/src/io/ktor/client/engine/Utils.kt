@@ -14,6 +14,8 @@ import kotlin.coroutines.*
 
 /**
  * Default user agent to use in a Ktor client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.KTOR_DEFAULT_USER_AGENT)
  */
 @InternalAPI
 public val KTOR_DEFAULT_USER_AGENT: String = "ktor-client"
@@ -28,6 +30,8 @@ private val DATE_HEADERS = setOf(
 
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mergeHeaders)
  */
 @InternalAPI
 public fun mergeHeaders(
@@ -72,6 +76,8 @@ public fun mergeHeaders(
 
 /**
  * Returns current call context if exists, otherwise null.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.callContext)
  */
 @InternalAPI
 public suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext

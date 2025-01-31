@@ -12,17 +12,23 @@ import javax.net.ssl.*
 
 /**
  * [TLSConfig] builder.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder)
  */
 public actual class TLSConfigBuilder {
     /**
      * List of client certificate chains with private keys.
      *
      * The Chain will be used only if the first certificate in the chain is issued by server's certificate.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.certificates)
      */
     public val certificates: MutableList<CertificateAndKey> = mutableListOf()
 
     /**
      * [SecureRandom] to use in encryption.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.random)
      */
     public var random: SecureRandom? = null
 
@@ -30,6 +36,8 @@ public actual class TLSConfigBuilder {
      * Custom [X509TrustManager] to verify server authority.
      *
      * Use system by default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.trustManager)
      */
     public var trustManager: TrustManager? = null
         set(value) {
@@ -44,17 +52,23 @@ public actual class TLSConfigBuilder {
 
     /**
      * List of allowed [CipherSuite]s.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.cipherSuites)
      */
     public var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
 
     /**
      * Custom server name for TLS server name extension.
      * See also: https://en.wikipedia.org/wiki/Server_Name_Indication
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.serverName)
      */
     public actual var serverName: String? = null
 
     /**
      * Create [TLSConfig].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.build)
      */
     public actual fun build(): TLSConfig = TLSConfig(
         random ?: SecureRandom(),
@@ -67,6 +81,8 @@ public actual class TLSConfigBuilder {
 
 /**
  * Append config from [other] builder.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.takeFrom)
  */
 public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
     certificates += other.certificates
@@ -80,6 +96,8 @@ public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
  * Add client certificate chain to use.
  *
  * It will be used only if the first certificate in the chain is issued by server's certificate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.addCertificateChain)
  */
 public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
     certificates += CertificateAndKey(chain, key)
@@ -88,6 +106,8 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 /**
  * Add client certificates from [store] by using the certificate with specific [alias]
  * or all certificates, if [alias] is null.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.addKeyStore)
  */
 @JvmName("addKeyStoreNullablePassword")
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, alias: String? = null) {
@@ -119,6 +139,8 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, a
 
 /**
  * Throws if failed to find [PrivateKey] for any alias in [KeyStore].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.NoPrivateKeyException)
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public class NoPrivateKeyException(

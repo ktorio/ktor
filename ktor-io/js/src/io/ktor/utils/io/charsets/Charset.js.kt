@@ -9,11 +9,15 @@ import org.khronos.webgl.Int8Array
 
 /**
  * Find a charset by name.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.forName)
  */
 public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
 
 /**
  * Check if a charset is supported by the current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.isSupported)
  */
 public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 

@@ -14,6 +14,9 @@ import javax.crypto.spec.*
  * This transformer appends an [algorithm] MAC (Message Authentication Code) hash of the session data.
  * It uses a specified [keySpec] when generating the MAC hash.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformerMessageAuthentication)
+ *
  * @see [Sessions]
  *
  * @property keySpec is a secret key spec for message authentication

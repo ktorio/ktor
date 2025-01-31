@@ -30,6 +30,8 @@ internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
  * contract for configuring, executing, and managing HTTP requests within the engine.
  *
  * For a base implementation that handles common engine functionality, see [HttpClientEngineBase].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine)
  */
 public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
@@ -43,6 +45,8 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * ```kotlin
      * override val dispatcher: CoroutineDispatcher = Dispatchers.IO
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.dispatcher)
      */
     public val dispatcher: CoroutineDispatcher
 
@@ -57,6 +61,8 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * ```kotlin
      * override val config: HttpClientEngineConfig = CustomEngineConfig()
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.config)
      */
     public val config: HttpClientEngineConfig
 
@@ -92,6 +98,8 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      *
      * When implementing a custom engine, ensure this property accurately reflects
      * the engine's abilities to avoid unexpected plugin behavior or runtime errors.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.supportedCapabilities)
      */
     public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
@@ -105,6 +113,9 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * This function takes [HttpRequestData], which contains all details of the HTTP request,
      * and returns [HttpResponseData] with the server's response, including headers, status code, and body.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.execute)
+     *
      * @param data The [HttpRequestData] representing the request to be executed.
      * @return An [HttpResponseData] object containing the server's response.
      */
@@ -117,6 +128,9 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * This method is called when the engine is being set up within an `HttpClient`.
      * Use it to register interceptors, validate configuration, or prepare the engine
      * for use with the client.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.install)
      *
      * @param client The [HttpClient] instance to which the engine is being installed.
      */
@@ -180,6 +194,8 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
 /**
  * Creates a new [HttpClientEngineFactory] based on this one
  * with further configurations from the [nested] block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.config)
  */
 public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(
     nested: T.() -> Unit

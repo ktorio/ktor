@@ -17,6 +17,8 @@ import kotlin.coroutines.*
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.readChannel)
  */
 public fun File.readChannel(
     start: Long = 0,
@@ -92,6 +94,8 @@ internal suspend fun SeekableByteChannel.writeToScope(
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.writeChannel)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun File.writeChannel(

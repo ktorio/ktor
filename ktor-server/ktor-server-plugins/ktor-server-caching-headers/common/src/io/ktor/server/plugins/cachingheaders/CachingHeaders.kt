@@ -12,6 +12,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [CachingHeaders] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cachingheaders.CachingHeadersConfig)
  */
 @KtorDsl
 public class CachingHeadersConfig {
@@ -24,6 +26,9 @@ public class CachingHeadersConfig {
 
     /**
      * Provides caching options for a given [ApplicationCall] and [OutgoingContent].
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cachingheaders.CachingHeadersConfig.options)
      *
      * @see [CachingHeaders]
      */
@@ -48,6 +53,8 @@ public class CachingHeadersConfig {
  * ```
  *
  * You can learn more from [Caching headers](https://ktor.io/docs/caching.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cachingheaders.CachingHeaders)
  */
 public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRouteScopedPlugin(
     "Caching Headers",
@@ -83,6 +90,8 @@ public val CachingHeaders: RouteScopedPlugin<CachingHeadersConfig> = createRoute
 
 /**
  * Gets or sets the [CacheControl] for this call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cachingheaders.caching)
  */
 public var ApplicationCall.caching: CachingOptions?
     get() = attributes.getOrNull(CachingProperty)

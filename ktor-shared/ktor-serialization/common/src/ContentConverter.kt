@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.*
  * serialization and deserialization
  *
  * Implementations must override at least one of [serialize] or [serialize] methods.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.ContentConverter)
  */
 public interface ContentConverter {
 
@@ -29,6 +31,9 @@ public interface ContentConverter {
      * This function could ignore value if it is not suitable for conversion and return `null` so in this case
      * other registered converters could be tried or this function could be invoked with other content types
      * it the converted has been registered multiple times with different content types.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.ContentConverter.serialize)
      *
      * @param charset response charset
      * @param typeInfo response body typeInfo
@@ -47,6 +52,9 @@ public interface ContentConverter {
     /**
      * Deserializes [content] to the value of type [typeInfo]
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.ContentConverter.deserialize)
+     *
      * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
      */
     public suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any?
@@ -54,12 +62,16 @@ public interface ContentConverter {
 
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.suitableCharset)
  */
 public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset =
     suitableCharsetOrNull(defaultCharset) ?: defaultCharset
 
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to null
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.suitableCharsetOrNull)
  */
 public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_8): Charset? {
     for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) {
@@ -73,6 +85,8 @@ public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_
 
 /**
  * Configuration for client and server `ContentNegotiation` plugin
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.Configuration)
  */
 public interface Configuration {
 

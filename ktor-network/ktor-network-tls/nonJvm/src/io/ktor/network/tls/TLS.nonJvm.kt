@@ -10,6 +10,8 @@ import kotlin.coroutines.*
 
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public actual suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
@@ -30,6 +32,8 @@ public actual suspend fun Socket.tls(
 
 /**
  * Make [Socket] connection secure with TLS configured with [block].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())

@@ -6,16 +6,23 @@ package io.ktor.util
 
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues)
  */
 public interface StringValues {
     public companion object {
         /**
          * Empty [StringValues] instance
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.Companion.Empty)
          */
         public val Empty: StringValues = StringValuesImpl()
 
         /**
          * Builds a [StringValues] instance with the given [builder] function
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.Companion.build)
+         *
          * @param caseInsensitiveName specifies if map should have case-sensitive or case-insensitive names
          * @param builder specifies a function to build a map
          */
@@ -27,36 +34,50 @@ public interface StringValues {
 
     /**
      * Specifies if map has case-sensitive or case-insensitive names
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.caseInsensitiveName)
      */
     public val caseInsensitiveName: Boolean
 
     /**
      * Gets first value from the list of values associated with a [name], or null if the name is not present
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.get)
      */
     public operator fun get(name: String): String? = getAll(name)?.firstOrNull()
 
     /**
      * Gets all values associated with the [name], or null if the name is not present
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.getAll)
      */
     public fun getAll(name: String): List<String>?
 
     /**
      * Gets all names from the map
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.names)
      */
     public fun names(): Set<String>
 
     /**
      * Gets all entries from the map
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.entries)
      */
     public fun entries(): Set<Map.Entry<String, List<String>>>
 
     /**
      * Checks if the given [name] exists in the map
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.contains)
      */
     public operator fun contains(name: String): Boolean = getAll(name) != null
 
     /**
      * Checks if the given [name] and [value] pair exists in the map
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.contains)
      */
     public fun contains(name: String, value: String): Boolean = getAll(name)?.contains(value) ?: false
 
@@ -64,11 +85,15 @@ public interface StringValues {
      * Iterates over all entries in this map and calls [body] for each pair
      *
      * Can be optimized in implementations
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.forEach)
      */
     public fun forEach(body: (String, List<String>) -> Unit): Unit = entries().forEach { (k, v) -> body(k, v) }
 
     /**
      * Checks if this map is empty
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.isEmpty)
      */
     public fun isEmpty(): Boolean
 }
@@ -289,6 +314,8 @@ public open class StringValuesBuilderImpl(
 
 /**
  * Build an instance of [StringValues] from a vararg list of pairs
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.valuesOf)
  */
 public fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesImpl(caseInsensitiveKey, pairs.asList().toMap())
@@ -296,6 +323,8 @@ public fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey
 
 /**
  * Build an instance of [StringValues] from a single pair
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.valuesOf)
  */
 public fun valuesOf(name: String, value: String, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesSingleImpl(caseInsensitiveKey, name, listOf(value))
@@ -303,6 +332,8 @@ public fun valuesOf(name: String, value: String, caseInsensitiveKey: Boolean = f
 
 /**
  * Build an instance of [StringValues] with a single [name] and multiple [values]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.valuesOf)
  */
 public fun valuesOf(name: String, values: List<String>, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesSingleImpl(caseInsensitiveKey, name, values)
@@ -310,11 +341,15 @@ public fun valuesOf(name: String, values: List<String>, caseInsensitiveKey: Bool
 
 /**
  * Build an empty [StringValues] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.valuesOf)
  */
 public fun valuesOf(): StringValues = StringValues.Empty
 
 /**
  * Build an instance of [StringValues] from the specified [map]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.valuesOf)
  */
 public fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): StringValues {
     val size = map.size
@@ -330,12 +365,16 @@ public fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Bool
 
 /**
  * Copy values to a new independent map
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.toMap)
  */
 public fun StringValues.toMap(): Map<String, List<String>> =
     entries().associateByTo(LinkedHashMap(), { it.key }, { it.value.toList() })
 
 /**
  * Copy values to a list of pairs
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.flattenEntries)
  */
 public fun StringValues.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e ->
     e.value.map { e.key to it }
@@ -343,6 +382,8 @@ public fun StringValues.flattenEntries(): List<Pair<String, String>> = entries()
 
 /**
  * Invoke [block] function for every value pair
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.flattenForEach)
  */
 public fun StringValues.flattenForEach(block: (String, String) -> Unit): Unit = forEach { name, items ->
     items.forEach { block(name, it) }
@@ -350,6 +391,9 @@ public fun StringValues.flattenForEach(block: (String, String) -> Unit): Unit = 
 
 /**
  * Create a new instance of [StringValues] filtered by the specified [predicate]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.filter)
+ *
  * @param keepEmpty when `true` will keep empty lists otherwise keys with no values will be discarded
  */
 public fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
@@ -369,6 +413,9 @@ public fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, S
 
 /**
  * Append values from [source] filtering values by the specified [predicate]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendFiltered)
+ *
  * @param keepEmpty when `true` will keep empty lists otherwise keys with no values will be discarded
  */
 public fun StringValuesBuilder.appendFiltered(
@@ -386,6 +433,8 @@ public fun StringValuesBuilder.appendFiltered(
 
 /**
  * Append all values from the specified [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
  */
 public fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringValuesBuilder = apply {
     builder.entries().forEach { (name, values) ->
@@ -395,6 +444,8 @@ public fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringVa
 
 /**
  * Appends [name] [value] pair if there are no values associated with [name]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendIfNameAbsent)
  */
 public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): StringValuesBuilder = apply {
     if (contains(name)) return@apply
@@ -403,6 +454,8 @@ public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): 
 
 /**
  * Appends [name] [value] pair if there is no existing [name] [value] pair
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendIfNameAndValueAbsent)
  */
 public fun StringValuesBuilder.appendIfNameAndValueAbsent(name: String, value: String): StringValuesBuilder = apply {
     if (contains(name, value)) return@apply

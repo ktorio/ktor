@@ -6,6 +6,8 @@ package io.ktor.http
 
 /**
  * Represents a `Link` header value as per RFC 5988
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.LinkHeader)
  */
 public class LinkHeader(
     uri: String,
@@ -35,12 +37,16 @@ public class LinkHeader(
 
     /**
      * Link URI part
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.LinkHeader.uri)
      */
     public val uri: String
         get() = content.removePrefix("<").removeSuffix(">")
 
     /**
      * Known Link header parameters
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.LinkHeader.Parameters)
      */
     @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType")
     public object Parameters {
@@ -55,6 +61,8 @@ public class LinkHeader(
 
     /**
      * Known rel parameter values
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.LinkHeader.Rel)
      */
     @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType")
     public object Rel {

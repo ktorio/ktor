@@ -15,12 +15,16 @@ import io.ktor.utils.io.jvm.javaio.*
 
 /**
  * Shortcut that allows to easily wrap engine factory into Stetho tracer.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugin.tracing.Stetho)
  */
 fun <T : HttpClientEngineConfig> Context.Stetho(delegate: HttpClientEngineFactory<T>): HttpClientEngineFactory<T> =
     TracingWrapper(delegate, StethoTracer(this))
 
 /**
  * Implementation of [Tracer] based on Stetho Android library.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugin.tracing.StethoTracer)
  */
 class StethoTracer(context: Context) : Tracer {
     /**

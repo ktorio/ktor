@@ -17,6 +17,9 @@ import java.io.*
 /**
  * A response content handled by the [io.ktor.server.velocity.Velocity] plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.velocity.VelocityContent)
+ *
  * @param template name to be resolved by Velocity
  * @param model to be passed during template rendering
  * @param etag value for the `E-Tag` header (optional)
@@ -49,6 +52,8 @@ internal fun velocityOutgoingContent(
  * A plugin that allows you to use Velocity templates as views within your application.
  * Provides the ability to respond with [VelocityContent].
  * You can learn more from [Velocity](https://ktor.io/docs/velocity.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.velocity.Velocity)
  */
 public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin("Velocity", ::VelocityEngine) {
 

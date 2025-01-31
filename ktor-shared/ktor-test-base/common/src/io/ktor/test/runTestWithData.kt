@@ -17,19 +17,30 @@ import kotlin.time.TimeSource
 /**
  * Represents a test case with associated data and retry attempt information.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.TestCase)
+ *
  * @property data The input data for the test case.
  * @property retry The current retry attempt number for this test case. `0` means the initial test run before retries.
  */
 data class TestCase<T>(val data: T, val retry: Int)
 
-/** Represents a failed test execution with the [cause] of failure. */
+/**
+ * Represents a failed test execution with the [cause] of failure.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.TestFailure)
+ */
 data class TestFailure<T>(
     override val testCase: TestCase<T>,
     val cause: Throwable,
     override val duration: Duration,
 ) : TestExecutionResult<T>
 
-/** Represents a successful test execution. */
+/**
+ * Represents a successful test execution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.TestSuccess)
+ */
 data class TestSuccess<T>(
     override val testCase: TestCase<T>,
     override val duration: Duration,
@@ -37,6 +48,9 @@ data class TestSuccess<T>(
 
 /**
  * The result of a test execution. Can be [TestFailure] or [TestSuccess].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.TestExecutionResult)
+ *
  * @property testCase The test case associated with this execution.
  * @property duration The duration of the test execution.
  */
@@ -67,6 +81,9 @@ sealed interface TestExecutionResult<T> {
  *     // test implementation
  * }
  * ```
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.runTestWithData)
  *
  * @param testCases Data to be used in tests. Each element represents a separate test case.
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].

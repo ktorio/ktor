@@ -10,21 +10,29 @@ import io.ktor.utils.io.core.*
 
 /**
  * A storage for [Cookie].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.CookiesStorage)
  */
 public interface CookiesStorage : Closeable {
     /**
      * Gets a map of [String] to [Cookie] for a specific host.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.CookiesStorage.get)
      */
     public suspend fun get(requestUrl: Url): List<Cookie>
 
     /**
      * Sets a [cookie] for the specified host.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.CookiesStorage.addCookie)
      */
     public suspend fun addCookie(requestUrl: Url, cookie: Cookie)
 }
 
 /**
  * Adds a [cookie] with the [urlString] key to storage.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.addCookie)
  */
 public suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
     addCookie(Url(urlString), cookie)
@@ -32,6 +40,8 @@ public suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
 
 /**
  * Checks if [Cookie] matches [requestUrl].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.matches)
  */
 public fun Cookie.matches(requestUrl: Url): Boolean {
     val domain = domain?.toLowerCasePreservingASCIIRules()?.trimStart('.')
@@ -64,6 +74,8 @@ public fun Cookie.matches(requestUrl: Url): Boolean {
 
 /**
  * Fills [Cookie] with default values from [requestUrl].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.fillDefaults)
  */
 public fun Cookie.fillDefaults(requestUrl: Url): Cookie {
     var result = this

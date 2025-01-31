@@ -10,6 +10,8 @@ import io.ktor.utils.io.*
 
 /**
  * An HTTP parser exception
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ParserException)
  */
 public class ParserException(message: String) : IllegalStateException(message)
 
@@ -20,6 +22,8 @@ private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
 
 /**
  * Parse an HTTP request line and headers
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseRequest)
  */
 public suspend fun parseRequest(input: ByteReadChannel): Request? {
     val builder = CharArrayBuilder()
@@ -54,6 +58,8 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
 
 /**
  * Parse an HTTP response status line and headers
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseResponse)
  */
 public suspend fun parseResponse(input: ByteReadChannel): Response? {
     val builder = CharArrayBuilder()
@@ -80,6 +86,8 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
 
 /**
  * Parse http headers. Not applicable to request and response status lines.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHeaders)
  */
 public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()

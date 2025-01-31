@@ -162,6 +162,9 @@ private fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Attr
 
 /**
  * Wrapper for javascript `error` objects.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsError)
+ *
  * @property origin: fail reason
  */
 @Suppress("MemberVisibilityCanBePrivate")

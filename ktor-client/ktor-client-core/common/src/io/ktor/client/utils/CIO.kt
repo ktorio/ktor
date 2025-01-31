@@ -6,10 +6,14 @@ package io.ktor.client.utils
 
 /**
  * Maximum number of buffers to be allocated in the [HttpClientDefaultPool].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.DEFAULT_HTTP_POOL_SIZE)
  */
 public const val DEFAULT_HTTP_POOL_SIZE: Int = 1000
 
 /**
  * Size of each buffer in the [HttpClientDefaultPool].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.DEFAULT_HTTP_BUFFER_SIZE)
  */
 public const val DEFAULT_HTTP_BUFFER_SIZE: Int = 4096

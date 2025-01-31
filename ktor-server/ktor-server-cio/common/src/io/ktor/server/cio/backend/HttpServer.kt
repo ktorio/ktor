@@ -19,6 +19,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
 
 /**
  * Start a http server with [settings] invoking [handler] for every request
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.httpServer)
  */
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.httpServer(

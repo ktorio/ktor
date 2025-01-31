@@ -21,6 +21,9 @@ import kotlin.reflect.*
 /**
  * A pair of a [request] and [response] for a specific [HttpClient].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall)
+ *
  * @property client the client that executed the call.
  */
 public open class HttpClientCall(
@@ -32,17 +35,23 @@ public open class HttpClientCall(
 
     /**
      * Typed [Attributes] associated to this call serving as a lightweight container.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.attributes)
      */
     public val attributes: Attributes get() = request.attributes
 
     /**
      * The [request] sent by the client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.request)
      */
     public lateinit var request: HttpRequest
         protected set
 
     /**
      * The [response] sent by the server.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.response)
      */
     public lateinit var response: HttpResponse
         protected set
@@ -69,6 +78,9 @@ public open class HttpClientCall(
     /**
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.bodyNullable)
      *
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [body].
@@ -102,6 +114,9 @@ public open class HttpClientCall(
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.body)
+     *
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [body].
      * @throws NullPointerException If content is `null`.
@@ -126,6 +141,9 @@ public open class HttpClientCall(
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
+ *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
@@ -133,6 +151,9 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = bodyNullable(ty
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
@@ -142,6 +163,9 @@ public suspend inline fun <reified T> HttpResponse.body(): T = call.bodyNullable
 /**
  * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
+ *
  * @throws NoTransformationFoundException If no transformation is found for the type info [typeInfo].
  * @throws DoubleReceiveException If already called [body].
  */
@@ -150,6 +174,8 @@ public suspend fun <T> HttpResponse.body(typeInfo: TypeInfo): T = call.bodyNulla
 
 /**
  * Exception representing that the response payload has already been received.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.DoubleReceiveException)
  */
 
 public class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
@@ -159,6 +185,8 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
 /**
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.ReceivePipelineException)
  */
 @Suppress("KDocMissingDocumentation", "unused")
 public class ReceivePipelineException(
@@ -172,6 +200,8 @@ public class ReceivePipelineException(
  * the resulted type to the expected by the client type.
  *
  * You can read how to resolve NoTransformationFoundException at [FAQ](https://ktor.io/docs/faq.html#no-transformation-found-exception)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.NoTransformationFoundException)
  */
 public class NoTransformationFoundException(
     response: HttpResponse,

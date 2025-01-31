@@ -24,6 +24,8 @@ import kotlin.jvm.*
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
  */
 @KtorDsl
 public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
@@ -42,6 +44,8 @@ public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
  */
 @KtorDsl
 public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit): Route {
@@ -60,6 +64,8 @@ public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit)
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.get)
  */
 @KtorDsl
 public fun Route.get(path: Regex, body: RoutingHandler): Route {
@@ -77,6 +83,8 @@ public fun Route.get(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
  */
 @KtorDsl
 public fun Route.post(path: Regex, body: RoutingHandler): Route {
@@ -94,6 +102,8 @@ public fun Route.post(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
  */
 @KtorDsl
 @JvmName("postTypedPath")
@@ -115,6 +125,8 @@ public inline fun <reified R : Any> Route.post(
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.head)
  */
 @KtorDsl
 public fun Route.head(path: Regex, body: RoutingHandler): Route {
@@ -132,6 +144,8 @@ public fun Route.head(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
  */
 @KtorDsl
 public fun Route.put(path: Regex, body: RoutingHandler): Route {
@@ -149,6 +163,8 @@ public fun Route.put(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
  */
 @KtorDsl
 @JvmName("putTypedPath")
@@ -170,6 +186,8 @@ public inline fun <reified R : Any> Route.put(
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
  */
 @KtorDsl
 public fun Route.patch(path: Regex, body: RoutingHandler): Route {
@@ -187,6 +205,8 @@ public fun Route.patch(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
  */
 @KtorDsl
 @JvmName("patchTypedPath")
@@ -208,6 +228,8 @@ public inline fun <reified R : Any> Route.patch(
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.delete)
  */
 @KtorDsl
 public fun Route.delete(path: Regex, body: RoutingHandler): Route {
@@ -225,6 +247,8 @@ public fun Route.delete(path: Regex, body: RoutingHandler): Route {
  *     ...
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.options)
  */
 @KtorDsl
 public fun Route.options(path: Regex, body: RoutingHandler): Route {

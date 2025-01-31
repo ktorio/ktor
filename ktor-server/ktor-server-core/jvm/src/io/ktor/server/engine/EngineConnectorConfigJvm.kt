@@ -9,6 +9,8 @@ import java.security.*
 
 /**
  * Adds a secure connector to this engine environment
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.sslConnector)
  */
 public inline fun ApplicationEngine.Configuration.sslConnector(
     keyStore: KeyStore,
@@ -22,6 +24,8 @@ public inline fun ApplicationEngine.Configuration.sslConnector(
 
 /**
  * Mutable implementation of EngineSSLConnectorConfig for building connectors programmatically
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorBuilder)
  */
 public class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
@@ -38,30 +42,42 @@ public class EngineSSLConnectorBuilder(
 
 /**
  * Represents an SSL connector configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig)
  */
 public interface EngineSSLConnectorConfig : EngineConnectorConfig {
     /**
      * KeyStore where a certificate is stored
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.keyStore)
      */
     public val keyStore: KeyStore
 
     /**
      * File where the keystore is located
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.keyStorePath)
      */
     public val keyStorePath: File?
 
     /**
      * TLS key alias
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.keyAlias)
      */
     public val keyAlias: String
 
     /**
      * Keystore password provider
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.keyStorePassword)
      */
     public val keyStorePassword: () -> CharArray
 
     /**
      * Private key password provider
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.privateKeyPassword)
      */
     public val privateKeyPassword: () -> CharArray
 
@@ -71,6 +87,8 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * The engine tries to use [trustStore] first and uses [trustStorePath] as a fallback.
      *
      * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.trustStore)
      */
     public val trustStore: KeyStore?
 
@@ -80,17 +98,23 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * The engine tries to use [trustStore] first and uses [trustStorePath] as a fallback.
      *
      * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.trustStorePath)
      */
     public val trustStorePath: File?
 
     /**
      *  Enabled protocol versions
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineSSLConnectorConfig.enabledProtocols)
      */
     public val enabledProtocols: List<String>?
 }
 
 /**
  * Returns new instance of [EngineConnectorConfig] based on [this] with modified port
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.withPort)
  */
 public actual fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnectorConfig = when (this) {
     is EngineSSLConnectorBuilder -> object : EngineSSLConnectorConfig by this {

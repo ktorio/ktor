@@ -8,17 +8,24 @@ import kotlin.jvm.*
 
 /**
  * An inline class to hold a IP ToS value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TypeOfService)
+ *
  * @property value an unsigned byte IP_TOS value
  */
 @JvmInline
 public value class TypeOfService(public val value: UByte) {
     /**
      * Creates ToS by integer value discarding extra high bits
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TypeOfService.TypeOfService)
      */
     public constructor(value: Int) : this(value.toUByte())
 
     /**
      * Integer representation of this ToS
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.TypeOfService.intValue)
      */
     public inline val intValue: Int get() = value.toInt()
 

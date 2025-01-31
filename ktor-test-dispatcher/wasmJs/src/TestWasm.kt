@@ -11,6 +11,8 @@ import kotlin.time.*
 
 /**
  * Test runner for js suspend tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.dispatcher.testSuspend)
  */
 public actual fun testSuspend(
     context: CoroutineContext,

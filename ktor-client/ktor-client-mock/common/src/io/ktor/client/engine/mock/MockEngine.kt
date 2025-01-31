@@ -14,6 +14,8 @@ import kotlinx.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine)
  */
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
@@ -38,11 +40,15 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
 
     /**
      * History of executed requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.requestHistory)
      */
     public val requestHistory: List<HttpRequestData> get() = _requestHistory
 
     /**
      * History of sent responses.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.responseHistory)
      */
     public val responseHistory: List<HttpResponseData> get() = _responseHistory
 
@@ -88,6 +94,8 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
 
         /**
          * Create [MockEngine] instance with single request handler.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Companion.invoke)
          */
         public operator fun invoke(
             handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData

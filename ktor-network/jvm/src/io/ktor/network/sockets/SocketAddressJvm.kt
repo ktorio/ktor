@@ -30,6 +30,8 @@ public actual class InetSocketAddress internal constructor(
      * Create a copy of [InetSocketAddress].
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.copy)
      */
     public actual fun copy(
         hostname: String,

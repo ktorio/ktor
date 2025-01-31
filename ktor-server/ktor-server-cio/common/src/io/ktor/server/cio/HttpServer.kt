@@ -9,6 +9,9 @@ import kotlinx.coroutines.*
 
 /**
  * Represents a server instance
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.HttpServer)
+ *
  * @property rootServerJob server job - root for all jobs
  * @property acceptJob client connections accepting job
  * @property serverSocket a deferred server socket instance, could be completed with error if it failed to bind
@@ -21,6 +24,9 @@ public class HttpServer(
 
 /**
  * HTTP server connector settings
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.HttpServerSettings)
+ *
  * @property host to listen to
  * @property port to listen to
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections

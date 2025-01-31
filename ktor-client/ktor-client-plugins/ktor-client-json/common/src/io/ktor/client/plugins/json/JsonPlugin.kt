@@ -34,6 +34,8 @@ internal expect val DefaultIgnoredTypes: Set<KClass<*>>
  * Consider to add one of the following dependencies:
  * - ktor-client-gson
  * - ktor-client-json
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.defaultSerializer)
  */
 public expect fun defaultSerializer(): JsonSerializer
 
@@ -47,6 +49,9 @@ public expect fun defaultSerializer(): JsonSerializer
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is one of [acceptContentTypes] list (`application/json` by default).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin)
  *
  * @property serializer that is used to serialize and deserialize request/response bodies
  * @property acceptContentTypes that are allowed when receiving content
@@ -69,6 +74,8 @@ public class JsonPlugin internal constructor(
 
     /**
      * [JsonPlugin] configuration that is used during installation
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config)
      */
     @KtorDsl
     public class Config {
@@ -80,6 +87,8 @@ public class JsonPlugin internal constructor(
          * Serializer that will be used for serializing requests and deserializing response bodies.
          *
          * Default value for [serializer] is [defaultSerializer].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.serializer)
          */
         public var serializer: JsonSerializer? = null
 
@@ -94,6 +103,8 @@ public class JsonPlugin internal constructor(
          * List of content types that are handled by this plugin.
          * It also affects `Accept` request header value.
          * Please note that wildcard content types are supported but no quality specification provided.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.acceptContentTypes)
          */
         public var acceptContentTypes: List<ContentType>
             set(value) {
@@ -107,6 +118,8 @@ public class JsonPlugin internal constructor(
         /**
          * List of content type matchers that are handled by this plugin.
          * Please note that wildcard content types are supported but no quality specification provided.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.receiveContentTypeMatchers)
          */
         public var receiveContentTypeMatchers: List<ContentTypeMatcher>
             set(value) {
@@ -120,6 +133,8 @@ public class JsonPlugin internal constructor(
          * Adds accepted content types. Be aware that [ContentType.Application.Json] accepted by default is removed from
          * the list if you use this function to provide accepted content types.
          * It also affects `Accept` request header value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.accept)
          */
         public fun accept(vararg contentTypes: ContentType) {
             _acceptContentTypes += contentTypes
@@ -127,6 +142,8 @@ public class JsonPlugin internal constructor(
 
         /**
          * Adds accepted content types. Existing content types will not be removed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.receive)
          */
         public fun receive(matcher: ContentTypeMatcher) {
             _receiveContentTypeMatchers += matcher
@@ -136,6 +153,8 @@ public class JsonPlugin internal constructor(
          * Adds a type to the list of types that should be ignored by [ContentNegotiation].
          *
          * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.ignoreType)
          */
         public inline fun <reified T> ignoreType() {
             ignoreType(T::class)
@@ -143,6 +162,8 @@ public class JsonPlugin internal constructor(
 
         /**
          * Remove [T] from the list of types that should be ignored by [ContentNegotiation].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.removeIgnoredType)
          */
         public inline fun <reified T> removeIgnoredType() {
             removeIgnoredType(T::class)
@@ -150,6 +171,8 @@ public class JsonPlugin internal constructor(
 
         /**
          * Remove [type] from the list of types that should be ignored by [ContentNegotiation].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.removeIgnoredType)
          */
         public fun removeIgnoredType(type: KClass<*>) {
             ignoredTypes.remove(type)
@@ -159,6 +182,8 @@ public class JsonPlugin internal constructor(
          * Adds a [type] to the list of types that should be ignored by [ContentNegotiation].
          *
          * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.ignoreType)
          */
         public fun ignoreType(type: KClass<*>) {
             ignoredTypes.add(type)
@@ -166,6 +191,8 @@ public class JsonPlugin internal constructor(
 
         /**
          * Clear all configured ignored types including defaults.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Config.clearIgnoredTypes)
          */
         public fun clearIgnoredTypes() {
             ignoredTypes.clear()
@@ -181,6 +208,8 @@ public class JsonPlugin internal constructor(
 
     /**
      * Companion object for plugin installation
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin.Plugin)
      */
     public companion object Plugin : HttpClientPlugin<Config, JsonPlugin> {
         override val key: AttributeKey<JsonPlugin> = AttributeKey("Json")
@@ -231,6 +260,8 @@ public class JsonPlugin internal constructor(
 
 /**
  * Install [JsonPlugin].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.Json)
  */
 @Suppress("FunctionName")
 @Deprecated(

@@ -11,6 +11,8 @@ import kotlinx.coroutines.*
 
 /**
  * Stop server on job cancellation. The returned [CompletableJob] needs to be completed or cancelled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.stopServerOnCancellation)
  */
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(
@@ -26,6 +28,8 @@ public fun ApplicationEngine.stopServerOnCancellation(
  * Launch a coroutine with [block] body when either the parent job or the returned job is cancelled.
  * It is important to complete or cancel the returned [CompletableJob]
  * otherwise the parent job will be unable to complete successfully.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.launchOnCancellation)
  */
 @OptIn(DelicateCoroutinesApi::class)
 @InternalAPI

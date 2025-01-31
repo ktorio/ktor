@@ -8,6 +8,8 @@ import io.ktor.network.selector.*
 
 /**
  * UDP socket builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UDPSocketBuilder)
  */
 public class UDPSocketBuilder internal constructor(
     private val selector: SelectorManager,
@@ -15,6 +17,8 @@ public class UDPSocketBuilder internal constructor(
 ) : Configurable<UDPSocketBuilder, SocketOptions.UDPSocketOptions> {
     /**
      * Bind server socket to listen to [localAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UDPSocketBuilder.bind)
      */
     public suspend fun bind(
         localAddress: SocketAddress? = null,
@@ -23,6 +27,8 @@ public class UDPSocketBuilder internal constructor(
 
     /**
      * Bind server socket at [port] to listen to [hostname].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UDPSocketBuilder.bind)
      */
     public suspend fun bind(
         hostname: String = "0.0.0.0",
@@ -32,6 +38,8 @@ public class UDPSocketBuilder internal constructor(
 
     /**
      * Create a datagram socket to listen datagrams at [localAddress] and set to [remoteAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UDPSocketBuilder.connect)
      */
     public suspend fun connect(
         remoteAddress: SocketAddress,

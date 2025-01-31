@@ -11,6 +11,8 @@ import java.util.*
 
 /**
  * Format as HTTP date (GMT)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.toHttpDateString)
  */
 public fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
 
@@ -18,6 +20,8 @@ private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
 
 /**
  * Default HTTP date format
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.httpDateFormat)
  */
 public val httpDateFormat: DateTimeFormatter = DateTimeFormatter
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")

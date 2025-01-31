@@ -16,6 +16,8 @@ internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
 
 /**
  * Returns time in millis from the moment the call was received until now
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.processingTimeMillis)
  */
 public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMillis() }): Long {
     val startTime = attributes[CALL_START_TIME]
@@ -28,6 +30,8 @@ public fun ApplicationCall.processingTimeMillis(clock: () -> Long = { getTimeMil
  * filter requests based on a specified condition, customize log messages, and so on.
  *
  * You can learn more from [Call logging](https://ktor.io/docs/call-logging.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLogging)
  */
 public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplicationPlugin(
     "CallLogging",

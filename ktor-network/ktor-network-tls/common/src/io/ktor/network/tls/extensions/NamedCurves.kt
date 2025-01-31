@@ -6,6 +6,9 @@ package io.ktor.network.tls.extensions
 
 /**
  * Named curves for Elliptic Curves.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.NamedCurve)
+ *
  * @property code curve numeric code
  * @property fieldSize curve size in bits, affects key and signature size, performance and security strength
  */
@@ -40,6 +43,9 @@ public enum class NamedCurve(public val code: Short, public val fieldSize: Int) 
     public companion object {
         /**
          * Find named curve by numeric [code]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.NamedCurve.Companion.fromCode)
+         *
          * @return [NamedCurve] instance or `null`
          */
         public fun fromCode(code: Short): NamedCurve? = entries.find { it.code == code }
@@ -48,6 +54,8 @@ public enum class NamedCurve(public val code: Short, public val fieldSize: Int) 
 
 /**
  * List of supported named curves
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.SupportedNamedCurves)
  */
 
 public val SupportedNamedCurves: List<NamedCurve> = listOf(

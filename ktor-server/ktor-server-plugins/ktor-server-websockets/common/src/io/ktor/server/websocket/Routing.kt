@@ -26,6 +26,8 @@ import kotlinx.coroutines.CancellationException
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  */
 public fun Route.webSocketRaw(
     path: String,
@@ -46,6 +48,9 @@ public fun Route.webSocketRaw(
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
@@ -73,6 +78,8 @@ public fun Route.webSocketRaw(
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  */
 public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol, negotiateExtensions = false, handler)
@@ -89,6 +96,9 @@ public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSock
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  *
  * @param negotiateExtensions indicates if the server should negotiate installed WebSocket extensions.
  */
@@ -123,6 +133,8 @@ public fun Route.webSocketRaw(
  * Once [handler] function returns, the websocket termination sequence will be scheduled, so you shouldn't use
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocket)
  */
 public fun Route.webSocket(
     protocol: String? = null,
@@ -144,6 +156,8 @@ public fun Route.webSocket(
  * Once [handler] function returns, the WebSocket termination sequence will be scheduled so you shouldn't use
  * [DefaultWebSocketSession] anymore. However, WebSocket could live for a while until close sequence completed or
  * a timeout exceeds.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocket)
  */
 public fun Route.webSocket(
     path: String,

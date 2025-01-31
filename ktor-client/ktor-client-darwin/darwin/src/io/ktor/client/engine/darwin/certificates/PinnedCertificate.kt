@@ -11,6 +11,8 @@ import io.ktor.client.engine.darwin.certificates.CertificatesInfo.HASH_ALGORITHM
 /**
  * Represents a pinned certificate. Recommended using [Builder.add] to construct
  * [CertificatePinner]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.PinnedCertificate)
  */
 public data class PinnedCertificate(
     /**
@@ -66,6 +68,9 @@ public data class PinnedCertificate(
     public companion object {
         /**
          * Create a new Pin
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.PinnedCertificate.Companion.new)
+         *
          * @param pattern The hostname pattern
          * @param pin The hash to pin
          * @return [PinnedCertificate] The new pin

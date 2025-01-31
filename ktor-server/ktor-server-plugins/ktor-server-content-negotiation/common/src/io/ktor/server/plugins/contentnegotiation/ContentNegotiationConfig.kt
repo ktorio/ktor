@@ -22,6 +22,8 @@ internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 
 /**
  * A configuration for the [ContentNegotiation] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig)
  */
 @KtorDsl
 public class ContentNegotiationConfig : Configuration {
@@ -32,11 +34,15 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Checks that the `ContentType` header value of a response suits the `Accept` header value of a request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.checkAcceptHeaderCompliance)
      */
     public var checkAcceptHeaderCompliance: Boolean = false
 
     /**
      * Registers a [contentType] to a specified [converter] with an optional converter [configuration].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.register)
      */
     public override fun <T : ContentConverter> register(
         contentType: ContentType,
@@ -58,6 +64,8 @@ public class ContentNegotiationConfig : Configuration {
      * content types list with the specified one from the uri argument.
      * Note that the returned list of accepted types will be sorted according to the quality using [sortedByQuality],
      * so a custom [contributor] may keep it unsorted and should not rely on input list order.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.accept)
      */
     public fun accept(contributor: AcceptHeaderContributor) {
         acceptContributors.add(contributor)
@@ -67,6 +75,8 @@ public class ContentNegotiationConfig : Configuration {
      * Adds a type to the list of types that should be ignored by [ContentNegotiation].
      *
      * The list contains the [HttpStatusCode] type by default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.ignoreType)
      */
     public inline fun <reified T> ignoreType() {
         ignoreType(T::class)
@@ -74,6 +84,8 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Remove [T] from the list of types that should be ignored by [ContentNegotiation].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.removeIgnoredType)
      */
     public inline fun <reified T> removeIgnoredType() {
         removeIgnoredType(T::class)
@@ -81,6 +93,8 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Remove [type] from the list of types that should be ignored by [ContentNegotiation].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.removeIgnoredType)
      */
     public fun removeIgnoredType(type: KClass<*>) {
         ignoredTypes.remove(type)
@@ -90,6 +104,8 @@ public class ContentNegotiationConfig : Configuration {
      * Adds a [type] to the list of types that should be ignored by [ContentNegotiation].
      *
      * The list contains the [HttpStatusCode], [ByteArray], [String] and streaming types by default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.ignoreType)
      */
     public fun ignoreType(type: KClass<*>) {
         ignoredTypes.add(type)
@@ -97,6 +113,8 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Clear all configured ignored types including defaults.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.clearIgnoredTypes)
      */
     public fun clearIgnoredTypes() {
         ignoredTypes.clear()
