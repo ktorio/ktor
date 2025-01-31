@@ -33,7 +33,11 @@ private fun Array<StackTraceElement>.getTestName(): String =
     } ?: "???"
 
 private val testRegex = Regex("\\w+?[A-Z][a-z]+Test")
-private val exemptions = setOf(
+private val coroutineExemptions = setOf(
+    "await-free-space",
+    "close-write-channel"
+)
+private val testExemptions = setOf(
     "ByteChannelConcurrentTest",
     "ByteReadChannelOperationsTest",
 )
@@ -46,7 +50,9 @@ private val invocations = ConcurrentHashMap<Invocation, ThreadDetails>().also { 
                 val byOperationOnInstance = invocations.keys.groupBy { (instance, operation) ->
                     "$instance-$operation"
                 }.filterValues { matches ->
-                    matches.size > 1 && invocations[matches.first()]!!.testName !in exemptions
+                    matches.size > 1 &&
+                        matches.all { it.coroutineName.substringBefore('#') !in coroutineExemptions } &&
+                        invocations[matches.first()]!!.testName !in testExemptions
                 }
                 appendLine("Total invocations:       ${invocations.keys.count()}")
                 appendLine("Contentious invocations: ${byOperationOnInstance.values.sumOf { it.size }}")
