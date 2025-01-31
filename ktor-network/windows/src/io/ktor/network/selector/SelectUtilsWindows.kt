@@ -10,6 +10,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.posix.*
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -152,6 +153,7 @@ internal actual class SelectorHelper {
         watchSet.forEach { event ->
             if (event.descriptor in closeSet) {
                 completed.add(event)
+                event.fail(IOException("Selectable closed"))
                 return@forEach
             }
             val wsaEvent = wsaEvents.getValue(event.descriptor)

@@ -168,4 +168,20 @@ class TCPSocketTest {
         serverConnection.close()
         server.close()
     }
+
+    @Test
+    fun testAcceptErrorOnSocketClose() = testSockets { selector ->
+        val socket = aSocket(selector)
+            .tcp()
+            .bind(InetSocketAddress("127.0.0.1", 0))
+
+        launch {
+            assertFailsWith<IOException> {
+                socket.accept()
+            }
+        }
+        delay(100) // Make sure socket is awaiting connection using ACCEPT
+
+        socket.close()
+    }
 }
