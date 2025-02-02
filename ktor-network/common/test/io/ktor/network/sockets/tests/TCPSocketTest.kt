@@ -168,16 +168,16 @@ class TCPSocketTest {
         }
         assertTrue(serverInput.isClosedForRead)
 
+        serverConnection.close()
+        server.close()
+
+        delay(100) // closing takes some time
+
         assertTrue(clientConnection.isClosed)
         assertTrue(clientInput.isClosedForRead)
         assertTrue(clientOutput.isClosedForWrite)
-
-        serverConnection.close()
-        delay(100) // closing takes some time
         assertTrue(serverConnection.isClosed)
         assertTrue(serverOutput.isClosedForWrite)
-
-        server.close()
         assertTrue(server.isClosed)
     }
 }
