@@ -16,6 +16,7 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
@@ -242,7 +243,9 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
         val selectorManager = SelectorManager()
         selectorManager.use {
             aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
-                block(client, socket)
+                coroutineScope {
+                    block(client, socket)
+                }
             }
         }
     }
