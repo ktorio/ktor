@@ -21,12 +21,24 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
+        val server = createServer(args)
+        server.start(true)
+    }
+
+    /**
+     * Creates an instance of the embedded Tomcat server without starting it.
+     *
+     * @param args Command line arguments for configuring the server.
+     * @return An instance of [EmbeddedServer] with the specified configuration.
+     */
+    public fun createServer(
+        args: Array<String>
+    ): EmbeddedServer<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.rootConfig, Tomcat) {
+        return EmbeddedServer(config.rootConfig, Tomcat) {
             takeFrom(config.engineConfig)
             loadConfiguration(config.rootConfig.environment.config)
         }
-        server.start(true)
     }
 
     private fun TomcatApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
