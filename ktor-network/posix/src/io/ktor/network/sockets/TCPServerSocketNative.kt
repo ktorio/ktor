@@ -13,12 +13,11 @@ import kotlin.coroutines.*
 
 @OptIn(ExperimentalForeignApi::class)
 internal class TCPServerSocketNative(
-    private val descriptor: Int,
-    private val selectorManager: SelectorManager,
-    val selectable: Selectable,
+    override val descriptor: Int,
+    private val selector: SelectorManager,
     override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
-) : ServerSocket, CoroutineScope {
+) : SelectableBase(), ServerSocket, CoroutineScope {
     private val _socketContext: CompletableJob = SupervisorJob(parent[Job])
 
     override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _socketContext
@@ -46,11 +45,11 @@ internal class TCPServerSocketNative(
             val error = getSocketError()
             when {
                 isWouldBlockError(error) -> {
-                    selectorManager.select(selectable, SelectInterest.ACCEPT)
+                    selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                 }
 
                 else -> when (error) {
-                    EAGAIN, EWOULDBLOCK -> selectorManager.select(selectable, SelectInterest.ACCEPT)
+                    EAGAIN, EWOULDBLOCK -> selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                     EBADF -> error("Descriptor invalid")
                     ECONNABORTED -> error("Connection aborted")
                     EFAULT -> error("Address is not writable part of user address space")
@@ -65,20 +64,18 @@ internal class TCPServerSocketNative(
                 }
             }
         }
+        buildOrClose(clientDescriptor) {
+            nonBlocking(clientDescriptor).check()
 
-        nonBlocking(clientDescriptor).check()
+            val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
-        val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
-        val localAddress = getLocalAddress(descriptor)
-
-        TCPSocketNative(
-            clientDescriptor,
-            selectorManager,
-            SelectableNative(clientDescriptor),
-            remoteAddress = remoteAddress.toSocketAddress(),
-            localAddress = localAddress.toSocketAddress(),
-            parent = selfContext() + coroutineContext
-        )
+            TCPSocketNative(
+                selector,
+                clientDescriptor,
+                remoteAddress = remoteAddress.toSocketAddress(),
+                parent = selfContext() + coroutineContext
+            )
+        }
     }
 
     override fun close() {
@@ -86,7 +83,7 @@ internal class TCPServerSocketNative(
         _socketContext.invokeOnCompletion {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
             // Descriptor is closed by the selector manager
-            selectorManager.notifyClosed(selectable)
+            selector.notifyClosed(this)
         }
     }
 }

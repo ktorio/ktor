@@ -150,9 +150,14 @@ class TCPSocketTest {
         }
 
         val clientConnection = tcp.connect("127.0.0.1", port = server.port)
+
+        val clientInput = clientConnection.openReadChannel()
+        val clientOutput = clientConnection.openWriteChannel()
+
         val serverConnection = serverConnectionPromise.await()
 
         val serverInput = serverConnection.openReadChannel()
+        val serverOutput = serverConnection.openWriteChannel()
 
         // Need to make sure reading from the server is done first, which will suspend because there is nothing to read.
         // Then close the connection from the client side, which should cancel the reading because the socket is disconnected.
@@ -164,9 +169,21 @@ class TCPSocketTest {
         assertFailsWith<EOFException> {
             serverInput.readByte()
         }
+        assertTrue(serverInput.isClosedForRead)
 
         serverConnection.close()
         server.close()
+
+        clientConnection.socketContext.join()
+        serverConnection.socketContext.join()
+        server.socketContext.join()
+
+        assertTrue(clientConnection.isClosed)
+        assertTrue(clientInput.isClosedForRead)
+        assertTrue(clientOutput.isClosedForWrite)
+        assertTrue(serverConnection.isClosed)
+        assertTrue(serverOutput.isClosedForWrite)
+        assertTrue(server.isClosed)
     }
 
     @Test

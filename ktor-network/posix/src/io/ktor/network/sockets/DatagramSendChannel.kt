@@ -34,7 +34,7 @@ internal class DatagramSendChannel(
 
     @DelicateCoroutinesApi
     override val isClosedForSend: Boolean
-        get() = socket.isClosed
+        get() = closed.value
 
     override fun close(cause: Throwable?): Boolean {
         if (!closed.compareAndSet(false, true)) {
@@ -191,7 +191,7 @@ internal class DatagramSendChannel(
             0 -> throw IOException("Failed writing to closed socket")
             -1 -> {
                 if (isWouldBlockError(getSocketError())) {
-                    socket.selector.select(socket.selectable, SelectInterest.WRITE)
+                    socket.selector.select(socket, SelectInterest.WRITE)
                     sendSuspend(datagram, buffer, offset, length)
                 } else {
                     throw PosixException.forSocketError()

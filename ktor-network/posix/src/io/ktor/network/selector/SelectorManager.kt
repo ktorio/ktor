@@ -4,8 +4,10 @@
 
 package io.ktor.network.selector
 
+import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import platform.posix.close
 import kotlin.coroutines.*
 
 public actual fun SelectorManager(
@@ -37,6 +39,16 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     )
 
     public actual companion object
+}
+
+internal inline fun <T> buildOrClose(descriptor: Int, block: () -> T): T {
+    try {
+        return block()
+    } catch (throwable: Throwable) {
+        ktor_shutdown(descriptor, ShutdownCommands.Both)
+        close(descriptor)
+        throw throwable
+    }
 }
 
 /**
