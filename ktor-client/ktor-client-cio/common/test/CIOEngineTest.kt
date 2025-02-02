@@ -24,8 +24,6 @@ import kotlin.time.Duration.Companion.seconds
 
 class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
 
-    private val selectorManager = SelectorManager()
-
     @Test
     fun testRequestTimeoutIgnoredWithWebSocket() = testClient {
         config {
@@ -241,6 +239,7 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     private fun TestClientBuilder<*>.withServerSocket(
         block: suspend CoroutineScope.(HttpClient, ServerSocket) -> Unit,
     ) = test { client ->
+        val selectorManager = SelectorManager()
         selectorManager.use {
             aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
                 block(client, socket)
