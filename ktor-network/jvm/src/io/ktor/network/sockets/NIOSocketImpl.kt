@@ -63,6 +63,7 @@ internal abstract class NIOSocketImpl<out S>(
         if (!closeFlag.compareAndSet(false, true)) return
 
         writerJob.get()?.cancel()
+        readerJob.get()?.cancel()
         checkChannels()
     }
 
@@ -121,7 +122,11 @@ internal abstract class NIOSocketImpl<out S>(
 
             val combined = combine(combine(e1, e2), e3)
 
-            if (combined == null) socketContext.complete() else socketContext.completeExceptionally(combined)
+            if (combined == null) {
+                socketContext.cancel("Socket closed")
+            } else {
+                socketContext.completeExceptionally(combined)
+            }
         }
     }
 

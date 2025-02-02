@@ -64,7 +64,7 @@ internal class ServerSocketImpl(
                 selector.notifyClosed(this)
             }
 
-            socketContext.complete()
+            socketContext.cancel("Server socket closed")
         } catch (cause: Throwable) {
             socketContext.completeExceptionally(cause)
         }
