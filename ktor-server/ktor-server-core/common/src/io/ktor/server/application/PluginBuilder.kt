@@ -16,6 +16,8 @@ import kotlin.random.*
 
 /**
  * A utility class to build an [ApplicationPlugin] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder)
  **/
 @KtorDsl
 @Suppress("UNUSED_PARAMETER", "DEPRECATION")
@@ -25,11 +27,15 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
 
     /**
      * A reference to the [Application] where the plugin is installed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.application)
      */
     public abstract val application: Application
 
     /**
      * A configuration of the current plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.pluginConfig)
      */
     public abstract val pluginConfig: PluginConfig
 
@@ -41,12 +47,16 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
 
     /**
      * Allows you to access the environment of the currently running application where the plugin is installed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.environment)
      **/
     public val environment: ApplicationEnvironment get() = pipeline.environment
 
     /**
      * A configuration of your current application (incl. host, port and anything else you can define in
      * application.conf).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.applicationConfig)
      **/
     public val applicationConfig: ApplicationConfig get() = environment.config
 
@@ -76,6 +86,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * }
      * ```
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCall)
+     *
      * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
@@ -94,6 +107,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallReceive)
+     *
      * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your application receives data from a client.
@@ -112,6 +128,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to transform data before sending it to the client.
      * This handler is executed when the `call.respond` function is invoked in a route handler.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallRespond)
+     *
      * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.
@@ -132,6 +151,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      * Specifies a [handler] for a specific [hook].
      * A [hook] can be a specific place in time or event during the request
      * processing like application shutdown, an exception during call processing, etc.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.on)
+     *
      * @see [createApplicationPlugin]
      *
      * Example:
@@ -155,6 +177,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallReceive)
+     *
      * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your application receives data from a client.
@@ -168,6 +193,9 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     /**
      * Specifies the [block] handler that allows you to transform data before sending it to the client.
      * This handler is executed when the `call.respond` function is invoked in a route handler.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallRespond)
+     *
      * @see [createApplicationPlugin]
      *
      * @param block An action that needs to be executed when your server is sending a response to a client.

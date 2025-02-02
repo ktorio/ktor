@@ -25,6 +25,8 @@ private val HTTP_DATE_FORMATS = listOf(
  * Convert valid http date [String] to [GMTDate] trying various http date formats from [HTTP_DATE_FORMATS]
  *
  * Note that only GMT(UTC) date is valid http date.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fromHttpToGmtDate)
  */
 public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
     for (format in HTTP_DATE_FORMATS) {
@@ -41,6 +43,9 @@ public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
 /**
  * Convert valid cookie date [String] to [GMTDate] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fromCookieToGmtDate)
+ *
  * @see [fromHttpToGmtDate]
  */
 public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
@@ -55,6 +60,8 @@ public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
 
 /**
  * Convert [GMTDate] to valid http date [String]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.toHttpDate)
  */
 public fun GMTDate.toHttpDate(): String = buildString {
     append("${dayOfWeek.value}, ")

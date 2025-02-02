@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.*
 
 /**
  * A configuration for the [MicrometerMetrics] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig)
  */
 @KtorDsl
 public class MicrometerMetricsConfig {
@@ -36,6 +38,9 @@ public class MicrometerMetricsConfig {
      * If you change it to "custom.metric.name", the mentioned metrics will look as follows:
      * - "custom.metric.name.active"
      * - "custom.metric.name.seconds.max"
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.metricName)
+     *
      * @see [MicrometerMetrics]
      */
     public var metricName: String = "ktor.http.server.requests"
@@ -48,6 +53,9 @@ public class MicrometerMetricsConfig {
      *     registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.registry)
+     *
      * @see [MicrometerMetrics]
      */
     public var registry: MeterRegistry = LoggingMeterRegistry()
@@ -59,6 +67,9 @@ public class MicrometerMetricsConfig {
     /**
      * Specifies if requests for non-existent routes should
      * contain a request path or fallback to common `n/a` value. `true` by default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.distinctNotRegisteredRoutes)
+     *
      * @see [MicrometerMetrics]
      */
     public var distinctNotRegisteredRoutes: Boolean = true
@@ -69,6 +80,9 @@ public class MicrometerMetricsConfig {
      * ```kotlin
      * meterBinders = emptyList()
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.meterBinders)
+     *
      * @see [MicrometerMetrics]
      */
     public var meterBinders: List<MeterBinder> = listOf(
@@ -86,6 +100,9 @@ public class MicrometerMetricsConfig {
      * By default, 50%, 90% , 95% and 99% percentiles are configured.
      * If your backend supports server side histograms, you should enable these instead
      * with [DistributionStatisticConfig.Builder.percentilesHistogram] as client side percentiles cannot be aggregated.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.distributionStatisticConfig)
+     *
      * @see [MicrometerMetrics]
      */
     public var distributionStatisticConfig: DistributionStatisticConfig =
@@ -96,6 +113,8 @@ public class MicrometerMetricsConfig {
     /**
      * Configures micrometer timers.
      * Can be used to customize tags for each timer, configure individual SLAs, and so on.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.timers)
      */
     public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
         timerBuilder = block
@@ -109,6 +128,8 @@ public class MicrometerMetricsConfig {
  * You can customize these metrics or create new ones.
  *
  * You can learn more from [Micrometer metrics](https://ktor.io/docs/micrometer-metrics.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetrics)
  */
 public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
     createApplicationPlugin("MicrometerMetrics", ::MicrometerMetricsConfig) {

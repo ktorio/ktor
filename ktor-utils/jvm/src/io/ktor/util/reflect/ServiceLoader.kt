@@ -13,6 +13,9 @@ import java.util.*
 
 /**
  * Loads implementations of the service [T] using [ServiceLoader.load] and returns them as a sequence.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServicesAsSequence)
+ *
  * @see loadServices
  */
 @InternalAPI
@@ -23,6 +26,9 @@ public inline fun <reified T : Any> loadServicesAsSequence(): Sequence<T> = Serv
 
 /**
  * Loads all implementations of the service [T] using [ServiceLoader.load].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServices)
+ *
  * @see loadServiceOrNull
  * @see loadServicesAsSequence
  */
@@ -32,6 +38,9 @@ public inline fun <reified T : Any> loadServices(): List<T> = loadServicesAsSequ
 /**
  * Loads single implementation of the service [T] using [ServiceLoader.load]
  * returns `null` if there are no any implementations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServiceOrNull)
+ *
  * @see loadServices
  */
 @InternalAPI

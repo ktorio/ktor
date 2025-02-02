@@ -16,6 +16,8 @@ import kotlin.coroutines.*
 
 /**
  * Wrap existing [HttpClientCall] with new [content].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrapWithContent)
  */
 public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall {
     return DelegatedCall(client, content, this)
@@ -23,6 +25,8 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
 
 /**
  * Wrap existing [HttpClientCall] with new [content].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrapWithContent)
  */
 public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpClientCall {
     return DelegatedCall(client, block, this)
@@ -30,6 +34,8 @@ public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpCli
 
 /**
  * Wrap existing [HttpClientCall] with new response [content] and [headers].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrap)
  */
 public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
     return DelegatedCall(client, content, this, headers)

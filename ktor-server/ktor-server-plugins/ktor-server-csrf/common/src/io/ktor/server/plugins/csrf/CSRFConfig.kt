@@ -11,6 +11,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [io.ktor.server.plugins.csrf.CSRF] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig)
  */
 @KtorDsl
 public class CSRFConfig {
@@ -22,6 +24,9 @@ public class CSRFConfig {
     /**
      * All incoming requests must have an "Origin" header matching one of the hosts
      * defined using this method.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.allowOrigin)
      *
      * @param origin expected "Origin" header, revealing the URL of the site leading up
      *               to the path (e.g. https://google.com)
@@ -36,6 +41,9 @@ public class CSRFConfig {
      * header.  This avoids needing to configure the expected host name where your
      * application is deployed but will not work when it is deployed behind a proxy.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.originMatchesHost)
+     *
      * @see [CSRF Cheatsheet, Identifying the target origin](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-the-target-origin)
      */
     public fun originMatchesHost() {
@@ -46,6 +54,9 @@ public class CSRFConfig {
      * Checks if the given header is present on each call to the server, and if its value
      * conforms to the optional predicate.  If conditions already exist for the header, they
      * must all be satisfied.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.checkHeader)
      *
      * @param header the name of the header to validate
      * @param predicate the condition to check on the value of the header
@@ -59,6 +70,9 @@ public class CSRFConfig {
      * Handle CSRF error conditions.  By default, a 400 response is returned with a string response
      * containing the error.  As with any security-related error, it is advised to log the problem and
      * return some generic response.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.onFailure)
      *
      * @param handleFailure handler for CSRF error conditions
      */

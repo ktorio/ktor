@@ -20,6 +20,8 @@ import java.io.*
  * This method tries to lookup [swaggerFile] in the resources first, and if it's not found, it will try to read it from
  * the file system using [java.io.File].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  */
 public fun Route.swaggerUI(
     path: String,
@@ -39,6 +41,8 @@ public fun Route.swaggerUI(
 
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  */
 public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
     if (!apiFile.exists()) {
@@ -53,6 +57,9 @@ public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() 
  * Configures a route to serve Swagger UI and its corresponding API specification.
  *
  * This function sets up a given path to serve a Swagger UI interface based on the provided API specification.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  *
  * @param path The base path where the Swagger UI will be accessible.
  * @param apiUrl The relative URL for the Swagger API JSON file.

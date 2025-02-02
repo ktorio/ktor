@@ -25,6 +25,8 @@ import kotlinx.io.*
  * ```
  *
  * Please note that the channel will be buffered even if the sink is not.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.asByteWriteChannel)
  */
 public fun RawSink.asByteWriteChannel(): ByteWriteChannel = SinkByteWriteChannel(this)
 

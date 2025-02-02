@@ -15,6 +15,8 @@ import org.slf4j.event.*
 
 /**
  * A configuration for the [CallLogging] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig)
  */
 @KtorDsl
 public class CallLoggingConfig {
@@ -28,12 +30,16 @@ public class CallLoggingConfig {
     /**
      * Specifies a logging level for the [CallLogging] plugin.
      * The default level is [Level.INFO].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.level)
      */
     public var level: Level = Level.INFO
 
     /**
      * Specifies a [Logger] used to log requests.
      * By default, uses [ApplicationEnvironment.log].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.logger)
      */
     public var logger: Logger? = null
 
@@ -46,6 +52,9 @@ public class CallLoggingConfig {
      * }
      * ```
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.filter)
+     *
      * @see [CallLogging]
      */
     public fun filter(predicate: (ApplicationCall) -> Boolean) {
@@ -56,6 +65,9 @@ public class CallLoggingConfig {
      * Puts a diagnostic context value to [MDC] with the specified [name] and computed using the [provider] function.
      * A value is available in MDC only during [ApplicationCall] lifetime and is removed after a call processing.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.mdc)
+     *
      * @see [CallLogging]
      */
     public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
@@ -64,6 +76,9 @@ public class CallLoggingConfig {
 
     /**
      * Allows you to configure a call log message.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.format)
      *
      * @see [CallLogging]
      */
@@ -74,6 +89,9 @@ public class CallLoggingConfig {
     /**
      * Allows you to configure a clock that will be used to measure call processing time.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.clock)
+     *
      * @see [CallLogging]
      */
     public fun clock(clock: () -> Long) {
@@ -82,6 +100,8 @@ public class CallLoggingConfig {
 
     /**
      * Disables colors in a log message when a default formatter is used.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.disableDefaultColors)
      * */
     public fun disableDefaultColors() {
         isColorsEnabled = false
@@ -89,6 +109,8 @@ public class CallLoggingConfig {
 
     /**
      * Disables logging for static content files.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.disableForStaticContent)
      * */
     public fun disableForStaticContent() {
         ignoreStaticContent = true

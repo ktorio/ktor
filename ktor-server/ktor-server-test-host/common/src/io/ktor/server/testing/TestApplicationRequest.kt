@@ -13,6 +13,9 @@ import kotlinx.coroutines.*
 /**
  * A test application request
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationRequest)
+ *
  * @property method HTTP method to be sent or executed
  * @property uri HTTP url to sent request to or was sent to
  * @property version HTTP version to sent or executed
@@ -85,6 +88,8 @@ public class TestApplicationRequest(
 
     /**
      * Request body channel.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationRequest.bodyChannel)
      */
     public var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
@@ -100,6 +105,8 @@ public class TestApplicationRequest(
 
     /**
      * Adds an HTTP request header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationRequest.addHeader)
      */
     public fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")

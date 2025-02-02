@@ -9,6 +9,8 @@ import kotlin.coroutines.*
 
 /**
  * Print [Job] children tree.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.printDebugTree)
  */
 public fun Job.printDebugTree(offset: Int = 0) {
     println(" ".repeat(offset) + this)
@@ -22,6 +24,8 @@ public fun Job.printDebugTree(offset: Int = 0) {
 
 /**
  * Supervisor with empty coroutine exception handler ignoring all exceptions.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.SilentSupervisor)
  */
 @Suppress("FunctionName")
 public fun SilentSupervisor(parent: Job? = null): CoroutineContext =

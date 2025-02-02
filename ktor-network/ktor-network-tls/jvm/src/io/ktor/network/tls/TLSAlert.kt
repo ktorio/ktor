@@ -6,16 +6,23 @@ package io.ktor.network.tls
 
 /**
  * TLS alert level
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel)
+ *
  * @property code alert numeric code
  */
 public enum class TLSAlertLevel(public val code: Int) {
     /**
      * alert warning level
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel.WARNING)
      */
     WARNING(1),
 
     /**
      * alert level fatal so the session most likely will be discarded
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel.FATAL)
      */
     FATAL(2);
 
@@ -24,6 +31,8 @@ public enum class TLSAlertLevel(public val code: Int) {
 
         /**
          * Find alert level by its numeric [code] or fail
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel.Companion.byCode)
          */
         public fun byCode(code: Int): TLSAlertLevel = when (code) {
             in 0..255 -> byCode[code]
@@ -34,6 +43,9 @@ public enum class TLSAlertLevel(public val code: Int) {
 
 /**
  * TLS alert types with codes
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertType)
+ *
  * @property code numeric alert code
  */
 @Suppress("KDocMissingDocumentation", "EnumEntryName")
@@ -70,6 +82,8 @@ public enum class TLSAlertType(public val code: Int) {
 
         /**
          * Find TLS alert instance by its numeric [code] or fail
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertType.Companion.byCode)
          */
         public fun byCode(code: Int): TLSAlertType = when (code) {
             in 0..255 -> byCode[code]

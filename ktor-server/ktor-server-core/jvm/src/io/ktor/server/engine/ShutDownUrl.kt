@@ -19,12 +19,17 @@ import kotlin.system.*
  * - By installing the plugin.
  * You can learn more from [Shutdown URL](https://ktor.io/docs/shutdown-url.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl)
+ *
  * @property url to handle
  * @property exitCode is a function to compute a process exit code
  */
 public class ShutDownUrl(public val url: String, public val exitCode: ApplicationCall.() -> Int) {
     /**
      * Shuts down an application using the specified [call].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.doShutdown)
      */
     public suspend fun doShutdown(call: ApplicationCall) {
         call.application.log.warn("Shutdown URL was called: server is going down")
@@ -51,6 +56,8 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
 
     /**
      * A plugin to install into an engine pipeline.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.EnginePlugin)
      */
     public object EnginePlugin : BaseApplicationPlugin<EnginePipeline, Config, ShutDownUrl> {
         override val key: AttributeKey<ShutDownUrl> = AttributeKey("shutdown.url")
@@ -72,16 +79,22 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
 
     /**
      * A configuration for the [ShutDownUrl] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.Config)
      */
     @KtorDsl
     public class Config {
         /**
          * Specifies a URI used to handle a shutdown request.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.Config.shutDownUrl)
          */
         public var shutDownUrl: String = "/ktor/application/shutdown"
 
         /**
          * A function that provides a process exit code by an application call.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.Config.exitCodeSupplier)
          */
         public var exitCodeSupplier: ApplicationCall.() -> Int = { 0 }
     }
@@ -90,6 +103,8 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
 
         /**
          * An installation object of the [ShutDownUrl] plugin.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.Companion.ApplicationCallPlugin)
          */
         public val ApplicationCallPlugin: BaseApplicationPlugin<Application, Config, PluginInstance> =
             createApplicationPlugin("shutdown.url", ::Config) {

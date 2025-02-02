@@ -11,6 +11,9 @@ import javax.crypto.spec.*
 /**
  * Stateless nonce manager implementation with HMAC verification and timeout.
  * Every nonce provided by this manager consist of a random part, timestamp and HMAC.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StatelessHmacNonceManager)
+ *
  * @property keySpec secret key spec for HMAC
  * @property algorithm HMAC algorithm name, `HmacSHA256` by default
  * @property timeoutMillis specifies the amount of time for a nonce to be considered valid
@@ -24,6 +27,8 @@ public class StatelessHmacNonceManager(
 ) : NonceManager {
     /**
      * Helper constructor that makes a secret key from [key] ByteArray
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StatelessHmacNonceManager.StatelessHmacNonceManager)
      */
     public constructor(
         key: ByteArray,

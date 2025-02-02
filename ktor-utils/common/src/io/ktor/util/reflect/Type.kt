@@ -8,6 +8,8 @@ import kotlin.reflect.*
 
 /**
  * Information about type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.Type)
  */
 @Deprecated("Not used anymore in common code as it was needed only for JVM target.")
 public expect interface Type
@@ -18,6 +20,9 @@ public expect val KType.platformType: Type
 
 /**
  * Ktor type information.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.TypeInfo)
+ *
  * @property type Source KClass<*>
  * @property kotlinType Kotlin reified type with all generic type parameters.
  */
@@ -54,11 +59,15 @@ public class TypeInfo(
 
 /**
  * Returns [TypeInfo] for the specified type [T]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.typeInfo)
  */
 public inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOfOrNull<T>())
 
 /**
  * Check [this] is instance of [type].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.instanceOf)
  */
 public expect fun Any.instanceOf(type: KClass<*>): Boolean
 

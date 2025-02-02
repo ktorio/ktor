@@ -32,6 +32,8 @@ public suspend fun ByteWriteChannel.writeInt(value: Int) {
 
 /**
  * Writes a 32-bit floating-point [value] to the current [ByteWriteChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeFloat)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeFloat(value: Float) {
@@ -41,6 +43,9 @@ public suspend fun ByteWriteChannel.writeFloat(value: Float) {
 
 /**
  * Writes a 64-bit floating-point value to the current [ByteWriteChannel].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeDouble)
  *
  * @param value The floating-point value to be written to the channel.
  */
@@ -192,6 +197,8 @@ public fun CoroutineScope.writer(
  * specified [desiredSpace] is bigger that the buffer's capacity
  * or when it is impossible to represent all [desiredSpace] bytes as a single memory range
  * due to internal implementation reasons.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.write)
  */
 @OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(

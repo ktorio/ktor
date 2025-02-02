@@ -8,6 +8,9 @@ import kotlin.js.*
 
 /**
  * Create new gmt date from the [timestamp].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
+ *
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 public actual fun GMTDate(timestamp: Long?): GMTDate {
@@ -40,6 +43,8 @@ public actual fun GMTDate(timestamp: Long?): GMTDate {
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
  */
 public actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate {
     val timestamp = Date.UTC(year, month.ordinal, dayOfMonth, hours, minutes, seconds).toLong()
@@ -48,6 +53,8 @@ public actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: In
 
 /**
  * Invalid exception: possible overflow or underflow
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.InvalidTimestampException)
  */
 public class InvalidTimestampException(timestamp: Long) : IllegalStateException(
     "Invalid date timestamp exception: $timestamp"
@@ -55,5 +62,7 @@ public class InvalidTimestampException(timestamp: Long) : IllegalStateException(
 
 /**
  * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.getTimeMillis)
  */
 public actual fun getTimeMillis(): Long = Date().getTime().toLong()

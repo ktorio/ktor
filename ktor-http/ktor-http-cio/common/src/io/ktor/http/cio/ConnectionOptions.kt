@@ -8,6 +8,9 @@ import io.ktor.http.cio.internals.*
 
 /**
  * Represents a parsed `Connection` header
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ConnectionOptions)
+ *
  * @property close `true` for `Connection: close`
  * @property keepAlive `true` for `Connection: keep-alive`
  * @property upgrade `true` for `Connection: upgrade`
@@ -22,16 +25,22 @@ public class ConnectionOptions(
     public companion object {
         /**
          * An instance for `Connection: close`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ConnectionOptions.Companion.Close)
          */
         public val Close: ConnectionOptions = ConnectionOptions(close = true)
 
         /**
          * An instance for `Connection: keep-alive`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ConnectionOptions.Companion.KeepAlive)
          */
         public val KeepAlive: ConnectionOptions = ConnectionOptions(keepAlive = true)
 
         /**
          * An instance for `Connection: upgrade`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ConnectionOptions.Companion.Upgrade)
          */
         public val Upgrade: ConnectionOptions = ConnectionOptions(upgrade = true)
 
@@ -43,6 +52,8 @@ public class ConnectionOptions(
 
         /**
          * Parse `Connection` header value
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.ConnectionOptions.Companion.parse)
          */
         public fun parse(connection: CharSequence?): ConnectionOptions? {
             if (connection == null) return null

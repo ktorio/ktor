@@ -24,6 +24,8 @@ private val identityErrorHandler = { t: Throwable, c: Continuation<*> ->
 /**
  * Suspend until the future completion.
  * Resumes with the same exception if the future completes exceptionally
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.suspendAwait)
  */
 public suspend fun <T> Future<T>.suspendAwait(): T {
     return suspendAwait(identityErrorHandler)
@@ -41,6 +43,8 @@ private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
 /**
  * Suspend until the future completion.
  * Wraps futures completion exceptions into [ChannelWriteException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.suspendWriteAwait)
  */
 public suspend fun <T> Future<T>.suspendWriteAwait(): T {
     return suspendAwait(wrappingErrorHandler)
@@ -48,6 +52,8 @@ public suspend fun <T> Future<T>.suspendWriteAwait(): T {
 
 /**
  * Suspend until the future completion handling exception from the future using [exception] function
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.suspendAwait)
  */
 public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {
     @Suppress("BlockingMethodInNonBlockingContext")

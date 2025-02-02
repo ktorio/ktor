@@ -7,6 +7,9 @@ package io.ktor.websocket
 /**
  * A parsed `Sec-WebSocket-Accept` header item representation.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionHeader)
+ *
  * @param name is extension name.
  * @param parameters is list of extension parameters.
  */
@@ -14,6 +17,8 @@ public class WebSocketExtensionHeader(public val name: String, public val parame
 
     /**
      * Parses parameters keys and values.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionHeader.parseParameters)
      */
     public fun parseParameters(): Sequence<Pair<String, String>> = parameters.asSequence().map {
         val equalsIndex = it.indexOf('=')
@@ -33,6 +38,8 @@ public class WebSocketExtensionHeader(public val name: String, public val parame
 
 /**
  * Parses the `Sec-WebSocket-Accept` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.parseWebSocketExtensions)
  */
 public fun parseWebSocketExtensions(value: String): List<WebSocketExtensionHeader> = value
     .split(",")

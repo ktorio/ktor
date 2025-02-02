@@ -6,6 +6,9 @@ package io.ktor.http
 
 /**
  * Range specifier for partial content requests (RFC 2616 sec 14.35.1)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.RangesSpecifier)
+ *
  * @property unit range units, usually bytes
  * @property ranges a list of requested ranges (could be open or closed ranges)
  */
@@ -19,6 +22,8 @@ public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken,
 
     /**
      * Verify ranges
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.RangesSpecifier.isValid)
      */
     public fun isValid(rangeUnitPredicate: (String) -> Boolean = { it == RangeUnits.Bytes.unitToken }): Boolean =
         rangeUnitPredicate(unit) &&
@@ -32,6 +37,9 @@ public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken,
 
     /**
      * Resolve and merge all overlapping and neighbours ranges
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.RangesSpecifier.merge)
+     *
      * @param length content length
      * @return a list of absolute long ranges
      */
@@ -46,11 +54,16 @@ public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken,
 
     /**
      * Merges all overlapping and neighbours ranges. Currently gaps collapse is not supported but should be, one day.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.RangesSpecifier.merge)
      */
     public fun merge(length: Long): List<LongRange> = ranges.toLongRanges(length).mergeRangesKeepOrder()
 
     /**
      * Merge all ranges into a single absolute long range
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.RangesSpecifier.mergeToSingle)
+     *
      * @param length content length
      */
     public fun mergeToSingle(length: Long): LongRange? {

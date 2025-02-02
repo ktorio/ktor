@@ -28,6 +28,8 @@ import io.ktor.client.request.request as requestBuilder
 
 /**
  * Executes a [HttpClient] GET request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.get)
  */
 public suspend inline fun <reified T : Any> HttpClient.get(
     resource: T,
@@ -42,6 +44,8 @@ public suspend inline fun <reified T : Any> HttpClient.get(
 
 /**
  * Executes a [HttpClient] POST request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.post)
  */
 public suspend inline fun <reified T : Any> HttpClient.post(
     resource: T,
@@ -56,6 +60,8 @@ public suspend inline fun <reified T : Any> HttpClient.post(
 
 /**
  * Executes a [HttpClient] PUT request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.put)
  */
 public suspend inline fun <reified T : Any> HttpClient.put(
     resource: T,
@@ -70,6 +76,8 @@ public suspend inline fun <reified T : Any> HttpClient.put(
 
 /**
  * Executes a [HttpClient] DELETE request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.delete)
  */
 public suspend inline fun <reified T : Any> HttpClient.delete(
     resource: T,
@@ -84,6 +92,8 @@ public suspend inline fun <reified T : Any> HttpClient.delete(
 
 /**
  * Executes a [HttpClient] PATCH request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.patch)
  */
 public suspend inline fun <reified T : Any> HttpClient.patch(
     resource: T,
@@ -98,6 +108,8 @@ public suspend inline fun <reified T : Any> HttpClient.patch(
 
 /**
  * Executes a [HttpClient] OPTIONS request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.options)
  */
 public suspend inline fun <reified T : Any> HttpClient.options(
     resource: T,
@@ -112,6 +124,8 @@ public suspend inline fun <reified T : Any> HttpClient.options(
 
 /**
  * Executes a [HttpClient] HEAD request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.head)
  */
 public suspend inline fun <reified T : Any> HttpClient.head(
     resource: T,
@@ -126,6 +140,8 @@ public suspend inline fun <reified T : Any> HttpClient.head(
 
 /**
  * Executes a [HttpClient] request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.request)
  */
 public suspend inline fun <reified T : Any> HttpClient.request(
     resource: T,
@@ -140,6 +156,8 @@ public suspend inline fun <reified T : Any> HttpClient.request(
 
 /**
  * Prepares a [HttpClient] GET request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.prepareGet)
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareGet(
     resource: T,
@@ -154,6 +172,8 @@ public suspend inline fun <reified T : Any> HttpClient.prepareGet(
 
 /**
  * Prepares a [HttpClient] POST request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.preparePost)
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePost(
     resource: T,
@@ -168,6 +188,8 @@ public suspend inline fun <reified T : Any> HttpClient.preparePost(
 
 /**
  * Prepares a [HttpClient] PUT request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.preparePut)
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePut(
     resource: T,
@@ -182,6 +204,8 @@ public suspend inline fun <reified T : Any> HttpClient.preparePut(
 
 /**
  * Prepares a [HttpClient] DELETE request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.prepareDelete)
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
     resource: T,
@@ -196,6 +220,8 @@ public suspend inline fun <reified T : Any> HttpClient.prepareDelete(
 
 /**
  * Prepares a [HttpClient] PATCH request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.preparePatch)
  */
 public suspend inline fun <reified T : Any> HttpClient.preparePatch(
     resource: T,
@@ -210,6 +236,8 @@ public suspend inline fun <reified T : Any> HttpClient.preparePatch(
 
 /**
  * Prepares a [HttpClient] OPTIONS request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.prepareOptions)
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
     resource: T,
@@ -224,6 +252,8 @@ public suspend inline fun <reified T : Any> HttpClient.prepareOptions(
 
 /**
  * Prepares a [HttpClient] HEAD request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.prepareHead)
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareHead(
     resource: T,
@@ -238,6 +268,8 @@ public suspend inline fun <reified T : Any> HttpClient.prepareHead(
 
 /**
  * Prepares a [HttpClient] request, with a URL built from [resource] and the information from the [builder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.prepareRequest)
  */
 public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
     resource: T,

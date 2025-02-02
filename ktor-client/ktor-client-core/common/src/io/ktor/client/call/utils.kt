@@ -10,6 +10,8 @@ import io.ktor.http.content.*
 /**
  * Exception thrown when the engine does not support the content type of the HTTP request body.
  * For instance, some engines do not support upgrade requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.UnsupportedContentTypeException)
  */
 public class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")

@@ -12,6 +12,9 @@ import io.ktor.server.response.*
  * A session transport that sets or gets the specific header [name],
  * applying/un-applying the specified transforms defined by [transformers].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportHeader)
+ *
  * @property name is a header name
  * @property transformers is a list of registered session transformers
  */

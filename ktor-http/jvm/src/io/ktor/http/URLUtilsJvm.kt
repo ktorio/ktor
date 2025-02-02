@@ -8,6 +8,8 @@ import java.net.*
 
 /**
  * Take URI components from [uri]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.takeFrom)
  */
 public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
     uri.scheme?.let {
@@ -45,6 +47,8 @@ public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
 
 /**
  * Take URL components from [url]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.takeFrom)
  */
 public fun URLBuilder.takeFrom(url: URL): URLBuilder = when {
     url.host.contains('_') -> takeFrom(url.toString())
@@ -53,6 +57,8 @@ public fun URLBuilder.takeFrom(url: URL): URLBuilder = when {
 
 /**
  * Convert [Url] to [URI]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.toURI)
  */
 public fun Url.toURI(): URI = URI(toString())
 
@@ -60,6 +66,8 @@ public fun Url.toURI(): URI = URI(toString())
  * Helper method that concisely creates a [Url] from a [URI]
  *
  * Creates [Url] from [URI]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url)
  */
 @Suppress("FunctionName")
 public fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()

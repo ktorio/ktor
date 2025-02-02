@@ -32,21 +32,31 @@ import kotlin.time.Duration.Companion.seconds
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession)
+ *
  * @see SSE
  */
 public interface ServerSSESession : CoroutineScope {
     /**
      * The received [call] that originated this session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession.call)
      */
     public val call: ApplicationCall
 
     /**
      * Sends a [ServerSentEvent] to the client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession.send)
      */
     public suspend fun send(event: ServerSentEvent)
 
     /**
      * Creates and sends a [ServerSentEvent] to the client.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession.send)
      *
      *  @param data data field of the event.
      *  @param event string identifying the type of event.
@@ -72,6 +82,8 @@ public interface ServerSSESession : CoroutineScope {
      * It's important to note that closing the session using this method does not send a termination event
      * to the client. If you wish to send a specific event to signify the end of the SSE stream
      * before closing the session, you can use the [send] function for it.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession.close)
      */
     public suspend fun close()
 }
@@ -97,11 +109,16 @@ public interface ServerSSESession : CoroutineScope {
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESessionWithSerialization)
+ *
  * @see SSE
  */
 public interface ServerSSESessionWithSerialization : ServerSSESession {
     /**
      * Serializer for transforming data object into field `data` of `ServerSentEvent`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESessionWithSerialization.serializer)
      */
     public val serializer: (TypeInfo, Any) -> String
 }
@@ -140,6 +157,9 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.duration] interval
  * as long as the session is active.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.heartbeat)
+ *
  * @param heartbeatConfig a lambda that configures the [Heartbeat] object used for the heartbeat.
  */
 public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit) {
@@ -158,6 +178,9 @@ internal val heartbeatJobKey = AttributeKey<Job>("HeartbeatJobAttributeKey")
 
 /**
  * Represents a heartbeat configuration for a [ServerSSESession].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.Heartbeat)
  *
  * @property duration the duration between heartbeat events, default is 30 seconds.
  * @property event the [ServerSentEvent] to be sent as the heartbeat, default is a [ServerSentEvent] with the comment "heartbeat".

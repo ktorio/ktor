@@ -11,6 +11,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [DoubleReceive] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig)
  */
 @KtorDsl
 public class DoubleReceiveConfig {
@@ -23,6 +25,9 @@ public class DoubleReceiveConfig {
      * This is useful, for example, when you want to receive a request body twice with different types or receive data
      * as a stream multiple times.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.cacheRawRequest)
+     *
      * @see [DoubleReceive]
      */
     public var cacheRawRequest: Boolean = true
@@ -30,6 +35,8 @@ public class DoubleReceiveConfig {
     /**
      * Adds a filter to the [DoubleReceive] plugin.
      * Can be called multiple times; if any of [block]s returns `true`, a request body will not be cached in memory.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.excludeFromCache)
      */
     public fun excludeFromCache(block: (call: ApplicationCall, body: Any) -> Boolean) {
         filters += block
@@ -42,6 +49,8 @@ public class DoubleReceiveConfig {
      *
      * Can be called multiple times; if any of [block]s returns `true`, the request body will be cached in file.
      * Otherwise, it will be cached in memory.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.useFileForCache)
      */
     public fun useFileForCache(block: (call: ApplicationCall) -> Boolean = { true }) {
         shouldUseFileCache += block
@@ -49,6 +58,8 @@ public class DoubleReceiveConfig {
 
     /**
      * Excludes requests with a content size greater than [maxSize] from cache.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.maxSize)
      */
     public fun maxSize(limit: Long) {
         excludeFromCache { call, _ ->
@@ -59,6 +70,8 @@ public class DoubleReceiveConfig {
 
     /**
      * Excludes a specific type from caching.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.exclude)
      */
     public inline fun <reified T : Any> exclude() {
         val excludeType = typeInfo<T>()

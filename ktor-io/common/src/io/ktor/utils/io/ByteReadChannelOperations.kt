@@ -25,6 +25,9 @@ public val ByteWriteChannel.availableForWrite: Int
  * If the read buffer is empty, it suspends until there are bytes available in the channel.
  * Once the channel is exhausted or closed, this function returns.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.exhausted)
+ *
  * @return `true` if the channel is exhausted, `false` if EOF is reached or an error occurred.
  */
 @OptIn(InternalAPI::class)
@@ -64,6 +67,8 @@ public suspend fun ByteReadChannel.readInt(): Int {
 
 /**
  * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFloat)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readFloat(): Float {
@@ -79,6 +84,8 @@ public suspend fun ByteReadChannel.readLong(): Long {
 
 /**
  * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readDouble)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readDouble(): Double {
@@ -148,6 +155,9 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
 /**
  * Reads a line of UTF-8 characters from the `ByteReadChannel`.
  * It recognizes CR, LF and CRLF as line delimiters.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
  *
  * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
  * @return a string containing the line read, or null if channel is closed
@@ -241,6 +251,9 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
 
 /**
  * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
+ *
  * @return number of bytes were read or `-1` if the channel has been closed
  */
 @OptIn(InternalAPI::class)
@@ -264,6 +277,9 @@ public suspend fun ByteReadChannel.readAvailable(
  * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param min amount of bytes available for read, should be positive
  * @param block to be invoked when at least [min] bytes available
@@ -332,6 +348,9 @@ public fun CoroutineScope.reader(
 /**
  * Reads a packet of [packet] bytes from the channel.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readPacket)
+ *
  * @throws EOFException if the channel is closed before the packet is fully read.
  */
 @OptIn(InternalAPI::class)
@@ -380,6 +399,9 @@ private const val LF: Byte = '\n'.code.toByte()
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF and CRLF as a line delimiter.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
  *
  * @param out the buffer to write the line to
  * @param max the maximum number of characters to read
@@ -454,6 +476,9 @@ public val ByteReadChannel.availableForRead: Int
  *
  * Suspension occurs when there are not enough bytes available in the channel.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFully)
+ *
  * @param out the buffer to write to
  * @param start the index to start writing at
  * @param end the index to write until
@@ -491,6 +516,9 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  * Reads bytes from the ByteReadChannel until a specified sequence of bytes is encountered or the specified limit is reached.
  *
  * This uses the KMP algorithm for finding the string match using a partial match table.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUntil)
  *
  * @see [Knuth–Morris–Pratt algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm)
  * @param matchString The sequence of bytes to look for.
@@ -585,6 +613,9 @@ private fun ByteString.toSingleLineString() =
 /**
  * Skips the specified [byteString] in the ByteReadChannel if it is found at the current position.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.skipIfFound)
+ *
  * @param byteString The ByteString to look for and skip if found.
  * @return Returns `true` if the byteString was found and skipped, otherwise returns `false`.
  */
@@ -599,6 +630,9 @@ public suspend fun ByteReadChannel.skipIfFound(byteString: ByteString): Boolean 
 /**
  * Retrieves, but does not consume, up to the specified number of bytes from the current position in this
  * [ByteReadChannel].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.peek)
  *
  * @param count The number of bytes to peek.
  * @return A [ByteString] containing the bytes that were peeked, or null if unable to peek the specified number of bytes.

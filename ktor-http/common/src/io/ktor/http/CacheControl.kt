@@ -7,27 +7,38 @@ package io.ktor.http
 /**
  * Represents a value for a `Cache-Control` header
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl)
+ *
  * @param visibility specifies an optional visibility such as private or public
  */
 public abstract class CacheControl(public val visibility: Visibility?) {
 
     /**
      * Controls caching by proxies
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.Visibility)
      */
     public enum class Visibility(internal val headerValue: String) {
         /**
          * Specifies that the response is cacheable by clients and shared (proxy) caches.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.Visibility.Public)
          */
         Public("public"),
 
         /**
          * Specifies that the response is cacheable only on the client and not by shared (proxy server) caches.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.Visibility.Private)
          */
         Private("private")
     }
 
     /**
      * Represents a no-cache cache control value
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.NoCache)
      */
     public class NoCache(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString(): String = if (visibility == null) {
@@ -47,6 +58,8 @@ public abstract class CacheControl(public val visibility: Visibility?) {
 
     /**
      * Represents a no-store cache control value
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.NoStore)
      */
     public class NoStore(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString(): String = if (visibility == null) {
@@ -66,6 +79,9 @@ public abstract class CacheControl(public val visibility: Visibility?) {
 
     /**
      * Represents a cache control value with the specified max ages and re-validation strategies
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CacheControl.MaxAge)
+     *
      * @property maxAgeSeconds max-age in seconds
      * @property proxyMaxAgeSeconds max-age in seconds for caching proxies
      * @property mustRevalidate `true` if a client must validate in spite of age

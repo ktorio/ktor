@@ -11,10 +11,15 @@ internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
 /**
  * Loads [ApplicationConfig] from a YAML file.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfigLoader)
  */
 public class YamlConfigLoader : ConfigLoader {
     /**
      * Tries loading an application configuration from the specified [path].
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfigLoader.load)
      *
      * @return configuration or null if the path is not found or a configuration format is not supported.
      */
@@ -27,6 +32,8 @@ public class YamlConfigLoader : ConfigLoader {
  * Loads a configuration from the YAML file, if found.
  * On JVM, loads a configuration from application resources, if exists; otherwise, reads a configuration from a file.
  * On Native, always reads a configuration from a file.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
 @Suppress("ktlint:standard:function-naming")
 public expect fun YamlConfig(path: String?): YamlConfig?
@@ -34,6 +41,8 @@ public expect fun YamlConfig(path: String?): YamlConfig?
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
 public class YamlConfig internal constructor(
     private val yaml: YamlMap

@@ -8,6 +8,9 @@ import io.ktor.utils.io.charsets.*
 
 /**
  * Represents a value for a `Content-Type` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType)
+ *
  * @property contentType represents a type part of the media type.
  * @property contentSubtype represents a subtype part of the media type.
  */
@@ -31,6 +34,8 @@ public class ContentType private constructor(
 
     /**
      * Creates a copy of `this` type with the added parameter with the [name] and [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.withParameter)
      */
     public fun withParameter(name: String, value: String): ContentType {
         if (hasParameter(name, value)) return this
@@ -46,6 +51,8 @@ public class ContentType private constructor(
 
     /**
      * Creates a copy of `this` type without any parameters
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.withoutParameters)
      */
     public fun withoutParameters(): ContentType = when {
         parameters.isEmpty() -> this
@@ -62,6 +69,8 @@ public class ContentType private constructor(
      * ContentType("a", "*").match(ContentType("a", "b")) === false
      * ContentType("a", "b").match(ContentType("a", "*")) === true
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.match)
      */
     public fun match(pattern: ContentType): Boolean {
         if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
@@ -99,6 +108,8 @@ public class ContentType private constructor(
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.match)
      */
     public fun match(pattern: String): Boolean = match(parse(pattern))
 
@@ -118,6 +129,8 @@ public class ContentType private constructor(
     public companion object {
         /**
          * Parses a string representing a `Content-Type` header into a [ContentType] instance.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Companion.parse)
          */
         public fun parse(value: String): ContentType {
             if (value.isBlank()) return Any
@@ -153,17 +166,23 @@ public class ContentType private constructor(
 
         /**
          * Represents a pattern `* / *` to match any content type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Companion.Any)
          */
         public val Any: ContentType = ContentType("*", "*")
     }
 
     /**
      * Provides a list of standard subtypes of an `application` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Application {
         /**
          * Represents a pattern `application / *` to match any application content type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application.Any)
          */
         public val Any: ContentType = ContentType("application", "*")
         public val Atom: ContentType = ContentType("application", "atom+xml")
@@ -204,6 +223,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of an `audio` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Audio)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Audio {
@@ -215,6 +236,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of an `image` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Image)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Image {
@@ -228,6 +251,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of a `message` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Message)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Message {
@@ -237,6 +262,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of a `multipart` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.MultiPart)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object MultiPart {
@@ -252,6 +279,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of a `text` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Text)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Text {
@@ -268,6 +297,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of a `video` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Video)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Video {
@@ -280,6 +311,8 @@ public class ContentType private constructor(
 
     /**
      * Provides a list of standard subtypes of a `font` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Font)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Font {
@@ -295,11 +328,15 @@ public class ContentType private constructor(
 
 /**
  * Exception thrown when a content type string is malformed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.BadContentTypeFormatException)
  */
 public class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
 
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.withCharset)
  */
 public fun ContentType.withCharset(charset: Charset): ContentType =
     withParameter("charset", charset.name)
@@ -307,6 +344,8 @@ public fun ContentType.withCharset(charset: Charset): ContentType =
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value
  * if [ContentType] is not ignored
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.withCharsetIfNeeded)
  */
 public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
     if (contentType.lowercase() != "text") {
@@ -317,6 +356,8 @@ public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.charset)
  */
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {

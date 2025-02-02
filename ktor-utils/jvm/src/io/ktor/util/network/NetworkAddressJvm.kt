@@ -11,6 +11,9 @@ import java.net.*
  *
  * The address will be resolved after construction.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.network.NetworkAddress)
+ *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
 public actual typealias NetworkAddress = SocketAddress

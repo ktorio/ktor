@@ -11,6 +11,8 @@ import io.ktor.utils.io.*
 
 /**
  * Client plugins factory.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPlugin)
  */
 public interface ClientPlugin<PluginConfig : Any> : HttpClientPlugin<PluginConfig, ClientPluginInstance<PluginConfig>>
 
@@ -37,6 +39,9 @@ public interface ClientPlugin<PluginConfig : Any> : HttpClientPlugin<PluginConfi
  *   headerValue = "Another-Header-Value"
  * }
  * ```
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.createClientPlugin)
  *
  * @param name A name of a plugin that is used to get its instance.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
@@ -82,6 +87,9 @@ private class ClientPluginImpl<PluginConfigT : Any>(
  *
  * client.install(CustomHeaderPlugin)
  * ```
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.createClientPlugin)
  *
  * @param name A name of a plugin that is used to get its instance.
  * @param body Allows you to define handlers ([onRequest], [onResponse], and so on) that

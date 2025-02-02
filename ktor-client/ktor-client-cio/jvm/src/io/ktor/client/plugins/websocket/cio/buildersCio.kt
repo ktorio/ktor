@@ -13,6 +13,8 @@ import kotlinx.coroutines.*
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.webSocketRawSession)
  */
 public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get,
@@ -53,6 +55,8 @@ public suspend fun HttpClient.webSocketRawSession(
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.webSocketRaw)
  */
 public suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get,
@@ -80,6 +84,8 @@ public suspend fun HttpClient.webSocketRaw(
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.wsRaw)
  */
 public suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get,
@@ -94,6 +100,8 @@ public suspend fun HttpClient.wsRaw(
 
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.wssRaw)
  */
 public suspend fun HttpClient.wssRaw(
     method: HttpMethod = HttpMethod.Get,

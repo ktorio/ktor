@@ -10,6 +10,8 @@ import io.ktor.util.pipeline.*
 
 /**
  * Pipeline configuration for executing [PipelineCall] instances.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline)
  */
 @Suppress("PublicApiImplicitType")
 public open class ApplicationCallPipeline public constructor(
@@ -24,45 +26,63 @@ public open class ApplicationCallPipeline public constructor(
 ) {
     /**
      * Pipeline for receiving content
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.receivePipeline)
      */
     public val receivePipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(developmentMode)
 
     /**
      * Pipeline for sending content
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.sendPipeline)
      */
     public val sendPipeline: ApplicationSendPipeline = ApplicationSendPipeline(developmentMode)
 
     /**
      * Standard phases for application call pipelines
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase)
      */
     public companion object ApplicationPhase {
         /**
          * Phase for preparing call and it's attributes for processing
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Setup)
          */
         public val Setup: PipelinePhase = PipelinePhase("Setup")
 
         /**
          * Phase for tracing calls, useful for logging, metrics, error handling and so on
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Monitoring)
          */
         public val Monitoring: PipelinePhase = PipelinePhase("Monitoring")
 
         /**
          * Phase for plugins. Most plugins should intercept this phase.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins)
          */
         public val Plugins: PipelinePhase = PipelinePhase("Plugins")
 
         /**
          * Phase for processing a call and sending a response
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Call)
          */
         public val Call: PipelinePhase = PipelinePhase("Call")
 
         /**
          * Phase for handling unprocessed calls
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Fallback)
          */
         public val Fallback: PipelinePhase = PipelinePhase("Fallback")
 
         /**
          * Phase for plugins. Most plugins should intercept this phase.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Features)
          */
         @Deprecated(
             "Renamed to Plugins",
@@ -75,10 +95,14 @@ public open class ApplicationCallPipeline public constructor(
 
 /**
  * Current call for the context
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.call)
  */
 public inline val PipelineContext<*, PipelineCall>.call: PipelineCall get() = context
 
 /**
  * Current application for the context
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.application)
  */
 public val PipelineContext<*, PipelineCall>.application: Application get() = call.application

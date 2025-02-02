@@ -26,6 +26,8 @@ internal expect fun <TSubject : Any, TContext : Any> pipelineStartCoroutineUnint
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline)
  */
 
 public open class Pipeline<TSubject : Any, TContext : Any>(
@@ -33,11 +35,15 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 ) {
     /**
      * Provides common place to store pipeline attributes
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.attributes)
      */
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Indicated if debug mode is enabled. In debug mode users will get more details in the stacktrace.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.developmentMode)
      */
     public open val developmentMode: Boolean = false
 
@@ -47,6 +53,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Phases of this pipeline
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.items)
      */
     public val items: List<PipelinePhase>
         get() = phasesRaw.map {
@@ -54,6 +62,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
     /**
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.isEmpty)
+     *
      * @return `true` if there are no interceptors installed regardless number of phases
      */
     public val isEmpty: Boolean
@@ -74,12 +85,16 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Executes this pipeline in the given [context] and with the given [subject]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.execute)
      */
     public suspend fun execute(context: TContext, subject: TSubject): TSubject =
         createContext(context, subject, coroutineContext).execute(subject)
 
     /**
      * Adds [phase] to the end of this pipeline
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.addPhase)
      */
     public fun addPhase(phase: PipelinePhase) {
         if (hasPhase(phase)) {
@@ -99,6 +114,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * pipeline.insertPhaseAfter(a, c)
      * assertEquals(listOf(a, b, c), pipeline.items)
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.insertPhaseAfter)
      */
     public fun insertPhaseAfter(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -130,6 +147,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * pipeline.insertPhaseBefore(c, b)
      * assertEquals(listOf(a, b, c), pipeline.items)
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.insertPhaseBefore)
      */
     public fun insertPhaseBefore(reference: PipelinePhase, phase: PipelinePhase) {
         if (hasPhase(phase)) return
@@ -144,6 +163,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Adds [block] to the [phase] of this pipeline
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.intercept)
      */
     public fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject, TContext>) {
         val phaseContent = findPhase(phase)
@@ -163,6 +184,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Invoked after an interceptor has been installed
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.afterIntercepted)
      */
     public open fun afterIntercepted() {
     }
@@ -226,6 +249,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Merges another pipeline into this pipeline, maintaining relative phases order
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.merge)
      */
     public fun merge(from: Pipeline<TSubject, TContext>) {
         if (fastPathMerge(from)) {
@@ -238,6 +263,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     /**
      * Reset current pipeline from other.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.resetFrom)
      */
     public fun resetFrom(from: Pipeline<TSubject, TContext>) {
         phasesRaw.clear()
@@ -470,6 +497,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
 /**
  * Executes this pipeline
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.execute)
  */
 @Suppress("NOTHING_TO_INLINE")
 public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
@@ -484,6 +513,8 @@ public suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(
 
 /**
  * Intercepts an untyped pipeline when the subject is of the given type
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.intercept)
  */
 public inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>.intercept(
     phase: PipelinePhase,
@@ -500,6 +531,8 @@ public inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>
 
 /**
  * Represents an interceptor type which is a suspend extension function for a context
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.PipelineInterceptor)
  */
 public typealias PipelineInterceptor<TSubject, TContext> =
     suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit

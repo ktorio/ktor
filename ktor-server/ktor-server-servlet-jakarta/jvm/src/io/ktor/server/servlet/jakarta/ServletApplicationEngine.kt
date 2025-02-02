@@ -19,6 +19,8 @@ import kotlin.coroutines.*
 
 /**
  * This servlet need to be installed into a servlet container
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.ServletApplicationEngine)
  */
 @MultipartConfig
 public open class ServletApplicationEngine : KtorServlet() {
@@ -107,6 +109,8 @@ public open class ServletApplicationEngine : KtorServlet() {
 
     /**
      * Called by the servlet container when loading the servlet (on load)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.ServletApplicationEngine.init)
      */
     override fun init() {
         embeddedServer?.start()
@@ -123,6 +127,8 @@ public open class ServletApplicationEngine : KtorServlet() {
         /**
          * An embedded server instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.EnvironmentAttributeKey)
          */
         public const val EnvironmentAttributeKey: String = "_ktor_environment_instance"
         public const val ApplicationAttributeKey: String = "_ktor_application_instance"
@@ -130,6 +136,8 @@ public open class ServletApplicationEngine : KtorServlet() {
         /**
          * An application engine pipeline instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.ServletApplicationEngine.Companion.ApplicationEnginePipelineAttributeKey)
          */
         public const val ApplicationEnginePipelineAttributeKey: String = "_ktor_application_engine_pipeline_instance"
 

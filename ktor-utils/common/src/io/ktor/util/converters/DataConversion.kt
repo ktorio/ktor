@@ -11,6 +11,8 @@ import kotlin.reflect.*
 
 /**
  * Data conversion plugin to serialize and deserialize types using [converters] registry
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DataConversion)
  */
 public class DataConversion(configuration: Configuration) : ConversionService {
     private val converters: Map<KClass<*>, ConversionService> = configuration.converters.toMap()
@@ -31,6 +33,8 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 
     /**
      * Data conversion service configuration
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DataConversion.Configuration)
      */
     @KtorDsl
     public class Configuration {
@@ -38,6 +42,8 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 
         /**
          * Register a [convertor] for [type] type
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DataConversion.Configuration.convert)
          */
         public fun convert(type: KClass<*>, convertor: ConversionService) {
             converters[type] = convertor
@@ -45,6 +51,8 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 
         /**
          * Register and [configure] convertor for type [klass]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DataConversion.Configuration.convert)
          */
         @Suppress("UNCHECKED_CAST")
         public fun <T : Any> convert(type: KType, configure: DelegatingConversionService.Configuration<T>.() -> Unit) {
@@ -61,6 +69,8 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 
         /**
          * Register and [configure] convertor for reified type [T]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DataConversion.Configuration.convert)
          */
         public inline fun <reified T : Any> convert(
             noinline configure: DelegatingConversionService.Configuration<T>.() -> Unit
@@ -70,6 +80,8 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 
 /**
  * Implementation of [ConversionService] that delegates [fromValues] and [toValues] to [decoder] and [encoder]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DelegatingConversionService)
  */
 public class DelegatingConversionService(
     private val klass: KClass<*>,
@@ -89,6 +101,8 @@ public class DelegatingConversionService(
 
     /**
      * Custom convertor builder to be used in [DataConversion.Configuration]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DelegatingConversionService.Configuration)
      */
     public class Configuration<T : Any> @PublishedApi internal constructor(internal val klass: KClass<T>) {
 
@@ -97,6 +111,9 @@ public class DelegatingConversionService(
 
         /**
          * Configure decoder function. Only one decoder could be supplied
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DelegatingConversionService.Configuration.decode)
+         *
          * @throws IllegalStateException
          */
         public fun decode(converter: (values: List<String>) -> T) {
@@ -106,6 +123,9 @@ public class DelegatingConversionService(
 
         /**
          * Configure encoder function. Only one encoder could be supplied
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DelegatingConversionService.Configuration.encode)
+         *
          * @throws IllegalStateException
          */
         public fun encode(converter: (value: T) -> List<String>) {

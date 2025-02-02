@@ -19,6 +19,8 @@ private const val WS_REQUESTS_INITIAL_CAPACITY = 16
 
 /**
  * Creates an instance of [KtorNSURLSessionDelegate]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
@@ -41,6 +43,8 @@ public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
  * For WebSockets to work, it's important that users call these functions:
  *   * URLSession:webSocketTask:didOpenWithProtocol:
  *   * URLSession:webSocketTask:didCloseWithCode:reason:
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public class KtorNSURLSessionDelegate(
@@ -112,6 +116,8 @@ public class KtorNSURLSessionDelegate(
 
     /**
      * Disable embedded redirects.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,
@@ -125,6 +131,8 @@ public class KtorNSURLSessionDelegate(
 
     /**
      * Handle challenge.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,

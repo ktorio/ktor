@@ -12,6 +12,9 @@ import java.net.*
 
 /**
  * Represents a content that is served from the specified [uri]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.URIFileContent)
+ *
  * @property uri that is used as a source
  */
 public class URIFileContent(

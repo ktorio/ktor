@@ -11,7 +11,11 @@ import kotlin.time.Duration.Companion.minutes
 
 abstract class ClientEngineTest<T : HttpClientEngineConfig>(private val factory: HttpClientEngineFactory<T>) {
 
-    /** Perform test against the client specified in the test constructor. */
+    /**
+     * Perform test against the client specified in the test constructor.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientEngineTest.testClient)
+     */
     fun testClient(
         timeout: Duration = 1.minutes,
         retries: Int = DEFAULT_RETRIES,

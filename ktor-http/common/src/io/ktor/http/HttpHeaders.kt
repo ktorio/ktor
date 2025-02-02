@@ -126,6 +126,8 @@ public object HttpHeaders {
 
     /**
      * Check if [header] is unsafe. Header is unsafe if listed in [UnsafeHeadersList]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpHeaders.isUnsafe)
      */
     public fun isUnsafe(header: String): Boolean = UnsafeHeadersArray.any { it.equals(header, ignoreCase = true) }
 
@@ -141,11 +143,15 @@ public object HttpHeaders {
 
     /**
      * A list of header names that are not safe to use unless it is low-level engine implementation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpHeaders.UnsafeHeadersList)
      */
     public val UnsafeHeadersList: List<String> = UnsafeHeadersArray.asList()
 
     /**
      * Validates header [name] throwing [IllegalHeaderNameException] when the name is not valid.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpHeaders.checkHeaderName)
      */
     public fun checkHeaderName(name: String) {
         name.forEachIndexed { index, ch ->
@@ -157,6 +163,8 @@ public object HttpHeaders {
 
     /**
      * Validates header [value] throwing [IllegalHeaderValueException] when the value is not valid.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpHeaders.checkHeaderValue)
      */
     public fun checkHeaderValue(value: String) {
         value.forEachIndexed { index, ch ->
@@ -169,6 +177,8 @@ public object HttpHeaders {
 
 /**
  * Thrown when an attempt to set unsafe header detected. A header is unsafe if listed in [HttpHeaders.UnsafeHeadersList].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.UnsafeHeaderException)
  */
 public class UnsafeHeaderException(header: String) : IllegalArgumentException(
     "Header(s) $header are controlled by the engine and " +
@@ -179,6 +189,9 @@ public class UnsafeHeaderException(header: String) : IllegalArgumentException(
  * Thrown when an illegal header name was used.
  * A header name should only consist from visible characters
  * without delimiters "double quote" and the following characters: `(),/:;<=>?@[\]{}`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.IllegalHeaderNameException)
+ *
  * @property headerName that was tried to use
  * @property position at which validation failed
  */
@@ -191,6 +204,9 @@ public class IllegalHeaderNameException(public val headerName: String, public va
 /**
  * Thrown when an illegal header value was used.
  * A header value should only consist from visible characters, spaces and/or HTAB (0x09).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.IllegalHeaderValueException)
+ *
  * @property headerValue that was tried to use
  * @property position at which validation failed
  */

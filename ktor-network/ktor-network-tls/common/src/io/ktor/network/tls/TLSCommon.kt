@@ -10,6 +10,8 @@ import kotlin.coroutines.*
 
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public expect suspend fun Socket.tls(
     coroutineContext: CoroutineContext,
@@ -20,16 +22,22 @@ public expect suspend fun Socket.tls(
  * Make [Socket] connection secure with TLS.
  *
  * TODO: report YT issue
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public suspend fun Socket.tls(coroutineContext: CoroutineContext): Socket = tls(coroutineContext) {}
 
 /**
  * Make [Socket] connection secure with TLS configured with [block].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public expect suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket
 
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public suspend fun Connection.tls(
     coroutineContext: CoroutineContext,
@@ -47,11 +55,15 @@ public suspend fun Connection.tls(
 
 /**
  * Make [Socket] connection secure with TLS.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
  */
 public suspend fun Connection.tls(coroutineContext: CoroutineContext): Socket = tls(coroutineContext) {}
 
 /**
 * Make [Socket] connection secure with TLS configured with [block].
+*
+* [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
 */
 public suspend fun Connection.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())

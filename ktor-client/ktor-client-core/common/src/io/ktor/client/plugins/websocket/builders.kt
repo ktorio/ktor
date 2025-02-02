@@ -13,6 +13,8 @@ import kotlinx.coroutines.*
 
 /**
  * Installs the [WebSockets] plugin using the [config] as configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) {
@@ -23,6 +25,8 @@ public fun HttpClientConfig<*>.WebSockets(config: WebSockets.Config.() -> Unit) 
 
 /**
  * Opens a [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocketSession)
  */
 public suspend fun HttpClient.webSocketSession(
     block: HttpRequestBuilder.() -> Unit
@@ -60,6 +64,8 @@ public suspend fun HttpClient.webSocketSession(
 
 /**
  * Opens a [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocketSession)
  */
 public suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get,
@@ -75,6 +81,8 @@ public suspend fun HttpClient.webSocketSession(
 
 /**
  * Opens a [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocketSession)
  */
 public suspend fun HttpClient.webSocketSession(
     urlString: String,
@@ -86,6 +94,8 @@ public suspend fun HttpClient.webSocketSession(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocket)
  */
 public suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit,
@@ -111,6 +121,8 @@ public suspend fun HttpClient.webSocket(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocket)
  */
 public suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get,
@@ -132,6 +144,8 @@ public suspend fun HttpClient.webSocket(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.webSocket)
  */
 public suspend fun HttpClient.webSocket(
     urlString: String,
@@ -156,6 +170,8 @@ public suspend fun HttpClient.webSocket(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.ws)
  */
 public suspend fun HttpClient.ws(
     method: HttpMethod = HttpMethod.Get,
@@ -168,6 +184,8 @@ public suspend fun HttpClient.ws(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.ws)
  */
 public suspend fun HttpClient.ws(
     request: HttpRequestBuilder.() -> Unit,
@@ -176,6 +194,8 @@ public suspend fun HttpClient.ws(
 
 /**
  * Opens a [block] with [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.ws)
  */
 public suspend fun HttpClient.ws(
     urlString: String,
@@ -185,6 +205,8 @@ public suspend fun HttpClient.ws(
 
 /**
  * Opens a [block] with secure [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.wss)
  */
 public suspend fun HttpClient.wss(
     request: HttpRequestBuilder.() -> Unit,
@@ -200,6 +222,8 @@ public suspend fun HttpClient.wss(
 
 /**
  * Opens a [block] with secure [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.wss)
  */
 public suspend fun HttpClient.wss(
     urlString: String,
@@ -215,6 +239,8 @@ public suspend fun HttpClient.wss(
 
 /**
  * Opens a [block] with secure [DefaultClientWebSocketSession].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.wss)
  */
 public suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get,

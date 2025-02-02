@@ -16,6 +16,8 @@ public class Events {
 
     /**
      * Subscribe [handler] to an event specified by [definition]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.Events.subscribe)
      */
     public fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
         val registration = HandlerRegistration(handler)
@@ -25,6 +27,8 @@ public class Events {
 
     /**
      * Unsubscribe [handler] from an event specified by [definition]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.Events.unsubscribe)
      */
     public fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
         handlers[definition]?.forEach<HandlerRegistration> {
@@ -37,6 +41,8 @@ public class Events {
      *
      * Handlers are called in order of subscriptions.
      * If some handler throws an exception, all remaining handlers will still run. The exception will eventually be re-thrown.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.Events.raise)
      */
     public fun <T> raise(definition: EventDefinition<T>, value: T) {
         var exception: Throwable? = null
@@ -60,6 +66,8 @@ public class Events {
 
 /**
  * Raises an event the same way as [Events.raise] but catches an exception and logs it if the [logger] is provided
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.raiseCatching)
  */
 public fun <T> Events.raiseCatching(definition: EventDefinition<T>, value: T, logger: Logger? = null) {
     try {
@@ -71,6 +79,8 @@ public fun <T> Events.raiseCatching(definition: EventDefinition<T>, value: T, lo
 
 /**
  * Specifies signature for the event handler
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.EventHandler)
  */
 public typealias EventHandler<T> = (T) -> Unit
 
@@ -82,6 +92,9 @@ public typealias EventHandler<T> = (T) -> Unit
  * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
  * Inheriting of this class is an experimental feature.
  * Instantiate directly if inheritance not necessary.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.EventDefinition)
  *
  * @param T specifies what is a type of value passed to the event
  */

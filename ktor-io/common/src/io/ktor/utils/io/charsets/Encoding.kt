@@ -22,11 +22,15 @@ public expect abstract class Charset {
 
 /**
  * Check if a charset is supported by the current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.isSupported)
  */
 public expect fun Charsets.isSupported(name: String): Boolean
 
 /**
  * Find a charset by name.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.forName)
  */
 public expect fun Charsets.forName(name: String): Charset
 
@@ -61,6 +65,8 @@ public expect abstract class CharsetDecoder
 
 /**
  * Decoder's charset it is created for.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.charset)
  */
 public expect val CharsetDecoder.charset: Charset
 

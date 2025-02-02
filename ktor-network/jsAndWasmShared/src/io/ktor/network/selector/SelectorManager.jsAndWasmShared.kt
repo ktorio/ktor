@@ -13,6 +13,8 @@ public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager
 public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.notifyClosed)
      */
     public actual fun notifyClosed(selectable: Selectable)
 
@@ -24,6 +26,8 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
      * select for different interests for the same selectable simultaneously.
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.select)
      */
     public actual suspend fun select(
         selectable: Selectable,
@@ -35,6 +39,8 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
 
 /**
  * Select interest kind
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectInterest)
  */
 public actual enum class SelectInterest {
     READ,

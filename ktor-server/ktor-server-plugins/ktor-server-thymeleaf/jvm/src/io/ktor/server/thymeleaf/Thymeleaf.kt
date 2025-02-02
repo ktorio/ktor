@@ -16,6 +16,9 @@ import java.util.*
 /**
  * A response content handled by the [io.ktor.server.thymeleaf.Thymeleaf] plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.thymeleaf.ThymeleafContent)
+ *
  * @param template name that is resolved by Thymeleaf
  * @param model to be passed during template rendering
  * @param etag value for the `E-Tag` header (optional)
@@ -36,6 +39,8 @@ public class ThymeleafContent(
  * A plugin that allows you to use Thymeleaf templates as views within your application.
  * Provides the ability to respond with [ThymeleafContent].
  * You can learn more from [Thymeleaf](https://ktor.io/docs/thymeleaf.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.thymeleaf.Thymeleaf)
  */
 public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugin(
     "Thymeleaf",

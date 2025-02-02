@@ -11,6 +11,9 @@ import io.ktor.server.response.*
 /**
  * Responds with the specified [template] and data [model].
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.velocity.respondTemplate)
+ *
  * @see VelocityContent
  */
 public suspend fun ApplicationCall.respondTemplate(

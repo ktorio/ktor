@@ -10,6 +10,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpUpgrade)
+ *
  * @return `true` if an http upgrade is expected according to request [method], [upgrade] header value and
  * parsed [connectionOptions]
  */
@@ -22,6 +25,9 @@ public fun expectHttpUpgrade(
     connectionOptions?.upgrade == true
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpUpgrade)
+ *
  * @return `true` if an http upgrade is expected according to [request]
  */
 public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
@@ -31,6 +37,9 @@ public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
 )
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpBody)
+ *
  * @return `true` if request or response with the specified parameters could have a body
  */
 public fun expectHttpBody(
@@ -54,6 +63,9 @@ public fun expectHttpBody(
 }
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpBody)
+ *
  * @return `true` if request or response with the specified parameters could have a body
  */
 public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
@@ -68,6 +80,9 @@ public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
  * Parse HTTP request or response body using [contentLength], [transferEncoding] and [connectionOptions]
  * writing it to [out].
  * Usually doesn't fail but closing [out] channel with error.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHttpBody)
  *
  * @param contentLength from the corresponding header or -1
  * @param transferEncoding header or `null`
@@ -111,6 +126,9 @@ public suspend fun parseHttpBody(
  * writing it to [out].
  * Usually doesn't fail but closing [out] channel with error.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHttpBody)
+ *
  * @param contentLength from the corresponding header or -1
  * @param transferEncoding header or `null`
  * @param
@@ -132,6 +150,8 @@ public suspend fun parseHttpBody(
 /**
  * Parse HTTP request or response body using request/response's [headers]
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHttpBody)
  */
 public suspend fun parseHttpBody(
     headers: HttpHeadersMap,

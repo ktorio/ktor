@@ -10,6 +10,9 @@ import io.ktor.utils.io.core.*
 
 /**
  * Represents a text content that could be sent
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.TextContent)
+ *
  * @property text to be sent
  */
 public class TextContent(

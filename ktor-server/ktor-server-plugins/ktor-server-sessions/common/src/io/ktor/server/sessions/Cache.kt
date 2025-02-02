@@ -10,31 +10,43 @@ import kotlin.coroutines.*
 
 /**
  * A cache for [CookieStorage]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache)
  */
 public interface Cache<in K : Any, V : Any> {
 
     /**
      * Returns value for [key] or computes ans saves it if it's not found in the cache.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache.getOrCompute)
      */
     public suspend fun getOrCompute(key: K): V
 
     /**
      * Returns value for [key] or `null` if it's not found in the cache.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache.peek)
      */
     public fun peek(key: K): V?
 
     /**
      * Invalidates [key] in the cache.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache.invalidate)
      */
     public fun invalidate(key: K): V?
 
     /**
      * Invalidates [key] in this cache if its value equals to [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache.invalidate)
      */
     public fun invalidate(key: K, value: V): Boolean
 
     /**
      * Invalidates all keys in the cache.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.Cache.invalidateAll)
      */
     public fun invalidateAll()
 }

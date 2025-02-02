@@ -105,6 +105,8 @@ import platform.Security.*
  * This class was heavily inspired by OkHttp, which is a great Http library for Android
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner)
  */
 @OptIn(UnsafeNumber::class)
 public data class CertificatePinner(
@@ -392,6 +394,8 @@ public data class CertificatePinner(
 
     /**
      * Builds a configured [CertificatePinner].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder)
      */
     public data class Builder(
         private val pinnedCertificates: MutableList<PinnedCertificate> = mutableListOf(),
@@ -399,6 +403,9 @@ public data class CertificatePinner(
     ) {
         /**
          * Pins certificates for `pattern`.
+         *
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder.add)
          *
          * @param pattern lower-case host name or wildcard pattern such as `*.example.com`.
          * @param pins SHA-256 or SHA-1 hashes. Each pin is a hash of a certificate's
@@ -419,6 +426,9 @@ public data class CertificatePinner(
         /**
          * Whether to valid the trust of the server
          * https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder.validateTrust)
+         *
          * @param validateTrust
          * @return The [Builder] so calls can be chained
          */
@@ -428,6 +438,9 @@ public data class CertificatePinner(
 
         /**
          * Build into a [CertificatePinner]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder.build)
+         *
          * @return [CertificatePinner]
          */
         public fun build(): CertificatePinner = CertificatePinner(

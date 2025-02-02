@@ -25,11 +25,15 @@ private class AtomicCounter {
 
 /**
  * Configuration used by [Auth] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig)
  */
 @KtorDsl
 public class AuthConfig {
     /**
      * [AuthProvider] list to use.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.providers)
      */
     public val providers: MutableList<AuthProvider> = mutableListOf()
 
@@ -39,6 +43,8 @@ public class AuthConfig {
      * By default checks against HTTP status 401.
      *
      * You can set this value via [reAuthorizeOnResponse].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.isUnauthorizedResponse)
      */
     @InternalAPI
     public var isUnauthorizedResponse: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
@@ -48,6 +54,8 @@ public class AuthConfig {
      * Sets a custom function to control whether a response is unauthorized and should trigger a refresh / re-auth.
      *
      * Use this to change the value of [isUnauthorizedResponse].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.reAuthorizeOnResponse)
      */
     public fun reAuthorizeOnResponse(block: suspend (HttpResponse) -> Boolean) {
         @OptIn(InternalAPI::class)
@@ -57,6 +65,8 @@ public class AuthConfig {
 
 /**
  * Shows that request should skip auth and refresh token procedure.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthCircuitBreaker)
  */
 public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
 
@@ -65,6 +75,9 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  * Typical usage scenarios include logging in users and gaining access to specific resources.
  *
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.Auth)
  *
  * @see [AuthConfig] for configuration options.
  */
@@ -181,6 +194,8 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
 
 /**
  * Install [Auth] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.Auth)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.Auth(block: AuthConfig.() -> Unit) {

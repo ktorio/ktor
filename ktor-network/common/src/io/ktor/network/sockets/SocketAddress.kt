@@ -14,11 +14,15 @@ public expect class InetSocketAddress(
      * The hostname of the socket address.
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.hostname)
      */
     public val hostname: String
 
     /**
      * The port number of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.port)
      */
     public val port: Int
 
@@ -26,11 +30,15 @@ public expect class InetSocketAddress(
      * The hostname of the socket address.
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.component1)
      */
     public operator fun component1(): String
 
     /**
      * The port number of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.component2)
      */
     public operator fun component2(): Int
 
@@ -38,6 +46,8 @@ public expect class InetSocketAddress(
      * Create a copy of [InetSocketAddress].
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.copy)
      */
     public fun copy(hostname: String = this.hostname, port: Int = this.port): InetSocketAddress
 
@@ -51,16 +61,22 @@ public expect class UnixSocketAddress(
 ) : SocketAddress {
     /**
      * The path of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.path)
      */
     public val path: String
 
     /**
      * The path of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.component1)
      */
     public operator fun component1(): String
 
     /**
      * Create a copy of [UnixSocketAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.copy)
      */
     public fun copy(path: String = this.path): UnixSocketAddress
     override fun equals(other: Any?): Boolean

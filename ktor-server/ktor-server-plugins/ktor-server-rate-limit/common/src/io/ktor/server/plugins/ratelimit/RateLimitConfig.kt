@@ -16,6 +16,8 @@ import kotlin.time.*
 
 /**
  * A config for the [RateLimit] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitConfig)
  */
 @KtorDsl
 public class RateLimitConfig {
@@ -25,6 +27,8 @@ public class RateLimitConfig {
 
     /**
      * Registers the Rate-Limit provider that can be used in sub-routes via the [Route.rateLimit] function.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitConfig.register)
      */
     public fun register(name: RateLimitName = LIMITER_NAME_EMPTY, block: RateLimitProviderConfig.() -> Unit) {
         if (providers.containsKey(name)) {
@@ -39,6 +43,8 @@ public class RateLimitConfig {
 
     /**
      * Registers the Rate-Limit provider that is applied to a whole application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitConfig.global)
      */
     public fun global(block: RateLimitProviderConfig.() -> Unit) {
         global = RateLimitProvider(
@@ -51,12 +57,16 @@ public class RateLimitConfig {
 
 /**
  * A name of registered [RateLimit] provider.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitName)
  */
 @JvmInline
 public value class RateLimitName(internal val name: String)
 
 /**
  * A config for [RateLimit] provider inside [RateLimiterConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig)
  */
 @KtorDsl
 public class RateLimitProviderConfig(internal val name: RateLimitName) {
@@ -84,6 +94,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
 
     /**
      * Sets [RateLimit] for this provider based on [ApplicationCall] and `key` of this request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiter)
      */
     public fun rateLimiter(provider: (call: ApplicationCall, key: Any) -> RateLimiter) {
         rateLimiterProvider = provider
@@ -91,6 +103,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
 
     /**
      * Sets [RateLimit] for this provider
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiter)
      */
     public fun rateLimiter(
         limit: Int,
@@ -107,6 +121,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Sets a function that returns a key for a request. Requests with different keys will have independent Rate-Limits.
      * Keys should have good equals and hashCode implementations.
      * By default, the key is a [Unit], so all requests share the same Rate-Limit.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.requestKey)
      */
     public fun requestKey(block: suspend (ApplicationCall) -> Any) {
         requestKey = block
@@ -116,6 +132,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Sets a function that returns a weight of a request.
      * Weight is used to calculate how many tokens are consumed by a request.
      * By default, weight is always 1.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.requestWeight)
      */
     public fun requestWeight(block: suspend (ApplicationCall, key: Any) -> Int) {
         requestWeight = block
@@ -136,6 +154,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * if request is declined:
      *
      *    `Retry-After` time to wait for next limit reset time in seconds
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.modifyResponse)
      */
     public fun modifyResponse(block: (ApplicationCall, RateLimiter.State) -> Unit) {
         modifyResponse = block

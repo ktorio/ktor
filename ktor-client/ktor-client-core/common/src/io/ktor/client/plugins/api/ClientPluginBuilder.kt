@@ -17,6 +17,8 @@ import io.ktor.utils.io.*
 
 /**
  * An utility class used to build a [ClientPlugin] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder)
  **/
 @KtorDsl
 public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
@@ -40,6 +42,9 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * This block is invoked for every [HttpClient.request] call.
      * There you can modify the request in a way you want: add headers, configure logging, etc.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.onRequest)
+     *
      * @see [createClientPlugin]
      *
      * @param block An action that needs to be executed when a client creates an HTTP request.
@@ -56,6 +61,9 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * This block is invoked for every incoming response.
      * There you can inspect the response in a way you want: save cookies, add logging, etc.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.onResponse)
+     *
      * @see [createClientPlugin]
      *
      * @param block An action that needs to be executed when a client receives an HTTP response.
@@ -71,6 +79,9 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      *
      * This block is invoked for every [HttpClient.request] call.
      * Here you should serialize body into [OutgoingContent] or return `null` if your transformation is not applicable.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.transformRequestBody)
      *
      * @see [createClientPlugin]
      *
@@ -93,6 +104,9 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * Here you should deserialize body into an instance of [requestedType]
      * or return `null` if your transformation is not applicable.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.transformResponseBody)
+     *
      * @see [createClientPlugin]
      *
      * @param block A transformation of response body.
@@ -109,6 +123,8 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
 
     /**
      * Specifies the [block] to clean resources allocated with this plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.onClose)
      */
     public fun onClose(block: () -> Unit) {
         onClose = block
@@ -118,6 +134,9 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * Specifies a [handler] for a specific [hook].
      * A [hook] can be a specific place in time or event during the request
      * processing like receiving a response, an exception during call processing, etc.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.on)
      *
      * @see [createClientPlugin]
      */

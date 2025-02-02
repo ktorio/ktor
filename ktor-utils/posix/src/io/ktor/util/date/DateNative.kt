@@ -9,6 +9,9 @@ import platform.posix.*
 
 /**
  * Create new gmt date from the [timestamp].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
+ *
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
@@ -47,6 +50,8 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
  */
 @OptIn(ExperimentalForeignApi::class)
 public actual fun GMTDate(

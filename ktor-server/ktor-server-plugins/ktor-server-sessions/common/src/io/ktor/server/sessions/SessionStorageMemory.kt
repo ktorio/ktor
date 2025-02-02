@@ -11,6 +11,9 @@ import io.ktor.util.collections.*
  *
  * Note that [SessionStorageMemory] is intended for development only.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionStorageMemory)
+ *
  * @see [Sessions]
  */
 public class SessionStorageMemory : SessionStorage {
