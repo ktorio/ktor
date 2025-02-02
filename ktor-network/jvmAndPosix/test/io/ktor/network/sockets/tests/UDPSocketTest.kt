@@ -102,6 +102,7 @@ class UDPSocketTest {
         assertTrue(clientSocket.isClosed)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testClose() = testSockets { selector ->
         val socket = aSocket(selector)
@@ -112,6 +113,8 @@ class UDPSocketTest {
 
         socket.socketContext.join()
         assertTrue(socket.isClosed)
+        assertTrue(socket.incoming.isClosedForReceive)
+        assertTrue(socket.outgoing.isClosedForSend)
     }
 
     @Test

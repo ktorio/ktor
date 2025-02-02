@@ -61,7 +61,7 @@ internal class DatagramSocketNative(
 
     override fun close() {
         receiver.cancel()
-        context.complete()
+        context.cancel("Socket closed")
         context.invokeOnCompletion {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
             // Descriptor is closed by the selector manager
