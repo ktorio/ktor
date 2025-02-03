@@ -140,11 +140,16 @@ public class KtorNSURLSessionDelegate(
         didReceiveChallenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
-        val handler = challengeHandler
-        if (handler != null) {
-            handler(session, task, didReceiveChallenge, completionHandler)
-        } else {
+        val handler = challengeHandler ?: run {
             completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, didReceiveChallenge.proposedCredential)
+            return
+        }
+
+        try {
+            handler(session, task, didReceiveChallenge, completionHandler)
+        } catch (cause: Throwable) {
+            taskHandlers[task]?.saveFailure(cause)
+            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
         }
     }
 }
