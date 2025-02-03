@@ -163,6 +163,19 @@ public class BasicAuthProvider(
         return true
     }
 
+    /**
+     * Clears the currently stored authentication tokens from the cache.
+     *
+     * This method should be called in the following cases:
+     * - When the credentials have been updated and need to take effect
+     * - When you want to force re-authentication
+     * - When you want to clear sensitive authentication data
+     *
+     * Note: The result of [credentials] invocation is cached internally.
+     * Calling this method will force the next authentication attempt to fetch fresh credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthProvider.clearToken)
+     */
     public fun clearToken() {
         tokensHolder.clearToken()
     }
