@@ -1,12 +1,18 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.http.auth.*
-import kotlin.test.*
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class BasicProviderTest {
     @Test
@@ -42,6 +48,24 @@ class BasicProviderTest {
         assertNotNull(header)
 
         assertTrue(provider.isApplicable(header), "Provider with capitalized scheme should be applicable")
+    }
+
+    @Test
+    fun `update credentials after clearToken`() = runTest {
+        var credentials = BasicAuthCredentials("admin", "admin")
+        val provider = BasicAuthProvider(credentials = { credentials })
+
+        val requestBuilder = HttpRequestBuilder()
+        suspend fun assertAuthorizationHeader(expected: String) {
+            provider.addRequestHeaders(requestBuilder, authHeader = null)
+            assertEquals(expected, requestBuilder.headers[HttpHeaders.Authorization])
+        }
+
+        assertAuthorizationHeader("Basic YWRtaW46YWRtaW4=")
+        credentials = BasicAuthCredentials("user", "qwerty")
+        assertAuthorizationHeader("Basic YWRtaW46YWRtaW4=")
+        provider.clearToken()
+        assertAuthorizationHeader("Basic dXNlcjpxd2VydHk=")
     }
 
     private fun buildAuthString(username: String, password: String): String =

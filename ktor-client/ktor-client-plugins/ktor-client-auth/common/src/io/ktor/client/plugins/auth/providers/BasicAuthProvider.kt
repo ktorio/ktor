@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -161,6 +161,10 @@ public class BasicAuthProvider(
     override suspend fun refreshToken(response: HttpResponse): Boolean {
         tokensHolder.setToken(credentials)
         return true
+    }
+
+    public fun clearToken() {
+        tokensHolder.clearToken()
     }
 }
 
