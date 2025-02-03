@@ -82,7 +82,7 @@ internal class TCPServerSocketNative(
     }
 
     override fun close() {
-        _socketContext.complete()
+        _socketContext.cancel("Server socket closed")
         _socketContext.invokeOnCompletion {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
             // Descriptor is closed by the selector manager

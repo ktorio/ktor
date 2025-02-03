@@ -32,7 +32,7 @@ internal class TCPSocketNative(
         attachForWritingImpl(channel, descriptor, selectable, selector)
 
     override fun close() {
-        context.complete()
+        context.cancel("Socket closed")
         context.invokeOnCompletion {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
             // Descriptor is closed by the selector manager
