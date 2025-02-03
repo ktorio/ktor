@@ -370,6 +370,7 @@ abstract class io.ktor.server.engine/BaseApplicationResponse : io.ktor.server.re
         final val EngineResponseAttributeKey // io.ktor.server.engine/BaseApplicationResponse.Companion.EngineResponseAttributeKey|{}EngineResponseAttributeKey[0]
             final fun <get-EngineResponseAttributeKey>(): io.ktor.util/AttributeKey<io.ktor.server.engine/BaseApplicationResponse> // io.ktor.server.engine/BaseApplicationResponse.Companion.EngineResponseAttributeKey.<get-EngineResponseAttributeKey>|<get-EngineResponseAttributeKey>(){}[0]
 
+        final fun setupFallbackResponse(io.ktor.server.engine/EnginePipeline) // io.ktor.server.engine/BaseApplicationResponse.Companion.setupFallbackResponse|setupFallbackResponse(io.ktor.server.engine.EnginePipeline){}[0]
         final fun setupSendPipeline(io.ktor.server.response/ApplicationSendPipeline) // io.ktor.server.engine/BaseApplicationResponse.Companion.setupSendPipeline|setupSendPipeline(io.ktor.server.response.ApplicationSendPipeline){}[0]
     }
 }

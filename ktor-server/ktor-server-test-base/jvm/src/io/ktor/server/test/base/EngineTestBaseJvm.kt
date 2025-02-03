@@ -334,8 +334,6 @@ actual abstract class EngineTestBase<
 
                 followRedirects = false
                 expectSuccess = false
-
-                install(HttpRequestRetry)
             }
         }
 
