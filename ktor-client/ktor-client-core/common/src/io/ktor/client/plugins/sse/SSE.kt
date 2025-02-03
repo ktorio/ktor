@@ -17,8 +17,10 @@ import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.flow.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlin.coroutines.CoroutineContext
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.sse.SSE")
 
@@ -83,50 +85,45 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val reconnectionTime = pluginConfig.reconnectionTime
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
+    var allowReconnection = pluginConfig.allowReconnection
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
             return@on content
         }
-        LOGGER.trace("Sending SSE request ${request.url}")
+        LOGGER.trace("Sending SSE request to ${request.url}")
         request.setCapability(SSECapability, Unit)
 
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
+        if (localReconnectionTime != null) {
+            allowReconnection = true
+        }
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
 
         request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
+        request.attributes.put(SSEClientForReconnectionAttr, client)
         content.contentType?.let { request.contentType(it) }
         SSEClientContent(
             localReconnectionTime ?: reconnectionTime,
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
+            allowReconnection,
+            currentCoroutineContext(),
+            request,
             content
         )
     }
 
     client.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, session) ->
         val response = context.response
-        val status = response.status
-        val contentType = response.contentType()
-        val requestContent = response.request.content
+        val request = response.request
 
-        if (requestContent !is SSEClientContent) {
+        if (request.attributes.getOrNull(sseRequestAttr) != true) {
             LOGGER.trace("Skipping non SSE response from ${response.request.url}")
             return@intercept
         }
-        if (status != HttpStatusCode.OK) {
-            throw SSEClientException(
-                response,
-                message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
-            )
-        }
-        if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
-            throw SSEClientException(
-                response,
-                message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
-            )
-        }
+        checkResponse(response)
         if (session !is SSESession) {
             throw SSEClientException(
                 response,
@@ -182,5 +179,25 @@ private object AfterRender : ClientHook<suspend (HttpRequestBuilder, OutgoingCon
             if (content !is OutgoingContent) return@intercept
             proceedWith(handler(context, content))
         }
+    }
+}
+
+internal val SSEClientForReconnectionAttr: AttributeKey<HttpClient> = AttributeKey("SSEClientForReconnection")
+internal val SSEReconnectionRequestAttr = AttributeKey<Boolean>("SSEReconnectionRequestAttr")
+
+internal fun checkResponse(response: HttpResponse) {
+    val status = response.status
+    val contentType = response.contentType()
+    if (status != HttpStatusCode.OK) {
+        throw SSEClientException(
+            response,
+            message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
+        )
+    }
+    if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
+        throw SSEClientException(
+            response,
+            message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
+        )
     }
 }
