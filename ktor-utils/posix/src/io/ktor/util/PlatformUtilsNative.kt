@@ -7,9 +7,8 @@ package io.ktor.util
 internal actual val PlatformUtils.isDevelopmentMode: Boolean
     get() = false
 
-@OptIn(ExperimentalStdlibApi::class)
 internal actual val PlatformUtils.isNewMemoryModel: Boolean
-    get() = isExperimentalMM()
+    get() = true
 
 public actual val PlatformUtils.platform: Platform
     get() = Platform.Native
