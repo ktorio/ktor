@@ -12,6 +12,7 @@ import io.ktor.utils.io.*
 import jakarta.servlet.http.*
 import org.eclipse.jetty.server.*
 import kotlin.coroutines.*
+import kotlin.time.Duration
 
 @InternalAPI
 public class JettyApplicationResponse(
@@ -21,7 +22,8 @@ public class JettyApplicationResponse(
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
     private val baseRequest: Request,
-    coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext,
+    idleTimeout: Duration,
 ) : AsyncServletApplicationResponse(
     call,
     servletRequest,
@@ -29,7 +31,8 @@ public class JettyApplicationResponse(
     engineContext,
     userContext,
     JettyUpgradeImpl,
-    coroutineContext
+    coroutineContext,
+    idleTimeout
 ) {
 
     @UseHttp2Push

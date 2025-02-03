@@ -15,6 +15,7 @@ import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
+import kotlin.time.Duration
 
 public open class AsyncServletApplicationCall(
     application: Application,
@@ -24,13 +25,14 @@ public open class AsyncServletApplicationCall(
     userContext: CoroutineContext,
     upgrade: ServletUpgrade,
     parentCoroutineContext: CoroutineContext,
-    managedByEngineHeaders: Set<String> = emptySet()
+    managedByEngineHeaders: Set<String> = emptySet(),
+    idleTimeout: Duration? = null,
 ) : BaseApplicationCall(application), CoroutineScope {
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 
     override val request: AsyncServletApplicationRequest =
-        AsyncServletApplicationRequest(this, servletRequest, parentCoroutineContext + engineContext)
+        AsyncServletApplicationRequest(this, servletRequest, parentCoroutineContext + engineContext, idleTimeout)
 
     override val response: ServletApplicationResponse by lazy {
         AsyncServletApplicationResponse(
@@ -41,6 +43,7 @@ public open class AsyncServletApplicationCall(
             userContext,
             upgrade,
             parentCoroutineContext + engineContext,
+            idleTimeout,
             managedByEngineHeaders
         ).also {
             putResponseAttribute(it)
@@ -55,7 +58,8 @@ public open class AsyncServletApplicationCall(
 public class AsyncServletApplicationRequest(
     call: PipelineCall,
     servletRequest: HttpServletRequest,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    private val idleTimeout: Duration? = null,
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 
     private var upgraded = false
@@ -63,7 +67,7 @@ public class AsyncServletApplicationRequest(
     private val inputStreamChannel by lazy {
         if (!upgraded) {
             val contentLength = servletRequest.contentLength
-            servletReader(servletRequest.inputStream, contentLength).channel
+            servletReader(servletRequest.inputStream, contentLength, idleTimeout).channel
         } else {
             ByteReadChannel.Empty
         }
@@ -84,10 +88,11 @@ public open class AsyncServletApplicationResponse(
     private val userContext: CoroutineContext,
     private val servletUpgradeImpl: ServletUpgrade,
     override val coroutineContext: CoroutineContext,
+    private val idleTimeout: Duration? = null,
     managedByEngineHeaders: Set<String> = emptySet()
 ) : ServletApplicationResponse(call, servletResponse, managedByEngineHeaders), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
-        servletWriter(servletResponse.outputStream)
+        servletWriter(servletResponse.outputStream, idleTimeout)
 
     public final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         try {
