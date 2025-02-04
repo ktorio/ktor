@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.flow
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
+@Deprecated("It should be marked with `@InternalAPI`, please use `ClientSSESession` instead")
 public class DefaultClientSSESession(
     content: SSEClientContent,
     private var input: ByteReadChannel
