@@ -12,7 +12,6 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import platform.posix.*
-import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal actual class SelectorHelper {
@@ -31,29 +30,14 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        val job = scope.launch(CoroutineName("selector")) {
+        return scope.launch(CoroutineName("selector")) {
             selectionLoop()
         }
-
-        job.invokeOnCompletion {
-            cleanup()
-        }
-
-        return job
     }
 
     actual fun requestTermination() {
         interestQueue.close()
         wakeupSignal.signal()
-    }
-
-    private fun cleanup() {
-        closeQueue.close()
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeDescriptor(event)
-        }
-        wakeupSignal.close()
     }
 
     actual fun notifyClosed(descriptor: Int) {
@@ -70,35 +54,56 @@ internal actual class SelectorHelper {
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
 
-        while (!interestQueue.isClosed) {
-            val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
-            val index = memScoped {
-                val length = wsaEvents.size + 1
-                val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
-                    wsaEvents.values.forEachIndexed { index, wsaEvent ->
-                        this[index] = wsaEvent
+        try {
+            while (!interestQueue.isClosed) {
+                val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
+                val index = memScoped {
+                    val length = wsaEvents.size + 1
+                    val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
+                        wsaEvents.values.forEachIndexed { index, wsaEvent ->
+                            this[index] = wsaEvent
+                        }
+                        this[length - 1] = wakeupSignal.event
                     }
-                    this[length - 1] = wakeupSignal.event
+                    WSAWaitForMultipleEvents(
+                        cEvents = length.convert(),
+                        lphEvents = wsaEventsWithWake,
+                        fWaitAll = 0,
+                        dwTimeout = UInt.MAX_VALUE,
+                        fAlertable = 0
+                    ).toInt().check()
                 }
-                WSAWaitForMultipleEvents(
-                    cEvents = length.convert(),
-                    lphEvents = wsaEventsWithWake,
-                    fWaitAll = 0,
-                    dwTimeout = UInt.MAX_VALUE,
-                    fAlertable = 0
-                ).toInt().check()
+
+                processSelectedEvents(watchSet, completed, index, wsaEvents)
             }
-
-            processSelectedEvents(watchSet, completed, index, wsaEvents)
+        } finally {
+            closeQueue.close()
+            wakeupSignal.close()
+            interestQueue.close()
+            while (true) {
+                val event = closeQueue.removeFirstOrNull() ?: break
+                closeSet.add(event)
+            }
+            while (true) {
+                val event = interestQueue.removeFirstOrNull() ?: break
+                watchSet.add(event)
+            }
+            for (descriptor in closeSet) {
+                closeDescriptor(descriptor)
+            }
         }
 
-        val exception = CancellationException("Selector closed")
-        while (!interestQueue.isEmpty) {
-            interestQueue.removeFirstOrNull()?.fail(exception)
-        }
-
-        for (item in watchSet) {
-            item.fail(exception)
+        val exception = IOException("Selector closed")
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
+            } else {
+                event.fail(exception)
+            }
         }
     }
 
@@ -123,7 +128,11 @@ internal actual class SelectorHelper {
 
         for (event in watchSet) {
             if (event.descriptor in closeSet) {
-                event.fail(IOException("Selectable closed"))
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
                 completed.add(event)
             }
         }
@@ -133,6 +142,7 @@ internal actual class SelectorHelper {
         completed.clear()
 
         return watchSet
+            .filter { it.interest != SelectInterest.CLOSE }
             .groupBy { it.descriptor }
             .mapValues { (descriptor, events) ->
                 val wsaEvent = allWsaEvents.computeIfAbsent(descriptor) {
@@ -165,7 +175,9 @@ internal actual class SelectorHelper {
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
-        watchSet.forEach { event ->
+        for (event in watchSet) {
+            if (event.interest == SelectInterest.CLOSE) continue
+
             val wsaEvent = wsaEvents.getValue(event.descriptor)
             val networkEvents = memScoped {
                 val networkEvents = alloc<WSANETWORKEVENTS>()
@@ -178,7 +190,7 @@ internal actual class SelectorHelper {
             val isClosed = networkEvents and FD_CLOSE != 0
 
             if (networkEvents and set == 0 && !isClosed) {
-                return@forEach
+                continue
             }
 
             completed.add(event)
@@ -202,6 +214,7 @@ internal actual class SelectorHelper {
         SelectInterest.WRITE -> FD_WRITE
         SelectInterest.ACCEPT -> FD_ACCEPT
         SelectInterest.CONNECT -> FD_CONNECT
+        SelectInterest.CLOSE -> error("Close should not be selected")
     }
 
     private fun closeDescriptor(descriptor: Int) {

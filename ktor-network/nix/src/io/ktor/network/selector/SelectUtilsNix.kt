@@ -14,7 +14,6 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import platform.posix.*
 import kotlin.coroutines.*
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -49,29 +48,14 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        val job = scope.launch(CoroutineName("selector")) {
+        return scope.launch(CoroutineName("selector")) {
             selectionLoop()
         }
-
-        job.invokeOnCompletion {
-            cleanup()
-        }
-
-        return job
     }
 
     actual fun requestTermination() {
         interestQueue.close()
         wakeupSignal.signal()
-    }
-
-    private fun cleanup() {
-        closeQueue.close()
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeDescriptor(event)
-        }
-        wakeupSignal.close()
     }
 
     actual fun notifyClosed(descriptor: Int) {
@@ -84,15 +68,15 @@ internal actual class SelectorHelper {
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
     private fun selectionLoop() {
+        val completed = mutableSetOf<EventInfo>()
+        val watchSet = mutableSetOf<EventInfo>()
+        val closeSet = mutableSetOf<Int>()
+
         val readSet = select_create_fd_set()
         val writeSet = select_create_fd_set()
         val errorSet = select_create_fd_set()
 
         try {
-            val completed = mutableSetOf<EventInfo>()
-            val watchSet = mutableSetOf<EventInfo>()
-            val closeSet = mutableSetOf<Int>()
-
             while (!interestQueue.isClosed) {
                 watchSet.add(wakeupSignalEvent)
                 var maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
@@ -118,19 +102,38 @@ internal actual class SelectorHelper {
 
                 processSelectedEvents(watchSet, completed, readSet, writeSet, errorSet)
             }
-
-            val exception = CancellationException("Selector closed")
-            while (!interestQueue.isEmpty) {
-                interestQueue.removeFirstOrNull()?.fail(exception)
-            }
-
-            for (item in watchSet) {
-                item.fail(exception)
-            }
         } finally {
             selector_release_fd_set(readSet)
             selector_release_fd_set(writeSet)
             selector_release_fd_set(errorSet)
+
+            closeQueue.close()
+            wakeupSignal.close()
+            interestQueue.close()
+            while (true) {
+                val event = closeQueue.removeFirstOrNull() ?: break
+                closeSet.add(event)
+            }
+            while (true) {
+                val event = interestQueue.removeFirstOrNull() ?: break
+                watchSet.add(event)
+            }
+            for (descriptor in closeSet) {
+                closeDescriptor(descriptor)
+            }
+        }
+
+        val exception = IOException("Selector closed")
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
+            } else {
+                event.fail(exception)
+            }
         }
     }
 
@@ -164,9 +167,13 @@ internal actual class SelectorHelper {
 
         for (event in watchSet) {
             if (event.descriptor in closeSet) {
-                event.fail(IOException("Selectable closed"))
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
                 completed.add(event)
-            } else {
+            } else if (event.interest != SelectInterest.CLOSE) {
                 addInterest(event, readSet, writeSet, errorSet)
                 maxDescriptor = max(maxDescriptor, event.descriptor)
             }
@@ -211,6 +218,8 @@ internal actual class SelectorHelper {
         errorSet: CValue<selection_set>
     ) {
         for (event in watchSet) {
+            if (event.interest == SelectInterest.CLOSE) continue
+
             val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
             if (select_fd_isset(event.descriptor, errorSet) != 0) {
@@ -244,6 +253,7 @@ internal actual class SelectorHelper {
         SelectInterest.WRITE -> writeSet
         SelectInterest.ACCEPT -> readSet
         SelectInterest.CONNECT -> writeSet
+        SelectInterest.CLOSE -> error("Close should not be selected")
     }
 
     private fun closeDescriptor(descriptor: Int) {

@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import platform.posix.*
 import kotlin.coroutines.*
 
@@ -79,12 +80,18 @@ internal class TCPServerSocketNative(
     }
 
     override fun close() {
-        _socketContext.complete()
-        _socketContext.invokeOnCompletion {
-            ktor_shutdown(descriptor, ShutdownCommands.Both)
-            // Descriptor is closed by the selector manager
-            selector.notifyClosed(this)
+        ktor_shutdown(descriptor, ShutdownCommands.Both)
+        // Close select call must happen before notifyClosed, so run undispatched.
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            // SelectorManager could throw exception if it is closed, ignore it as notifyClosed
+            // will still close the descriptor as expected.
+            try {
+                selector.select(this@TCPServerSocketNative, SelectInterest.CLOSE)
+            } catch (ignored: IOException) {
+            }
         }
+        selector.notifyClosed(this)
+        _socketContext.complete()
     }
 }
 

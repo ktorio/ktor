@@ -7,6 +7,8 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.CoroutineContext
 
 internal abstract class NativeSocketImpl(
@@ -24,6 +26,15 @@ internal abstract class NativeSocketImpl(
     override fun actualClose(): Throwable? {
         return try {
             ktor_shutdown(descriptor, ShutdownCommands.Both)
+            // Close select call must happen before notifyClosed, so run undispatched.
+            launch(start = CoroutineStart.UNDISPATCHED) {
+                // SelectorManager could throw exception if it is closed, ignore it as notifyClosed
+                // will still close the descriptor as expected.
+                try {
+                    selector.select(this@NativeSocketImpl, SelectInterest.CLOSE)
+                } catch (ignored: IOException) {
+                }
+            }
             super.close()
             null
         } catch (cause: Throwable) {

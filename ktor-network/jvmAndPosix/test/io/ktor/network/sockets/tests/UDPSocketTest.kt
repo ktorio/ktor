@@ -56,7 +56,7 @@ class UDPSocketTest {
         }
 
         assertTrue(denied)
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
     }
 
@@ -95,10 +95,10 @@ class UDPSocketTest {
 
         server.join()
 
-        serverSocket.socketContext.join()
+        serverSocket.awaitClosed()
         assertTrue(serverSocket.isClosed)
 
-        clientSocket.socketContext.join()
+        clientSocket.awaitClosed()
         assertTrue(clientSocket.isClosed)
     }
 
@@ -111,7 +111,7 @@ class UDPSocketTest {
 
         socket.close()
 
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
         assertTrue(socket.incoming.isClosedForReceive)
         assertTrue(socket.outgoing.isClosedForSend)
@@ -136,7 +136,7 @@ class UDPSocketTest {
         socket.close()
         socket.close()
 
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
         assertEquals(1, done.value)
     }
@@ -155,7 +155,7 @@ class UDPSocketTest {
         socket.outgoing.close(AssertionError())
 
         assertEquals(1, done.value)
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
     }
 
@@ -173,7 +173,7 @@ class UDPSocketTest {
 
         assertEquals(1, done.value)
 
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
     }
 
@@ -192,7 +192,7 @@ class UDPSocketTest {
 
         assertEquals(1, done.value)
 
-        socket.socketContext.join()
+        socket.awaitClosed()
         assertTrue(socket.isClosed)
     }
 

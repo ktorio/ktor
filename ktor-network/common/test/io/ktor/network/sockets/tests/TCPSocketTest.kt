@@ -132,6 +132,7 @@ class TCPSocketTest {
         val tcp = aSocket(selector).tcp()
         val server = tcp.bind("127.0.0.1")
         server.close()
+        server.awaitClosed()
 
         assertFailsWith<IOException> {
             aSocket(selector)
@@ -174,9 +175,9 @@ class TCPSocketTest {
         serverConnection.close()
         server.close()
 
-        clientConnection.socketContext.join()
-        serverConnection.socketContext.join()
-        server.socketContext.join()
+        clientConnection.awaitClosed()
+        serverConnection.awaitClosed()
+        server.awaitClosed()
 
         assertTrue(clientConnection.isClosed)
         assertTrue(clientInput.isClosedForRead)
@@ -203,6 +204,7 @@ class TCPSocketTest {
         delay(100) // Make sure socket is awaiting connection using ACCEPT
 
         socket.close()
+        socket.awaitClosed()
         acceptJob.join()
     }
 
@@ -222,6 +224,22 @@ class TCPSocketTest {
         }
 
         socket.close()
+        socket.awaitClosed()
         acceptJob.join()
+    }
+
+    @Test
+    fun testBindMultipleTimes() = testSockets { selector ->
+        var port = 0
+        repeat(10) {
+            val socket = aSocket(selector)
+                .tcp()
+                .bind("127.0.0.1", port)
+            if (port == 0) {
+                port = socket.port
+            }
+            socket.close()
+            socket.awaitClosed()
+        }
     }
 }

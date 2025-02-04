@@ -41,11 +41,15 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     public actual companion object
 }
 
+/**
+ * Only use this function if [descriptor] is not used by [SelectorManager].
+ */
 internal inline fun <T> buildOrClose(descriptor: Int, block: () -> T): T {
     try {
         return block()
     } catch (throwable: Throwable) {
         ktor_shutdown(descriptor, ShutdownCommands.Both)
+        // Descriptor can be safely closed here as there should not be any select code active on it.
         close(descriptor)
         throw throwable
     }
@@ -60,7 +64,8 @@ public actual enum class SelectInterest {
     READ,
     WRITE,
     ACCEPT,
-    CONNECT;
+    CONNECT,
+    CLOSE;
 
     public actual companion object {
         public actual val AllInterests: Array<SelectInterest>
