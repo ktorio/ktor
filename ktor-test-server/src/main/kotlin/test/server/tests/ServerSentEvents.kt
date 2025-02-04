@@ -126,10 +126,15 @@ internal fun Application.serverSentEvents() {
                     send(id = "$currentId")
                 }
             }
+            var countOfReconnections = 0
             get("exception-on-reconnection") {
                 val count = call.parameters["count"]?.toInt() ?: 0
+                val maxCountOfReconnections = call.parameters["count-of-reconnections"]?.toInt() ?: -1
                 val lastEventId = call.request.header("Last-Event-ID")
-                if (lastEventId == null) {
+                call.response.headers.append("MY-HEADER", "$countOfReconnections")
+                countOfReconnections++
+                if (lastEventId == null || countOfReconnections == maxCountOfReconnections) {
+                    countOfReconnections = 0
                     call.respondSseEvents(
                         flow {
                             repeat(count) {

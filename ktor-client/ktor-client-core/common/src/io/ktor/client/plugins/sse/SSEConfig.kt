@@ -35,6 +35,13 @@ public class SSEConfig {
     public var reconnectionTime: Duration = 3000.milliseconds
 
     /**
+     * The maximum amount of retries to perform for a reconnection request
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.maxRetries)
+     */
+    public var maxRetries: Int = 3
+
+    /**
      * Adds events consisting only of comments in the incoming flow.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.showCommentEvents)

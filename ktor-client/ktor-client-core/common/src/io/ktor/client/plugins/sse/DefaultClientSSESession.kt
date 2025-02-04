@@ -24,6 +24,7 @@ public class DefaultClientSSESession(
     private val showCommentEvents = content.showCommentEvents
     private val showRetryEvents = content.showRetryEvents
     private var needToReconnect = content.allowReconnection
+    private val maxRetries = content.maxRetries
 
     private val initialRequest = content.initialRequest
 
@@ -59,27 +60,36 @@ public class DefaultClientSSESession(
     }
 
     private suspend fun doReconnection() {
-        try {
-            withContext(coroutineContext) {
-                input.cancel()
+        var retries = 1
+        while (retries <= maxRetries) {
+            try {
+                withContext(coroutineContext) {
+                    input.cancel()
 
-                delay(reconnectionTimeMillis)
+                    delay(reconnectionTimeMillis)
 
-                val reconnectionRequest = getRequestForReconnection()
-                LOGGER.trace("Sending SSE request ${reconnectionRequest.url}")
+                    val reconnectionRequest = getRequestForReconnection()
+                    LOGGER.trace("Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxRetries + 1})")
 
-                val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
-                LOGGER.trace("Receive response for reconnection SSE request to ${reconnectionRequest.url}")
-                checkResponse(reconnectionResponse)
+                    val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
+                    LOGGER.trace("Receive response for reconnection SSE request to ${reconnectionRequest.url}")
+                    checkResponse(reconnectionResponse)
 
-                input = reconnectionResponse.rawContent
+                    input = reconnectionResponse.rawContent
+                }
+                return
+            } catch (cause: CancellationException) {
+                close()
+                return
+            } catch (cause: Throwable) {
+                if (retries == maxRetries) {
+                    LOGGER.trace("Max retries ($maxRetries) reached for SSE reconnection, closing session")
+                    close()
+                    throw cause
+                }
+                LOGGER.trace("SSE reconnection attempt ${retries + 1} failed")
+                retries++
             }
-        } catch (cause: CancellationException) {
-            close()
-        } catch (cause: Throwable) {
-            close()
-
-            throw cause
         }
     }
 

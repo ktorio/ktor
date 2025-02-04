@@ -668,4 +668,38 @@ class ServerSentEventsTest : ClientLoader() {
             assertTrue { 1.seconds < time && time < 2.seconds }
         }
     }
+
+    @Test
+    fun testMaxRetries() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE) {
+                allowReconnection()
+                reconnectionTime = 500.milliseconds
+                maxRetries = 4
+            }
+        }
+
+        test { client ->
+            val events = mutableListOf<ServerSentEvent>()
+            var count = 0
+
+            val time = measureTime {
+                client.sse("$TEST_SERVER/sse/exception-on-reconnection?count=5&count-of-reconnections=4") {
+                    incoming.collect {
+                        events.add(it)
+                        count++
+                        if (count == 10) {
+                            cancel()
+                        }
+                    }
+                }
+            }
+
+            assertEquals(10, events.size)
+            events.forEachIndexed { index, event ->
+                assertEquals(index % 5, event.id?.toInt())
+            }
+            assertTrue { 2.seconds < time && time < 3.seconds }
+        }
+    }
 }
