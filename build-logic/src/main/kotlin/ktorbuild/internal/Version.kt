@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.internal
@@ -14,13 +14,13 @@ import org.gradle.api.Project
  * ```
  */
 internal fun Project.resolveVersion(): String {
-    val projectVersion = version.toString().removeSuffix("-SNAPSHOT")
+    val projectVersion = project.version.toString()
     val releaseVersion = findProperty("releaseVersion")?.toString()
     val eapVersion = findProperty("eapVersion")?.toString()
 
     return when {
         releaseVersion != null -> releaseVersion
-        eapVersion != null -> "$projectVersion-eap-$eapVersion"
+        eapVersion != null -> "${projectVersion.removeSuffix("-SNAPSHOT")}-eap-$eapVersion"
         else -> projectVersion
     }
 }
