@@ -18,7 +18,8 @@ import kotlin.coroutines.CoroutineContext
 @Deprecated("It should be marked with `@InternalAPI`, please use `ClientSSESession` instead")
 public class DefaultClientSSESession(
     content: SSEClientContent,
-    private var input: ByteReadChannel
+    private var input: ByteReadChannel,
+    override val coroutineContext: CoroutineContext
 ) : SSESession {
     private var lastEventId: String? = null
     private var reconnectionTimeMillis = content.reconnectionTime.inWholeMilliseconds
@@ -31,9 +32,10 @@ public class DefaultClientSSESession(
 
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
 
-    private val flowJob = Job()
-    override val coroutineContext: CoroutineContext =
-        content.callContext + flowJob + CoroutineName("DefaultClientSSESession")
+    public constructor(
+        content: SSEClientContent,
+        input: ByteReadChannel
+    ) : this(content, input, content.callContext + Job() + CoroutineName("DefaultClientSSESession"))
 
     private var _incoming = flow {
         while (this@DefaultClientSSESession.coroutineContext.isActive) {
@@ -113,7 +115,6 @@ public class DefaultClientSSESession(
         get() = _incoming
 
     private fun close() {
-        flowJob.complete()
         coroutineContext.cancel()
         input.cancel()
     }

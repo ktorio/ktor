@@ -459,6 +459,7 @@ final class io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization : io.
 
 final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.plugins.sse/SSESession { // io.ktor.client.plugins.sse/DefaultClientSSESession|null[0]
     constructor <init>(io.ktor.client.plugins.sse/SSEClientContent, io.ktor.utils.io/ByteReadChannel) // io.ktor.client.plugins.sse/DefaultClientSSESession.<init>|<init>(io.ktor.client.plugins.sse.SSEClientContent;io.ktor.utils.io.ByteReadChannel){}[0]
+    constructor <init>(io.ktor.client.plugins.sse/SSEClientContent, io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext) // io.ktor.client.plugins.sse/DefaultClientSSESession.<init>|<init>(io.ktor.client.plugins.sse.SSEClientContent;io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
 
     final val coroutineContext // io.ktor.client.plugins.sse/DefaultClientSSESession.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/DefaultClientSSESession.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
