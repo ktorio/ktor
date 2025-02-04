@@ -70,7 +70,9 @@ public class DefaultClientSSESession(
                     delay(reconnectionTimeMillis)
 
                     val reconnectionRequest = getRequestForReconnection()
-                    LOGGER.trace("Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxRetries + 1})")
+                    LOGGER.trace(
+                        "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxRetries + 1})"
+                    )
 
                     val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
                     LOGGER.trace("Receive response for reconnection SSE request to ${reconnectionRequest.url}")

@@ -720,7 +720,6 @@ class ServerSentEventsTest : ClientLoader() {
                 assertEquals(0, incoming.toList().size)
             }
 
-
             val events = mutableListOf<ServerSentEvent>()
             client.sse("$TEST_SERVER/sse/no-content-after-reconnection?count=10") {
                 incoming.collect {
