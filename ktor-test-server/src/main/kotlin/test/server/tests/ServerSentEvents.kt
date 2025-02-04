@@ -146,6 +146,24 @@ internal fun Application.serverSentEvents() {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
+            get("no-content") {
+                call.respond(HttpStatusCode.NoContent)
+            }
+            get("no-content-after-reconnection") {
+                val count = call.parameters["count"]?.toInt() ?: 0
+                val lastEventId = call.request.header("Last-Event-ID")
+                if (lastEventId == null) {
+                    call.respondSseEvents(
+                        flow {
+                            repeat(count) {
+                                emit(SseEvent(id = "$it"))
+                            }
+                        }
+                    )
+                } else {
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }
         }
     }
 }

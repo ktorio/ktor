@@ -22,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -700,6 +701,36 @@ class ServerSentEventsTest : ClientLoader() {
                 assertEquals(index % 5, event.id?.toInt())
             }
             assertTrue { 2.seconds < time && time < 3.seconds }
+        }
+    }
+
+    @Test
+    fun testNoContent() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE) {
+                allowReconnection()
+                reconnectionTime = 0.milliseconds
+            }
+        }
+
+        test { client ->
+
+            client.sse("$TEST_SERVER/sse/no-content") {
+                assertEquals(HttpStatusCode.NoContent, call.response.status)
+                assertEquals(0, incoming.toList().size)
+            }
+
+
+            val events = mutableListOf<ServerSentEvent>()
+            client.sse("$TEST_SERVER/sse/no-content-after-reconnection?count=10") {
+                incoming.collect {
+                    events.add(it)
+                }
+            }
+            assertEquals(10, events.size)
+            events.forEachIndexed { index, event ->
+                assertEquals(index, event.id?.toInt())
+            }
         }
     }
 }

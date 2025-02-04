@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.sse
 
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.sse.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
@@ -74,6 +75,10 @@ public class DefaultClientSSESession(
                     val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
                     LOGGER.trace("Receive response for reconnection SSE request to ${reconnectionRequest.url}")
                     checkResponse(reconnectionResponse)
+
+                    if (reconnectionResponse.status == HttpStatusCode.NoContent) {
+                        needToReconnect = false
+                    }
 
                     input = reconnectionResponse.rawContent
                 }

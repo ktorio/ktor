@@ -190,6 +190,12 @@ internal val SSEReconnectionRequestAttr = AttributeKey<Boolean>("SSEReconnection
 internal fun checkResponse(response: HttpResponse) {
     val status = response.status
     val contentType = response.contentType()
+
+    if (status == HttpStatusCode.NoContent) {
+        LOGGER.trace("Receive status code NoContent for SSE request to ${response.request.url}")
+        return
+    }
+
     if (status != HttpStatusCode.OK) {
         throw SSEClientException(
             response,

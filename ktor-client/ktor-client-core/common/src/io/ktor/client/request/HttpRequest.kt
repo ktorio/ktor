@@ -406,8 +406,8 @@ public class SSEClientResponseAdapter : ResponseAdapter {
         val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         return if (data.isSseRequest() &&
             !data.isSseReconnectionRequest() &&
-            status == HttpStatusCode.OK &&
-            contentType?.withoutParameters() == ContentType.Text.EventStream
+            ((status == HttpStatusCode.OK && contentType?.withoutParameters() == ContentType.Text.EventStream) ||
+            status == HttpStatusCode.NoContent)
         ) {
             outgoingContent as SSEClientContent
             DefaultClientSSESession(outgoingContent, responseBody)
