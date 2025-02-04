@@ -4,7 +4,29 @@
 
 package io.ktor.network.sockets
 
+/**
+ * Represents a socket address abstraction.
+ *
+ * This sealed class serves as the base type for different kinds of socket addresses,
+ * such as Internet-specific or other platform-dependent address types.
+ * Implementations of this class are expected to be platform-specific and provide
+ * details necessary to work with socket connections or bindings.
+ */
 public expect sealed class SocketAddress
+
+/**
+ * Retrieves the port number associated with this socket address.
+ *
+ * If the `SocketAddress` instance is of type `InetSocketAddress`, the associated port is returned.
+ * Otherwise, an `UnsupportedOperationException` is thrown, as the provided address type does not support ports.
+ *
+ * @return the port number of the socket address if available.
+ * @throws UnsupportedOperationException if the socket address type does not support a port.
+ */
+public fun SocketAddress.port(): Int = when (this) {
+    is InetSocketAddress -> port
+    else -> throw UnsupportedOperationException("SocketAddress $this does not have a port")
+}
 
 public expect class InetSocketAddress(
     hostname: String,
