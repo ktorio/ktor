@@ -71,7 +71,7 @@ internal actual class SelectorHelper {
         val closeSet = mutableSetOf<Int>()
 
         while (!interestQueue.isClosed) {
-            val wsaEvents = fillHandlers(watchSet)
+            val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
             val index = memScoped {
                 val length = wsaEvents.size + 1
                 val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
@@ -89,7 +89,7 @@ internal actual class SelectorHelper {
                 ).toInt().check()
             }
 
-            processSelectedEvents(watchSet, closeSet, completed, index, wsaEvents)
+            processSelectedEvents(watchSet, completed, index, wsaEvents)
         }
 
         val exception = CancellationException("Selector closed")
@@ -103,13 +103,34 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun fillHandlers(
-        watchSet: MutableSet<EventInfo>
+    private fun fillHandlersOrClose(
+        watchSet: MutableSet<EventInfo>,
+        completed: MutableSet<EventInfo>,
+        closeSet: MutableSet<Int>,
     ): Map<Int, COpaquePointer?> {
+        while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeSet.add(event)
+        }
         while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
+
+        for (descriptor in closeSet) {
+            closeDescriptor(descriptor)
+        }
+
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                event.fail(IOException("Selectable closed"))
+                completed.add(event)
+            }
+        }
+
+        closeSet.clear()
+        watchSet.removeAll(completed)
+        completed.clear()
 
         return watchSet
             .groupBy { it.descriptor }
@@ -140,22 +161,11 @@ internal actual class SelectorHelper {
     @OptIn(ExperimentalForeignApi::class)
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
-        closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeSet.add(event)
-        }
-
         watchSet.forEach { event ->
-            if (event.descriptor in closeSet) {
-                completed.add(event)
-                event.fail(IOException("Selectable closed"))
-                return@forEach
-            }
             val wsaEvent = wsaEvents.getValue(event.descriptor)
             val networkEvents = memScoped {
                 val networkEvents = alloc<WSANETWORKEVENTS>()
@@ -180,11 +190,6 @@ internal actual class SelectorHelper {
         if (wsaIndex == wsaEvents.size) {
             wakeupSignal.check()
         }
-
-        for (descriptor in closeSet) {
-            closeDescriptor(descriptor)
-        }
-        closeSet.clear()
 
         watchSet.removeAll(completed)
         completed.clear()

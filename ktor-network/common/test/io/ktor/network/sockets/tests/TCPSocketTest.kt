@@ -192,13 +192,36 @@ class TCPSocketTest {
             .tcp()
             .bind(InetSocketAddress("127.0.0.1", 0))
 
-        launch {
-            assertFailsWith<IOException> {
+        val acceptJob = launch {
+            // The accept call should fail with IOException because the socket was closed,
+            // but it must not be a bad descriptor error.
+            val exception = assertFailsWith<IOException> {
                 socket.accept()
             }
+            assertFalse("Bad descriptor" in exception.message.orEmpty())
         }
         delay(100) // Make sure socket is awaiting connection using ACCEPT
 
         socket.close()
+        acceptJob.join()
+    }
+
+    @Test
+    fun testAcceptErrorOnImmediateSocketClose() = testSockets { selector ->
+        val socket = aSocket(selector)
+            .tcp()
+            .bind(InetSocketAddress("127.0.0.1", 0))
+
+        val acceptJob = launch(start = CoroutineStart.UNDISPATCHED) {
+            // The accept call should fail with IOException because the socket was closed,
+            // but it must not be a bad descriptor error.
+            val exception = assertFailsWith<IOException> {
+                socket.accept()
+            }
+            assertFalse("Bad descriptor" in exception.message.orEmpty())
+        }
+
+        socket.close()
+        acceptJob.join()
     }
 }

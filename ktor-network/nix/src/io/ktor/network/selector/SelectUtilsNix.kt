@@ -95,7 +95,7 @@ internal actual class SelectorHelper {
 
             while (!interestQueue.isClosed) {
                 watchSet.add(wakeupSignalEvent)
-                var maxDescriptor = fillHandlers(watchSet, readSet, writeSet, errorSet)
+                var maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
                 if (maxDescriptor == 0) continue
 
                 maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
@@ -116,7 +116,7 @@ internal actual class SelectorHelper {
                     continue
                 }
 
-                processSelectedEvents(watchSet, closeSet, completed, readSet, writeSet, errorSet)
+                processSelectedEvents(watchSet, completed, readSet, writeSet, errorSet)
             }
 
             val exception = CancellationException("Selector closed")
@@ -135,8 +135,10 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun fillHandlers(
+    private fun fillHandlersOrClose(
         watchSet: MutableSet<EventInfo>,
+        completed: MutableSet<EventInfo>,
+        closeSet: MutableSet<Int>,
         readSet: CValue<selection_set>,
         writeSet: CValue<selection_set>,
         errorSet: CValue<selection_set>
@@ -148,14 +150,31 @@ internal actual class SelectorHelper {
         select_fd_clear(errorSet)
 
         while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeSet.add(event)
+        }
+        while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
 
-        for (event in watchSet) {
-            addInterest(event, readSet, writeSet, errorSet)
-            maxDescriptor = max(maxDescriptor, event.descriptor)
+        for (descriptor in closeSet) {
+            closeDescriptor(descriptor)
         }
+
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                event.fail(IOException("Selectable closed"))
+                completed.add(event)
+            } else {
+                addInterest(event, readSet, writeSet, errorSet)
+                maxDescriptor = max(maxDescriptor, event.descriptor)
+            }
+        }
+
+        closeSet.clear()
+        watchSet.removeAll(completed)
+        completed.clear()
 
         return maxDescriptor
     }
@@ -186,24 +205,12 @@ internal actual class SelectorHelper {
     @OptIn(ExperimentalForeignApi::class)
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
-        closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
         readSet: CValue<selection_set>,
         writeSet: CValue<selection_set>,
         errorSet: CValue<selection_set>
     ) {
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeSet.add(event)
-        }
-
         for (event in watchSet) {
-            if (event.descriptor in closeSet) {
-                completed.add(event)
-                event.fail(IOException("Selectable closed"))
-                continue
-            }
-
             val set = descriptorSetByInterestKind(event, readSet, writeSet)
 
             if (select_fd_isset(event.descriptor, errorSet) != 0) {
@@ -222,11 +229,6 @@ internal actual class SelectorHelper {
             completed.add(event)
             event.complete()
         }
-
-        for (descriptor in closeSet) {
-            closeDescriptor(descriptor)
-        }
-        closeSet.clear()
 
         watchSet.removeAll(completed)
         completed.clear()
