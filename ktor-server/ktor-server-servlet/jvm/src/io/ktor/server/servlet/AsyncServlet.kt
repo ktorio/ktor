@@ -28,6 +28,27 @@ public open class AsyncServletApplicationCall(
     managedByEngineHeaders: Set<String> = emptySet(),
     idleTimeout: Duration? = null,
 ) : BaseApplicationCall(application), CoroutineScope {
+    @Deprecated("", level = DeprecationLevel.HIDDEN)
+    public constructor(
+        application: Application,
+        servletRequest: HttpServletRequest,
+        servletResponse: HttpServletResponse,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        upgrade: ServletUpgrade,
+        parentCoroutineContext: CoroutineContext,
+        managedByEngineHeaders: Set<String> = emptySet(),
+    ) : this(
+        application,
+        servletRequest,
+        servletResponse,
+        engineContext,
+        userContext,
+        upgrade,
+        parentCoroutineContext,
+        managedByEngineHeaders,
+        idleTimeout = null
+    )
 
     override val coroutineContext: CoroutineContext = parentCoroutineContext
 

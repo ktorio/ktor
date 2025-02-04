@@ -14,8 +14,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
 import org.junit.jupiter.api.Assertions.assertTrue
 import kotlin.test.Test
@@ -79,7 +79,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
     @Test
     fun idleTimeoutResponseWriter(): Unit = runTest {
         val responseMessage = "Hello, world!".toByteArray()
-        var writeError: Exception? = null
+        var writeError = CompletableDeferred<Exception>()
 
         createAndStartServer {
             get("/hello") {
@@ -91,7 +91,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
                             yield()
                         }
                     } catch (cause: Exception) {
-                        writeError = cause
+                        writeError.complete(cause)
                     }
                 }
             }
@@ -121,11 +121,8 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
                     ch = reader.read()
                 }
             }
-            while (writeError == null) {
-                delay(10)
-            }
             assertTrue { response.endsWith("Hello") }
-            assertIs<ClosedByteChannelException>(writeError)
+            assertIs<ClosedByteChannelException>(writeError.await())
         }
     }
 }

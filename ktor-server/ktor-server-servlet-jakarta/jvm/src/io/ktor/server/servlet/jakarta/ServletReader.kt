@@ -13,7 +13,11 @@ import java.io.*
 import java.util.concurrent.*
 import kotlin.time.Duration
 
-internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int, idleTimeout: Duration? = null): WriterJob {
+internal fun CoroutineScope.servletReader(
+    input: ServletInputStream,
+    contentLength: Int,
+    idleTimeout: Duration? = null
+): WriterJob {
     val reader = ServletReader(input, contentLength, idleTimeout)
 
     return writer(Dispatchers.IO, reader.channel) {
@@ -21,7 +25,11 @@ internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLeng
     }
 }
 
-private class ServletReader(val input: ServletInputStream, val contentLength: Int, val idleTimeout: Duration?) : ReadListener {
+private class ServletReader(
+    val input: ServletInputStream,
+    val contentLength: Int,
+    val idleTimeout: Duration?
+) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
