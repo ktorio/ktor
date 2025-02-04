@@ -7,6 +7,11 @@ package io.ktor.util
 internal actual val PlatformUtils.isDevelopmentMode: Boolean
     get() = false
 
+@Deprecated(
+    "New memory model is now enabled by default. The property will be removed in the future.",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("true")
+)
 internal actual val PlatformUtils.isNewMemoryModel: Boolean
     get() = true
 
