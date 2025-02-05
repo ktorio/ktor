@@ -7,8 +7,8 @@ import io.ktor.utils.io.reader
 import io.ktor.utils.io.writeBuffer
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
 
 private const val KB = 1024L
