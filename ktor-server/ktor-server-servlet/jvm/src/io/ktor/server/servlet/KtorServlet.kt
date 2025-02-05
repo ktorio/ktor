@@ -120,7 +120,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 userContext = Dispatchers.IO,
                 upgrade = upgrade,
                 parentCoroutineContext = coroutineContext,
-                managedByEngineHeaders
+                managedByEngineHeaders,
             )
 
             try {
