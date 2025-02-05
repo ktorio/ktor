@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.utils.io.discard
 import io.ktor.utils.io.reader
 import io.ktor.utils.io.writeBuffer
@@ -7,9 +11,6 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.test.Test
 
-/*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 private const val KB = 1024L
 private const val GB = KB * KB * KB
 
@@ -18,7 +19,11 @@ class ByteWriteChannelOperationsTest {
     @Test
     fun writeSource() = runTest {
         val randomBytes = Path("/dev/random")
-        if (!SystemFileSystem.exists(randomBytes)) return@runTest
+        // throws an exception on wasmJs
+        val randomBytesFileExists = runCatching {
+            SystemFileSystem.exists(randomBytes)
+        }.getOrNull()
+        if (randomBytesFileExists == true) return@runTest
 
         val reader = reader {
             var count = 0L
