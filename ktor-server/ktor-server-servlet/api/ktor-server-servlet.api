@@ -1,6 +1,8 @@
 public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server/engine/BaseApplicationCall, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
+	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
 	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;Lkotlin/time/Duration;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/application/Application;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;Lkotlin/time/Duration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public synthetic fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
 	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
@@ -13,14 +15,15 @@ public class io/ktor/server/servlet/AsyncServletApplicationCall : io/ktor/server
 }
 
 public final class io/ktor/server/servlet/AsyncServletApplicationRequest : io/ktor/server/servlet/ServletApplicationRequest, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;Lkotlin/time/Duration;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/application/PipelineCall;Ljavax/servlet/http/HttpServletRequest;Lkotlin/coroutines/CoroutineContext;Lkotlin/time/Duration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 }
 
 public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/server/servlet/ServletApplicationResponse, kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/server/servlet/AsyncServletApplicationResponse$Companion;
-	public fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;)V
-	public synthetic fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Lkotlin/time/Duration;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/server/servlet/AsyncServletApplicationCall;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/servlet/ServletUpgrade;Lkotlin/coroutines/CoroutineContext;Lkotlin/time/Duration;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	protected fun createResponseJob ()Lio/ktor/utils/io/ReaderJob;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected final fun getServletRequest ()Ljavax/servlet/http/HttpServletRequest;

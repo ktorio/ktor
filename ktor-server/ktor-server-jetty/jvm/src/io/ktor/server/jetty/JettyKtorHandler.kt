@@ -48,6 +48,7 @@ internal class JettyKtorHandler(
     }
     private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+    private val idleTimeout = configuration.idleTimeout
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
 
@@ -89,7 +90,8 @@ internal class JettyKtorHandler(
                     response,
                     engineContext = engineDispatcher,
                     userContext = dispatcher,
-                    coroutineContext = this@launch.coroutineContext
+                    coroutineContext = this@launch.coroutineContext,
+                    idleTimeout = idleTimeout,
                 )
 
                 try {
