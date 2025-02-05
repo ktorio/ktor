@@ -6,11 +6,13 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
+import kotlinx.coroutines.intrinsics.startCoroutineCancellable
 import kotlinx.io.*
 import kotlinx.io.Buffer
-import kotlinx.io.unsafe.*
-import kotlin.coroutines.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeByte(value: Byte) {
@@ -69,8 +71,7 @@ public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
-    writeBuffer.transferFrom(source)
-    flushIfNeeded()
+    writePacket(source)
 }
 
 @OptIn(InternalAPI::class)
@@ -86,9 +87,8 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writeBuffer(value: RawSource) {
-    writeBuffer.transferFrom(value)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
+    writePacket(source.buffered())
 }
 
 @OptIn(InternalAPI::class)
@@ -103,10 +103,16 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
     flushIfNeeded()
 }
 
+/**
+ * Writes the entire source contents to the [ByteChannel].
+ * Prevents memory exhaustion by waiting for buffer to flush.
+ */
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writePacket(copy: Source) {
-    writeBuffer.transferFrom(copy)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writePacket(source: Source) {
+    while (!source.exhausted()) {
+        writeBuffer.write(source, source.remaining)
+        flushIfNeeded()
+    }
 }
 
 public fun ByteWriteChannel.close(cause: Throwable?) {

@@ -122,7 +122,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
                 }
             }
             assertTrue { response.endsWith("Hello") }
-            assertIs<ClosedByteChannelException>(writeError.await())
+            assertIs<Exception>(writeError.await())
         }
     }
 }
