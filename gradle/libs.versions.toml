@@ -14,7 +14,7 @@ kotlinter = "5.0.1"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
-ktor = "3.1.0-eap-1190"
+ktor = "3.1.0-eap-1225"
 
 netty = "4.1.117.Final"
 netty-tcnative = "2.0.69.Final"
