@@ -12,6 +12,23 @@ import kotlinx.io.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
+private val testSize = listOf(
+    0,
+    1, // small edge cases
+    4 * 1024 - 1,
+    4 * 1024,
+    4 * 1024 + 1, // ByteChannel edge cases
+    10 * 4 * 1024, // 4 chunks
+    10 * 4 * (1024 + 8), // 4 chunks
+    8 * 1024 * 1024 // big
+)
+
+private val testArrays = testSize.map {
+    makeArray(it)
+}
+
+private fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
+
 class TCPSocketTest {
 
     @Test
@@ -54,6 +71,47 @@ class TCPSocketTest {
         serverConnection.close()
         clientConnection.close()
 
+        server.close()
+    }
+
+    @Test
+    fun testEchoByteArray() = testSockets { selector ->
+        val tcp = aSocket(selector).tcp()
+        val server: ServerSocket = tcp.bind("127.0.0.1", port = 0)
+
+        val acceptJob = launch {
+            while (true) {
+                val serverConnection = server.accept()
+                launch {
+                    val serverInput = serverConnection.openReadChannel()
+                    val serverOutput = serverConnection.openWriteChannel()
+
+                    serverOutput.writeSource(serverInput.readRemaining())
+                    serverOutput.flushAndClose()
+
+                    serverConnection.close()
+                }
+            }
+        }
+
+        testArrays.forEach { content ->
+            val clientConnection = tcp.connect("127.0.0.1", port = server.port)
+            val clientInput = clientConnection.openReadChannel()
+            val clientOutput = clientConnection.openWriteChannel()
+
+            clientOutput.writeByteArray(content)
+            clientOutput.flushAndClose()
+
+            val response = clientInput.readRemaining().readByteArray()
+            assertTrue(
+                response.contentEquals(content),
+                "Test fail with size: ${content.size}, actual size: ${response.size}"
+            )
+
+            clientConnection.close()
+        }
+
+        acceptJob.cancelAndJoin()
         server.close()
     }
 
@@ -111,19 +169,22 @@ class TCPSocketTest {
     fun testReadFromCancelledSocket() = testSockets { selector ->
         val tcp = aSocket(selector).tcp()
         tcp.bind().use { server ->
-            val serverConnection = async {
+            val serverConnectionPromise = async {
                 server.accept()
             }
 
             val client: Socket = tcp.connect("127.0.0.1", server.port)
             val readChannel = client.openReadChannel()
-            serverConnection.await()
+            val serverConnection = serverConnectionPromise.await()
 
             client.cancel()
 
             assertFailsWith<CancellationException> {
                 readChannel.readByte()
             }
+
+            client.close()
+            serverConnection.close()
         }
     }
 
@@ -201,7 +262,7 @@ class TCPSocketTest {
             } catch (exception: IOException) {
                 assertFalse("Bad descriptor" in exception.message.orEmpty())
             } catch (exception: Exception) {
-                assertTrue(exception::class.qualifiedName!!.startsWith("io.ktor.utils.io.errors.PosixException."))
+                assertTrue(exception.isPosixException())
             }
         }
         delay(100) // Make sure socket is awaiting connection using ACCEPT

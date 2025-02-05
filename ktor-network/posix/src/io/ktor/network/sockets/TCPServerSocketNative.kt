@@ -7,6 +7,7 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.errors.PosixException
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -26,6 +27,8 @@ internal class TCPServerSocketNative(
 
     override val socketContext: Job
         get() = _socketContext
+
+    private val closeFlag = atomic(false)
 
     init {
         signalIgnoreSigpipe()
@@ -67,6 +70,8 @@ internal class TCPServerSocketNative(
     }
 
     override fun close() {
+        if (!closeFlag.compareAndSet(false, true)) return
+
         ktor_shutdown(descriptor, ShutdownCommands.Both)
         // Close select call must happen before notifyClosed, so run undispatched.
         launch(start = CoroutineStart.UNDISPATCHED) {
