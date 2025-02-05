@@ -7,8 +7,8 @@ import io.ktor.utils.io.reader
 import io.ktor.utils.io.writeBuffer
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.Path
 import kotlin.test.Test
 
 private const val KB = 1024L
@@ -19,11 +19,8 @@ class ByteWriteChannelOperationsTest {
     @Test
     fun writeSource() = runTest {
         val randomBytes = Path("/dev/random")
-        // throws an exception on wasmJs
-        val randomBytesFileExists = runCatching {
-            SystemFileSystem.exists(randomBytes)
-        }.getOrNull()
-        if (randomBytesFileExists == true) return@runTest
+        val randomBytesFileExists = SystemFileSystem.exists(randomBytes)
+        if (randomBytesFileExists) return@runTest
 
         val reader = reader {
             var count = 0L
