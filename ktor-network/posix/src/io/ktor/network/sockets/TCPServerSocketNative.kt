@@ -52,7 +52,7 @@ internal class TCPServerSocketNative(
                 else -> throw PosixException.forSocketError(error)
             }
         }
-        buildOrClose(clientDescriptor) {
+        buildOrCloseSocket(clientDescriptor) {
             nonBlocking(clientDescriptor).check()
 
             val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()

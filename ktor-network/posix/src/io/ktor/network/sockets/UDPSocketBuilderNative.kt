@@ -22,7 +22,7 @@ internal actual suspend fun udpConnect(
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
 
-    buildOrClose(descriptor) {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 
@@ -55,7 +55,7 @@ internal actual suspend fun udpBind(
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
 
-    buildOrClose(descriptor) {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 

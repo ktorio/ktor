@@ -26,7 +26,7 @@ internal actual suspend fun tcpConnect(
         try {
             val descriptor: Int = ktor_socket(remote.family.convert(), SOCK_STREAM, 0).check()
 
-            val socket = buildOrClose(descriptor) {
+            val socket = buildOrCloseSocket(descriptor) {
                 assignOptions(descriptor, socketOptions)
                 nonBlocking(descriptor)
 
@@ -62,7 +62,7 @@ internal actual suspend fun tcpBind(
     val address = localAddress?.address ?: getAnyLocalAddress()
     val descriptor = ktor_socket(address.family.convert(), SOCK_STREAM, 0).check()
 
-    buildOrClose(descriptor) {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, socketOptions)
         nonBlocking(descriptor)
 

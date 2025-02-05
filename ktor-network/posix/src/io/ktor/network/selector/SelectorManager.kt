@@ -7,7 +7,6 @@ package io.ktor.network.selector
 import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import platform.posix.close
 import kotlin.coroutines.*
 
 public actual fun SelectorManager(
@@ -44,13 +43,13 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
 /**
  * Only use this function if [descriptor] is not used by [SelectorManager].
  */
-internal inline fun <T> buildOrClose(descriptor: Int, block: () -> T): T {
+internal inline fun <T> buildOrCloseSocket(descriptor: Int, block: () -> T): T {
     try {
         return block()
     } catch (throwable: Throwable) {
         ktor_shutdown(descriptor, ShutdownCommands.Both)
         // Descriptor can be safely closed here as there should not be any select code active on it.
-        close(descriptor)
+        closeSocketDescriptor(descriptor)
         throw throwable
     }
 }

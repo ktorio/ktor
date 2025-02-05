@@ -293,3 +293,9 @@ internal actual fun getSocketError(): Int {
 internal actual fun isWouldBlockError(error: Int): Boolean {
     return error == WSAEWOULDBLOCK || error == WSAEINPROGRESS
 }
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun closeSocketDescriptor(descriptor: Int): Int {
+    // On Windows closesocket MUST be used instead of close to properly close sockets.
+    return platform.posix.closesocket(descriptor.convert())
+}

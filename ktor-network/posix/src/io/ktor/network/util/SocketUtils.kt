@@ -165,3 +165,5 @@ internal fun PosixException.Companion.forSocketError(
 internal expect fun getSocketError(): Int
 
 internal expect fun isWouldBlockError(error: Int): Boolean
+
+internal expect fun closeSocketDescriptor(descriptor: Int): Int

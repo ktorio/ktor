@@ -218,7 +218,7 @@ internal actual class SelectorHelper {
     }
 
     private fun closeDescriptor(descriptor: Int) {
-        close(descriptor)
+        io.ktor.network.util.closeSocketDescriptor(descriptor)
         allWsaEvents.remove(descriptor)?.let { wsaEvent ->
             WSACloseEvent(wsaEvent)
         }
