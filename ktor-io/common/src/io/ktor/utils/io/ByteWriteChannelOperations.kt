@@ -69,8 +69,7 @@ public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
-    writeBuffer.transferFrom(source)
-    flushIfNeeded()
+    writePacket(source)
 }
 
 @OptIn(InternalAPI::class)
@@ -86,9 +85,8 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writeBuffer(value: RawSource) {
-    writeBuffer.transferFrom(value)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
+    writePacket(source.buffered())
 }
 
 @OptIn(InternalAPI::class)
@@ -103,10 +101,16 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
     flushIfNeeded()
 }
 
+/**
+ * Writes the entire source contents to the [ByteChannel].
+ * Prevents memory exhaustion by waiting for buffer to flush.
+ */
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writePacket(copy: Source) {
-    writeBuffer.transferFrom(copy)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writePacket(source: Source) {
+    while (!source.exhausted()) {
+        writeBuffer.write(source, byteCount = CHANNEL_MAX_SIZE.toLong())
+        flushIfNeeded()
+    }
 }
 
 public fun ByteWriteChannel.close(cause: Throwable?) {
