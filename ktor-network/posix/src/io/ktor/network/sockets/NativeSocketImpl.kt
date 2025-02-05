@@ -32,7 +32,7 @@ internal abstract class NativeSocketImpl(
                 // will still close the descriptor as expected.
                 try {
                     selector.select(this@NativeSocketImpl, SelectInterest.CLOSE)
-                } catch (ignored: IOException) {
+                } catch (_: IOException) {
                 }
             }
             super.close()

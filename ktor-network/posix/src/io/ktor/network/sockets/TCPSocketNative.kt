@@ -29,23 +29,26 @@ internal class TCPSocketNative(
                 connectResult = ktor_connect(descriptor, address, size)
             }
 
-            if (connectResult < 0 && isWouldBlockError(getSocketError())) {
-                while (true) {
-                    selector.select(this@TCPSocketNative, SelectInterest.CONNECT)
-                    val result = alloc<IntVar>()
-                    val size = alloc<UIntVar> {
-                        value = sizeOf<IntVar>().convert()
-                    }
-                    ktor_getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
-                    val resultValue = result.value.toInt()
-                    when {
-                        resultValue == 0 -> break // connected
-                        isWouldBlockError(resultValue) -> continue
-                        else -> throw PosixException.forSocketError(error = resultValue)
+            val error = getSocketError()
+            when {
+                connectResult >= 0 -> {}
+                isWouldBlockError(error) -> {
+                    while (true) {
+                        selector.select(this@TCPSocketNative, SelectInterest.CONNECT)
+                        val result = alloc<IntVar>()
+                        val size = alloc<UIntVar> {
+                            value = sizeOf<IntVar>().convert()
+                        }
+                        ktor_getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
+                        val resultValue = result.value.toInt()
+                        when {
+                            resultValue == 0 -> break // connected
+                            isWouldBlockError(resultValue) -> continue
+                            else -> throw PosixException.forSocketError(error = resultValue)
+                        }
                     }
                 }
-            } else {
-                connectResult.check()
+                else -> throw PosixException.forSocketError(error)
             }
         }
         return this

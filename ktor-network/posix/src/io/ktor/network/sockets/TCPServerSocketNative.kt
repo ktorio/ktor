@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.utils.io.errors.PosixException
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -48,21 +49,7 @@ internal class TCPServerSocketNative(
                 isWouldBlockError(error) -> {
                     selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                 }
-
-                else -> when (error) {
-                    EAGAIN, EWOULDBLOCK -> selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
-                    EBADF -> error("Descriptor invalid")
-                    ECONNABORTED -> error("Connection aborted")
-                    EFAULT -> error("Address is not writable part of user address space")
-                    EINTR -> error("Interrupted by signal")
-                    EINVAL -> error("Socket is unwilling to accept")
-                    EMFILE -> error("Process descriptor file table is full")
-                    ENFILE -> error("System descriptor file table is full")
-                    ENOMEM -> error("OOM")
-                    ENOTSOCK -> error("Descriptor is not a socket")
-                    EOPNOTSUPP -> error("Not TCP socket")
-                    else -> error("Unknown error: $error")
-                }
+                else -> throw PosixException.forSocketError(error)
             }
         }
         buildOrClose(clientDescriptor) {
@@ -87,7 +74,7 @@ internal class TCPServerSocketNative(
             // will still close the descriptor as expected.
             try {
                 selector.select(this@TCPServerSocketNative, SelectInterest.CLOSE)
-            } catch (ignored: IOException) {
+            } catch (_: IOException) {
             }
         }
         selector.notifyClosed(this)

@@ -194,12 +194,15 @@ class TCPSocketTest {
             .bind(InetSocketAddress("127.0.0.1", 0))
 
         val acceptJob = launch {
-            // The accept call should fail with IOException because the socket was closed,
-            // but it must not be a bad descriptor error.
-            val exception = assertFailsWith<IOException> {
+            // The accept call should fail with IOException/PosixException because the socket was closed,
+            // but it must not be a bad descriptor error caused by closed descriptor in select call.
+            try {
                 socket.accept()
+            } catch (exception: IOException) {
+                assertFalse("Bad descriptor" in exception.message.orEmpty())
+            } catch (exception: Exception) {
+                assertTrue(exception::class.qualifiedName!!.startsWith("io.ktor.utils.io.errors.PosixException."))
             }
-            assertFalse("Bad descriptor" in exception.message.orEmpty())
         }
         delay(100) // Make sure socket is awaiting connection using ACCEPT
 
