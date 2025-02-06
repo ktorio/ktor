@@ -98,7 +98,6 @@ internal class JsClientEngine(
 
         val urlString = request.url.toString()
         val socket: WebSocket = createWebSocket(urlString, request.headers)
-
         val session = JsWebSocketSession(callContext, socket)
 
         try {
