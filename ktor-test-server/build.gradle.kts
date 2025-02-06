@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
@@ -36,6 +38,18 @@ kotlin {
     jvmToolchain(21)
 
     compilerOptions {
+        languageVersion = rootProject.findProperty("kotlin_language_version")
+            ?.let { KotlinVersion.fromVersion(it.toString()) }
+            ?: KotlinVersion.KOTLIN_2_1
+
+        println("Using languageVersion :ktor-test-server: ${languageVersion.get()}")
+
+        apiVersion = rootProject.findProperty("kotlin_api_version")
+            ?.let { KotlinVersion.fromVersion(it.toString()) }
+            ?: KotlinVersion.KOTLIN_2_1
+
+        println("Using apiVersion :ktor-test-server: ${apiVersion.get()}")
+
         allWarningsAsErrors = true
         // A workaround for a compiler issue KT-74984
         // TODO: Remove after the issue is fixed
