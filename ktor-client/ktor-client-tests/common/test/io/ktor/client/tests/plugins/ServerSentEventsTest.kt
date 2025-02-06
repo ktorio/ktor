@@ -555,7 +555,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testReconnection() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                allowReconnection()
+                maxReconnectionAttempts = 1
                 reconnectionTime = 2.seconds
             }
         }
@@ -581,7 +581,9 @@ class ServerSentEventsTest : ClientLoader() {
     @Test
     fun testClientExceptionDuringSSESession() = clientTests(except("OkHttp")) {
         config {
-            install(SSE)
+            install(SSE) {
+                maxReconnectionAttempts = 1
+            }
         }
 
         test { client ->
@@ -612,8 +614,8 @@ class ServerSentEventsTest : ClientLoader() {
     fun testServerExceptionDuringSSESession() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                allowReconnection()
                 reconnectionTime = 100.milliseconds
+                maxReconnectionAttempts = 1
             }
         }
 
@@ -641,8 +643,8 @@ class ServerSentEventsTest : ClientLoader() {
     fun testSeveralReconnections() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                allowReconnection()
                 reconnectionTime = 500.milliseconds
+                maxReconnectionAttempts = 2
             }
         }
 
@@ -674,9 +676,8 @@ class ServerSentEventsTest : ClientLoader() {
     fun testMaxRetries() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                allowReconnection()
                 reconnectionTime = 500.milliseconds
-                maxRetries = 4
+                maxReconnectionAttempts = 4
             }
         }
 
@@ -708,7 +709,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testNoContent() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                allowReconnection()
+                maxReconnectionAttempts = 1
                 reconnectionTime = 0.milliseconds
             }
         }

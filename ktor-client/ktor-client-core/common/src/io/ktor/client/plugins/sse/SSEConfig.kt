@@ -15,14 +15,6 @@ import kotlin.time.Duration.Companion.milliseconds
 public class SSEConfig {
     internal var showCommentEvents = false
     internal var showRetryEvents = false
-    internal var allowReconnection = false
-
-    /**
-     * Allows the client to reconnect to the server if the connection is lost.
-     */
-    public fun allowReconnection() {
-        allowReconnection = true
-    }
 
     /**
      * The reconnection time. If the connection to the server is lost,
@@ -35,11 +27,12 @@ public class SSEConfig {
     public var reconnectionTime: Duration = 3000.milliseconds
 
     /**
-     * The maximum amount of retries to perform for a reconnection request
+     * The maximum amount of retries to perform for a reconnection request.
+     * To enable reconnection, set this value to a number greater than 0.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.maxRetries)
      */
-    public var maxRetries: Int = 3
+    public var maxReconnectionAttempts: Int = 0
 
     /**
      * Adds events consisting only of comments in the incoming flow.

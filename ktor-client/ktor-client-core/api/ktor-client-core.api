@@ -846,14 +846,13 @@ public final class io/ktor/client/plugins/sse/SSECapability : io/ktor/client/eng
 }
 
 public final class io/ktor/client/plugins/sse/SSEClientContent : io/ktor/http/content/OutgoingContent$ContentWrapper {
-	public synthetic fun <init> (JZZZILkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JZZILkotlin/coroutines/CoroutineContext;Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun copy (Lio/ktor/http/content/OutgoingContent;)Lio/ktor/client/plugins/sse/SSEClientContent;
 	public synthetic fun copy (Lio/ktor/http/content/OutgoingContent;)Lio/ktor/http/content/OutgoingContent$ContentWrapper;
-	public final fun getAllowReconnection ()Z
 	public final fun getCallContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getInitialRequest ()Lio/ktor/client/request/HttpRequestBuilder;
-	public final fun getMaxRetries ()I
+	public final fun getMaxReconnectionAttempts ()I
 	public final fun getReconnectionTime-UwyO8pc ()J
 	public final fun getShowCommentEvents ()Z
 	public final fun getShowRetryEvents ()Z
@@ -871,10 +870,9 @@ public final class io/ktor/client/plugins/sse/SSEClientException : java/lang/Ill
 
 public final class io/ktor/client/plugins/sse/SSEConfig {
 	public fun <init> ()V
-	public final fun allowReconnection ()V
-	public final fun getMaxRetries ()I
+	public final fun getMaxReconnectionAttempts ()I
 	public final fun getReconnectionTime-UwyO8pc ()J
-	public final fun setMaxRetries (I)V
+	public final fun setMaxReconnectionAttempts (I)V
 	public final fun setReconnectionTime-LRDsOJo (J)V
 	public final fun showCommentEvents ()V
 	public final fun showRetryEvents ()V

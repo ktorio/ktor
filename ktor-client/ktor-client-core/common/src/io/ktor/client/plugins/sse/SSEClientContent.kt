@@ -16,8 +16,7 @@ public class SSEClientContent(
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,
     public val showRetryEvents: Boolean,
-    public val allowReconnection: Boolean,
-    public val maxRetries: Int,
+    public val maxReconnectionAttempts: Int,
     public val callContext: CoroutineContext,
     public val initialRequest: HttpRequestBuilder,
     requestBody: OutgoingContent
@@ -37,8 +36,7 @@ public class SSEClientContent(
             reconnectionTime,
             showCommentEvents,
             showRetryEvents,
-            allowReconnection,
-            maxRetries,
+            maxReconnectionAttempts,
             callContext,
             initialRequest,
             delegate

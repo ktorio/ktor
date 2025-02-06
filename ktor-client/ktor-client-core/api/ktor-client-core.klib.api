@@ -468,18 +468,16 @@ final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.
 }
 
 final class io.ktor.client.plugins.sse/SSEClientContent : io.ktor.http.content/OutgoingContent.ContentWrapper { // io.ktor.client.plugins.sse/SSEClientContent|null[0]
-    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, kotlin/Boolean, kotlin/Int, kotlin.coroutines/CoroutineContext, io.ktor.client.request/HttpRequestBuilder, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Int;kotlin.coroutines.CoroutineContext;io.ktor.client.request.HttpRequestBuilder;io.ktor.http.content.OutgoingContent){}[0]
+    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, kotlin/Int, kotlin.coroutines/CoroutineContext, io.ktor.client.request/HttpRequestBuilder, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;kotlin.Int;kotlin.coroutines.CoroutineContext;io.ktor.client.request.HttpRequestBuilder;io.ktor.http.content.OutgoingContent){}[0]
 
-    final val allowReconnection // io.ktor.client.plugins.sse/SSEClientContent.allowReconnection|{}allowReconnection[0]
-        final fun <get-allowReconnection>(): kotlin/Boolean // io.ktor.client.plugins.sse/SSEClientContent.allowReconnection.<get-allowReconnection>|<get-allowReconnection>(){}[0]
     final val callContext // io.ktor.client.plugins.sse/SSEClientContent.callContext|{}callContext[0]
         final fun <get-callContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/SSEClientContent.callContext.<get-callContext>|<get-callContext>(){}[0]
     final val headers // io.ktor.client.plugins.sse/SSEClientContent.headers|{}headers[0]
         final fun <get-headers>(): io.ktor.http/Headers // io.ktor.client.plugins.sse/SSEClientContent.headers.<get-headers>|<get-headers>(){}[0]
     final val initialRequest // io.ktor.client.plugins.sse/SSEClientContent.initialRequest|{}initialRequest[0]
         final fun <get-initialRequest>(): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.plugins.sse/SSEClientContent.initialRequest.<get-initialRequest>|<get-initialRequest>(){}[0]
-    final val maxRetries // io.ktor.client.plugins.sse/SSEClientContent.maxRetries|{}maxRetries[0]
-        final fun <get-maxRetries>(): kotlin/Int // io.ktor.client.plugins.sse/SSEClientContent.maxRetries.<get-maxRetries>|<get-maxRetries>(){}[0]
+    final val maxReconnectionAttempts // io.ktor.client.plugins.sse/SSEClientContent.maxReconnectionAttempts|{}maxReconnectionAttempts[0]
+        final fun <get-maxReconnectionAttempts>(): kotlin/Int // io.ktor.client.plugins.sse/SSEClientContent.maxReconnectionAttempts.<get-maxReconnectionAttempts>|<get-maxReconnectionAttempts>(){}[0]
     final val reconnectionTime // io.ktor.client.plugins.sse/SSEClientContent.reconnectionTime|{}reconnectionTime[0]
         final fun <get-reconnectionTime>(): kotlin.time/Duration // io.ktor.client.plugins.sse/SSEClientContent.reconnectionTime.<get-reconnectionTime>|<get-reconnectionTime>(){}[0]
     final val showCommentEvents // io.ktor.client.plugins.sse/SSEClientContent.showCommentEvents|{}showCommentEvents[0]
@@ -505,14 +503,13 @@ final class io.ktor.client.plugins.sse/SSEClientException : kotlin/IllegalStateE
 final class io.ktor.client.plugins.sse/SSEConfig { // io.ktor.client.plugins.sse/SSEConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.sse/SSEConfig.<init>|<init>(){}[0]
 
-    final var maxRetries // io.ktor.client.plugins.sse/SSEConfig.maxRetries|{}maxRetries[0]
-        final fun <get-maxRetries>(): kotlin/Int // io.ktor.client.plugins.sse/SSEConfig.maxRetries.<get-maxRetries>|<get-maxRetries>(){}[0]
-        final fun <set-maxRetries>(kotlin/Int) // io.ktor.client.plugins.sse/SSEConfig.maxRetries.<set-maxRetries>|<set-maxRetries>(kotlin.Int){}[0]
+    final var maxReconnectionAttempts // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts|{}maxReconnectionAttempts[0]
+        final fun <get-maxReconnectionAttempts>(): kotlin/Int // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<get-maxReconnectionAttempts>|<get-maxReconnectionAttempts>(){}[0]
+        final fun <set-maxReconnectionAttempts>(kotlin/Int) // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<set-maxReconnectionAttempts>|<set-maxReconnectionAttempts>(kotlin.Int){}[0]
     final var reconnectionTime // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime|{}reconnectionTime[0]
         final fun <get-reconnectionTime>(): kotlin.time/Duration // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime.<get-reconnectionTime>|<get-reconnectionTime>(){}[0]
         final fun <set-reconnectionTime>(kotlin.time/Duration) // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime.<set-reconnectionTime>|<set-reconnectionTime>(kotlin.time.Duration){}[0]
 
-    final fun allowReconnection() // io.ktor.client.plugins.sse/SSEConfig.allowReconnection|allowReconnection(){}[0]
     final fun showCommentEvents() // io.ktor.client.plugins.sse/SSEConfig.showCommentEvents|showCommentEvents(){}[0]
     final fun showRetryEvents() // io.ktor.client.plugins.sse/SSEConfig.showRetryEvents|showRetryEvents(){}[0]
 }

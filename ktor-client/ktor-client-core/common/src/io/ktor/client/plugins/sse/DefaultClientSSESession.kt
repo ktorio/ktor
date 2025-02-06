@@ -7,10 +7,12 @@ package io.ktor.client.plugins.sse
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlin.coroutines.CoroutineContext
 
@@ -25,8 +27,8 @@ public class DefaultClientSSESession(
     private var reconnectionTimeMillis = content.reconnectionTime.inWholeMilliseconds
     private val showCommentEvents = content.showCommentEvents
     private val showRetryEvents = content.showRetryEvents
-    private var needToReconnect = content.allowReconnection
-    private val maxRetries = content.maxRetries
+    private val maxReconnectionAttempts = content.maxReconnectionAttempts
+    private var needToReconnect = maxReconnectionAttempts > 0
 
     private val initialRequest = content.initialRequest
 
@@ -54,6 +56,18 @@ public class DefaultClientSSESession(
                 close()
             }
         }
+    }.catch { cause ->
+        when (cause) {
+            is CancellationException -> {
+                close()
+            }
+
+            else -> {
+                LOGGER.trace { "Error during SSE session processing: $cause" }
+                close()
+                throw cause
+            }
+        }
     }
 
     init {
@@ -63,21 +77,21 @@ public class DefaultClientSSESession(
     }
 
     private suspend fun doReconnection() {
-        var retries = 1
-        while (retries <= maxRetries) {
-            try {
-                withContext(coroutineContext) {
+        withContext(coroutineContext) {
+            var retries = 1
+            while (retries <= maxReconnectionAttempts) {
+                try {
                     input.cancel()
 
                     delay(reconnectionTimeMillis)
 
                     val reconnectionRequest = getRequestForReconnection()
-                    LOGGER.trace(
-                        "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxRetries + 1})"
-                    )
+                    LOGGER.trace {
+                        "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxReconnectionAttempts + 1})"
+                    }
 
                     val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
-                    LOGGER.trace("Receive response for reconnection SSE request to ${reconnectionRequest.url}")
+                    LOGGER.trace { "Receive response for reconnection SSE request to ${reconnectionRequest.url}" }
                     checkResponse(reconnectionResponse)
 
                     if (reconnectionResponse.status == HttpStatusCode.NoContent) {
@@ -85,19 +99,17 @@ public class DefaultClientSSESession(
                     }
 
                     input = reconnectionResponse.rawContent
+                    return@withContext
+                } catch (cause: Throwable) {
+                    if (retries == maxReconnectionAttempts) {
+                        LOGGER.trace {
+                            "Max retries ($maxReconnectionAttempts) reached for SSE reconnection, closing session"
+                        }
+                        throw cause
+                    }
+                    LOGGER.trace { "SSE reconnection attempt ${retries + 1} failed" }
+                    retries++
                 }
-                return
-            } catch (cause: CancellationException) {
-                close()
-                return
-            } catch (cause: Throwable) {
-                if (retries == maxRetries) {
-                    LOGGER.trace("Max retries ($maxRetries) reached for SSE reconnection, closing session")
-                    close()
-                    throw cause
-                }
-                LOGGER.trace("SSE reconnection attempt ${retries + 1} failed")
-                retries++
             }
         }
     }

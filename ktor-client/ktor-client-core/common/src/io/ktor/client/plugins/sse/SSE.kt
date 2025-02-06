@@ -85,20 +85,16 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val reconnectionTime = pluginConfig.reconnectionTime
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
-    var allowReconnection = pluginConfig.allowReconnection
-    val maxRetries = pluginConfig.maxRetries
+    val maxReconnectionAttempts = pluginConfig.maxReconnectionAttempts
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
             return@on content
         }
-        LOGGER.trace("Sending SSE request to ${request.url}")
+        LOGGER.trace { "Sending SSE request to ${request.url}" }
         request.setCapability(SSECapability, Unit)
 
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
-        if (localReconnectionTime != null) {
-            allowReconnection = true
-        }
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
 
@@ -109,8 +105,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             localReconnectionTime ?: reconnectionTime,
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
-            allowReconnection,
-            maxRetries,
+            maxReconnectionAttempts,
             currentCoroutineContext(),
             request,
             content
@@ -122,7 +117,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val request = response.request
 
         if (request.attributes.getOrNull(sseRequestAttr) != true) {
-            LOGGER.trace("Skipping non SSE response from ${response.request.url}")
+            LOGGER.trace { "Skipping non SSE response from ${response.request.url}" }
             return@intercept
         }
         checkResponse(response)
@@ -133,7 +128,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             )
         }
 
-        LOGGER.trace("Receive SSE session from ${response.request.url}: $session")
+        LOGGER.trace { "Receive SSE session from ${response.request.url}: $session" }
 
         val deserializer = response.request.attributes.getOrNull(deserializerAttr)
         val clientSSESession = deserializer?.let {
@@ -192,7 +187,7 @@ internal fun checkResponse(response: HttpResponse) {
     val contentType = response.contentType()
 
     if (status == HttpStatusCode.NoContent) {
-        LOGGER.trace("Receive status code NoContent for SSE request to ${response.request.url}")
+        LOGGER.trace { "Receive status code NoContent for SSE request to ${response.request.url}" }
         return
     }
 
