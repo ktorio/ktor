@@ -175,27 +175,31 @@ internal actual class SelectorHelper {
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
-        for (event in watchSet) {
-            if (event.interest == SelectInterest.CLOSE) continue
+        watchSet
+            .filter { it.interest != SelectInterest.CLOSE }
+            .groupBy { it.descriptor }
+            .forEach { (descriptor, events) ->
+                val wsaEvent = wsaEvents.getValue(descriptor)
 
-            val wsaEvent = wsaEvents.getValue(event.descriptor)
-            val networkEvents = memScoped {
-                val networkEvents = alloc<WSANETWORKEVENTS>()
-                WSAEnumNetworkEvents(event.descriptor.convert(), wsaEvent, networkEvents.ptr).check()
-                networkEvents.lNetworkEvents
+                val networkEvents = memScoped {
+                    val networkEvents = alloc<WSANETWORKEVENTS>()
+                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr).check()
+                    networkEvents.lNetworkEvents
+                }
+
+                for (event in events) {
+                    val set = descriptorSetByInterestKind(event)
+
+                    val isClosed = networkEvents and FD_CLOSE != 0
+
+                    if (networkEvents and set == 0 && !isClosed) {
+                        continue
+                    }
+
+                    completed.add(event)
+                    event.complete()
+                }
             }
-
-            val set = descriptorSetByInterestKind(event)
-
-            val isClosed = networkEvents and FD_CLOSE != 0
-
-            if (networkEvents and set == 0 && !isClosed) {
-                continue
-            }
-
-            completed.add(event)
-            event.complete()
-        }
 
         // The wake-up signal was added as the last event, so wsaIndex should be 1 higher than
         // the last index of wsaEvents.
