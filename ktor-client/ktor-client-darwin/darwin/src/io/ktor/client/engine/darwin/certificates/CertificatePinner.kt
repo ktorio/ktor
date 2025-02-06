@@ -1,15 +1,24 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.darwin.certificates
 
 import io.ktor.client.engine.darwin.*
+import io.ktor.network.tls.*
+import io.ktor.util.logging.*
 import kotlinx.cinterop.*
-import platform.CoreCrypto.*
-import platform.CoreFoundation.*
+import platform.CoreCrypto.CC_SHA1
+import platform.CoreCrypto.CC_SHA1_DIGEST_LENGTH
+import platform.CoreCrypto.CC_SHA256
+import platform.CoreCrypto.CC_SHA256_DIGEST_LENGTH
+import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFStringCreateWithCString
+import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.Foundation.*
 import platform.Security.*
+
+private val LOG = KtorSimpleLogger("io.ktor.client.engine.darwin.certificates.CertificatePinner")
 
 /**
  * Constrains which certificates are trusted. Pinning certificates defends against attacks on
@@ -114,36 +123,36 @@ public data class CertificatePinner(
     private val validateTrust: Boolean
 ) : ChallengeHandler {
 
-    @OptIn(ExperimentalForeignApi::class)
     override fun invoke(
         session: NSURLSession,
         task: NSURLSessionTask,
         challenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
+        if (applyPinning(challenge)) {
+            completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
+        } else {
+            completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun applyPinning(challenge: NSURLAuthenticationChallenge): Boolean {
         val hostname = challenge.protectionSpace.host
         val matchingPins = findMatchingPins(hostname)
 
         if (matchingPins.isEmpty()) {
-            println("CertificatePinner: No pins found for host")
-            completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
-            return
+            LOG.trace { "No pins found for host" }
+            return false
         }
 
-        if (challenge.protectionSpace.authenticationMethod !=
-            NSURLAuthenticationMethodServerTrust
-        ) {
-            println("CertificatePinner: Authentication method not suitable for pinning")
-            completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
-            return
+        if (challenge.protectionSpace.authenticationMethod != NSURLAuthenticationMethodServerTrust) {
+            LOG.trace { "Authentication method not suitable for pinning" }
+            return false
         }
 
         val trust = challenge.protectionSpace.serverTrust
-        if (trust == null) {
-            println("CertificatePinner: Server trust is not available")
-            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
-            return
-        }
+            ?: throw TlsPeerUnverifiedException("Server trust is not available")
 
         if (validateTrust) {
             val hostCFString = CFStringCreateWithCString(null, hostname, kCFStringEncodingUTF8)
@@ -152,11 +161,7 @@ public data class CertificatePinner(
                     SecTrustSetPolicies(trust, policy)
                 }
             }
-            if (!trust.trustIsValid()) {
-                println("CertificatePinner: Server trust is invalid")
-                completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
-                return
-            }
+            if (!trust.trustIsValid()) throw TlsPeerUnverifiedException("Server trust is invalid")
         }
 
         val certCount = SecTrustGetCertificateCount(trust)
@@ -165,19 +170,14 @@ public data class CertificatePinner(
         }
 
         if (certificates.size != certCount.toInt()) {
-            println("CertificatePinner: Unknown certificates")
-            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
-            return
+            throw TlsPeerUnverifiedException("Unknown certificates")
         }
 
-        val result = hasOnePinnedCertificate(certificates)
-        if (result) {
-            completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
-        } else {
+        if (!hasOnePinnedCertificate(certificates)) {
             val message = buildErrorMessage(certificates, hostname)
-            println(message)
-            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
+            throw TlsPeerUnverifiedException(message)
         }
+        return true
     }
 
     /**
@@ -201,6 +201,7 @@ public data class CertificatePinner(
 
                     pin.hash == sha256
                 }
+
                 CertificatesInfo.HASH_ALGORITHM_SHA_1 -> {
                     if (sha1 == null) {
                         sha1 = publicKey.toSha1String()
@@ -208,10 +209,8 @@ public data class CertificatePinner(
 
                     pin.hash == sha1
                 }
-                else -> {
-                    println("CertificatePinner: Unsupported hashAlgorithm: ${pin.hashAlgorithm}")
-                    false
-                }
+
+                else -> throw IllegalArgumentException("Unsupported hashAlgorithm: ${pin.hashAlgorithm}")
             }
         }
     }
@@ -248,15 +247,8 @@ public data class CertificatePinner(
      * Returns list of matching certificates' pins for the hostname. Returns an empty list if the
      * hostname does not have pinned certificates.
      */
-    internal fun findMatchingPins(hostname: String): List<PinnedCertificate> {
-        var result: List<PinnedCertificate> = emptyList()
-        for (pin in pinnedCertificates) {
-            if (pin.matches(hostname)) {
-                if (result.isEmpty()) result = mutableListOf()
-                (result as MutableList<PinnedCertificate>).add(pin)
-            }
-        }
-        return result
+    private fun findMatchingPins(hostname: String): List<PinnedCertificate> {
+        return pinnedCertificates.filter { it.matches(hostname) }
     }
 
     /**
@@ -307,7 +299,7 @@ public data class CertificatePinner(
             CFBridgingRelease(publicKeyAttributes)
 
             if (!checkValidKeyType(publicKeyType, publicKeySize)) {
-                println("CertificatePinner: Public Key not supported type or size")
+                LOG.trace { "Public Key not supported type or size" }
                 return null
             }
 
@@ -403,7 +395,6 @@ public data class CertificatePinner(
     ) {
         /**
          * Pins certificates for `pattern`.
-         *
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner.Builder.add)
          *
