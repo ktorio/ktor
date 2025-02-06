@@ -7,7 +7,7 @@ import ktorbuild.createCInterop
 description = ""
 
 kotlin {
-    createCInterop("host_common", sourceSet = "posix")
+    createCInterop("host_common", sourceSet = "nix")
 
     sourceSets {
         commonMain {
