@@ -6,25 +6,29 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.utils.io.errors.PosixException
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import platform.posix.*
 import kotlin.coroutines.*
 
 @OptIn(ExperimentalForeignApi::class)
 internal class TCPServerSocketNative(
-    private val descriptor: Int,
-    private val selectorManager: SelectorManager,
-    val selectable: Selectable,
+    override val descriptor: Int,
+    private val selector: SelectorManager,
     override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
-) : ServerSocket, CoroutineScope {
+) : SelectableBase(), ServerSocket, CoroutineScope {
     private val _socketContext: CompletableJob = SupervisorJob(parent[Job])
 
     override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _socketContext
 
     override val socketContext: Job
         get() = _socketContext
+
+    private val closeFlag = atomic(false)
 
     init {
         signalIgnoreSigpipe()
@@ -46,48 +50,40 @@ internal class TCPServerSocketNative(
             val error = getSocketError()
             when {
                 isWouldBlockError(error) -> {
-                    selectorManager.select(selectable, SelectInterest.ACCEPT)
+                    selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                 }
-
-                else -> when (error) {
-                    EAGAIN, EWOULDBLOCK -> selectorManager.select(selectable, SelectInterest.ACCEPT)
-                    EBADF -> error("Descriptor invalid")
-                    ECONNABORTED -> error("Connection aborted")
-                    EFAULT -> error("Address is not writable part of user address space")
-                    EINTR -> error("Interrupted by signal")
-                    EINVAL -> error("Socket is unwilling to accept")
-                    EMFILE -> error("Process descriptor file table is full")
-                    ENFILE -> error("System descriptor file table is full")
-                    ENOMEM -> error("OOM")
-                    ENOTSOCK -> error("Descriptor is not a socket")
-                    EOPNOTSUPP -> error("Not TCP socket")
-                    else -> error("Unknown error: $error")
-                }
+                else -> throw PosixException.forSocketError(error)
             }
         }
+        buildOrCloseSocket(clientDescriptor) {
+            nonBlocking(clientDescriptor).check()
 
-        nonBlocking(clientDescriptor).check()
+            val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
-        val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
-        val localAddress = getLocalAddress(descriptor)
-
-        TCPSocketNative(
-            clientDescriptor,
-            selectorManager,
-            SelectableNative(clientDescriptor),
-            remoteAddress = remoteAddress.toSocketAddress(),
-            localAddress = localAddress.toSocketAddress(),
-            parent = selfContext() + coroutineContext
-        )
+            TCPSocketNative(
+                selector,
+                clientDescriptor,
+                remoteAddress = remoteAddress.toSocketAddress(),
+                parent = selfContext() + coroutineContext
+            )
+        }
     }
 
     override fun close() {
-        _socketContext.complete()
-        _socketContext.invokeOnCompletion {
-            ktor_shutdown(descriptor, ShutdownCommands.Both)
-            // Descriptor is closed by the selector manager
-            selectorManager.notifyClosed(selectable)
+        if (!closeFlag.compareAndSet(false, true)) return
+
+        ktor_shutdown(descriptor, ShutdownCommands.Both)
+        // Close select call must happen before notifyClosed, so run undispatched.
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            // SelectorManager could throw exception if it is closed, ignore it as notifyClosed
+            // will still close the descriptor as expected.
+            try {
+                selector.select(this@TCPServerSocketNative, SelectInterest.CLOSE)
+            } catch (_: IOException) {
+            }
         }
+        selector.notifyClosed(this)
+        _socketContext.complete()
     }
 }
 

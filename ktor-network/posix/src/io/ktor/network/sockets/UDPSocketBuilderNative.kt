@@ -21,9 +21,8 @@ internal actual suspend fun udpConnect(
     val address = localAddress?.address ?: getAnyLocalAddress()
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
-    val selectable = SelectableNative(descriptor)
 
-    try {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 
@@ -36,17 +35,11 @@ internal actual suspend fun udpConnect(
         }
 
         return DatagramSocketNative(
-            descriptor = descriptor,
             selector = selector,
-            selectable = selectable,
+            descriptor = descriptor,
             remote = remoteAddress,
             parent = selector.coroutineContext
         )
-    } catch (throwable: Throwable) {
-        ktor_shutdown(descriptor, ShutdownCommands.Both)
-        // Descriptor is closed by the selector manager
-        selector.notifyClosed(selectable)
-        throw throwable
     }
 }
 
@@ -61,9 +54,8 @@ internal actual suspend fun udpBind(
     val address = localAddress?.address ?: getAnyLocalAddress()
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
-    val selectable = SelectableNative(descriptor)
 
-    try {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 
@@ -72,16 +64,10 @@ internal actual suspend fun udpBind(
         }
 
         return DatagramSocketNative(
-            descriptor = descriptor,
             selector = selector,
-            selectable = selectable,
+            descriptor = descriptor,
             remote = null,
             parent = selector.coroutineContext
         )
-    } catch (throwable: Throwable) {
-        ktor_shutdown(descriptor, ShutdownCommands.Both)
-        // Descriptor is closed by the selector manager
-        selector.notifyClosed(selectable)
-        throw throwable
     }
 }

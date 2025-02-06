@@ -6,7 +6,6 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.network.util.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -22,7 +21,7 @@ class TcpSocketTestNix {
             .tcp()
             .bind(InetSocketAddress("127.0.0.1", 0))
 
-        val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
+        val descriptor = (socket as TCPServerSocketNative).descriptor
 
         socket.close()
         selector.close()
@@ -39,7 +38,7 @@ class TcpSocketTestNix {
         val tcp = aSocket(selector).tcp()
 
         val server = tcp.bind(InetSocketAddress("127.0.0.1", 0))
-        val serverDescriptor = (server as TCPServerSocketNative).selectable.descriptor
+        val serverDescriptor = (server as TCPServerSocketNative).descriptor
 
         val serverConnectionPromise = async {
             server.accept()
@@ -47,10 +46,10 @@ class TcpSocketTestNix {
 
         val port = (server.localAddress as InetSocketAddress).port
         val clientConnection = tcp.connect("127.0.0.1", port)
-        val clientDescriptor = (clientConnection as TCPSocketNative).selectable.descriptor
+        val clientDescriptor = (clientConnection as TCPSocketNative).descriptor
 
         val serverConnection = serverConnectionPromise.await()
-        val serverConnectionDescriptor = (serverConnection as TCPSocketNative).selectable.descriptor
+        val serverConnectionDescriptor = (serverConnection as TCPSocketNative).descriptor
 
         clientConnection.openReadChannel()
         serverConnection.openReadChannel()
@@ -77,7 +76,7 @@ class TcpSocketTestNix {
         val socket = aSocket(selector)
             .tcp()
             .bind(InetSocketAddress("127.0.0.1", 0))
-        val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
+        val descriptor = (socket as TCPServerSocketNative).descriptor
 
         launch {
             // Closing the descriptor here while accept is busy in select, should fail the accept.
@@ -96,7 +95,7 @@ class TcpSocketTestNix {
         val socket = aSocket(selector)
             .tcp()
             .bind(InetSocketAddress("127.0.0.1", 0))
-        val descriptor = (socket as TCPServerSocketNative).selectable.descriptor
+        val descriptor = (socket as TCPServerSocketNative).descriptor
 
         val socket2 = aSocket(selector)
             .tcp()

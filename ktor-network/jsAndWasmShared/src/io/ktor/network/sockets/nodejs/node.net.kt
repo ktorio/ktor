@@ -97,7 +97,7 @@ internal external interface Socket {
     fun destroy(error: JsError?)
 
     // sends FIN
-    fun end()
+    fun end(callback: () -> Unit)
 
     fun on(event: String /* "close" */, listener: (hadError: Boolean) -> Unit)
     fun on(event: String /* "connect", "end", "timeout",  */, listener: () -> Unit)

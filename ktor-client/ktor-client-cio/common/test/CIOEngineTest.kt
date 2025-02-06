@@ -16,6 +16,7 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
@@ -23,8 +24,6 @@ import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
-
-    private val selectorManager = SelectorManager()
 
     @Test
     fun testRequestTimeoutIgnoredWithWebSocket() = testClient {
@@ -241,9 +240,12 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     private fun TestClientBuilder<*>.withServerSocket(
         block: suspend CoroutineScope.(HttpClient, ServerSocket) -> Unit,
     ) = test { client ->
+        val selectorManager = SelectorManager()
         selectorManager.use {
             aSocket(it).tcp().bind(TEST_SERVER_SOCKET_HOST, 0).use { socket ->
-                block(client, socket)
+                coroutineScope {
+                    block(client, socket)
+                }
             }
         }
     }
