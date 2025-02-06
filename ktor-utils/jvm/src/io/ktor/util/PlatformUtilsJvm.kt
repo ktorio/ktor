@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util
 
@@ -11,11 +11,3 @@ public actual val PlatformUtils.platform: Platform
 
 internal actual val PlatformUtils.isDevelopmentMode: Boolean
     get() = System.getProperty(DEVELOPMENT_MODE_KEY)?.toBoolean() == true
-
-@Deprecated(
-    "New memory model is now enabled by default. The property will be removed in the future.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("true")
-)
-internal actual val PlatformUtils.isNewMemoryModel: Boolean
-    get() = true
