@@ -8,6 +8,4 @@ public actual interface Selectable {
     public val descriptor: Int
 }
 
-internal class SelectableNative(override val descriptor: Int) : Selectable {
-    override fun toString(): String = "Selectable[$descriptor]"
-}
+internal actual abstract class SelectableBase : Selectable

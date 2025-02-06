@@ -54,7 +54,7 @@ internal class ServerSocketContext(
 
 private class ServerSocketImpl(
     override val localAddress: SocketAddress,
-    override val socketContext: Job,
+    override val socketContext: CompletableJob,
     private val incoming: Channel<Socket>,
     private val server: Server
 ) : ServerSocket {
@@ -69,6 +69,6 @@ private class ServerSocketImpl(
 
     override fun close() {
         incoming.close(IOException("Server socket closed"))
-        socketContext.cancel("Server socket closed")
+        socketContext.complete()
     }
 }

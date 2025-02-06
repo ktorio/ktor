@@ -23,6 +23,9 @@ final enum class io.ktor.network.selector/SelectInterest : kotlin/Enum<io.ktor.n
         final val AllInterests // io.ktor.network.selector/SelectInterest.Companion.AllInterests|{}AllInterests[0]
             final fun <get-AllInterests>(): kotlin/Array<io.ktor.network.selector/SelectInterest> // io.ktor.network.selector/SelectInterest.Companion.AllInterests.<get-AllInterests>|<get-AllInterests>(){}[0]
     }
+
+    // Targets: [native]
+    enum entry CLOSE // io.ktor.network.selector/SelectInterest.CLOSE|null[0]
 }
 
 abstract interface <#A: out io.ktor.network.sockets/ASocket> io.ktor.network.sockets/Acceptable : io.ktor.network.sockets/ASocket { // io.ktor.network.sockets/Acceptable|null[0]

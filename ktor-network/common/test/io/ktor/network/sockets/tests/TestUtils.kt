@@ -27,6 +27,8 @@ internal fun testSockets(
 
 internal expect fun Any.supportsUnixDomainSockets(): Boolean
 
+internal expect fun Throwable.isPosixException(): Boolean
+
 @OptIn(ExperimentalUuidApi::class)
 internal fun createTempFilePath(basename: String): String {
     return Path(SystemTemporaryDirectory, "$basename-${Uuid.random()}").toString()
