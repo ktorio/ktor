@@ -345,29 +345,26 @@ class WebSocketTest : ClientLoader() {
         }
     }
 
-    @Ignore // TODO KTOR-7088
     @Test
     fun testImmediateReceiveAfterConnect() = clientTests(
-        except(ENGINES_WITHOUT_WS + "Darwin" + "Js") // TODO KTOR-7088
+        except(ENGINES_WITHOUT_WS + "Darwin"), // TODO KTOR-7088
     ) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            withTimeout(10_000) {
-                coroutineScope {
-                    val defs = (1..100).map {
-                        async {
-                            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
-                                val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
-                                assertNotNull(frame)
-                                assertIs<Frame.Text>(frame)
-                            }
+            coroutineScope {
+                val defs = (1..100).map {
+                    async {
+                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                            val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
+                            assertNotNull(frame)
+                            assertIs<Frame.Text>(frame)
                         }
                     }
-                    defs.awaitAll()
                 }
+                defs.awaitAll()
             }
         }
     }
