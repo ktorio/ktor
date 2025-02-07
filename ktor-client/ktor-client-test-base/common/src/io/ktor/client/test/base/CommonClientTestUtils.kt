@@ -13,21 +13,34 @@ import kotlin.time.Duration.Companion.minutes
 
 /**
  * Web url for tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.TEST_SERVER)
  */
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
+ * Web url with TLS for tests.
+ */
+const val TEST_SERVER_TLS: String = "https://127.0.0.1:8089"
+
+/**
  * Websocket server url for tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.TEST_WEBSOCKET_SERVER)
  */
 const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 
 /**
  * Proxy server url for tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.TCP_SERVER)
  */
 const val TCP_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.testWithEngine)
  */
 fun testWithEngine(
     engine: HttpClientEngine,
@@ -63,6 +76,8 @@ private fun testWithClient(
 
 /**
  * Perform test with selected client engine [factory].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.testWithEngine)
  */
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,

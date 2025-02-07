@@ -15,6 +15,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase)
  */
 public open class JettyApplicationEngineBase(
     environment: ApplicationEnvironment,
@@ -29,16 +31,22 @@ public open class JettyApplicationEngineBase(
 
     /**
      * Jetty-specific engine configuration
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration)
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property function that will be called during Jetty server initialization
          * with the server instance as receiver.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.configureServer)
          */
         public var configureServer: Server.() -> Unit = {}
 
         /**
          * The duration of time that a connection can be idle before the connector takes action to close the connection.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.idleTimeout)
          */
         public var idleTimeout: Duration = 30.seconds
     }

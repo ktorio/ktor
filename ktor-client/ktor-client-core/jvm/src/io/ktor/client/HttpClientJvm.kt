@@ -17,6 +17,8 @@ import java.util.*
  * An exception is thrown if no implementations found.
  *
  * See https://ktor.io/docs/http-client-engines.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 @KtorDsl
 public actual fun HttpClient(
@@ -28,6 +30,9 @@ public actual fun HttpClient(
  * An implementation of this interface provides HTTP client [factory] and only used
  * to find the default client engine
  * when [HttpClient] function is called with no particular client implementation specified
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientEngineContainer)
  *
  * @property factory that produces HTTP client instances
  */

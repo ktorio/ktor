@@ -23,6 +23,9 @@ import kotlin.text.*
 /**
  * A content converter that uses [Jackson]
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.JacksonConverter)
+ *
  * @param objectMapper a configured instance of [ObjectMapper]
  * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
  * This will set `Transfer-Encoding: chunked` header.
@@ -146,6 +149,9 @@ public class JacksonConverter(
  * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)
  *
  * @param contentType the content type to send with request
  * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.

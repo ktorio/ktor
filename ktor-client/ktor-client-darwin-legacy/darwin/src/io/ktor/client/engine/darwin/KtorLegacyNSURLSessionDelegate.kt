@@ -15,6 +15,8 @@ import kotlin.coroutines.*
 
 /**
  * Creates an instance of [KtorLegacyNSURLSessionDelegate]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
@@ -33,6 +35,8 @@ public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
  *   * URLSession:dataTask:didReceiveData:
  *   * URLSession:task:didCompleteWithError:
  *   * URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public class KtorLegacyNSURLSessionDelegate(
@@ -65,6 +69,8 @@ public class KtorLegacyNSURLSessionDelegate(
 
     /**
      * Disable embedded redirects.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,
@@ -78,6 +84,8 @@ public class KtorLegacyNSURLSessionDelegate(
 
     /**
      * Handle challenge.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,

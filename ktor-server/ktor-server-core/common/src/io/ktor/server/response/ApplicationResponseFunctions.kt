@@ -19,6 +19,9 @@ import kotlin.jvm.*
 
 /**
  * Sends a [message] as a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respond)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
@@ -27,6 +30,9 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) 
 
 /**
  * Sends a [message] as a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondNullable)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T) {
@@ -35,6 +41,9 @@ public suspend inline fun <reified T> ApplicationCall.respondNullable(message: T
 
 /**
  * Sends a [message] as a response with the specified [status] code.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respond)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 @JvmName("respondWithType")
@@ -45,6 +54,9 @@ public suspend inline fun <reified T : Any> ApplicationCall.respond(status: Http
 
 /**
  * Sends a [message] of type [messageType] as a response with the specified [status] code.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respond)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend fun ApplicationCall.respond(
@@ -58,6 +70,9 @@ public suspend fun ApplicationCall.respond(
 
 /**
  * Sends a [message] as a response with the specified [status] code.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondNullable)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun <reified T> ApplicationCall.respondNullable(status: HttpStatusCode, message: T) {
@@ -67,6 +82,9 @@ public suspend inline fun <reified T> ApplicationCall.respondNullable(status: Ht
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondRedirect)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
@@ -76,6 +94,9 @@ public suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boole
 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondRedirect)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend fun ApplicationCall.respondRedirect(url: Url, permanent: Boolean = false) {
@@ -85,6 +106,9 @@ public suspend fun ApplicationCall.respondRedirect(url: Url, permanent: Boolean 
 /**
  * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
  * Unlike the other [respondRedirect], it provides a way to build a URL based on current call using the [block] function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondRedirect)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  */
 public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
@@ -93,6 +117,9 @@ public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = f
 
 /**
  * Responds to a client with a plain [text] response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondText)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
@@ -109,6 +136,9 @@ public suspend fun ApplicationCall.respondText(
 
 /**
  * Responds to a client with a plain text response, using the specified [provider] to build a text.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondText)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
@@ -124,6 +154,9 @@ public suspend fun ApplicationCall.respondText(
 
 /**
  * Responds to a client with a raw bytes response, using the specified [provider] to build a byte array.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytes)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
@@ -138,6 +171,9 @@ public suspend fun ApplicationCall.respondBytes(
 
 /**
  * Responds to a client with a raw bytes response, using specified [bytes].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytes)
+ *
  * @see [io.ktor.server.response.ApplicationResponse]
  * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
@@ -153,6 +189,9 @@ public suspend fun ApplicationCall.respondBytes(
 
 /**
  * Responds to an [ApplicationCall] with the content from the provided kotlinx-io [Source].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondSource)
  *
  * @param source The binary data source of the content to be responded with.
  * @param contentType An optional [ContentType], unspecified by default
@@ -173,6 +212,8 @@ public suspend fun ApplicationCall.respondSource(
  *
  * The [producer] parameter will be called later when an engine is ready to produce content. You don't need to close it.
  * The provided [ByteWriteChannel] will be closed automatically.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytesWriter)
  */
 public suspend fun ApplicationCall.respondBytesWriter(
     contentType: ContentType? = null,
@@ -191,6 +232,8 @@ public suspend fun ApplicationCall.respondBytesWriter(
  *
  * Additionally, if a content type is `Text` and a charset is not set for a content type,
  * it appends `; charset=UTF-8` to the content type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.defaultTextContentType)
  */
 public fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
     val result = when (contentType) {

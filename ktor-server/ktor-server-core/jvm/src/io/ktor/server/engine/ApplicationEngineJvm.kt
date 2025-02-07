@@ -9,6 +9,9 @@ import java.util.concurrent.*
 /**
  * Stops this [ApplicationEngine]
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.stop)
+ *
  * @param gracePeriod the maximum amount of time for activity to cool down
  * @param timeout the maximum amount of time to wait until server stops gracefully
  * @param timeUnit the [TimeUnit] for [gracePeriod] and [timeout]

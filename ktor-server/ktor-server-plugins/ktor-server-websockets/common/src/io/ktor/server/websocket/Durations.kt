@@ -23,6 +23,9 @@ import kotlin.time.Duration.Companion.milliseconds
  * }
  * ```
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets)
+ *
  * @param pingInterval duration between pings or `null` to disable pings.
  * @param timeout write/ping timeout after that a connection will be closed.
  * @param maxFrameSize maximum frame that could be received or sent.

@@ -6,6 +6,8 @@ package io.ktor.server.application
 
 /**
  * Provides events for [Application] lifecycle.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEvents)
  */
 @Deprecated(
     "ApplicationEvents has been renamed to Events.",
@@ -16,6 +18,8 @@ public typealias ApplicationEvents = io.ktor.events.Events
 
 /**
  * Specifies signature for the event handler.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.EventHandler)
  */
 @Deprecated(
     "EventHandler has been moved to package io.ktor.events",
@@ -29,6 +33,9 @@ public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
  * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
  * Inheriting of this class is an experimental plugin.
  * Instantiate directly if inheritance not necessary.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.EventDefinition)
  *
  * @param T specifies what is a type of a value passed to the event
  */

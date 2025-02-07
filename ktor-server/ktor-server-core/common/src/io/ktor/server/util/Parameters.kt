@@ -24,6 +24,9 @@ import kotlin.reflect.*
  * }
  * ```
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
+ *
  * @throws MissingRequestParameterException if no values associated with name
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
@@ -33,6 +36,9 @@ public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, 
 
 /**
  * Get parameters value associated with this [name] or fail with [MissingRequestParameterException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getOrFail)
+ *
  * @throws MissingRequestParameterException if no values associated with this [name]
  */
 @Suppress("NOTHING_TO_INLINE")
@@ -43,6 +49,9 @@ public inline fun Parameters.getOrFail(name: String): String {
 /**
  * Get parameter value associated with this [name] converting to type [R] using [DefaultConversionService]
  * or fail with [MissingRequestParameterException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getOrFail)
+ *
  * @throws MissingRequestParameterException if no values associated with this [name]
  * @throws ParameterConversionException when conversion from String to [R] fails
  */

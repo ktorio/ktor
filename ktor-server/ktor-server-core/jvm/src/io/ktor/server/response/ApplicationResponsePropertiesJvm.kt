@@ -11,27 +11,37 @@ import java.time.temporal.*
 
 /**
  * Append HTTP response header with temporal [date] (date, time and so on)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.header)
  */
 public fun ApplicationResponse.header(name: String, date: Temporal): Unit =
     headers.append(name, date.toHttpDateString())
 
 /**
  * Append response `Last-Modified` HTTP header value from [dateTime]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.lastModified)
  */
 public fun ApplicationResponse.lastModified(dateTime: ZonedDateTime): Unit = header(HttpHeaders.LastModified, dateTime)
 
 /**
  * Append response `Expires` HTTP header [value]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.expires)
  */
 public fun ApplicationResponse.expires(value: LocalDateTime): Unit = header(HttpHeaders.Expires, value)
 
 /**
  * Set 'Last-Modified` header value from [dateTime]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.lastModified)
  */
 public fun HeadersBuilder.lastModified(dateTime: ZonedDateTime): Unit =
     set(HttpHeaders.LastModified, dateTime.toHttpDateString())
 
 /**
  * Set 'Expires` header value from [expires]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.expires)
  */
 public fun HeadersBuilder.expires(expires: LocalDateTime): Unit = set(HttpHeaders.Expires, expires.toHttpDateString())

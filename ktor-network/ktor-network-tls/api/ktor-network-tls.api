@@ -222,7 +222,7 @@ public final class io/ktor/network/tls/TLSConfigBuilderKt {
 	public static final fun takeFrom (Lio/ktor/network/tls/TLSConfigBuilder;Lio/ktor/network/tls/TLSConfigBuilder;)V
 }
 
-public final class io/ktor/network/tls/TLSException : java/io/IOException {
+public final class io/ktor/network/tls/TLSException : javax/net/ssl/SSLException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }

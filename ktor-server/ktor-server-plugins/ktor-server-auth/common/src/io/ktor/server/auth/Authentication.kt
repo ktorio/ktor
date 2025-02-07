@@ -10,6 +10,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [Authentication] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationConfig)
  */
 @KtorDsl
 public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider> = emptyMap()) {
@@ -17,6 +19,9 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
 
     /**
      * Registers a provider with the specified [name] and allows you to [configure] it.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationConfig.provider)
+     *
      * @throws IllegalArgumentException if a provider with the same name is already installed.
      */
     public fun provider(name: String? = null, configure: DynamicProviderConfig.() -> Unit) {
@@ -28,6 +33,9 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
 
     /**
      * Registers the specified [provider].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationConfig.register)
+     *
      * @throws IllegalArgumentException if a provider with the same name is already installed.
      */
     public fun register(provider: AuthenticationProvider) {
@@ -77,11 +85,15 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
  *
  * You can learn how to configure various authentication providers from
  * [Authentication and authorization](https://ktor.io/docs/authentication.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Authentication)
  */
 public class Authentication(internal var config: AuthenticationConfig) {
 
     /**
      * Configures an already installed plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Authentication.configure)
      */
     public fun configure(block: AuthenticationConfig.() -> Unit) {
         val newConfiguration = config.copy()
@@ -91,6 +103,8 @@ public class Authentication(internal var config: AuthenticationConfig) {
 
     /**
      * An installation object of the [Authentication] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Authentication.Companion)
      */
     public companion object : BaseApplicationPlugin<Application, AuthenticationConfig, Authentication> {
         override val key: AttributeKey<Authentication> = AttributeKey("AuthenticationHolder")
@@ -104,17 +118,23 @@ public class Authentication(internal var config: AuthenticationConfig) {
 
 /**
  * Retrieves an [AuthenticationContext] for `this` call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authentication)
  */
 public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
  * Retrieves an authenticated principal [Any] for `this` call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principal)
  */
 public inline fun <reified P : Any> ApplicationCall.principal(): P? = principal(null)
 
 /**
  * Retrieves an authenticated principal [Any] for `this` call from provider with name [provider]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principal)
  */
 public inline fun <reified P : Any> ApplicationCall.principal(provider: String?): P? =
     authentication.principal(provider)
@@ -124,6 +144,8 @@ public inline fun <reified P : Any> ApplicationCall.principal(provider: String?)
  * You can modify the existing authentication configuration only in the [authentication]'s block or
  * using the [Authentication.configure] function.
  * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authentication)
  */
 public fun Application.authentication(block: AuthenticationConfig.() -> Unit) {
     pluginOrNull(Authentication)?.configure(block) ?: install(Authentication, block)

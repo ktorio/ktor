@@ -106,6 +106,8 @@ import platform.Security.*
  * This class was heavily inspired by OkHttp, which is a great Http library for Android
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner)
  */
 @OptIn(UnsafeNumber::class)
 public data class LegacyCertificatePinner(
@@ -393,6 +395,8 @@ public data class LegacyCertificatePinner(
 
     /**
      * Builds a configured [LegacyCertificatePinner].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.Builder)
      */
     public data class Builder(
         private val pinnedCertificates: MutableList<LegacyPinnedCertificate> = mutableListOf(),
@@ -400,6 +404,9 @@ public data class LegacyCertificatePinner(
     ) {
         /**
          * Pins certificates for `pattern`.
+         *
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.Builder.add)
          *
          * @param pattern lower-case host name or wildcard pattern such as `*.example.com`.
          * @param pins SHA-256 or SHA-1 hashes. Each pin is a hash of a certificate's
@@ -420,6 +427,9 @@ public data class LegacyCertificatePinner(
         /**
          * Whether to valid the trust of the server
          * https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.Builder.validateTrust)
+         *
          * @param validateTrust
          * @return The [Builder] so calls can be chained
          */
@@ -429,6 +439,9 @@ public data class LegacyCertificatePinner(
 
         /**
          * Build into a [LegacyCertificatePinner]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.Builder.build)
+         *
          * @return [LegacyCertificatePinner]
          */
         public fun build(): LegacyCertificatePinner = LegacyCertificatePinner(

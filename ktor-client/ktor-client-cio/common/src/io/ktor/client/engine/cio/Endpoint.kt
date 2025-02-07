@@ -223,10 +223,10 @@ internal class Endpoint(
                     }
                 }
 
-                val connection = socket.connection()
-                if (!secure) return@connect address to connection
-
                 try {
+                    val connection = socket.connection()
+                    if (!secure) return@connect address to connection
+
                     if (proxy?.type == ProxyType.HTTP) {
                         startTunnel(requestData, connection.output, connection.input)
                     }

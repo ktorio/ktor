@@ -14,6 +14,9 @@ import io.ktor.utils.io.charsets.*
 /**
  * A `basic` [Authentication] provider.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider)
+ *
  * @see [basic]
  * @property name is the name of the provider, or `null` for a default provider.
  */
@@ -51,6 +54,8 @@ public class BasicAuthenticationProvider internal constructor(
 
     /**
      * A configuration for the [basic] authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider.Config)
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
@@ -61,12 +66,16 @@ public class BasicAuthenticationProvider internal constructor(
 
         /**
          * Specifies a realm to be passed in the `WWW-Authenticate` header.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider.Config.realm)
          */
         public var realm: String = "Ktor Server"
 
         /**
          * Specifies the charset to be used. It can be either `UTF_8` or `null`.
          * Setting `null` turns on a legacy mode (`ISO-8859-1`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider.Config.charset)
          */
         public var charset: Charset? = Charsets.UTF_8
             set(value) {
@@ -81,6 +90,8 @@ public class BasicAuthenticationProvider internal constructor(
         /**
          * Sets a validation function that checks a specified [UserPasswordCredential] instance and
          * returns principal [Any] in a case of successful authentication or null if authentication fails.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider.Config.validate)
          */
         public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Any?) {
             authenticationFunction = body
@@ -92,6 +103,8 @@ public class BasicAuthenticationProvider internal constructor(
  * Installs the basic [Authentication] provider.
  * You can use basic authentication for logging in users and protecting specific routes.
  * To learn how to configure it, see [Basic authentication](https://ktor.io/docs/basic.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.basic)
  */
 public fun AuthenticationConfig.basic(
     name: String? = null,
@@ -103,6 +116,8 @@ public fun AuthenticationConfig.basic(
 
 /**
  * Retrieves [basic] authentication credentials for this [ApplicationRequest].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.basicAuthenticationCredentials)
  */
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {

@@ -17,6 +17,8 @@ public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
  * interpreting characters in the specified [charset].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.String)
  */
 @Deprecated(
     "Use decodeToString instead",
@@ -38,6 +40,8 @@ public fun String(
 /**
  * Read exactly [n] bytes (consumes all remaining if [n] is not specified but up to [Int.MAX_VALUE] bytes).
  * Does fail if not enough bytes remaining.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readBytes)
  */
 @Deprecated(
     "Use readByteArray instead",
@@ -53,6 +57,9 @@ public fun Source.readBytes(count: Int): ByteArray = readByteArray(count)
 
 /**
  * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readText)
+ *
  * @return a decoded string
  */
 @OptIn(InternalIoApi::class)
@@ -68,6 +75,8 @@ public fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX
 
 /**
  * Read exactly [n] characters interpreting bytes in the specified [charset].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readTextExact)
  */
 @Deprecated(
     "Use readTextExactCharacters instead.",
@@ -79,6 +88,8 @@ public fun Source.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): Stri
 
 /**
  * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readTextExactCharacters)
  */
 public fun Source.readTextExactCharacters(charactersCount: Int, charset: Charset = Charsets.UTF_8): String {
     val s = readText(charset, charactersCount)
@@ -90,6 +101,8 @@ public fun Source.readTextExactCharacters(charactersCount: Int, charset: Charset
 
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.writeText)
  */
 public fun Sink.writeText(
     text: CharSequence,
@@ -106,6 +119,8 @@ public fun Sink.writeText(
 
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.writeText)
  */
 public fun Sink.writeText(
     text: CharArray,

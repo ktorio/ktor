@@ -11,6 +11,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [io.ktor.server.plugins.cors.routing.CORS] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig)
  */
 @KtorDsl
 public class CORSConfig {
@@ -20,11 +22,15 @@ public class CORSConfig {
 
         /**
          * The default CORS max age value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CORS_DEFAULT_MAX_AGE)
          */
         public const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
 
         /**
          * Default HTTP methods that are always allowed by CORS.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CorsDefaultMethods)
          */
         public val CorsDefaultMethods: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
 
@@ -32,6 +38,8 @@ public class CORSConfig {
          * Default HTTP headers that are always allowed by CORS
          * (simple request headers according to https://www.w3.org/TR/cors/#simple-header).
          * Note that `Content-Type` header simplicity depends on its value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CorsSimpleRequestHeaders)
          */
         public val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
             HttpHeaders.Accept,
@@ -43,6 +51,8 @@ public class CORSConfig {
         /**
          * Default HTTP headers that are always allowed by CORS to be used in a response
          * (simple request headers according to https://www.w3.org/TR/cors/#simple-header).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CorsSimpleResponseHeaders)
          */
         public val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
             HttpHeaders.CacheControl,
@@ -55,6 +65,8 @@ public class CORSConfig {
 
         /**
          * The allowed set of content types that are allowed by CORS without preflight check.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CorsSimpleContentTypes)
          */
         @Suppress("unused")
         public val CorsSimpleContentTypes: Set<ContentType> =
@@ -71,22 +83,30 @@ public class CORSConfig {
 
     /**
      * Allowed [CORS] hosts.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.hosts)
      */
     public val hosts: MutableSet<String> = HashSet()
 
     /**
      * Allowed [CORS] headers.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.headers)
      */
     @OptIn(InternalAPI::class)
     public val headers: MutableSet<String> = CaseInsensitiveSet()
 
     /**
      * Allowed [CORS] HTTP methods.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.methods)
      */
     public val methods: MutableSet<HttpMethod> = HashSet()
 
     /**
      * Exposed HTTP headers that could be accessed by a client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.exposedHeaders)
      */
     @OptIn(InternalAPI::class)
     public val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
@@ -95,6 +115,8 @@ public class CORSConfig {
      * Allows passing credential information (such as cookies or authentication information)
      * with cross-origin requests.
      * This property sets the `Access-Control-Allow-Credentials` response header to `true`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowCredentials)
      */
     public var allowCredentials: Boolean = false
 
@@ -105,12 +127,16 @@ public class CORSConfig {
 
     /**
      * If present represents the prefix for headers which are permitted in CORS requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.headerPredicates)
      */
     public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
      * Specifies how long the response to the preflight request can be cached
      * without sending another preflight request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.maxAgeInSeconds)
      */
     public var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
         set(newMaxAge) {
@@ -120,6 +146,8 @@ public class CORSConfig {
 
     /**
      * Allows requests from the same origin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowSameOrigin)
      */
     public var allowSameOrigin: Boolean = true
 
@@ -128,11 +156,15 @@ public class CORSConfig {
      * - `text/plain`
      * - `application/x-www-form-urlencoded`
      * - `multipart/form-data`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowNonSimpleContentTypes)
      */
     public var allowNonSimpleContentTypes: Boolean = false
 
     /**
      * Allows requests from any host.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.anyHost)
      */
     public fun anyHost() {
         hosts.add("*")
@@ -144,6 +176,9 @@ public class CORSConfig {
      * If you specify a wildcard in the host, you cannot add specific subdomains.
      * Otherwise, you can mix wildcard and non-wildcard subdomains as long as
      * the wildcard is always in front of the domain, e.g. `*.sub.domain.com` but not `sub.*.domain.com`.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowHost)
      *
      * @param host host as it appears in the Host header (e.g. localhost:8080)
      * @param schemes protocols allowed for the origin site; defaults to http and https
@@ -194,6 +229,8 @@ public class CORSConfig {
      * Allows exposing the [header] using `Access-Control-Expose-Headers`.
      * The `Access-Control-Expose-Headers` header adds the specified headers
      * to the allowlist that JavaScript in browsers can access.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.exposeHeader)
      */
     public fun exposeHeader(header: String) {
         if (header !in CorsSimpleResponseHeaders) {
@@ -203,6 +240,8 @@ public class CORSConfig {
 
     /**
      * Allows using the `X-Http-Method-Override` header for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowXHttpMethodOverride)
      */
     @Suppress("unused")
     public fun allowXHttpMethodOverride() {
@@ -211,6 +250,8 @@ public class CORSConfig {
 
     /**
      * Allows using an origin matching [predicate] for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowOrigins)
      */
     public fun allowOrigins(predicate: (String) -> Boolean) {
         this.originPredicates.add(predicate)
@@ -218,6 +259,8 @@ public class CORSConfig {
 
     /**
      * Allows using headers prefixed with [headerPrefix] for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowHeadersPrefixed)
      */
     public fun allowHeadersPrefixed(headerPrefix: String) {
         val prefix = headerPrefix.lowercase()
@@ -226,6 +269,8 @@ public class CORSConfig {
 
     /**
      * Allows using headers matching [predicate] for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowHeaders)
      */
     public fun allowHeaders(predicate: (String) -> Boolean) {
         this.headerPredicates.add(predicate)
@@ -233,6 +278,8 @@ public class CORSConfig {
 
     /**
      * Allow using a specified [header] for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowHeader)
      */
     public fun allowHeader(header: String) {
         if (header.equals(HttpHeaders.ContentType, ignoreCase = true)) {
@@ -250,6 +297,8 @@ public class CORSConfig {
      *
      * Note that CORS operates with real HTTP methods only and
      * doesn't handle method overridden by `X-Http-Method-Override`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowMethod)
      */
     public fun allowMethod(method: HttpMethod) {
         if (method !in CorsDefaultMethods) {
@@ -259,6 +308,8 @@ public class CORSConfig {
 
     /**
      * Allows requests with any HTTP method.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.anyMethod)
      */
     public fun anyMethod() {
         methods.addAll(DefaultMethods)

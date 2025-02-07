@@ -14,6 +14,9 @@ package io.ktor.client.engine
  * underlying engine that will handle HTTP requests. This allows users to seamlessly plug in different
  * engines based on their requirements, such as for performance, platform compatibility, or protocol support.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineFactory)
+ *
  * @param T The type of [HttpClientEngineConfig] used to configure the engine.
  *
  * Example:
@@ -45,6 +48,9 @@ public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
      *
      * Typically, this method is invoked internally by the [io.ktor.client.HttpClient] constructor when the factory
      * is passed to it. Users can, however, call it directly to explicitly control engine instantiation.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineFactory.create)
      *
      * @param block A lambda that applies additional configurations to the engine's [T] object.
      * @return An [HttpClientEngine] instance, which may be newly created or reused.

@@ -14,6 +14,8 @@ import kotlin.coroutines.*
 
 /**
  * A builder for [ServerConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder)
  */
 public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
@@ -23,26 +25,36 @@ public class ServerConfigBuilder(
 
     /**
      * Paths to wait for application reload.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.watchPaths)
      */
     public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
 
     /**
      * Application's root path (prefix, context path in servlet container).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.rootPath)
      */
     public var rootPath: String = ""
 
     /**
      * Indicates whether development mode is enabled.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.developmentMode)
      */
     public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
 
     /**
      * Parent coroutine context for an application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.parentCoroutineContext)
      */
     public var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
 
     /**
      * Installs an application module.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.module)
      */
     public fun module(body: Application.() -> Unit) {
         modules.add(body)
@@ -55,6 +67,8 @@ public class ServerConfigBuilder(
 /**
  * Core configuration for a running server.
  * Contains modules, paths, and environment details.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfig)
  */
 public class ServerConfig internal constructor(
     public val environment: ApplicationEnvironment,
@@ -70,6 +84,8 @@ public class ServerConfig internal constructor(
 
 /**
  * Creates an [ServerConfig] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.serverConfig)
  */
 public fun serverConfig(
     environment: ApplicationEnvironment = applicationEnvironment {},
@@ -82,6 +98,8 @@ public fun serverConfig(
  * Represents configured and running web application, capable of handling requests.
  * It is also the application coroutine scope that is cancelled immediately at application stop so useful
  * for launching background coroutines.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application)
  */
 @KtorDsl
 public class Application internal constructor(
@@ -101,6 +119,8 @@ public class Application internal constructor(
 
     /**
      * Called by [ApplicationEngine] when [Application] is terminated.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
      */
     @Suppress("DEPRECATION_ERROR")
     public fun dispose() {
@@ -111,5 +131,7 @@ public class Application internal constructor(
 
 /**
  * Convenience property to access log from application
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.log)
  */
 public val Application.log: Logger get() = environment.log

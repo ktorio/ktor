@@ -9,12 +9,18 @@ import java.nio.file.*
 import kotlin.io.path.*
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.defaultForFile)
+ *
  * @return default content type for [file] by its extension
  */
 public fun ContentType.Companion.defaultForFile(file: File): ContentType =
     ContentType.fromFileExtension(file.extension).selectDefault()
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.defaultForPath)
+ *
  * @return default content type for [path] by its extension
  */
 public fun ContentType.Companion.defaultForPath(path: Path): ContentType =

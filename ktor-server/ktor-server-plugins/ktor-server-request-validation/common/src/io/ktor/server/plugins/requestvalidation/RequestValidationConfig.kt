@@ -8,6 +8,8 @@ import kotlin.reflect.*
 
 /**
  * A config for [RequestValidation] plugin
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig)
  */
 public class RequestValidationConfig {
 
@@ -18,6 +20,8 @@ public class RequestValidationConfig {
     /**
      * Enables validation of the request body length matches the [Content-Length] header.
      * If the length doesn't match, body channel will be cancelled with [IOException].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig.validateContentLength)
      */
     public fun validateContentLength() {
         validateContentLength = true
@@ -25,6 +29,8 @@ public class RequestValidationConfig {
 
     /**
      * Registers [validator]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig.validate)
      */
     public fun validate(validator: Validator) {
         validators.add(validator)
@@ -32,6 +38,8 @@ public class RequestValidationConfig {
 
     /**
      * Registers [Validator] that should check instances of a [kClass] using [block]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig.validate)
      */
     public fun <T : Any> validate(kClass: KClass<T>, block: suspend (T) -> ValidationResult) {
         val validator = object : Validator {
@@ -44,6 +52,8 @@ public class RequestValidationConfig {
 
     /**
      * Registers [Validator] that should check instances of a [T] using [block]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig.validate)
      */
     public inline fun <reified T : Any> validate(noinline block: suspend (T) -> ValidationResult) {
         // `KClass.isInstance` doesn't work for JS, but direct `value is T` works
@@ -62,6 +72,8 @@ public class RequestValidationConfig {
      *    validation { check(it is Int); ... }
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.requestvalidation.RequestValidationConfig.validate)
      */
     public fun validate(block: ValidatorBuilder.() -> Unit) {
         val builder = ValidatorBuilder().apply(block)

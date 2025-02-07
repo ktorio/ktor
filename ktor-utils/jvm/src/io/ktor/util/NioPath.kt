@@ -11,6 +11,8 @@ import java.nio.file.Path
 /**
  * Append a [relativePath] safely that means that adding any extra `..` path elements will not let
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.combineSafe)
  */
 public fun Path.combineSafe(relativePath: Path): Path {
     val normalized = relativePath.normalizeAndRelativize()
@@ -28,6 +30,8 @@ public fun Path.combineSafe(relativePath: Path): Path {
 
 /**
  * Remove all redundant `.` and `..` path elements. Leading `..` are also considered redundant.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.normalizeAndRelativize)
  */
 public fun Path.normalizeAndRelativize(): Path =
     root?.relativize(this)?.normalize()?.dropLeadingTopDirs() ?: normalize().dropLeadingTopDirs()
@@ -41,6 +45,8 @@ private fun Path.dropLeadingTopDirs(): Path {
 /**
  * Append a [relativePath] safely that means that adding any extra `..` path elements will not let
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.combineSafe)
  */
 public fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()

@@ -15,6 +15,8 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [ConditionalHeaders] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.conditionalheaders.ConditionalHeadersConfig)
  */
 @KtorDsl
 public class ConditionalHeadersConfig {
@@ -31,6 +33,9 @@ public class ConditionalHeadersConfig {
     /**
      * Registers a function that can fetch a version list for a given [ApplicationCall] and [OutgoingContent].
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.conditionalheaders.ConditionalHeadersConfig.version)
+     *
      * @see [ConditionalHeaders]
      */
     public fun version(provider: suspend (ApplicationCall, OutgoingContent) -> List<Version>) {
@@ -43,6 +48,8 @@ internal val VersionProvidersKey: AttributeKey<List<suspend (ApplicationCall, Ou
 
 /**
  * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.conditionalheaders.versionsFor)
  */
 public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<Version> {
     val versionProviders = application.attributes.getOrNull(VersionProvidersKey)
@@ -72,6 +79,8 @@ public suspend fun ApplicationCall.versionsFor(content: OutgoingContent): List<V
  * ```
  *
  * You can learn more from [Conditional headers](https://ktor.io/docs/conditional-headers.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.conditionalheaders.ConditionalHeaders)
  */
 public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = createRouteScopedPlugin(
     "ConditionalHeaders",
@@ -116,6 +125,8 @@ public val ConditionalHeaders: RouteScopedPlugin<ConditionalHeadersConfig> = cre
 
 /**
  * Retrieves the `LastModified` and `ETag` versions from headers.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.conditionalheaders.parseVersions)
  */
 public fun Headers.parseVersions(): List<Version> {
     val lastModifiedHeaders = getAll(HttpHeaders.LastModified) ?: emptyList()

@@ -31,6 +31,8 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
  * A hook that is executed after authentication was checked.
  * Note that this hook is also executed for optional authentication or for routes without any authentication,
  * resulting in [ApplicationCall.principal] being `null`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationChecked)
  */
 public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
     internal val AfterAuthenticationPhase: PipelinePhase = PipelinePhase("AfterAuthentication")
@@ -47,6 +49,8 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
 
 /**
  * A plugin that authenticates calls. Usually used via the [authenticate] function inside routing.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationInterceptors)
  */
 public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConfig> = createRouteScopedPlugin(
     "AuthenticationInterceptors",
@@ -187,12 +191,17 @@ private fun AuthenticationConfig.findProvider(configurationName: String?): Authe
  *  registered for this route
  *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for
  *  this route with this strategy
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationStrategy)
  */
 public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
 
 /**
  * Creates a route that allows you to define authorization scope for application resources.
  * This function accepts names of authentication providers defined in the [Authentication] plugin configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticate)
+ *
  * @see [Authentication]
  *
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
@@ -216,6 +225,9 @@ public fun Route.authenticate(
 /**
  * Creates a route that allows you to define authorization scope for application resources.
  * This function accepts names of authentication providers defined in the [Authentication] plugin configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticate)
+ *
  * @see [Authentication]
  *
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
@@ -256,6 +268,8 @@ public fun Route.authenticate(
 
 /**
  * A configuration for the [AuthenticationInterceptors] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RouteAuthenticationConfig)
  */
 @KtorDsl
 public class RouteAuthenticationConfig {
@@ -267,6 +281,9 @@ public class RouteAuthenticationConfig {
  * An authentication route node that is used by [Authentication] plugin
  * and usually created by the [Route.authenticate] DSL function,
  * so generally there is no need to instantiate it directly unless you are writing an extension.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationRouteSelector)
+ *
  * @param names of authentication providers to be applied to this route.
  */
 public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {

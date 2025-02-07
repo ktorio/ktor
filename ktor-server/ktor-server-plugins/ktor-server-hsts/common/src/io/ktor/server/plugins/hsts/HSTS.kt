@@ -13,22 +13,30 @@ import io.ktor.utils.io.*
 
 /**
  *  A configuration for the [HSTS] settings for a host.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSHostConfig)
  */
 @KtorDsl
 public open class HSTSHostConfig {
     /**
      * Specifies the `preload` HSTS directive, which allows you to include your domain name
      * in the HSTS preload list.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSHostConfig.preload)
      */
     public var preload: Boolean = false
 
     /**
      * Specifies the `includeSubDomains` directive, which applies this policy to any subdomains as well.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSHostConfig.includeSubDomains)
      */
     public var includeSubDomains: Boolean = true
 
     /**
      * Specifies how long (in seconds) the client should keep the host in a list of known HSTS hosts:
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSHostConfig.maxAgeInSeconds)
      */
     public var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE
         set(newMaxAge) {
@@ -38,12 +46,16 @@ public open class HSTSHostConfig {
 
     /**
      * Allows you to add custom directives supported by a specific user agent.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSHostConfig.customDirectives)
      */
     public val customDirectives: MutableMap<String, String?> = HashMap()
 }
 
 /**
  *  A configuration for the [HSTS] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSConfig)
  */
 @KtorDsl
 public class HSTSConfig : HSTSHostConfig() {
@@ -56,6 +68,8 @@ public class HSTSConfig : HSTSHostConfig() {
 
     /**
      * Set specific configuration for a [host].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSConfig.withHost)
      */
     public fun withHost(host: String, configure: HSTSHostConfig.() -> Unit) {
         this.hostSpecific[host] = HSTSHostConfig().apply(configure)
@@ -63,6 +77,8 @@ public class HSTSConfig : HSTSHostConfig() {
 
     /**
      * Sets a filter that determines whether the plugin should be applied to a specific call.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTSConfig.filter)
      */
     public fun filter(block: (ApplicationCall) -> Boolean) {
         this.filter = block
@@ -82,6 +98,8 @@ internal const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
  * }
  * ```
  * You can learn more from [HSTS](https://ktor.io/docs/hsts.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.hsts.HSTS)
  */
 public val HSTS: RouteScopedPlugin<HSTSConfig> = createRouteScopedPlugin("HSTS", ::HSTSConfig) {
     fun constructHeaderValue(config: HSTSHostConfig) = buildString {

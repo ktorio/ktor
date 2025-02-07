@@ -19,6 +19,8 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
 
 /**
  * Encode [String] in base64 format and UTF-8 character encoding.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.encodeBase64)
  */
 public fun String.encodeBase64(): String = buildPacket {
     writeText(this@encodeBase64)
@@ -26,6 +28,8 @@ public fun String.encodeBase64(): String = buildPacket {
 
 /**
  * Encode [ByteArray] in base64 format
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.encodeBase64)
  */
 public fun ByteArray.encodeBase64(): String {
     val array = this@encodeBase64
@@ -68,11 +72,15 @@ public fun ByteArray.encodeBase64(): String {
 
 /**
  * Encode [ByteReadPacket] in base64 format
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.encodeBase64)
  */
 public fun Source.encodeBase64(): String = readByteArray().encodeBase64()
 
 /**
  * Decode [String] from base64 format encoded in UTF-8.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decodeBase64String)
  */
 public fun String.decodeBase64String(): String {
     val bytes = decodeBase64Bytes()
@@ -81,6 +89,8 @@ public fun String.decodeBase64String(): String {
 
 /**
  * Decode [String] from base64 format
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decodeBase64Bytes)
  */
 public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
     writeText(dropLastWhile { it == BASE64_PAD })
@@ -88,6 +98,8 @@ public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
 
 /**
  * Decode [ByteReadPacket] from base64 format
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decodeBase64Bytes)
  */
 public fun Source.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)

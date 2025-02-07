@@ -21,11 +21,15 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.statuspages.Status
 
 /**
  * Specifies how the exception should be handled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.HandlerFunction)
  */
 public typealias HandlerFunction = suspend (call: ApplicationCall, cause: Throwable) -> Unit
 
 /**
  * A plugin that handles exceptions and status codes. Useful to configure default error pages.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPages)
  */
 public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplicationPlugin(
     "StatusPages",
@@ -103,16 +107,22 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
 
 /**
  * A [StatusPages] plugin configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig)
  */
 @KtorDsl
 public class StatusPagesConfig {
     /**
      * Provides access to exception handlers of the exception class.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.exceptions)
      */
     public val exceptions: MutableMap<KClass<*>, HandlerFunction> = mutableMapOf()
 
     /**
      * Provides access to status handlers based on a status code.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.statuses)
      */
     public val statuses: MutableMap<
         HttpStatusCode,
@@ -124,6 +134,8 @@ public class StatusPagesConfig {
 
     /**
      * Register an exception [handler] for the exception type [T] and its children.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.exception)
      */
     public inline fun <reified T : Throwable> exception(
         noinline handler: suspend (call: ApplicationCall, cause: T) -> Unit
@@ -131,6 +143,8 @@ public class StatusPagesConfig {
 
     /**
      * Register an exception [handler] for the exception class [klass] and its children.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.exception)
      */
     public fun <T : Throwable> exception(
         klass: KClass<T>,
@@ -144,6 +158,8 @@ public class StatusPagesConfig {
 
     /**
      * Register a status [handler] for the [status] code.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.status)
      */
     public fun status(
         vararg status: HttpStatusCode,
@@ -156,6 +172,8 @@ public class StatusPagesConfig {
 
     /**
      * Register a [handler] for the unhandled calls.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.unhandled)
      */
     public fun unhandled(handler: suspend (ApplicationCall) -> Unit) {
         unhandled = handler
@@ -163,6 +181,8 @@ public class StatusPagesConfig {
 
     /**
      * Register a status [handler] for the [status] code.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.status)
      */
     @JvmName("statusWithContext")
     public fun status(
@@ -176,6 +196,8 @@ public class StatusPagesConfig {
 
     /**
      * A context for [status] config method.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.StatusPagesConfig.StatusContext)
      */
     public class StatusContext(
         public val call: ApplicationCall,

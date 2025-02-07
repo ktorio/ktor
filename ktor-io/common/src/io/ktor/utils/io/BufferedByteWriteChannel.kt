@@ -7,12 +7,16 @@ package io.ktor.utils.io
 public interface BufferedByteWriteChannel : ByteWriteChannel {
     /**
      * Flush all pending bytes from [writeBuffer] to the internal read buffer without suspension.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.BufferedByteWriteChannel.flushWriteBuffer)
      */
     @InternalAPI
     public fun flushWriteBuffer()
 
     /**
      * Flush all pending bytes from [writeBuffer] to the internal read buffer without suspension and initiate channel close.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.BufferedByteWriteChannel.close)
      */
     public fun close()
 }

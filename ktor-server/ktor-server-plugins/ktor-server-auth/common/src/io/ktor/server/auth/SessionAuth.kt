@@ -12,6 +12,9 @@ import kotlin.reflect.*
 
 /**
  * A session-based [Authentication] provider.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider)
+ *
  * @see [session]
  *
  * @property type of session
@@ -54,6 +57,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
     /**
      * A configuration for the [session] authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider.Config)
      */
     public class Config<T : Any> @PublishedApi internal constructor(
         name: String?,
@@ -65,6 +70,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
         /**
          * Specifies a response to send back if authentication failed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider.Config.challenge)
          */
         public fun challenge(block: SessionAuthChallengeFunction<T>) {
             challengeFunction = block
@@ -72,6 +79,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
         /**
          * Specifies a response to send back if authentication failed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider.Config.challenge)
          */
         public fun challenge(redirectUrl: String) {
             challenge {
@@ -81,6 +90,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
         /**
          * Specifies a response to send back if authentication failed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider.Config.challenge)
          */
         public fun challenge(redirect: Url) {
             challenge(redirect.toString())
@@ -89,6 +100,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         /**
          * Sets a validation function that checks a given [T] session instance and returns principal [Any],
          * or null if the session does not correspond to an authenticated principal.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationProvider.Config.validate)
          */
         public fun validate(block: suspend ApplicationCall.(T) -> Any?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
@@ -120,6 +133,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
  * This provider provides the ability to authenticate a user that already has an associated session.
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  */
 public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null
@@ -132,6 +147,8 @@ public inline fun <reified T : Any> AuthenticationConfig.session(
  * This provider provides the ability to authenticate a user that already has an associated session.
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  */
 public fun <T : Any> AuthenticationConfig.session(
     name: String? = null,
@@ -147,6 +164,8 @@ public fun <T : Any> AuthenticationConfig.session(
  * This provider provides the ability to authenticate a user that already has an associated session.
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  */
 public inline fun <reified T : Any> AuthenticationConfig.session(
     name: String? = null,
@@ -160,6 +179,8 @@ public inline fun <reified T : Any> AuthenticationConfig.session(
  * This provider provides the ability to authenticate a user that already has an associated session.
  *
  * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  */
 public fun <T : Any> AuthenticationConfig.session(
     name: String?,
@@ -172,6 +193,8 @@ public fun <T : Any> AuthenticationConfig.session(
 
 /**
  * A context for [SessionAuthChallengeFunction].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionChallengeContext)
  */
 public class SessionChallengeContext(
     public val call: ApplicationCall
@@ -179,10 +202,14 @@ public class SessionChallengeContext(
 
 /**
  * Specifies what to send back if session authentication fails.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthChallengeFunction)
  */
 public typealias SessionAuthChallengeFunction<T> = suspend SessionChallengeContext.(T?) -> Unit
 
 /**
  * A key used to register authentication challenge.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthChallengeKey)
  */
 public const val SessionAuthChallengeKey: String = "SessionAuth"

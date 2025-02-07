@@ -12,6 +12,9 @@ import java.nio.channels.*
 /**
  * Read from a NIO channel into the specified [buffer]
  * Could return `0` if the channel is non-blocking or [buffer] has no free space
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.read)
+ *
  * @return number of bytes read (possibly 0) or -1 if EOF
  */
 public fun ReadableByteChannel.read(buffer: Buffer): Int {
@@ -28,6 +31,9 @@ public fun ReadableByteChannel.read(buffer: Buffer): Int {
 /**
  * Write bytes to a NIO channel from the specified [buffer]
  * Could return `0` if the channel is non-blocking or [buffer] has no free space
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.write)
+ *
  * @return number of bytes written (possibly 0)
  */
 @InternalAPI

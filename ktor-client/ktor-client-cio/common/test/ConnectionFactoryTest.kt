@@ -32,18 +32,21 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
+        val sockets = mutableListOf<Socket>()
         withServerSocket { socket0 ->
             withServerSocket { socket1 ->
                 withServerSocket { socket2 ->
-                    connectionFactory.connect(socket0.localAddress as InetSocketAddress)
-                    connectionFactory.connect(socket1.localAddress as InetSocketAddress)
+                    sockets += connectionFactory.connect(socket0.localAddress as InetSocketAddress)
+                    sockets += connectionFactory.connect(socket1.localAddress as InetSocketAddress)
 
                     assertTimeout {
-                        connectionFactory.connect(socket2.localAddress as InetSocketAddress)
+                        sockets += connectionFactory.connect(socket2.localAddress as InetSocketAddress)
                     }
                 }
             }
         }
+
+        sockets.forEach { it.close() }
     }
 
     @Test
@@ -53,20 +56,23 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
+        val sockets = mutableListOf<Socket>()
         withServerSocket { socket0 ->
 
             withServerSocket { socket1 ->
-                connectionFactory.connect(socket0.localAddress as InetSocketAddress)
+                sockets += connectionFactory.connect(socket0.localAddress as InetSocketAddress)
                 assertTimeout {
-                    connectionFactory.connect(socket0.localAddress as InetSocketAddress)
+                    sockets += connectionFactory.connect(socket0.localAddress as InetSocketAddress)
                 }
 
-                connectionFactory.connect(socket1.localAddress as InetSocketAddress)
+                sockets += connectionFactory.connect(socket1.localAddress as InetSocketAddress)
                 assertTimeout {
-                    connectionFactory.connect(socket1.localAddress as InetSocketAddress)
+                    sockets += connectionFactory.connect(socket1.localAddress as InetSocketAddress)
                 }
             }
         }
+
+        sockets.forEach { it.close() }
     }
 
     @Test
@@ -76,18 +82,21 @@ class ConnectionFactoryTest {
             connectionsLimit = 2,
             addressConnectionsLimit = 1,
         )
+        val sockets = mutableListOf<Socket>()
         withServerSocket { socket0 ->
             withServerSocket { socket1 ->
-                connectionFactory.connect(socket0.localAddress as InetSocketAddress)
+                sockets += connectionFactory.connect(socket0.localAddress as InetSocketAddress)
 
                 // Release the `limit` semaphore when it fails to acquire the address semaphore.
                 assertTimeout {
-                    connectionFactory.connect(socket0.localAddress as InetSocketAddress)
+                    sockets += connectionFactory.connect(socket0.localAddress as InetSocketAddress)
                 }
 
-                connectionFactory.connect(socket1.localAddress as InetSocketAddress)
+                sockets += connectionFactory.connect(socket1.localAddress as InetSocketAddress)
             }
         }
+
+        sockets.forEach { it.close() }
     }
 
     private suspend fun assertTimeout(timeoutMillis: Long = 500, block: suspend () -> Unit) {

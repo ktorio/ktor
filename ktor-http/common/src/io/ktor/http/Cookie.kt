@@ -16,6 +16,9 @@ import kotlin.jvm.*
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
  * A cookie with neither [expires] nor [maxAge] is a session cookie.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Cookie)
+ *
  * @property name
  * @property value
  * @property encoding - cookie encoding type [CookieEncoding]
@@ -54,25 +57,35 @@ internal object CookieJvmSerializer : JvmSerializer<Cookie> {
 
 /**
  * Cooke encoding strategy
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CookieEncoding)
  */
 public enum class CookieEncoding {
     /**
      * No encoding (could be dangerous)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CookieEncoding.RAW)
      */
     RAW,
 
     /**
      * Double quotes with slash-escaping
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CookieEncoding.DQUOTES)
      */
     DQUOTES,
 
     /**
      * URI encoding
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CookieEncoding.URI_ENCODING)
      */
     URI_ENCODING,
 
     /**
      * BASE64 encoding
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.CookieEncoding.BASE64_ENCODING)
      */
     BASE64_ENCODING
 }
@@ -81,6 +94,8 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
 
 /**
  * Parse server's `Set-Cookie` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseServerSetCookieHeader)
  */
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
@@ -108,6 +123,8 @@ private val clientCookieHeaderPattern = """(^|;)\s*([^;=\{\}\s]+)\s*(=\s*("[^"]*
 
 /**
  * Parse client's `Cookie` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseClientCookiesHeader)
  */
 public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
@@ -124,6 +141,8 @@ public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean 
 
 /**
  * Format `Set-Cookie` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.renderSetCookieHeader)
  */
 public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
@@ -142,6 +161,8 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
 
 /**
  * Format `Cookie` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.renderCookieHeader)
  */
 public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     "$name=${encodeCookieValue(value, encoding)}"
@@ -149,6 +170,8 @@ public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
 
 /**
  * Format `Set-Cookie` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.renderSetCookieHeader)
  */
 public fun renderSetCookieHeader(
     name: String,
@@ -179,6 +202,8 @@ public fun renderSetCookieHeader(
 
 /**
  * Encode cookie value using the specified [encoding]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.encodeCookieValue)
  */
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> value
@@ -196,6 +221,8 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
 
 /**
  * Decode cookie value using the specified [encoding]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.decodeCookieValue)
  */
 public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {

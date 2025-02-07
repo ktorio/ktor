@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
@@ -8,6 +8,9 @@ import io.ktor.utils.io.charsets.*
 
 /**
  * Represents a value for a `Content-Type` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType)
+ *
  * @property contentType represents a type part of the media type.
  * @property contentSubtype represents a subtype part of the media type.
  */
@@ -31,6 +34,8 @@ public class ContentType private constructor(
 
     /**
      * Creates a copy of `this` type with the added parameter with the [name] and [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.withParameter)
      */
     public fun withParameter(name: String, value: String): ContentType {
         if (hasParameter(name, value)) return this
@@ -46,6 +51,8 @@ public class ContentType private constructor(
 
     /**
      * Creates a copy of `this` type without any parameters
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.withoutParameters)
      */
     public fun withoutParameters(): ContentType = when {
         parameters.isEmpty() -> this
@@ -62,6 +69,8 @@ public class ContentType private constructor(
      * ContentType("a", "*").match(ContentType("a", "b")) === false
      * ContentType("a", "b").match(ContentType("a", "*")) === true
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.match)
      */
     public fun match(pattern: ContentType): Boolean {
         if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
@@ -99,6 +108,8 @@ public class ContentType private constructor(
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.match)
      */
     public fun match(pattern: String): Boolean = match(parse(pattern))
 
@@ -118,6 +129,8 @@ public class ContentType private constructor(
     public companion object {
         /**
          * Parses a string representing a `Content-Type` header into a [ContentType] instance.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Companion.parse)
          */
         public fun parse(value: String): ContentType {
             if (value.isBlank()) return Any
@@ -153,153 +166,238 @@ public class ContentType private constructor(
 
         /**
          * Represents a pattern `* / *` to match any content type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Companion.Any)
          */
         public val Any: ContentType = ContentType("*", "*")
     }
 
     /**
      * Provides a list of standard subtypes of an `application` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Application {
+        public const val TYPE: String = "application"
+
         /**
          * Represents a pattern `application / *` to match any application content type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application.Any)
          */
-        public val Any: ContentType = ContentType("application", "*")
-        public val Atom: ContentType = ContentType("application", "atom+xml")
-        public val Cbor: ContentType = ContentType("application", "cbor")
-        public val Json: ContentType = ContentType("application", "json")
-        public val HalJson: ContentType = ContentType("application", "hal+json")
-        public val JavaScript: ContentType = ContentType("application", "javascript")
-        public val OctetStream: ContentType = ContentType("application", "octet-stream")
-        public val Rss: ContentType = ContentType("application", "rss+xml")
-        public val Soap: ContentType = ContentType("application", "soap+xml")
-        public val Xml: ContentType = ContentType("application", "xml")
-        public val Xml_Dtd: ContentType = ContentType("application", "xml-dtd")
-        public val Yaml: ContentType = ContentType("application", "yaml")
-        public val Zip: ContentType = ContentType("application", "zip")
-        public val GZip: ContentType = ContentType("application", "gzip")
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val Atom: ContentType = ContentType(TYPE, "atom+xml")
+        public val Cbor: ContentType = ContentType(TYPE, "cbor")
+        public val Json: ContentType = ContentType(TYPE, "json")
+        public val HalJson: ContentType = ContentType(TYPE, "hal+json")
+        public val JavaScript: ContentType = ContentType(TYPE, "javascript")
+        public val OctetStream: ContentType = ContentType(TYPE, "octet-stream")
+        public val Rss: ContentType = ContentType(TYPE, "rss+xml")
+        public val Soap: ContentType = ContentType(TYPE, "soap+xml")
+        public val Xml: ContentType = ContentType(TYPE, "xml")
+        public val Xml_Dtd: ContentType = ContentType(TYPE, "xml-dtd")
+        public val Yaml: ContentType = ContentType(TYPE, "yaml")
+        public val Zip: ContentType = ContentType(TYPE, "zip")
+        public val GZip: ContentType = ContentType(TYPE, "gzip")
+        public val FormUrlEncoded: ContentType = ContentType(TYPE, "x-www-form-urlencoded")
+        public val Pdf: ContentType = ContentType(TYPE, "pdf")
+        public val Xlsx: ContentType = ContentType(TYPE, "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        public val Docx: ContentType = ContentType(TYPE, "vnd.openxmlformats-officedocument.wordprocessingml.document")
+        public val Pptx: ContentType =
+            ContentType(TYPE, "vnd.openxmlformats-officedocument.presentationml.presentation")
+        public val ProtoBuf: ContentType = ContentType(TYPE, "protobuf")
+        public val Wasm: ContentType = ContentType(TYPE, "wasm")
+        public val ProblemJson: ContentType = ContentType(TYPE, "problem+json")
+        public val ProblemXml: ContentType = ContentType(TYPE, "problem+xml")
 
-        public val FormUrlEncoded: ContentType =
-            ContentType("application", "x-www-form-urlencoded")
+        /** Checks that the given [contentType] has type `application/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        public val Pdf: ContentType = ContentType("application", "pdf")
-        public val Xlsx: ContentType = ContentType(
-            "application",
-            "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        public val Docx: ContentType = ContentType(
-            "application",
-            "vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-        public val Pptx: ContentType = ContentType(
-            "application",
-            "vnd.openxmlformats-officedocument.presentationml.presentation"
-        )
-        public val ProtoBuf: ContentType = ContentType("application", "protobuf")
-        public val Wasm: ContentType = ContentType("application", "wasm")
-        public val ProblemJson: ContentType = ContentType("application", "problem+json")
-        public val ProblemXml: ContentType = ContentType("application", "problem+xml")
+        /** Checks that the given [contentType] has type `application/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of an `audio` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Audio)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Audio {
-        public val Any: ContentType = ContentType("audio", "*")
-        public val MP4: ContentType = ContentType("audio", "mp4")
-        public val MPEG: ContentType = ContentType("audio", "mpeg")
-        public val OGG: ContentType = ContentType("audio", "ogg")
+        public const val TYPE: String = "audio"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val MP4: ContentType = ContentType(TYPE, "mp4")
+        public val MPEG: ContentType = ContentType(TYPE, "mpeg")
+        public val OGG: ContentType = ContentType(TYPE, "ogg")
+
+        /** Checks that the given [contentType] has type `audio/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `audio/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of an `image` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Image)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Image {
-        public val Any: ContentType = ContentType("image", "*")
-        public val GIF: ContentType = ContentType("image", "gif")
-        public val JPEG: ContentType = ContentType("image", "jpeg")
-        public val PNG: ContentType = ContentType("image", "png")
-        public val SVG: ContentType = ContentType("image", "svg+xml")
-        public val XIcon: ContentType = ContentType("image", "x-icon")
+        public const val TYPE: String = "image"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val GIF: ContentType = ContentType(TYPE, "gif")
+        public val JPEG: ContentType = ContentType(TYPE, "jpeg")
+        public val PNG: ContentType = ContentType(TYPE, "png")
+        public val SVG: ContentType = ContentType(TYPE, "svg+xml")
+        public val XIcon: ContentType = ContentType(TYPE, "x-icon")
+
+        /** Checks that the given [contentType] has type `image/`. */
+        public operator fun contains(contentSubtype: String): Boolean =
+            contentSubtype.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `image/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of a `message` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Message)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Message {
-        public val Any: ContentType = ContentType("message", "*")
-        public val Http: ContentType = ContentType("message", "http")
+        public const val TYPE: String = "message"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val Http: ContentType = ContentType(TYPE, "http")
+
+        /** Checks that the given [contentType] has type `message/`. */
+        public operator fun contains(contentSubtype: String): Boolean =
+            contentSubtype.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `message/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of a `multipart` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.MultiPart)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object MultiPart {
-        public val Any: ContentType = ContentType("multipart", "*")
-        public val Mixed: ContentType = ContentType("multipart", "mixed")
-        public val Alternative: ContentType = ContentType("multipart", "alternative")
-        public val Related: ContentType = ContentType("multipart", "related")
-        public val FormData: ContentType = ContentType("multipart", "form-data")
-        public val Signed: ContentType = ContentType("multipart", "signed")
-        public val Encrypted: ContentType = ContentType("multipart", "encrypted")
-        public val ByteRanges: ContentType = ContentType("multipart", "byteranges")
+        public const val TYPE: String = "multipart"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val Mixed: ContentType = ContentType(TYPE, "mixed")
+        public val Alternative: ContentType = ContentType(TYPE, "alternative")
+        public val Related: ContentType = ContentType(TYPE, "related")
+        public val FormData: ContentType = ContentType(TYPE, "form-data")
+        public val Signed: ContentType = ContentType(TYPE, "signed")
+        public val Encrypted: ContentType = ContentType(TYPE, "encrypted")
+        public val ByteRanges: ContentType = ContentType(TYPE, "byteranges")
+
+        /** Checks that the given [contentType] has type `multipart/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `multipart/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of a `text` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Text)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Text {
-        public val Any: ContentType = ContentType("text", "*")
-        public val Plain: ContentType = ContentType("text", "plain")
-        public val CSS: ContentType = ContentType("text", "css")
-        public val CSV: ContentType = ContentType("text", "csv")
-        public val Html: ContentType = ContentType("text", "html")
-        public val JavaScript: ContentType = ContentType("text", "javascript")
-        public val VCard: ContentType = ContentType("text", "vcard")
-        public val Xml: ContentType = ContentType("text", "xml")
-        public val EventStream: ContentType = ContentType("text", "event-stream")
+        public const val TYPE: String = "text"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val Plain: ContentType = ContentType(TYPE, "plain")
+        public val CSS: ContentType = ContentType(TYPE, "css")
+        public val CSV: ContentType = ContentType(TYPE, "csv")
+        public val Html: ContentType = ContentType(TYPE, "html")
+        public val JavaScript: ContentType = ContentType(TYPE, "javascript")
+        public val VCard: ContentType = ContentType(TYPE, "vcard")
+        public val Xml: ContentType = ContentType(TYPE, "xml")
+        public val EventStream: ContentType = ContentType(TYPE, "event-stream")
+
+        /** Checks that the given [contentType] has type `text/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `text/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of a `video` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Video)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Video {
-        public val Any: ContentType = ContentType("video", "*")
-        public val MPEG: ContentType = ContentType("video", "mpeg")
-        public val MP4: ContentType = ContentType("video", "mp4")
-        public val OGG: ContentType = ContentType("video", "ogg")
-        public val QuickTime: ContentType = ContentType("video", "quicktime")
+        public const val TYPE: String = "video"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val MPEG: ContentType = ContentType(TYPE, "mpeg")
+        public val MP4: ContentType = ContentType(TYPE, "mp4")
+        public val OGG: ContentType = ContentType(TYPE, "ogg")
+        public val QuickTime: ContentType = ContentType(TYPE, "quicktime")
+
+        /** Checks that the given [contentType] has type `video/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `video/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
     /**
      * Provides a list of standard subtypes of a `font` content type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Font)
      */
     @Suppress("KDocMissingDocumentation", "unused")
     public object Font {
-        public val Any: ContentType = ContentType("font", "*")
-        public val Collection: ContentType = ContentType("font", "collection")
-        public val Otf: ContentType = ContentType("font", "otf")
-        public val Sfnt: ContentType = ContentType("font", "sfnt")
-        public val Ttf: ContentType = ContentType("font", "ttf")
-        public val Woff: ContentType = ContentType("font", "woff")
-        public val Woff2: ContentType = ContentType("font", "woff2")
+        public const val TYPE: String = "font"
+
+        public val Any: ContentType = ContentType(TYPE, "*")
+        public val Collection: ContentType = ContentType(TYPE, "collection")
+        public val Otf: ContentType = ContentType(TYPE, "otf")
+        public val Sfnt: ContentType = ContentType(TYPE, "sfnt")
+        public val Ttf: ContentType = ContentType(TYPE, "ttf")
+        public val Woff: ContentType = ContentType(TYPE, "woff")
+        public val Woff2: ContentType = ContentType(TYPE, "woff2")
+
+        /** Checks that the given [contentType] has type `font/`. */
+        public operator fun contains(contentType: CharSequence): Boolean =
+            contentType.startsWith("$TYPE/", ignoreCase = true)
+
+        /** Checks that the given [contentType] has type `font/`. */
+        public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 }
 
 /**
  * Exception thrown when a content type string is malformed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.BadContentTypeFormatException)
  */
 public class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
 
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.withCharset)
  */
 public fun ContentType.withCharset(charset: Charset): ContentType =
     withParameter("charset", charset.name)
@@ -307,6 +405,8 @@ public fun ContentType.withCharset(charset: Charset): ContentType =
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value
  * if [ContentType] is not ignored
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.withCharsetIfNeeded)
  */
 public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
     if (contentType.lowercase() != "text") {
@@ -317,6 +417,8 @@ public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.charset)
  */
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {

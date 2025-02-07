@@ -13,6 +13,9 @@ import java.security.*
 
 /**
  * A `digest` [Authentication] provider.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider)
+ *
  * @property realm specifies the value to be passed in the `WWW-Authenticate` header.
  * @property algorithmName a message digest algorithm to be used. Usually only `MD5` is supported by clients.
  */
@@ -87,6 +90,8 @@ public class DigestAuthenticationProvider internal constructor(
 
     /**
      * A configuration for the [digest] authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config)
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var digestProvider: DigestProviderFunction = { userName, realm ->
@@ -101,22 +106,30 @@ public class DigestAuthenticationProvider internal constructor(
 
         /**
          * Specifies a realm to be passed in the `WWW-Authenticate` header.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.realm)
          */
         public var realm: String = "Ktor Server"
 
         /**
          * A message digest algorithm to be used. Usually only `MD5` is supported by clients.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.algorithmName)
          */
         public var algorithmName: String = "MD5"
 
         /**
          * [NonceManager] to be used to generate nonce values.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.nonceManager)
          */
         public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
          * Sets a validation function that checks a specified [DigestCredential] instance and
          * returns principal [Any] in a case of successful authentication or null if authentication fails.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.validate)
          */
         public fun validate(body: AuthenticationFunction<DigestCredential>) {
             authenticationFunction = body
@@ -126,6 +139,8 @@ public class DigestAuthenticationProvider internal constructor(
          * Configures a digest provider function that should fetch or compute message digest for the specified
          * `userName` and `realm`. A message digest is usually computed based on username, realm and password
          * concatenated with the colon character ':'. For example, `"$userName:$realm:$password"`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.digestProvider)
          */
         public fun digestProvider(digest: DigestProviderFunction) {
             digestProvider = digest
@@ -136,12 +151,16 @@ public class DigestAuthenticationProvider internal constructor(
 /**
  * Provides a message digest for the specified username and realm or returns `null` if a user is missing.
  * This function could fetch digest from a database or compute it instead.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestProviderFunction)
  */
 public typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
 
 /**
  * Installs the digest [Authentication] provider.
  * To learn how to configure it, see [Digest authentication](https://ktor.io/docs/digest.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.digest)
  */
 public fun AuthenticationConfig.digest(
     name: String? = null,
@@ -153,6 +172,9 @@ public fun AuthenticationConfig.digest(
 
 /**
  * Digest credentials.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestCredential)
+ *
  * @see [digest]
  *
  * @property realm a digest authentication realm
@@ -181,6 +203,8 @@ public data class DigestCredential(
 
 /**
  * Retrieves [DigestCredential] for this call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.digestAuthenticationCredentials)
  */
 public fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? {
     return request.parseAuthorizationHeader()?.let { authHeader ->
@@ -196,6 +220,8 @@ private val digestAuthenticationChallengeKey: Any = "DigestAuth"
 
 /**
  * Converts [HttpAuthHeader] to [DigestCredential].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.toDigestCredential)
  */
 public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
     parameter("realm")!!,
@@ -212,6 +238,8 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential =
 
 /**
  * Verifies that credentials are valid for a given [method], [digester], and [userNameRealmPasswordDigest].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.verifier)
  */
 public suspend fun DigestCredential.verifier(
     method: HttpMethod,
@@ -233,6 +261,8 @@ public suspend fun DigestCredential.verifier(
 
 /**
  * Calculates the expected digest bytes for this [DigestCredential].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
  */
 public fun DigestCredential.expectedDigest(
     method: HttpMethod,

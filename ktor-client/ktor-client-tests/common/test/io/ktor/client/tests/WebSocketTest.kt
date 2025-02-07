@@ -312,6 +312,25 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    fun testResponseContainsSecWebsocketProtocolHeader() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol") {
+                header(HttpHeaders.SecWebSocketProtocol, "test-protocol")
+            }
+
+            try {
+                assertEquals(session.call.response.headers[HttpHeaders.SecWebSocketProtocol], "test-protocol")
+            } finally {
+                session.close()
+            }
+        }
+    }
+
+    @Test
     fun testIncomingOverflow() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
@@ -326,35 +345,32 @@ class WebSocketTest : ClientLoader() {
         }
     }
 
-    @Ignore // TODO KTOR-7088
     @Test
     fun testImmediateReceiveAfterConnect() = clientTests(
-        except(ENGINES_WITHOUT_WS + "Darwin" + "Js") // TODO KTOR-7088
+        except(ENGINES_WITHOUT_WS + "Darwin"), // TODO KTOR-7088
     ) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            withTimeout(10_000) {
-                coroutineScope {
-                    val defs = (1..100).map {
-                        async {
-                            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
-                                val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
-                                assertNotNull(frame)
-                                assertIs<Frame.Text>(frame)
-                            }
+            coroutineScope {
+                val defs = (1..100).map {
+                    async {
+                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                            val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
+                            assertNotNull(frame)
+                            assertIs<Frame.Text>(frame)
                         }
                     }
-                    defs.awaitAll()
                 }
+                defs.awaitAll()
             }
         }
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js" + "WinHttp")) {
         config {
             install(WebSockets)
 
@@ -400,7 +416,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
+    fun testAuthenticationWithInvalidToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js" + "WinHttp")) {
         config {
             install(WebSockets)
 

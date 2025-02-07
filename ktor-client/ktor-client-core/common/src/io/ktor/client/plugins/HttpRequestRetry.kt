@@ -24,11 +24,15 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRequestRetry")
 
 /**
  * Occurs on request retry.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryEvent)
  */
 public val HttpRequestRetryEvent: EventDefinition<HttpRetryEventData> = EventDefinition()
 
 /**
  * Contains [HttpRequestRetry] configurations settings.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig)
  */
 @KtorDsl
 public class HttpRequestRetryConfig {
@@ -39,24 +43,32 @@ public class HttpRequestRetryConfig {
 
     /**
      * Function that determines whether a request should be retried based on the response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryIf)
      */
     public val retryIf: (HttpRetryShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean)?
         get() = if (::shouldRetry.isInitialized) shouldRetry else null
 
     /**
      * Function that determines whether a request should be retried based on the exception.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnExceptionIf)
      */
     public val retryOnExceptionIf: (HttpRetryShouldRetryContext.(HttpRequestBuilder, Throwable) -> Boolean)?
         get() = if (::shouldRetryOnException.isInitialized) shouldRetryOnException else null
 
     /**
      * Indicated how the request should be modified before retrying.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.modifyRequest)
      */
     public var modifyRequest: HttpRetryModifyRequestContext.(HttpRequestBuilder) -> Unit = {}
         private set
 
     /**
      * The maximum amount of retries to perform for a request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.maxRetries)
      */
     public var maxRetries: Int = 0
 
@@ -67,6 +79,8 @@ public class HttpRequestRetryConfig {
 
     /**
      * Disables retry.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.noRetry)
      */
     public fun noRetry() {
         maxRetries = 0
@@ -76,6 +90,8 @@ public class HttpRequestRetryConfig {
 
     /**
      * Modifies a request before retrying.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.modifyRequest)
      */
     public fun modifyRequest(block: HttpRetryModifyRequestContext.(HttpRequestBuilder) -> Unit) {
         modifyRequest = block
@@ -84,6 +100,8 @@ public class HttpRequestRetryConfig {
     /**
      * Specifies retry logic for a response. The [block] accepts [HttpRequest] and [HttpResponse]
      * and should return `true` if this request should be retried.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryIf)
      */
     public fun retryIf(
         maxRetries: Int = -1,
@@ -96,6 +114,8 @@ public class HttpRequestRetryConfig {
     /**
      * Specifies retry logic for failed requests. The [block] accepts [HttpRequestBuilder]
      * and [Throwable] and should return true if this request should be retried.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnExceptionIf)
      */
     public fun retryOnExceptionIf(
         maxRetries: Int = -1,
@@ -112,6 +132,8 @@ public class HttpRequestRetryConfig {
      * are not retried.
      * Set [retryOnTimeout] to `true` to retry on timeout.
      * Note, that in this case, [HttpTimeout] plugin should be installed after [HttpRequestRetry].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnException)
      */
     public fun retryOnException(maxRetries: Int = -1, retryOnTimeout: Boolean = false) {
         retryOnExceptionIf(maxRetries) { _, cause ->
@@ -126,6 +148,8 @@ public class HttpRequestRetryConfig {
     /**
      * Enables retrying a request if a 5xx response is received from a server
      * and specifies the number of retries.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnServerErrors)
      */
     public fun retryOnServerErrors(maxRetries: Int = -1) {
         retryIf(maxRetries) { _, response ->
@@ -136,6 +160,8 @@ public class HttpRequestRetryConfig {
     /**
      * Enables retrying a request if an exception is thrown during the [HttpSend] phase
      * or a 5xx response is received and specifies the number of retries.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnExceptionOrServerErrors)
      */
     public fun retryOnExceptionOrServerErrors(maxRetries: Int = -1) {
         retryOnServerErrors(maxRetries)
@@ -145,6 +171,8 @@ public class HttpRequestRetryConfig {
     /**
      * Specifies delay logic for retries. The [block] accepts the number of retries
      * and should return the number of milliseconds to wait before retrying.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.delayMillis)
      */
     public fun delayMillis(
         respectRetryAfterHeader: Boolean = true,
@@ -163,6 +191,8 @@ public class HttpRequestRetryConfig {
     /**
      * Specifies a constant delay between retries.
      * This delay equals to `millis + [0..randomizationMs]` milliseconds.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.constantDelay)
      */
     public fun constantDelay(
         millis: Long = 1000,
@@ -183,6 +213,8 @@ public class HttpRequestRetryConfig {
      *
      * For the defaults (base delay 1000ms, base 2), this results in 1000ms, 2000ms, 4000ms, 8000ms ... plus a random
      * value up to 1000ms.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.exponentialDelay)
      */
     public fun exponentialDelay(
         base: Double = 2.0,
@@ -205,6 +237,8 @@ public class HttpRequestRetryConfig {
     /**
      * A function that waits for the specified number of milliseconds. Uses [kotlinx.coroutines.delay] by default.
      * Useful for tests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.delay)
      */
     public fun delay(block: suspend (Long) -> Unit) {
         delay = block
@@ -234,6 +268,8 @@ public class HttpRequestRetryConfig {
  *      modifyRequest { it.headers.append("X_RETRY_COUNT", retryCount.toString()) }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetry)
  */
 @Suppress("NAME_SHADOWING")
 public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClientPlugin(
@@ -342,6 +378,8 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
 /**
  * A context for [HttpRequestRetry.Configuration.shouldRetry]
  * and [HttpRequestRetry.Configuration.shouldRetryOnException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryShouldRetryContext)
  */
 public class HttpRetryShouldRetryContext(
     /**
@@ -353,6 +391,8 @@ public class HttpRetryShouldRetryContext(
 /**
  * A context for [HttpRequestRetry.Configuration.delayMillis].
  * Contains a non-null [response] or [cause] but not both.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryDelayContext)
  */
 public class HttpRetryDelayContext internal constructor(
     public val request: HttpRequestBuilder,
@@ -363,6 +403,8 @@ public class HttpRetryDelayContext internal constructor(
 /**
  * A context for [HttpRequestRetry.Configuration.modifyRequest].
  * Contains a non-null [response] or [cause] but not both.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryModifyRequestContext)
  */
 public class HttpRetryModifyRequestContext internal constructor(
     /**
@@ -379,6 +421,8 @@ public class HttpRetryModifyRequestContext internal constructor(
 
 /**
  * Data for the [HttpRequestRetryEvent] event. Contains a non-null [response] or [cause] but not both.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryEventData)
  */
 public class HttpRetryEventData internal constructor(
     public val request: HttpRequestBuilder,
@@ -389,6 +433,8 @@ public class HttpRetryEventData internal constructor(
 
 /**
  * Configures the [HttpRequestRetry] plugin on a per-request level.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.retry)
  */
 public fun HttpRequestBuilder.retry(block: HttpRequestRetryConfig.() -> Unit) {
     val configuration = HttpRequestRetryConfig().apply(block)

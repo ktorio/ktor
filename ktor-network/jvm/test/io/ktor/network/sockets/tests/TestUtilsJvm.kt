@@ -14,3 +14,5 @@ internal actual fun Any.supportsUnixDomainSockets(): Boolean {
         false
     }
 }
+
+internal actual fun Throwable.isPosixException(): Boolean = false

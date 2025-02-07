@@ -4,7 +4,29 @@
 
 package io.ktor.network.sockets
 
+/**
+ * Represents a socket address abstraction.
+ *
+ * This sealed class serves as the base type for different kinds of socket addresses,
+ * such as Internet-specific or other platform-dependent address types.
+ * Implementations of this class are expected to be platform-specific and provide
+ * details necessary to work with socket connections or bindings.
+ */
 public expect sealed class SocketAddress
+
+/**
+ * Retrieves the port number associated with this socket address.
+ *
+ * If the `SocketAddress` instance is of type `InetSocketAddress`, the associated port is returned.
+ * Otherwise, an `UnsupportedOperationException` is thrown, as the provided address type does not support ports.
+ *
+ * @return the port number of the socket address if available.
+ * @throws UnsupportedOperationException if the socket address type does not support a port.
+ */
+public fun SocketAddress.port(): Int = when (this) {
+    is InetSocketAddress -> port
+    else -> throw UnsupportedOperationException("SocketAddress $this does not have a port")
+}
 
 public expect class InetSocketAddress(
     hostname: String,
@@ -14,11 +36,15 @@ public expect class InetSocketAddress(
      * The hostname of the socket address.
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.hostname)
      */
     public val hostname: String
 
     /**
      * The port number of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.port)
      */
     public val port: Int
 
@@ -26,11 +52,15 @@ public expect class InetSocketAddress(
      * The hostname of the socket address.
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.component1)
      */
     public operator fun component1(): String
 
     /**
      * The port number of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.component2)
      */
     public operator fun component2(): Int
 
@@ -38,6 +68,8 @@ public expect class InetSocketAddress(
      * Create a copy of [InetSocketAddress].
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.copy)
      */
     public fun copy(hostname: String = this.hostname, port: Int = this.port): InetSocketAddress
 
@@ -51,16 +83,22 @@ public expect class UnixSocketAddress(
 ) : SocketAddress {
     /**
      * The path of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.path)
      */
     public val path: String
 
     /**
      * The path of the socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.component1)
      */
     public operator fun component1(): String
 
     /**
      * Create a copy of [UnixSocketAddress].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.copy)
      */
     public fun copy(path: String = this.path): UnixSocketAddress
     override fun equals(other: Any?): Boolean

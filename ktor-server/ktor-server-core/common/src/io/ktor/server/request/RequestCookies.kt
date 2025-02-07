@@ -9,6 +9,9 @@ import io.ktor.util.collections.*
 
 /**
  * Server request's cookies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestCookies)
+ *
  * @see [ApplicationRequest.cookies]
  * @property request application request to fetch cookies from
  */
@@ -19,11 +22,15 @@ public open class RequestCookies(protected val request: ApplicationRequest) {
      * Provides access to raw cookie values.
      * These values are not decoded so could have percent encoded values, quotes, escape characters, and so on.
      * It is recommended to use [get] instead.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestCookies.rawCookies)
      */
     public val rawCookies: Map<String, String> by lazy { fetchCookies() }
 
     /**
      * Gets a [name] cookie value decoded using an [encoding] strategy.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestCookies.get)
      */
     public operator fun get(name: String, encoding: CookieEncoding = CookieEncoding.URI_ENCODING): String? {
         val rawValue = rawCookies[name] ?: return null

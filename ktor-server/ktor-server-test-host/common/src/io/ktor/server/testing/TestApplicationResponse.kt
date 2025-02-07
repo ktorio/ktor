@@ -17,6 +17,9 @@ import kotlin.coroutines.*
 
 /**
  * A test call response received from a server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse)
+ *
  * @property readResponse if response channel need to be consumed into byteContent
  */
 public class TestApplicationResponse(
@@ -31,6 +34,8 @@ public class TestApplicationResponse(
 
     /**
      * Response body byte content. Could be blocking. Remains `null` until response appears.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.byteContent)
      */
     public var byteContent: ByteArray?
         get() = when {
@@ -105,6 +110,8 @@ public class TestApplicationResponse(
 
     /**
      * Gets a response body content channel.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.contentChannel)
      */
     public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
@@ -127,6 +134,8 @@ public class TestApplicationResponse(
 
     /**
      * A websocket session's channel.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.websocketChannel)
      */
     public fun websocketChannel(): ByteReadChannel? = responseChannel
 }

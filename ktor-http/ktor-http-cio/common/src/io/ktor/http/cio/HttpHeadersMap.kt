@@ -7,7 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.pool.*
 
-private const val EXPECTED_HEADERS_QTY = 64
+private const val EXPECTED_HEADERS_QTY = 512
 
 /*
  * index array structure
@@ -26,6 +26,8 @@ private val EMPTY_INT_LIST = IntArray(0)
 
 /**
  * A headers map data structure used in CIO
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.HttpHeadersMap)
  */
 
 public class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {

@@ -9,12 +9,14 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.withTimeout
 import java.io.*
 import java.util.concurrent.*
 import javax.servlet.*
+import kotlin.time.Duration
 
-internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJob {
-    val writer = ServletWriter(output)
+internal fun CoroutineScope.servletWriter(output: ServletOutputStream, idleTimeout: Duration? = null): ReaderJob {
+    val writer = ServletWriter(output, idleTimeout)
     return reader(Dispatchers.IO, writer.channel) {
         writer.run()
     }
@@ -33,7 +35,7 @@ internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
 
 private const val MAX_COPY_SIZE = 512 * 1024 // 512K
 
-private class ServletWriter(val output: ServletOutputStream) : WriteListener {
+private class ServletWriter(val output: ServletOutputStream, val idleTimeout: Duration? = null) : WriteListener {
     val channel = ByteChannel()
 
     private val events = Channel<Unit>(2)
@@ -92,7 +94,13 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     private suspend fun awaitReadySuspend() {
         do {
-            events.receive()
+            if (idleTimeout == null) {
+                events.receive()
+            } else {
+                withTimeout(idleTimeout) {
+                    events.receive()
+                }
+            }
         } while (!output.isReady)
     }
 

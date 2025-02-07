@@ -16,6 +16,8 @@ public data class OID(public val identifier: String) {
 
         /**
          * CA OID
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.OID.Companion.BasicConstraints)
          * */
         public val BasicConstraints: OID = OID("2.5.29.19")
         public val KeyUsage: OID = OID("2.5.29.15")
@@ -25,12 +27,16 @@ public data class OID(public val identifier: String) {
 
         /**
          * Encryption OID
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.OID.Companion.RSAEncryption)
          */
         public val RSAEncryption: OID = OID("1 2 840 113549 1 1 1")
         public val ECEncryption: OID = OID("1.2.840.10045.2.1")
 
         /**
          * Algorithm OID
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.OID.Companion.ECDSAwithSHA384Encryption)
          */
         public val ECDSAwithSHA384Encryption: OID = OID("1.2.840.10045.4.3.3")
         public val ECDSAwithSHA256Encryption: OID = OID("1.2.840.10045.4.3.2")
@@ -42,6 +48,8 @@ public data class OID(public val identifier: String) {
 
         /**
          * EC curves
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.OID.Companion.secp256r1)
          */
         public val secp256r1: OID = OID("1.2.840.10045.3.1.7")
 
@@ -65,6 +73,8 @@ public data class OID(public val identifier: String) {
  * and
  * [KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#keypairgenerator-algorithms)
  * sections in the Java Security Standard Algorithm Names Specification for information about standard algorithm names.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.keysGenerationAlgorithm)
  */
 public fun keysGenerationAlgorithm(algorithm: String): String = when {
     algorithm.endsWith("ecdsa", ignoreCase = true) -> "EC"

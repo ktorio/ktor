@@ -24,11 +24,15 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 
 /**
  * Decoder job type
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.DecoderJob)
  */
 public typealias DecoderJob = WriterJob
 
 /**
  * Start a chunked stream decoder coroutine
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  */
 @Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 @Deprecated(
@@ -41,6 +45,8 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
 
 /**
  * Start a chunked stream decoder coroutine
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  */
 @Suppress("UNUSED_PARAMETER", "TYPEALIAS_EXPANSION_DEPRECATION")
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
@@ -50,6 +56,9 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
 
 /**
  * Decode chunked transfer encoding from the [input] channel and write the result in [out].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  *
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
@@ -97,11 +106,15 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 
 /**
  * Encoder job type
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.EncoderJob)
  */
 public typealias EncoderJob = ReaderJob
 
 /**
  * Start chunked stream encoding coroutine
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.encodeChunked)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun encodeChunked(
@@ -113,6 +126,8 @@ public fun encodeChunked(
 
 /**
  * Chunked stream encoding loop
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.encodeChunked)
  */
 public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     try {

@@ -10,6 +10,8 @@ import kotlin.reflect.*
 /**
  * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
  * store the serialized session's data in the server [storage].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage: SessionStorage) {
     cookie<S>(name, typeInfo<S>(), storage)
@@ -18,6 +20,8 @@ public inline fun <reified S : Any> SessionsConfig.cookie(name: String, storage:
 /**
  * Configures [Sessions] to pass a session identifier in cookies using the [name] `Set-Cookie` attribute and
  * store the serialized session's data in the server [storage].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo, storage: SessionStorage) {
     @Suppress("UNCHECKED_CAST")
@@ -46,6 +50,8 @@ internal fun <S : Any> SessionsConfig.cookie(
  * The [block] parameter allows you to configure additional cookie settings, for example:
  * - add other cookie attributes;
  * - sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
@@ -61,6 +67,8 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
  * The [block] parameter allows you to configure additional cookie settings, for example:
  * - add other cookie attributes;
  * - sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public fun <S : Any> SessionsConfig.cookie(
     name: String,
@@ -79,6 +87,8 @@ public fun <S : Any> SessionsConfig.cookie(
 /**
  * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
  * store the serialized session's data in the server [storage].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String, storage: SessionStorage) {
     header<S>(name, typeInfo<S>(), storage)
@@ -87,6 +97,8 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String, storage:
 /**
  * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
  * store the serialized session's data in the server [storage].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo, storage: SessionStorage) {
     header<S>(name, typeInfo, storage) {}
@@ -96,6 +108,8 @@ public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo, sto
  * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
  * store the serialized session's data in the server [storage].
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
@@ -109,6 +123,8 @@ public inline fun <reified S : Any> SessionsConfig.header(
  * Configures [Sessions] to pass a session identifier in a [name] HTTP header and
  * store the serialized session's data in the server [storage].
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public fun <S : Any> SessionsConfig.header(
     name: String,
@@ -147,6 +163,8 @@ internal fun <S : Any> SessionsConfig.header(
 
 /**
  * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
     cookie<S>(name, typeInfo<S>())
@@ -154,6 +172,8 @@ public inline fun <reified S : Any> SessionsConfig.cookie(name: String) {
 
 /**
  * Configures [Sessions] to pass the serialized session's data in cookies using the [name] `Set-Cookie` attribute.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo) {
     @Suppress("UNCHECKED_CAST")
@@ -178,6 +198,8 @@ public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo) {
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public inline fun <reified S : Any> SessionsConfig.cookie(
     name: String,
@@ -201,6 +223,8 @@ public inline fun <reified S : Any> SessionsConfig.cookie(
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.cookie)
  */
 public fun <S : Any> SessionsConfig.cookie(
     name: String,
@@ -237,6 +261,8 @@ internal fun <S : Any> SessionsConfig.cookie(
  * }
  * ```
  * On the client side, you need to append this header to each request to get session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public inline fun <reified S : Any> SessionsConfig.header(name: String) {
     header<S>(name, typeInfo<S>())
@@ -252,6 +278,8 @@ public inline fun <reified S : Any> SessionsConfig.header(name: String) {
  * }
  * ```
  * On the client side, you need to append this header to each request to get session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo) {
     header<S>(name, typeInfo) {}
@@ -260,6 +288,8 @@ public fun <S : Any> SessionsConfig.header(name: String, typeInfo: TypeInfo) {
 /**
  * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public inline fun <reified S : Any> SessionsConfig.header(
     name: String,
@@ -271,6 +301,8 @@ public inline fun <reified S : Any> SessionsConfig.header(
 /**
  * Configures [Sessions] to pass the serialized session's data in a [name] HTTP header.
  * The [block] parameter allows you to configure additional settings, for example, sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.header)
  */
 public fun <S : Any> SessionsConfig.header(
     name: String,
@@ -288,6 +320,8 @@ public fun <S : Any> SessionsConfig.header(
  * A configuration that allows you to configure additional cookie settings for [Sessions], for example:
  * - add cookie attributes;
  * - sign and encrypt session data.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder)
  */
 public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
     type: KClass<S>,
@@ -296,6 +330,8 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
 
     /**
      * Registers a function used to generate a session ID.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
      */
     public fun identity(f: () -> String) {
         sessionIdProvider = f
@@ -303,6 +339,8 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
 
     /**
      * A function used to provide a current session ID.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
     public var sessionIdProvider: () -> String = { generateSessionId() }
         private set
@@ -310,6 +348,9 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
 
 /**
  * A configuration that allows you to configure additional cookie settings for [Sessions].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder)
+ *
  * @property type - session instance type
  */
 public open class CookieSessionBuilder<S : Any>
@@ -323,6 +364,8 @@ internal constructor(
 
     /**
      * Specifies a serializer used to serialize session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.serializer)
      */
     public var serializer: SessionSerializer<S>
         set(value) {
@@ -334,11 +377,15 @@ internal constructor(
 
     /**
      * Gets transformers used to sign and encrypt session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.transformers)
      */
     public val transformers: List<SessionTransportTransformer> get() = _transformers
 
     /**
      * Registers a [transformer] used to sign and encrypt session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.transform)
      */
     public fun transform(transformer: SessionTransportTransformer) {
         _transformers.add(transformer)
@@ -346,12 +393,17 @@ internal constructor(
 
     /**
      * Gets a configuration used to specify additional cookie attributes for [Sessions].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.cookie)
      */
     public val cookie: CookieConfiguration = CookieConfiguration()
 }
 
 /**
  * A configuration that allows you to configure header settings for [Sessions].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder)
+ *
  * @property type session instance type
  */
 public open class HeaderSessionBuilder<S : Any>
@@ -363,6 +415,8 @@ internal constructor(
 
     /**
      * Specifies a serializer used to serialize session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.serializer)
      */
     public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
 
@@ -370,11 +424,15 @@ internal constructor(
 
     /**
      * Gets transformers used to sign and encrypt session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.transformers)
      */
     public val transformers: List<SessionTransportTransformer> get() = _transformers
 
     /**
      * Registers a [transformer] used to sign and encrypt session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.transform)
      */
     public fun transform(transformer: SessionTransportTransformer) {
         _transformers.add(transformer)
@@ -383,6 +441,8 @@ internal constructor(
 
 /**
  * A configuration that allows you to configure header settings for [Sessions].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder)
  */
 public class HeaderIdSessionBuilder<S : Any>
 @PublishedApi
@@ -393,6 +453,8 @@ internal constructor(
 
     /**
      * Registers a function used to generate a session ID.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.identity)
      */
     public fun identity(f: () -> String) {
         sessionIdProvider = f
@@ -400,6 +462,8 @@ internal constructor(
 
     /**
      * A function used to provide a current session ID.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.sessionIdProvider)
      */
     public var sessionIdProvider: () -> String = { generateSessionId() }
         private set

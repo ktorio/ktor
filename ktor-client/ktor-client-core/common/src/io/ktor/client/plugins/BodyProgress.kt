@@ -25,6 +25,8 @@ private val DownloadProgressListenerAttributeKey =
 
 /**
  * Plugin that provides observable progress for uploads and downloads
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.BodyProgress)
  */
 public val BodyProgress: ClientPlugin<Unit> = createClientPlugin("BodyProgress") {
 
@@ -74,6 +76,8 @@ internal fun HttpResponse.withObservableDownload(listener: ProgressListener): Ht
 
 /**
  * Registers listener to observe download progress.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.onDownload)
  */
 public fun HttpRequestBuilder.onDownload(listener: ProgressListener?) {
     if (listener == null) {
@@ -85,6 +89,8 @@ public fun HttpRequestBuilder.onDownload(listener: ProgressListener?) {
 
 /**
  * Registers listener to observe upload progress.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.onUpload)
  */
 public fun HttpRequestBuilder.onUpload(listener: ProgressListener?) {
     if (listener == null) {

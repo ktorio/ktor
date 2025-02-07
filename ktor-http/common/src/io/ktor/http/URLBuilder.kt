@@ -6,11 +6,16 @@ package io.ktor.http
 
 /**
  * Select default port value from protocol.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.DEFAULT_PORT)
  */
 public const val DEFAULT_PORT: Int = 0
 
 /**
  * A URL builder with all mutable components
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  *
  * @property protocol URL protocol (scheme)
  * @property host name without port (domain)
@@ -89,6 +94,8 @@ public class URLBuilder(
 
     /**
      * Build a URL string
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder.buildString)
      */
     public fun buildString(): String {
         applyOrigin()
@@ -101,6 +108,8 @@ public class URLBuilder(
 
     /**
      * Build a [Url] instance (everything is copied to a new instance)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder.build)
      */
     public fun build(): Url {
         applyOrigin()
@@ -204,11 +213,15 @@ private fun Appendable.appendTel(host: String) {
  * Hostname of current origin.
  *
  * It uses "http://localhost" for all platforms except js.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.origin)
  */
 public expect val URLBuilder.Companion.origin: String
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.clone)
  */
 public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 
@@ -219,6 +232,9 @@ internal val URLBuilder.encodedUserAndPassword: String
 
 /**
  * Adds [segments] to current [encodedPath].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
  *
  * @param segments path items to append
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
@@ -235,6 +251,9 @@ public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Bo
 /**
  * Adds [components] to current [encodedPath]
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
+ *
  * @param components path items to append
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
  * `false` to use '/' as a separator between path segments.
@@ -245,6 +264,9 @@ public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash:
 
 /**
  * Replace [components] in the current [encodedPath]. The [path] components will be escaped, except `/` character.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.path)
+ *
  * @param path path items to set
  */
 public fun URLBuilder.path(vararg path: String) {
@@ -253,6 +275,8 @@ public fun URLBuilder.path(vararg path: String) {
 
 /**
  * Adds [segments] to current [encodedPath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendEncodedPathSegments)
  */
 public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
     val endsWithSlash =
@@ -270,12 +294,16 @@ public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuil
 
 /**
  * Adds [components] to current [encodedPath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendEncodedPathSegments)
  */
 public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder =
     appendEncodedPathSegments(components.toList())
 
 /**
  * [URLBuilder] authority.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.authority)
  */
 public val URLBuilder.authority: String
     get() = buildString {
@@ -311,6 +339,8 @@ private fun List<String>.joinPath(): String {
 /**
  * Sets the url parts using the specified [scheme], [host], [port] and [path].
  * Pass `null` to keep existing value in the [URLBuilder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.set)
  */
 public fun URLBuilder.set(
     scheme: String? = null,

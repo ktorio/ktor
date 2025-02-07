@@ -22,6 +22,9 @@ import kotlin.time.*
  * Start connection HTTP pipeline invoking [handler] for every request.
  * Note that [handler] could be invoked multiple times concurrently due to HTTP pipeline nature
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.startServerConnectionPipeline)
+ *
  * @param connection incoming client connection info
  * @param timeout number of IDLE seconds after the connection will be closed
  * @param handler to be invoked for every incoming request

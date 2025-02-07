@@ -21,6 +21,9 @@ import kotlinx.coroutines.*
  *
  * [handle] function is applied to a session.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.SSEServerContent)
+ *
  * @param call that is starting SSE session.
  * @param handle function that is started once SSE session created.
  */

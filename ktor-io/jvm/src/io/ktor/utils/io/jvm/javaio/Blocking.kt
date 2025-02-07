@@ -12,6 +12,8 @@ import kotlin.math.*
 /**
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toInputStream)
  */
 @Suppress("UNUSED_PARAMETER")
 @OptIn(InternalAPI::class)
@@ -49,6 +51,8 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = obj
 /**
  * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toOutputStream)
  */
 public fun ByteWriteChannel.toOutputStream(): OutputStream = object : OutputStream() {
     override fun write(b: Int) {

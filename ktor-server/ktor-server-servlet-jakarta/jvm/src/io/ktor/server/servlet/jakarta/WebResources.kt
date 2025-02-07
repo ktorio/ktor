@@ -15,27 +15,38 @@ import kotlin.random.*
 
 /**
  * Web resources serve configuration
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig)
  */
 public class WebResourcesConfig internal constructor() {
     /**
      * Path predicates to be included. All files will be served if no include rules specified.
      * A path provided to a predicate is always slash-separated (`/`).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig.includes)
      */
     public val includes: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
      * Path predicates to be excluded. By default WEB-INF directory is excluded.
      * A path provided to a predicate is always slash-separated (`/`).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig.excludes)
      */
     public val excludes: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
      * Content-type resolution, uses [defaultForFileExtension] by default
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig.mimeResolve)
      */
     public var mimeResolve: (URL) -> ContentType = { ContentType.defaultForFilePath(it.path) }
 
     /**
      * Add [predicate] to [includes]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig.include)
+     *
      * @see includes
      */
     public fun include(predicate: (path: String) -> Boolean) {
@@ -44,6 +55,9 @@ public class WebResourcesConfig internal constructor() {
 
     /**
      * Add [predicate] exclusion rule to [excludes]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.WebResourcesConfig.exclude)
+     *
      * @see excludes
      */
     public fun exclude(predicate: (path: String) -> Boolean) {
@@ -58,6 +72,9 @@ public class WebResourcesConfig internal constructor() {
 /**
  * Serve web resources (usually a directory named webapp containing WEB-INF/web.xml). Note that WEB-INF directory
  * itself is not served by default.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.webResources)
+ *
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
 @OptIn(InternalAPI::class)

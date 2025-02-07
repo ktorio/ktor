@@ -14,18 +14,24 @@ import java.time.*
 
 /**
  * Construct [LastModifiedVersion] version from a [ZonedDateTime] instance
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LastModifiedVersion)
  */
 public fun LastModifiedVersion(lastModified: ZonedDateTime): LastModifiedVersion =
     LastModifiedVersion(lastModified.toGMTDate())
 
 /**
  * Construct [LastModifiedVersion] version from a [FileTime] instance
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LastModifiedVersion)
  */
 public fun LastModifiedVersion(lastModified: FileTime): LastModifiedVersion =
     LastModifiedVersion(GMTDate(lastModified.toMillis()))
 
 /**
  * Construct [LastModifiedVersion] version from a [Long] instance
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LastModifiedVersion)
  */
 public fun LastModifiedVersion(lastModified: Long): LastModifiedVersion =
     LastModifiedVersion(GMTDate(lastModified))

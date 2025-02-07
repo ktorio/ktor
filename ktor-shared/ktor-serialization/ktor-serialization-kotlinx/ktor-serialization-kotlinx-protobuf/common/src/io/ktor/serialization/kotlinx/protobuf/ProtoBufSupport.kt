@@ -15,6 +15,8 @@ import kotlinx.serialization.protobuf.*
  * - defaults are serialized
  *
  * See [ProtoBuf] for more details.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.protobuf.DefaultProtoBuf)
  */
 @OptIn(ExperimentalSerializationApi::class)
 public val DefaultProtoBuf: ProtoBuf = ProtoBuf {
@@ -26,6 +28,9 @@ public val DefaultProtoBuf: ProtoBuf = ProtoBuf {
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.protobuf.protobuf)
  *
  * @param protobuf format instance (optional)
  * @param contentType to register with, `application/protobuf` by default

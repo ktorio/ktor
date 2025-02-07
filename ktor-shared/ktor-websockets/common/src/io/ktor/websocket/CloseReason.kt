@@ -9,6 +9,9 @@ import kotlin.jvm.*
 
 /**
  * A WebSocket close reason.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.CloseReason)
+ *
  * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
  * @property message - a close reason message, could be empty
  */
@@ -17,6 +20,8 @@ public data class CloseReason(val code: Short, val message: String) {
 
     /**
      * An enum value for this [code] or `null` if the [code] is not listed in [Codes]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.CloseReason.knownReason)
      */
     val knownReason: Codes?
         get() = Codes.byCode(code)
@@ -29,6 +34,8 @@ public data class CloseReason(val code: Short, val message: String) {
      * Standard close reason codes
      *
      * see https://tools.ietf.org/html/rfc6455#section-7.4 for list of codes
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.CloseReason.Codes)
      */
     public enum class Codes(public val code: Short) {
         NORMAL(1000),
@@ -64,6 +71,9 @@ public data class CloseReason(val code: Short, val message: String) {
 
             /**
              * Get enum value by close reason code
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.CloseReason.Codes.Companion.byCode)
+             *
              * @return enum instance or null if [code] is not in standard
              */
             public fun byCode(code: Short): Codes? = byCodeMap[code]
