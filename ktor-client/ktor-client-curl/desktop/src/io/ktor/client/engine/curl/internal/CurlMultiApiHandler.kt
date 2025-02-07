@@ -8,7 +8,6 @@ import io.ktor.client.plugins.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -26,11 +25,6 @@ private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
     }
 }
 
-/**
- * Handles requests using libcurl with multi interface.
- *
- * @see <a href="https://curl.se/libcurl/c/libcurl-multi.html">Multi interface overview</a>
- */
 @OptIn(InternalAPI::class)
 internal class CurlMultiApiHandler : Closeable {
     @OptIn(ExperimentalForeignApi::class)
@@ -136,12 +130,11 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    internal fun perform(counter: AtomicLong) {
+    internal fun perform() {
         if (activeHandles.isEmpty()) return
 
         memScoped {
             val transfersRunning = alloc<IntVar>()
-            val requestId = counter.value
             do {
                 synchronized(easyHandlesToUnpauseLock) {
                     var handle = easyHandlesToUnpause.removeFirstOrNull()
@@ -157,7 +150,7 @@ internal class CurlMultiApiHandler : Closeable {
                 if (transfersRunning.value < activeHandles.size) {
                     handleCompleted()
                 }
-            } while (transfersRunning.value != 0 && requestId == counter.value)
+            } while (transfersRunning.value != 0)
         }
     }
 
