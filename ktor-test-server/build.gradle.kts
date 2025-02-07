@@ -8,7 +8,7 @@ plugins {
     `kotlin-dsl`
     // Serialization version should be aligned with the Kotlin version embedded in Gradle
     // https://docs.gradle.org/current/userguide/compatibility.html#kotlin
-    kotlin("plugin.serialization") version embeddedKotlinVersion
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 dependencies {
