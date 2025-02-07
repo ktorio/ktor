@@ -35,7 +35,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
     private val requestQueue: Channel<RequestContainer> = Channel(Channel.UNLIMITED)
     private val requestCounter = atomic(0L)
-    private val curlProtocols by lazy { getCurlProtocols() }
 
     init {
         val init = curlScope.launch {
@@ -50,10 +49,6 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
-        if (request.isUpgradeRequest && !curlProtocols.contains(request.protocol)) {
-            error("WebSockets are supported in experimental libcurl 7.86 and greater")
-        }
-
         val result = CompletableDeferred<CurlSuccess>()
         nextRequest {
             requestQueue.send(RequestContainer(request, result))
