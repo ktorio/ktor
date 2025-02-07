@@ -30,7 +30,8 @@ internal class CurlWebSocketResponseBody(
 
         val sent = alloc<size_tVar>()
         data.usePinned { pinned ->
-            val status = curl_ws_send(curl, pinned.addressOf(0), data.size.convert(), sent.ptr, 0, flags.convert())
+            val address = if (data.isEmpty()) null else pinned.addressOf(0)
+            val status = curl_ws_send(curl, address, data.size.convert(), sent.ptr, 0, flags.convert())
             if ((flags and CURLWS_CLOSE) == 0) {
                 status.verify()
             }
