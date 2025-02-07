@@ -26,6 +26,9 @@ import kotlin.coroutines.CoroutineContext
  * This behavior is automatically applied to non-streaming [HttpResponse] instances.
  * For streaming responses, this function allows you to convert them into a memory-based representation.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.save)
+ *
  * @return A new [HttpClientCall] instance with all its content stored in memory.
  */
 @OptIn(InternalAPI::class)

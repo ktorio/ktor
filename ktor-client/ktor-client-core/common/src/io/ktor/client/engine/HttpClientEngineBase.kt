@@ -22,6 +22,9 @@ import kotlin.coroutines.*
  * Developers creating custom HTTP client engines are encouraged to use this class as their parent,
  * as it handles much of the boilerplate related to engine lifecycle and coroutine management.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineBase)
+ *
  * @param engineName The name of the engine, used for debugging and context naming.
  *
  * Example:
@@ -53,6 +56,8 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
 
 /**
  * An exception indicating that the client's engine is already closed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ClientEngineClosedException)
  */
 public class ClientEngineClosedException(override val cause: Throwable? = null) :
     IllegalStateException("Client already closed")

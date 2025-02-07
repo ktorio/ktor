@@ -232,6 +232,10 @@ public final class io/ktor/network/sockets/Socket$DefaultImpls {
 public abstract class io/ktor/network/sockets/SocketAddress {
 }
 
+public final class io/ktor/network/sockets/SocketAddressKt {
+	public static final fun port (Lio/ktor/network/sockets/SocketAddress;)I
+}
+
 public final class io/ktor/network/sockets/SocketBuilder : io/ktor/network/sockets/Configurable {
 	public synthetic fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
 	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/SocketBuilder;
@@ -291,6 +295,7 @@ public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/k
 public final class io/ktor/network/sockets/SocketsKt {
 	public static final fun awaitClosed (Lio/ktor/network/sockets/ASocket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun connection (Lio/ktor/network/sockets/Socket;)Lio/ktor/network/sockets/Connection;
+	public static final fun getPort (Lio/ktor/network/sockets/ServerSocket;)I
 	public static final fun isClosed (Lio/ktor/network/sockets/ASocket;)Z
 	public static final fun openReadChannel (Lio/ktor/network/sockets/AReadable;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun openWriteChannel (Lio/ktor/network/sockets/AWritable;Z)Lio/ktor/utils/io/ByteWriteChannel;

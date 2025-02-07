@@ -14,6 +14,9 @@ private val HeaderFieldValueSeparators =
  * Represents a header value that consist of [content] followed by [parameters].
  * Useful for headers such as `Content-Type`, `Content-Disposition` and so on.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters)
+ *
  * @property content header's content without parameters
  * @property parameters
  */
@@ -24,6 +27,8 @@ public abstract class HeaderValueWithParameters(
 
     /**
      * The first value for the parameter with [name] comparing case-insensitively or `null` if no such parameters found
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters.parameter)
      */
     public fun parameter(name: String): String? {
         for (index in 0..parameters.lastIndex) {
@@ -58,6 +63,8 @@ public abstract class HeaderValueWithParameters(
     public companion object {
         /**
          * Parse header with parameter and pass it to [init] function to instantiate particular type
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters.Companion.parse)
          */
         public inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
             val headerValue = parseHeaderValue(value).last()
@@ -68,6 +75,8 @@ public abstract class HeaderValueWithParameters(
 
 /**
  * Append formatted header value to the builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.append)
  */
 public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
     append(name, value.toString())
@@ -75,6 +84,8 @@ public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParame
 
 /**
  * Escape using double quotes if needed or keep as is if no dangerous strings found
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.escapeIfNeeded)
  */
 public fun String.escapeIfNeeded(): String = when {
     needQuotes() -> quote()
@@ -132,6 +143,8 @@ private fun String.isQuoted(): Boolean {
 
 /**
  * Escape string using double quotes
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.quote)
  */
 public fun String.quote(): String = buildString { this@quote.quoteTo(this) }
 

@@ -10,6 +10,8 @@ import kotlin.coroutines.*
 
 /**
  * Creates the selector manager for current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager)
  */
 public expect fun SelectorManager(
     dispatcher: CoroutineContext = EmptyCoroutineContext
@@ -17,10 +19,14 @@ public expect fun SelectorManager(
 
 /**
  * SelectorManager interface allows [Selectable] wait for [SelectInterest].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager)
  */
 public expect interface SelectorManager : CoroutineScope, Closeable {
     /**
      * Notifies the selector that selectable has been closed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.notifyClosed)
      */
     public fun notifyClosed(selectable: Selectable)
 
@@ -32,6 +38,8 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
      * select for different interests for the same selectable simultaneously.
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.select)
      */
     public suspend fun select(selectable: Selectable, interest: SelectInterest)
 
@@ -40,6 +48,8 @@ public expect interface SelectorManager : CoroutineScope, Closeable {
 
 /**
  * Select interest kind.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectInterest)
  */
 public expect enum class SelectInterest {
     READ,

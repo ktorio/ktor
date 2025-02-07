@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import org.eclipse.jetty.server.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
+import kotlin.time.Duration
 
 @InternalAPI
 public class JettyApplicationCall(
@@ -20,7 +21,8 @@ public class JettyApplicationCall(
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
-    coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext,
+    idleTimeout: Duration,
 ) : AsyncServletApplicationCall(
     application,
     servletRequest,
@@ -28,7 +30,8 @@ public class JettyApplicationCall(
     engineContext,
     userContext,
     JettyUpgradeImpl,
-    coroutineContext
+    coroutineContext,
+    idleTimeout = idleTimeout,
 ) {
 
     override val response: JettyApplicationResponse = JettyApplicationResponse(
@@ -38,7 +41,8 @@ public class JettyApplicationCall(
         engineContext,
         userContext,
         request,
-        coroutineContext
+        coroutineContext,
+        idleTimeout,
     )
 
     init {

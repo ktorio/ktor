@@ -10,6 +10,8 @@ import kotlin.coroutines.*
 
 /**
  * Initialize plugins debug mode for [block]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.debug.initContextInDebugMode)
  */
 public suspend fun <T> initContextInDebugMode(
     block: suspend () -> T
@@ -22,6 +24,8 @@ public suspend fun <T> initContextInDebugMode(
 
 /**
  * Adds [pluginName] to the current [CoroutineContext] if Intellij JVM debugger is attached.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.debug.addToContextInDebugMode)
  */
 public suspend fun <T> addToContextInDebugMode(
     pluginName: String,
@@ -36,6 +40,8 @@ public suspend fun <T> addToContextInDebugMode(
 /**
  * Performs [action] on the current element of the [CoroutineContext] with the given [key] if Intellij JVM debugger is
  * attached.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.debug.useContextElementInDebugMode)
  * */
 public suspend fun <Element : CoroutineContext.Element> useContextElementInDebugMode(
     key: CoroutineContext.Key<Element>,

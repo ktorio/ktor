@@ -13,16 +13,22 @@ public actual interface ApplicationEnvironment {
 
     /**
      * Configuration for the [Application]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.config)
      */
     public actual val config: ApplicationConfig
 
     /**
      * Instance of [Logger] to be used for logging.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.log)
      */
     public actual val log: Logger
 
     /**
      * Provides events on Application lifecycle
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.monitor)
      */
     @Deprecated(
         message = "Moved to Application",

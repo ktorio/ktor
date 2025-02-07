@@ -25,6 +25,8 @@ import java.io.*
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.singlePageApplication)
  */
 public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {}) {
     val config = SPAConfig()
@@ -53,6 +55,8 @@ public fun Route.singlePageApplication(configBuilder: SPAConfig.() -> Unit = {})
 
 /**
  * Configuration for the [Route.singlePageApplication] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.SPAConfig)
  */
 public class SPAConfig(
     /**
@@ -86,6 +90,8 @@ public class SPAConfig(
 /**
  * Registers a [block] in [ignoredFiles]
  * [block] returns true if [path] should be ignored.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.ignoreFiles)
  */
 public fun SPAConfig.ignoreFiles(block: (path: String) -> Boolean) {
     ignoredFiles += block
@@ -94,6 +100,8 @@ public fun SPAConfig.ignoreFiles(block: (path: String) -> Boolean) {
 /**
  * Creates an application configuration for the Angular project.
  * Resources will be shared from the filesPath directory. The root file is index.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.angular)
  */
 public fun SPAConfig.angular(filesPath: String) {
     this.filesPath = filesPath
@@ -102,6 +110,8 @@ public fun SPAConfig.angular(filesPath: String) {
 /**
  * Creates an application configuration for the React project.
  * Resources will be shared from the filesPath directory. The root file is index.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.react)
  */
 public fun SPAConfig.react(filesPath: String) {
     this.filesPath = filesPath
@@ -110,6 +120,8 @@ public fun SPAConfig.react(filesPath: String) {
 /**
  * Creates an application configuration for the Vue project.
  * Resources will be shared from the filesPath directory. The root file is index.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.vue)
  */
 public fun SPAConfig.vue(filesPath: String) {
     this.filesPath = filesPath
@@ -118,6 +130,8 @@ public fun SPAConfig.vue(filesPath: String) {
 /**
  * Creates an application configuration for the Ember project.
  * Resources will be shared from the filesPath directory. The root file is index.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.ember)
  */
 public fun SPAConfig.ember(filesPath: String) {
     this.filesPath = filesPath
@@ -126,6 +140,8 @@ public fun SPAConfig.ember(filesPath: String) {
 /**
  * Creates an application configuration for the Backbone project.
  * Resources will be shared from the filesPath directory. The root file is index.html
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.backbone)
  */
 public fun SPAConfig.backbone(filesPath: String) {
     this.filesPath = filesPath

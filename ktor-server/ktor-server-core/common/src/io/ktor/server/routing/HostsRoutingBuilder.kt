@@ -15,6 +15,9 @@ import io.ktor.server.plugins.*
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
+ *
  * @param host exact host name that is treated literally
  * @param port to be tested or `0` to pass all ports
  */
@@ -29,6 +32,9 @@ public fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Rou
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
+ *
  * @param hostPattern is a  regular expression to match request host
  * @param port to be tested or `0` to pass all ports
  */
@@ -42,6 +48,9 @@ public fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
  * @param hosts a list of exact host names that are treated literally
  * @param ports a list of ports to be passed or empty to pass all ports
@@ -62,6 +71,9 @@ public fun Route.host(
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
  * @param hosts a list of exact host names that are treated literally
  * @param hostPatterns a list of regular expressions to match request host
@@ -85,6 +97,9 @@ public fun Route.host(
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.port)
+ *
  * @param ports a list of ports to be passed
  *
  * @throws IllegalArgumentException if no ports were specified
@@ -98,6 +113,9 @@ public fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
 
 /**
  * Evaluates a route against a request's host and port.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.HostRouteSelector)
+ *
  * @param hostList contains exact host names
  * @param hostPatterns contains host patterns to match
  * @param portsList contains possible ports or empty to match all ports
@@ -141,11 +159,15 @@ public data class HostRouteSelector(
     public companion object {
         /**
          * A parameter name for [ApplicationCall.parameters] for a request host.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.HostRouteSelector.Companion.HostNameParameter)
          */
         public const val HostNameParameter: String = "\$RequestHost"
 
         /**
          * A parameter name for [ApplicationCall.parameters] for a request port.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.HostRouteSelector.Companion.PortParameter)
          */
         public const val PortParameter: String = "\$RequestPort"
     }

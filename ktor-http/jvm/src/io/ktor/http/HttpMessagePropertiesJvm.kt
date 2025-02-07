@@ -18,31 +18,43 @@ private fun formatHttpDate(date: Date): String = HTTP_DATE_FORMAT.format(date)
 
 /**
  * Set `If-Modified-Since` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ifModifiedSince)
  */
 public fun HttpMessageBuilder.ifModifiedSince(date: Date): Unit =
     headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
 
 /**
  * Parse `Last-Modified` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.lastModified)
  */
 public fun HttpMessageBuilder.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
 
 /**
  * Parse `Expires` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.expires)
  */
 public fun HttpMessageBuilder.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
 
 /**
  * Parse `Last-Modified` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.lastModified)
  */
 public fun HttpMessage.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
 
 /**
  * Parse `Expires` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.expires)
  */
 public fun HttpMessage.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
 
 /**
  * Parse `Date` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.date)
  */
 public fun HttpMessage.date(): Date? = headers[HttpHeaders.Date]?.let { parseHttpDate(it) }

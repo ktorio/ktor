@@ -10,6 +10,9 @@ import kotlin.reflect.*
 
 /**
  * Gets a current session or fails if the [Sessions] plugin is not installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.sessions)
+ *
  * @throws MissingApplicationPluginException
  */
 public val ApplicationCall.sessions: CurrentSession
@@ -17,28 +20,42 @@ public val ApplicationCall.sessions: CurrentSession
 
 /**
  * A container for all session instances.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession)
  */
 public interface CurrentSession {
     /**
      * Sets a new session instance with [name].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession.set)
+     *
      * @throws IllegalStateException if no session provider is registered with for [name]
      */
     public fun set(name: String, value: Any?)
 
     /**
      * Gets a session instance for [name]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession.get)
+     *
      * @throws IllegalStateException if no session provider is registered with for [name]
      */
     public fun get(name: String): Any?
 
     /**
      * Clears a session instance for [name].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession.clear)
+     *
      * @throws IllegalStateException if no session provider is registered with for [name]
      */
     public fun clear(name: String)
 
     /**
      * Finds a session name for the specified [type] or fails if it's not found.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession.findName)
+     *
      * @throws IllegalStateException if no session provider registered for [type]
      */
     public fun findName(type: KClass<*>): String
@@ -59,24 +76,36 @@ internal interface StatefulSession : CurrentSession {
 
 /**
  * Sets a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.set)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 public inline fun <reified T : Any> CurrentSession.set(value: T?): Unit = set(value, T::class)
 
 /**
  * Sets a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.set)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 public fun <T : Any> CurrentSession.set(value: T?, klass: KClass<T>): Unit = set(findName(klass), value)
 
 /**
  * Gets a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.get)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 public inline fun <reified T : Any> CurrentSession.get(): T? = get(T::class)
 
 /**
  * Gets a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.get)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 @Suppress("UNCHECKED_CAST")
@@ -84,18 +113,27 @@ public fun <T : Any> CurrentSession.get(klass: KClass<T>): T? = get(findName(kla
 
 /**
  * Clears a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.clear)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 public inline fun <reified T : Any> CurrentSession.clear(): Unit = clear(T::class)
 
 /**
  * Clears a session instance with the type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.clear)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T]
  */
 public fun <T : Any> CurrentSession.clear(klass: KClass<T>): Unit = clear(findName(klass))
 
 /**
  * Gets or generates a new session instance using [generator] with the type [T] (or [name] if specified)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.getOrSet)
+ *
  * @throws IllegalStateException if no session provider is registered for the type [T] (or [name] if specified)
  */
 public inline fun <reified T : Any> CurrentSession.getOrSet(name: String = findName(T::class), generator: () -> T): T {
@@ -201,6 +239,8 @@ private fun ApplicationCall.reportMissingSession(): Nothing {
 
 /**
  * Thrown when an HTTP response has already been sent but an attempt to modify the session is made.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.TooLateSessionSetException)
  */
 public class TooLateSessionSetException :
     IllegalStateException("It's too late to set session: response most likely already has been sent")
@@ -209,6 +249,8 @@ public class TooLateSessionSetException :
  * Thrown when a session is asked too early before the [Sessions] plugin had chance to configure it.
  * For example, in a phase before [ApplicationCallPipeline.Plugins] or in a plugin installed before [Sessions] into
  * the same phase.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionNotYetConfiguredException)
  */
 public class SessionNotYetConfiguredException :
     IllegalStateException("Sessions are not yet ready: you are asking it to early before the Sessions plugin.")

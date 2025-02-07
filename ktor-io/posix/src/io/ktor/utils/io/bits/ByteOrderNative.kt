@@ -8,26 +8,36 @@ package io.ktor.utils.io.bits
 
 /**
  * Reverse number's byte order
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.bits.reverseByteOrder)
  */
 public actual fun Short.reverseByteOrder(): Short = swap(this)
 
 /**
  * Reverse number's byte order
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.bits.reverseByteOrder)
  */
 public actual fun Int.reverseByteOrder(): Int = swap(this)
 
 /**
  * Reverse number's byte order
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.bits.reverseByteOrder)
  */
 public actual fun Long.reverseByteOrder(): Long = swap(this)
 
 /**
  * Reverse number's byte order
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.bits.reverseByteOrder)
  */
 public actual fun Float.reverseByteOrder(): Float = swap(this)
 
 /**
  * Reverse number's byte order
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.bits.reverseByteOrder)
  */
 public actual fun Double.reverseByteOrder(): Double = swap(this)
 

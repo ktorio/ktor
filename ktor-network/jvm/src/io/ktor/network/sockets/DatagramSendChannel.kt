@@ -32,7 +32,7 @@ internal class DatagramSendChannel(
 
     @DelicateCoroutinesApi
     override val isClosedForSend: Boolean
-        get() = socket.isClosed
+        get() = closed.value
 
     override fun close(cause: Throwable?): Boolean {
         if (!closed.compareAndSet(false, true)) {

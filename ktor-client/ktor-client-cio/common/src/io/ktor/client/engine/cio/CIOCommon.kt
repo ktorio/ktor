@@ -23,6 +23,8 @@ import io.ktor.client.engine.*
  * ```
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.cio.CIO)
  */
 public data object CIO : HttpClientEngineFactory<CIOEngineConfig> {
     override fun create(block: CIOEngineConfig.() -> Unit): HttpClientEngine =

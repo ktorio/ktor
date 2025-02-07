@@ -12,6 +12,9 @@ import java.io.*
  * Copies up to [limit] bytes from [this] byte channel to [out] stream suspending on read channel
  * and blocking on output
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.copyTo)
+ *
  * @return number of bytes copied
  */
 @OptIn(InternalAPI::class, InternalIoApi::class)

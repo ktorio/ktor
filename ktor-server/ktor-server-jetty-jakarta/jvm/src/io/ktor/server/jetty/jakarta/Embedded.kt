@@ -10,6 +10,8 @@ import io.ktor.server.engine.*
 
 /**
  * An [ApplicationEngineFactory] providing a Jetty-based [ApplicationEngine]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.jakarta.Jetty)
  */
 public object Jetty : ApplicationEngineFactory<JettyApplicationEngine, JettyApplicationEngineBase.Configuration> {
 

@@ -19,14 +19,22 @@ import io.ktor.client.engine.*
  * ```
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
 public expect object Js : HttpClientEngineFactory<JsClientEngineConfig>
 
-/** Configuration for the [Js] client. */
+/**
+ * Configuration for the [Js] client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig)
+ */
 public expect open class JsClientEngineConfig : HttpClientEngineConfig
 
 /**
  * Creates a [Js] client engine.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClient)
  */
 @Suppress("FunctionName")
 @JsName("JsClient")

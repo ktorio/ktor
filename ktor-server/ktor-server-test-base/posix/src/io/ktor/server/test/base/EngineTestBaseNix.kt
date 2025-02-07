@@ -37,11 +37,13 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = runBlocking {
-        aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
-            val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
-            inetAddress.port
-        }
+    protected actual var port: Int = findFreePort()
+
+    private fun findFreePort(): Int = runBlocking {
+        val socket = aSocket(TEST_SELECTOR_MANAGER).tcp().bind()
+        val port = socket.use { it.port }
+        socket.awaitClosed()
+        port
     }
 
     protected actual var sslPort: Int = 0
@@ -50,6 +52,15 @@ actual constructor(
     protected actual var enableHttp2: Boolean = false
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
+
+    override fun afterTest() {
+        try {
+            server?.stop(0, 500)
+        } finally {
+            testJob.cancel()
+            super.afterTest()
+        }
+    }
 
     protected actual suspend fun createAndStartServer(
         log: Logger?,
@@ -67,6 +78,7 @@ actual constructor(
                 return server
             }
 
+            port = findFreePort()
             server.stop(1L, 1L)
         }
 

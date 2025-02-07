@@ -16,6 +16,8 @@ package io.ktor.util.date
  * | Month    | M            | parse month from Jan to Dec(see [Month] for details) |
  * | Year     | Y            | parse year                                           |
  * | Any char | *            | Match any character                                  |
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDateParser)
  */
 public class GMTDateParser(private val pattern: String) {
     init {
@@ -24,6 +26,8 @@ public class GMTDateParser(private val pattern: String) {
 
     /**
      * Parse [GMTDate] from [dateString] using [pattern].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDateParser.parse)
      */
     public fun parse(dateString: String): GMTDate {
         val builder = GMTDateBuilder()
@@ -119,6 +123,8 @@ internal class GMTDateBuilder {
 
 /**
  * Thrown when the date string doesn't the string pattern.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.InvalidDateStringException)
  */
 public class InvalidDateStringException(
     data: String,

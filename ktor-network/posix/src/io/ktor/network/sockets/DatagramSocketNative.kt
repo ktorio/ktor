@@ -17,19 +17,15 @@ import platform.posix.*
 import kotlin.coroutines.*
 
 internal class DatagramSocketNative(
-    private val descriptor: Int,
     val selector: SelectorManager,
-    val selectable: Selectable,
+    descriptor: Int,
     private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
-) : BoundDatagramSocket, ConnectedDatagramSocket, CoroutineScope {
-    private val context: CompletableJob = Job(parent[Job])
-
-    override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + context
-
-    override val socketContext: Job
-        get() = context
-
+) : BoundDatagramSocket, ConnectedDatagramSocket, NativeSocketImpl(
+    selector,
+    descriptor,
+    parent
+) {
     override val localAddress: SocketAddress
         get() = getLocalAddress(descriptor).toSocketAddress()
 
@@ -61,12 +57,7 @@ internal class DatagramSocketNative(
 
     override fun close() {
         receiver.cancel()
-        context.complete()
-        context.invokeOnCompletion {
-            ktor_shutdown(descriptor, ShutdownCommands.Both)
-            // Descriptor is closed by the selector manager
-            selector.notifyClosed(selectable)
-        }
+        super.close()
         sender.close()
     }
 
@@ -74,7 +65,7 @@ internal class DatagramSocketNative(
         while (true) {
             val datagram = tryReadDatagram()
             if (datagram != null) return datagram
-            selector.select(selectable, SelectInterest.READ)
+            selector.select(this, SelectInterest.READ)
         }
     }
 

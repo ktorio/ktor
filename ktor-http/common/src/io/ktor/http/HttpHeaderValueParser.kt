@@ -6,6 +6,9 @@ package io.ktor.http
 
 /**
  * Represents a single value parameter
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueParam)
+ *
  * @property name of parameter
  * @property value of parameter
  * @property escapeValue specifies if the value should be escaped
@@ -28,12 +31,17 @@ public data class HeaderValueParam(val name: String, val value: String, val esca
 
 /**
  * Represents a header value. Similar to [HeaderValueWithParameters]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValue)
+ *
  * @property value
  * @property params for this value (could be empty)
  */
 public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = emptyList()) {
     /**
      * Value's quality according to `q` parameter or `1.0` if missing or invalid
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValue.quality)
      */
     val quality: Double = params.firstOrNull { it.name == "q" }
         ?.value
@@ -44,12 +52,16 @@ public data class HeaderValue(val value: String, val params: List<HeaderValuePar
 
 /**
  * Parse header value and sort multiple values according to qualities
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseAndSortHeader)
  */
 public fun parseAndSortHeader(header: String?): List<HeaderValue> =
     parseHeaderValue(header).sortedByDescending { it.quality }
 
 /**
  * Parse `Content-Type` header values and sort them by quality and asterisks quantity
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseAndSortContentTypeHeader)
  */
 public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
     compareByDescending<HeaderValue> { it.quality }.thenBy {
@@ -67,6 +79,8 @@ public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = p
 
 /**
  * Parse header value respecting multi-values
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseHeaderValue)
  */
 public fun parseHeaderValue(text: String?): List<HeaderValue> {
     return parseHeaderValue(text, false)
@@ -74,6 +88,9 @@ public fun parseHeaderValue(text: String?): List<HeaderValue> {
 
 /**
  * Parse header value respecting multi-values
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseHeaderValue)
+ *
  * @param parametersOnly if no header value itself, only parameters
  */
 public fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
@@ -91,6 +108,8 @@ public fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<Header
 
 /**
  * Construct a list of [HeaderValueParam] from an iterable of pairs
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.toHeaderParamsList)
  */
 public fun Iterable<Pair<String, String>>.toHeaderParamsList(): List<HeaderValueParam> =
     map { HeaderValueParam(it.first, it.second) }

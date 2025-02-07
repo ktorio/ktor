@@ -6,6 +6,9 @@ package io.ktor.http
 
 /**
  * Represents an HTTP status code and description.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpStatusCode)
+ *
  * @param value is a numeric code.
  * @param description is free form description of a status.
  */
@@ -19,6 +22,8 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
 
     /**
      * Returns a copy of `this` code with a description changed to [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpStatusCode.description)
      */
     public fun description(value: String): HttpStatusCode = copy(description = value)
 
@@ -106,6 +111,8 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
 
         /**
          * All known status codes
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpStatusCode.Companion.allStatusCodes)
          */
         public val allStatusCodes: List<HttpStatusCode> = allStatusCodes()
 
@@ -113,6 +120,8 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
 
         /**
          * Creates an instance of [HttpStatusCode] with the given numeric value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpStatusCode.Companion.fromValue)
          */
         public fun fromValue(value: Int): HttpStatusCode {
             return statusCodesMap[value] ?: HttpStatusCode(value, "Unknown Status Code")
@@ -180,5 +189,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
  * Checks if a given status code is a success code according to HTTP standards.
  *
  * Codes from 200 to 299 are considered to be successful.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.isSuccess)
  */
 public fun HttpStatusCode.isSuccess(): Boolean = value in (200 until 300)

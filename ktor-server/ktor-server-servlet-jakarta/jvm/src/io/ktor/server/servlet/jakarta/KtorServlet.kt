@@ -18,6 +18,8 @@ import kotlin.coroutines.*
 
 /**
  * A base class for servlet engine implementations
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServlet)
  */
 public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     /**
@@ -52,6 +54,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     /**
      * Called by the servlet container when loading the servlet (on load)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServlet.init)
      */
     override fun init() {
         super.init()
@@ -60,6 +64,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     /**
      * Called by servlet container when the application is going to be undeployed or stopped.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServlet.destroy)
      */
     override fun destroy() {
         coroutineContext.cancel()
@@ -67,6 +73,8 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     /**
      * Called by the servlet container when an HTTP request received.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServlet.service)
      */
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) return
@@ -149,5 +157,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
 /**
  * Attribute that is added by ktor servlet to application attributes to hold [ServletContext] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.ServletContextAttribute)
  */
 public val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")

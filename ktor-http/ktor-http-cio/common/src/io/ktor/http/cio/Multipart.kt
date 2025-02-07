@@ -4,6 +4,7 @@
 
 package io.ktor.http.cio
 
+import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -20,16 +21,23 @@ import kotlinx.io.bytestring.ByteString
 
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent)
  */
 
 public sealed class MultipartEvent {
     /**
      * Release underlying data/packet.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.release)
      */
     public abstract fun release()
 
     /**
      * Represents a multipart content preamble. A multipart stream could have at most one preamble.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.Preamble)
+     *
      * @property body contains preamble's content
      */
     public class Preamble(
@@ -44,6 +52,9 @@ public sealed class MultipartEvent {
      * Represents a multipart part. There could be any number of parts in a multipart stream. Please note that
      * it is important to consume [body] otherwise multipart parser could get stuck (suspend)
      * so you will not receive more events.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.MultipartPart)
      *
      * @property headers deferred that will be completed once will be parsed
      * @property body a channel of part content
@@ -66,6 +77,9 @@ public sealed class MultipartEvent {
 
     /**
      * Represents a multipart content epilogue. A multipart stream could have at most one epilogue.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.Epilogue)
+     *
      * @property body contains epilogue's content
      */
     public class Epilogue(
@@ -135,6 +149,8 @@ private suspend fun ByteReadChannel.skipIfFoundReadCount(prefix: ByteString): Lo
 
 /**
  * Starts a multipart parser coroutine producing multipart events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseMultipart)
  */
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.parseMultipart(
@@ -152,6 +168,8 @@ public fun CoroutineScope.parseMultipart(
 
 /**
  * Starts a multipart parser coroutine producing multipart events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseMultipart)
  */
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.parseMultipart(
@@ -160,7 +178,7 @@ public fun CoroutineScope.parseMultipart(
     contentLength: Long?,
     maxPartSize: Long = Long.MAX_VALUE,
 ): ReceiveChannel<MultipartEvent> {
-    if (!contentType.startsWith("multipart/", ignoreCase = true)) {
+    if (contentType !in ContentType.MultiPart) {
         throw UnsupportedMediaTypeExceptionCIO(
             "Failed to parse multipart: Content-Type should be multipart/* but it is $contentType"
         )

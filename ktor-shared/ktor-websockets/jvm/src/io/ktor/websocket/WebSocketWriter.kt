@@ -16,6 +16,9 @@ import kotlin.coroutines.*
 /**
  * Class that processes written [outgoing] Websocket [Frame],
  * serializes them and writes the bits into the [writeChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter)
+ *
  * @property masking: whether it will mask serialized frames.
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
@@ -32,6 +35,8 @@ public class WebSocketWriter(
 
     /**
      * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter.outgoing)
      */
     public val outgoing: SendChannel<Frame> get() = queue
 
@@ -143,11 +148,15 @@ public class WebSocketWriter(
 
     /**
      * Send a frame and write it and all outstanding frames in the queue
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter.send)
      */
     public suspend fun send(frame: Frame): Unit = queue.send(frame)
 
     /**
      * Ensures all enqueued messages has been written
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter.flush)
      */
     public suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {

@@ -98,6 +98,7 @@ final object io.ktor.server.cio/CIO : io.ktor.server.engine/ApplicationEngineFac
 }
 
 final object io.ktor.server.cio/EngineMain { // io.ktor.server.cio/EngineMain|null[0]
+    final fun createServer(kotlin/Array<kotlin/String>): io.ktor.server.engine/EmbeddedServer<io.ktor.server.cio/CIOApplicationEngine, io.ktor.server.cio/CIOApplicationEngine.Configuration> // io.ktor.server.cio/EngineMain.createServer|createServer(kotlin.Array<kotlin.String>){}[0]
     final fun main(kotlin/Array<kotlin/String>) // io.ktor.server.cio/EngineMain.main|main(kotlin.Array<kotlin.String>){}[0]
 }
 

@@ -13,10 +13,14 @@ private typealias ExtensionInstaller = () -> WebSocketExtension<*>
  * [WebSocketExtensionsConfig.install] method to install the WebSocket extension in client or server.
  *
  * Usually this interface is implemented in `companion object` of the origin [WebSocketExtension].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory)
  */
 public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : WebSocketExtension<ConfigType>> {
     /**
      * A key used to locate an extension.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory.key)
      */
     public val key: AttributeKey<ExtensionType>
 
@@ -25,6 +29,8 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
      *
      * This flag is used to detect extension conflicts: only one plugin with the enabled flag is allowed.
      * To set the flag value, consult with specification of the extension you're using.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory.rsv1)
      */
     public val rsv1: Boolean
 
@@ -33,6 +39,8 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
      *
      * This flag is used to detect extension conflicts: only one plugin with the enabled flag is allowed.
      * To set the flag value, consult with specification of the extension you're using.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory.rsv2)
      */
     public val rsv2: Boolean
 
@@ -41,11 +49,15 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
      *
      * This flag is used to detect extension conflicts: only one plugin with enabled flag is allowed.
      * To set the flag value, consult with specification of the extension you're using.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory.rsv3)
      */
     public val rsv3: Boolean
 
     /**
      * Creates an extension instance using [config] block. The extension instance is created for each WebSocket request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionFactory.install)
      */
     public fun install(config: ConfigType.() -> Unit): ExtensionType
 }
@@ -53,22 +65,31 @@ public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : Web
 /**
  * A WebSocket extension instance.
  * This instance is created for each WebSocket request, for every installed extension by [WebSocketExtensionFactory].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension)
  */
 public interface WebSocketExtension<ConfigType : Any> {
 
     /**
      * Reference to the [WebSocketExtensionFactory], which produced this extension.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.factory)
      */
     public val factory: WebSocketExtensionFactory<ConfigType, out WebSocketExtension<ConfigType>>
 
     /**
      * List of WebSocket extension protocols which will be sent by client in headers.
      * They are required to inform server that client wants to negotiate the current extension.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.protocols)
      */
     public val protocols: List<WebSocketExtensionHeader>
 
     /**
      * This method is called only for the client, when it receives the WebSocket upgrade response.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.clientNegotiation)
      *
      * @param negotiatedProtocols contains list of negotiated extensions from the server (can be empty).
      *
@@ -80,6 +101,9 @@ public interface WebSocketExtension<ConfigType : Any> {
     /**
      * This method is called only for the server, when it receives WebSocket session.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.serverNegotiation)
+     *
      * @param requestedProtocols contains list of requested extensions from the client (can be empty).
      *
      * @return list of protocols (with parameters), which server prefers to use for the current client request.
@@ -90,17 +114,23 @@ public interface WebSocketExtension<ConfigType : Any> {
 
     /**
      * This method is called on each outgoing frame and handle it before sending.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.processOutgoingFrame)
      */
     public fun processOutgoingFrame(frame: Frame): Frame
 
     /**
      * This method is called on each incoming frame before handling it in WebSocket session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtension.processIncomingFrame)
      */
     public fun processIncomingFrame(frame: Frame): Frame
 }
 
 /**
  * Extensions configuration for the WebSocket client and server plugins.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionsConfig)
  */
 public class WebSocketExtensionsConfig {
     private val installers: MutableList<ExtensionInstaller> = mutableListOf()
@@ -108,6 +138,8 @@ public class WebSocketExtensionsConfig {
 
     /**
      * Installs the provided [extension] using [config]. Every extension is processed in order of installation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionsConfig.install)
      */
     public fun <ConfigType : Any> install(
         extension: WebSocketExtensionFactory<ConfigType, *>,
@@ -119,6 +151,8 @@ public class WebSocketExtensionsConfig {
 
     /**
      * Instantiates all installed extensions.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketExtensionsConfig.build)
      */
     public fun build(): List<WebSocketExtension<*>> = installers.map { it() }
 

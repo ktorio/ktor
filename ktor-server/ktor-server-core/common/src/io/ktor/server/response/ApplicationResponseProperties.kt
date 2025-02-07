@@ -10,37 +10,51 @@ import io.ktor.http.*
 
 /**
  * Appends a header with the specified [name] and [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.header)
  */
 public fun ApplicationResponse.header(name: String, value: String): Unit = headers.append(name, value)
 
 /**
  * Appends a header with the specified [name] and [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.header)
  */
 public fun ApplicationResponse.header(name: String, value: Int): Unit = headers.append(name, value.toString())
 
 /**
  * Appends a header with the specified [name] and [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.header)
  */
 public fun ApplicationResponse.header(name: String, value: Long): Unit = headers.append(name, value.toString())
 
 /**
  * Appends the `E-Tag` header with the specified [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.etag)
  */
 public fun ApplicationResponse.etag(value: String): Unit = header(HttpHeaders.ETag, value)
 
 /**
  * Appends the `Cache-Control` header with the specified [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.cacheControl)
  */
 public fun ApplicationResponse.cacheControl(value: CacheControl): Unit =
     header(HttpHeaders.CacheControl, value.toString())
 
 /**
  * Appends the `Cache-Control` header with the specified [value] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.cacheControl)
  */
 public fun HeadersBuilder.cacheControl(value: CacheControl): Unit = set(HttpHeaders.CacheControl, value.toString())
 
 /**
  * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.contentRange)
  */
 public fun HeadersBuilder.contentRange(
     range: LongRange?,
@@ -52,6 +66,8 @@ public fun HeadersBuilder.contentRange(
 
 /**
  * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.contentRange)
  */
 public fun ApplicationResponse.contentRange(
     range: LongRange?,
@@ -63,6 +79,8 @@ public fun ApplicationResponse.contentRange(
 
 /**
  * Appends the `Content-Range` header with the specified [range] and [fullLength] to a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.contentRange)
  */
 public fun ApplicationResponse.contentRange(
     range: LongRange?,

@@ -48,6 +48,7 @@ internal class JettyKtorHandler(
     }
     private val dispatcher = executor.asCoroutineDispatcher()
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+    private val idleTimeout = configuration.idleTimeout
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
 
@@ -71,7 +72,7 @@ internal class JettyKtorHandler(
     ) {
         try {
             val contentType = request.contentType
-            if (contentType != null && contentType.startsWith("multipart/", ignoreCase = true)) {
+            if (contentType != null && contentType in ContentType.MultiPart) {
                 baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multipartConfig)
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
@@ -89,7 +90,8 @@ internal class JettyKtorHandler(
                     response,
                     engineContext = engineDispatcher,
                     userContext = dispatcher,
-                    coroutineContext = this@launch.coroutineContext
+                    coroutineContext = this@launch.coroutineContext,
+                    idleTimeout = idleTimeout,
                 )
 
                 try {

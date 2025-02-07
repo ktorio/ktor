@@ -13,26 +13,36 @@ import io.ktor.utils.io.*
 
 /**
  * A configuration for the [HttpsRedirect] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig)
  */
 @KtorDsl
 public class HttpsRedirectConfig {
     /**
      * Specifies an HTTPS port (443 by default) used to redirect HTTP requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.sslPort)
      */
     public var sslPort: Int = URLProtocol.HTTPS.defaultPort
 
     /**
      * Specifies whether to use permanent or temporary redirect.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.permanentRedirect)
      */
     public var permanentRedirect: Boolean = true
 
     /**
      * Allows you to disable redirection for calls matching specified conditions.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.excludePredicates)
      */
     public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
 
     /**
      * Allows you to disable redirection for calls with a path matching [pathPrefix].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.excludePrefix)
      */
     public fun excludePrefix(pathPrefix: String) {
         exclude { call ->
@@ -42,6 +52,8 @@ public class HttpsRedirectConfig {
 
     /**
      * Allows you to disable redirection for calls with a path matching [pathSuffix].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.excludeSuffix)
      */
     public fun excludeSuffix(pathSuffix: String) {
         exclude { call ->
@@ -51,6 +63,8 @@ public class HttpsRedirectConfig {
 
     /**
      * Allows you to disable redirection for calls matching the specified [predicate].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirectConfig.exclude)
      */
     public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
         excludePredicates.add(predicate)
@@ -70,6 +84,8 @@ public class HttpsRedirectConfig {
  * ```
  *
  * You can learn more from [HttpsRedirect](https://ktor.io/docs/https-redirect.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.httpsredirect.HttpsRedirect)
  */
 public val HttpsRedirect: ApplicationPlugin<HttpsRedirectConfig> = createApplicationPlugin(
     "HttpsRedirect",

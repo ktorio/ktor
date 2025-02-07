@@ -9,6 +9,9 @@ import io.ktor.http.*
 /**
  * Represents the `Accept-Encoding` HTTP header, which specifies the content encoding the client is willing to accept.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding)
+ *
  * @property acceptEncoding The encoding type as a string, such as "gzip", "compress", "br", etc.
  * @param parameters Optional list of parameters associated with the encoding, such as quality values (q-values).
  */
@@ -20,6 +23,9 @@ public class AcceptEncoding(
     /**
      * Constructs an `AcceptEncoding` instance with a specified encoding type and q-value.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.AcceptEncoding)
+     *
      * @param acceptEncoding The encoding type, such as "gzip", "compress", "br", etc.
      * @param qValue The quality value (q-value) associated with this encoding.
      */
@@ -30,6 +36,8 @@ public class AcceptEncoding(
 
     /**
      * Companion object containing predefined commonly used `Accept-Encoding` values.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.Companion)
      */
     public companion object {
         public val Gzip: AcceptEncoding = AcceptEncoding("gzip")
@@ -43,6 +51,9 @@ public class AcceptEncoding(
         /**
          * Merges multiple `AcceptEncoding` instances into a single string separated by commas.
          *
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.Companion.mergeAcceptEncodings)
+         *
          * @param encodings A variable number of `AcceptEncoding` objects to be merged.
          * @return A string representing the merged `Accept-Encoding` values.
          */
@@ -53,6 +64,9 @@ public class AcceptEncoding(
 
     /**
      * Returns a new `AcceptEncoding` instance with the specified q-value parameter.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.withQValue)
      *
      * @param qValue The q-value to be associated with this encoding. The value should be between 0.0 and 1.0.
      * @return A new `AcceptEncoding` instance with the specified q-value, or the same instance if the q-value is already set.
@@ -68,6 +82,9 @@ public class AcceptEncoding(
     /**
      * Checks if `this` `AcceptEncoding` matches a [pattern] `AcceptEncoding`, taking into account
      * wildcard symbols `*` and parameters such as q-values.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.match)
      *
      * @param pattern The `AcceptEncoding` to match against.
      * @return `true` if `this` matches the given [pattern], `false` otherwise.

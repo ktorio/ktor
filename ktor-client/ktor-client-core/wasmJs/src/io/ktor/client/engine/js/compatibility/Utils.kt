@@ -14,6 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
 
 @OptIn(InternalCoroutinesApi::class)
@@ -26,9 +28,7 @@ internal suspend fun commonFetch(
     val controller = AbortController()
     init.signal = controller.signal
 
-    val abortOnCallCompletion = callJob.invokeOnCompletion(onCancelling = true) {
-        controller.abort()
-    }
+    callJob.invokeOnCompletion(onCancelling = true) { controller.abort() }
 
     val promise: Promise<org.w3c.fetch.Response> = when {
         PlatformUtils.IS_BROWSER -> fetch(input, init)
@@ -45,14 +45,14 @@ internal suspend fun commonFetch(
 
     promise.then(
         onFulfilled = { x: JsAny ->
-            continuation.resumeWith(Result.success(x.unsafeCast()))
+            continuation.resume(x.unsafeCast())
             null
         },
         onRejected = { it: JsAny ->
-            continuation.resumeWith(Result.failure(Error("Fail to fetch", JsError(it))))
+            continuation.resumeWithException(Error("Fail to fetch", JsError(it)))
             null
         }
-    ).finally { abortOnCallCompletion.dispose() }
+    )
 }
 
 private fun AbortController(): AbortController {

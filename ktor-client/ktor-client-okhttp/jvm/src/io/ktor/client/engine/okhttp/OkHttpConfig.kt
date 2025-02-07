@@ -9,6 +9,8 @@ import okhttp3.*
 
 /**
  * A configuration for the [OkHttp] client engine.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig)
  */
 public class OkHttpConfig : HttpClientEngineConfig() {
 
@@ -21,23 +23,31 @@ public class OkHttpConfig : HttpClientEngineConfig() {
 
     /**
      * Allows you to specify a preconfigured [OkHttpClient] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.preconfigured)
      */
     public var preconfigured: OkHttpClient? = null
 
     /**
      * Specifies the size of cache that keeps recently used [OkHttpClient] instances.
      * Set this property to `0` to disable caching.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.clientCacheSize)
      */
     public var clientCacheSize: Int = 10
 
     /**
      * Specifies the [WebSocket.Factory] used to create a [WebSocket] instance.
      * Otherwise, [OkHttpClient] is used directly.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.webSocketFactory)
      */
     public var webSocketFactory: WebSocket.Factory? = null
 
     /**
      * Configures [OkHttpClient] using [OkHttpClient.Builder].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.config)
      */
     public fun config(block: OkHttpClient.Builder.() -> Unit) {
         val oldConfig = config
@@ -49,6 +59,8 @@ public class OkHttpConfig : HttpClientEngineConfig() {
 
     /**
      * Adds an [Interceptor] to the [OkHttp] client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.addInterceptor)
      */
     public fun addInterceptor(interceptor: Interceptor) {
         config {
@@ -58,6 +70,8 @@ public class OkHttpConfig : HttpClientEngineConfig() {
 
     /**
      * Adds a network [Interceptor] to the [OkHttp] client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.addNetworkInterceptor)
      */
     public fun addNetworkInterceptor(interceptor: Interceptor) {
         config {

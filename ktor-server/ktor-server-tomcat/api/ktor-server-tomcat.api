@@ -1,5 +1,6 @@
 public final class io/ktor/server/tomcat/EngineMain {
 	public static final field INSTANCE Lio/ktor/server/tomcat/EngineMain;
+	public final fun createServer ([Ljava/lang/String;)Lio/ktor/server/engine/EmbeddedServer;
 	public static final fun main ([Ljava/lang/String;)V
 }
 

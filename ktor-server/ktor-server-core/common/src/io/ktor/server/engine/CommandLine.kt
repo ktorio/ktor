@@ -34,6 +34,8 @@ public object ConfigKeys {
 
 /**
  * Creates an [ApplicationEnvironment] instance from command line arguments
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.CommandLineConfig)
  */
 public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     val argumentsPairs = args.mapNotNull { it.splitPair('=') }
@@ -139,6 +141,9 @@ internal expect fun clearEnvironmentProperty(key: String)
 
 /**
  * Loads common engine configuration parameters applicable to all engine types from the specified [ApplicationConfig].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.loadCommonConfiguration)
  *
  * @param deploymentConfig The application configuration.
  */

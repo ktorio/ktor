@@ -38,6 +38,9 @@ import kotlinx.serialization.*
  * val addUser = Users.add("new_name")
  * ```
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.Resource)
+ *
  * @property path the route path, including the class property names wrapped with curly braces.
  */
 @OptIn(ExperimentalSerializationApi::class)

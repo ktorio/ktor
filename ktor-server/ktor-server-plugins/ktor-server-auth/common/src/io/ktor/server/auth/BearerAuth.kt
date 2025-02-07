@@ -11,6 +11,9 @@ import io.ktor.server.response.*
 /**
  * A Bearer [Authentication] provider.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider)
+ *
  * @see [bearer]
  */
 public class BearerAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
@@ -47,6 +50,8 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
 
     /**
      * A configuration for the [bearer] authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config)
      */
     public class Config(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticate: AuthenticationFunction<BearerTokenCredential> = {
@@ -64,11 +69,16 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
 
         /**
          * Specifies an options Bearer realm to be passed in `WWW-Authenticate` header.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config.realm)
          */
         public var realm: String? = null
 
         /**
          * Exchanges the token for a Principal.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config.authenticate)
+         *
          * @return a principal or `null`
          */
         public fun authenticate(authenticate: suspend ApplicationCall.(BearerTokenCredential) -> Any?) {
@@ -78,6 +88,8 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
         /**
          * Retrieves an HTTP authentication header.
          * By default, it parses the `Authorization` header content.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config.authHeader)
          */
         public fun authHeader(getAuthHeader: (ApplicationCall) -> HttpAuthHeader?) {
             this.getAuthHeader = getAuthHeader
@@ -86,6 +98,8 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
         /**
          * Provide the auth schemes accepted when validating the authentication.
          * By default, it accepts the "Bearer" scheme.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config.authSchemes)
          */
         public fun authSchemes(defaultScheme: String = AuthScheme.Bearer, vararg additionalSchemes: String) {
             this.defaultScheme = defaultScheme
@@ -100,6 +114,8 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
  * Installs the Bearer [Authentication] provider.
  * Bearer auth requires the developer to provide a custom 'authenticate' function to authorize the token,
  * and return the associated principal.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.bearer)
  */
 public fun AuthenticationConfig.bearer(
     name: String? = null,

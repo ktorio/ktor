@@ -11,6 +11,8 @@ import kotlin.coroutines.*
 
 /**
  * Represents an environment in which [Application] runs
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment)
  */
 public actual interface ApplicationEnvironment {
 
@@ -18,21 +20,29 @@ public actual interface ApplicationEnvironment {
      * [ClassLoader] used to load application.
      *
      * Useful for various reflection-based services, like dependency injection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.classLoader)
      */
     public val classLoader: ClassLoader
 
     /**
      * Instance of [Logger] to be used for logging.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.log)
      */
     public actual val log: Logger
 
     /**
      * Configuration for the [Application]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.config)
      */
     public actual val config: ApplicationConfig
 
     /**
      * Provides events on Application lifecycle
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationEnvironment.monitor)
      */
     @Deprecated(
         message = "Moved to Application",

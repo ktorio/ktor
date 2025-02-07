@@ -15,6 +15,8 @@ internal val ENGINE_CAPABILITIES_KEY =
 
 /**
  * Default capabilities expected to be supported by engine.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.DEFAULT_CAPABILITIES)
  */
 public val DEFAULT_CAPABILITIES: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability)
 
@@ -29,6 +31,9 @@ public val DEFAULT_CAPABILITIES: Set<HttpClientEngineCapability<*>> = setOf(Http
  *
  * Capabilities can be set on a per-request basis using the `HttpRequestBuilder.setCapability` method,
  * allowing users to configure engine-specific behavior for individual requests.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineCapability)
  *
  * @param T The type of the configuration or metadata associated with this capability.
  *

@@ -18,32 +18,44 @@ import kotlinx.io.*
  * An [HttpClient]'s response, a second part of [HttpClientCall].
  *
  * Learn more from [Receiving responses](https://ktor.io/docs/response.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse)
  */
 public abstract class HttpResponse : HttpMessage, CoroutineScope {
     /**
      * The associated [HttpClientCall] containing both
      * the underlying [HttpClientCall.request] and [HttpClientCall.response].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.call)
      */
     public abstract val call: HttpClientCall
 
     /**
      * The [HttpStatusCode] returned by the server. It includes both,
      * the [HttpStatusCode.description] and the [HttpStatusCode.value] (code).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.status)
      */
     public abstract val status: HttpStatusCode
 
     /**
      * HTTP version. Usually [HttpProtocolVersion.HTTP_1_1] or [HttpProtocolVersion.HTTP_2_0].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.version)
      */
     public abstract val version: HttpProtocolVersion
 
     /**
      * [GMTDate] of the request start.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.requestTime)
      */
     public abstract val requestTime: GMTDate
 
     /**
      * [GMTDate] of the response start.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.responseTime)
      */
     public abstract val responseTime: GMTDate
 
@@ -56,6 +68,8 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
      * If you need to read the content as decoded bytes, use the [bodyAsChannel] method instead.
      *
      * This property produces a new channel every time it's accessed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.rawContent)
      */
     @InternalAPI
     public abstract val rawContent: ByteReadChannel
@@ -70,6 +84,8 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
  * This content doesn't go through any interceptors from [HttpResponsePipeline].
  *
  * If you need to read the content as decoded bytes, use the [bodyAsChannel] method instead.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.content)
  */
 @InternalAPI
 @Deprecated(
@@ -80,6 +96,8 @@ public val HttpResponse.content: ByteReadChannel get() = rawContent
 
 /**
  * Gets [HttpRequest] associated with this response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.request)
  */
 public val HttpResponse.request: HttpRequest get() = call.request
 
@@ -98,6 +116,8 @@ internal fun HttpResponse.complete() {
  *
  * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
  *  So it just acts as a fallback, honoring the server preference.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.bodyAsText)
  */
 public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.UTF_8): String {
     val originCharset = charset() ?: fallbackCharset
@@ -109,6 +129,8 @@ public suspend fun HttpResponse.bodyAsText(fallbackCharset: Charset = Charsets.U
 
 /**
  * Reads the [HttpResponse.rawContent] as a [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.bodyAsChannel)
  */
 public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body()
 
@@ -117,5 +139,7 @@ public suspend fun HttpResponse.bodyAsChannel(): ByteReadChannel = body()
  * decompressed or decoded.
  *
  * If you need to read the raw payload of the HTTP response as a byte array, use the [rawContent] property instead.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.bodyAsBytes)
  */
 public suspend fun HttpResponse.bodyAsBytes(): ByteArray = body()

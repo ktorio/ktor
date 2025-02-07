@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -12,3 +12,6 @@ internal actual fun CipherSuite.isSupported(): Boolean = when (platformVersion.m
     "1.6.0" -> platformVersion.minor >= 181 || keyStrength <= 128
     else -> true
 }
+
+public actual typealias TlsException = javax.net.ssl.SSLException
+public actual typealias TlsPeerUnverifiedException = javax.net.ssl.SSLPeerUnverifiedException

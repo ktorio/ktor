@@ -11,6 +11,9 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Client WebSocket plugin.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
+ *
  * @param pingInterval - interval between [FrameType.PING] messages.
  * @param maxFrameSize - max size of a single websocket frame.
  */
@@ -23,7 +26,11 @@ public fun WebSockets(
     extensionsConfig = WebSocketExtensionsConfig(),
 )
 
-/** Interval between [FrameType.PING] messages. */
+/**
+ * Interval between [FrameType.PING] messages.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.pingInterval)
+ */
 public inline val WebSockets.pingInterval: Duration?
     get() = pingIntervalMillis.takeIf { it > PINGER_DISABLED }?.milliseconds
 
@@ -31,6 +38,8 @@ public inline val WebSockets.pingInterval: Duration?
  * Sets interval of sending [FrameType.PING] messages.
  *
  * Use `null` to disable ping.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.pingInterval)
  */
 public inline var WebSockets.Config.pingInterval: Duration?
     get() = pingIntervalMillis.takeIf { it > PINGER_DISABLED }?.milliseconds

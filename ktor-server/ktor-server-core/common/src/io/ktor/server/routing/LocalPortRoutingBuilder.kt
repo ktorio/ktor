@@ -17,6 +17,9 @@ import io.ktor.server.application.*
  * For multi-tenant applications, you may want to use [io.ktor.server.routing.port],
  * which takes HTTP headers into consideration.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.localPort)
+ *
  * @param port the port to match against
  *
  * @throws IllegalArgumentException if the port is outside the range of TCP/UDP ports
@@ -30,6 +33,9 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
 
 /**
  * Evaluates a route against the port on which a call is received.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.LocalPortRouteSelector)
  *
  * @param port the port to match against
  */
@@ -46,6 +52,8 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
     public companion object {
         /**
          * A parameter name for [ApplicationCall.parameters] for a request host.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.LocalPortRouteSelector.Companion.LocalPortParameter)
          */
         public const val LocalPortParameter: String = "\$LocalPort"
     }

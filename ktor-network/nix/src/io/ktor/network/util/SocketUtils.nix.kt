@@ -154,3 +154,7 @@ internal actual fun getSocketError(): Int {
 internal actual fun isWouldBlockError(error: Int): Boolean {
     return error == EAGAIN || error == EWOULDBLOCK || error == EINPROGRESS
 }
+
+internal actual fun closeSocketDescriptor(descriptor: Int): Int {
+    return close(descriptor)
+}

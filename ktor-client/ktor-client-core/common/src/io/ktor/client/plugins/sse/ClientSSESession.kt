@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.*
  *
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESession)
 */
 public interface SSESession : CoroutineScope {
     /**
@@ -37,6 +39,8 @@ public interface SSESession : CoroutineScope {
      * - [ServerSentEvent.id] event ID.
      * - [ServerSentEvent.retry] reconnection time, in milliseconds to wait before reconnecting.
      * - [ServerSentEvent.comments] comment lines starting with a ':' character.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESession.incoming)
      */
     public val incoming: Flow<ServerSentEvent>
 }
@@ -68,6 +72,8 @@ public interface SSESession : CoroutineScope {
  *
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESessionWithDeserialization)
  */
 public interface SSESessionWithDeserialization : CoroutineScope {
     /**
@@ -80,11 +86,15 @@ public interface SSESessionWithDeserialization : CoroutineScope {
      * - [TypedServerSentEvent.id] event ID.
      * - [TypedServerSentEvent.retry] reconnection time, in milliseconds to wait before reconnecting.
      * - [TypedServerSentEvent.comments] comment lines starting with a ':' character.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESessionWithDeserialization.incoming)
      */
     public val incoming: Flow<TypedServerSentEvent<String>>
 
     /**
      * Deserializer for transforming the `data` field of a `ServerSentEvent` into a desired data object.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESessionWithDeserialization.deserializer)
      */
     public val deserializer: (TypeInfo, String) -> Any?
 }
@@ -92,6 +102,9 @@ public interface SSESessionWithDeserialization : CoroutineScope {
 /**
  * Deserialize the provided [data] into an object of type [T] using the deserializer function
  * defined in the [SSESessionWithDeserialization] interface.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.deserialize)
  *
  * @param data The string data to deserialize.
  * @return The deserialized object of type [T], or null if deserialization is not successful.
@@ -128,6 +141,9 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  * Deserialize the provided [event] data into an object of type [T] using the deserializer function
  * defined in the [SSESessionWithDeserialization] interface.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.deserialize)
+ *
  * @param event The Server-sent event containing data to deserialize.
  * @return The deserialized object of type [T], or null if deserialization is not successful.
  *
@@ -160,6 +176,9 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
 /**
  * A client session for handling Server-Sent Events (SSE) from a server.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.ClientSSESession)
+ *
  * @property call The HTTP call associated with the session.
  *
  * Example of usage:
@@ -180,6 +199,9 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
 
 /**
  * A client session with deserialization support for handling Server-Sent Events (SSE) from a server.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.ClientSSESessionWithDeserialization)
  *
  * @property call The HTTP call associated with the session.
  *

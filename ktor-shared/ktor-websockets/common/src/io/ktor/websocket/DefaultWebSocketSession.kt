@@ -21,35 +21,49 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 
 /**
  * Ping interval meaning pinger is disabled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.PINGER_DISABLED)
+ *
  * @see DefaultWebSocketSession.pingIntervalMillis
  */
 public const val PINGER_DISABLED: Long = 0
 
 /**
  * A default WebSocket session with ping-pong and timeout processing and built-in [closeReason] population.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public interface DefaultWebSocketSession : WebSocketSession {
 
     /**
      * Specifies the ping interval or disables ping if [PINGER_DISABLED] is specified.
      * Note that pongs will be handled despite this setting.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.pingIntervalMillis)
      */
     public var pingIntervalMillis: Long
 
     /**
      * Specifies a timeout to wait for pong reply to ping; otherwise, the session will be terminated immediately.
      * It doesn't have any effect if [pingIntervalMillis] is [PINGER_DISABLED].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.timeoutMillis)
      */
     public var timeoutMillis: Long
 
     /**
      * A close reason for this session. It could be `null` if a session is terminated with no close reason
      * (for example due to connection failure).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.closeReason)
      */
     public val closeReason: Deferred<CloseReason?>
 
     /**
      * Starts a WebSocket conversation.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.start)
      *
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
      */
@@ -59,6 +73,8 @@ public interface DefaultWebSocketSession : WebSocketSession {
 
 /**
  * Creates [DefaultWebSocketSession] from a session.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public fun DefaultWebSocketSession(
     session: WebSocketSession,
@@ -351,6 +367,8 @@ internal class DefaultWebSocketSessionImpl(
 
 /**
  * Ping interval or `null` to disable pinger. Note that pongs will be handled despite this setting.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.pingInterval)
  */
 public inline var DefaultWebSocketSession.pingInterval: Duration?
     get() = pingIntervalMillis.takeIf { it > PINGER_DISABLED }?.milliseconds
@@ -361,6 +379,8 @@ public inline var DefaultWebSocketSession.pingInterval: Duration?
 /**
  * A timeout to wait for pong reply to ping, otherwise the session will be terminated immediately.
  * It doesn't have any effect if [pingInterval] is `null` (pinger is disabled).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.timeout)
  */
 public inline var DefaultWebSocketSession.timeout: Duration
     get() = timeoutMillis.milliseconds

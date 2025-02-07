@@ -25,6 +25,9 @@ import io.ktor.util.pipeline.*
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
+ *
  * @param name A name of a plugin that is used to get its instance.
  * @param configurationPath is path in configuration file to configuration of this plugin.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
@@ -55,6 +58,9 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
  *
  * @param name A name of a plugin that is used to get its instance.
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created.
@@ -102,6 +108,9 @@ private class ApplicationPluginImpl<PluginConfigT : Any>(
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
+ *
  * @param name A name of a plugin that is used to get its instance
  * when it is installed to [io.ktor.server.routing.RoutingRoot].
  * @param createConfiguration Defines how the initial [PluginConfigT] of your new plugin can be created. Please
@@ -132,6 +141,9 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
  *
  * @param name A name of a plugin that is used to get its instance
  * when it is installed to [io.ktor.server.routing.RoutingRoot].
@@ -187,6 +199,9 @@ private class RouteScopedPluginImpl<PluginConfigT : Any>(
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
+ *
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that
  * can modify the behaviour of an [Application] where your plugin is installed.
@@ -213,6 +228,9 @@ public fun createApplicationPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
  *
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [io.ktor.server.routing.RoutingNode].
  * @param body Allows you to define handlers ([onCall], [onCallReceive], [onCallRespond] and so on) that

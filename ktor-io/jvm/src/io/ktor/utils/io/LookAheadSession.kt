@@ -13,6 +13,9 @@ public typealias LookAheadSession = LookAheadSuspendSession
 public class LookAheadSuspendSession(private val channel: ByteReadChannel) {
     /**
      * Request byte buffer range skipping [skip] bytes and [atLeast] bytes length
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LookAheadSuspendSession.request)
+     *
      * @return byte buffer for the requested range or null if it is impossible to provide such a buffer
      *
      * There are the following reasons for this function to return `null`:

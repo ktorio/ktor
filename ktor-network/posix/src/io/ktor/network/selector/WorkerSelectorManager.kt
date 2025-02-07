@@ -5,6 +5,7 @@
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -31,7 +32,7 @@ internal class WorkerSelectorManager : SelectorManager {
         return suspendCancellableCoroutine { continuation ->
             val selectorState = EventInfo(selectable.descriptor, interest, continuation)
             if (!selector.interest(selectorState)) {
-                continuation.resumeWithException(CancellationException("Selector closed."))
+                continuation.resumeWithException(IOException("Selector closed."))
             }
         }
     }

@@ -9,18 +9,24 @@ import io.ktor.utils.io.charsets.*
 
 /**
  * Default [ContentType] for [extension]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.defaultForFileExtension)
  */
 public fun ContentType.Companion.defaultForFileExtension(extension: String): ContentType =
     ContentType.fromFileExtension(extension).selectDefault()
 
 /**
  * Default [ContentType] for file [path]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.defaultForFilePath)
  */
 public fun ContentType.Companion.defaultForFilePath(path: String): ContentType =
     ContentType.fromFilePath(path).selectDefault()
 
 /**
  * Recommended content types by file [path]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fromFilePath)
  */
 public fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
     val slashIndex = path.lastIndexOfAny("/\\".toCharArray())
@@ -33,6 +39,8 @@ public fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
 
 /**
  * Recommended content type by file name extension
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fromFileExtension)
  */
 public fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
     var current = ext.removePrefix(".").toLowerCasePreservingASCIIRules()
@@ -49,6 +57,8 @@ public fun ContentType.Companion.fromFileExtension(ext: String): List<ContentTyp
 
 /**
  * Recommended file name extensions for this content type
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fileExtensions)
  */
 public fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]

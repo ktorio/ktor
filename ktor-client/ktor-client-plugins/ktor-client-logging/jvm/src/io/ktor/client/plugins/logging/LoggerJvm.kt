@@ -21,6 +21,8 @@ public actual val Logger.Companion.DEFAULT: Logger
  * Otherwise, uses the [Logger.Companion.DEFAULT].
  * Breaks up long log messages that would be truncated by Android's max log
  * length of 4068 characters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.ANDROID)
  */
 public val Logger.Companion.ANDROID: Logger by lazy { getAndroidLogger() }
 
@@ -64,6 +66,9 @@ private class LogcatLogger(logClass: Class<*>, private val fallback: Logger) : L
 
 /**
  * A [Logger] that breaks up log messages into multiple logs no longer than [maxLength]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.MessageLengthLimitingLogger)
+ *
  * @property maxLength max length allowed for a log message
  * @property minLength if log message is longer than [maxLength], attempt to break the log
  * message at a new line between [minLength] and [maxLength] if one exists

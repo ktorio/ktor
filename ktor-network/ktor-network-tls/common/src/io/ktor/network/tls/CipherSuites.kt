@@ -1,46 +1,61 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 
 /**
  * TLS secret key exchange type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType)
  */
 public enum class SecretExchangeType(public val jvmName: String) {
     /**
      * Elliptic Curve Diffie-Hellman Exchange.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType.ECDHE)
      */
     ECDHE("ECDHE_ECDSA"),
 
     /**
      * RSA key exchange.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.SecretExchangeType.RSA)
      */
     RSA("RSA")
 }
 
 /**
  * Cipher type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType)
  */
 public enum class CipherType {
     /**
      * Galois/Counter Mode.
      * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType.GCM)
      */
     GCM,
 
     /**
      * Cipher Block Chaining.
      * See also: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherType.CBC)
      */
     CBC
 }
 
 /**
  * Represents a TLS cipher suite
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherSuite)
  *
  * @property code numeric cipher suite code
  * @property name cipher suite name
@@ -83,6 +98,8 @@ public data class CipherSuite(
  * CIO cipher suites collection
  * https://www.ietf.org/rfc/rfc5289.txt
  * https://tools.ietf.org/html/rfc5288#section-3
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites)
  */
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
 public object CIOCipherSuites {
@@ -140,6 +157,8 @@ public object CIOCipherSuites {
 
     /**
      * List of suites supported by current platform
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites.SupportedSuites)
      */
     public val SupportedSuites: List<CipherSuite> = listOf(
         ECDHE_ECDSA_AES256_SHA384,
@@ -154,4 +173,27 @@ public object CIOCipherSuites {
 
 internal expect fun CipherSuite.isSupported(): Boolean
 
-public class TLSException(message: String, cause: Throwable? = null) : IOException(message, cause)
+@Deprecated("Use TlsException instead")
+public class TLSException(message: String, cause: Throwable? = null) : TlsException(message, cause)
+
+/**
+ * Represents an exception specific to TLS (Transport Layer Security) operations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TlsException)
+ */
+public expect open class TlsException : IOException {
+    public constructor(message: String)
+    public constructor(message: String, cause: Throwable?)
+}
+
+/**
+ * Indicates that TLS peer can't be verified.
+ *
+ * This exception typically occurs when the identity of the remote peer can't be authenticated
+ * or verified during a TLS handshake. For example, because of mismatched certificates or missing trust anchors.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TlsPeerUnverifiedException)
+ *
+ * @param message A message detailing the reason for the verification failure.
+ */
+public expect class TlsPeerUnverifiedException(message: String) : TlsException

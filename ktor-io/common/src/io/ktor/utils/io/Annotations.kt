@@ -8,6 +8,8 @@ package io.ktor.utils.io
  * API marked with this annotation is internal, and it is not intended to be used outside Ktor.
  * It could be modified or removed without any notice. Using it outside Ktor could cause undefined behaviour and/or
  * any unexpected effects.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.InternalAPI)
  */
 @RequiresOptIn(
     level = RequiresOptIn.Level.ERROR,
@@ -27,6 +29,8 @@ public annotation class InternalAPI
 
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.KtorExperimentalAPI)
  */
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,
@@ -58,6 +62,9 @@ public annotation class KtorExperimentalAPI
  * Please note that the specified [version] and the fact of making something a candidate is not a guarantee,
  * so the target version could be changed without any notice or even the promotion could be cancelled at all.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.PublicAPICandidate)
+ *
  * @property version in which the API is planned to be promoted
  */
 @InternalAPI
@@ -75,6 +82,8 @@ public annotation class PublicAPICandidate(val version: String)
 
 /**
  * A marker annotations for DSLs.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.KtorDsl)
  */
 @DslMarker
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)

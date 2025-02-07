@@ -10,6 +10,8 @@ import io.ktor.util.date.*
 
 /**
  * Gets the associated URL's host.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.host)
  */
 public var HttpRequestBuilder.host: String
     get() = url.host
@@ -19,6 +21,8 @@ public var HttpRequestBuilder.host: String
 
 /**
  * Gets the associated URL's port.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.port)
  */
 public var HttpRequestBuilder.port: Int
     get() = url.port
@@ -28,12 +32,16 @@ public var HttpRequestBuilder.port: Int
 
 /**
  * Appends a single header of [key] with a specific [value] if the value is not null.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.header)
  */
 public fun HttpMessageBuilder.header(key: String, value: Any?): Unit =
     value?.let { headers.append(key, it.toString()) } ?: Unit
 
 /**
  * Appends a single header of [key] with a specific [value] if the value is not null.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.cookie)
  */
 public fun HttpMessageBuilder.cookie(
     name: String,
@@ -69,12 +77,16 @@ public fun HttpMessageBuilder.cookie(
 /**
  * Appends a single URL query parameter of [key] with a specific [value] if the value is not null. Can not be used to set
  * form parameters in the body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.parameter)
  */
 public fun HttpRequestBuilder.parameter(key: String, value: Any?): Unit =
     value?.let { url.parameters.append(key, it.toString()) } ?: Unit
 
 /**
  * Appends the `Accept` header with a specific [contentType].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.accept)
  */
 public fun HttpMessageBuilder.accept(contentType: ContentType): Unit =
     headers.append(HttpHeaders.Accept, contentType.toString())
@@ -82,6 +94,8 @@ public fun HttpMessageBuilder.accept(contentType: ContentType): Unit =
 /**
  * Appends the [HttpHeaders.Authorization] to Basic Authorization with the provided [username] and [password].
  * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.basicAuth)
  */
 public fun HttpMessageBuilder.basicAuth(username: String, password: String): Unit =
     header(HttpHeaders.Authorization, "Basic ${"$username:$password".encodeBase64()}")
@@ -89,6 +103,8 @@ public fun HttpMessageBuilder.basicAuth(username: String, password: String): Uni
 /**
  * Appends the [HttpHeaders.Authorization] to Bearer Authorization with the provided [token].
  * For advanced configuration use the `io.ktor:ktor-client-auth` plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.bearerAuth)
  */
 public fun HttpMessageBuilder.bearerAuth(token: String): Unit =
     header(HttpHeaders.Authorization, "Bearer $token")

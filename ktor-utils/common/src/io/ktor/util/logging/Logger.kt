@@ -21,6 +21,8 @@ public expect val Logger.isTraceEnabled: Boolean
 
 /**
  * Logs an error from an [exception] using its message
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.error)
  */
 public fun Logger.error(exception: Throwable) {
     error(exception.message ?: "Exception of type ${exception::class}", exception)
@@ -28,6 +30,8 @@ public fun Logger.error(exception: Throwable) {
 
 /**
  * Check `isTraceEnabled` flag before logging to save some memory allocations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.trace)
  */
 public inline fun Logger.trace(message: () -> String) {
     if (isTraceEnabled) trace(message())

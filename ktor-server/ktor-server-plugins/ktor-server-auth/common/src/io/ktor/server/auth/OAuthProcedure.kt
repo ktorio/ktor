@@ -13,11 +13,16 @@ private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 /**
  * An OAuth provider key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthKey)
  */
 public val OAuthKey: Any = "OAuth"
 
 /**
  * An `OAuth` [Authentication] provider.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider)
  *
  * @see [oauth]
  */
@@ -34,20 +39,28 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
 
     /**
      * A configuration for the [oauth] authentication provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config)
      */
     public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         /**
          * An HTTP client instance used to make requests to the OAuth server.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.client)
          */
         public lateinit var client: HttpClient
 
         /**
          * A lookup function to find OAuth server settings for the particular call.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.providerLookup)
          */
         public lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
 
         /**
          * Specifies a redirect route that is opened when authorization is completed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.urlProvider)
          */
         public lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 
@@ -60,6 +73,8 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
  * OAuth can be used to authorize users of your application by using external providers,
  * such as Google, Facebook, Twitter, and so on.
  * To learn how to configure it, see [OAuth](https://ktor.io/docs/oauth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oauth)
  */
 public fun AuthenticationConfig.oauth(
     name: String? = null,
@@ -72,6 +87,8 @@ public fun AuthenticationConfig.oauth(
 /**
  * Error container for when the upstream identity provider does not respond with the token credentials, and instead
  * responds with error query parameters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2RedirectError)
  */
 public class OAuth2RedirectError(public val error: String, public val errorDescription: String?) :
     AuthenticationFailedCause.Error(if (errorDescription == null) error else "$error: $errorDescription")

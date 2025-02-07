@@ -14,15 +14,21 @@ public actual fun SelectorManager(dispatcher: CoroutineContext): SelectorManager
 
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager)
  */
 public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * NIO selector provider
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.provider)
      */
     public val provider: SelectorProvider
 
     /**
      * Notifies the selector that selectable has been closed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.notifyClosed)
      */
     public actual fun notifyClosed(selectable: Selectable)
 
@@ -34,6 +40,8 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
      * select for different interests for the same selectable simultaneously.
      * In other words you can select for read and write at the same time but should never
      * try to read twice for the same selectable.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectorManager.select)
      */
     public actual suspend fun select(selectable: Selectable, interest: SelectInterest)
 
@@ -43,6 +51,8 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
 /**
  * Creates a NIO entity via [create] and calls [setup] on it. If any exception happens then the entity will be closed
  * and an exception will be propagated.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.buildOrClose)
  */
 public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
     create: SelectorProvider.() -> C,
@@ -62,6 +72,9 @@ public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
 
 /**
  * Select interest kind
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.SelectInterest)
+ *
  * @property [flag] to be set in NIO selector
  */
 public actual enum class SelectInterest(public val flag: Int) {

@@ -5,3 +5,5 @@
 package io.ktor.network.selector
 
 public actual interface Selectable
+
+internal actual abstract class SelectableBase : Selectable

@@ -16,6 +16,8 @@ import kotlin.coroutines.*
 
 /**
  * [ResponseObserver] callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseHandler)
  */
 public typealias ResponseHandler = suspend (HttpResponse) -> Unit
 
@@ -27,6 +29,8 @@ public class ResponseObserverConfig {
 
     /**
      * Set response handler for logging.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseObserverConfig.onResponse)
      */
     public fun onResponse(block: ResponseHandler) {
         responseHandler = block
@@ -34,6 +38,8 @@ public class ResponseObserverConfig {
 
     /**
      * Set filter predicate to dynamically control if interceptor is executed or not for each http call.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseObserverConfig.filter)
      */
     public fun filter(block: ((HttpClientCall) -> Boolean)) {
         filter = block
@@ -42,6 +48,8 @@ public class ResponseObserverConfig {
 
 /**
  * Observe response plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseObserver)
  */
 @OptIn(InternalAPI::class)
 public val ResponseObserver: ClientPlugin<ResponseObserverConfig> = createClientPlugin(
@@ -90,6 +98,8 @@ internal expect suspend fun getResponseObserverContext(): CoroutineContext
 
 /**
  * Install [ResponseObserver] plugin in client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseObserver)
  */
 @Suppress("FunctionName")
 public fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {

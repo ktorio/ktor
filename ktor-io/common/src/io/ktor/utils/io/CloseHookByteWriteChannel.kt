@@ -7,6 +7,9 @@ package io.ktor.utils.io
 /**
  * Wraps this channel to execute the provided action when closed using `flushAndClose()`.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.onClose)
+ *
  * @param onClose The action to execute when the channel is closed.
  * @return A new `ByteWriteChannel` that executes the given action upon closure.
  */

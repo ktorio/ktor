@@ -10,43 +10,59 @@ import io.ktor.utils.io.charsets.*
 
 /**
  * Set `Content-Type` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentType)
  */
 public fun HttpMessageBuilder.contentType(type: ContentType): Unit =
     headers.set(HttpHeaders.ContentType, type.toString())
 
 /**
  * Append `Max-Age` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.maxAge)
  */
 public fun HttpMessageBuilder.maxAge(seconds: Int): Unit = headers.append(HttpHeaders.CacheControl, "max-age=$seconds")
 
 /**
  * Set `If-None-Match` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ifNoneMatch)
  */
 public fun HttpMessageBuilder.ifNoneMatch(value: String): Unit = headers.set(HttpHeaders.IfNoneMatch, value)
 
 /**
  * Set `User-Agent` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.userAgent)
  */
 public fun HttpMessageBuilder.userAgent(content: String): Unit = headers.set(HttpHeaders.UserAgent, content)
 
 /**
  * Parse `Content-Type` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentType)
  */
 public fun HttpMessageBuilder.contentType(): ContentType? =
     headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
 
 /**
  * Parse charset from `Content-Type` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.charset)
  */
 public fun HttpMessageBuilder.charset(): Charset? = contentType()?.charset()
 
 /**
  * Parse `E-Tag` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.etag)
  */
 public fun HttpMessageBuilder.etag(): String? = headers[HttpHeaders.ETag]
 
 /**
  * Parse `Vary` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.vary)
  */
 public fun HttpMessageBuilder.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?.flatMap { varyKeys ->
     varyKeys.split(",").map { it.trim() }
@@ -54,26 +70,36 @@ public fun HttpMessageBuilder.vary(): List<String>? = headers.getAll(HttpHeaders
 
 /**
  * Parse `Content-Length` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentLength)
  */
 public fun HttpMessageBuilder.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLong()
 
 /**
  * Parse `Content-Type` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentType)
  */
 public fun HttpMessage.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
 
 /**
  * Parse charset from `Content-Type` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.charset)
  */
 public fun HttpMessage.charset(): Charset? = contentType()?.charset()
 
 /**
  * Parse `E-Tag` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.etag)
  */
 public fun HttpMessage.etag(): String? = headers[HttpHeaders.ETag]
 
 /**
  * Parse `Vary` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.vary)
  */
 public fun HttpMessage.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?.flatMap { varyKeys ->
     varyKeys.split(",").map { it.trim() }
@@ -81,11 +107,15 @@ public fun HttpMessage.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?
 
 /**
  * Parse `Content-Length` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentLength)
  */
 public fun HttpMessage.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLong()
 
 /**
  * Parse `Set-Cookie` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.setCookie)
  */
 public fun HttpMessage.setCookie(): List<Cookie> = headers.getAll(HttpHeaders.SetCookie)
     ?.flatMap { it.splitSetCookieHeader() }
@@ -94,12 +124,16 @@ public fun HttpMessage.setCookie(): List<Cookie> = headers.getAll(HttpHeaders.Se
 
 /**
  * Parse `Set-Cookie` header value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cookies)
  */
 public fun HttpMessageBuilder.cookies(): List<Cookie> =
     headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: emptyList()
 
 /**
  * Parse `CacheControl` header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cacheControl)
  */
 public fun HttpMessage.cacheControl(): List<HeaderValue> = headers[HttpHeaders.CacheControl]?.let {
     parseHeaderValue(it)
