@@ -5,7 +5,6 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -22,7 +21,7 @@ internal class CurlHttpResponseBody(
         attachJob(callContext)
     }
 
-    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+    @OptIn(ExperimentalForeignApi::class)
     override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
         if (bodyChannel.isClosedForWrite) {
             return if (bodyChannel.closedCause != null) -1 else 0
@@ -30,8 +29,11 @@ internal class CurlHttpResponseBody(
 
         val chunkSize = (size * count).toInt()
 
+        // TODO: delete `runBlocking` with fix of https://youtrack.jetbrains.com/issue/KTOR-6030/Migrate-to-new-kotlinx.io-library
         val written = try {
-            bodyChannel.writeBuffer.writeFully(buffer, 0L, chunkSize.toLong())
+            runBlocking {
+                bodyChannel.writeFully(buffer, 0, chunkSize)
+            }
             chunkSize
         } catch (cause: Throwable) {
             return -1
@@ -46,7 +48,7 @@ internal class CurlHttpResponseBody(
 
         CoroutineScope(callContext).launch {
             try {
-                bodyChannel.flush()
+                bodyChannel.awaitFreeSpace()
             } catch (_: Throwable) {
                 // no op, error will be handled on next write on cURL thread
             } finally {
