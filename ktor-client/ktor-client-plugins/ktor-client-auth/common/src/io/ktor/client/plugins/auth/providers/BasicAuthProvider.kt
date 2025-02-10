@@ -176,6 +176,7 @@ public class BasicAuthProvider(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthProvider.clearToken)
      */
+    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
     public fun clearToken() {
         tokensHolder.clearToken()
     }

@@ -231,6 +231,7 @@ public class DigestAuthProvider(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider.clearToken)
      */
+    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
     public fun clearToken() {
         tokenHolder.clearToken()
     }
