@@ -40,6 +40,8 @@ public class DefaultClientSSESession(
     ) : this(content, input, content.callContext + Job() + CoroutineName("DefaultClientSSESession"))
 
     private var _incoming = flow {
+        // inner while for parsing events of current input (=connection), and when the current input is closed,
+        // we have an outer while to obtain new input
         while (this@DefaultClientSSESession.coroutineContext.isActive) {
             while (this@DefaultClientSSESession.coroutineContext.isActive) {
                 val event = input.parseEvent() ?: break
