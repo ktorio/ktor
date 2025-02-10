@@ -5,44 +5,49 @@
 
 package io.ktor.htmx
 
+/**
+ * Constants for HTMX request headers.
+ *
+ * @see [Official documentation](https://htmx.org/events/)
+ */
 public object HxRequestHeaders {
     /**
-     * indicates that the request is via an element using hx-boost
+     * Indicates that the request is via an element using hx-boost.
      */
     public const val Boosted: String = "HX-Boosted"
 
     /**
-     * the current URL of the browser
+     * The current URL of the browser.
      */
-    public const val CurrentURL: String = "HX-Current-URL"
+    public const val CurrentUrl: String = "HX-Current-URL"
 
     /**
-     * “true” if the request is for history restoration after a miss in the local history cache
+     * “True” if the request is for history restoration after a miss in the local history cache.
      */
     public const val HistoryRestoreRequest: String = "HX-History-Restore-Request"
 
     /**
-     * the user response to an hx-prompt
+     * The user response to an hx-prompt.
      */
     public const val Prompt: String = "HX-Prompt"
 
     /**
-     * always “true”
+     * Always “true”.
      */
     public const val Request: String = "HX-Request"
 
     /**
-     * the id of the target element if it exists
+     * The id of the target element if it exists.
      */
     public const val Target: String = "HX-Target"
 
     /**
-     * the name of the triggered element if it exists
+     * The name of the triggered element if it exists.
      */
     public const val TriggerName: String = "HX-Trigger-Name"
 
     /**
-     * the id of the triggered element if it exists
+     * The id of the triggered element if it exists.
      */
     public const val Trigger: String = "HX-Trigger"
 }

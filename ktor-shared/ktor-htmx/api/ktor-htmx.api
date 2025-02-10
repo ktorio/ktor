@@ -1,3 +1,6 @@
+public abstract interface annotation class io/ktor/htmx/ExperimentalHtmxApi : java/lang/annotation/Annotation {
+}
+
 public final class io/ktor/htmx/HxAttributeKeys {
 	public static final field Boost Ljava/lang/String;
 	public static final field Confirm Ljava/lang/String;
@@ -69,7 +72,7 @@ public final class io/ktor/htmx/HxEvents {
 	public static final field HistoryRestore Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/htmx/HxEvents;
 	public static final field Load Ljava/lang/String;
-	public static final field NoSSESourceError Ljava/lang/String;
+	public static final field NoSseSourceError Ljava/lang/String;
 	public static final field OnLoadError Ljava/lang/String;
 	public static final field OobAfterSwap Ljava/lang/String;
 	public static final field OobBeforeSwap Ljava/lang/String;
@@ -77,9 +80,9 @@ public final class io/ktor/htmx/HxEvents {
 	public static final field Prompt Ljava/lang/String;
 	public static final field PushedIntoHistory Ljava/lang/String;
 	public static final field ResponseError Ljava/lang/String;
-	public static final field SSEError Ljava/lang/String;
-	public static final field SSEOpen Ljava/lang/String;
 	public static final field SendError Ljava/lang/String;
+	public static final field SseError Ljava/lang/String;
+	public static final field SseOpen Ljava/lang/String;
 	public static final field SwapError Ljava/lang/String;
 	public static final field TargetError Ljava/lang/String;
 	public static final field Timeout Ljava/lang/String;
@@ -94,7 +97,7 @@ public final class io/ktor/htmx/HxEvents {
 
 public final class io/ktor/htmx/HxRequestHeaders {
 	public static final field Boosted Ljava/lang/String;
-	public static final field CurrentURL Ljava/lang/String;
+	public static final field CurrentUrl Ljava/lang/String;
 	public static final field HistoryRestoreRequest Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/htmx/HxRequestHeaders;
 	public static final field Prompt Ljava/lang/String;
@@ -126,9 +129,9 @@ public final class io/ktor/htmx/HxSwap {
 	public static final field beforeBegin Ljava/lang/String;
 	public static final field beforeEnd Ljava/lang/String;
 	public static final field delete Ljava/lang/String;
-	public static final field innerHTML Ljava/lang/String;
+	public static final field innerHtml Ljava/lang/String;
 	public static final field none Ljava/lang/String;
-	public static final field outerHTML Ljava/lang/String;
+	public static final field outerHtml Ljava/lang/String;
 	public static final field textContent Ljava/lang/String;
 }
 

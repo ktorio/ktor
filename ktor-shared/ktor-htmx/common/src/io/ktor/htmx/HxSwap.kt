@@ -6,16 +6,21 @@
 
 package io.ktor.htmx
 
+/**
+ * Constants for "hx-swap" values.
+ *
+ * @see [Official documentation](https://htmx.org/attributes/hx-swap/)
+ */
 public object HxSwap {
     /**
      * Replace the inner HTML of the target element
      */
-    public const val innerHTML: String = "innerHtml"
+    public const val innerHtml: String = "innerHtml"
 
     /**
      * Replace the entire target element with the response
      */
-    public const val outerHTML: String = "outerHTML"
+    public const val outerHtml: String = "outerHTML"
 
     /**
      * Replace the text content of the target element, without parsing the response as HTML

@@ -5,6 +5,11 @@
 
 package io.ktor.htmx
 
+/**
+ * Constants for HTMX CSS classes.
+ *
+ * @see [Official documentation](https://htmx.org/reference/#classes)
+ */
 public object HxCss {
     /**
      * Applied to a new piece of content before it is swapped, removed after it is settled.

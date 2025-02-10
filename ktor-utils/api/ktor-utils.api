@@ -587,6 +587,41 @@ public final class io/ktor/util/collections/CopyOnWriteHashMap {
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
+public final class io/ktor/util/collections/MapDelegatesKt {
+	public static final fun asBoolean (Ljava/lang/String;)Lio/ktor/util/collections/SerializedMapValue;
+	public static final fun getValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/Object;
+	public static final fun getValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/String;
+	public static final fun setValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/Object;)V
+	public static final fun setValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/collections/SerializedKey {
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/util/collections/SerializedMapValue {
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+}
+
+public abstract interface class io/ktor/util/collections/StringMap {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun remove (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract interface class io/ktor/util/collections/StringMapDelegate : io/ktor/util/collections/StringMap {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getMap ()Ljava/util/Map;
+	public abstract fun remove (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/collections/StringMapDelegate$DefaultImpls {
+	public static fun get (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;)Ljava/lang/String;
+	public static fun remove (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;)Ljava/lang/String;
+	public static fun set (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;Ljava/lang/String;)V
+}
+
 public abstract interface class io/ktor/util/converters/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;

@@ -8,45 +8,17 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.htmx.*
 import io.ktor.server.html.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.html.body
-import kotlinx.html.button
 import kotlinx.html.h1
-import kotlinx.html.html
-import kotlinx.html.stream.appendHTML
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@ExperimentalHtmxApi
-class HtmxTest {
+class HxRoutingTest {
 
-    @Test
-    fun htmxAttributes() {
-        val actual = buildString {
-            appendHTML(prettyPrint = true).html {
-                body {
-                    button {
-                        attributes.hx {
-                            get = "/?page=1"
-                            target = "#replaceMe"
-                            swap = HxSwap.outerHTML
-                            trigger = "click[console.log('Hello!')||true]"
-                        }
-                    }
-                }
-            }
-        }
-        assertEquals(
-            """
-            <html>
-              <body><button hx-get="/?page=1" hx-target="#replaceMe" hx-swap="outerHTML" hx-trigger="click[console.log('Hello!')||true]"></button></body>
-            </html>
-            """.trimIndent(),
-            actual.trim()
-        )
-    }
-
+    @OptIn(ExperimentalHtmxApi::class)
     @Test
     fun routing() = testApplication {
         val responseTemplate: (String) -> String = { header ->
@@ -69,8 +41,11 @@ class HtmxTest {
                 }
             }
             route("htmx") {
+                get {
+                    call.respondText { "Not HTMX" }
+                }
                 hx.get {
-                    respondWith("No target")
+                    respondWith("No target or trigger")
                 }
                 hx {
                     target("#test") {
@@ -87,7 +62,11 @@ class HtmxTest {
             }
         }
         assertEquals(
-            responseTemplate("No target"),
+            "Not HTMX",
+            client.get("htmx").bodyAsText().trim()
+        )
+        assertEquals(
+            responseTemplate("No target or trigger"),
             client.get("htmx") {
                 headers[HxRequestHeaders.Request] = "true"
             }.bodyAsText().trim()

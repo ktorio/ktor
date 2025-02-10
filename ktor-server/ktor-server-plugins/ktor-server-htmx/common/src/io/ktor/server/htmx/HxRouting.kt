@@ -9,14 +9,17 @@ import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmInline
 
+/**
+ * Property for scoping routes to HTMX (e.g., `hx.get { ... }`
+ */
 @ExperimentalHtmxApi
-public val Route.hx: HXRoute get() = HXRoute(this)
+public val Route.hx: HxRoute get() = HxRoute.wrap(this)
 
 /**
  * Scope child routes to apply when `HX-Request` header is supplied.
  */
 @ExperimentalHtmxApi
-public fun Route.hx(configuration: HXRoute.() -> Unit): Route = with(HXRoute(this)) {
+public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wrap(this)) {
     header(HxRequestHeaders.Request, "true") {
         configuration()
     }
@@ -28,13 +31,18 @@ public fun Route.hx(configuration: HXRoute.() -> Unit): Route = with(HXRoute(thi
 @ExperimentalHtmxApi
 @KtorDsl
 @JvmInline
-public value class HXRoute(private val route: Route) : Route by route {
+public value class HxRoute internal constructor(private val route: Route) : Route by route {
+    internal companion object {
+        internal fun wrap(route: Route) =
+            HxRoute(route.createChild(HttpHeaderRouteSelector(HxRequestHeaders.Request, "true")))
+    }
 
     /**
      * Sub-routes only apply to a specific HX-Target header.
      */
-    public fun target(expectedTrigger: String, body: Route.() -> Unit): Route =
-        header(HxRequestHeaders.Target, expectedTrigger, body)
+    public fun target(expectedTrigger: String, body: Route.() -> Unit): Route {
+        return header(HxRequestHeaders.Target, expectedTrigger, body)
+    }
 
     /**
      * Sub-routes only apply to a specific HX-Trigger header.

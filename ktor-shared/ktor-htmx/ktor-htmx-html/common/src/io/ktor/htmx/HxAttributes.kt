@@ -2,9 +2,10 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.htmx
+package io.ktor.htmx
 
-import io.ktor.htmx.HxAttributeKeys
+import io.ktor.util.collections.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.impl.DelegatingMap
 import kotlin.jvm.JvmInline
@@ -19,6 +20,7 @@ public inline fun DelegatingMap.hx(block: HxAttributes.() -> Unit) {
 
 @ExperimentalHtmxApi
 @HtmlTagMarker
+@OptIn(InternalAPI::class)
 public class HxAttributes(override val map: DelegatingMap) : StringMapDelegate {
     public var get: String? by HxAttributeKeys.Get
     public var post: String? by HxAttributeKeys.Post

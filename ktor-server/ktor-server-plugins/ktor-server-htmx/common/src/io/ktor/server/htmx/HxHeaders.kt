@@ -4,6 +4,8 @@ import io.ktor.htmx.*
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.collections.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.jvm.JvmInline
 
 @ExperimentalHtmxApi
@@ -25,7 +27,7 @@ public value class HXRequestHeaders(private val headers: Headers) {
     public val isHistoryRestore: Boolean get() = headers[HxRequestHeaders.HistoryRestoreRequest]?.toBoolean() == true
 
     /** The current URL of the browser */
-    public val currentUrl: Url? get() = headers[HxRequestHeaders.CurrentURL]?.let { Url(it) }
+    public val currentUrl: Url? get() = headers[HxRequestHeaders.CurrentUrl]?.let { Url(it) }
 
     /** The user response to an hx-prompt */
     public val prompt: String? get() = headers[HxRequestHeaders.Prompt]
@@ -41,12 +43,13 @@ public value class HXRequestHeaders(private val headers: Headers) {
 }
 
 @ExperimentalHtmxApi
+@OptIn(InternalAPI::class)
 public class HXResponseHeaders(private val headers: ResponseHeaders) : StringMap {
 
     public var location: String? by HxResponseHeaders.Location
     public var pushUrl: String? by HxResponseHeaders.PushUrl
     public var redirect: String? by HxResponseHeaders.Redirect
-    public var refresh: String? by HxResponseHeaders.Refresh // TODO boolean
+    public var refresh: Boolean? by HxResponseHeaders.Refresh.asBoolean()
     public val replaceUrl: String? by HxResponseHeaders.ReplaceUrl
 
     override fun set(key: String, value: String): Unit =
