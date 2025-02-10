@@ -96,9 +96,8 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         }
     }
 
-    while (copied < limit) {
+    while (copied < limit && !isClosedForRead) {
         read(min = 0, consumer = copy)
-        if (isClosedForRead) break
     }
 
     closedCause?.let { throw it }
@@ -184,19 +183,17 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  *
  * @param min amount of bytes available for read, should be positive or zero
  * @param consumer to be invoked when at least [min] bytes available for read
+ * @throws EOFException when there are less than [min] bytes available after the channel is closed
  */
 @OptIn(InternalAPI::class)
 public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: (ByteBuffer) -> Unit) {
     require(min >= 0) { "min should be positive or zero" }
-    if (availableForRead > 0 && availableForRead >= min) {
+    if (min > 0) {
+        if (!awaitContent(min)) {
+            throw EOFException("Not enough bytes available: required $min but $availableForRead available")
+        }
         readBuffer.read(consumer)
-        return
+    } else if (awaitContent()) {
+        readBuffer.read(consumer)
     }
-
-    awaitContent()
-    if (isClosedForRead && min > 0) {
-        throw EOFException("Not enough bytes available: required $min but $availableForRead available")
-    }
-
-    if (availableForRead > 0) readBuffer.read(consumer)
 }

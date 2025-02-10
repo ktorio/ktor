@@ -458,6 +458,7 @@ final class io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization : io.
 }
 
 final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.plugins.sse/SSESession { // io.ktor.client.plugins.sse/DefaultClientSSESession|null[0]
+    constructor <init>(io.ktor.client.plugins.sse/SSEClientContent, io.ktor.utils.io/ByteReadChannel) // io.ktor.client.plugins.sse/DefaultClientSSESession.<init>|<init>(io.ktor.client.plugins.sse.SSEClientContent;io.ktor.utils.io.ByteReadChannel){}[0]
     constructor <init>(io.ktor.client.plugins.sse/SSEClientContent, io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext) // io.ktor.client.plugins.sse/DefaultClientSSESession.<init>|<init>(io.ktor.client.plugins.sse.SSEClientContent;io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
 
     final val coroutineContext // io.ktor.client.plugins.sse/DefaultClientSSESession.coroutineContext|{}coroutineContext[0]
@@ -467,10 +468,16 @@ final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.
 }
 
 final class io.ktor.client.plugins.sse/SSEClientContent : io.ktor.http.content/OutgoingContent.ContentWrapper { // io.ktor.client.plugins.sse/SSEClientContent|null[0]
-    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;io.ktor.http.content.OutgoingContent){}[0]
+    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, kotlin/Int, kotlin.coroutines/CoroutineContext, io.ktor.client.request/HttpRequestBuilder, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;kotlin.Int;kotlin.coroutines.CoroutineContext;io.ktor.client.request.HttpRequestBuilder;io.ktor.http.content.OutgoingContent){}[0]
 
+    final val callContext // io.ktor.client.plugins.sse/SSEClientContent.callContext|{}callContext[0]
+        final fun <get-callContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/SSEClientContent.callContext.<get-callContext>|<get-callContext>(){}[0]
     final val headers // io.ktor.client.plugins.sse/SSEClientContent.headers|{}headers[0]
         final fun <get-headers>(): io.ktor.http/Headers // io.ktor.client.plugins.sse/SSEClientContent.headers.<get-headers>|<get-headers>(){}[0]
+    final val initialRequest // io.ktor.client.plugins.sse/SSEClientContent.initialRequest|{}initialRequest[0]
+        final fun <get-initialRequest>(): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.plugins.sse/SSEClientContent.initialRequest.<get-initialRequest>|<get-initialRequest>(){}[0]
+    final val maxReconnectionAttempts // io.ktor.client.plugins.sse/SSEClientContent.maxReconnectionAttempts|{}maxReconnectionAttempts[0]
+        final fun <get-maxReconnectionAttempts>(): kotlin/Int // io.ktor.client.plugins.sse/SSEClientContent.maxReconnectionAttempts.<get-maxReconnectionAttempts>|<get-maxReconnectionAttempts>(){}[0]
     final val reconnectionTime // io.ktor.client.plugins.sse/SSEClientContent.reconnectionTime|{}reconnectionTime[0]
         final fun <get-reconnectionTime>(): kotlin.time/Duration // io.ktor.client.plugins.sse/SSEClientContent.reconnectionTime.<get-reconnectionTime>|<get-reconnectionTime>(){}[0]
     final val showCommentEvents // io.ktor.client.plugins.sse/SSEClientContent.showCommentEvents|{}showCommentEvents[0]
@@ -496,6 +503,9 @@ final class io.ktor.client.plugins.sse/SSEClientException : kotlin/IllegalStateE
 final class io.ktor.client.plugins.sse/SSEConfig { // io.ktor.client.plugins.sse/SSEConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.sse/SSEConfig.<init>|<init>(){}[0]
 
+    final var maxReconnectionAttempts // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts|{}maxReconnectionAttempts[0]
+        final fun <get-maxReconnectionAttempts>(): kotlin/Int // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<get-maxReconnectionAttempts>|<get-maxReconnectionAttempts>(){}[0]
+        final fun <set-maxReconnectionAttempts>(kotlin/Int) // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<set-maxReconnectionAttempts>|<set-maxReconnectionAttempts>(kotlin.Int){}[0]
     final var reconnectionTime // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime|{}reconnectionTime[0]
         final fun <get-reconnectionTime>(): kotlin.time/Duration // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime.<get-reconnectionTime>|<get-reconnectionTime>(){}[0]
         final fun <set-reconnectionTime>(kotlin.time/Duration) // io.ktor.client.plugins.sse/SSEConfig.reconnectionTime.<set-reconnectionTime>|<set-reconnectionTime>(kotlin.time.Duration){}[0]
@@ -1378,6 +1388,7 @@ final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/String? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit> = ...) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.String?;kotlin.String?;kotlin.Int?;kotlin.String?;kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder.Companion).io.ktor.client.request/invoke(kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/invoke|invoke@io.ktor.client.request.HttpRequestBuilder.Companion(kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder.Companion).io.ktor.client.request/invoke(kotlin/String? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit> = ...): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/invoke|invoke@io.ktor.client.request.HttpRequestBuilder.Companion(kotlin.String?;kotlin.String?;kotlin.Int?;kotlin.String?;kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
+final fun (io.ktor.client.request/HttpRequestData).io.ktor.client.request/isSseReconnectionRequest(): kotlin/Boolean // io.ktor.client.request/isSseReconnectionRequest|isSseReconnectionRequest@io.ktor.client.request.HttpRequestData(){}[0]
 final fun (io.ktor.client.request/HttpRequestData).io.ktor.client.request/isSseRequest(): kotlin/Boolean // io.ktor.client.request/isSseRequest|isSseRequest@io.ktor.client.request.HttpRequestData(){}[0]
 final fun (io.ktor.client.request/HttpRequestData).io.ktor.client.request/isUpgradeRequest(): kotlin/Boolean // io.ktor.client.request/isUpgradeRequest|isUpgradeRequest@io.ktor.client.request.HttpRequestData(){}[0]
 final fun (io.ktor.client.statement/HttpResponse).io.ktor.client.statement/complete() // io.ktor.client.statement/complete|complete@io.ktor.client.statement.HttpResponse(){}[0]
