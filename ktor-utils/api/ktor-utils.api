@@ -595,10 +595,6 @@ public final class io/ktor/util/collections/MapDelegatesKt {
 	public static final fun setValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/String;)V
 }
 
-public final class io/ktor/util/collections/SerializedKey {
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
-}
-
 public final class io/ktor/util/collections/SerializedMapValue {
 	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 }

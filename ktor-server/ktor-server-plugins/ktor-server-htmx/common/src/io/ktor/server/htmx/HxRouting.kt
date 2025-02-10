@@ -40,8 +40,8 @@ public value class HxRoute internal constructor(private val route: Route) : Rout
     /**
      * Sub-routes only apply to a specific HX-Target header.
      */
-    public fun target(expectedTrigger: String, body: Route.() -> Unit): Route {
-        return header(HxRequestHeaders.Target, expectedTrigger, body)
+    public fun target(expectedTarget: String, body: Route.() -> Unit): Route {
+        return header(HxRequestHeaders.Target, expectedTarget, body)
     }
 
     /**

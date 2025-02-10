@@ -24,14 +24,14 @@ public interface StringMapDelegate : StringMap {
 }
 
 /**
- * Simplifies property access delegation for HxAttributes when setting attribute values from a string constant.
+ * Simplifies property access delegation for string maps when using a string constant.
  */
 @InternalAPI
 public operator fun String.getValue(thisRef: StringMap, property: KProperty<*>): String? =
     thisRef[this]
 
 /**
- * Simplifies property assignment delegation for HxAttributes when setting attribute values from a string constant.
+ * Simplifies property assignment delegation for string maps when using a string constant.
  */
 @InternalAPI
 public operator fun String.setValue(thisRef: StringMap, property: KProperty<*>, value: String?) {
