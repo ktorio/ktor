@@ -106,6 +106,7 @@ internal class JsClientEngine(
 
         val urlString = request.url.toString()
         val socket: WebSocket = createWebSocket(urlString, request.headers)
+        val session = JsWebSocketSession(callContext, socket)
 
         try {
             socket.awaitConnection()
@@ -113,8 +114,6 @@ internal class JsClientEngine(
             callContext.cancel(CancellationException("Failed to connect to $urlString", cause))
             throw cause
         }
-
-        val session = JsWebSocketSession(callContext, socket)
 
         val protocol = socket.protocol.takeIf { it.isNotEmpty() }
         val headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty

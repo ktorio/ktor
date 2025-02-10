@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.cio
 
+import io.ktor.client.request.header
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -168,6 +169,26 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             writePostBody(writeChannel, body)
             val response = readAvailable(readChannel)
             assertFalse(response.contains("100 Continue"))
+        }
+    }
+
+    @Test
+    fun testLotsOfHeaders() = runTest {
+        val count = 500
+        val implicitHeadersCount = 4
+
+        createAndStartServer {
+            get("/headers") {
+                call.respond("${call.request.headers.entries().size} headers received")
+            }
+        }
+        withUrl("/headers", {
+            repeat(count) {
+                header("HeaderName$it", "HeaderContent$it")
+            }
+        }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("${count + implicitHeadersCount} headers received", bodyAsText())
         }
     }
 

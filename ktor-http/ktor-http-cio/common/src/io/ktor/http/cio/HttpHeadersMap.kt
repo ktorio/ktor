@@ -7,7 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.pool.*
 
-private const val EXPECTED_HEADERS_QTY = 64
+private const val EXPECTED_HEADERS_QTY = 512
 
 /*
  * index array structure

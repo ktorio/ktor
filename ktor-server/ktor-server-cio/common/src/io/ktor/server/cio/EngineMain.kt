@@ -21,12 +21,24 @@ public object EngineMain {
      */
     @JvmStatic
     public fun main(args: Array<String>) {
+        val server = createServer(args)
+        server.start(true)
+    }
+
+    /**
+     * Creates an instance of the embedded CIO server without starting it.
+     *
+     * @param args Command line arguments for configuring the server.
+     * @return An instance of [EmbeddedServer] with the specified configuration.
+     */
+    public fun createServer(
+        args: Array<String>
+    ): EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration> {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.rootConfig, CIO) {
+        return EmbeddedServer(config.rootConfig, CIO) {
             takeFrom(config.engineConfig)
             loadConfiguration(config.rootConfig.environment.config)
         }
-        server.start(true)
     }
 
     private fun CIOApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {

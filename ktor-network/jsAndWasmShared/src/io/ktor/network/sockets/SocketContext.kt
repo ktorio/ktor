@@ -27,6 +27,9 @@ internal class SocketContext(
             socketContext.cancel()
             incomingFrames.cancel()
         }
+        socketContext.invokeOnCompletion {
+            socket.destroy(it?.toJsError())
+        }
         socket.onError { error ->
             when (connectCont?.isActive) {
                 true -> connectCont.resumeWithException(IOException("Failed to connect", error.toThrowable()))
@@ -80,37 +83,34 @@ private class SocketImpl(
     override val coroutineContext: CoroutineContext,
     private val incoming: ReceiveChannel<JsBuffer>,
     private val socket: NodejsSocket
-) : Socket {
-    override val socketContext: Job get() = coroutineContext.job
+) : SocketBase(coroutineContext), Socket {
 
-    init {
-        socketContext.invokeOnCompletion {
-            socket.destroy(it?.toJsError())
-            incoming.cancel(CancellationException("Socket closed", it))
-        }
-    }
-
-    override fun attachForReading(channel: ByteChannel): WriterJob = writer(Dispatchers.Unconfined, channel = channel) {
-        incoming.consumeEach { buffer ->
-            channel.writeByteArray(buffer.toByteArray())
-            channel.flush()
-        }
-    }
-
-    override fun attachForWriting(channel: ByteChannel): ReaderJob = reader(Dispatchers.Unconfined, channel = channel) {
-        while (true) {
-            val result = channel.read { bytes, startIndex, endIndex ->
-                socket.write(bytes.toJsBuffer(startIndex, endIndex))
-                endIndex - startIndex
-            }
-            if (result == -1) {
-                socket.end()
-                break
+    override fun attachForReadingImpl(channel: ByteChannel): WriterJob =
+        writer(Dispatchers.Unconfined, channel = channel) {
+            incoming.consumeEach { buffer ->
+                channel.writeByteArray(buffer.toByteArray())
+                channel.flush()
             }
         }
-    }
 
-    override fun close() {
-        socketContext.cancel("Socket closed")
+    override fun attachForWritingImpl(channel: ByteChannel): ReaderJob =
+        reader(Dispatchers.Unconfined, channel = channel) {
+            while (true) {
+                val result = channel.read { bytes, startIndex, endIndex ->
+                    socket.write(bytes.toJsBuffer(startIndex, endIndex))
+                    endIndex - startIndex
+                }
+                if (result == -1) {
+                    val endCompleted = CompletableDeferred<Unit>()
+                    socket.end { endCompleted.complete(Unit) }
+                    endCompleted.await()
+                    break
+                }
+            }
+        }
+
+    override fun actualClose(): Throwable? {
+        socket.destroy(null)
+        return null
     }
 }
