@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
-internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
+internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
 
 private const val TEST_SIZE: Int = 100
 

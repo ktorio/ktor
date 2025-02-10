@@ -373,6 +373,11 @@ public fun HttpRequestData.isSseRequest(): Boolean {
 }
 
 @InternalAPI
+public fun HttpRequestData.isSseReconnectionRequest(): Boolean {
+    return attributes.getOrNull(SSEReconnectionRequestAttr) == true
+}
+
+@InternalAPI
 public val ResponseAdapterAttributeKey: AttributeKey<ResponseAdapter> = AttributeKey("ResponseAdapterAttributeKey")
 
 @InternalAPI
@@ -400,15 +405,14 @@ public class SSEClientResponseAdapter : ResponseAdapter {
     ): Any? {
         val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         return if (data.isSseRequest() &&
-            status == HttpStatusCode.OK &&
-            contentType?.withoutParameters() == ContentType.Text.EventStream
+            !data.isSseReconnectionRequest() &&
+            (
+                (status == HttpStatusCode.OK && contentType?.withoutParameters() == ContentType.Text.EventStream) ||
+                    status == HttpStatusCode.NoContent
+                )
         ) {
             outgoingContent as SSEClientContent
-            DefaultClientSSESession(
-                outgoingContent,
-                responseBody,
-                callContext
-            )
+            DefaultClientSSESession(outgoingContent, responseBody)
         } else {
             null
         }
