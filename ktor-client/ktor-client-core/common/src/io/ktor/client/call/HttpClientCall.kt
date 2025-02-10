@@ -65,6 +65,7 @@ public open class HttpClientCall(
         this.request = DefaultHttpRequest(this, requestData)
         this.response = DefaultHttpResponse(this, responseData)
 
+        attributes.remove(CustomResponse)
         if (responseData.body !is ByteReadChannel) {
             attributes.put(CustomResponse, responseData.body)
         }

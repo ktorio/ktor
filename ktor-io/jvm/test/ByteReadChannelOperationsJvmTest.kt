@@ -4,7 +4,11 @@
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.EOFException
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.*
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
 
@@ -99,5 +103,17 @@ class ByteReadChannelOperationsJvmTest {
         assertEquals(numberOfLines, count)
         assertTrue(time < 5.seconds, "Expected I/O to be complete in a reasonable time, but it took $time")
         assertEquals(2_088_890, out.length)
+    }
+
+    @Test
+    fun readWithGreaterMinThrows() = runTest {
+        val channel = ByteChannel()
+        channel.writeByte(1)
+        channel.close()
+        assertThrows<EOFException> {
+            channel.read(2) {
+                fail("There is only one byte in the channel")
+            }
+        }
     }
 }

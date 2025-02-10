@@ -6,7 +6,6 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.Buffer
@@ -14,6 +13,9 @@ import libcurl.*
 import platform.posix.*
 import kotlin.coroutines.*
 
+/**
+ *  The callback is getting called on each completely parser header line.
+ */
 @OptIn(ExperimentalForeignApi::class)
 internal fun onHeadersReceived(
     buffer: CPointer<ByteVar>,
@@ -21,11 +23,26 @@ internal fun onHeadersReceived(
     count: size_t,
     userdata: COpaquePointer
 ): Long {
-    val packet = userdata.fromCPointer<CurlResponseBuilder>().headersBytes
+    val response = userdata.fromCPointer<CurlResponseBuilder>()
+    val packet = response.headersBytes
     val chunkSize = (size * count).toLong()
     packet.writeFully(buffer, 0, chunkSize)
+
+    if (isFinalHeaderLine(chunkSize, buffer) && !response.bodyStartedReceiving.isCompleted) {
+        response.bodyStartedReceiving.complete(Unit)
+    }
+
     return chunkSize
 }
+
+/**
+ * Checks if the given header represents the final header line (CR LF).
+ *
+ * @see <a href="https://curl.se/libcurl/c/CURLOPT_HEADERFUNCTION.html">Description.</a>
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun isFinalHeaderLine(chunkSize: Long, buffer: CPointer<ByteVar>) =
+    chunkSize == 2L && buffer[0] == 0x0D.toByte() && buffer[1] == 0x0A.toByte()
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun onBodyChunkReceived(
@@ -35,44 +52,7 @@ internal fun onBodyChunkReceived(
     userdata: COpaquePointer
 ): Int {
     val wrapper = userdata.fromCPointer<CurlResponseBodyData>()
-    if (!wrapper.bodyStartedReceiving.isCompleted) {
-        wrapper.bodyStartedReceiving.complete(Unit)
-    }
-
-    val body = wrapper.body
-    if (body.isClosedForWrite) {
-        return if (body.closedCause != null) -1 else 0
-    }
-
-    val chunkSize = (size * count).toInt()
-
-    // TODO: delete `runBlocking` with fix of https://youtrack.jetbrains.com/issue/KTOR-6030/Migrate-to-new-kotlinx.io-library
-    val written = try {
-        runBlocking {
-            body.writeFully(buffer, 0, chunkSize)
-        }
-        chunkSize
-    } catch (cause: Throwable) {
-        return -1
-    }
-    if (written > 0) {
-        wrapper.bytesWritten.addAndGet(written)
-    }
-    if (wrapper.bytesWritten.value == chunkSize) {
-        wrapper.bytesWritten.value = 0
-        return chunkSize
-    }
-
-    CoroutineScope(wrapper.callContext).launch {
-        try {
-            body.awaitFreeSpace()
-        } catch (_: Throwable) {
-            // no op, error will be handled on next write on cURL thread
-        } finally {
-            wrapper.onUnpause()
-        }
-    }
-    return CURL_WRITEFUNC_PAUSE
+    return wrapper.onBodyChunkReceived(buffer, size, count)
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -118,11 +98,8 @@ internal class CurlRequestBodyData(
     val onUnpause: () -> Unit
 )
 
-internal class CurlResponseBodyData(
-    val bodyStartedReceiving: CompletableDeferred<Unit>,
-    val body: ByteWriteChannel,
-    val callContext: CoroutineContext,
-    val onUnpause: () -> Unit
-) {
-    internal val bytesWritten = atomic(0)
+internal interface CurlResponseBodyData {
+    @OptIn(ExperimentalForeignApi::class)
+    fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int
+    fun close(cause: Throwable? = null)
 }
