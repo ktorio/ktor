@@ -30,7 +30,7 @@ public class SSEConfig {
      * The maximum amount of retries to perform for a reconnection request.
      * To enable reconnection, set this value to a number greater than 0.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.maxRetries)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.maxReconnectionAttempts)
      */
     public var maxReconnectionAttempts: Int = 0
 
