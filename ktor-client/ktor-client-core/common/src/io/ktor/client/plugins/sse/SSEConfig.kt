@@ -4,7 +4,7 @@
 
 package io.ktor.client.plugins.sse
 
-import kotlin.time.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -25,6 +25,14 @@ public class SSEConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.reconnectionTime)
      */
     public var reconnectionTime: Duration = 3000.milliseconds
+
+    /**
+     * The maximum amount of retries to perform for a reconnection request.
+     * To enable reconnection, set this value to a number greater than 0.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.maxReconnectionAttempts)
+     */
+    public var maxReconnectionAttempts: Int = 0
 
     /**
      * Adds events consisting only of comments in the incoming flow.

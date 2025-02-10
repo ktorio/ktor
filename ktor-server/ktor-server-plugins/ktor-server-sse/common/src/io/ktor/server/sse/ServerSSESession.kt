@@ -154,7 +154,7 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
 /**
  * Starts a heartbeat for the ServerSSESession.
  *
- * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.duration] interval
+ * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.period] interval
  * as long as the session is active.
  *
  *
@@ -162,13 +162,13 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  *
  * @param heartbeatConfig a lambda that configures the [Heartbeat] object used for the heartbeat.
  */
-public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit) {
+public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}) {
     val heartbeat = Heartbeat().apply(heartbeatConfig)
     val heartbeatJob = Job(call.coroutineContext[Job])
     launch(heartbeatJob + CoroutineName("sse-heartbeat")) {
         while (true) {
             send(heartbeat.event)
-            delay(heartbeat.duration)
+            delay(heartbeat.period)
         }
     }
     call.attributes.put(heartbeatJobKey, heartbeatJob)
@@ -182,10 +182,10 @@ internal val heartbeatJobKey = AttributeKey<Job>("HeartbeatJobAttributeKey")
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.Heartbeat)
  *
- * @property duration the duration between heartbeat events, default is 30 seconds.
+ * @property period the duration between heartbeat events, default is 30 seconds.
  * @property event the [ServerSentEvent] to be sent as the heartbeat, default is a [ServerSentEvent] with the comment "heartbeat".
  */
 public class Heartbeat {
-    public var duration: Duration = 30.seconds
+    public var period: Duration = 30.seconds
     public var event: ServerSentEvent = ServerSentEvent(comments = "heartbeat")
 }

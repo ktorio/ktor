@@ -4,35 +4,134 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.flow.*
-import kotlin.coroutines.*
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
+@Deprecated("It should be marked with `@InternalAPI`, please use `ClientSSESession` instead")
 public class DefaultClientSSESession(
     content: SSEClientContent,
     private var input: ByteReadChannel,
-    override val coroutineContext: CoroutineContext,
+    override val coroutineContext: CoroutineContext
 ) : SSESession {
     private var lastEventId: String? = null
     private var reconnectionTimeMillis = content.reconnectionTime.inWholeMilliseconds
     private val showCommentEvents = content.showCommentEvents
     private val showRetryEvents = content.showRetryEvents
+    private val maxReconnectionAttempts = content.maxReconnectionAttempts
+    private var needToReconnect = maxReconnectionAttempts > 0
 
-    private val _incoming = channelFlow {
-        while (true) {
-            val event = input.parseEvent() ?: break
+    private val initialRequest = content.initialRequest
 
-            if (event.isCommentsEvent() && !showCommentEvents) continue
-            if (event.isRetryEvent() && !showRetryEvents) continue
+    private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
 
-            send(event)
+    public constructor(
+        content: SSEClientContent,
+        input: ByteReadChannel
+    ) : this(content, input, content.callContext + Job() + CoroutineName("DefaultClientSSESession"))
+
+    private var _incoming = flow {
+        // inner while for parsing events of current input (=connection), and when the current input is closed,
+        // we have an outer while to obtain new input
+        while (this@DefaultClientSSESession.coroutineContext.isActive) {
+            while (this@DefaultClientSSESession.coroutineContext.isActive) {
+                val event = input.parseEvent() ?: break
+
+                if (event.isCommentsEvent() && !showCommentEvents) continue
+                if (event.isRetryEvent() && !showRetryEvents) continue
+
+                emit(event)
+            }
+
+            if (needToReconnect) {
+                doReconnection()
+            } else {
+                close()
+            }
+        }
+    }.catch { cause ->
+        when (cause) {
+            is CancellationException -> {
+                close()
+            }
+
+            else -> {
+                LOGGER.trace { "Error during SSE session processing: $cause" }
+                close()
+                throw cause
+            }
+        }
+    }
+
+    init {
+        coroutineContext.job.invokeOnCompletion {
+            close()
+        }
+    }
+
+    private suspend fun doReconnection() {
+        withContext(coroutineContext) {
+            var retries = 1
+            while (retries <= maxReconnectionAttempts) {
+                try {
+                    input.cancel()
+
+                    delay(reconnectionTimeMillis)
+
+                    val reconnectionRequest = getRequestForReconnection()
+                    LOGGER.trace {
+                        "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxReconnectionAttempts + 1})"
+                    }
+
+                    val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
+                    LOGGER.trace { "Receive response for reconnection SSE request to ${reconnectionRequest.url}" }
+                    checkResponse(reconnectionResponse)
+
+                    if (reconnectionResponse.status == HttpStatusCode.NoContent) {
+                        needToReconnect = false
+                    }
+
+                    input = reconnectionResponse.rawContent
+                    return@withContext
+                } catch (cause: Throwable) {
+                    if (retries == maxReconnectionAttempts) {
+                        LOGGER.trace {
+                            "Max retries ($maxReconnectionAttempts) reached for SSE reconnection, closing session"
+                        }
+                        throw cause
+                    }
+                    LOGGER.trace { "SSE reconnection attempt ${retries + 1} failed" }
+                    retries++
+                }
+            }
+        }
+    }
+
+    private fun getRequestForReconnection() = HttpRequestBuilder().takeFrom(initialRequest).apply {
+        attributes.remove(sseRequestAttr)
+        attributes.put(SSEReconnectionRequestAttr, true)
+
+        lastEventId?.let {
+            headers.append("Last-Event-ID", it)
         }
     }
 
     override val incoming: Flow<ServerSentEvent>
         get() = _incoming
+
+    private fun close() {
+        coroutineContext.cancel()
+        input.cancel()
+    }
 
     private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent? {
         val data = StringBuilder()

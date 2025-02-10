@@ -1,9 +1,9 @@
 public final class io/ktor/server/sse/Heartbeat {
 	public fun <init> ()V
-	public final fun getDuration-UwyO8pc ()J
 	public final fun getEvent ()Lio/ktor/sse/ServerSentEvent;
-	public final fun setDuration-LRDsOJo (J)V
+	public final fun getPeriod-UwyO8pc ()J
 	public final fun setEvent (Lio/ktor/sse/ServerSentEvent;)V
+	public final fun setPeriod-LRDsOJo (J)V
 }
 
 public final class io/ktor/server/sse/RoutingKt {
@@ -43,6 +43,7 @@ public final class io/ktor/server/sse/ServerSSESession$DefaultImpls {
 
 public final class io/ktor/server/sse/ServerSSESessionKt {
 	public static final fun heartbeat (Lio/ktor/server/sse/ServerSSESession;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun heartbeat$default (Lio/ktor/server/sse/ServerSSESession;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/server/sse/ServerSSESessionWithSerialization : io/ktor/server/sse/ServerSSESession {
