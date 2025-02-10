@@ -14,10 +14,10 @@ kotlinter = "5.0.1"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
-ktor = "3.1.0-eap-1190"
+ktor = "3.1.0-eap-1225"
 
 netty = "4.1.117.Final"
-netty-tcnative = "2.0.69.Final"
+netty-tcnative = "2.0.70.Final"
 
 jetty = "9.4.57.v20241219"
 jetty-jakarta = "11.0.24"
@@ -41,7 +41,7 @@ junit = "5.11.4"
 slf4j = "2.0.16"
 logback = "1.5.16"
 
-dropwizard = "4.2.29"
+dropwizard = "4.2.30"
 micrometer = "1.14.3"
 
 jansi = "2.4.1"
@@ -102,6 +102,7 @@ ktor-server-jetty = { module = "io.ktor:ktor-server-jetty-jakarta", version.ref 
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse", version.ref = "ktor" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
