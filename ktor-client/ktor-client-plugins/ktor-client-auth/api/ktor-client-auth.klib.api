@@ -52,6 +52,7 @@ final class io.ktor.client.plugins.auth.providers/BasicAuthProvider : io.ktor.cl
     final val sendWithoutRequest // io.ktor.client.plugins.auth.providers/BasicAuthProvider.sendWithoutRequest|{}sendWithoutRequest[0]
         final fun <get-sendWithoutRequest>(): kotlin/Boolean // io.ktor.client.plugins.auth.providers/BasicAuthProvider.sendWithoutRequest.<get-sendWithoutRequest>|<get-sendWithoutRequest>(){}[0]
 
+    final fun clearToken() // io.ktor.client.plugins.auth.providers/BasicAuthProvider.clearToken|clearToken(){}[0]
     final fun isApplicable(io.ktor.http.auth/HttpAuthHeader): kotlin/Boolean // io.ktor.client.plugins.auth.providers/BasicAuthProvider.isApplicable|isApplicable(io.ktor.http.auth.HttpAuthHeader){}[0]
     final fun sendWithoutRequest(io.ktor.client.request/HttpRequestBuilder): kotlin/Boolean // io.ktor.client.plugins.auth.providers/BasicAuthProvider.sendWithoutRequest|sendWithoutRequest(io.ktor.client.request.HttpRequestBuilder){}[0]
     final suspend fun addRequestHeaders(io.ktor.client.request/HttpRequestBuilder, io.ktor.http.auth/HttpAuthHeader?) // io.ktor.client.plugins.auth.providers/BasicAuthProvider.addRequestHeaders|addRequestHeaders(io.ktor.client.request.HttpRequestBuilder;io.ktor.http.auth.HttpAuthHeader?){}[0]
@@ -131,6 +132,7 @@ final class io.ktor.client.plugins.auth.providers/DigestAuthProvider : io.ktor.c
     final val sendWithoutRequest // io.ktor.client.plugins.auth.providers/DigestAuthProvider.sendWithoutRequest|{}sendWithoutRequest[0]
         final fun <get-sendWithoutRequest>(): kotlin/Boolean // io.ktor.client.plugins.auth.providers/DigestAuthProvider.sendWithoutRequest.<get-sendWithoutRequest>|<get-sendWithoutRequest>(){}[0]
 
+    final fun clearToken() // io.ktor.client.plugins.auth.providers/DigestAuthProvider.clearToken|clearToken(){}[0]
     final fun isApplicable(io.ktor.http.auth/HttpAuthHeader): kotlin/Boolean // io.ktor.client.plugins.auth.providers/DigestAuthProvider.isApplicable|isApplicable(io.ktor.http.auth.HttpAuthHeader){}[0]
     final fun sendWithoutRequest(io.ktor.client.request/HttpRequestBuilder): kotlin/Boolean // io.ktor.client.plugins.auth.providers/DigestAuthProvider.sendWithoutRequest|sendWithoutRequest(io.ktor.client.request.HttpRequestBuilder){}[0]
     final suspend fun addRequestHeaders(io.ktor.client.request/HttpRequestBuilder, io.ktor.http.auth/HttpAuthHeader?) // io.ktor.client.plugins.auth.providers/DigestAuthProvider.addRequestHeaders|addRequestHeaders(io.ktor.client.request.HttpRequestBuilder;io.ktor.http.auth.HttpAuthHeader?){}[0]

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -162,6 +162,19 @@ public class BearerAuthProvider(
         return newToken != null
     }
 
+    /**
+     * Clears the currently stored authentication tokens from the cache.
+     *
+     * This method should be called in the following cases:
+     * - When access or refresh tokens have been updated externally
+     * - When you want to clear sensitive token data (for example, during logout)
+     *
+     * Note: The result of `loadTokens` invocation is cached internally.
+     * Calling this method will force the next authentication attempt to fetch fresh tokens
+     * through the configured `loadTokens` function.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthProvider.clearToken)
+     */
     public fun clearToken() {
         tokensHolder.clearToken()
     }

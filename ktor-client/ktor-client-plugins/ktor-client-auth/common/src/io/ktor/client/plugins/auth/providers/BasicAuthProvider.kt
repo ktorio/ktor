@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -161,6 +161,24 @@ public class BasicAuthProvider(
     override suspend fun refreshToken(response: HttpResponse): Boolean {
         tokensHolder.setToken(credentials)
         return true
+    }
+
+    /**
+     * Clears the currently stored authentication tokens from the cache.
+     *
+     * This method should be called in the following cases:
+     * - When the credentials have been updated and need to take effect
+     * - When you want to force re-authentication
+     * - When you want to clear sensitive authentication data
+     *
+     * Note: The result of [credentials] invocation is cached internally.
+     * Calling this method will force the next authentication attempt to fetch fresh credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthProvider.clearToken)
+     */
+    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
+    public fun clearToken() {
+        tokensHolder.clearToken()
     }
 }
 

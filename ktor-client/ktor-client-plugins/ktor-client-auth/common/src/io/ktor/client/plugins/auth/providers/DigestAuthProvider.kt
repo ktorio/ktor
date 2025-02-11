@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -13,7 +13,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 /**
  * Installs the client's [DigestAuthProvider].
@@ -217,5 +217,22 @@ public class DigestAuthProvider(
     private suspend fun makeDigest(data: String): ByteArray {
         val digest = Digest(algorithmName)
         return digest.build(data.toByteArray(Charsets.UTF_8))
+    }
+
+    /**
+     * Clears the currently stored authentication tokens from the cache.
+     *
+     * This method should be called in the following cases:
+     * - When the credentials have been updated and need to take effect
+     * - When you want to clear sensitive authentication data
+     *
+     * Note: The result of [credentials] invocation is cached internally.
+     * Calling this method will force the next authentication attempt to fetch fresh credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider.clearToken)
+     */
+    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
+    public fun clearToken() {
+        tokenHolder.clearToken()
     }
 }
