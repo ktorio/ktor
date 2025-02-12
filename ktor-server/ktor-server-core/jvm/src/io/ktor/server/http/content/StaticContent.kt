@@ -607,16 +607,21 @@ private fun Route.staticContentRoute(
     remotePath: String,
     autoHead: Boolean,
     handler: suspend (ApplicationCall).() -> Unit
-) = route(remotePath) {
-    route("{$pathParameterName...}") {
-        get {
-            call.handler()
-        }
-        if (autoHead) {
-            method(HttpMethod.Head) {
-                install(StaticContentAutoHead)
-                handle {
-                    call.handler()
+) = createChild(object : RouteSelector() {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+}).apply {
+    route(remotePath) {
+        route("{$pathParameterName...}") {
+            get {
+                call.handler()
+            }
+            if (autoHead) {
+                method(HttpMethod.Head) {
+                    install(StaticContentAutoHead)
+                    handle {
+                        call.handler()
+                    }
                 }
             }
         }
