@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http.cio
 
@@ -35,13 +35,14 @@ internal val httpLineEndings: LineEndingMode = LineEndingMode.CRLF + LineEndingM
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseRequest)
  */
+@OptIn(InternalAPI::class)
 public suspend fun parseRequest(input: ByteReadChannel): Request? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
 
     try {
         while (true) {
-            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT)) return null
+            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) return null
             range.end = builder.length
             if (range.start == range.end) continue
 
@@ -71,12 +72,13 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseResponse)
  */
+@OptIn(InternalAPI::class)
 public suspend fun parseResponse(input: ByteReadChannel): Response? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
 
     try {
-        if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT)) return null
+        if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) return null
         range.end = builder.length
 
         val version = parseVersion(builder, range)
@@ -107,6 +109,7 @@ public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
 /**
  * Parse HTTP headers. Not applicable to request and response status lines.
  */
+@OptIn(InternalAPI::class)
 internal suspend fun parseHeaders(
     input: ByteReadChannel,
     builder: CharArrayBuilder,
@@ -116,7 +119,7 @@ internal suspend fun parseHeaders(
 
     try {
         while (true) {
-            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT)) {
+            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) {
                 headers.release()
                 return null
             }
