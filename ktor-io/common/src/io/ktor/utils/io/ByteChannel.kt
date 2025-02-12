@@ -1,16 +1,19 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
 
 import io.ktor.utils.io.locks.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlin.concurrent.Volatile
-import kotlin.coroutines.*
-import kotlin.jvm.*
+import kotlin.coroutines.Continuation
+import kotlin.jvm.JvmStatic
 
 internal expect val DEVELOPMENT_MODE: Boolean
 internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
@@ -171,9 +174,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     private fun closeSlot(cause: Throwable?) {
         val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
         val continuation = suspensionSlot.getAndSet(closeContinuation)
-        if (continuation !is Slot.Task) return
-
-        continuation.resume(cause)
+        if (continuation is Slot.Task) continuation.resume(cause)
     }
 
     private inline fun <reified TaskType : Slot.Task> trySuspend(
