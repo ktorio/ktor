@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http.cio
@@ -7,16 +7,20 @@ package io.ktor.tests.http.cio
 import io.ktor.http.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlinx.io.Buffer
-import org.junit.jupiter.api.*
-import java.io.EOFException
-import java.io.IOException
-import java.nio.*
-import kotlin.test.*
+import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import kotlinx.io.Sink
+import java.nio.ByteBuffer
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class ChunkedTest {
 
@@ -26,7 +30,7 @@ class ChunkedTest {
         val ch = ByteReadChannel(bodyText.toByteArray())
         val parsed = ByteChannel()
 
-        assertThrows<EOFException> {
+        assertFailsWith<EOFException> {
             decodeChunked(ch, parsed)
         }
     }
@@ -62,7 +66,7 @@ class ChunkedTest {
         val ch = ByteReadChannel(bodyText.toByteArray())
         val parsed = ByteChannel()
 
-        assertThrows<EOFException> {
+        assertFailsWith<EOFException> {
             decodeChunked(ch, parsed)
         }
     }
@@ -116,13 +120,28 @@ class ChunkedTest {
 
     @Test
     fun testContentMixedLineEndings() = runBlocking {
-        val bodyText = "3\n123\n2\r\n45\r\n1\r6\r0\r\n\n"
+        val bodyText = "3\n123\n2\r\n45\r\n1\n6\n0\r\n\n"
         val ch = ByteReadChannel(bodyText.toByteArray())
         val parsed = ByteChannel()
 
         decodeChunked(ch, parsed)
 
         assertEquals("123456", parsed.readUTF8Line())
+    }
+
+    @Test
+    fun testContentWithRcLineEnding() = runTest {
+        val bodyText = "3\r\n" +
+            "123\r1\r\n" + // <- CR line ending after chunk body
+            "2\r\n" +
+            "45\r\n" +
+            "0\r\n\r\n"
+        val ch = ByteReadChannel(bodyText.toByteArray())
+        val parsed = ByteChannel()
+
+        assertFailsWith<IOException> {
+            decodeChunked(ch, parsed)
+        }
     }
 
     @Test
