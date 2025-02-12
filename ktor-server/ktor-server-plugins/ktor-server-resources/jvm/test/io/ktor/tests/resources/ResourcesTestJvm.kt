@@ -4,15 +4,25 @@
 
 package io.ktor.tests.resources
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.resources.*
+import io.ktor.server.http.content.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import java.math.*
-import kotlin.test.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.math.BigDecimal
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ResourcesTestJvm {
 
@@ -56,5 +66,26 @@ class ResourcesTestJvm {
             LocationWithBigNumbers(bd, bi),
             "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890"
         )
+    }
+
+    @Resource("/")
+    class Home
+
+    @Test
+    fun testHomeResourceWithStaticResource() = testResourcesApplication {
+        var executed = false
+        routing {
+            get<Home> {
+                executed = true
+                call.respondText("OK")
+            }
+            staticResources("/", "static")
+        }
+
+        client.get("/").let { response ->
+            assertTrue(executed)
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
+        }
     }
 }
