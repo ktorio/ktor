@@ -21,6 +21,16 @@ private const val HTTP_STATUS_CODE_MAX_RANGE = 999
 private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
 
 /**
+ * Line endings allowed as a separator for HTTP fields and start line.
+ *
+ * "Although the line terminator for the start-line and fields is the sequence CRLF,
+ * a recipient MAY recognize a single LF as a line terminator and ignore any preceding CR."
+ * https://datatracker.ietf.org/doc/html/rfc9112#section-2.2-3
+ */
+@OptIn(InternalAPI::class)
+internal val httpLineEndings: LineEndingMode = LineEndingMode.CRLF + LineEndingMode.LF
+
+/**
  * Parse an HTTP request line and headers
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseRequest)
