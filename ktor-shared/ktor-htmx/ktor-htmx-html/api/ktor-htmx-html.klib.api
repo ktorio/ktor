@@ -1,0 +1,64 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-htmx-html>
+final class io.ktor.htmx.html/HxAttributes : io.ktor.util.collections/StringMapDelegate { // io.ktor.htmx.html/HxAttributes|null[0]
+    constructor <init>(kotlinx.html.impl/DelegatingMap) // io.ktor.htmx.html/HxAttributes.<init>|<init>(kotlinx.html.impl.DelegatingMap){}[0]
+
+    final val map // io.ktor.htmx.html/HxAttributes.map|{}map[0]
+        final fun <get-map>(): kotlinx.html.impl/DelegatingMap // io.ktor.htmx.html/HxAttributes.map.<get-map>|<get-map>(){}[0]
+    final val on // io.ktor.htmx.html/HxAttributes.on|{}on[0]
+        final fun <get-on>(): io.ktor.htmx.html/HxAttributes.On // io.ktor.htmx.html/HxAttributes.on.<get-on>|<get-on>(){}[0]
+
+    final var get // io.ktor.htmx.html/HxAttributes.get|{}get[0]
+        final fun <get-get>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.get.<get-get>|<get-get>(){}[0]
+        final fun <set-get>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.get.<set-get>|<set-get>(kotlin.String?){}[0]
+    final var post // io.ktor.htmx.html/HxAttributes.post|{}post[0]
+        final fun <get-post>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.post.<get-post>|<get-post>(){}[0]
+        final fun <set-post>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.post.<set-post>|<set-post>(kotlin.String?){}[0]
+    final var pushUrl // io.ktor.htmx.html/HxAttributes.pushUrl|{}pushUrl[0]
+        final fun <get-pushUrl>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.pushUrl.<get-pushUrl>|<get-pushUrl>(){}[0]
+        final fun <set-pushUrl>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.pushUrl.<set-pushUrl>|<set-pushUrl>(kotlin.String?){}[0]
+    final var select // io.ktor.htmx.html/HxAttributes.select|{}select[0]
+        final fun <get-select>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.select.<get-select>|<get-select>(){}[0]
+        final fun <set-select>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.select.<set-select>|<set-select>(kotlin.String?){}[0]
+    final var selectOob // io.ktor.htmx.html/HxAttributes.selectOob|{}selectOob[0]
+        final fun <get-selectOob>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.selectOob.<get-selectOob>|<get-selectOob>(){}[0]
+        final fun <set-selectOob>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.selectOob.<set-selectOob>|<set-selectOob>(kotlin.String?){}[0]
+    final var swap // io.ktor.htmx.html/HxAttributes.swap|{}swap[0]
+        final fun <get-swap>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.swap.<get-swap>|<get-swap>(){}[0]
+        final fun <set-swap>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.swap.<set-swap>|<set-swap>(kotlin.String?){}[0]
+    final var swapOob // io.ktor.htmx.html/HxAttributes.swapOob|{}swapOob[0]
+        final fun <get-swapOob>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.swapOob.<get-swapOob>|<get-swapOob>(){}[0]
+        final fun <set-swapOob>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.swapOob.<set-swapOob>|<set-swapOob>(kotlin.String?){}[0]
+    final var target // io.ktor.htmx.html/HxAttributes.target|{}target[0]
+        final fun <get-target>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.target.<get-target>|<get-target>(){}[0]
+        final fun <set-target>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.target.<set-target>|<set-target>(kotlin.String?){}[0]
+    final var trigger // io.ktor.htmx.html/HxAttributes.trigger|{}trigger[0]
+        final fun <get-trigger>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.trigger.<get-trigger>|<get-trigger>(){}[0]
+        final fun <set-trigger>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.trigger.<set-trigger>|<set-trigger>(kotlin.String?){}[0]
+    final var vals // io.ktor.htmx.html/HxAttributes.vals|{}vals[0]
+        final fun <get-vals>(): kotlin/String? // io.ktor.htmx.html/HxAttributes.vals.<get-vals>|<get-vals>(){}[0]
+        final fun <set-vals>(kotlin/String?) // io.ktor.htmx.html/HxAttributes.vals.<set-vals>|<set-vals>(kotlin.String?){}[0]
+
+    final fun on(kotlin/String, kotlin/String) // io.ktor.htmx.html/HxAttributes.on|on(kotlin.String;kotlin.String){}[0]
+
+    final value class On { // io.ktor.htmx.html/HxAttributes.On|null[0]
+        constructor <init>(kotlin.collections/MutableMap<kotlin/String, kotlin/String>) // io.ktor.htmx.html/HxAttributes.On.<init>|<init>(kotlin.collections.MutableMap<kotlin.String,kotlin.String>){}[0]
+
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.htmx.html/HxAttributes.On.equals|equals(kotlin.Any?){}[0]
+        final fun get(kotlin/String): kotlin/String? // io.ktor.htmx.html/HxAttributes.On.get|get(kotlin.String){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.htmx.html/HxAttributes.On.hashCode|hashCode(){}[0]
+        final fun set(kotlin/String, kotlin/String?) // io.ktor.htmx.html/HxAttributes.On.set|set(kotlin.String;kotlin.String?){}[0]
+        final fun toString(): kotlin/String // io.ktor.htmx.html/HxAttributes.On.toString|toString(){}[0]
+    }
+}
+
+final val io.ktor.htmx.html/hx // io.ktor.htmx.html/hx|@kotlinx.html.impl.DelegatingMap{}hx[0]
+    final fun (kotlinx.html.impl/DelegatingMap).<get-hx>(): io.ktor.htmx.html/HxAttributes // io.ktor.htmx.html/hx.<get-hx>|<get-hx>@kotlinx.html.impl.DelegatingMap(){}[0]
+
+final inline fun (kotlinx.html.impl/DelegatingMap).io.ktor.htmx.html/hx(kotlin/Function1<io.ktor.htmx.html/HxAttributes, kotlin/Unit>) // io.ktor.htmx.html/hx|hx@kotlinx.html.impl.DelegatingMap(kotlin.Function1<io.ktor.htmx.html.HxAttributes,kotlin.Unit>){}[0]
