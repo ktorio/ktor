@@ -12,7 +12,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class BearerAuthTest {
 
@@ -132,11 +133,11 @@ class BearerAuthTest {
             authenticate = { throw NotImplementedError() }
         )
 
-        assertFailsWith<NotImplementedError> {
-            client.get("/") {
-                withToken("letmein")
-            }
+        val response = client.get("/") {
+            withToken("letmein")
         }
+
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 
     @Test
