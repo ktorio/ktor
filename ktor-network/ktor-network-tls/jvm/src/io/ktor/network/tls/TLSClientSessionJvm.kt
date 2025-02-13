@@ -9,10 +9,12 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.nio.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.consumeEach
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 internal actual suspend fun openTLSSession(
     socket: Socket,
@@ -26,11 +28,11 @@ internal actual suspend fun openTLSSession(
         handshake.negotiate()
     } catch (cause: Exception) {
         runCatching {
-            handshake.close().await()
+            handshake.close().join()
             socket.close()
         }
         if (cause is ClosedSendChannelException) {
-            throw TlsException("Negotiation failed due to EOS", cause)
+            throw TLSException("Negotiation failed due to EOS", cause)
         } else {
             throw cause
         }
@@ -68,7 +70,7 @@ private class TLSSocket(
                         pipe.writePacket(record.packet)
                         pipe.flush()
                     }
-                    else -> throw TlsException("Unexpected record ${record.type} ($length bytes)")
+                    else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
                 }
             }
         } catch (_: Throwable) {

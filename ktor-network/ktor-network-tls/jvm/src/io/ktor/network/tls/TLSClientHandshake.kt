@@ -28,7 +28,7 @@ internal class TLSClientHandshake(
     rawOutput: ByteWriteChannel,
     private val config: TLSConfig,
     override val coroutineContext: CoroutineContext,
-    private val closeDeferred: CompletableDeferred<Unit> = CompletableDeferred<Unit>(),
+    private val closeTask: CompletableJob = Job(),
 ) : CoroutineScope {
     private val digest = Digest()
     private val clientSeed: ByteArray = config.random.generateClientSeed()
@@ -129,15 +129,15 @@ internal class TLSClientHandshake(
                 val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
                 rawOutput.writeRecord(record)
                 rawOutput.flushAndClose()
-                closeDeferred.complete(Unit)
+                closeTask.complete()
             }
         }
     }
 
-    fun close(): Deferred<Unit> {
+    fun close(): Job {
         input.cancel()
         output.close()
-        return closeDeferred
+        return closeTask
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
