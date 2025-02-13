@@ -13,8 +13,16 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.internal.*
+import io.ktor.util.logging.Logger
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.withContext
+
+private val ERROR_CONTENT = object : OutgoingContent.NoContent() {
+    override val status: HttpStatusCode = HttpStatusCode.InternalServerError
+}
 
 public abstract class BaseApplicationResponse(
     final override val call: PipelineCall
@@ -80,10 +88,12 @@ public abstract class BaseApplicationResponse(
                 // TODO: What should we do if TransferEncoding was set and length is present?
                 headers.append(HttpHeaders.ContentLength, contentLength.toStringFast(), safeOnly = false)
             }
+
             !transferEncodingSet -> {
                 when (content) {
                     is OutgoingContent.ProtocolUpgrade -> {
                     }
+
                     is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
                     else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
                 }
@@ -329,6 +339,32 @@ public abstract class BaseApplicationResponse(
                     ?: call.attributes[EngineResponseAttributeKey]
 
                 response.respondOutgoingContent(body)
+            }
+        }
+
+        internal fun setupFallbackResponse(application: EnginePipeline, logger: Logger) {
+            val inDevMode = application.developmentMode
+            application.intercept(EnginePipeline.Before) {
+                try {
+                    proceed()
+                } catch (cause: Throwable) {
+                    if (call.isHandled) return@intercept
+
+                    logger.error("Unhandled server error: \"${cause.message}\"", cause)
+
+                    val response = call.response as? BaseApplicationResponse
+                        ?: call.attributes[EngineResponseAttributeKey]
+
+                    val content = if (inDevMode) {
+                        ExceptionPageContent(call, cause)
+                    } else {
+                        object : OutgoingContent.NoContent() {
+                            override val status: HttpStatusCode = HttpStatusCode.InternalServerError
+                        }
+                    }
+
+                    response.respondOutgoingContent(content)
+                }
             }
         }
     }

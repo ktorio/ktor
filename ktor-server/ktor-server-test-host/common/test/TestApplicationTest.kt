@@ -325,17 +325,14 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testExceptionThrowsByDefault() = testApplication {
+    fun testInternalServerError() = testApplication {
         routing {
             get("/boom") {
                 throw IllegalStateException("error")
             }
         }
 
-        val error = assertFailsWith<IllegalStateException> {
-            client.get("/boom")
-        }
-        assertEquals("error", error.message)
+        assertEquals(HttpStatusCode.InternalServerError, client.get("/boom").status)
     }
 
     @Test

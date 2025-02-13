@@ -17,7 +17,10 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 
 class BasicAuthTest {
     @Test
@@ -213,9 +216,7 @@ class BasicAuthTest {
             }
         }
 
-        assertFailsWith<NotImplementedError> {
-            handleRequestWithBasic("/", "u", "a")
-        }
+        assertEquals(HttpStatusCode.InternalServerError, handleRequestWithBasic("/", "u", "a").status)
     }
 
     private suspend fun ApplicationTestBuilder.handleRequestWithBasic(
@@ -223,7 +224,7 @@ class BasicAuthTest {
         user: String,
         pass: String,
         charset: Charset = Charsets.ISO_8859_1
-    ) = client.get(url) {
+    ): HttpResponse = client.get(url) {
         val up = "$user:$pass"
         val encoded = up.toByteArray(charset).encodeBase64()
         header(HttpHeaders.Authorization, "Basic $encoded")

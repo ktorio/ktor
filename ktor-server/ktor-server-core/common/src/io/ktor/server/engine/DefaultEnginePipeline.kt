@@ -76,15 +76,13 @@ public suspend fun logError(call: ApplicationCall, error: Throwable) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.defaultExceptionStatusCode)
  */
-public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
-    return when (cause) {
-        is BadRequestException -> HttpStatusCode.BadRequest
-        is NotFoundException -> HttpStatusCode.NotFound
-        is UnsupportedMediaTypeException -> HttpStatusCode.UnsupportedMediaType
-        is PayloadTooLargeException -> HttpStatusCode.PayloadTooLarge
-        is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
-        else -> null
-    }
+public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when (cause) {
+    is BadRequestException -> HttpStatusCode.BadRequest
+    is NotFoundException -> HttpStatusCode.NotFound
+    is UnsupportedMediaTypeException -> HttpStatusCode.UnsupportedMediaType
+    is PayloadTooLargeException -> HttpStatusCode.PayloadTooLarge
+    is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
+    else -> null
 }
 
 private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
