@@ -118,6 +118,15 @@ internal fun Application.cacheTestServer() {
                 call.response.header(HttpHeaders.CacheControl, "max-age: 120")
                 call.respond(HttpStatusCode.OK)
             }
+            get("/different-vary") {
+                if (call.request.headers.contains("200")) {
+                    call.response.header("Vary", "X-Requested-With,Accept-Encoding")
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.response.header("Vary", "X-Requested-With")
+                    call.respond(HttpStatusCode.NotModified)
+                }
+            }
         }
     }
 }
