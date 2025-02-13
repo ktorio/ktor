@@ -11,7 +11,7 @@ import kotlin.coroutines.*
 
 public actual fun SelectorManager(
     dispatcher: CoroutineContext
-): SelectorManager = WorkerSelectorManager()
+): SelectorManager = WorkerSelectorManager(dispatcher)
 
 public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
