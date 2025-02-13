@@ -1,6 +1,6 @@
 [versions]
 
-kotlin = "2.1.10"
+kotlin = "2.1.20-Beta2"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.6.0"
@@ -8,7 +8,7 @@ coroutines = "1.10.1"
 atomicfu = "0.27.0"
 serialization = "1.8.0"
 binaryCompatibilityValidator = "0.17.0"
-dokka = "1.9.20"
+dokka = "2.0.0"
 kover = "0.9.1"
 kotlinter = "5.0.1"
 kotlinx-browser = "0.3"
