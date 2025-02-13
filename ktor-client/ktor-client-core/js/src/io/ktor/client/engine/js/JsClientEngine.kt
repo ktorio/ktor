@@ -156,7 +156,11 @@ private fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Attr
         append(key, value)
     }
 
-    dropCompressionHeaders(method, attributes)
+    dropCompressionHeaders(
+        method,
+        attributes,
+        alwaysRemove = PlatformUtils.IS_BROWSER
+    )
 }
 
 /**
