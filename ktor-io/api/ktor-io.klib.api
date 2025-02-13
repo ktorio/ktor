@@ -297,6 +297,25 @@ final class io.ktor.utils.io/WriterScope : kotlinx.coroutines/CoroutineScope { /
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.utils.io/WriterScope.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
 }
 
+final value class io.ktor.utils.io/LineEndingMode { // io.ktor.utils.io/LineEndingMode|null[0]
+    final fun contains(io.ktor.utils.io/LineEndingMode): kotlin/Boolean // io.ktor.utils.io/LineEndingMode.contains|contains(io.ktor.utils.io.LineEndingMode){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.utils.io/LineEndingMode.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.utils.io/LineEndingMode.hashCode|hashCode(){}[0]
+    final fun plus(io.ktor.utils.io/LineEndingMode): io.ktor.utils.io/LineEndingMode // io.ktor.utils.io/LineEndingMode.plus|plus(io.ktor.utils.io.LineEndingMode){}[0]
+    final fun toString(): kotlin/String // io.ktor.utils.io/LineEndingMode.toString|toString(){}[0]
+
+    final object Companion { // io.ktor.utils.io/LineEndingMode.Companion|null[0]
+        final val Any // io.ktor.utils.io/LineEndingMode.Companion.Any|{}Any[0]
+            final fun <get-Any>(): io.ktor.utils.io/LineEndingMode // io.ktor.utils.io/LineEndingMode.Companion.Any.<get-Any>|<get-Any>(){}[0]
+        final val CR // io.ktor.utils.io/LineEndingMode.Companion.CR|{}CR[0]
+            final fun <get-CR>(): io.ktor.utils.io/LineEndingMode // io.ktor.utils.io/LineEndingMode.Companion.CR.<get-CR>|<get-CR>(){}[0]
+        final val CRLF // io.ktor.utils.io/LineEndingMode.Companion.CRLF|{}CRLF[0]
+            final fun <get-CRLF>(): io.ktor.utils.io/LineEndingMode // io.ktor.utils.io/LineEndingMode.Companion.CRLF.<get-CRLF>|<get-CRLF>(){}[0]
+        final val LF // io.ktor.utils.io/LineEndingMode.Companion.LF|{}LF[0]
+            final fun <get-LF>(): io.ktor.utils.io/LineEndingMode // io.ktor.utils.io/LineEndingMode.Companion.LF.<get-LF>|<get-LF>(){}[0]
+    }
+}
+
 open class io.ktor.utils.io.charsets/MalformedInputException : kotlinx.io/IOException { // io.ktor.utils.io.charsets/MalformedInputException|null[0]
     constructor <init>(kotlin/String) // io.ktor.utils.io.charsets/MalformedInputException.<init>|<init>(kotlin.String){}[0]
 }
@@ -461,6 +480,7 @@ final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readRemain
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readShort(): kotlin/Short // io.ktor.utils.io/readShort|readShort@io.ktor.utils.io.ByteReadChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUTF8Line(kotlin/Int = ...): kotlin/String? // io.ktor.utils.io/readUTF8Line|readUTF8Line@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUTF8LineTo(kotlin.text/Appendable, kotlin/Int = ...): kotlin/Boolean // io.ktor.utils.io/readUTF8LineTo|readUTF8LineTo@io.ktor.utils.io.ByteReadChannel(kotlin.text.Appendable;kotlin.Int){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUTF8LineTo(kotlin.text/Appendable, kotlin/Int = ..., io.ktor.utils.io/LineEndingMode = ...): kotlin/Boolean // io.ktor.utils.io/readUTF8LineTo|readUTF8LineTo@io.ktor.utils.io.ByteReadChannel(kotlin.text.Appendable;kotlin.Int;io.ktor.utils.io.LineEndingMode){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readUntil(kotlinx.io.bytestring/ByteString, io.ktor.utils.io/ByteWriteChannel, kotlin/Long = ..., kotlin/Boolean = ...): kotlin/Long // io.ktor.utils.io/readUntil|readUntil@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString;io.ktor.utils.io.ByteWriteChannel;kotlin.Long;kotlin.Boolean){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/skipIfFound(kotlinx.io.bytestring/ByteString): kotlin/Boolean // io.ktor.utils.io/skipIfFound|skipIfFound@io.ktor.utils.io.ByteReadChannel(kotlinx.io.bytestring.ByteString){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/toByteArray(): kotlin/ByteArray // io.ktor.utils.io/toByteArray|toByteArray@io.ktor.utils.io.ByteReadChannel(){}[0]
