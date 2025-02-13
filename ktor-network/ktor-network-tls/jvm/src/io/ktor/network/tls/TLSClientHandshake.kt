@@ -27,7 +27,8 @@ internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
     private val config: TLSConfig,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    private val closeDeferred: CompletableDeferred<Unit> = CompletableDeferred<Unit>(),
 ) : CoroutineScope {
     private val digest = Digest()
     private val clientSeed: ByteArray = config.random.generateClientSeed()
@@ -101,34 +102,42 @@ internal class TLSClientHandshake(
         }
     }
 
+    var useCipher = false
+
     @OptIn(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
-        var useCipher = false
+        for (rawRecord in channel) {
+            try {
+                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
 
-        try {
-            for (rawRecord in channel) {
-                try {
-                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
-
-                    rawOutput.writeRecord(record)
-                } catch (cause: Throwable) {
-                    channel.close(cause)
-                }
+                rawOutput.writeRecord(record)
+            } catch (cause: Throwable) {
+                channel.close(cause)
             }
-        } finally {
-            rawOutput.writeRecord(
-                TLSRecord(
+        }
+    }.apply {
+        invokeOnClose {
+            launch(CoroutineName("cio-tls-closer")) {
+                val closeRecord = TLSRecord(
                     TLSRecordType.Alert,
                     packet = buildPacket {
                         writeByte(TLSAlertLevel.WARNING.code.toByte())
                         writeByte(TLSAlertType.CloseNotify.code.toByte())
                     }
                 )
-            )
-
-            rawOutput.flushAndClose()
+                val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
+                rawOutput.writeRecord(record)
+                rawOutput.flushAndClose()
+                closeDeferred.complete(Unit)
+            }
         }
+    }
+
+    fun close(): Deferred<Unit> {
+        input.cancel()
+        output.close()
+        return closeDeferred
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

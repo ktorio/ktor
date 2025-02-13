@@ -24,15 +24,26 @@ internal actual suspend fun openTLSSession(
     val handshake = TLSClientHandshake(input, output, config, context)
     try {
         handshake.negotiate()
-    } catch (cause: ClosedSendChannelException) {
-        throw TLSException("Negotiation failed due to EOS", cause)
+    } catch (cause: Exception) {
+        runCatching {
+            handshake.close().await()
+            socket.close()
+        }
+        if (cause is ClosedSendChannelException) {
+            throw TlsException("Negotiation failed due to EOS", cause)
+        } else {
+            throw cause
+        }
     }
-    return TLSSocket(handshake.input, handshake.output, socket, context)
+    return TLSSocket(
+        handshake,
+        socket,
+        context
+    )
 }
 
 private class TLSSocket(
-    private val input: ReceiveChannel<TLSRecord>,
-    private val output: SendChannel<TLSRecord>,
+    private val base: TLSClientHandshake,
     private val socket: Socket,
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope, Socket by socket {
@@ -49,7 +60,7 @@ private class TLSSocket(
 
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
-            input.consumeEach { record ->
+            base.input.consumeEach { record ->
                 val packet = record.packet
                 val length = packet.remaining
                 when (record.type) {
@@ -57,7 +68,7 @@ private class TLSSocket(
                         pipe.writePacket(record.packet)
                         pipe.flush()
                     }
-                    else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
+                    else -> throw TlsException("Unexpected record ${record.type} ($length bytes)")
                 }
             }
         } catch (_: Throwable) {
@@ -76,16 +87,25 @@ private class TLSSocket(
                 if (rc == -1) break
 
                 buffer.flip()
-                output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
+                base.output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
             }
         } catch (_: ClosedSendChannelException) {
             // The socket was already closed, we should ignore that error.
         } finally {
-            output.close()
+            base.output.close()
         }
     }
 
     override fun dispose() {
-        socket.dispose()
+        close()
+    }
+
+    /**
+     * The socket is closed after sending the close-notify alert.
+     */
+    override fun close() {
+        base.close().invokeOnCompletion {
+            socket.close()
+        }
     }
 }
