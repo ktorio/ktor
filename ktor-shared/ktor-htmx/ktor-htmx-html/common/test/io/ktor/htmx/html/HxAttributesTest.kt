@@ -2,8 +2,10 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.htmx
+package io.ktor.htmx.html
 
+import io.ktor.htmx.ExperimentalHtmxApi
+import io.ktor.htmx.HxSwap
 import kotlinx.html.body
 import kotlinx.html.button
 import kotlinx.html.html

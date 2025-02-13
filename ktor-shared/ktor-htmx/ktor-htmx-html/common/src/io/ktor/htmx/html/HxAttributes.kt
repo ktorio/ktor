@@ -2,10 +2,11 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.htmx
+package io.ktor.htmx.html
 
+import io.ktor.htmx.*
 import io.ktor.util.collections.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.impl.DelegatingMap
 import kotlin.jvm.JvmInline

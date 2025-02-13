@@ -1,10 +1,10 @@
-public final class io/ktor/htmx/HxAttributes : io/ktor/util/collections/StringMapDelegate {
+public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/StringMapDelegate {
 	public fun <init> (Lkotlinx/html/impl/DelegatingMap;)V
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
 	public final fun getGet ()Ljava/lang/String;
 	public synthetic fun getMap ()Ljava/util/Map;
 	public fun getMap ()Lkotlinx/html/impl/DelegatingMap;
-	public final fun getOn-fjYODpQ ()Ljava/util/Map;
+	public final fun getOn-6sA4otk ()Ljava/util/Map;
 	public final fun getPost ()Ljava/lang/String;
 	public final fun getPushUrl ()Ljava/lang/String;
 	public final fun getSelect ()Ljava/lang/String;
@@ -29,8 +29,8 @@ public final class io/ktor/htmx/HxAttributes : io/ktor/util/collections/StringMa
 	public final fun setVals (Ljava/lang/String;)V
 }
 
-public final class io/ktor/htmx/HxAttributes$On {
-	public static final synthetic fun box-impl (Ljava/util/Map;)Lio/ktor/htmx/HxAttributes$On;
+public final class io/ktor/htmx/html/HxAttributes$On {
+	public static final synthetic fun box-impl (Ljava/util/Map;)Lio/ktor/htmx/html/HxAttributes$On;
 	public static fun constructor-impl (Ljava/util/Map;)Ljava/util/Map;
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (Ljava/util/Map;Ljava/lang/Object;)Z
@@ -44,8 +44,8 @@ public final class io/ktor/htmx/HxAttributes$On {
 	public final synthetic fun unbox-impl ()Ljava/util/Map;
 }
 
-public final class io/ktor/htmx/HxAttributesKt {
-	public static final fun getHx (Lkotlinx/html/impl/DelegatingMap;)Lio/ktor/htmx/HxAttributes;
+public final class io/ktor/htmx/html/HxAttributesKt {
+	public static final fun getHx (Lkotlinx/html/impl/DelegatingMap;)Lio/ktor/htmx/html/HxAttributes;
 	public static final fun hx (Lkotlinx/html/impl/DelegatingMap;Lkotlin/jvm/functions/Function1;)V
 }
 
