@@ -59,7 +59,7 @@ internal fun Application.cacheTestServer() {
             get("/etag-304") {
                 if (call.request.header("If-None-Match") == "My-ETAG") {
                     call.response.header("Etag", "My-ETAG")
-                    call.response.header("Vary", "Origin")
+                    call.response.header("Vary", "Origin, Accept-Encoding")
                     call.respond(HttpStatusCode.NotModified)
                     return@get
                 }
