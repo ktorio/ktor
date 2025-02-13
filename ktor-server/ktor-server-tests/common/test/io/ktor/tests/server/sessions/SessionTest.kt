@@ -15,9 +15,9 @@ import io.ktor.server.sessions.serialization.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlin.random.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.Serializable
+import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -563,13 +563,13 @@ class SessionTest {
         routing {
             get("/after-response") {
                 call.respondText("OK")
-                call.sessions.set(TestUserSession("id", emptyList()))
+                assertFailsWith<TooLateSessionSetException> {
+                    call.sessions.set(TestUserSession("id", emptyList()))
+                }
             }
         }
 
-        assertFailsWith<TooLateSessionSetException> {
-            client.get("/after-response").bodyAsText()
-        }
+        assertEquals(client.get("/after-response").bodyAsText(), "OK")
     }
 
     @Test
