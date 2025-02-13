@@ -30,7 +30,7 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
     }
@@ -49,7 +49,7 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-    private fun selectionLoop() {
+    private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
@@ -57,6 +57,9 @@ internal actual class SelectorHelper {
         try {
             while (!interestQueue.isClosed) {
                 val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
+
+                yield()
+
                 val index = memScoped {
                     val length = wsaEvents.size + 1
                     val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
