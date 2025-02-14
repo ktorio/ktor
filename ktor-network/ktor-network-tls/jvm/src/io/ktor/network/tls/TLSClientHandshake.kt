@@ -114,22 +114,26 @@ internal class TLSClientHandshake(
                 rawOutput.writeRecord(record)
             } catch (cause: Throwable) {
                 channel.close(cause)
+                break
             }
         }
     }.apply {
         invokeOnClose {
             launch(CoroutineName("cio-tls-closer")) {
-                val closeRecord = TLSRecord(
-                    TLSRecordType.Alert,
-                    packet = buildPacket {
-                        writeByte(TLSAlertLevel.WARNING.code.toByte())
-                        writeByte(TLSAlertType.CloseNotify.code.toByte())
-                    }
-                )
-                val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
-                rawOutput.writeRecord(record)
-                rawOutput.flushAndClose()
-                closeTask.complete()
+                try {
+                    val closeRecord = TLSRecord(
+                        TLSRecordType.Alert,
+                        packet = buildPacket {
+                            writeByte(TLSAlertLevel.WARNING.code.toByte())
+                            writeByte(TLSAlertType.CloseNotify.code.toByte())
+                        }
+                    )
+                    val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
+                    rawOutput.writeRecord(record)
+                    rawOutput.flushAndClose()
+                } finally {
+                    closeTask.complete()
+                }
             }
         }
     }
