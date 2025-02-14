@@ -16,6 +16,7 @@ internal abstract class SocketBase(
 ) : ReadWriteSocket, SelectableBase(), CoroutineScope {
 
     private val closeFlag = atomic(false)
+    private val actualCloseFlag = atomic(false)
 
     private val readerJob = atomic<ReaderJob?>(null)
 
@@ -92,6 +93,8 @@ internal abstract class SocketBase(
 
     private fun checkChannels() {
         if (closeFlag.value && readerJob.completedOrNotStarted && writerJob.completedOrNotStarted) {
+            if (!actualCloseFlag.compareAndSet(false, true)) return
+
             val e1 = readerJob.exception
             val e2 = writerJob.exception
             val e3 = actualClose()
