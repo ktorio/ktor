@@ -6,7 +6,10 @@ package io.ktor.utils.io
 
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
-import kotlinx.io.*
+import kotlinx.io.IOException
+import kotlinx.io.RawSink
+import kotlinx.io.Sink
+import kotlinx.io.buffered
 
 /**
  * Creates a [ByteWriteChannel] that writes to this [Sink].
@@ -58,7 +61,6 @@ internal class SinkByteWriteChannel(origin: RawSink) : ByteWriteChannel {
         if (!closed.compareAndSet(expect = null, update = CLOSED)) return
     }
 
-    @OptIn(InternalAPI::class)
     override fun cancel(cause: Throwable?) {
         val token = if (cause == null) CLOSED else CloseToken(cause)
         if (!closed.compareAndSet(expect = null, update = token)) return

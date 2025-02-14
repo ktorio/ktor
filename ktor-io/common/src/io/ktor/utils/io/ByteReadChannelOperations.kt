@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("DEPRECATION")
@@ -14,6 +14,7 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
+import kotlin.jvm.JvmInline
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -250,7 +251,7 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
 }
 
 /**
- * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
+ * Reads all available bytes to [buffer] and returns immediately or suspends if no bytes available
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
@@ -395,6 +396,32 @@ public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
 private const val CR: Byte = '\r'.code.toByte()
 private const val LF: Byte = '\n'.code.toByte()
 
+@JvmInline
+public value class LineEndingMode private constructor(private val mode: Int) {
+
+    public operator fun contains(other: LineEndingMode): Boolean =
+        mode or other.mode == mode
+
+    public operator fun plus(other: LineEndingMode): LineEndingMode =
+        LineEndingMode(mode or other.mode)
+
+    override fun toString(): String = when (this) {
+        CR -> "CR"
+        LF -> "LF"
+        CRLF -> "CRLF"
+        else -> values.filter { it in this }.toString()
+    }
+
+    public companion object {
+        public val CR: LineEndingMode = LineEndingMode(0b001)
+        public val LF: LineEndingMode = LineEndingMode(0b010)
+        public val CRLF: LineEndingMode = LineEndingMode(0b100)
+        public val Any: LineEndingMode = LineEndingMode(0b111)
+
+        private val values = listOf(CR, LF, CRLF)
+    }
+}
+
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF and CRLF as a line delimiter.
@@ -408,8 +435,16 @@ private const val LF: Byte = '\n'.code.toByte()
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
+    return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
+}
+
+@OptIn(InternalAPI::class, InternalIoApi::class)
+public suspend fun ByteReadChannel.readUTF8LineTo(
+    out: Appendable,
+    max: Int = Int.MAX_VALUE,
+    lineEnding: LineEndingMode = LineEndingMode.Any,
+): Boolean {
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return false
 
@@ -421,13 +456,17 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
                         // Check if LF follows CR after awaiting
                         if (readBuffer.exhausted()) awaitContent()
                         if (readBuffer.buffer[0] == LF) {
+                            lineEnding.checkIncludes(LineEndingMode.CRLF)
                             readBuffer.discard(1)
+                        } else {
+                            lineEnding.checkIncludes(LineEndingMode.CR)
                         }
                         out.append(lineBuffer.readString())
                         return true
                     }
 
                     LF -> {
+                        lineEnding.checkIncludes(LineEndingMode.LF)
                         out.append(lineBuffer.readString())
                         return true
                     }
@@ -447,6 +486,12 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
                 out.append(lineBuffer.readString())
             }
         }
+    }
+}
+
+private fun LineEndingMode.checkIncludes(other: LineEndingMode) {
+    if (other !in this) {
+        throw IOException("Unexpected line ending $other, while expected $this")
     }
 }
 
