@@ -59,7 +59,7 @@ internal fun Application.cacheTestServer() {
             get("/etag-304") {
                 if (call.request.header("If-None-Match") == "My-ETAG") {
                     call.response.header("Etag", "My-ETAG")
-                    call.response.header("Vary", "Origin")
+                    call.response.header("Vary", "Origin, Accept-Encoding")
                     call.respond(HttpStatusCode.NotModified)
                     return@get
                 }
@@ -117,6 +117,15 @@ internal fun Application.cacheTestServer() {
             get("/invalid-max-age") {
                 call.response.header(HttpHeaders.CacheControl, "max-age: 120")
                 call.respond(HttpStatusCode.OK)
+            }
+            get("/different-vary") {
+                if (call.request.headers.contains("200")) {
+                    call.response.header("Vary", "X-Requested-With,Accept-Encoding")
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.response.header("Vary", "X-Requested-With")
+                    call.respond(HttpStatusCode.NotModified)
+                }
             }
         }
     }
