@@ -836,6 +836,28 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testDifferentVaryHeaders() = clientTests {
+        val storage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(storage)
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/cache/different-vary") {
+                header("200", "true")
+                header("Set-Vary", "X-Requested-With,Accept-Encoding")
+            }
+            assertFailsWith<InvalidCacheStateException> {
+                client.get("$TEST_SERVER/cache/different-vary") {
+                    header("Set-Vary", "X-Requested-With")
+                }
+            }
+        }
+    }
+
     /**
      * Does delay and ensures that the [GMTDate] measurements report at least
      * the specified number of [milliseconds].
