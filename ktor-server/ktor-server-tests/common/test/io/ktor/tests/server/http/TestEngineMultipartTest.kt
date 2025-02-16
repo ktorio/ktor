@@ -103,9 +103,7 @@ class TestEngineMultipartTest {
             }
         }
 
-        assertFailsWith<AssertionError> {
-            client.post("/")
-        }
+        assertEquals(HttpStatusCode.InternalServerError, client.post("/").status)
     }
 
     @Test
