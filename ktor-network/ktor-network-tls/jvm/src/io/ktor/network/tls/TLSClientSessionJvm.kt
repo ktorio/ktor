@@ -26,7 +26,7 @@ internal actual suspend fun openTLSSession(
     val handshake = TLSClientHandshake(input, output, config, context)
     try {
         handshake.negotiate()
-    } catch (cause: Exception) {
+    } catch (cause: Throwable) {
         runCatching {
             handshake.close().join()
             socket.close()
