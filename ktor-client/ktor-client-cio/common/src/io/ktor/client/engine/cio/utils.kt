@@ -122,7 +122,7 @@ internal suspend fun writeBody(
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
 
-    val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
+    val scope = CoroutineScope(callContext + CoroutineName("cio-client-body-writer"))
     scope.launch {
         try {
             processOutgoingContent(request, body, channel)
@@ -194,7 +194,7 @@ internal suspend fun readResponse(
             }
 
             else -> {
-                val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
+                val coroutineScope = CoroutineScope(callContext + CoroutineName("cio-client-body-reader"))
                 val httpBodyParser = coroutineScope.writer(autoFlush = true) {
                     parseHttpBody(version, contentLength, transferEncoding, connectionType, input, channel)
                 }

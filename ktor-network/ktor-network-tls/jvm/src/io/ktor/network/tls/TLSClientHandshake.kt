@@ -27,7 +27,8 @@ internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
     private val config: TLSConfig,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    private val closeTask: CompletableJob = Job(),
 ) : CoroutineScope {
     private val digest = Digest()
     private val clientSeed: ByteArray = config.random.generateClientSeed()
@@ -101,34 +102,46 @@ internal class TLSClientHandshake(
         }
     }
 
+    var useCipher = false
+
     @OptIn(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
-        var useCipher = false
+        for (rawRecord in channel) {
+            try {
+                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
 
-        try {
-            for (rawRecord in channel) {
+                rawOutput.writeRecord(record)
+            } catch (cause: Throwable) {
+                channel.close(cause)
+                break
+            }
+        }
+    }.apply {
+        invokeOnClose {
+            launch(CoroutineName("cio-tls-closer")) {
                 try {
-                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
-
+                    val closeRecord = TLSRecord(
+                        TLSRecordType.Alert,
+                        packet = buildPacket {
+                            writeByte(TLSAlertLevel.WARNING.code.toByte())
+                            writeByte(TLSAlertType.CloseNotify.code.toByte())
+                        }
+                    )
+                    val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
                     rawOutput.writeRecord(record)
-                } catch (cause: Throwable) {
-                    channel.close(cause)
+                    rawOutput.flushAndClose()
+                } finally {
+                    closeTask.complete()
                 }
             }
-        } finally {
-            rawOutput.writeRecord(
-                TLSRecord(
-                    TLSRecordType.Alert,
-                    packet = buildPacket {
-                        writeByte(TLSAlertLevel.WARNING.code.toByte())
-                        writeByte(TLSAlertType.CloseNotify.code.toByte())
-                    }
-                )
-            )
-
-            rawOutput.flushAndClose()
         }
+    }
+
+    fun close(): Job {
+        input.cancel()
+        output.close()
+        return closeTask
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
