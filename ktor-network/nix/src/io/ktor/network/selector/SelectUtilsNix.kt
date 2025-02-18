@@ -48,7 +48,7 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
     }
