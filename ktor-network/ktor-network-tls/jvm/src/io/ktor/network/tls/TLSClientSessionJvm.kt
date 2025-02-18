@@ -9,10 +9,12 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.nio.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.consumeEach
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 internal actual suspend fun openTLSSession(
     socket: Socket,
@@ -24,15 +26,26 @@ internal actual suspend fun openTLSSession(
     val handshake = TLSClientHandshake(input, output, config, context)
     try {
         handshake.negotiate()
-    } catch (cause: ClosedSendChannelException) {
-        throw TLSException("Negotiation failed due to EOS", cause)
+    } catch (cause: Throwable) {
+        runCatching {
+            handshake.close().join()
+            socket.close()
+        }
+        if (cause is ClosedSendChannelException) {
+            throw TLSException("Negotiation failed due to EOS", cause)
+        } else {
+            throw cause
+        }
     }
-    return TLSSocket(handshake.input, handshake.output, socket, context)
+    return TLSSocket(
+        handshake,
+        socket,
+        context
+    )
 }
 
 private class TLSSocket(
-    private val input: ReceiveChannel<TLSRecord>,
-    private val output: SendChannel<TLSRecord>,
+    private val base: TLSClientHandshake,
     private val socket: Socket,
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope, Socket by socket {
@@ -49,7 +62,7 @@ private class TLSSocket(
 
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
-            input.consumeEach { record ->
+            base.input.consumeEach { record ->
                 val packet = record.packet
                 val length = packet.remaining
                 when (record.type) {
@@ -76,16 +89,25 @@ private class TLSSocket(
                 if (rc == -1) break
 
                 buffer.flip()
-                output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
+                base.output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
             }
         } catch (_: ClosedSendChannelException) {
             // The socket was already closed, we should ignore that error.
         } finally {
-            output.close()
+            base.output.close()
         }
     }
 
     override fun dispose() {
-        socket.dispose()
+        close()
+    }
+
+    /**
+     * The socket is closed after sending the close-notify alert.
+     */
+    override fun close() {
+        base.close().invokeOnCompletion {
+            socket.close()
+        }
     }
 }
