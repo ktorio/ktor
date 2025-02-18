@@ -39,7 +39,7 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.MutableOriginConnectionPoint)
  */
 public class MutableOriginConnectionPoint internal constructor(
-    delegate: RequestConnectionPoint
+    private val delegate: RequestConnectionPoint
 ) : RequestConnectionPoint {
 
     override var version: String by AssignableWithDelegate { delegate.version }
@@ -62,6 +62,8 @@ public class MutableOriginConnectionPoint internal constructor(
     override var remoteHost: String by AssignableWithDelegate { delegate.remoteHost }
     override var remotePort: Int by AssignableWithDelegate { delegate.remotePort }
     override var remoteAddress: String by AssignableWithDelegate { delegate.remoteAddress }
+
+    override fun toString(): String = delegate.toString()
 }
 
 private class AssignableWithDelegate<T : Any>(val property: () -> T) {
