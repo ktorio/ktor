@@ -24,7 +24,7 @@ jetty-jakarta = "11.0.24"
 jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-openjdk8 = "9.4.57.v20241219"
 
-tomcat = "9.0.98"
+tomcat = "9.0.99"
 tomcat-jakarta = "10.1.31"
 
 apache = "4.1.5"
