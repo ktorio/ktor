@@ -303,7 +303,17 @@ public class ReaderScope(
 public class ReaderJob internal constructor(
     public val channel: ByteWriteChannel,
     public override val job: Job
-) : ChannelJob
+) : ChannelJob {
+    /**
+     * To avoid the risk of concurrent write operations, we cancel the nested job before
+     * performing `flushAndClose` on the [ByteWriteChannel].
+     */
+    public suspend fun flushAndClose() {
+        job.cancelChildren()
+        job.children.toList().joinAll()
+        channel.flushAndClose()
+    }
+}
 
 @Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.reader(

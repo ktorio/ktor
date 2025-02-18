@@ -34,10 +34,11 @@ internal abstract class SocketBase(
     override fun close() {
         if (!closeFlag.compareAndSet(false, true)) return
 
-        // TODO this can be dangerous if there is another thread writing to this
-        readerJob.value?.channel?.close()
-        writerJob.value?.cancel()
-        checkChannels()
+        launch(CoroutineName("socket-close")) {
+            readerJob.value?.flushAndClose()
+            writerJob.value?.cancel()
+            checkChannels()
+        }
     }
 
     final override fun attachForReading(channel: ByteChannel): WriterJob {
