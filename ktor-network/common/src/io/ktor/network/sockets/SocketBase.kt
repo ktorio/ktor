@@ -30,12 +30,15 @@ internal abstract class SocketBase(
         close()
     }
 
+    @OptIn(InternalAPI::class)
     override fun close() {
         if (!closeFlag.compareAndSet(false, true)) return
 
-        readerJob.value?.channel?.close()
-        writerJob.value?.cancel()
-        checkChannels()
+        launch(CoroutineName("socket-close")) {
+            readerJob.value?.flushAndClose()
+            writerJob.value?.cancel()
+            checkChannels()
+        }
     }
 
     final override fun attachForReading(channel: ByteChannel): WriterJob {
