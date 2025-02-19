@@ -82,7 +82,8 @@ internal actual class SelectorHelper {
                 val maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
 
                 try {
-                    selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet).check()
+                    selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet)
+                        .check(posixFunctionName = "pselect")
                 } catch (_: PosixException.BadFileDescriptorException) {
                     // Thrown if any of the descriptors was closed.
                     // This means the sets are undefined so do not rely on their contents.
