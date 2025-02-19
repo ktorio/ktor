@@ -79,10 +79,7 @@ internal actual class SelectorHelper {
         try {
             while (!interestQueue.isClosed) {
                 watchSet.add(wakeupSignalEvent)
-                var maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
-                if (maxDescriptor == 0) continue
-
-                maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
+                val maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
 
                 try {
                     selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet).check()
