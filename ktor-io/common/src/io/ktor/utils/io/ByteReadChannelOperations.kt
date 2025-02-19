@@ -311,7 +311,7 @@ public class ReaderJob internal constructor(
     @InternalAPI
     public suspend fun flushAndClose() {
         job.cancelChildren()
-        job.children.toList().joinAll()
+        job.children.forEach { it.join() }
         channel.flushAndClose()
     }
 }
