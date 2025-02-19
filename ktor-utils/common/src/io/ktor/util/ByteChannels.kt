@@ -64,8 +64,8 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
             while (!isClosedForRead && (!first.isClosedForWrite || !second.isClosedForWrite)) {
                 readRemaining(CHUNK_BUFFER_SIZE).use {
                     try {
-                        first.writePacket(it.peek())
-                        second.writePacket(it.peek())
+                        first.writePacket(it.copy())
+                        second.writePacket(it.copy())
                     } catch (cause: Throwable) {
                         this@copyToBoth.cancel(cause)
                         first.close(cause)

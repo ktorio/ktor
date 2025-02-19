@@ -351,7 +351,7 @@ public fun CoroutineScope.reader(
  * @throws EOFException if the channel is closed before the packet is fully read.
  */
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readPacket(packet: Int): Buffer {
+public suspend fun ByteReadChannel.readPacket(packet: Int): Source {
     val result = Buffer()
     while (result.size < packet) {
         if (readBuffer.exhausted()) awaitContent()

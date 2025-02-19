@@ -6,11 +6,10 @@ package io.ktor.websocket.internals
 
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
-import kotlinx.io.Buffer
 
-internal fun Buffer.endsWith(data: ByteArray): Boolean {
-    peek().apply {
-        discard(size - data.size)
+internal fun Source.endsWith(data: ByteArray): Boolean {
+    copy().apply {
+        discard(remaining - data.size)
         return readByteArray().contentEquals(data)
     }
 }

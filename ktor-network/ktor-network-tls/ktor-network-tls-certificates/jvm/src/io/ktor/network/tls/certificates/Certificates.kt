@@ -250,7 +250,7 @@ private fun Sink.writeX509Info(
             }
         }
 
-        writeDerLength(extensions.size.toInt())
+        writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
     }
 }
@@ -326,7 +326,7 @@ private fun Sink.writeAlgorithmIdentifier(algorithm: String) {
 private fun Sink.writeX509Extension(id: Int, builder: Sink.() -> Unit) {
     writeByte((0x80 or id).toByte())
     val packet = buildPacket { builder() }
-    writeDerLength(packet.size.toInt())
+    writeDerLength(packet.remaining.toInt())
     writePacket(packet)
 }
 
@@ -373,7 +373,7 @@ private fun Sink.writeVersion(v: Int = 2) {
     val encoded = buildPacket {
         writeAsnInt(v)
     }
-    writeDerLength(encoded.size.toInt())
+    writeDerLength(encoded.remaining.toInt())
     writePacket(encoded)
 }
 
@@ -381,7 +381,7 @@ private fun Sink.writeDerOctetString(block: Sink.() -> Unit) {
     val sub = buildPacket { block() }
 
     writeDerType(0, 4, true)
-    writeDerLength(sub.size.toInt())
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -414,7 +414,7 @@ private fun Sink.writeDerUTF8String(s: String, type: Int = 0x0c) {
     }
 
     writeDerType(0, type, true)
-    writeDerLength(sub.size.toInt())
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -426,7 +426,7 @@ private fun Sink.writeDerSequence(block: Sink.() -> Unit) {
     val sub = buildPacket { block() }
 
     writeDerType(0, 0x10, false)
-    writeDerLength(sub.size.toInt())
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -448,7 +448,7 @@ private fun Sink.writeDerObjectIdentifier(identifier: IntArray) {
     }
 
     writeDerType(0, 6, true)
-    writeDerLength(sub.size.toInt())
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -477,7 +477,7 @@ private fun Sink.writeAsnInt(value: Int) {
             writeByte(part.toByte())
         }
     }
-    writeDerLength(encoded.size.toInt())
+    writeDerLength(encoded.remaining.toInt())
     writePacket(encoded)
 }
 

@@ -7,7 +7,6 @@ package io.ktor.server.test.base
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.readByteArray
 import java.net.*
 import java.nio.*
 import java.nio.ByteOrder
@@ -67,7 +66,10 @@ class HighLoadHttpGenerator(
     private val remote = InetSocketAddress(host, port)
     private val request = RequestResponseBuilder().apply(builder).build()
 
-    private val requestByteBuffer = ByteBuffer.wrap(request.readByteArray())
+    private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining.toInt())!!.apply {
+        request.copy().readFully(this)
+        clear()
+    }
 
     private val count = AtomicLong(0)
     private val codeCounts = Array(1000) { AtomicLong(0) }

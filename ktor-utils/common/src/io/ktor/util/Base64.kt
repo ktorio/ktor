@@ -104,7 +104,7 @@ public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
 public fun Source.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)
 
-    while (!exhausted()) {
+    while (remaining > 0) {
         val read = readAvailable(data)
 
         val chunk = data.foldIndexed(0) { index, result, current ->

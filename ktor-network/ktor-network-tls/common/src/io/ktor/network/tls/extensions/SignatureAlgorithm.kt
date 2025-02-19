@@ -5,8 +5,8 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import kotlinx.io.Buffer
-import kotlinx.io.Source
+import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 // See also: https://www.iana.org/assignments/tls-parameters/tls-parameters.txt
 
@@ -115,15 +115,15 @@ public val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA1, SignatureAlgorithm.RSA, OID.RSAwithSHA1Encryption)
 )
 
-internal fun Buffer.parseSignatureAlgorithms(): List<HashAndSign> {
+internal fun Source.parseSignatureAlgorithms(): List<HashAndSign> {
     val length = readShort().toInt() and 0xffff
 
     val result = mutableListOf<HashAndSign>()
-    while (size > 0) {
+    while (remaining > 0) {
         result += readHashAndSign() ?: continue
     }
 
-    if (size.toInt() != length) {
+    if (remaining.toInt() != length) {
         throw TLSException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
     }
 

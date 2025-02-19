@@ -113,7 +113,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
             } catch (cause: Throwable) {
                 request.release()
-                response.writePacket(BadRequestPacket.peek())
+                response.writePacket(BadRequestPacket.copy())
                 response.close()
                 break
             }
@@ -169,7 +169,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     )
                 } catch (cause: Throwable) {
                     requestBody.close(ChannelReadException("Failed to read request body", cause))
-                    response.writePacket(BadRequestPacket.peek())
+                    response.writePacket(BadRequestPacket.copy())
                     response.close()
                     break
                 } finally {
@@ -190,7 +190,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
 private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
     val bc = ByteChannel()
     if (actorChannel.trySend(bc).isSuccess) {
-        bc.writePacket(BadRequestPacket.peek())
+        bc.writePacket(BadRequestPacket.copy())
         bc.close()
     }
     actorChannel.close()
