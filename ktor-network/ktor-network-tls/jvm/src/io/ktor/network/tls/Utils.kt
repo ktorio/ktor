@@ -8,6 +8,7 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
+import kotlinx.io.Buffer
 import java.security.*
 
 internal fun Digest(): Digest = Digest(BytePacketBuilder())
@@ -15,7 +16,7 @@ internal fun Digest(): Digest = Digest(BytePacketBuilder())
 @JvmInline
 internal value class Digest(val state: Sink) : Closeable {
 
-    fun update(packet: Source) = synchronized(state) {
+    fun update(packet: Buffer) = synchronized(state) {
         if (packet.exhausted()) return
         state.writePacket(packet.copy())
     }
@@ -46,12 +47,13 @@ internal value class Digest(val state: Sink) : Closeable {
     }
 }
 
+@OptIn(InternalIoApi::class)
 internal operator fun Digest.plusAssign(record: TLSHandshake) {
     check(record.type != TLSHandshakeType.HelloRequest)
 
     update(
         buildPacket {
-            writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
+            writeTLSHandshakeType(record.type, record.packet.size.toInt())
             if (record.packet.remaining > 0) writePacket(record.packet.copy())
         }
     )

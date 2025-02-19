@@ -5,6 +5,7 @@
 package io.ktor.utils.io.core
 
 import kotlinx.io.*
+import kotlinx.io.Buffer
 import kotlin.contracts.*
 
 /**
@@ -13,12 +14,12 @@ import kotlin.contracts.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.buildPacket)
  */
 @OptIn(ExperimentalContracts::class)
-public inline fun buildPacket(block: Sink.() -> Unit): Source {
+public inline fun buildPacket(block: Sink.() -> Unit): Buffer {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    val builder = kotlinx.io.Buffer()
+    val builder = Buffer()
     block(builder)
     return builder
 }

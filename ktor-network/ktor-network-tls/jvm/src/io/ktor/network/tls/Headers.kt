@@ -5,13 +5,13 @@
 package io.ktor.network.tls
 
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
+import kotlinx.io.Buffer
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")
 internal class TLSRecord(
     val type: TLSRecordType = TLSRecordType.Handshake,
     val version: TLSVersion = TLSVersion.TLS12,
-    val packet: Source = ByteReadPacketEmpty
+    val packet: Buffer = ByteReadPacketEmpty
 )
 
 internal class TLSHandshake {

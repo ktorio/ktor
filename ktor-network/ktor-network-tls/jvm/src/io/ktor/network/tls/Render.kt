@@ -18,7 +18,7 @@ internal suspend fun ByteWriteChannel.writeRecord(record: TLSRecord) = with(reco
     writeByte(type.code.toByte())
     writeByte((version.code shr 8).toByte())
     writeByte(version.code.toByte())
-    writeShort(packet.remaining.toShort())
+    writeShort(packet.size.toShort())
     writePacket(packet)
     flush()
 }
@@ -80,7 +80,7 @@ internal fun Sink.writeTLSCertificates(certificates: Array<X509Certificate>) {
         }
     }
 
-    writeTripleByteLength(chain.remaining.toInt())
+    writeTripleByteLength(chain.size.toInt())
     writePacket(chain)
 }
 
@@ -125,7 +125,7 @@ internal fun Sink.writeECPoint(point: ECPoint, fieldSize: Int) {
         writeAligned(point.affineY.toByteArray(), fieldSize)
     }
 
-    writeByte(pointData.remaining.toByte())
+    writeByte(pointData.size.toByte())
     writePacket(pointData)
 }
 

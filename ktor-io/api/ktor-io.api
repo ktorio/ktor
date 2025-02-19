@@ -410,7 +410,7 @@ public final class io/ktor/utils/io/core/BuffersKt {
 }
 
 public final class io/ktor/utils/io/core/BuilderKt {
-	public static final fun buildPacket (Lkotlin/jvm/functions/Function1;)Lkotlinx/io/Source;
+	public static final fun buildPacket (Lkotlin/jvm/functions/Function1;)Lkotlinx/io/Buffer;
 }
 
 public final class io/ktor/utils/io/core/ByteOrder : java/lang/Enum {
@@ -458,7 +458,7 @@ public final class io/ktor/utils/io/core/ByteReadPacketKt {
 	public static final fun copy (Lkotlinx/io/Source;)Lkotlinx/io/Source;
 	public static final fun discard (Lkotlinx/io/Source;J)J
 	public static synthetic fun discard$default (Lkotlinx/io/Source;JILjava/lang/Object;)J
-	public static final fun getByteReadPacketEmpty ()Lkotlinx/io/Source;
+	public static final fun getByteReadPacketEmpty ()Lkotlinx/io/Buffer;
 	public static final fun getRemaining (Lkotlinx/io/Source;)J
 	public static final fun preview (Lkotlinx/io/Sink;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun preview (Lkotlinx/io/Source;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;

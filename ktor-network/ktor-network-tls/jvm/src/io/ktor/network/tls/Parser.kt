@@ -7,11 +7,14 @@ package io.ktor.network.tls
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import java.math.*
-import java.security.cert.*
-import java.security.spec.*
-import kotlin.experimental.*
+import kotlinx.io.Buffer
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
+import java.math.BigInteger
+import java.security.cert.Certificate
+import java.security.cert.CertificateFactory
+import java.security.spec.ECPoint
+import kotlin.experimental.and
 
 private const val MAX_TLS_FRAME_SIZE = 0x4800
 
@@ -35,7 +38,7 @@ internal fun Source.readTLSHandshake(): TLSHandshake = TLSHandshake().apply {
     }
 }
 
-internal fun Source.readTLSServerHello(): TLSServerHello {
+internal fun Buffer.readTLSServerHello(): TLSServerHello {
     val version = readTLSVersion()
 
     val random = ByteArray(32)
@@ -58,17 +61,17 @@ internal fun Source.readTLSServerHello(): TLSServerHello {
         )
     }
 
-    if (remaining.toInt() == 0) return TLSServerHello(version, random, sessionId, suite, compressionMethod)
+    if (size.toInt() == 0) return TLSServerHello(version, random, sessionId, suite, compressionMethod)
 
     // handle extensions
     val extensionSize = readShort().toInt() and 0xffff
 
-    if (remaining.toInt() != extensionSize) {
-        throw TLSException("Invalid extensions size: requested $extensionSize, available $remaining")
+    if (size.toInt() != extensionSize) {
+        throw TLSException("Invalid extensions size: requested $extensionSize, available $size")
     }
 
     val extensions = mutableListOf<TLSExtension>()
-    while (remaining > 0) {
+    while (size > 0) {
         val type = readShort().toInt() and 0xffff
         val length = readShort().toInt() and 0xffff
 

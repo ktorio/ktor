@@ -8,6 +8,7 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.pool.*
 import kotlinx.io.*
+import kotlinx.io.Buffer
 
 @Deprecated(
     "Use Source instead",
@@ -15,13 +16,13 @@ import kotlinx.io.*
 )
 public typealias ByteReadPacket = Source
 
-public val ByteReadPacketEmpty: Source = kotlinx.io.Buffer()
+public val ByteReadPacketEmpty: Buffer = Buffer()
 
 public fun ByteReadPacket(
     array: ByteArray,
     offset: Int = 0,
     length: Int = array.size
-): Source = kotlinx.io.Buffer().apply {
+): Source = Buffer().apply {
     write(array, startIndex = offset, endIndex = offset + length)
 }
 
@@ -49,8 +50,12 @@ public fun Source.readAvailable(out: kotlinx.io.Buffer): Int {
     return result.toInt()
 }
 
+@Deprecated(
+    "Use peek() instead",
+    ReplaceWith("peek()", "kotlinx.io.Source")
+)
 @OptIn(InternalIoApi::class)
-public fun Source.copy(): Source = buffer.copy()
+public fun Source.copy(): Source = buffer.peek()
 
 @OptIn(InternalIoApi::class)
 public fun Source.readShortLittleEndian(): Short {

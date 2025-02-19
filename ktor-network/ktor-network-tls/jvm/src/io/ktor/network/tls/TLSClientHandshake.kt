@@ -484,7 +484,7 @@ internal class TLSClientHandshake(
         val handshakeBody = buildPacket(block = block)
 
         val recordBody = buildPacket {
-            writeTLSHandshakeType(handshakeType, handshakeBody.remaining.toInt())
+            writeTLSHandshakeType(handshakeType, handshakeBody.size.toInt())
             writePacket(handshakeBody)
         }
 

@@ -8,12 +8,13 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.io.*
+import kotlinx.io.Buffer
 import java.nio.*
 import javax.crypto.*
 
 internal val CryptoBufferPool: ObjectPool<ByteBuffer> = ByteBufferPool(128, 65536)
 
-internal fun Source.cipherLoop(cipher: Cipher, header: Sink.() -> Unit = {}): Source {
+internal fun Source.cipherLoop(cipher: Cipher, header: Sink.() -> Unit = {}): Buffer {
     val srcBuffer = DefaultByteBufferPool.borrow()
     var dstBuffer = CryptoBufferPool.borrow()
     var dstBufferFromPool = true

@@ -21,7 +21,7 @@ internal class GCMCipher(
             suite,
             keyMaterial,
             record.type,
-            record.packet.remaining.toInt(),
+            record.packet.size.toInt(),
             outputCounter,
             outputCounter
         )
