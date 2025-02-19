@@ -49,8 +49,12 @@ public fun Source.readAvailable(out: kotlinx.io.Buffer): Int {
     return result.toInt()
 }
 
+@Deprecated(
+    "Use peek() instead",
+    ReplaceWith("peek()", "kotlinx.io.Source")
+)
 @OptIn(InternalIoApi::class)
-public fun Source.copy(): Source = buffer.copy()
+public fun Source.copy(): Source = buffer.peek()
 
 @OptIn(InternalIoApi::class)
 public fun Source.readShortLittleEndian(): Short {

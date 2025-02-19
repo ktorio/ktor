@@ -3,17 +3,22 @@
  */
 
 import io.ktor.client.request.forms.*
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.*
+import kotlinx.io.files.Path
+import kotlin.random.Random
 import kotlin.test.*
 
 class MultiPartFormDataContentTest {
 
     @Test
-    fun testMultiPartFormDataContentHasCorrectPrefix() = testSuspend {
+    fun testMultiPartFormDataContentHasCorrectPrefix() = runTest {
         val formData = MultiPartFormDataContent(
             formData {
                 append("Hello", "World")
@@ -33,7 +38,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testEmptyByteReadChannel() = testSuspend {
+    fun testEmptyByteReadChannel() = runTest {
         val data = MultiPartFormDataContent(
             formData {
                 append("channel", ChannelProvider { ByteReadChannel.Empty })
@@ -55,7 +60,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testByteReadChannelWithString() = testSuspend {
+    fun testByteReadChannelWithString() = runTest {
         val content = "body"
         val data = MultiPartFormDataContent(
             formData {
@@ -79,7 +84,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testNumberQuoted() = testSuspend {
+    fun testNumberQuoted() = runTest {
         val data = MultiPartFormDataContent(
             formData {
                 append("not_a_forty_two", 1337)
@@ -102,7 +107,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testBooleanQuoted() = testSuspend {
+    fun testBooleanQuoted() = runTest {
         val data = MultiPartFormDataContent(
             formData {
                 append("is_forty_two", false)
@@ -125,7 +130,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testStringsList() = testSuspend {
+    fun testStringsList() = runTest {
         val data = MultiPartFormDataContent(
             formData {
                 append("platforms[]", listOf("windows", "linux", "osx"))
@@ -158,7 +163,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testStringsArray() = testSuspend {
+    fun testStringsArray() = runTest {
         val data = MultiPartFormDataContent(
             formData {
                 append("platforms[]", arrayOf("windows", "linux", "osx"))
@@ -191,7 +196,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testStringsListBadKey() = testSuspend {
+    fun testStringsListBadKey() = runTest {
         val attempt = {
             MultiPartFormDataContent(
                 formData {
@@ -206,7 +211,7 @@ class MultiPartFormDataContentTest {
     }
 
     @Test
-    fun testByteReadChannelOverBufferSize() = testSuspend {
+    fun testByteReadChannelOverBufferSize() = runTest {
         val body = ByteArray(4089) { 'k'.code.toByte() }
         val data = MultiPartFormDataContent(
             formData {
@@ -226,6 +231,36 @@ class MultiPartFormDataContentTest {
             ).joinToString(separator = "\r\n"),
             data.readString()
         )
+    }
+
+    @Test
+    fun testFileContentFromSource() = runTest {
+        val expected = "This content should appear in the multipart body."
+        val fileSource = try {
+            with(kotlinx.io.files.SystemFileSystem) {
+                val file = Path(kotlinx.io.files.SystemTemporaryDirectory, "temp${Random.nextInt(1000, 9999)}.txt")
+                sink(file).buffered().use { it.writeString(expected) }
+                source(file).buffered()
+            }
+        } catch (_: Throwable) {
+            // filesystem is not supported for web platforms (yet)
+            return@runTest
+        }
+        val data = MultiPartFormDataContent(
+            formData {
+                append(
+                    key = "key",
+                    value = fileSource,
+                    headers = Headers.build {
+                        append(HttpHeaders.ContentType, "text/plain")
+                        append(HttpHeaders.ContentDisposition, "filename=\"file.txt\"")
+                    },
+                )
+            }
+        )
+        assertTrue("File contents should be present in the multipart body.") {
+            data.readString().contains(expected)
+        }
     }
 
     private suspend fun MultiPartFormDataContent.readString(charset: Charset = Charsets.UTF_8): String {
