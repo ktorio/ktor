@@ -49,7 +49,7 @@ typesafe = "1.4.3"
 
 mockk = "1.13.16"
 
-java-jwt = "4.4.0"
+java-jwt = "4.5.0"
 
 jwks-rsa = "0.22.1"
 mustache = "0.9.14"
