@@ -2,13 +2,19 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.utils.io.*
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ReaderJob
+import io.ktor.utils.io.copyAndClose
+import io.ktor.utils.io.discard
+import io.ktor.utils.io.reader
+import io.ktor.utils.io.writeBuffer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
+import kotlin.getValue
 import kotlin.test.Test
 
 private const val KB = 1024L
@@ -18,8 +24,13 @@ class ByteWriteLargeTransfersTest {
 
     // does not exist on windows systems
     private val randomBytesFile by lazy {
-        Path("/dev/random").takeIf { SystemFileSystem.exists(it) }
+        try {
+            Path("/dev/random").takeIf { kotlinx.io.files.SystemFileSystem.exists(it) }
+        } catch (_: Throwable) {
+            null
+        }
     }
+
     private fun CoroutineScope.oneBillionBytes(): ReaderJob =
         reader {
             var count = 0L
@@ -29,13 +40,16 @@ class ByteWriteLargeTransfersTest {
             }
         }
 
+    private fun readFromRandomBytesFile(): RawSource =
+        kotlinx.io.files.SystemFileSystem.source(randomBytesFile!!)
+
     @Test
     fun writeBuffer() = runTest {
         if (randomBytesFile == null) return@runTest
 
         val reader = oneBillionBytes()
         val writeJob = launch {
-            SystemFileSystem.source(randomBytesFile!!).use { source ->
+            readFromRandomBytesFile().use { source ->
                 reader.channel.writeBuffer(source)
             }
         }
@@ -50,7 +64,7 @@ class ByteWriteLargeTransfersTest {
 
         val reader = oneBillionBytes()
         val writeJob = launch {
-            SystemFileSystem.source(randomBytesFile!!).use { source ->
+            readFromRandomBytesFile().use { source ->
                 ByteReadChannel(source.buffered())
                     .copyAndClose(reader.channel)
             }

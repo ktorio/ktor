@@ -131,12 +131,26 @@ public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer {
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long =
+public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long {
+    var result = 0L
     try {
-        copyTo(channel)
+        while (!isClosedForRead) {
+            result += readBuffer.transferTo(channel.writeBuffer)
+            channel.flush()
+            awaitContent()
+        }
+
+        closedCause?.let { throw it }
+    } catch (cause: Throwable) {
+        cancel(cause)
+        channel.close(cause)
+        throw cause
     } finally {
         channel.flushAndClose()
     }
+
+    return result
+}
 
 /**
  * Reads a line of UTF-8 characters from the `ByteReadChannel`.
@@ -160,11 +174,9 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
     var result = 0L
     try {
         while (!isClosedForRead) {
-            if (readBuffer.exhausted()) awaitContent()
-            val count = readBuffer.remaining
-            readBuffer.readTo(channel.writeBuffer, count)
-            result += count
+            result += readBuffer.transferTo(channel.writeBuffer)
             channel.flush()
+            awaitContent()
         }
     } catch (cause: Throwable) {
         cancel(cause)
