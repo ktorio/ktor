@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -132,7 +132,6 @@ public data object HttpTimeoutCapability : HttpClientEngineCapability<HttpTimeou
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeout)
  */
-@OptIn(InternalAPI::class)
 public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
     "HttpTimeout",
     ::HttpTimeoutConfig
@@ -144,20 +143,15 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
     /**
      * Utils method that return `true` if at least one timeout is configured (has not null value).
      */
-    fun hasNotNullTimeouts() =
-        requestTimeoutMillis != null || connectTimeoutMillis != null || socketTimeoutMillis != null
+    fun hasNotNullTimeouts(supportsRequestTimeout: Boolean) =
+        (supportsRequestTimeout && requestTimeoutMillis != null) ||
+            connectTimeoutMillis != null ||
+            socketTimeoutMillis != null
 
     on(Send) { request ->
-        val isWebSocket = request.url.protocol.isWebsocket()
-        if (isWebSocket ||
-            request.body is ClientUpgradeContent ||
-            request.body is SSEClientContent
-        ) {
-            return@on proceed(request)
-        }
-
+        val supportsRequestTimeout = request.supportsRequestTimeout
         var configuration = request.getCapabilityOrNull(HttpTimeoutCapability)
-        if (configuration == null && hasNotNullTimeouts()) {
+        if (configuration == null && hasNotNullTimeouts(supportsRequestTimeout)) {
             configuration = HttpTimeoutConfig()
             request.setCapability(HttpTimeoutCapability, configuration)
         }
@@ -165,26 +159,36 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
         configuration?.apply {
             this.connectTimeoutMillis = this.connectTimeoutMillis ?: connectTimeoutMillis
             this.socketTimeoutMillis = this.socketTimeoutMillis ?: socketTimeoutMillis
-            this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
 
-            val requestTimeout = this.requestTimeoutMillis
-            if (requestTimeout == null || requestTimeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
-                return@apply
-            }
-
-            val executionContext = request.executionContext
-            val killer = launch {
-                delay(requestTimeout)
-                val cause = HttpRequestTimeoutException(request)
-                LOGGER.trace("Request timeout: ${request.url}")
-                executionContext.cancel(cause.message!!, cause)
-            }
-
-            request.executionContext.invokeOnCompletion {
-                killer.cancel()
+            if (supportsRequestTimeout) {
+                this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
+                applyRequestTimeout(request, this.requestTimeoutMillis)
             }
         }
         proceed(request)
+    }
+}
+
+/** Request timeout shouldn't be applied to WebSocket or SSE connection. */
+@OptIn(InternalAPI::class)
+private val HttpRequestBuilder.supportsRequestTimeout: Boolean
+    get() = !url.protocol.isWebsocket() &&
+        body !is ClientUpgradeContent &&
+        body !is SSEClientContent
+
+private fun CoroutineScope.applyRequestTimeout(request: HttpRequestBuilder, requestTimeout: Long?) {
+    if (requestTimeout == null || requestTimeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) return
+
+    val executionContext = request.executionContext
+    val killer = launch(CoroutineName("request-timeout")) {
+        delay(requestTimeout)
+        val cause = HttpRequestTimeoutException(request)
+        LOGGER.trace { "Request timeout: ${request.url}" }
+        executionContext.cancel(cause.message!!, cause)
+    }
+
+    request.executionContext.invokeOnCompletion {
+        killer.cancel()
     }
 }
 
