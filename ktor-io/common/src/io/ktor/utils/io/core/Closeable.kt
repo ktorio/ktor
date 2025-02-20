@@ -8,5 +8,6 @@ import kotlin.use as stdlibUse
 
 public expect interface Closeable : AutoCloseable
 
-@Deprecated("Use stdlib implementation instead. Remove import of this function", ReplaceWith("stdlibUse(block)"))
+@Suppress("DeprecatedCallableAddReplaceWith")
+@Deprecated("Use stdlib implementation instead. Remove import of this function")
 public inline fun <T : Closeable?, R> T.use(block: (T) -> R): R = stdlibUse(block)
