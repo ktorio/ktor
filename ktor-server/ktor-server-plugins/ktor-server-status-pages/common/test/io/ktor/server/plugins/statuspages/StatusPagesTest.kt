@@ -17,8 +17,10 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.test.*
 
 class StatusPagesTest {
@@ -246,9 +248,7 @@ class StatusPagesTest {
             }
         }
 
-        assertFails {
-            client.get("/")
-        }
+        assertEquals(HttpStatusCode.NotFound, client.get("/").status)
     }
 
     @Test
