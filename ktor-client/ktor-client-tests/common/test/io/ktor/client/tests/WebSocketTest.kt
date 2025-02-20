@@ -18,6 +18,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -240,6 +241,24 @@ class WebSocketTest : ClientLoader() {
                 val result = incoming.receive() as Frame.Text
                 assertEquals("test", result.readText())
             }
+        }
+    }
+
+    @Test
+    fun testConnectionTimeoutExceeded() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        val nonExistingHost = "ws://192.0.2.0" // RFC 5737: TEST-NET-1
+
+        config {
+            install(WebSockets)
+            install(HttpTimeout) { connectTimeoutMillis = 1 }
+        }
+
+        test { client ->
+            val exception = assertFailsWith<IOException> {
+                client.webSocket(nonExistingHost) { fail("Shouldn't be reached") }
+            }
+
+            assertTrue(exception.suppressedExceptions.isEmpty(), "No exception should be suppressed")
         }
     }
 
