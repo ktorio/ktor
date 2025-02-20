@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util
 
@@ -23,11 +23,15 @@ public object PlatformUtils {
 
     public val IS_DEVELOPMENT_MODE: Boolean = isDevelopmentMode
 
-    public val IS_NEW_MM_ENABLED: Boolean = isNewMemoryModel
+    @Deprecated(
+        "New memory model is now enabled by default. The property will be removed in the future.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("true")
+    )
+    public val IS_NEW_MM_ENABLED: Boolean = true
 }
 
 internal expect val PlatformUtils.isDevelopmentMode: Boolean
-internal expect val PlatformUtils.isNewMemoryModel: Boolean
 
 public expect val PlatformUtils.platform: Platform
 

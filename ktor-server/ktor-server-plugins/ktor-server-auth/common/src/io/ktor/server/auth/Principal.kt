@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -8,12 +8,16 @@ import kotlin.reflect.*
 
 /**
  * A marker interface indicating that a class represents credentials for authentication.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Credential)
  */
 @Deprecated("This interface can be safely removed")
 public interface Credential
 
 /**
  * A marker interface indicating that a class represents an authenticated principal.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Principal)
  */
 @Deprecated("This interface can be safely removed")
 public interface Principal
@@ -31,7 +35,9 @@ internal class CombinedPrincipal {
             .firstOrNull { (name, principal) ->
                 if (provider != null) {
                     name == provider && klass.isInstance(principal)
-                } else klass.isInstance(principal)
+                } else {
+                    klass.isInstance(principal)
+                }
             }?.second as? T
     }
 

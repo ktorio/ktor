@@ -14,8 +14,9 @@ private const val CHUNK_BUFFER_SIZE = 4096L
 /**
  * Split source [ByteReadChannel] into 2 new ones.
  * Cancel of one channel in split (input or both outputs) cancels other channels.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.split)
  */
-@OptIn(InternalAPI::class)
 public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)
@@ -53,6 +54,8 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
 
 /**
  * Copy a source channel to both output channels chunk by chunk.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.copyToBoth)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {

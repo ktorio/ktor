@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.routing
@@ -15,6 +15,9 @@ private const val MIN_QUALITY = -Double.MAX_VALUE
 
 /**
  * Represents a context in which routing resolution is being performed
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext)
+ *
  * @param routing root node for resolution to start at
  * @param call instance of [PipelineCall] to use during resolution
  */
@@ -25,11 +28,15 @@ public class RoutingResolveContext(
 ) {
     /**
      * List of path segments parsed out of a [call]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext.segments)
      */
     public val segments: List<String>
 
     /**
      * Flag showing if path ends with slash
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext.hasTrailingSlash)
      */
     public val hasTrailingSlash: Boolean = call.request.path().endsWith('/')
 
@@ -78,6 +85,8 @@ public class RoutingResolveContext(
 
     /**
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext.resolve)
      */
     public suspend fun resolve(): RoutingResolveResult {
         handleRoute(routing, 0, ArrayList(), MIN_QUALITY)
@@ -187,7 +196,9 @@ public class RoutingResolveContext(
 
             val partQuality = if (part.quality == RouteSelectorEvaluation.qualityTransparent) {
                 RouteSelectorEvaluation.qualityConstant
-            } else part.quality
+            } else {
+                part.quality
+            }
 
             quality = minOf(quality, partQuality)
         }

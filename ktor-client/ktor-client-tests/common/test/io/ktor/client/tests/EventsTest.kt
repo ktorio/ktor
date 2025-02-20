@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -8,10 +8,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.client.utils.*
-import kotlinx.atomicfu.*
-import kotlin.test.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class EventsTest : ClientLoader() {
     private val created = atomic(0)
@@ -74,7 +77,7 @@ class EventsTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectEvent() = clientTests(listOf("js")) {
+    fun testRedirectEvent() = clientTests(except("Js")) {
         test { client ->
             counter.value = 0
             client.monitor.subscribe(HttpResponseRedirectEvent) {

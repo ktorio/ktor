@@ -10,8 +10,32 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.io.*
-import kotlin.coroutines.*
+import kotlinx.io.readByteArray
+import kotlin.coroutines.CoroutineContext
+
+/**
+ * Saves the entire content of this [HttpClientCall] to memory and returns a new [HttpClientCall]
+ * with the content cached in memory.
+ * This can be particularly useful for caching, debugging,
+ * or processing responses without relying on the original network stream.
+ *
+ * By caching the content, this function simplifies the management of the [HttpResponse] lifecycle.
+ * It releases the network connection and other resources associated with the original [HttpResponse],
+ * ensuring they are no longer required to be explicitly closed.
+ *
+ * This behavior is automatically applied to non-streaming [HttpResponse] instances.
+ * For streaming responses, this function allows you to convert them into a memory-based representation.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.save)
+ *
+ * @return A new [HttpClientCall] instance with all its content stored in memory.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun HttpClientCall.save(): HttpClientCall {
+    val responseBody = response.rawContent.readRemaining().readByteArray()
+    return SavedHttpCall(client, request, response, responseBody)
+}
 
 internal class SavedHttpCall(
     client: HttpClient,
@@ -23,6 +47,8 @@ internal class SavedHttpCall(
     init {
         this.request = SavedHttpRequest(this, request)
         this.response = SavedHttpResponse(this, responseBody, response)
+
+        checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
     }
 
     /**
@@ -59,15 +85,4 @@ internal class SavedHttpResponse(
 
     @OptIn(InternalAPI::class)
     override val rawContent: ByteReadChannel get() = ByteReadChannel(body)
-}
-
-/**
- * Fetch data for [HttpClientCall] and close the origin.
- */
-
-@OptIn(InternalAPI::class)
-public suspend fun HttpClientCall.save(): HttpClientCall {
-    val responseBody = response.rawContent.readRemaining().readByteArray()
-
-    return SavedHttpCall(client, request, response, responseBody)
 }

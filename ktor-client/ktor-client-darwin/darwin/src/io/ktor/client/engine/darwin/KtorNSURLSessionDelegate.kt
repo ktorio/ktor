@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin
@@ -7,17 +7,20 @@ package io.ktor.client.engine.darwin
 import io.ktor.client.engine.darwin.internal.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
-import platform.darwin.*
-import kotlin.coroutines.*
+import platform.darwin.NSObject
+import kotlin.collections.set
+import kotlin.coroutines.CoroutineContext
 
 private const val HTTP_REQUESTS_INITIAL_CAPACITY = 32
 private const val WS_REQUESTS_INITIAL_CAPACITY = 16
 
 /**
  * Creates an instance of [KtorNSURLSessionDelegate]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
@@ -40,6 +43,8 @@ public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
  * For WebSockets to work, it's important that users call these functions:
  *   * URLSession:webSocketTask:didOpenWithProtocol:
  *   * URLSession:webSocketTask:didCloseWithCode:reason:
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
 public class KtorNSURLSessionDelegate(
@@ -77,7 +82,7 @@ public class KtorNSURLSessionDelegate(
         didOpenWithProtocol: String?
     ) {
         val wsSession = webSocketSessions[webSocketTask] ?: return
-        wsSession.didOpen()
+        wsSession.didOpen(didOpenWithProtocol)
     }
 
     override fun URLSession(
@@ -111,6 +116,8 @@ public class KtorNSURLSessionDelegate(
 
     /**
      * Disable embedded redirects.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,
@@ -124,6 +131,8 @@ public class KtorNSURLSessionDelegate(
 
     /**
      * Handle challenge.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate.URLSession)
      */
     override fun URLSession(
         session: NSURLSession,
@@ -131,11 +140,16 @@ public class KtorNSURLSessionDelegate(
         didReceiveChallenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
-        val handler = challengeHandler
-        if (handler != null) {
-            handler(session, task, didReceiveChallenge, completionHandler)
-        } else {
+        val handler = challengeHandler ?: run {
             completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, didReceiveChallenge.proposedCredential)
+            return
+        }
+
+        try {
+            handler(session, task, didReceiveChallenge, completionHandler)
+        } catch (cause: Throwable) {
+            taskHandlers[task]?.saveFailure(cause)
+            completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
         }
     }
 }

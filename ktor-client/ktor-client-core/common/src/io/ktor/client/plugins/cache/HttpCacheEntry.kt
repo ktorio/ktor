@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.cache
 
@@ -21,6 +21,8 @@ internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): 
 
 /**
  * Client single response cache with [expires] and [varyKeys].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCacheEntry)
  */
 public class HttpCacheEntry internal constructor(
     public val expires: GMTDate,
@@ -69,7 +71,7 @@ internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDat
 
     val maxAge = cacheControl.firstOrNull { it.value.startsWith(maxAgeKey) }
         ?.value?.split("=")
-        ?.get(1)?.toLongOrNull()
+        ?.getOrNull(1)?.toLongOrNull()
 
     if (maxAge != null) {
         return requestTime + maxAge * 1000L
@@ -137,5 +139,7 @@ internal fun shouldValidate(
 }
 
 internal enum class ValidateStatus {
-    ShouldValidate, ShouldNotValidate, ShouldWarn
+    ShouldValidate,
+    ShouldNotValidate,
+    ShouldWarn,
 }

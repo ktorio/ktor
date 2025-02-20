@@ -5,6 +5,7 @@
 package io.ktor.server.test.base
 
 import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -14,10 +15,14 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.logging.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.AfterTest
 import kotlin.time.Duration.Companion.seconds
+
+private const val UNINITIALIZED_PORT = -1
+private const val DEFAULT_PORT = 0
 
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
@@ -33,13 +38,35 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = 0
+    /**
+     * It's not possible to find a free port during test setup,
+     * as on JS (Node.js) all APIs are non-blocking (suspend).
+     * That's why we assign port after the server is started in [startServer]
+     * Note: this means, that [port] can be used only after calling [createAndStartServer] or [startServer].
+     */
+    @Suppress("ktlint:standard:backing-property-naming")
+    private var _port: Int = UNINITIALIZED_PORT
+    protected actual var port: Int
+        get() {
+            check(_port != UNINITIALIZED_PORT) { "Port is not initialized" }
+            return _port
+        }
+        set(_) {
+            error("Can't reassign port.")
+        }
+
     protected actual var sslPort: Int = 0
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
     protected actual var enableHttp2: Boolean = false
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @AfterTest
+    fun tearDownBase() {
+        GlobalScope.launch { server?.stopSuspend(gracePeriodMillis = 0, timeoutMillis = 500) }
+    }
 
     protected actual suspend fun createAndStartServer(
         log: Logger?,
@@ -57,7 +84,7 @@ actual constructor(
                 return server
             }
 
-            server.stop(1L, 1L)
+            server.stopSuspend(1L, 1L)
         }
 
         error(lastFailures)
@@ -68,7 +95,6 @@ actual constructor(
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
         val environment = applicationEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -89,7 +115,10 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = _port }
+            connector {
+                // the default port is zero, so that it will be automatically assigned when the server is started.
+                port = DEFAULT_PORT
+            }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }
@@ -102,15 +131,15 @@ actual constructor(
         // we start it on the global scope because we don't want it to fail the whole test
         // as far as we have retry loop on call side
         val starting = GlobalScope.async {
-            server.start(wait = false)
-            delay(500)
+            server.startSuspend(wait = false)
+            _port = server.engine.resolvedConnectors().first().port
         }
 
         return try {
             starting.join()
             @OptIn(ExperimentalCoroutinesApi::class)
             starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-        } catch (t: Throwable) { // InterruptedException?
+        } catch (t: Throwable) {
             starting.cancel()
             listOf(t)
         }
@@ -132,7 +161,7 @@ actual constructor(
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient {
+        HttpClient(CIO) {
             followRedirects = false
             expectSuccess = false
 

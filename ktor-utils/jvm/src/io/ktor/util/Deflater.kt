@@ -100,6 +100,8 @@ private suspend fun ByteReadChannel.deflateTo(
 /**
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.deflated)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.deflated(
@@ -113,6 +115,8 @@ public fun ByteReadChannel.deflated(
 /**
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.deflated)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteWriteChannel.deflated(

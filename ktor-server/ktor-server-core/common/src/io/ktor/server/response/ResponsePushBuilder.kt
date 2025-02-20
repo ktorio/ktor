@@ -10,6 +10,9 @@ import io.ktor.http.content.*
 /**
  * An HTTP/2 push builder interface.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponsePushBuilder)
+ *
  * @property url push URL
  * @property headers request headers
  * @property method request method

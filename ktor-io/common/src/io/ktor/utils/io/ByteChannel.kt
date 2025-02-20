@@ -1,22 +1,27 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
 
 import io.ktor.utils.io.locks.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlin.concurrent.Volatile
-import kotlin.coroutines.*
-import kotlin.jvm.*
+import kotlin.coroutines.Continuation
+import kotlin.jvm.JvmStatic
 
 internal expect val DEVELOPMENT_MODE: Boolean
 internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
 
 /**
  * Sequential (non-concurrent) byte channel implementation
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteChannel)
  */
 public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
     private val flushBuffer: Buffer = Buffer()
@@ -37,7 +42,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val readBuffer: Source
         get() {
-            closedCause?.let { throw it }
+            _closedCause.value?.throwOrNull(::ClosedReadChannelException)
             if (_readBuffer.exhausted()) moveFlushToReadBuffer()
             return _readBuffer
         }
@@ -45,15 +50,15 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     @InternalAPI
     override val writeBuffer: Sink
         get() {
-            closedCause?.let { throw it }
             if (isClosedForWrite) {
-                throw IOException("Channel is closed for write")
+                _closedCause.value?.throwOrNull(::ClosedWriteChannelException)
+                    ?: throw ClosedWriteChannelException()
             }
             return _writeBuffer
         }
 
     override val closedCause: Throwable?
-        get() = _closedCause.value?.cause
+        get() = _closedCause.value?.wrapCause()
 
     override val isClosedForWrite: Boolean
         get() = _closedCause.value != null
@@ -133,9 +138,9 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
         val closedToken = CloseToken(cause)
         _closedCause.compareAndSet(null, closedToken)
-        val actualCause = closedToken.cause
+        val wrappedCause = closedToken.wrapCause()
 
-        closeSlot(actualCause)
+        closeSlot(wrappedCause)
     }
 
     override fun toString(): String = "ByteChannel[${hashCode()}]"
@@ -169,9 +174,7 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
     private fun closeSlot(cause: Throwable?) {
         val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
         val continuation = suspensionSlot.getAndSet(closeContinuation)
-        if (continuation !is Slot.Task) return
-
-        continuation.resume(cause)
+        if (continuation is Slot.Task) continuation.resume(cause)
     }
 
     private inline fun <reified TaskType : Slot.Task> trySuspend(
@@ -268,6 +271,8 @@ public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChanne
 
 /**
  * Thrown when a coroutine awaiting I/O is replaced by another.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ConcurrentIOException)
  */
 public class ConcurrentIOException(
     taskName: String,

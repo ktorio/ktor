@@ -1,6 +1,7 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 package io.ktor.client.plugins.api
 
 import io.ktor.client.*
@@ -12,24 +13,32 @@ import io.ktor.utils.io.*
 
 /**
  * A context for [ClientPluginBuilder.onRequest] callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.OnRequestContext)
  */
 @KtorDsl
 public class OnRequestContext internal constructor()
 
 /**
  * A context for [ClientPluginBuilder.onResponse] callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.OnResponseContext)
  */
 @KtorDsl
 public class OnResponseContext internal constructor()
 
 /**
  * A context for [ClientPluginBuilder.transformRequestBody] callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.TransformRequestBodyContext)
  */
 @KtorDsl
 public class TransformRequestBodyContext internal constructor()
 
 /**
  * A context for [ClientPluginBuilder.transformResponseBody] callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.TransformResponseBodyContext)
  */
 @KtorDsl
 public class TransformResponseBodyContext internal constructor()

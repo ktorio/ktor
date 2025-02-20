@@ -9,20 +9,28 @@ import kotlin.time.*
 
 /**
  * An interface for rate limiters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter)
  */
 public interface RateLimiter {
 
     /**
      * Tries to consume the [tokens] amount of tokens and returns state of the rate limiter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.tryConsume)
      */
     public suspend fun tryConsume(tokens: Int = 1): State
 
     /**
      * State of the rate limiter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.State)
      */
     public sealed class State {
         /**
          * Rate limiter has enough tokens.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.State.Available)
          */
         public class Available(
             public val remainingTokens: Int,
@@ -32,6 +40,8 @@ public interface RateLimiter {
 
         /**
          * Rate limiter is exhausted.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.State.Exhausted)
          */
         public class Exhausted(public val toWait: Duration) : State()
     }
@@ -39,6 +49,8 @@ public interface RateLimiter {
     public companion object {
         /**
          * An implementation of [RateLimiter] that always has enough tokens and will never be refreshed
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.Unlimited)
          */
         public val Unlimited: RateLimiter = object : RateLimiter {
             override suspend fun tryConsume(tokens: Int): State =
@@ -50,6 +62,8 @@ public interface RateLimiter {
          * and will be refilled every [refillPeriod].
          *
          * Note: [initialSize] parameter is ignored and will be removed in the future.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.default)
          */
         public fun default(
             limit: Int,

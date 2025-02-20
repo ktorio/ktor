@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import io.ktor.utils.io.*
 
 /**
  * A JavaScript client engine that uses the fetch API to execute requests.
@@ -19,13 +20,19 @@ import io.ktor.client.engine.*
  * ```
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
-public actual object Js : HttpClientEngineFactory<JsClientEngineConfig> {
+public actual data object Js : HttpClientEngineFactory<JsClientEngineConfig> {
     override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine =
         JsClientEngine(JsClientEngineConfig().apply(block))
 }
 
-/** Configuration for the [Js] client. */
+/**
+ * Configuration for the [Js] client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig)
+ */
 public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     /**
      * An `Object` which can contain additional configuration options that should get passed to node-fetch.
@@ -42,6 +49,15 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
      *     }
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.nodeOptions)
      */
     public var nodeOptions: dynamic = js("Object").create(null)
 }
+
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
+@Deprecated("", level = DeprecationLevel.HIDDEN)
+@JsExport
+@EagerInitialization
+public val initHook: dynamic = engines.append(Js)

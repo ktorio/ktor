@@ -4,7 +4,9 @@
 
 description = "CIO backend for ktor http client"
 
-apply<test.server.TestServerPlugin>()
+plugins {
+    id("test-server")
+}
 
 kotlin {
     sourceSets {
@@ -24,7 +26,7 @@ kotlin {
         jvmTest {
             dependencies {
                 api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-                api(project(":ktor-shared:ktor-junit"))
+                api(project(":ktor-shared:ktor-test-base"))
                 implementation(libs.mockk)
             }
         }

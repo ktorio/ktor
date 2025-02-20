@@ -13,6 +13,8 @@ import java.net.*
 /**
  * Executes a [HttpClient] request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.request)
  */
 public suspend fun HttpClient.request(
     url: URL,
@@ -27,6 +29,8 @@ public suspend fun HttpClient.request(
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.get)
  */
 public suspend fun HttpClient.get(
     url: URL,
@@ -39,6 +43,8 @@ public suspend fun HttpClient.get(
 /**
  * Executes a [HttpClient] POST request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.post)
  */
 public suspend fun HttpClient.post(
     url: URL,
@@ -51,6 +57,8 @@ public suspend fun HttpClient.post(
 /**
  * Executes a [HttpClient] PUT request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.put)
  */
 public suspend fun HttpClient.put(
     url: URL,
@@ -63,6 +71,8 @@ public suspend fun HttpClient.put(
 /**
  * Executes a [HttpClient] PATCH request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.patch)
  */
 public suspend fun HttpClient.patch(
     url: URL,
@@ -75,6 +85,8 @@ public suspend fun HttpClient.patch(
 /**
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.options)
  */
 public suspend fun HttpClient.options(
     url: URL,
@@ -87,6 +99,8 @@ public suspend fun HttpClient.options(
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.head)
  */
 public suspend fun HttpClient.head(
     url: URL,
@@ -99,6 +113,8 @@ public suspend fun HttpClient.head(
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.delete)
  */
 public suspend fun HttpClient.delete(
     url: URL,
@@ -111,6 +127,8 @@ public suspend fun HttpClient.delete(
 /**
  * Prepares a [HttpClient] request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareRequest)
  */
 public suspend fun HttpClient.prepareRequest(
     url: URL,
@@ -125,6 +143,8 @@ public suspend fun HttpClient.prepareRequest(
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareGet)
  */
 public suspend fun HttpClient.prepareGet(
     url: URL,
@@ -137,6 +157,8 @@ public suspend fun HttpClient.prepareGet(
 /**
  * Prepares a [HttpClient] POST request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePost)
  */
 public suspend fun HttpClient.preparePost(
     url: URL,
@@ -149,6 +171,8 @@ public suspend fun HttpClient.preparePost(
 /**
  * Prepares a [HttpClient] PUT request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePut)
  */
 public suspend fun HttpClient.preparePut(
     url: URL,
@@ -161,6 +185,8 @@ public suspend fun HttpClient.preparePut(
 /**
  * Prepares a [HttpClient] PATCH request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePatch)
  */
 public suspend fun HttpClient.preparePatch(
     url: URL,
@@ -173,6 +199,8 @@ public suspend fun HttpClient.preparePatch(
 /**
  * Prepares a [HttpClient] OPTIONS request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareOptions)
  */
 public suspend fun HttpClient.prepareOptions(
     url: URL,
@@ -185,6 +213,8 @@ public suspend fun HttpClient.prepareOptions(
 /**
  * Prepares a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareHead)
  */
 public suspend fun HttpClient.prepareHead(
     url: URL,
@@ -197,6 +227,8 @@ public suspend fun HttpClient.prepareHead(
 /**
  * Prepares a [HttpClient] HEAD request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareDelete)
  */
 public suspend fun HttpClient.prepareDelete(
     url: URL,

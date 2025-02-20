@@ -9,26 +9,34 @@ import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import io.ktor.network.sockets.SocketTimeoutException as NetworkSocketTimeoutException
 
 /**
  * [on] function receiver object
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.On)
  */
 public object On
 
 /**
  * [it] function receiver object
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.It)
  */
 public object It
 
 /**
  * DSL for creating a test case
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.on)
  */
 @Suppress("UNUSED_PARAMETER")
 public inline fun on(comment: String, body: On.() -> Unit): Unit = On.body()
 
 /**
  * DSL function for test case assertions
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.it)
  */
 @Suppress("UNUSED_PARAMETER", "UnusedReceiverParameter")
 public inline fun On.it(description: String, body: It.() -> Unit): Unit = It.body()
@@ -67,10 +75,3 @@ internal fun Throwable.mapToKtor(data: HttpRequestData): Throwable = when {
     cause?.rootCause is NetworkSocketTimeoutException -> SocketTimeoutException(data, cause?.rootCause)
     else -> this
 }
-
-// There are two SocketTimeoutException in ktor:
-// * io.ktor.network.sockets.SocketTimeoutException
-// * io.ktor.client.network.sockets.SocketTimeoutException
-// on JVM they both are java.net.SocketTimeoutException, but on other targets it's not true
-// additionally `network.sockets` exception is in `ktor-network` modules which don't have support for js/wasm target
-internal expect class NetworkSocketTimeoutException(message: String) : IOException

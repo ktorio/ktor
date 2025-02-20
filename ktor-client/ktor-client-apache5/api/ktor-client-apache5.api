@@ -1,6 +1,9 @@
 public final class io/ktor/client/engine/apache5/Apache5 : io/ktor/client/engine/HttpClientEngineFactory {
 	public static final field INSTANCE Lio/ktor/client/engine/apache5/Apache5;
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/engine/apache5/Apache5EngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
@@ -12,11 +15,13 @@ public final class io/ktor/client/engine/apache5/Apache5EngineConfig : io/ktor/c
 	public final fun getFollowRedirects ()Z
 	public final fun getSocketTimeout ()I
 	public final fun getSslContext ()Ljavax/net/ssl/SSLContext;
+	public final fun getSslHostnameVerificationPolicy ()Lorg/apache/hc/client5/http/ssl/HostnameVerificationPolicy;
 	public final fun setConnectTimeout (J)V
 	public final fun setConnectionRequestTimeout (J)V
 	public final fun setFollowRedirects (Z)V
 	public final fun setSocketTimeout (I)V
 	public final fun setSslContext (Ljavax/net/ssl/SSLContext;)V
+	public final fun setSslHostnameVerificationPolicy (Lorg/apache/hc/client5/http/ssl/HostnameVerificationPolicy;)V
 }
 
 public final class io/ktor/client/engine/apache5/Apache5EngineContainer : io/ktor/client/HttpClientEngineContainer {

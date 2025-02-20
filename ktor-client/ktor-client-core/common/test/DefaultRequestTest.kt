@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
@@ -7,10 +11,6 @@ import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlin.test.*
-
-/*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
 
 class DefaultRequestTest {
 

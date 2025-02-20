@@ -19,7 +19,7 @@ class UdpSocketTestNix {
         val socket = aSocket(selector)
             .udp()
             .bind(InetSocketAddress("127.0.0.1", 8002))
-        val descriptor = (socket as DatagramSocketNative).selectable.descriptor
+        val descriptor = (socket as DatagramSocketNative).descriptor
 
         socket.close()
         selector.close()

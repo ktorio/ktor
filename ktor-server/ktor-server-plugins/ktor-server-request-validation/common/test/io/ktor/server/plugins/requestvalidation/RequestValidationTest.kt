@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.requestvalidation
@@ -23,12 +23,16 @@ class RequestValidationTest {
             validate<CharSequence> {
                 if (!it.startsWith("+")) {
                     ValidationResult.Invalid(listOf("$it should start with \"+\""))
-                } else ValidationResult.Valid
+                } else {
+                    ValidationResult.Valid
+                }
             }
             validate<String> {
                 if (!it.endsWith("!")) {
                     ValidationResult.Invalid(listOf("$it should end with \"!\""))
-                } else ValidationResult.Valid
+                } else {
+                    ValidationResult.Valid
+                }
             }
         }
         install(StatusPages) {
@@ -96,7 +100,9 @@ class RequestValidationTest {
                     val intValue = it.decodeToString(0, 0 + it.size).toInt()
                     if (intValue < 0) {
                         ValidationResult.Invalid("Value is negative")
-                    } else ValidationResult.Valid
+                    } else {
+                        ValidationResult.Valid
+                    }
                 }
             }
         }

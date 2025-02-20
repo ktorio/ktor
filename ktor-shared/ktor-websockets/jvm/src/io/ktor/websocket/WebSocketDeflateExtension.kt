@@ -32,6 +32,8 @@ private const val MIN_WINDOW_BITS: Int = 8
  *
  * Implements WebSocket deflate extension from [RFC-7692](https://tools.ietf.org/html/rfc7692).
  * This implementation is using window size = 15 due to limitations of [Deflater] implementation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension)
  */
 public class WebSocketDeflateExtension internal constructor(
     private val config: Config
@@ -157,20 +159,28 @@ public class WebSocketDeflateExtension internal constructor(
 
     /**
      * WebSocket deflate extension configuration.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config)
      */
     public class Config {
         /**
          * Specify if the client drops the deflater state (reset the window) after each frame.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.clientNoContextTakeOver)
          */
         public var clientNoContextTakeOver: Boolean = false
 
         /**
          * Specify if the server drops the deflater state (reset the window) after each frame.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.serverNoContextTakeOver)
          */
         public var serverNoContextTakeOver: Boolean = false
 
         /**
          * Compression level that is used for outgoing frames in the [Deflate] instance.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.compressionLevel)
          */
         public var compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
 
@@ -180,6 +190,8 @@ public class WebSocketDeflateExtension internal constructor(
 
         /**
          * Configure which protocols should send the client.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.configureProtocols)
          */
         public fun configureProtocols(block: (protocols: MutableList<WebSocketExtensionHeader>) -> Unit) {
             val old = manualConfig
@@ -193,6 +205,8 @@ public class WebSocketDeflateExtension internal constructor(
          * Indicates if the outgoing frame should be compressed.
          *
          * Compress the frame only if all conditions passed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.compressIf)
          */
         public fun compressIf(block: (frame: Frame) -> Boolean) {
             val old = compressCondition
@@ -201,6 +215,8 @@ public class WebSocketDeflateExtension internal constructor(
 
         /**
          * Specify the minimum size of frame for compression.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.compressIfBiggerThan)
          */
         public fun compressIfBiggerThan(bytes: Int) {
             compressIf { frame -> frame.data.size > bytes }

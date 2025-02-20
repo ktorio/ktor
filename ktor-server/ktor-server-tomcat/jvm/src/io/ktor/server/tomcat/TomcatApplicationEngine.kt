@@ -9,22 +9,25 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import org.apache.catalina.connector.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableJob
+import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat
-import org.apache.coyote.http2.*
-import org.apache.tomcat.jni.*
-import org.apache.tomcat.util.net.*
-import org.apache.tomcat.util.net.jsse.*
-import org.apache.tomcat.util.net.openssl.*
-import org.slf4j.*
-import java.nio.file.*
-import javax.servlet.*
-import kotlin.coroutines.*
+import org.apache.coyote.http2.Http2Protocol
+import org.apache.tomcat.jni.Library
+import org.apache.tomcat.jni.SSL
+import org.apache.tomcat.util.net.SSLImplementation
+import org.apache.tomcat.util.net.jsse.JSSEImplementation
+import org.apache.tomcat.util.net.openssl.OpenSSLImplementation
+import org.slf4j.Logger
+import java.nio.file.Files
+import javax.servlet.MultipartConfigElement
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Tomcat application engine that runs it in embedded mode
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.tomcat.TomcatApplicationEngine)
  */
 public class TomcatApplicationEngine(
     environment: ApplicationEnvironment,
@@ -35,18 +38,22 @@ public class TomcatApplicationEngine(
 ) : BaseApplicationEngine(environment, monitor, developmentMode) {
     /**
      * Tomcat engine specific configuration builder
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.tomcat.TomcatApplicationEngine.Configuration)
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property to provide a lambda that will be called
          * during Tomcat server initialization with the server instance as argument.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.tomcat.TomcatApplicationEngine.Configuration.configureTomcat)
          */
         public var configureTomcat: Tomcat.() -> Unit = {}
     }
 
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     private val ktorServlet = object : KtorServlet() {
         override val managedByEngineHeaders: Set<String>
@@ -149,7 +156,7 @@ public class TomcatApplicationEngine(
         resolvedConnectorsDeferred.complete(connectors)
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -164,7 +171,7 @@ public class TomcatApplicationEngine(
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         if (!stopped.compareAndSet(expect = false, update = true)) return
 
-        cancellationDeferred?.complete()
+        cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         server.stop()
         server.destroy()

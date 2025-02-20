@@ -6,12 +6,13 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
+import kotlinx.coroutines.intrinsics.startCoroutineCancellable
 import kotlinx.io.*
 import kotlinx.io.Buffer
-import kotlinx.io.unsafe.*
-import kotlin.coroutines.*
-import kotlin.jvm.*
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeByte(value: Byte) {
@@ -31,6 +32,31 @@ public suspend fun ByteWriteChannel.writeInt(value: Int) {
     flushIfNeeded()
 }
 
+/**
+ * Writes a 32-bit floating-point [value] to the current [ByteWriteChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeFloat)
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteWriteChannel.writeFloat(value: Float) {
+    writeBuffer.writeFloat(value)
+    flushIfNeeded()
+}
+
+/**
+ * Writes a 64-bit floating-point value to the current [ByteWriteChannel].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeDouble)
+ *
+ * @param value The floating-point value to be written to the channel.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteWriteChannel.writeDouble(value: Double) {
+    writeBuffer.writeDouble(value)
+    flushIfNeeded()
+}
+
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeLong(value: Long) {
     writeBuffer.writeLong(value)
@@ -45,8 +71,7 @@ public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
-    writeBuffer.transferFrom(source)
-    flushIfNeeded()
+    writePacket(source)
 }
 
 @OptIn(InternalAPI::class)
@@ -62,9 +87,8 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
 }
 
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writeBuffer(value: Source) {
-    writeBuffer.transferFrom(value)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
+    writePacket(source.buffered())
 }
 
 @OptIn(InternalAPI::class)
@@ -79,10 +103,16 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
     flushIfNeeded()
 }
 
+/**
+ * Writes the entire source contents to the [ByteChannel].
+ * Prevents memory exhaustion by waiting for buffer to flush.
+ */
 @OptIn(InternalAPI::class)
-public suspend fun ByteWriteChannel.writePacket(copy: Source) {
-    writeBuffer.transferFrom(copy)
-    flushIfNeeded()
+public suspend fun ByteWriteChannel.writePacket(source: Source) {
+    while (!source.exhausted()) {
+        writeBuffer.write(source, source.remaining)
+        flushIfNeeded()
+    }
 }
 
 public fun ByteWriteChannel.close(cause: Throwable?) {
@@ -173,6 +203,8 @@ public fun CoroutineScope.writer(
  * specified [desiredSpace] is bigger that the buffer's capacity
  * or when it is impossible to represent all [desiredSpace] bytes as a single memory range
  * due to internal implementation reasons.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.write)
  */
 @OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(

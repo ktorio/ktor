@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -28,10 +28,12 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
-import kotlin.coroutines.*
+import kotlinx.io.readByteArray
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
+import kotlin.use
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -317,6 +319,8 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    // Fix [KTOR-7883](https://youtrack.jetbrains.com/issue/KTOR-7883/Fix-flaky-testStatusCodeViaResponseObject)
+    @Ignore
     fun testStatusCodeViaResponseObject() = runTest {
         var completed = false
         createAndStartServer {

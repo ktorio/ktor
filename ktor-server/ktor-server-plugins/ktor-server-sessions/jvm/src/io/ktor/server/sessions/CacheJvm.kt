@@ -20,8 +20,16 @@ internal open class ReferenceCache<K : Any, V : Any, out R>(
     val wrapFunction: (K, V, ReferenceQueue<V>) -> R
 ) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
     private val queue = ReferenceQueue<V>()
-    private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, calc(key), queue) }
-    private val workerThread by lazy { Thread(ReferenceWorker(container, queue)).apply { isDaemon = true; start() } }
+    private val container = BaseCache { key: K ->
+        forkThreadIfNeeded()
+        wrapFunction(key, calc(key), queue)
+    }
+    private val workerThread by lazy {
+        Thread(ReferenceWorker(container, queue)).apply {
+            isDaemon = true
+            start()
+        }
+    }
 
     override suspend fun getOrCompute(key: K): V {
         val ref = container.getOrCompute(key)
@@ -100,7 +108,10 @@ internal class BaseTimeoutCache<in K : Any, V : Any>(
     private val map = WeakHashMap<K, KeyState<K>>()
 
     private val workerThread by lazy {
-        Thread(TimeoutWorker(this, lock, cond, items)).apply { isDaemon = true; start() }
+        Thread(TimeoutWorker(this, lock, cond, items)).apply {
+            isDaemon = true
+            start()
+        }
     }
 
     override suspend fun getOrCompute(key: K): V {

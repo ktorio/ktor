@@ -10,6 +10,9 @@ import javax.net.ssl.*
 
 /**
  * TLS configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfig)
+ *
  * @property trustManager: Custom [X509TrustManager] to verify server authority. Use system by default.
  * @property random: [SecureRandom] to use in encryption.
  * @property certificates: list of client certificate chains with private keys.
@@ -26,6 +29,9 @@ public actual class TLSConfig(
 
 /**
  * Client certificate chain with private key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CertificateAndKey)
+ *
  * @property certificateChain: client certificate chain.
  * @property key: [PrivateKey] for certificate chain.
  */

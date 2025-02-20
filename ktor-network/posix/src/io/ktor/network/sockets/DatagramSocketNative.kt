@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -17,19 +17,15 @@ import platform.posix.*
 import kotlin.coroutines.*
 
 internal class DatagramSocketNative(
-    private val descriptor: Int,
     val selector: SelectorManager,
-    val selectable: Selectable,
+    descriptor: Int,
     private val remote: SocketAddress?,
     parent: CoroutineContext = EmptyCoroutineContext
-) : BoundDatagramSocket, ConnectedDatagramSocket, CoroutineScope {
-    private val _context: CompletableJob = Job(parent[Job])
-
-    override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _context
-
-    override val socketContext: Job
-        get() = _context
-
+) : BoundDatagramSocket, ConnectedDatagramSocket, NativeSocketImpl(
+    selector,
+    descriptor,
+    parent
+) {
     override val localAddress: SocketAddress
         get() = getLocalAddress(descriptor).toSocketAddress()
 
@@ -61,12 +57,7 @@ internal class DatagramSocketNative(
 
     override fun close() {
         receiver.cancel()
-        _context.complete()
-        _context.invokeOnCompletion {
-            ktor_shutdown(descriptor, ShutdownCommands.Both)
-            // Descriptor is closed by the selector manager
-            selector.notifyClosed(selectable)
-        }
+        super.close()
         sender.close()
     }
 
@@ -74,11 +65,11 @@ internal class DatagramSocketNative(
         while (true) {
             val datagram = tryReadDatagram()
             if (datagram != null) return datagram
-            selector.select(selectable, SelectInterest.READ)
+            selector.select(this, SelectInterest.READ)
         }
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class)
     private fun tryReadDatagram(): Datagram? = memScoped {
         val clientAddress = alloc<sockaddr_storage>()
         val clientAddressLength: UIntVarOf<UInt> = alloc()

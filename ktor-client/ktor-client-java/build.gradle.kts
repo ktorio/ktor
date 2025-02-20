@@ -1,4 +1,15 @@
-apply<test.server.TestServerPlugin>()
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+plugins {
+    id("test-server")
+}
+
+ktorBuild {
+    // Package java.net.http was introduced in Java 11
+    jvmToolchain(11)
+}
 
 kotlin.sourceSets {
     jvmMain {

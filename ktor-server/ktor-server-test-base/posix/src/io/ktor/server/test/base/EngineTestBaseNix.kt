@@ -17,7 +17,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.logging.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.time.Duration.Companion.seconds
@@ -38,11 +37,13 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
-    protected actual var port: Int = runBlocking {
-        aSocket(TEST_SELECTOR_MANAGER).tcp().bind().use {
-            val inetAddress = it.localAddress as? InetSocketAddress ?: error("Expected inet socket address")
-            inetAddress.port
-        }
+    protected actual var port: Int = findFreePort()
+
+    private fun findFreePort(): Int = runBlocking {
+        val socket = aSocket(TEST_SELECTOR_MANAGER).tcp().bind()
+        val port = socket.use { it.port }
+        socket.awaitClosed()
+        port
     }
 
     protected actual var sslPort: Int = 0
@@ -51,6 +52,15 @@ actual constructor(
     protected actual var enableHttp2: Boolean = false
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
+
+    override fun afterTest() {
+        try {
+            server?.stop(0, 500)
+        } finally {
+            testJob.cancel()
+            super.afterTest()
+        }
+    }
 
     protected actual suspend fun createAndStartServer(
         log: Logger?,
@@ -68,6 +78,7 @@ actual constructor(
                 return server
             }
 
+            port = findFreePort()
             server.stop(1L, 1L)
         }
 
@@ -79,7 +90,7 @@ actual constructor(
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
+        val savedPort = this.port
         val environment = applicationEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -100,7 +111,7 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = _port }
+            connector { port = savedPort }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }
@@ -114,14 +125,15 @@ actual constructor(
         // as far as we have retry loop on call side
         val starting = GlobalScope.async {
             server.start(wait = false)
-            delay(500)
+            // await for a server to be started
+            server.engine.resolvedConnectors()
         }
 
         return try {
             starting.join()
             @OptIn(ExperimentalCoroutinesApi::class)
             starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-        } catch (t: Throwable) { // InterruptedException?
+        } catch (t: Throwable) {
             starting.cancel()
             listOf(t)
         }

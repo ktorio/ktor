@@ -110,7 +110,7 @@ public abstract class NettyApplicationResponse(
     internal fun close() {
         val existingChannel = responseChannel
         if (existingChannel is ByteWriteChannel) {
-            existingChannel.close(ClosedWriteChannelException("Application response has been closed"))
+            existingChannel.close(cause = null)
             responseChannel = ByteReadChannel.Empty
         }
 

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.java
 
@@ -15,14 +15,18 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.future.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.future.await
 import java.net.http.*
-import java.nio.*
-import java.time.*
+import java.nio.ByteBuffer
+import java.time.Duration
 import java.util.*
-import java.util.concurrent.*
-import kotlin.coroutines.*
+import java.util.concurrent.CompletionStage
+import kotlin.coroutines.CoroutineContext
 import kotlin.text.String
 import kotlin.text.toByteArray
 
@@ -92,9 +96,11 @@ internal class JavaHttpWebSocket(
                     FrameType.TEXT -> {
                         webSocket.sendText(String(frame.data), frame.fin).await()
                     }
+
                     FrameType.BINARY -> {
                         webSocket.sendBinary(frame.buffer, frame.fin).await()
                     }
+
                     FrameType.CLOSE -> {
                         val data = buildPacket { writeFully(frame.data) }
                         val code = data.readShort().toInt()
@@ -103,9 +109,11 @@ internal class JavaHttpWebSocket(
                         socketJob.complete()
                         return@launch
                     }
+
                     FrameType.PING -> {
                         webSocket.sendPing(frame.buffer).await()
                     }
+
                     FrameType.PONG -> {
                         webSocket.sendPong(frame.buffer).await()
                     }
@@ -113,7 +121,6 @@ internal class JavaHttpWebSocket(
             }
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
@@ -154,11 +161,15 @@ internal class JavaHttpWebSocket(
         }
 
         var status = HttpStatusCode.SwitchingProtocols
+        var headers: Headers
         try {
             webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+            val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
+            headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
         } catch (cause: WebSocketHandshakeException) {
             if (cause.response.statusCode() == HttpStatusCode.Unauthorized.value) {
                 status = HttpStatusCode.Unauthorized
+                headers = headersOf(cause.response.headers().map())
             } else {
                 throw cause
             }
@@ -167,7 +178,7 @@ internal class JavaHttpWebSocket(
         return HttpResponseData(
             status,
             requestTime,
-            Headers.Empty,
+            headers,
             HttpProtocolVersion.HTTP_1_1,
             this,
             callContext
@@ -217,4 +228,12 @@ internal class JavaHttpWebSocket(
     override fun terminate() {
         socketJob.cancel()
     }
+}
+
+private fun headersOf(map: Map<String, List<String>>): Headers = object : Headers {
+    override val caseInsensitiveName: Boolean = true
+    override fun getAll(name: String): List<String>? = map[name]
+    override fun names(): Set<String> = map.keys
+    override fun entries(): Set<Map.Entry<String, List<String>>> = map.entries
+    override fun isEmpty(): Boolean = map.isEmpty()
 }

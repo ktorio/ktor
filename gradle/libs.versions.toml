@@ -1,78 +1,77 @@
 [versions]
 
-kotlin = "2.0.21"
-kotlinx-html = "0.11.0"
-kotlinx-datetime = "0.6.1"
-kotlinx-io = "0.5.4"
-coroutines = "1.9.0"
-atomicfu = "0.26.0"
-serialization = "1.7.3"
-binaryCompatibilityValidator = "0.16.3"
+kotlin = "2.1.10"
+kotlinx-html = "0.12.0"
+kotlinx-datetime = "0.6.2"
+kotlinx-io = "0.6.0"
+coroutines = "1.10.1"
+atomicfu = "0.27.0"
+serialization = "1.8.0"
+binaryCompatibilityValidator = "0.17.0"
 dokka = "1.9.20"
-kover = "0.8.3"
-ktlint = "3.15.0"
-kotlinx-browser = "0.2"
+kover = "0.9.1"
+kotlinter = "5.0.1"
+kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
-ktor = "3.1.0-eap-1153"
+ktor = "3.1.0-eap-1225"
 
-netty = "4.1.115.Final"
-netty-tcnative = "2.0.69.Final"
+netty = "4.1.118.Final"
+netty-tcnative = "2.0.70.Final"
 
-jetty = "9.4.56.v20240826"
+jetty = "9.4.57.v20241219"
 jetty-jakarta = "11.0.24"
 jetty-alpn-api = "1.1.3.v20160715"
-jetty-alpn-boot = "8.1.13.v20181017"
-jetty-alpn-openjdk8 = "9.4.56.v20240826"
+jetty-alpn-openjdk8 = "9.4.57.v20241219"
 
-tomcat = "9.0.97"
+tomcat = "9.0.98"
 tomcat-jakarta = "10.1.31"
 
 apache = "4.1.5"
-apache5 = "5.3.1"
+apache5 = "5.4.2"
 apacheds = "2.0.0.AM27"
 okhttp = "4.12.0"
-okio = "3.9.1"
+okio = "3.10.2"
 
 json-simple = "1.1.1"
-gson = "2.11.0"
-jackson = "2.18.1"
+gson = "2.12.1"
+jackson = "2.18.2"
 
-junit = "5.11.3"
+junit = "5.11.4"
 slf4j = "2.0.16"
-logback = "1.5.12"
+logback = "1.5.16"
 
-dropwizard = "4.2.28"
-micrometer = "1.13.6"
+dropwizard = "4.2.30"
+micrometer = "1.14.4"
 
 jansi = "2.4.1"
 typesafe = "1.4.3"
 
-mockk = "1.13.13"
+mockk = "1.13.16"
 
-java-jwt = "4.4.0"
+java-jwt = "4.5.0"
 
 jwks-rsa = "0.22.1"
 mustache = "0.9.14"
-freemarker = "2.3.33"
-pebble = "3.2.2"
+freemarker = "2.3.34"
+pebble = "3.2.3"
 velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
 webjars-jquery = "3.7.1"
-thymeleaf = "3.1.2.RELEASE"
-jte = "3.1.15"
+thymeleaf = "3.1.3.RELEASE"
+jte = "3.1.16"
 
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-ws = "8.5.0"
+ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.64"
-swagger-codegen-generators = "1.0.54"
-swagger-parser = "2.1.24"
+swagger-codegen = "3.0.66"
+swagger-codegen-generators = "1.0.55"
+swagger-parser = "2.1.25"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
@@ -99,10 +98,11 @@ ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.
 ktor-server-conditional-headers = { module = "io.ktor:ktor-server-conditional-headers", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
-ktor-server-jetty = { module = "io.ktor:ktor-server-jetty", version.ref = "ktor" }
+ktor-server-jetty = { module = "io.ktor:ktor-server-jetty-jakarta", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse", version.ref = "ktor" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
@@ -128,6 +128,7 @@ kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.re
 
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
+dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
@@ -155,7 +156,6 @@ jetty-alpn-java-server = { module = "org.eclipse.jetty:jetty-alpn-java-server", 
 jetty-alpn-java-client = { module = "org.eclipse.jetty:jetty-alpn-java-client", version.ref = "jetty" }
 
 jetty-alpn-api = { module = "org.eclipse.jetty.alpn:alpn-api", version.ref = "jetty-alpn-api" }
-jetty-alpn-boot = { module = "org.mortbay.jetty.alpn:alpn-boot", version.ref = "jetty-alpn-boot" }
 jetty-alpn-openjdk8-server = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-server", version.ref = "jetty-alpn-openjdk8" }
 jetty-alpn-openjdk8-client = { module = "org.eclipse.jetty:jetty-alpn-openjdk8-client", version.ref = "jetty-alpn-openjdk8" }
 
@@ -227,13 +227,12 @@ tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
 
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
-kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "ktlint" }
+kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
 
 [plugins]
 
 binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }

@@ -11,6 +11,8 @@ import io.ktor.util.reflect.*
 
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline)
  */
 public class HttpResponsePipeline(
     override val developmentMode: Boolean = true
@@ -24,26 +26,36 @@ public class HttpResponsePipeline(
     public companion object Phases {
         /**
          * The earliest phase that happens before any other
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline.Phases.Receive)
          */
         public val Receive: PipelinePhase = PipelinePhase("Receive")
 
         /**
          * Decode response body
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline.Phases.Parse)
          */
         public val Parse: PipelinePhase = PipelinePhase("Parse")
 
         /**
          * Transform response body to expected format
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline.Phases.Transform)
          */
         public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Use this phase to store request shared state
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline.Phases.State)
          */
         public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Latest response pipeline phase
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline.Phases.After)
          */
         public val After: PipelinePhase = PipelinePhase("After")
     }
@@ -51,6 +63,8 @@ public class HttpResponsePipeline(
 
 /**
  * [HttpClient] Pipeline used for receiving [HttpResponse] without any processing.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpReceivePipeline)
  */
 public class HttpReceivePipeline(
     override val developmentMode: Boolean = true
@@ -58,16 +72,22 @@ public class HttpReceivePipeline(
     public companion object Phases {
         /**
          * The earliest phase that happens before any other
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpReceivePipeline.Phases.Before)
          */
         public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Use this phase to store request shared state
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpReceivePipeline.Phases.State)
          */
         public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Latest response pipeline phase
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpReceivePipeline.Phases.After)
          */
         public val After: PipelinePhase = PipelinePhase("After")
     }
@@ -75,6 +95,9 @@ public class HttpReceivePipeline(
 
 /**
  * Class representing a typed [response] with an attached [expectedType].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponseContainer)
+ *
  * @param expectedType: information about expected type.
  * @param response: current response state.
  */

@@ -68,6 +68,37 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    fun `time is not measured for custom http requests`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+        install(MicrometerMetrics) {
+            registry = testRegistry
+        }
+
+        routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+        }
+
+        var timers = testRegistry.find(requestTimeTimerName).timers()
+        assertTrue(timers.isEmpty())
+
+        client.get("/uri")
+        timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(1, timers.size, "Metrics should be recorded for GET requests")
+
+        client.request("/uri") {
+            method = HttpMethod("CUSTOM")
+        }
+        timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(1, timers.size, "Metrics should not be recorded for custom requests")
+
+        client.put("/uri")
+        timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(2, timers.size, "Metrics should be recorded for PUT requests")
+    }
+
+    @Test
     fun `errors are recorded`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 

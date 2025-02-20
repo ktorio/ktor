@@ -11,6 +11,8 @@ internal val ROOT_PATH = listOf("")
 /**
  * Take url parts from [urlString]
  * throws [URLParserException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.takeFrom)
  */
 public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
     if (urlString.isBlank()) return this
@@ -24,6 +26,8 @@ public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
 
 /**
  * Thrown when failed to parse URL
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLParserException)
  */
 public class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
     "Fail to parse url: $urlString",
@@ -58,6 +62,12 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     if (protocol.name == "about") {
+        require(slashCount == 0)
+        host = urlString.substring(startIndex, endIndex)
+        return this
+    }
+
+    if (protocol.name == "tel") {
         require(slashCount == 0)
         host = urlString.substring(startIndex, endIndex)
         return this
@@ -130,6 +140,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
 private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
     when (slashCount) {
+        1 -> {
+            host = ""
+            encodedPath = urlString.substring(startIndex, endIndex)
+        }
         2 -> {
             val nextSlash = urlString.indexOf('/', startIndex)
             if (nextSlash == -1 || nextSlash == endIndex) {

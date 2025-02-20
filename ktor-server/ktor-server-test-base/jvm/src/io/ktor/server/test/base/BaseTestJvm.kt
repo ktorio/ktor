@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-// ktlint-disable filename
 package io.ktor.server.test.base
 
-import io.ktor.junit.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
+import io.ktor.test.junit.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
@@ -48,13 +48,17 @@ actual abstract class BaseTest actual constructor() {
 
     actual fun runTest(
         timeout: Duration,
+        retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
-        beforeTest()
-        try {
-            block()
-        } finally {
-            afterTest()
+    ): TestResult = retryTest(retries) { retry ->
+        runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
+            if (retry > 0) println("[Retry $retry/$retries]")
+            beforeTest()
+            try {
+                block()
+            } finally {
+                afterTest()
+            }
         }
     }
 }

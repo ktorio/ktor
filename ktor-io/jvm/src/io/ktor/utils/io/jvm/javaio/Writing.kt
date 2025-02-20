@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
@@ -7,6 +11,9 @@ import java.io.*
 /**
  * Copies up to [limit] bytes from [this] byte channel to [out] stream suspending on read channel
  * and blocking on output
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.copyTo)
  *
  * @return number of bytes copied
  */

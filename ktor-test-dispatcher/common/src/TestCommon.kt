@@ -12,6 +12,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * Test runner for common suspend tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.dispatcher.testSuspend)
  */
 @Deprecated(
     "testSuspend is deprecated, use runTest function instead",
@@ -30,7 +32,6 @@ public expect fun testSuspend(
 // kotlinx.coroutines.test.runTest uses `virtual` time by default, which is not what we want sometimes
 // probably in almost all places it should be fine to use virtual time
 // and change dispatcher in those places where needed
-@OptIn(ExperimentalCoroutinesApi::class)
 public fun runTestWithRealTime(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = 60.seconds,

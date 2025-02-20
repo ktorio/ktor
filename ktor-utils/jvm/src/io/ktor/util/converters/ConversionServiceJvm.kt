@@ -8,7 +8,6 @@ import java.math.*
 import java.util.*
 import kotlin.reflect.*
 
-@OptIn(ExperimentalStdlibApi::class)
 internal actual fun platformDefaultFromValues(value: String, klass: KClass<*>): Any? {
     val converted = convertSimpleTypes(value, klass)
     if (converted != null) {

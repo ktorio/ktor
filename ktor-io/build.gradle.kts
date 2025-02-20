@@ -1,16 +1,15 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import ktorbuild.createCInterop
 
 plugins {
     alias(libs.plugins.kover)
 }
 
 kotlin {
-    createCInterop("mutex", posixTargets()) {
-        definitionFile = File(projectDir, "posix/interop/mutex.def")
-    }
+    createCInterop("mutex", sourceSet = "posix")
 
     sourceSets {
         commonMain {

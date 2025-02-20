@@ -11,20 +11,28 @@ import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.*
 import javax.servlet.*
+import kotlin.time.Duration
 
-internal fun CoroutineScope.servletReader(input: ServletInputStream, contentLength: Int): WriterJob {
-    val reader = ServletReader(input, contentLength)
+internal fun CoroutineScope.servletReader(
+    input: ServletInputStream,
+    contentLength: Int,
+    idleTimeout: Duration? = null
+): WriterJob {
+    val reader = ServletReader(input, contentLength, idleTimeout)
 
     return writer(Dispatchers.IO, reader.channel) {
         reader.run()
     }
 }
 
-private class ServletReader(val input: ServletInputStream, val contentLength: Int) : ReadListener {
+private class ServletReader(
+    val input: ServletInputStream,
+    val contentLength: Int,
+    val idleTimeout: Duration?
+) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
-    @OptIn(InternalAPI::class)
     suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
@@ -38,7 +46,7 @@ private class ServletReader(val input: ServletInputStream, val contentLength: In
                 events.close()
                 return
             }
-            events.receiveCatching().getOrNull() ?: return
+            awaitEvent() ?: return
             loop(buffer)
 
             events.close()
@@ -52,14 +60,22 @@ private class ServletReader(val input: ServletInputStream, val contentLength: In
         }
     }
 
-    @OptIn(InternalAPI::class)
+    private suspend fun awaitEvent(): Unit? =
+        if (idleTimeout == null) {
+            events.receiveCatching().getOrNull()
+        } else {
+            withTimeout(idleTimeout) {
+                events.receiveCatching().getOrNull()
+            }
+        }
+
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun loop(buffer: ByteArray) {
         var bodySize = 0
         while (true) {
             if (!input.isReady) {
                 channel.flush()
-                events.receiveCatching().getOrNull() ?: break
+                awaitEvent() ?: break
                 continue
             }
 
@@ -95,7 +111,7 @@ private class ServletReader(val input: ServletInputStream, val contentLength: In
     override fun onError(t: Throwable) {
         val wrappedException = wrapException(t)
 
-        channel.close(wrappedException)
+        channel.cancel(wrappedException)
         events.close(wrappedException)
     }
 

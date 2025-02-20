@@ -15,10 +15,14 @@ import io.ktor.websocket.serialization.*
 
 /**
  * Represents a server-side web socket session
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketServerSession)
  */
 public interface WebSocketServerSession : WebSocketSession {
     /**
      * Associated received [call] that originating this session
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketServerSession.call)
      */
     public val call: ApplicationCall
 }
@@ -26,17 +30,24 @@ public interface WebSocketServerSession : WebSocketSession {
 /**
  * Represents a server-side web socket session with all default implementations
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.DefaultWebSocketServerSession)
+ *
  * @see DefaultWebSocketSession
  */
 public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSocketServerSession
 
 /**
  * An application that started this web socket session
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.application)
  */
 public val WebSocketServerSession.application: Application get() = call.application
 
 /**
  * Converter for web socket session
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.converter)
  */
 public val WebSocketServerSession.converter: WebsocketContentConverter?
     get() = application.plugin(WebSockets).contentConverter
@@ -47,6 +58,9 @@ public val WebSocketServerSession.converter: WebsocketContentConverter?
  * If the outgoing channel is already closed, throws an exception, so it is impossible to transfer any message.
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.sendSerialized)
  *
  * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] function.
  *
@@ -67,6 +81,9 @@ public suspend fun WebSocketServerSession.sendSerialized(data: Any?, typeInfo: T
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.sendSerialized)
+ *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
 public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data: T) {
@@ -79,6 +96,9 @@ public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data
  * May throw [WebsocketDeserializeException] if the received frame type is not [Frame.Text] or [Frame.Binary].
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.receiveDeserialized)
  *
  * @param typeInfo Type info of [T]. Can be retrieved with [typeInfo] function.
 

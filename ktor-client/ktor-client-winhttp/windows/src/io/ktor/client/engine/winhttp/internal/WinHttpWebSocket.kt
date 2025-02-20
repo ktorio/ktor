@@ -7,13 +7,18 @@ package io.ktor.client.engine.winhttp.internal
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import io.ktor.websocket.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import platform.windows.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
+import platform.windows.NULL
 import platform.winhttp.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 private object WinHttpWebSocketBuffer {
     val BinaryMessage = WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE
@@ -24,7 +29,7 @@ private object WinHttpWebSocketBuffer {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal class WinHttpWebSocket @OptIn(ExperimentalForeignApi::class) constructor(
+internal class WinHttpWebSocket(
     private val hWebSocket: COpaquePointer,
     private val connect: WinHttpConnect,
     callContext: CoroutineContext

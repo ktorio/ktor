@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls.certificates
@@ -8,8 +8,6 @@ import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
-import kotlinx.io.Sink
-import kotlinx.io.writeUByte
 import java.io.*
 import java.math.*
 import java.net.*
@@ -23,6 +21,7 @@ import javax.security.auth.x500.*
 import kotlin.time.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.use
 
 internal val DEFAULT_PRINCIPAL = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")
 private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=JetBrains, C=RU")
@@ -35,6 +34,8 @@ private val DEFAULT_CA_PRINCIPAL = X500Principal("CN=localhostCA, OU=Kotlin, O=J
  *
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.generateCertificate)
  */
 public fun generateCertificate(
     file: File? = null,
@@ -115,7 +116,9 @@ internal fun generateX509Certificate(
 }
 
 public enum class KeyType {
-    CA, Server, Client
+    CA,
+    Server,
+    Client,
 }
 
 /**
@@ -128,6 +131,8 @@ public enum class KeyType {
  *
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.generateCertificate)
  */
 public fun KeyStore.generateCertificate(
     file: File? = null,
@@ -174,6 +179,8 @@ public fun KeyStore.generateCertificate(
  * while their responding keys are private.
  *
  *  If [file] is set, all certificates are stored in a JKS keystore in [file] with [password].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.certificates.trustStore)
  */
 public fun KeyStore.trustStore(
     file: File? = null,

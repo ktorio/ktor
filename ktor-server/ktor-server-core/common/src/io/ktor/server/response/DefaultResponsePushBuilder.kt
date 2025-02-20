@@ -12,6 +12,9 @@ import io.ktor.utils.io.*
 
 /**
  * An HTTP/2 push builder.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.DefaultResponsePushBuilder)
+ *
  * @property method HTTP method
  * @property url builder
  * @property headers builder
@@ -40,6 +43,8 @@ public class DefaultResponsePushBuilder(
 
     /**
      * A list of version information (for conditional headers).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.DefaultResponsePushBuilder.versions)
      */
     override var versions: ArrayList<Version> =
         if (versions.isEmpty()) ArrayList() else ArrayList(versions)

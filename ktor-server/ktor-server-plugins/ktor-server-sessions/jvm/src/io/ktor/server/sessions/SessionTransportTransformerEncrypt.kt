@@ -22,6 +22,9 @@ import javax.crypto.spec.*
  * You have to provide keys of compatible sizes: 16, 24 and 32 for AES encryption.
  * For HmacSHA256 it is recommended a key of 32 bytes.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformerEncrypt)
+ *
  * @see [Sessions]
  *
  * @property encryptionKeySpec is a secret key that is used for encryption
@@ -49,6 +52,8 @@ public class SessionTransportTransformerEncrypt(
 
     /**
      * A size of the key used to encrypt session data.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformerEncrypt.encryptionKeySize)
      */
     public val encryptionKeySize: Int get() = encryptionKeySpec.encoded.size
 

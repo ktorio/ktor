@@ -2,6 +2,8 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("FunctionName")
+
 package io.ktor.network.util
 
 import kotlinx.cinterop.*
@@ -151,4 +153,8 @@ internal actual fun getSocketError(): Int {
 
 internal actual fun isWouldBlockError(error: Int): Boolean {
     return error == EAGAIN || error == EWOULDBLOCK || error == EINPROGRESS
+}
+
+internal actual fun closeSocketDescriptor(descriptor: Int): Int {
+    return close(descriptor)
 }

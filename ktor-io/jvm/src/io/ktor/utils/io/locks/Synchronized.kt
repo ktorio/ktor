@@ -14,6 +14,8 @@ import io.ktor.utils.io.InternalAPI
  * from the standard library that is available for JVM.
  * The [SynchronizedObject] superclass gets erased (transformed to Any) on JVM and JS,
  * with `synchronized` leaving no trace in the code on JS and getting replaced with built-in monitors for locking on JVM.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject)
  */
 @InternalAPI
 public actual typealias SynchronizedObject = Any
@@ -24,12 +26,16 @@ public actual typealias SynchronizedObject = Any
  * [ReentrantLock] is designed for delegation. You write `val lock = reentrantLock()` to construct its instance and
  * use `lock/tryLock/unlock` functions or `lock.withLock { ... }` extension function similarly to
  * the way jucl.ReentrantLock is used on JVM. On JVM it is a typealias to the later class, erased on JS.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.ReentrantLock)
  */
 @InternalAPI
 public actual typealias ReentrantLock = java.util.concurrent.locks.ReentrantLock
 
 /**
  * Creates a new [ReentrantLock] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.reentrantLock)
  */
 @InternalAPI
 public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
@@ -45,6 +51,8 @@ public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
  *     // Critical section of code
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.withLock)
  */
 @InternalAPI
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
@@ -68,6 +76,8 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
  *     // Critical section of code
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.synchronized)
  */
 @InternalAPI
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T =

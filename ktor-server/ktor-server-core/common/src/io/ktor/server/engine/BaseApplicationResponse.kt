@@ -1,6 +1,5 @@
-// ktlint-disable filename
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -10,18 +9,25 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
 import io.ktor.server.http.*
-import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.internal.*
+import io.ktor.util.logging.Logger
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.withContext
+
+private val ERROR_CONTENT = object : OutgoingContent.NoContent() {
+    override val status: HttpStatusCode = HttpStatusCode.InternalServerError
+}
 
 public abstract class BaseApplicationResponse(
     final override val call: PipelineCall
 ) : PipelineResponse {
-    private var _status: HttpStatusCode? = null
+    private var status: HttpStatusCode? = null
 
     override val isCommitted: Boolean
         get() = responded
@@ -33,9 +39,9 @@ public abstract class BaseApplicationResponse(
         ResponseCookies(this)
     }
 
-    override fun status(): HttpStatusCode? = _status
+    override fun status(): HttpStatusCode? = status
     override fun status(value: HttpStatusCode) {
-        _status = value
+        status = value
         setStatus(value)
     }
 
@@ -82,10 +88,12 @@ public abstract class BaseApplicationResponse(
                 // TODO: What should we do if TransferEncoding was set and length is present?
                 headers.append(HttpHeaders.ContentLength, contentLength.toStringFast(), safeOnly = false)
             }
+
             !transferEncodingSet -> {
                 when (content) {
                     is OutgoingContent.ProtocolUpgrade -> {
                     }
+
                     is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
                     else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
                 }
@@ -248,12 +256,16 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Thrown when there was already response sent but we are trying to respond again
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.ResponseAlreadySentException)
      */
     public class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 
     /**
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.InvalidHeaderForContent)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class InvalidHeaderForContent(
@@ -268,6 +280,8 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Content's body size doesn't match the provided one in `Content-Length` header
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.BodyLengthIsTooSmall)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooSmall(
@@ -282,6 +296,8 @@ public abstract class BaseApplicationResponse(
 
     /**
      * Content's body size doesn't match the provided one in `Content-Length` header
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.BodyLengthIsTooLong)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooLong(
@@ -297,6 +313,8 @@ public abstract class BaseApplicationResponse(
          * Attribute key to access engine's response instance.
          * This is engine internal API and should be never used by end-users
          * unless you are writing your own engine implementation
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.Companion.EngineResponseAttributeKey)
          */
         public val EngineResponseAttributeKey: AttributeKey<BaseApplicationResponse> =
             AttributeKey("EngineResponse")
@@ -304,6 +322,8 @@ public abstract class BaseApplicationResponse(
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
          * to start response object processing via [respondOutgoingContent]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationResponse.Companion.setupSendPipeline)
          */
         public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { body ->
@@ -319,6 +339,32 @@ public abstract class BaseApplicationResponse(
                     ?: call.attributes[EngineResponseAttributeKey]
 
                 response.respondOutgoingContent(body)
+            }
+        }
+
+        internal fun setupFallbackResponse(application: EnginePipeline, logger: Logger) {
+            val inDevMode = application.developmentMode
+            application.intercept(EnginePipeline.Before) {
+                try {
+                    proceed()
+                } catch (cause: Throwable) {
+                    if (call.isHandled) return@intercept
+
+                    logger.error("Unhandled server error: \"${cause.message}\"", cause)
+
+                    val response = call.response as? BaseApplicationResponse
+                        ?: call.attributes[EngineResponseAttributeKey]
+
+                    val content = if (inDevMode) {
+                        ExceptionPageContent(call, cause)
+                    } else {
+                        object : OutgoingContent.NoContent() {
+                            override val status: HttpStatusCode = HttpStatusCode.InternalServerError
+                        }
+                    }
+
+                    response.respondOutgoingContent(content)
+                }
             }
         }
     }

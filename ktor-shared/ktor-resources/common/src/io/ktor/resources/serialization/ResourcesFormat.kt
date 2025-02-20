@@ -12,6 +12,8 @@ import kotlinx.serialization.modules.*
 
 /**
  * A format to (de)serialize resources instances
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat)
  */
 @OptIn(ExperimentalSerializationApi::class)
 public class ResourcesFormat(
@@ -20,6 +22,8 @@ public class ResourcesFormat(
 
     /**
      * A query parameter description
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.Parameter)
      */
     public data class Parameter(
         val name: String,
@@ -28,6 +32,8 @@ public class ResourcesFormat(
 
     /**
      * Builds a path pattern for a given [serializer]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.encodeToPathPattern)
      */
     public fun <T> encodeToPathPattern(serializer: KSerializer<T>): String {
         val pathBuilder = StringBuilder()
@@ -56,6 +62,8 @@ public class ResourcesFormat(
 
     /**
      * Builds a description of query parameters for a given [serializer]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.encodeToQueryParameters)
      */
     public fun <T> encodeToQueryParameters(serializer: KSerializer<T>): Set<Parameter> {
         val path = encodeToPathPattern(serializer)
@@ -84,6 +92,8 @@ public class ResourcesFormat(
 
     /**
      * Builds [Parameters] for a resource [T]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.encodeToParameters)
      */
     public fun <T> encodeToParameters(serializer: KSerializer<T>, value: T): Parameters {
         val encoder = ParametersEncoder(serializersModule)
@@ -93,6 +103,8 @@ public class ResourcesFormat(
 
     /**
      * Builds a [T] resource instance from [parameters]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.decodeFromParameters)
      */
     public fun <T> decodeFromParameters(deserializer: KSerializer<T>, parameters: Parameters): T {
         val input = ParametersDecoder(serializersModule, parameters, emptyList())

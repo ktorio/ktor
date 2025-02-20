@@ -86,7 +86,7 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingReadChannelContent() = runTest {
         val content = ByteChannel(true)
@@ -171,8 +171,9 @@ class RequestProducerTest {
         repeat(1000) {
             val body = ChannelWriterContent(
                 body = {
-                    for (i in 0 until sampleSize)
+                    for (i in 0 until sampleSize) {
                         writeByte(i.toByte())
+                    }
                 },
                 contentType = null
             )
@@ -231,7 +232,6 @@ private class TestEncoder : ContentEncoder {
         src.limit()
     }
 
-    @OptIn(InternalAPI::class)
     override fun complete() {
         channel.close()
     }

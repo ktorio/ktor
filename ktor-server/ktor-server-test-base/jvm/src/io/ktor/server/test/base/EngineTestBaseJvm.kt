@@ -2,7 +2,6 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-// ktlint-disable filename
 package io.ktor.server.test.base
 
 import io.ktor.client.*
@@ -12,13 +11,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.junit.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.junit.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
@@ -44,7 +43,6 @@ actual abstract class EngineTestBase<
 ) : BaseTest(), CoroutineScope {
     private val testJob = Job()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     protected val testDispatcher = Dispatchers.IO.limitedParallelism(32)
 
     protected val isUnderDebugger: Boolean =
@@ -114,7 +112,7 @@ actual abstract class EngineTestBase<
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val _port = this.port
+        val savedPort = this.port
         val environment = applicationEnvironment {
             val delegate = LoggerFactory.getLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -140,7 +138,7 @@ actual abstract class EngineTestBase<
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
 
-            connector { port = _port }
+            connector { port = savedPort }
             if (enableSsl) {
                 sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
                     this.port = sslPort
@@ -219,7 +217,7 @@ actual abstract class EngineTestBase<
             starting.join()
             @OptIn(ExperimentalCoroutinesApi::class)
             starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
-        } catch (t: Throwable) { // InterruptedException?
+        } catch (t: Throwable) {
             starting.cancel()
             listOf(t)
         }
@@ -336,8 +334,6 @@ actual abstract class EngineTestBase<
 
                 followRedirects = false
                 expectSuccess = false
-
-                install(HttpRequestRetry)
             }
         }
 

@@ -9,22 +9,32 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
-import io.netty.bootstrap.*
-import io.netty.channel.*
-import io.netty.channel.epoll.*
-import io.netty.channel.kqueue.*
-import io.netty.channel.socket.*
-import io.netty.channel.socket.nio.*
-import io.netty.handler.codec.http.*
-import kotlinx.coroutines.*
-import java.net.*
-import java.util.concurrent.*
-import kotlin.reflect.*
+import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.Channel
+import io.netty.channel.ChannelOption
+import io.netty.channel.ChannelPipeline
+import io.netty.channel.EventLoopGroup
+import io.netty.channel.epoll.Epoll
+import io.netty.channel.epoll.EpollServerSocketChannel
+import io.netty.channel.kqueue.KQueue
+import io.netty.channel.kqueue.KQueueServerSocketChannel
+import io.netty.channel.socket.ServerSocketChannel
+import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.http.HttpObjectDecoder
+import io.netty.handler.codec.http.HttpServerCodec
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import java.net.BindException
+import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
 
 private val AFTER_CALL_PHASE = PipelinePhase("After")
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine)
  */
 public class NettyApplicationEngine(
     environment: ApplicationEnvironment,
@@ -36,31 +46,43 @@ public class NettyApplicationEngine(
 
     /**
      * Configuration for the [NettyApplicationEngine]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration)
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
 
         /**
          * Number of concurrently running requests from the same http pipeline
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.runningLimit)
          */
         public var runningLimit: Int = 32
 
         /**
          * Do not create separate call event group and reuse worker group for processing calls
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.shareWorkGroup)
          */
         public var shareWorkGroup: Boolean = false
 
         /**
          * User-provided function to configure Netty's [ServerBootstrap]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.configureBootstrap)
          */
         public var configureBootstrap: ServerBootstrap.() -> Unit = {}
 
         /**
          * Timeout in seconds for sending responses to client
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.responseWriteTimeoutSeconds)
          */
         public var responseWriteTimeoutSeconds: Int = 10
 
         /**
          * Timeout in seconds for reading requests from client, "0" is infinite.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.requestReadTimeoutSeconds)
          */
         public var requestReadTimeoutSeconds: Int = 0
 
@@ -69,37 +91,51 @@ public class NettyApplicationEngine(
          * dead client connections will be discarded.
          * The timeout period is configured by the system so configure
          * your host accordingly.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.tcpKeepAlive)
          */
         public var tcpKeepAlive: Boolean = false
 
         /**
          * The url limit including query parameters
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.maxInitialLineLength)
          */
         public var maxInitialLineLength: Int = HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH
 
         /**
          * The maximum length of all headers.
          * If the sum of the length of each header exceeds this value, a TooLongFrameException will be raised.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.maxHeaderSize)
          */
         public var maxHeaderSize: Int = HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE
 
         /**
          * The maximum length of the content or each chunk
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.maxChunkSize)
          */
         public var maxChunkSize: Int = HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE
 
         /**
          * If set to `true`, enables HTTP/2 protocol for Netty engine
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableHttp2)
          */
         public var enableHttp2: Boolean = true
 
         /**
          * User-provided function to configure Netty's [HttpServerCodec]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.httpServerCodec)
          */
         public var httpServerCodec: () -> HttpServerCodec = this::defaultHttpServerCodec
 
         /**
          * User-provided function to configure Netty's [ChannelPipeline]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.channelPipelineConfig)
          */
         public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
 
@@ -157,7 +193,7 @@ public class NettyApplicationEngine(
         workerEventGroup.asCoroutineDispatcher()
     }
 
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     private var channels: List<Channel>? = null
     internal val bootstraps: List<ServerBootstrap> by lazy {
@@ -224,7 +260,7 @@ public class NettyApplicationEngine(
 
         monitor.raiseCatching(ServerReady, environment, environment.log)
 
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -243,7 +279,7 @@ public class NettyApplicationEngine(
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        cancellationDeferred?.complete()
+        cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 

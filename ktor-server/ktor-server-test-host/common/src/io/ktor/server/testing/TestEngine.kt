@@ -12,6 +12,8 @@ import io.ktor.util.logging.*
 
 /**
  * Creates an engine environment for a test application.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.createTestEnvironment)
  */
 public fun createTestEnvironment(
     configure: ApplicationEnvironmentBuilder.() -> Unit = {}
@@ -24,6 +26,8 @@ public fun createTestEnvironment(
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.withApplication)
  */
 @Deprecated(
     "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
@@ -48,6 +52,8 @@ public fun <R> withApplication(
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.withTestApplication)
  */
 @Deprecated(
     "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
@@ -60,6 +66,8 @@ public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.withTestApplication)
  */
 @Deprecated(
     "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
@@ -75,6 +83,8 @@ public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test:
 
 /**
  * Starts a test application engine, passes it to the [test] function, and stops it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.withTestApplication)
  */
 @Deprecated(
     "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
@@ -94,6 +104,8 @@ public fun <R> withTestApplication(
 
 /**
  * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestEngine)
  */
 public object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
 

@@ -7,6 +7,8 @@ package io.ktor.server.config
 /**
  * Merge configuration combining all their keys.
  * If key is not found in one of the configs, search will continue in the next config in the list.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.merge)
  */
 @Deprecated(
     "Use mergeWith/withFallback instead.",
@@ -21,6 +23,9 @@ public fun List<ApplicationConfig>.merge(): ApplicationConfig {
  * Merge configuration combining all their keys.
  * If the key exists in this and [other] config, the value from the [other] config will be used.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.mergeWith)
+ *
  * @see [withFallback]
  */
 public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig {
@@ -30,6 +35,9 @@ public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationCon
 /**
  * Merge configuration combining all their keys.
  * If the key exists in this and [other] config, the value from this config will be used.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.withFallback)
  *
  * @see [mergeWith]
  */

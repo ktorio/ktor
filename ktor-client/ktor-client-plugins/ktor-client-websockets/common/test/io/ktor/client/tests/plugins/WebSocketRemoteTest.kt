@@ -1,24 +1,25 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests.plugins
 
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.cancel
 import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {
     private val echoWebsocket = "$TEST_WEBSOCKET_SERVER/websockets/echo"
-    private val skipEngines = listOf("Android", "Apache", "Curl")
+    private val skipEngines = listOf("Android", "Apache")
 
     @Test
-    fun testRemotePingPong() = clientTests(skipEngines) {
+    fun testRemotePingPong() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -34,7 +35,7 @@ class WebSocketRemoteTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testSecureRemotePingPong() = clientTests(skipEngines) {
+    fun testSecureRemotePingPong() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -49,7 +50,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLogging() = clientTests(skipEngines) {
+    fun testWithLogging() = clientTests(except(skipEngines)) {
         config {
             install(Logging) {
                 level = LogLevel.ALL
@@ -66,7 +67,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSessionClose() = clientTests(skipEngines) {
+    fun testSessionClose() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -79,7 +80,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSessionTermination() = clientTests(skipEngines) {
+    fun testSessionTermination() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -92,7 +93,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testBadCloseReason() = clientTests(skipEngines) {
+    fun testBadCloseReason() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }
@@ -105,7 +106,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testNotFound() = clientTests(skipEngines) {
+    fun testNotFound() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
             expectSuccess = true
@@ -145,7 +146,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private class CustomException : Exception()
 
     @Test
-    fun testErrorHandling() = clientTests(skipEngines) {
+    fun testErrorHandling() = clientTests(except(skipEngines)) {
         config {
             install(WebSockets)
         }

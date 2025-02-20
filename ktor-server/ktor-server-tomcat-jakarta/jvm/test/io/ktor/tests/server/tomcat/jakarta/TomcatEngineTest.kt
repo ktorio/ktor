@@ -48,6 +48,8 @@ class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplic
 
     /**
      * Tomcat 9.0.56 issue
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.tomcat.jakarta.TomcatContentTest.testMultipartFileUpload)
      */
     @Ignore
     override fun testMultipartFileUpload() {
@@ -165,6 +167,8 @@ class TomcatSustainabilityTestSuite :
 
     /**
      * Tomcat trim `vspace` symbol and drop content-length. The request is treated as chunked.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.tomcat.jakarta.TomcatSustainabilityTestSuite.testChunkedWithVSpace)
      */
     @Ignore
     @Test

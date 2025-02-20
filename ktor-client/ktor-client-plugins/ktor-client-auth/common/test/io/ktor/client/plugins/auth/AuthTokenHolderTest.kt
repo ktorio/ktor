@@ -5,15 +5,15 @@
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
-import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class AuthTokenHolderTest {
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testSetTokenCalledOnce() = testSuspend {
+    fun testSetTokenCalledOnce() = runTest {
         val holder = AuthTokenHolder<BearerTokens> { TODO() }
 
         val monitor = Job()
@@ -44,7 +44,7 @@ class AuthTokenHolderTest {
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testLoadTokenWaitsUntilTokenIsLoaded() = testSuspend {
+    fun testLoadTokenWaitsUntilTokenIsLoaded() = runTest {
         val monitor = Job()
         val holder = AuthTokenHolder {
             monitor.join()
@@ -66,7 +66,7 @@ class AuthTokenHolderTest {
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testClearCalledWhileLoadingTokens() = testSuspend {
+    fun testClearCalledWhileLoadingTokens() = runTest {
         val monitor = Job()
 
         var clearTokenCalled = false
@@ -97,7 +97,7 @@ class AuthTokenHolderTest {
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testClearCalledWhileSettingTokens() = testSuspend {
+    fun testClearCalledWhileSettingTokens() = runTest {
         val monitor = Job()
 
         var clearTokenCalled = false
@@ -128,7 +128,7 @@ class AuthTokenHolderTest {
     }
 
     @Test
-    fun testExceptionInLoadTokens() = testSuspend {
+    fun testExceptionInLoadTokens() = runTest {
         var firstCall = true
         val holder = AuthTokenHolder {
             if (firstCall) {
@@ -142,7 +142,7 @@ class AuthTokenHolderTest {
     }
 
     @Test
-    fun testExceptionInSetTokens() = testSuspend {
+    fun testExceptionInSetTokens() = runTest {
         val holder = AuthTokenHolder<String> {
             fail("loadTokens argument function shouldn't be invoked")
         }

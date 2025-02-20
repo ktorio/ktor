@@ -6,6 +6,8 @@ package io.ktor.http
 
 /**
  * Represents `Content-Disposition` header value
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition)
  */
 public class ContentDisposition(
     disposition: String,
@@ -13,17 +15,23 @@ public class ContentDisposition(
 ) : HeaderValueWithParameters(disposition, parameters) {
     /**
      * Content disposition value without parameters
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.disposition)
      */
     public val disposition: String get() = content
 
     /**
      * Content disposition name (from parameter named `name`)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.name)
      */
     public val name: String?
         get() = parameter(Parameters.Name)
 
     /**
      * Creates new with parameter appended.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.withParameter)
      */
     public fun withParameter(key: String, value: String, encodeValue: Boolean = true): ContentDisposition {
         val encodedValue = if (encodeValue) {
@@ -37,6 +45,8 @@ public class ContentDisposition(
 
     /**
      * Creates new with parameters appended
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.withParameters)
      */
     public fun withParameters(newParameters: List<HeaderValueParam>): ContentDisposition =
         ContentDisposition(disposition, parameters + newParameters)
@@ -52,32 +62,44 @@ public class ContentDisposition(
     public companion object {
         /**
          * `Content-Disposition: file`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Companion.File)
          */
         public val File: ContentDisposition = ContentDisposition("file")
 
         /**
          * `Content-Disposition: mixed`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Companion.Mixed)
          */
         public val Mixed: ContentDisposition = ContentDisposition("mixed")
 
         /**
          * `Content-Disposition: attachment`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Companion.Attachment)
          */
         public val Attachment: ContentDisposition = ContentDisposition("attachment")
 
         /**
          * `Content-Disposition: inline`
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Companion.Inline)
          */
         public val Inline: ContentDisposition = ContentDisposition("inline")
 
         /**
          * Parse `Content-Disposition` header [value]
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Companion.parse)
          */
         public fun parse(value: String): ContentDisposition = parse(value) { v, p -> ContentDisposition(v, p) }
     }
 
     /**
      * Frequently used content disposition parameter names
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Parameters)
      */
     @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     public object Parameters {

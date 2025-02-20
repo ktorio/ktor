@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlin.math.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,
@@ -38,10 +38,11 @@ internal fun CoroutineScope.attachForWritingImpl(
                 when (bytesWritten) {
                     0 -> sockedClosed = true
                     -1 -> {
-                        if (isWouldBlockError(getSocketError())) {
+                        val error = getSocketError()
+                        if (isWouldBlockError(error)) {
                             needSelect = true
                         } else {
-                            throw PosixException.forSocketError()
+                            throw PosixException.forSocketError(error)
                         }
                     }
                 }

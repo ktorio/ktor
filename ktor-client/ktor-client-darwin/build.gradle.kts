@@ -1,4 +1,10 @@
-apply<test.server.TestServerPlugin>()
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+plugins {
+    id("test-server")
+}
 
 kotlin {
 
@@ -6,6 +12,7 @@ kotlin {
         darwinMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
+                api(project(":ktor-network:ktor-network-tls"))
             }
         }
         darwinTest {

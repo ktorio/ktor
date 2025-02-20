@@ -6,8 +6,10 @@ package io.ktor.server.engine
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.http.cio.internals.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.UnsupportedMediaTypeException
 import io.ktor.server.request.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -33,16 +35,21 @@ internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
 @OptIn(InternalAPI::class)
 internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
     val contentType = call.request.header(HttpHeaders.ContentType)
-        ?: throw IllegalStateException("Content-Type header is required for multipart processing")
+        ?: throw UnsupportedMediaTypeException(null)
 
     val contentLength = call.request.header(HttpHeaders.ContentLength)?.toLong()
-    return CIOMultipartDataBase(
-        coroutineContext + Dispatchers.Unconfined,
-        rc,
-        contentType,
-        contentLength,
-        call.formFieldLimit
-    )
+
+    try {
+        return CIOMultipartDataBase(
+            coroutineContext + Dispatchers.Unconfined,
+            rc,
+            contentType,
+            contentLength,
+            formFieldLimit = call.formFieldLimit
+        )
+    } catch (_: UnsupportedMediaTypeExceptionCIO) {
+        throw UnsupportedMediaTypeException(ContentType.parse(contentType))
+    }
 }
 
 internal actual fun Source.readTextWithCustomCharset(charset: Charset): String =

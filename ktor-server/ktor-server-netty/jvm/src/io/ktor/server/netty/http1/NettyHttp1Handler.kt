@@ -130,7 +130,8 @@ internal class NettyHttp1Handler(
         val requestBodyChannel = when {
             message is LastHttpContent && !message.content().isReadable -> null
             message.method() === HttpMethod.GET &&
-                !HttpUtil.isContentLengthSet(message) && !HttpUtil.isTransferEncodingChunked(message) -> {
+                !HttpUtil.isContentLengthSet(message) &&
+                !HttpUtil.isTransferEncodingChunked(message) -> {
                 skipEmpty = true
                 null
             }

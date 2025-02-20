@@ -23,16 +23,23 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSock
 
 /**
  * Indicates if a client engine supports WebSockets.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSocketCapability)
  */
 public data object WebSocketCapability : HttpClientEngineCapability<Unit>
 
 /**
  * Indicates if a client engine supports extensions for WebSocket plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSocketExtensionsCapability)
  */
 public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Unit>
 
 /**
  * Client WebSocket plugin.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
  *
  * @property pingIntervalMillis - interval between [FrameType.PING] messages.
  * @property maxFrameSize - max size of a single websocket frame.
@@ -48,6 +55,9 @@ public class WebSockets internal constructor(
     /**
      * Client WebSocket plugin.
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
+     *
      * @property pingIntervalMillis - interval between [FrameType.PING] messages.
      * @property maxFrameSize - max size of a single websocket frame.
      */
@@ -58,6 +68,8 @@ public class WebSockets internal constructor(
 
     /**
      * Client WebSocket plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
      */
     public constructor() : this(PINGER_DISABLED, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
 
@@ -98,6 +110,8 @@ public class WebSockets internal constructor(
 
     /**
      * [WebSockets] configuration.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config)
      */
     @KtorDsl
     public class Config {
@@ -107,21 +121,29 @@ public class WebSockets internal constructor(
          * Sets interval of sending ping frames.
          *
          * Use [PINGER_DISABLED] to disable ping.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.pingIntervalMillis)
          */
         public var pingIntervalMillis: Long = PINGER_DISABLED
 
         /**
          * Sets maximum frame size in bytes.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.maxFrameSize)
          */
         public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
 
         /**
          * A converter for serialization/deserialization
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.contentConverter)
          */
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
          * Configure WebSocket extensions.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.extensions)
          */
         public fun extensions(block: WebSocketExtensionsConfig.() -> Unit) {
             extensionsConfig.apply(block)
@@ -130,6 +152,8 @@ public class WebSockets internal constructor(
 
     /**
      * Add WebSockets support for ktor http client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Plugin)
      */
     public companion object Plugin : HttpClientPlugin<Config, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("Websocket")
@@ -174,8 +198,9 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    @Suppress("ktlint:standard:max-line-length")
                     throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}" // ktlint-disable max-line-length
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}"
                     )
                 }
                 if (session !is WebSocketSession) {

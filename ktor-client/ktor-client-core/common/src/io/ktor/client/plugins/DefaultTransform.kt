@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
@@ -22,6 +23,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformer
  * Install default transformers.
  * Usually installed by default so there is no need to use it
  * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultTransformers)
  */
 @OptIn(InternalAPI::class)
 public fun HttpClient.defaultTransformers() {
@@ -79,6 +82,12 @@ public fun HttpClient.defaultTransformers() {
 
             ByteArray::class -> {
                 val bytes = body.toByteArray()
+                val contentLength = context.response.contentLength()
+
+                if (context.request.method != HttpMethod.Head) {
+                    checkContentLength(contentLength, bytes.size.toLong())
+                }
+
                 proceedWith(HttpResponseContainer(info, bytes))
             }
 
@@ -111,6 +120,22 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, response.status))
             }
 
+            MultiPartData::class -> {
+                val rawContentType = checkNotNull(context.response.headers[HttpHeaders.ContentType]) {
+                    "No content type provided for multipart"
+                }
+                val contentType = ContentType.parse(rawContentType)
+                check(contentType.match(ContentType.MultiPart.FormData)) {
+                    "Expected multipart/form-data, got $contentType"
+                }
+
+                val contentLength = context.response.headers[HttpHeaders.ContentLength]?.toLong()
+                val body = CIOMultipartDataBase(coroutineContext, body, rawContentType, contentLength)
+                val parsedResponse = HttpResponseContainer(info, body)
+
+                proceedWith(parsedResponse)
+            }
+
             else -> null
         }
         if (result != null) {
@@ -122,6 +147,12 @@ public fun HttpClient.defaultTransformers() {
     }
 
     platformResponseDefaultTransformers()
+}
+
+private fun checkContentLength(contentLength: Long?, bytes: Long) {
+    check(contentLength == null || contentLength == bytes) {
+        "Content-Length mismatch: expected $contentLength bytes, but received $bytes bytes"
+    }
 }
 
 internal expect fun platformRequestDefaultTransform(

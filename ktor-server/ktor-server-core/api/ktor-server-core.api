@@ -590,9 +590,13 @@ public final class io/ktor/server/engine/EmbeddedServer {
 	public final fun reload ()V
 	public final fun start (Z)Lio/ktor/server/engine/EmbeddedServer;
 	public static synthetic fun start$default (Lio/ktor/server/engine/EmbeddedServer;ZILjava/lang/Object;)Lio/ktor/server/engine/EmbeddedServer;
+	public final fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/EmbeddedServer;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun stop (JJ)V
 	public final fun stop (JJLjava/util/concurrent/TimeUnit;)V
 	public static synthetic fun stop$default (Lio/ktor/server/engine/EmbeddedServer;JJILjava/lang/Object;)V
+	public final fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/EmbeddedServer;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/engine/EmbeddedServerKt {
@@ -895,7 +899,9 @@ public final class io/ktor/server/http/content/StaticContentResolutionKt {
 public final class io/ktor/server/http/content/SuppressionAttributeKt {
 	public static final fun getSuppressionAttribute ()Lio/ktor/util/AttributeKey;
 	public static final fun isCompressionSuppressed (Lio/ktor/server/application/ApplicationCall;)Z
+	public static final fun isDecompressionSuppressed (Lio/ktor/server/application/ApplicationCall;)Z
 	public static final fun suppressCompression (Lio/ktor/server/application/ApplicationCall;)V
+	public static final fun suppressDecompression (Lio/ktor/server/application/ApplicationCall;)V
 }
 
 public final class io/ktor/server/logging/LoggingKt {
@@ -994,11 +1000,11 @@ public final class io/ktor/server/plugins/UnsupportedMediaTypeException : io/kto
 }
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsJvmKt {
+	public static final fun getDEFAULT_FORM_FIELD_LIMIT ()J
 	public static final fun receiveStream (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsKt {
-	public static final field DEFAULT_FORM_FIELD_MAX_SIZE J
 	public static final fun getFormFieldLimit (Lio/ktor/server/application/ApplicationCall;)J
 	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1135,8 +1141,8 @@ public final class io/ktor/server/response/ApplicationResponseFunctionsKt {
 	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/Url;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun respondRedirect$default (Lio/ktor/server/application/ApplicationCall;ZLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun respondSource (Lio/ktor/server/application/ApplicationCall;Lkotlinx/io/Source;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun respondSource$default (Lio/ktor/server/application/ApplicationCall;Lkotlinx/io/Source;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun respondSource (Lio/ktor/server/application/ApplicationCall;Lkotlinx/io/RawSource;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun respondSource$default (Lio/ktor/server/application/ApplicationCall;Lkotlinx/io/RawSource;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun respondText (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondText (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondText$default (Lio/ktor/server/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;

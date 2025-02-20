@@ -22,6 +22,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCookies")
  * By default, it uses an in-memory storage, but you can also implement a persistent storage using [CookiesStorage].
  *
  * You can learn more from [Cookies](https://ktor.io/docs/http-cookies.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies)
  */
 public class HttpCookies internal constructor(
     private val storage: CookiesStorage,
@@ -34,6 +36,8 @@ public class HttpCookies internal constructor(
 
     /**
      * Gets all the cookies associated with a specific [requestUrl].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.get)
      */
     public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
@@ -85,6 +89,8 @@ public class HttpCookies internal constructor(
 
     /**
      * A configuration for the [HttpCookies] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.Config)
      */
     @KtorDsl
     public class Config {
@@ -93,12 +99,16 @@ public class HttpCookies internal constructor(
         /**
          * Specifies a storage used to keep cookies between calls.
          * By default, it uses an initially empty in-memory [AcceptAllCookiesStorage].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.Config.storage)
          */
         public var storage: CookiesStorage = AcceptAllCookiesStorage()
 
         /**
          * Registers a [block] that will be called when the configuration is complete the specified [storage].
          * The [block] can potentially add new cookies by calling [CookiesStorage.addCookie].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.Config.default)
          */
         public fun default(block: suspend CookiesStorage.() -> Unit) {
             defaults.add(block)
@@ -132,16 +142,22 @@ private fun renderClientCookies(cookies: List<Cookie>): String =
 
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.cookies)
  */
 public suspend fun HttpClient.cookies(url: Url): List<Cookie> = pluginOrNull(HttpCookies)?.get(url) ?: emptyList()
 
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.cookies)
  */
 public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
     pluginOrNull(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
  * Gets the specified [Cookie] by its [name].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.get)
  */
 public operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }

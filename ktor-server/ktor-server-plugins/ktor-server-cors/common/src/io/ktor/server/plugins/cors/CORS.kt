@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.cors
@@ -27,6 +27,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
  * ```
  *
  * You can learn more from [CORS](https://ktor.io/docs/cors.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORS)
  */
 @Deprecated(
     message = "This plugin was moved to io.ktor.server.plugins.cors.routing",
@@ -155,7 +157,9 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
 }
 
 private enum class OriginCheckResult {
-    OK, SkipCORS, Failed
+    OK,
+    SkipCORS,
+    Failed,
 }
 
 private fun checkOrigin(
