@@ -319,6 +319,7 @@ public abstract interface annotation class io/ktor/utils/io/PublicAPICandidate :
 }
 
 public final class io/ktor/utils/io/ReaderJob : io/ktor/utils/io/ChannelJob {
+	public final fun flushAndClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getChannel ()Lio/ktor/utils/io/ByteWriteChannel;
 	public fun getJob ()Lkotlinx/coroutines/Job;
 }
