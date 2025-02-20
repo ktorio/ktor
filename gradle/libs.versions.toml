@@ -70,7 +70,7 @@ xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
 swagger-codegen = "3.0.66"
-swagger-codegen-generators = "1.0.55"
+swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.25"
 
 puppeteer = "21.5.0"
