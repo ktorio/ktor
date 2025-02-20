@@ -53,7 +53,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 if (value is Buffer) {
                     partHeaders.append(HttpHeaders.ContentLength, value.remaining.toString())
                 }
-                PartData.BinaryItem({ value }, { value.close() }, partHeaders.build())
+                PartData.BinaryItem({ value.peek() }, { value.close() }, partHeaders.build())
             }
             is InputProvider -> {
                 val size = value.size
