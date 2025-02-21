@@ -7,11 +7,13 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.plugins.sse.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -31,8 +33,7 @@ internal class OkHttpSSESession(
 
     private val _incoming = Channel<ServerSentEvent>(8)
 
-    override val incoming: Flow<ServerSentEvent>
-        get() = _incoming.receiveAsFlow()
+    override val incoming: Flow<ServerSentEvent> = _incoming.consumeAsFlow()
 
     override fun onOpen(eventSource: EventSource, response: Response) {
         originResponse.complete(response)
@@ -40,6 +41,7 @@ internal class OkHttpSSESession(
 
     override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
         _incoming.trySendBlocking(ServerSentEvent(data, type, id))
+            .onFailure { if (it is CancellationException) throw it }
     }
 
     override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
