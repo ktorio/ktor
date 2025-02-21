@@ -5,7 +5,6 @@
 package io.ktor.util
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 
@@ -64,8 +63,8 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
             while (!isClosedForRead && (!first.isClosedForWrite || !second.isClosedForWrite)) {
                 readRemaining(CHUNK_BUFFER_SIZE).use {
                     try {
-                        first.writePacket(it.copy())
-                        second.writePacket(it.copy())
+                        first.writePacket(it.peek())
+                        second.writePacket(it.peek())
                     } catch (cause: Throwable) {
                         this@copyToBoth.cancel(cause)
                         first.close(cause)
