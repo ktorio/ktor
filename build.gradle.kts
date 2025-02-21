@@ -29,11 +29,9 @@ val nonDefaultProjectStructure by extra {
     )
 }
 
-apply(from = "gradle/compatibility.gradle")
-
 plugins {
     id("ktorbuild.doctor")
-    alias(libs.plugins.binaryCompatibilityValidator)
+    id("ktorbuild.compatibility")
     id("ktorbuild.dokka")
 }
 
