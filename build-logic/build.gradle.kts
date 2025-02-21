@@ -7,8 +7,9 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.kotlinx.atomicfu.gradlePlugin)
     implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.kotlinx.atomicfu.gradlePlugin)
+    implementation(libs.kotlinx.binaryCompatibilityValidator)
     implementation(libs.dokka.gradlePlugin)
     implementation(libs.develocity)
     implementation(libs.gradleDoctor)
