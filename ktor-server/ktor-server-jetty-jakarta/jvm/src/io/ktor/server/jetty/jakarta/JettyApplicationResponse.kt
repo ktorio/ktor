@@ -10,11 +10,11 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.pool.ByteBufferPool
+import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.suspendCancellableCoroutine
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
@@ -41,9 +41,49 @@ public class JettyApplicationResponse(
             if (responseJob.isInitialized()) {
                 responseJob.value.apply {
                     runCatching {
-                        channel.flushAndClose()
+                        flushAndClose()
                     }
-                    join()
+                }
+            }
+        }
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    private val responseJob: Lazy<ReaderJob> = lazy {
+        reader(Dispatchers.IO + coroutineContext + CoroutineName("response-writer")) {
+            var count = 0
+            val buffer = bufferPool.borrow()
+            try {
+                while(true) {
+                    when(val current = channel.readAvailable(buffer)) {
+                        -1 -> break
+                        0 -> {
+                            channel.awaitContent()
+                            continue
+                        }
+                        else -> count += current
+                    }
+
+                    suspendCoroutine<Unit> { continuation ->
+                        try {
+                            response.write(
+                                channel.isClosedForRead,
+                                buffer.flip(),
+                                Callback.from {
+                                    buffer.flip()
+                                    continuation.resume(Unit)
+                                }
+                            )
+                        } catch (cause: Throwable) {
+                            continuation.resumeWithException(cause)
+                        }
+                    }
+                }
+            } finally {
+                bufferPool.recycle(buffer)
+                runCatching {
+                    if (!response.isCommitted)
+                        response.write(true, allocate(0), Callback.NOOP)
                 }
             }
         }
@@ -79,44 +119,6 @@ public class JettyApplicationResponse(
         }
 
         upgradeJob.join()
-    }
-
-    @OptIn(InternalCoroutinesApi::class)
-    private val responseJob: Lazy<ReaderJob> = lazy {
-        reader(Dispatchers.IO) {
-            var count = 0
-            val buffer = bufferPool.borrow()
-            try {
-                while(true) {
-                    when(val current = channel.readAvailable(buffer)) {
-                        -1 -> break
-                        0 -> continue
-                        else -> count += current
-                    }
-
-                    suspendCoroutine<Unit> { continuation ->
-                        try {
-                            response.write(
-                                channel.isClosedForRead,
-                                buffer.flip(),
-                                Callback.from {
-                                    buffer.flip()
-                                    continuation.resume(Unit)
-                                }
-                            )
-                        } catch (cause: Throwable) {
-                            continuation.resumeWithException(cause)
-                        }
-                    }
-                }
-            } finally {
-                bufferPool.recycle(buffer)
-                runCatching {
-                    if (!response.isCommitted)
-                        response.write(true, allocate(0), Callback.NOOP)
-                }
-            }
-        }
     }
 
     override suspend fun respondFromBytes(bytes: ByteArray) {
