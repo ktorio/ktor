@@ -7,15 +7,12 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jmailen.gradle.kotlinter.KotlinterExtension
 
 fun Project.kotlin(block: KotlinMultiplatformExtension.() -> Unit) {
     configure(block)
 }
 
 val Project.kotlin: KotlinMultiplatformExtension get() = the()
-
-val Project.kotlinter: KotlinterExtension get() = the()
 
 fun NamedDomainObjectContainer<KotlinSourceSet>.commonMain(block: KotlinSourceSet.() -> Unit) {
     val sourceSet = getByName("commonMain")
@@ -24,21 +21,6 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.commonMain(block: KotlinSourceSe
 
 fun NamedDomainObjectContainer<KotlinSourceSet>.commonTest(block: KotlinSourceSet.() -> Unit) {
     val sourceSet = getByName("commonTest")
-    block(sourceSet)
-}
-
-fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixMain(block: KotlinSourceSet.() -> Unit) {
-    val sourceSet = findByName("jvmAndPosixMain") ?: getByName("jvmMain")
-    block(sourceSet)
-}
-
-fun NamedDomainObjectContainer<KotlinSourceSet>.jvmAndPosixTest(block: KotlinSourceSet.() -> Unit) {
-    val sourceSet = findByName("jvmAndPosixTest") ?: getByName("jvmTest")
-    block(sourceSet)
-}
-
-fun NamedDomainObjectContainer<KotlinSourceSet>.nixTest(block: KotlinSourceSet.() -> Unit) {
-    val sourceSet = findByName("nixTest") ?: return
     block(sourceSet)
 }
 
