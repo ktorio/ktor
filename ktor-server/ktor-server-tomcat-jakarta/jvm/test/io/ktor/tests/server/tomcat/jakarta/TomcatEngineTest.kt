@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.tomcat.jakarta
@@ -46,11 +46,7 @@ class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplic
         enableHttp2 = false
     }
 
-    /**
-     * Tomcat 9.0.56 issue
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.tomcat.jakarta.TomcatContentTest.testMultipartFileUpload)
-     */
+    // Tomcat 9.0.56 issue
     @Ignore
     override fun testMultipartFileUpload() {
     }
@@ -71,10 +67,6 @@ class TomcatHttpServerCommonTest :
 
     @Ignore // KTOR-6480
     override fun testErrorInBodyClosesConnectionWithContentLength() {}
-
-    @Ignore
-    override fun testHeadRequest() {
-    }
 }
 
 class TomcatHttpServerJvmTest :
