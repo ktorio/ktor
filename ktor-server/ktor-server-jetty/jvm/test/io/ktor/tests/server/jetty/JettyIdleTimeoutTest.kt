@@ -27,7 +27,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
 
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
         super.configure(configuration)
-        configuration.idleTimeout = 10.milliseconds
+        configuration.idleTimeout = 100.milliseconds
     }
 
     @Test

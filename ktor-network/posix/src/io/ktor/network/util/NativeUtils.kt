@@ -7,10 +7,11 @@ package io.ktor.network.util
 import io.ktor.utils.io.errors.*
 
 internal inline fun Int.check(
+    posixFunctionName: String? = null,
     block: (Int) -> Boolean = { it >= 0 }
 ): Int {
     if (!block(this)) {
-        throw PosixException.forSocketError()
+        throw PosixException.forSocketError(posixFunctionName = posixFunctionName)
     }
 
     return this

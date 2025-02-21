@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
+import kotlinx.io.Buffer
 import kotlin.contracts.*
 
 /**
@@ -49,8 +50,10 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 PartData.BinaryItem({ ByteReadPacket(value) }, {}, partHeaders.build())
             }
             is Source -> {
-                partHeaders.append(HttpHeaders.ContentLength, value.remaining.toString())
-                PartData.BinaryItem({ value.copy() }, { value.close() }, partHeaders.build())
+                if (value is Buffer) {
+                    partHeaders.append(HttpHeaders.ContentLength, value.remaining.toString())
+                }
+                PartData.BinaryItem({ value.peek() }, { value.close() }, partHeaders.build())
             }
             is InputProvider -> {
                 val size = value.size

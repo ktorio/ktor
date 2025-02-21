@@ -18,7 +18,7 @@ public fun Source.inputStream(): InputStream = asInputStream()
 
 @OptIn(InternalIoApi::class)
 public fun OutputStream.writePacket(packet: Source) {
-    packet.buffer.copyTo(this)
+    packet.transferTo(this.asSink())
 }
 
 public fun OutputStream.writePacket(block: Sink.() -> Unit) {

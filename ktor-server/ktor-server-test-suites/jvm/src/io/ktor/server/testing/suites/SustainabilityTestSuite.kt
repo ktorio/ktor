@@ -120,7 +120,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                         emptyLine()
                     }.build().use { request ->
                         repeat(repeatCount) {
-                            getOutputStream().writePacket(request.copy())
+                            getOutputStream().writePacket(request.peek())
                             getOutputStream().write(body)
                             getOutputStream().flush()
                         }

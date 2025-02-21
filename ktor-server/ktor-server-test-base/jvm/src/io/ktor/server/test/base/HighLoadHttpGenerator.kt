@@ -67,7 +67,7 @@ class HighLoadHttpGenerator(
     private val request = RequestResponseBuilder().apply(builder).build()
 
     private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining.toInt())!!.apply {
-        request.copy().readFully(this)
+        request.peek().readFully(this)
         clear()
     }
 
