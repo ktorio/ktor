@@ -41,7 +41,7 @@ class OkHttpFormatTest {
         private val loggedLines = mutableListOf<String>()
         private var currentLine = 0
         override fun log(message: String) {
-            loggedLines.add(message)
+            loggedLines.addAll(message.split('\n'))
         }
 
         fun assertLogEqual(msg: String): LogRecorder {
@@ -192,7 +192,7 @@ class OkHttpFormatTest {
     ) { client ->
         client.post("/") {
             setBody(object : OutgoingContent.ReadChannelContent() {
-                override val contentLength: Long?
+                override val contentLength: Long
                     get() = 11
                 override fun readFrom() = ByteReadChannel("hello world")
             })
@@ -243,7 +243,7 @@ class OkHttpFormatTest {
                 override suspend fun writeTo(channel: ByteWriteChannel) {
                     channel.writeStringUtf8("hello world")
                 }
-                override val contentLength: Long?
+                override val contentLength: Long
                     get() = 11
             })
         }
@@ -1051,7 +1051,7 @@ class OkHttpFormatTest {
                     return GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
                 }
 
-                override val contentLength: Long?
+                override val contentLength: Long
                     get() = 29
             })
         }
