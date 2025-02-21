@@ -69,15 +69,15 @@ ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.66"
-swagger-codegen-generators = "1.0.55"
+swagger-codegen = "3.0.67"
+swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.25"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
 develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.0.2"
+develocity-commonCustomUserData = "2.1"
 gradleDoctor = "0.10.0"
 
 [libraries]
