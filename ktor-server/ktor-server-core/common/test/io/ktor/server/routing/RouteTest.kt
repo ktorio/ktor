@@ -138,4 +138,36 @@ class RouteTest {
 
         assertEquals(HttpStatusCode.OK, client.get("/").status)
     }
+
+    @Test
+    fun testPathProperty() = testApplication {
+        application {
+            val root = routing {
+                get {}
+                get("/") {}
+                get("/trailing/slash/") {}
+                get("/parameter/{mandatory}/{optional?}") {}
+                get("/wildcard/*") {}
+                get("/tailcard/{...}") {}
+                get("/parameter/tailcard/{path...}") {}
+                get(Regex("/.+regex")) {}
+            }
+
+            val paths = root.getAllRoutes()
+                .map { it.path }
+                .toSet()
+
+            val expected = setOf(
+                "",
+                "/",
+                "/trailing/slash/",
+                "/parameter/{mandatory}/{optional?}",
+                "/wildcard/*",
+                "/tailcard/{...}",
+                "/parameter/tailcard/{...}",
+                "/Regex(/.+regex)",
+            )
+            assertEquals(expected, paths)
+        }
+    }
 }
