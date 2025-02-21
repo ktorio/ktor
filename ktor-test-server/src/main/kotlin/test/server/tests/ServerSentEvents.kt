@@ -25,7 +25,11 @@ internal fun Application.serverSentEvents() {
                 delay(delayMillis)
 
                 val times = call.parameters["times"]?.toInt() ?: 1
+                val interval = call.parameters["interval"]?.toLong() ?: 0
                 repeat(times) {
+                    if (interval > 0 && it > 0) {
+                        delay(interval)
+                    }
                     send("hello\nfrom server", "hello $it", "$it")
                 }
             }

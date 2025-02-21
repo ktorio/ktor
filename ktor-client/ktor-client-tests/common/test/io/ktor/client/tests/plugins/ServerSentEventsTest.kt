@@ -19,6 +19,7 @@ import io.ktor.sse.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
@@ -125,6 +126,31 @@ class ServerSentEventsTest : ClientLoader() {
                     assertEquals(50, size)
                     session.cancel()
                 }
+            }
+        }
+    }
+
+    @Test
+    fun testCancelSseSession() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            coroutineScope {
+                val job = launch {
+                    val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello?times=20&interval=100")
+                    try {
+                        session.incoming.collect()
+                    } finally {
+                        withContext(NonCancellable) {
+                            delay(500)
+                            assertFalse(session.isActive)
+                        }
+                    }
+                }
+                delay(500)
+                job.cancelAndJoin()
             }
         }
     }
