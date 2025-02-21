@@ -24,7 +24,7 @@ class UdpSocketTestNix {
         socket.close()
         selector.close()
 
-        selector.coroutineContext[Job]?.join()
+        socket.awaitClosed()
 
         val isDescriptorValid = fcntl(descriptor, F_GETFL) != -1 || errno != EBADF
         check(!isDescriptorValid) { "Descriptor was not closed" }
