@@ -6,6 +6,7 @@ package io.ktor.server.http
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -38,9 +39,9 @@ class RespondWriteTest {
             }
         }
 
-        assertFailsWith<IllegalStateException> {
-            client.get("/")
-        }
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("", response.bodyAsText())
     }
 
     @Test
@@ -69,18 +70,19 @@ class RespondWriteTest {
         routing {
             get("/") {
                 call.respondTextWriter {
+                    write("OK")
                     close() // after that point the main pipeline is going to continue since the channel is closed
                     // so we can't simply bypass an exception
                     // the workaround is to hold pipeline on channel pipe until commit rather than just close
 
-                    Thread.sleep(1000)
+                    delay(1000)
                     throw IllegalStateException("expected")
                 }
             }
         }
 
-        assertFailsWith<IllegalStateException> {
-            client.get("/")
-        }
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("OK", response.bodyAsText())
     }
 }

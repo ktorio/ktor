@@ -71,7 +71,7 @@ internal actual class SelectorHelper {
                         fWaitAll = 0,
                         dwTimeout = UInt.MAX_VALUE,
                         fAlertable = 0
-                    ).toInt().check()
+                    ).toInt().check(posixFunctionName = "WSAWaitForMultipleEvents")
                 }
 
                 processSelectedEvents(watchSet, completed, index, wsaEvents)
@@ -149,7 +149,7 @@ internal actual class SelectorHelper {
                     WSACreateEvent()
                 }
                 if (wsaEvent == WSA_INVALID_EVENT) {
-                    throw PosixException.forSocketError()
+                    throw PosixException.forSocketError(posixFunctionName = "WSACreateEvent")
                 }
 
                 var lNetworkEvents = events.fold(0) { acc, event ->
@@ -183,7 +183,8 @@ internal actual class SelectorHelper {
 
                 val networkEvents = memScoped {
                     val networkEvents = alloc<WSANETWORKEVENTS>()
-                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr).check()
+                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr)
+                        .check(posixFunctionName = "WSAEnumNetworkEvents")
                     networkEvents.lNetworkEvents
                 }
 
