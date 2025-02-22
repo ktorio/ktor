@@ -1,8 +1,6 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("DEPRECATION")
 
 package io.ktor.utils.io
 
@@ -250,7 +248,7 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
 }
 
 /**
- * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
+ * Reads all available bytes to [buffer] and returns immediately or suspends if no bytes available
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
@@ -399,7 +397,6 @@ private const val LF: Byte = '\n'.code.toByte()
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF and CRLF as a line delimiter.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
  *
  * @param out the buffer to write the line to
@@ -408,10 +405,41 @@ private const val LF: Byte = '\n'.code.toByte()
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
+    return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
+}
+
+/**
+ * Reads a line of UTF-8 characters to the specified [out] buffer.
+ * It recognizes the specified line ending as a line delimiter and throws an exception
+ * if an unexpected line delimiter is found.
+ * By default, all line endings (CR, LF and CRLF) are allowed as a line delimiter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
+ *
+ * @param out the buffer to write the line to
+ * @param max the maximum number of characters to read
+ * @param lineEnding the allowed line endings
+ *
+ * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
+ * @throws TooLongLineException if max is reached before encountering a newline or end of input
+ */
+@InternalAPI
+@OptIn(InternalIoApi::class)
+public suspend fun ByteReadChannel.readUTF8LineTo(
+    out: Appendable,
+    max: Int = Int.MAX_VALUE,
+    lineEnding: LineEndingMode = LineEndingMode.Any,
+): Boolean {
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return false
+
+    fun checkLineEndingAllowed(lineEndingToCheck: LineEndingMode) {
+        if (lineEndingToCheck !in lineEnding) {
+            throw IOException("Unexpected line ending $lineEndingToCheck, while expected $lineEnding")
+        }
+    }
 
     Buffer().use { lineBuffer ->
         while (!isClosedForRead) {
@@ -421,13 +449,17 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
                         // Check if LF follows CR after awaiting
                         if (readBuffer.exhausted()) awaitContent()
                         if (readBuffer.buffer[0] == LF) {
+                            checkLineEndingAllowed(LineEndingMode.CRLF)
                             readBuffer.discard(1)
+                        } else {
+                            checkLineEndingAllowed(LineEndingMode.CR)
                         }
                         out.append(lineBuffer.readString())
                         return true
                     }
 
                     LF -> {
+                        checkLineEndingAllowed(LineEndingMode.LF)
                         out.append(lineBuffer.readString())
                         return true
                     }

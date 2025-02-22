@@ -89,6 +89,8 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static synthetic fun readUTF8Line$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun readUTF8LineTo (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun readUTF8LineTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun readUTF8LineTo-RRvyBJ8 (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun readUTF8LineTo-RRvyBJ8$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun readUntil (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun readUntil$default (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/bytestring/ByteString;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun reader (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteChannel;Lkotlin/jvm/functions/Function2;)Lio/ktor/utils/io/ReaderJob;
@@ -276,6 +278,28 @@ public abstract interface annotation class io/ktor/utils/io/KtorDsl : java/lang/
 }
 
 public abstract interface annotation class io/ktor/utils/io/KtorExperimentalAPI : java/lang/annotation/Annotation {
+}
+
+public final class io/ktor/utils/io/LineEndingMode {
+	public static final field Companion Lio/ktor/utils/io/LineEndingMode$Companion;
+	public static final synthetic fun box-impl (I)Lio/ktor/utils/io/LineEndingMode;
+	public static final fun contains-lTjpP64 (II)Z
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public static final fun plus-1Ter-O4 (II)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class io/ktor/utils/io/LineEndingMode$Companion {
+	public final fun getAny-f0jXZW8 ()I
+	public final fun getCR-f0jXZW8 ()I
+	public final fun getCRLF-f0jXZW8 ()I
+	public final fun getLF-f0jXZW8 ()I
 }
 
 public final class io/ktor/utils/io/LookAheadSessionKt {

@@ -37,19 +37,19 @@ json-simple = "1.1.1"
 gson = "2.12.1"
 jackson = "2.18.2"
 
-junit = "5.11.4"
+junit = "5.12.0"
 slf4j = "2.0.16"
 logback = "1.5.16"
 
 dropwizard = "4.2.30"
-micrometer = "1.14.3"
+micrometer = "1.14.4"
 
 jansi = "2.4.1"
 typesafe = "1.4.3"
 
 mockk = "1.13.16"
 
-java-jwt = "4.4.0"
+java-jwt = "4.5.0"
 
 jwks-rsa = "0.22.1"
 mustache = "0.9.14"
@@ -69,15 +69,15 @@ ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.66"
-swagger-codegen-generators = "1.0.55"
+swagger-codegen = "3.0.67"
+swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.25"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
 develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.0.2"
+develocity-commonCustomUserData = "2.1"
 gradleDoctor = "0.10.0"
 
 [libraries]
