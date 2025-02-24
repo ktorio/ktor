@@ -352,7 +352,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 /**
  * String representation of the path matched by this route.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.path)
  */
 public val RoutingNode.path: String
     get() = path()
