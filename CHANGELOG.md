@@ -16,6 +16,7 @@
 * NPE in readBuffer ([KTOR-8086](https://youtrack.jetbrains.com/issue/KTOR-8086))
 * JS/WASM fails with "IllegalStateException: Content-Length mismatch" on requesting gzipped content ([KTOR-7934](https://youtrack.jetbrains.com/issue/KTOR-7934))
 * Resources: a / route isn't resolved when there is a sibling `staticResources` ([KTOR-6671](https://youtrack.jetbrains.com/issue/KTOR-6671))
+* Server accepts \r without a following \n as a valid line terminator in chunked transfer encoding ([KTOR-8015](https://youtrack.jetbrains.com/issue/KTOR-8015))
 
 
 # 3.1.0
