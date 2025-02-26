@@ -11,6 +11,7 @@ public final class io/ktor/server/metrics/micrometer/MicrometerMetricsConfig {
 	public final fun setMetricName (Ljava/lang/String;)V
 	public final fun setRegistry (Lio/micrometer/core/instrument/MeterRegistry;)V
 	public final fun timers (Lkotlin/jvm/functions/Function3;)V
+	public final fun transformRoute (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/metrics/micrometer/MicrometerMetricsKt {
