@@ -151,6 +151,19 @@ class RouteTest {
                 get("/tailcard/{...}") {}
                 get("/parameter/tailcard/{path...}") {}
                 get(Regex("/.+regex")) {}
+
+                // Routing nodes not related to path
+                route("omitted") {
+                    contentType(ContentType.Text.CSV) {
+                        post("contentType"){}
+                    }
+                    param("order", "asc") {
+                        post("param") {}
+                    }
+                    header("Accept-Language", "en-US,en;q=0.5") {
+                        get("header") {}
+                    }
+                }
             }
 
             val paths = root.getAllRoutes()
@@ -166,6 +179,11 @@ class RouteTest {
                 "/tailcard/{...}",
                 "/parameter/tailcard/{...}",
                 "/Regex(/.+regex)",
+
+                // contentType, param and header RouteSelectors should be omitted
+                "/omitted/contentType",
+                "/omitted/param",
+                "/omitted/header",
             )
             assertEquals(expected, paths)
         }
