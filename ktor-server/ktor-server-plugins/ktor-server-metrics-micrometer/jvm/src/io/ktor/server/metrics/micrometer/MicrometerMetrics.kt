@@ -120,7 +120,7 @@ public class MicrometerMetricsConfig {
         timerBuilder = block
     }
 
-    internal var transformRoute: RoutingNode.() -> String = { path }
+    internal var transformRoute: (RoutingNode) -> String = { it.path }
 
     /**
      * Configures mapping function for the route label string of the [CallMeasure].
@@ -131,20 +131,20 @@ public class MicrometerMetricsConfig {
      * Use the toString() function of the RoutingNode:
      * ```kotlin
      * transformRoute {
-     *    toString()
+     *    it.toString()
      * }
      * ```
      *
      * Remove a prefix from the path:
      * ```kotlin
      * transformRoute {
-     *     path.removePrefix("/path/prefix")
+     *     it.path.removePrefix("/path/prefix")
      * }
      * ```
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.transformRoute)
      */
-    public fun transformRoute(block : RoutingNode.() -> String) {
+    public fun transformRoute(block: (RoutingNode) -> String) {
         transformRoute = block
     }
 }

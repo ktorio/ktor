@@ -409,7 +409,7 @@ class MicrometerMetricsTests {
         install(MicrometerMetrics) {
             registry = testRegistry
             transformRoute {
-                "/prefix$path"
+                "/prefix${it.path}"
             }
         }
 
