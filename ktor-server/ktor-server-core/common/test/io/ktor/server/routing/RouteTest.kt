@@ -155,7 +155,7 @@ class RouteTest {
                 // Routing nodes not related to path
                 route("omitted") {
                     contentType(ContentType.Text.CSV) {
-                        post("contentType"){}
+                        post("contentType") {}
                     }
                     param("order", "asc") {
                         post("param") {}

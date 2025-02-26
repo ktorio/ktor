@@ -369,7 +369,6 @@ private fun RoutingNode.path(): String {
 }
 
 private fun RouteSelector.toPathElement(): String = when (this) {
-
     is PathSegmentConstantRouteSelector,
     is PathSegmentParameterRouteSelector,
     is PathSegmentOptionalParameterRouteSelector,

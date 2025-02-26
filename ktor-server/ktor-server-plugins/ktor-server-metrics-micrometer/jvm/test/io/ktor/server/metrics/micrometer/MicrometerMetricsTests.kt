@@ -443,9 +443,9 @@ class MicrometerMetricsTests {
 
         routing {
             authenticate {
-                    get("/uri") {
-                        call.respond("some response")
-                    }
+                get("/uri") {
+                    call.respond("some response")
+                }
             }
         }
 
