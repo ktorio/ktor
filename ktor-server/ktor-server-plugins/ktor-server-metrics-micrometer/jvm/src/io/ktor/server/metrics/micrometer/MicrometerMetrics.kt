@@ -222,9 +222,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
             call.attributes.getOrNull(measureKey)?.let { measure ->
-                measure.route = call.route.let { route ->
-                    pluginConfig.transformRoute(route)
-                }
+                measure.route = pluginConfig.transformRoute(call.route)
             }
         }
     }
