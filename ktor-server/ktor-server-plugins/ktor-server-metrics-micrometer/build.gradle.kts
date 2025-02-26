@@ -9,6 +9,7 @@ kotlin {
         jvmTest {
             dependencies{
                 implementation(project(":ktor-server:ktor-server-plugins:ktor-server-metrics"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
             }
         }
     }
