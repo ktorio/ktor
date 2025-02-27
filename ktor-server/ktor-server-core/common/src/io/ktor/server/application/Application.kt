@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.application
@@ -9,8 +9,11 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A builder for [ServerConfig].
@@ -61,7 +64,7 @@ public class ServerConfigBuilder(
     }
 
     internal fun build(): ServerConfig =
-        ServerConfig(environment, modules, watchPaths, rootPath, developmentMode, parentCoroutineContext)
+        ServerConfig(environment, modules.toList(), watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
 
 /**
@@ -72,7 +75,7 @@ public class ServerConfigBuilder(
  */
 public class ServerConfig internal constructor(
     public val environment: ApplicationEnvironment,
-    internal val modules: MutableList<Application.() -> Unit>,
+    internal val modules: List<Application.() -> Unit>,
     internal val watchPaths: List<String>,
     public val rootPath: String,
     public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,
