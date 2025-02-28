@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.utils.io.*
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
+import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 
 @InternalAPI
@@ -16,13 +17,16 @@ public class JettyApplicationCall(
     application: Application,
     request: Request,
     response: Response,
+    engineExecutor: Executor,
+    engineDispatcher: CoroutineContext,
+    appDispatcher: CoroutineContext,
     override val coroutineContext: CoroutineContext
 ) : BaseApplicationCall(application) {
 
     override val request: JettyApplicationRequest =
         JettyApplicationRequest(this, request)
     override val response: JettyApplicationResponse =
-        JettyApplicationResponse(this, request, response, coroutineContext)
+        JettyApplicationResponse(this, request, response, engineExecutor, engineDispatcher, appDispatcher)
 
     init {
         putResponseAttribute()

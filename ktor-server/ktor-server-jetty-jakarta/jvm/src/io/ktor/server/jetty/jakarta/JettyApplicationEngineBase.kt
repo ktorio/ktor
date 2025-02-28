@@ -71,7 +71,8 @@ public open class JettyApplicationEngineBase(
             configuration.shutdownTimeout
         )
 
-        val connectors = server.connectors.zip(configuration.connectors)
+        val connectors = server.connectors
+            .zip(configuration.connectors)
             .map { it.second.withPort((it.first as ServerConnector).localPort) }
         resolvedConnectorsDeferred.complete(connectors)
 

@@ -37,7 +37,7 @@ internal fun Server.initializeServer(
             }
             http2ConnectionFactory = HTTP2ServerConnectionFactory(httpConfig)
             alpnAvailable = true
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             // ALPN or HTTP/2 implemented is not available
             alpnConnectionFactory = null
             http2ConnectionFactory = null

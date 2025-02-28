@@ -62,17 +62,12 @@ internal class JettyServletApplicationEngine(
 
             insertHandler(
                 ServletHandler().apply {
-                    val holder = ServletHolder(
-                        "ktor-servlet",
-                        ServletApplicationEngine::class.java
-                    ).apply {
+                    addServlet(ServletHolder("ktor-servlet", ServletApplicationEngine::class.java).apply {
                         isAsyncSupported = async
                         registration.setLoadOnStartup(1)
                         registration.setMultipartConfig(MultipartConfigElement(System.getProperty("java.io.tmpdir")))
                         registration.setAsyncSupported(async)
-                    }
-
-                    addServlet(holder)
+                    })
                     addServletMapping(
                         ServletMapping().apply {
                             pathSpecs = arrayOf("*.", "/*")

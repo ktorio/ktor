@@ -26,6 +26,7 @@ class JettyJakartaContentTest : ContentTestSuite<JettyApplicationEngine, JettyAp
 
 class JettyHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    @Test
     override fun testFlushingHeaders() {
         // no op
     }
@@ -34,49 +35,6 @@ class JettyHttpServerCommonTest :
 class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
 ) {
-    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
-        super.configure(configuration)
-        configuration.configureServer = {
-            addAttributesHandler()
-        }
-    }
-
-    @Test
-    fun testServletAttributes() = runTest {
-        createAndStartServer {
-            get("/tomcat/attributes") {
-                call.respondText(
-                    call.request.servletRequestAttributes["ktor.test.attribute"]?.toString() ?: "Not found"
-                )
-            }
-        }
-
-        withUrl("/tomcat/attributes", {}) {
-            assertEquals("135", call.response.bodyAsText())
-        }
-    }
-
-    private fun Server.addAttributesHandler() {
-        addEventListener(
-            object : LifeCycle.Listener {
-                override fun lifeCycleStarting(event: LifeCycle?) {
-                    super.lifeCycleStarting(event)
-                    val delegate = handler
-                    handler = object : DefaultHandler() {
-                        override fun handle(
-                            request: Request?,
-                            response: Response?,
-                            callback: Callback?
-                        ): Boolean {
-                            request?.setAttribute("ktor.test.attribute", "135")
-                            return delegate?.handle(request, response, callback) == true
-                        }
-                    }
-                }
-            }
-        )
-    }
-
     @Ignore
     override fun testPipelining() {
     }

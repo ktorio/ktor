@@ -11,26 +11,23 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.*
+import kotlinx.io.InternalIoApi
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
 import java.nio.ByteBuffer
-import java.nio.ByteBuffer.allocate
+import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 @InternalAPI
 public class JettyApplicationResponse(
     call: PipelineCall,
     private val request: Request,
     private val response: Response,
-    override val coroutineContext: CoroutineContext
+    private val executor: Executor,
+    override val coroutineContext: CoroutineContext,
+    private val userContext: CoroutineContext,
 ) : BaseApplicationResponse(call), CoroutineScope {
     private companion object {
         private val bufferPool = ByteBufferPool(bufferSize = 8192)
@@ -48,42 +45,33 @@ public class JettyApplicationResponse(
         }
     }
 
-    @OptIn(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class, InternalIoApi::class)
     private val responseJob: Lazy<ReaderJob> = lazy {
         reader(Dispatchers.IO + coroutineContext + CoroutineName("response-writer")) {
             var count = 0
             val buffer = bufferPool.borrow()
             try {
-                while(true) {
-                    when(val current = channel.readAvailable(buffer)) {
+                while (true) {
+                    when (val current = channel.readAvailable(buffer)) {
                         -1 -> break
-                        0 -> {
-                            channel.awaitContent()
-                            continue
-                        }
+                        0 -> continue
                         else -> count += current
                     }
 
-                    suspendCoroutine<Unit> { continuation ->
-                        try {
-                            response.write(
-                                channel.isClosedForRead,
-                                buffer.flip(),
-                                Callback.from {
-                                    buffer.flip()
-                                    continuation.resume(Unit)
-                                }
-                            )
-                        } catch (cause: Throwable) {
-                            continuation.resumeWithException(cause)
-                        }
+                    suspendCancellableCoroutine { continuation ->
+                        response.write(
+                            channel.isClosedForRead,
+                            buffer.flip(),
+                            continuation.asCallback()
+                        )
                     }
+                    buffer.compact()
                 }
             } finally {
                 bufferPool.recycle(buffer)
                 runCatching {
                     if (!response.isCommitted)
-                        response.write(true, allocate(0), Callback.NOOP)
+                        response.write(true, emptyBuffer, Callback.NOOP)
                 }
             }
         }
@@ -98,23 +86,37 @@ public class JettyApplicationResponse(
         override fun getEngineHeaderValues(name: String): List<String> = response.headers.getValuesList(name)
     }
 
+    // TODO set idle timeout from websocket config on endpoint
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        val connection = request.connectionMetaData.connection
-        val endpoint = connection.endPoint
+        if (responseJob.isInitialized())
+            responseJob.value.cancel()
+
+        // use the underlying endpoint instance for two-way connection
+        val endpoint = request.connectionMetaData.connection.endPoint
         endpoint.idleTimeout = 6000 * 1000
 
-        val websocketConnection = JettyWebsocketConnection(endpoint, coroutineContext)
-        response.write(true, allocate(0), Callback.from { endpoint.upgrade(websocketConnection) })
+        val websocketConnection = JettyWebsocketConnection2(
+            endpoint,
+            executor,
+            bufferPool,
+            coroutineContext
+        )
+
+        suspendCancellableCoroutine { continuation ->
+            response.write(true, emptyBuffer, continuation.asCallback())
+        }
+
+        endpoint.upgrade(websocketConnection)
 
         val upgradeJob = upgrade.upgrade(
             websocketConnection.inputChannel,
             websocketConnection.outputChannel,
             coroutineContext,
-            coroutineContext,
+            userContext,
         )
 
         upgradeJob.invokeOnCompletion {
-            websocketConnection.inputChannel.close()
+            websocketConnection.inputChannel.cancel()
             websocketConnection.outputChannel.close()
         }
 
@@ -126,7 +128,7 @@ public class JettyApplicationResponse(
     }
 
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
-        response.write(true, allocate(0), Callback.NOOP)
+        response.write(true, emptyBuffer, Callback.NOOP)
     }
 
     override suspend fun responseChannel(): ByteWriteChannel =

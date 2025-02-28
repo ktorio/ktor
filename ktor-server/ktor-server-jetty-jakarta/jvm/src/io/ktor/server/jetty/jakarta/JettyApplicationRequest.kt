@@ -9,9 +9,13 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
-import org.eclipse.jetty.io.*
-import org.eclipse.jetty.server.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import org.eclipse.jetty.server.Request
+import kotlin.coroutines.resume
 
 @InternalAPI
 public class JettyApplicationRequest(
@@ -19,11 +23,54 @@ public class JettyApplicationRequest(
     request: Request
 ) : BaseApplicationRequest(call) {
 
+    // See https://jetty.org/docs/jetty/12/programming-guide/arch/io.html#content-source
+    private val requestBodyJob: WriterJob =
+        call.writer(Dispatchers.IO + CoroutineName("request-reader")) {
+            val contentLength = if (request.headers.contains(HttpHeaders.ContentLength)) {
+                request.headers.get(HttpHeaders.ContentLength)?.toLong()
+            } else null
+
+            var bytesRead = 0L
+            while (true) {
+                when(val chunk = request.read()) {
+                    // nothing available, suspend for more content
+                    null -> {
+                        suspendCancellableCoroutine { continuation ->
+                            request.demand { continuation.resume(Unit) }
+                        }
+                    }
+                    // read the chunk, exit and close channel if last chunk or failure
+                    else -> {
+                        with(chunk) {
+                            if (failure != null) {
+                                if (isLast)
+                                    throw failure
+                                call.application.log.warn("Recoverable error reading request body; continuing", failure)
+                            } else {
+                                bytesRead += byteBuffer.remaining()
+                                channel.writeFully(byteBuffer)
+                                release()
+                                if (contentLength != null && bytesRead > contentLength) {
+                                    channel.cancel(IOException("Request body exceeded content length limit"))
+                                }
+                                if (isLast) {
+                                    if (contentLength != null && bytesRead < contentLength) {
+                                        channel.cancel(EOFException("Expected $contentLength bytes, received only $bytesRead"))
+                                    }
+                                    return@writer
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     override val cookies: RequestCookies = JettyRequestCookies(this, request)
 
     override val engineHeaders: Headers = JettyHeaders(request)
 
-    override val engineReceiveChannel: ByteReadChannel = Content.Source.asInputStream(request).toByteReadChannel()
+    override val engineReceiveChannel: ByteReadChannel by lazy { requestBodyJob.channel }
 
     override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 

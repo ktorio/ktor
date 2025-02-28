@@ -16,6 +16,7 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
 import java.util.concurrent.CancellationException
+import java.util.concurrent.Executor
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 
@@ -25,15 +26,14 @@ internal class JettyKtorHandler(
     private val pipeline: EnginePipeline,
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
-    private val handlerJob = SupervisorJob(
-        applicationProvider().parentCoroutineContext[Job]
-    )
-    private val dispatcher: CoroutineDispatcher by lazy {
-        server.threadPool.asCoroutineDispatcher()
-    }
+    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
+
+    // TODO dispatchers, configure threadpool
+    private val engineExecutor: Executor by lazy { server.threadPool }
+    private val engineDispatcher: CoroutineDispatcher by lazy { engineExecutor.asCoroutineDispatcher() }
+    private val appDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val coroutineScope: CoroutineScope get() =
-        applicationProvider() + handlerJob +
-            DefaultUncaughtExceptionHandler(environment.log)
+        applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
     override fun destroy() {
         try {
@@ -49,8 +49,16 @@ internal class JettyKtorHandler(
         callback: Callback,
     ): Boolean {
         try {
-            coroutineScope.launch(dispatcher + JettyCallHandlerCoroutineName) {
-                val call = JettyApplicationCall(applicationProvider(), request, response, coroutineContext)
+            coroutineScope.launch(engineDispatcher + JettyCallHandlerCoroutineName) {
+                val call = JettyApplicationCall(
+                    applicationProvider(),
+                    request,
+                    response,
+                    engineExecutor = engineExecutor,
+                    engineDispatcher = engineDispatcher,
+                    appDispatcher = appDispatcher,
+                    coroutineContext
+                )
 
                 try {
                     pipeline.execute(call)
@@ -59,27 +67,22 @@ internal class JettyKtorHandler(
                     Response.writeError(request, response, callback, HttpStatus.GONE_410, cancelled.message, cancelled)
                     callback.failed(cancelled)
                 } catch (channelFailed: ChannelIOException) {
-                    Response.writeError(
-                        request,
-                        response,
-                        callback,
-                        HttpStatus.INTERNAL_SERVER_ERROR_500,
-                        channelFailed.message,
-                        channelFailed
-                    )
                     callback.failed(channelFailed)
                 } catch (error: Throwable) {
-                    // logError(call, error)
-                    // FIXME if client ws disconnects, the error is logged here
-                    Response.writeError(
-                        request,
-                        response,
-                        callback,
-                        HttpStatus.INTERNAL_SERVER_ERROR_500,
-                        error.message,
-                        error
-                    )
-                    callback.failed(error)
+                    try {
+                        logError(call, error)
+                        if (!response.isCommitted) {
+                            Response.writeError(request,
+                                response,
+                                callback,
+                                HttpStatus.INTERNAL_SERVER_ERROR_500,
+                                error.message,
+                                error
+                            )
+                        }
+                    } finally {
+                        callback.failed(error)
+                    }
                 }
             }
         } catch (ex: Throwable) {

@@ -27,7 +27,6 @@ public class JettyWebsocketConnection(
     private val endpoint: EndPoint,
     override val coroutineContext: CoroutineContext
 ) : AbstractConnection(endpoint, coroutineContext.executor()),
-    Connection.UpgradeTo,
     CoroutineScope {
 
     private val inputBuffer by lazy { ByteBuffer.allocate(8192) }
@@ -43,8 +42,6 @@ public class JettyWebsocketConnection(
         launch {
             // TODO: Handle errors
             while (true) {
-
-                fillInterested()
                 channel.receive()
 
                 inputBuffer.clear().flip()
@@ -56,6 +53,8 @@ public class JettyWebsocketConnection(
                 } else if (read == -1) {
                     endpoint.close()
                 }
+
+                fillInterested()
             }
         }
 
@@ -101,8 +100,6 @@ public class JettyWebsocketConnection(
     override fun onFillable() {
         channel.trySend(true)
     }
-
-    override fun onUpgradeTo(buffer: ByteBuffer?): Unit = TODO()
 }
 
 private fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {

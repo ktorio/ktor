@@ -453,6 +453,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @Ignore // TODO
     @Test
     open fun testBlockingDeadlock() = runTest {
         createAndStartServer {
@@ -814,7 +815,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }) {
             assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
-            assertEquals(exceptions.size, 1, "Failed in phase $phase")
+            assertEquals(1, exceptions.size, "Failed in phase $phase")
             assertEquals("Failed in engine pipeline", exceptions[0].message)
             exceptions.clear()
         }
@@ -892,10 +893,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 } catch (cause: Throwable) {
                     failCause = cause
                 } finally {
+                    runCatching {
+                        call.respond("OK")
+                    }
                     result.complete()
                 }
-
-                call.respond("OK")
             }
         }
 

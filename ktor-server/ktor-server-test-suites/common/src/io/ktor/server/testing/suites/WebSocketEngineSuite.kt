@@ -140,7 +140,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     }
                 }
 
-                delay(10000)
+                delay(10_000)
             }
         }
 
