@@ -22,6 +22,11 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val server = createServer(args)
+
+        Runtime.getRuntime().addShutdownHook(Thread {
+            server.stop(gracePeriodMillis = 5000, timeoutMillis = 30000)
+        })
+
         server.start(true)
     }
 
