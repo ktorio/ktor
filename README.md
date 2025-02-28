@@ -138,4 +138,4 @@ Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
 
 ## Contributing
 
-Please see [the contribution guide](CONTRIBUTING.md) and the [Code of conduct](CODE_OF_CONDUCT.md) before contributing.
+Please see [the contribution guide](CONTRIBUTING.md) and the [Code of conduct](https://confluence.jetbrains.com/display/ALL/JetBrains+Open+Source+and+Community+Code+of+Conduct) before contributing.

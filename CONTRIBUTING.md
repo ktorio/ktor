@@ -9,7 +9,7 @@ There are multiple ways you can contribute:
 * Community Support
 * Feedback/Issue reports
 
-Independently of how you'd like to contribute, please make sure you read and comply with the [Code of Conduct](CODE_OF_CONDUCT.md).
+Independently of how you'd like to contribute, please make sure you read and comply with the [Code of Conduct](https://confluence.jetbrains.com/display/ALL/JetBrains+Open+Source+and+Community+Code+of+Conduct).
 
 ## Code
 
