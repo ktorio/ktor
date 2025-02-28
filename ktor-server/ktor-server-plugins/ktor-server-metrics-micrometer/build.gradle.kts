@@ -12,8 +12,11 @@ kotlin {
             api(libs.micrometer)
             implementation(project(":ktor-server:ktor-server-core"))
         }
-        jvmTest.dependencies {
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-metrics"))
+        jvmTest {
+            dependencies{
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-metrics"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-auth"))
+            }
         }
     }
 }

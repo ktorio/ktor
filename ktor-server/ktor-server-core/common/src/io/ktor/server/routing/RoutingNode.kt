@@ -12,7 +12,6 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -348,6 +347,38 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
         endpoints.add(this)
     }
     children.forEach { it.getAllRoutes(endpoints) }
+}
+
+/**
+ * String representation of the path matched by this route.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.path)
+ */
+public val RoutingNode.path: String
+    get() = path()
+
+private fun RoutingNode.path(): String {
+    val parentPath = parent?.path()
+    val selectorElement = selector.toPathElement()
+    return when {
+        parentPath == null -> selectorElement
+        selectorElement.isEmpty() -> parentPath
+        parentPath.endsWith('/') || selectorElement.startsWith('/') -> "$parentPath$selectorElement"
+        else -> "$parentPath/$selectorElement"
+    }
+}
+
+private fun RouteSelector.toPathElement(): String = when (this) {
+    is PathSegmentConstantRouteSelector,
+    is PathSegmentParameterRouteSelector,
+    is PathSegmentOptionalParameterRouteSelector,
+    is PathSegmentTailcardRouteSelector,
+    is PathSegmentWildcardRouteSelector,
+    is PathSegmentRegexRouteSelector -> toString()
+
+    is TrailingSlashRouteSelector -> "/"
+
+    else -> ""
 }
 
 @Deprecated("Please use route scoped plugins instead")
