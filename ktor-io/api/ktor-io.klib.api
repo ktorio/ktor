@@ -270,6 +270,8 @@ final class io.ktor.utils.io/ReaderJob : io.ktor.utils.io/ChannelJob { // io.kto
         final fun <get-channel>(): io.ktor.utils.io/ByteWriteChannel // io.ktor.utils.io/ReaderJob.channel.<get-channel>|<get-channel>(){}[0]
     final val job // io.ktor.utils.io/ReaderJob.job|{}job[0]
         final fun <get-job>(): kotlinx.coroutines/Job // io.ktor.utils.io/ReaderJob.job.<get-job>|<get-job>(){}[0]
+
+    final suspend fun flushAndClose() // io.ktor.utils.io/ReaderJob.flushAndClose|flushAndClose(){}[0]
 }
 
 final class io.ktor.utils.io/ReaderScope : kotlinx.coroutines/CoroutineScope { // io.ktor.utils.io/ReaderScope|null[0]
