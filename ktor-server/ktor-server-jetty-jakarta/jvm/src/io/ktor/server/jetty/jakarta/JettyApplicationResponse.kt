@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.jetty.jakarta.JettyWebsocketConnection.Companion.upgradeAndAwait
 import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
@@ -70,8 +71,9 @@ public class JettyApplicationResponse(
             } finally {
                 bufferPool.recycle(buffer)
                 runCatching {
-                    if (!response.isCommitted)
+                    if (!response.isCommitted) {
                         response.write(true, emptyBuffer, Callback.NOOP)
+                    }
                 }
             }
         }
@@ -82,45 +84,41 @@ public class JettyApplicationResponse(
             response.headers.add(name, value)
         }
 
-        override fun getEngineHeaderNames(): List<String> = response.headers.fieldNamesCollection.toList()
-        override fun getEngineHeaderValues(name: String): List<String> = response.headers.getValuesList(name)
+        override fun getEngineHeaderNames(): List<String> =
+            response.headers.fieldNamesCollection.toList()
+
+        override fun getEngineHeaderValues(name: String): List<String> =
+            response.headers.getValuesList(name)
     }
 
     // TODO set idle timeout from websocket config on endpoint
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        if (responseJob.isInitialized())
+        if (responseJob.isInitialized()) {
             responseJob.value.cancel()
+        }
 
-        // use the underlying endpoint instance for two-way connection
+        // Use the underlying endpoint instance for two-way connection
         val endpoint = request.connectionMetaData.connection.endPoint
         endpoint.idleTimeout = 6000 * 1000
 
-        val websocketConnection = JettyWebsocketConnection2(
+        // An [AbstractConnection] implementation for translating I/O
+        val websocketConnection = JettyWebsocketConnection(
             endpoint,
             executor,
             bufferPool,
             coroutineContext
         )
 
+        // Finish the current response channel by writing an empty message with last=true
         suspendCancellableCoroutine { continuation ->
             response.write(true, emptyBuffer, continuation.asCallback())
         }
 
-        endpoint.upgrade(websocketConnection)
-
-        val upgradeJob = upgrade.upgrade(
-            websocketConnection.inputChannel,
-            websocketConnection.outputChannel,
-            coroutineContext,
-            userContext,
+        // Start a job for handling the websocket connection and wait for it to finish
+        upgrade.upgradeAndAwait(
+            websocketConnection,
+            userContext
         )
-
-        upgradeJob.invokeOnCompletion {
-            websocketConnection.inputChannel.cancel()
-            websocketConnection.outputChannel.close()
-        }
-
-        upgradeJob.join()
     }
 
     override suspend fun respondFromBytes(bytes: ByteArray) {

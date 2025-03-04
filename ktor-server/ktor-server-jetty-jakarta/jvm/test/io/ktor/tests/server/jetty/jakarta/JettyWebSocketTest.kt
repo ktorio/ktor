@@ -8,9 +8,10 @@ import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.Test
 
-class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty
+) {
     @Test
     fun test() {
-
     }
 }

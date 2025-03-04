@@ -72,7 +72,8 @@ internal class JettyKtorHandler(
                     try {
                         logError(call, error)
                         if (!response.isCommitted) {
-                            Response.writeError(request,
+                            Response.writeError(
+                                request,
                                 response,
                                 callback,
                                 HttpStatus.INTERNAL_SERVER_ERROR_500,

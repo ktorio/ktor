@@ -28,11 +28,13 @@ public class JettyApplicationRequest(
         call.writer(Dispatchers.IO + CoroutineName("request-reader")) {
             val contentLength = if (request.headers.contains(HttpHeaders.ContentLength)) {
                 request.headers.get(HttpHeaders.ContentLength)?.toLong()
-            } else null
+            } else {
+                null
+            }
 
             var bytesRead = 0L
             while (true) {
-                when(val chunk = request.read()) {
+                when (val chunk = request.read()) {
                     // nothing available, suspend for more content
                     null -> {
                         suspendCancellableCoroutine { continuation ->
@@ -43,8 +45,9 @@ public class JettyApplicationRequest(
                     else -> {
                         with(chunk) {
                             if (failure != null) {
-                                if (isLast)
+                                if (isLast) {
                                     throw failure
+                                }
                                 call.application.log.warn("Recoverable error reading request body; continuing", failure)
                             } else {
                                 bytesRead += byteBuffer.remaining()
@@ -55,7 +58,9 @@ public class JettyApplicationRequest(
                                 }
                                 if (isLast) {
                                     if (contentLength != null && bytesRead < contentLength) {
-                                        channel.cancel(EOFException("Expected $contentLength bytes, received only $bytesRead"))
+                                        channel.cancel(
+                                            EOFException("Expected $contentLength bytes, received only $bytesRead")
+                                        )
                                     }
                                     return@writer
                                 }
@@ -75,7 +80,7 @@ public class JettyApplicationRequest(
     override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 
     override val queryParameters: Parameters by lazy {
-        encodeParameters(rawQueryParameters)
+        encodeParameters(rawQueryParameters).toQueryParameters()
     }
 
     override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
@@ -109,7 +114,9 @@ public class JettyHeaders(
         }.toSet()
     }
 
-    override fun getAll(name: String): List<String>? = jettyRequest.headers.getValuesList(name).takeIf { it.isNotEmpty() }
+    override fun getAll(name: String): List<String>? = jettyRequest.headers.getValuesList(name).takeIf {
+        it.isNotEmpty()
+    }
 
     override fun get(name: String): String? = jettyRequest.headers.get(name).takeIf { it.isNotEmpty() }
 

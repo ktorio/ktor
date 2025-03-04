@@ -1,112 +1,112 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty.jakarta
 
-import io.ktor.util.cio.*
+import io.ktor.http.content.OutgoingContent
 import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.eclipse.jetty.io.AbstractConnection
-import org.eclipse.jetty.io.Connection
 import org.eclipse.jetty.io.EndPoint
-import org.eclipse.jetty.util.Callback
-import java.nio.ByteBuffer
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
-// TODO: Needs sensible error handling
-@InternalAPI
-public class JettyWebsocketConnection(
+internal class JettyWebsocketConnection(
     private val endpoint: EndPoint,
+    private val executor: Executor,
+    private val bufferPool: ByteBufferPool,
     override val coroutineContext: CoroutineContext
-) : AbstractConnection(endpoint, coroutineContext.executor()),
-    CoroutineScope {
+) : AbstractConnection(endpoint, executor), CoroutineScope {
+    companion object {
+        /**
+         * Update the [Endpoint] instance with the supplied connection, then delegate to the
+         * [OutgoingContent.ProtocolUpgrade] instance to handle the websocket logic using our
+         * [connection]'s channels.
+         */
+        suspend fun OutgoingContent.ProtocolUpgrade.upgradeAndAwait(
+            connection: JettyWebsocketConnection,
+            userContext: CoroutineContext
+        ) {
+            connection.endpoint.upgrade(connection)
 
-    private val inputBuffer by lazy { ByteBuffer.allocate(8192) }
-    private val outputBuffer by lazy { ByteBuffer.allocate(8192) }
-
-    public val inputChannel: ByteChannel = ByteChannel(true)
-    public val outputChannel: ByteChannel = ByteChannel(false)
-
-    private val channel = Channel<Boolean>(Channel.RENDEZVOUS)
-
-    init {
-        // Input job
-        launch {
-            // TODO: Handle errors
-            while (true) {
-                channel.receive()
-
-                inputBuffer.clear().flip()
-
-                val read = endpoint.fill(inputBuffer)
-
-                if (read > 0) {
-                    inputChannel.writeFully(inputBuffer)
-                } else if (read == -1) {
-                    endpoint.close()
-                }
-
-                fillInterested()
+            try {
+                val job = upgrade(
+                    connection.inputChannel,
+                    connection.outputChannel,
+                    connection.coroutineContext,
+                    userContext,
+                )
+                job.join()
+            } finally {
+                connection.inputChannel.cancel()
+                connection.outputChannel.flushAndClose()
             }
         }
+    }
 
-        // Output job
-        launch {
-            // TODO: Handle errors
-            while (true) {
+    /**
+     * Gate for suspending input until content is available.
+     */
+    private val onFill = Channel<Boolean>(Channel.RENDEZVOUS)
 
-                if (outputChannel.isClosedForRead) {
-                    return@launch
-                }
-                val outputBytes = outputChannel.readAvailable(outputBuffer.rewind())
-
-                if (outputBytes > -1) {
-                    suspendCancellableCoroutine<Unit> {
-                        endpoint.write(
-                            object : Callback {
-                                override fun succeeded() {
-                                    it.resume(Unit)
-                                }
-
-                                override fun failed(cause: Throwable) {
-                                    it.resumeWithException(ChannelWriteException(exception = cause))
-                                }
-                            },
-                            outputBuffer.flip()
-                        )
+    private val inputJob: WriterJob =
+        writer(Dispatchers.IO + coroutineContext + CoroutineName("websocket-input")) {
+            val buffer = bufferPool.borrow()
+            try {
+                while (true) {
+                    fillInterested()
+                    onFill.receive()
+                    when (endpoint.fill(buffer.flip())) {
+                        -1 -> break
+                        0 -> continue
+                        else -> {
+                            channel.writeFully(buffer)
+                            buffer.compact()
+                        }
                     }
-                } else {
-                    outputChannel.close()
-                    // bufferPool.recycle(outputBuffer)
-                    return@launch
                 }
+            } finally {
+                bufferPool.recycle(buffer)
             }
         }
-    }
 
-    // TODO: Handle errors
-    override fun onFillInterestedFailed(cause: Throwable) {
-        throw cause
-    }
+    private val outputJob: ReaderJob =
+        reader(Dispatchers.IO + coroutineContext + CoroutineName("websocket-output")) {
+            val buffer = bufferPool.borrow()
+            try {
+                while (true) {
+                    when (channel.readAvailable(buffer)) {
+                        -1 -> {
+                            endpoint.close()
+                            break
+                        }
+                        0 -> continue
+                        else -> {}
+                    }
+                    suspendCancellableCoroutine<Unit> { continuation ->
+                        endpoint.write(continuation.asCallback(), buffer.flip())
+                    }
+                    buffer.compact()
+                }
+            } finally {
+                bufferPool.recycle(buffer)
+            }
+        }
+
+    private val inputChannel: ByteReadChannel = inputJob.channel
+    private val outputChannel: ByteWriteChannel = outputJob.channel
 
     override fun onFillable() {
-        channel.trySend(true)
+        onFill.trySend(true)
     }
-}
 
-private fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = this@executor
-
-    override fun execute(command: Runnable?) {
-        launch { command?.run() }
+    override fun onFillInterestedFailed(cause: Throwable?) {
+        onFill.close(cause)
     }
 }
