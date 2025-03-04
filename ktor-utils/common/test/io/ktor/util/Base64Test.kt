@@ -68,6 +68,5 @@ class Base64Test {
         // Check decode
         assertEquals(expectedBytes, allBase64Chars.decodeBase64Bytes().toList())
         assertEquals(expectedBytes, allUrlSafeBase64Chars.decodeBase64Bytes().toList())
-
     }
 }
