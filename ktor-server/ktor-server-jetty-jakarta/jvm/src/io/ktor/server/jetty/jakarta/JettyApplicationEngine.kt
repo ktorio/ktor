@@ -22,7 +22,7 @@ public class JettyApplicationEngine(
 ) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
 
     override fun start(wait: Boolean): JettyApplicationEngine {
-        server.handler = JettyKtorHandler(environment, pipeline, applicationProvider)
+        server.handler = JettyKtorHandler(environment, configuration, pipeline, applicationProvider)
         super.start(wait)
         return this
     }

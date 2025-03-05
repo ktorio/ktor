@@ -4,17 +4,10 @@
 
 package io.ktor.tests.server.jetty.jakarta
 
-import io.ktor.client.statement.*
 import io.ktor.server.jetty.jakarta.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.servlet.jakarta.*
 import io.ktor.server.testing.suites.*
-import jakarta.servlet.http.*
-import org.eclipse.jetty.server.*
-import org.eclipse.jetty.server.handler.*
-import org.eclipse.jetty.util.component.*
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
 
 class JettyCompressionTest :
     CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)

@@ -23,15 +23,14 @@ private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 @OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
     private val environment: ApplicationEnvironment,
+    private val configuration: JettyApplicationEngineBase.Configuration,
     private val pipeline: EnginePipeline,
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
-    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
-
-    // TODO dispatchers, configure threadpool
+    private val dispatcher = Dispatchers.IO
     private val engineExecutor: Executor by lazy { server.threadPool }
-    private val engineDispatcher: CoroutineDispatcher by lazy { engineExecutor.asCoroutineDispatcher() }
-    private val appDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
     private val coroutineScope: CoroutineScope get() =
         applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
 
@@ -49,14 +48,14 @@ internal class JettyKtorHandler(
         callback: Callback,
     ): Boolean {
         try {
-            coroutineScope.launch(engineDispatcher + JettyCallHandlerCoroutineName) {
+            coroutineScope.launch(dispatcher + JettyCallHandlerCoroutineName) {
                 val call = JettyApplicationCall(
                     applicationProvider(),
                     request,
                     response,
                     engineExecutor = engineExecutor,
-                    engineDispatcher = engineDispatcher,
-                    appDispatcher = appDispatcher,
+                    appDispatcher = dispatcher,
+                    idleTimeout = configuration.idleTimeout,
                     coroutineContext
                 )
 

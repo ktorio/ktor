@@ -27,7 +27,7 @@ class MultipleDispatchOnTimeout {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.jetty.jakarta.MultipleDispatchOnTimeout.calls with duration longer than default timeout do not trigger a redispatch)
      */
-    @Ignore // TODO
+    @Ignore // TODO is this still applicable?
     @Test
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {
         val callCount = AtomicInteger(0)

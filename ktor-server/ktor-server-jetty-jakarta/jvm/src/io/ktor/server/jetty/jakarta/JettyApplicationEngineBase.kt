@@ -49,7 +49,7 @@ public open class JettyApplicationEngineBase(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.jakarta.JettyApplicationEngineBase.Configuration.idleTimeout)
          */
-        public var idleTimeout: Duration = 30.seconds
+        public var idleTimeout: Duration = 5.seconds
     }
 
     private var cancellationJob: CompletableJob? = null

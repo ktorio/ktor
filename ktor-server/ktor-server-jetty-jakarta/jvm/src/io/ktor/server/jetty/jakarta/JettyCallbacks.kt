@@ -4,16 +4,16 @@
 
 package io.ktor.server.jetty.jakarta
 
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.io.IOException
 import org.eclipse.jetty.util.Callback
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
  * Jetty works with a `Callback` type which succeeds or fails similar to a coroutine continuation.
  */
-internal fun Continuation<Unit>.asCallback(): Callback = object : Callback {
+internal fun CancellableContinuation<Unit>.asCallback(): Callback = object : Callback {
     override fun failed(x: Throwable?) {
         resumeWithException(x ?: IOException("Failed with no exception"))
     }
