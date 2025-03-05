@@ -76,7 +76,7 @@ fun Project.configureTargets() {
 
                 group("jsAndWasmShared") {
                     withJs()
-                    withWasm()
+                    withWasmJs()
                 }
 
                 group("posix") {
