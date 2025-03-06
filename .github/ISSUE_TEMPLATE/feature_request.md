@@ -7,14 +7,8 @@ assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+🚨 Please Note: We manage all our issues and tickets through [YouTrack](https://youtrack.jetbrains.com/issues?q=project:%20KTOR) for better tracking and faster feedback.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+📌 If you have a bug report, feature request, or any other issue, kindly file it in our [YouTrack project](https://youtrack.jetbrains.com/newissue?project=ktor).
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
+Thank you for your understanding and cooperation! 🙏
