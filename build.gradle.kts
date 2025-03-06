@@ -8,12 +8,14 @@ extra["publishLocal"] = project.hasProperty("publishLocal")
 apply(from = "gradle/verifier.gradle")
 
 val internalProjects = listOf(
+    "ktor-client-content-negotiation-tests",
     "ktor-client-test-base",
     "ktor-client-tests",
+    "ktor-serialization-kotlinx-tests",
+    "ktor-serialization-tests",
     "ktor-server-test-base",
     "ktor-server-test-suites",
     "ktor-server-tests",
-    "ktor-client-content-negotiation-tests",
     "ktor-test-base",
 )
 
@@ -24,6 +26,7 @@ extra["relocatedArtifacts"] = mapOf(
 
 val nonDefaultProjectStructure by extra {
     listOf(
+        "ktor-dokka",
         "ktor-bom",
         "ktor-java-modules-test",
     )
@@ -32,7 +35,6 @@ val nonDefaultProjectStructure by extra {
 plugins {
     id("ktorbuild.doctor")
     id("ktorbuild.compatibility")
-    id("ktorbuild.dokka")
 }
 
 println("Build version: ${project.version}")
