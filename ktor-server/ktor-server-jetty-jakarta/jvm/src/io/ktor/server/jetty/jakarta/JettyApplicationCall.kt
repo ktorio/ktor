@@ -136,11 +136,13 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+            // Close response job
             if (responseJob.isInitialized()) {
-                responseJob.value.cancel()
+                responseJob.value.channel.flushAndClose()
+                responseJob.value.join()
             }
 
-            // An [AbstractConnection] implementation for translating I/O
+            // An [AbstractConnection] implementation for translating Jetty I/O
             val websocketConnection = JettyWebsocketConnection(
                 endpoint,
                 bufferPool,
@@ -148,10 +150,11 @@ public class JettyApplicationCall(
                 executor
             )
 
-            // Finish the current response channel by writing an empty message with last=true
+            // Ensure the current response is finished
             suspendCancellableCoroutine { continuation ->
                 response.write(true, emptyBuffer, continuation.asCallback())
             }
+            completed = true
 
             // Start a job for handling the websocket connection and wait for it to finish
             upgrade.upgradeAndAwait(
