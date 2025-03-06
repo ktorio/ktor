@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.eclipse.jetty.io.AbstractConnection
 import org.eclipse.jetty.io.EndPoint
@@ -108,5 +109,14 @@ internal class JettyWebsocketConnection(
 
     override fun onFillInterestedFailed(cause: Throwable?) {
         onFill.close(cause)
+    }
+
+    override fun onClose(cause: Throwable?) {
+        runBlocking {
+            inputJob.channel.cancel(cause)
+            outputChannel.flushAndClose()
+            outputJob.join()
+            super.onClose(cause)
+        }
     }
 }
