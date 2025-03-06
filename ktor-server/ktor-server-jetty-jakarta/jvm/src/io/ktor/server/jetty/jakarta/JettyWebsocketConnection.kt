@@ -16,6 +16,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import org.eclipse.jetty.io.AbstractConnection
 import org.eclipse.jetty.io.EndPoint
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 internal class JettyWebsocketConnection(
@@ -26,7 +27,7 @@ internal class JettyWebsocketConnection(
 ) : AbstractConnection(endpoint, executor), CoroutineScope {
     companion object {
         /**
-         * Update the [Endpoint] instance with the supplied connection, then delegate to the
+         * Update the [endpoint] field with the supplied connection, then delegate to the
          * [OutgoingContent.ProtocolUpgrade] instance to handle the websocket logic using our
          * [connection]'s channels.
          */
@@ -36,7 +37,7 @@ internal class JettyWebsocketConnection(
         ) {
             connection.endpoint.upgrade(connection)
 
-            try {
+            val result = runCatching {
                 val job = upgrade(
                     connection.inputChannel,
                     connection.outputChannel,
@@ -44,11 +45,15 @@ internal class JettyWebsocketConnection(
                     userContext,
                 )
                 job.join()
-            } finally {
-                connection.inputChannel.cancel()
-                connection.outputChannel.flushAndClose()
             }
+
+            connection.flushAndClose(result.exceptionOrNull())
         }
+    }
+
+    init {
+        // for upgraded connections IDLE timeout should be significantly increased
+        endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
     }
 
     /**
@@ -83,10 +88,7 @@ internal class JettyWebsocketConnection(
             try {
                 while (true) {
                     when (channel.readAvailable(buffer)) {
-                        -1 -> {
-                            endpoint.close()
-                            break
-                        }
+                        -1 -> break
                         0 -> continue
                         else -> {}
                     }
@@ -113,10 +115,20 @@ internal class JettyWebsocketConnection(
 
     override fun onClose(cause: Throwable?) {
         runBlocking {
-            inputJob.channel.cancel(cause)
-            outputChannel.flushAndClose()
-            outputJob.join()
-            super.onClose(cause)
+            flushAndClose(cause)
         }
+    }
+
+    fun isClosed() = outputJob.isCancelled || outputJob.isCompleted
+
+    suspend fun flushAndClose(cause: Throwable? = null) {
+        inputJob.channel.cancel(cause)
+        outputChannel.close(cause)
+        inputJob.join()
+        outputJob.join()
+    }
+
+    override fun close() {
+        super.close()
     }
 }
