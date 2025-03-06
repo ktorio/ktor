@@ -18,6 +18,7 @@ import io.ktor.server.request.RequestCookies
 import io.ktor.server.request.encodeParameters
 import io.ktor.server.response.ApplicationSendPipeline
 import io.ktor.server.response.ResponseHeaders
+import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -40,10 +41,10 @@ public class JettyApplicationCall(
     application: Application,
     jettyRequest: Request,
     jettyResponse: Response,
-    private val engineExecutor: Executor,
-    private val appDispatcher: CoroutineContext,
-    private val idleTimeout: Duration?,
-    override val coroutineContext: CoroutineContext
+    private val executor: Executor,
+    private val userContext: CoroutineContext,
+    override val coroutineContext: CoroutineContext,
+    private val idleTimeout: Duration?
 ) : BaseApplicationCall(application) {
 
     override val request: JettyApplicationRequest =
@@ -88,14 +89,31 @@ public class JettyApplicationCall(
         private val endpoint: EndPoint,
         private val response: Response,
     ) : BaseApplicationResponse(this@JettyApplicationCall) {
+
+        @Volatile
+        private var completed: Boolean = false
+
         init {
             pipeline.intercept(ApplicationSendPipeline.Engine) {
+                if (completed) return@intercept
+                completed = true
+
                 if (responseJob.isInitialized()) {
                     responseJob.value.apply {
                         runCatching {
-                            flushAndClose()
+                            channel.flushAndClose()
                         }
+                        join()
                     }
+                    return@intercept
+                }
+
+                try {
+                    if (!response.isCommitted) {
+                        response.write(true, emptyBuffer, Callback.NOOP)
+                    }
+                } catch (cause: Throwable) {
+                    throw ChannelWriteException(exception = cause)
                 }
             }
         }
@@ -117,7 +135,6 @@ public class JettyApplicationCall(
                 response.headers.getValuesList(name)
         }
 
-        // TODO set idle timeout from websocket config on endpoint
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
             if (responseJob.isInitialized()) {
                 responseJob.value.cancel()
@@ -126,9 +143,9 @@ public class JettyApplicationCall(
             // An [AbstractConnection] implementation for translating I/O
             val websocketConnection = JettyWebsocketConnection(
                 endpoint,
-                engineExecutor,
                 bufferPool,
-                call.coroutineContext
+                call.coroutineContext,
+                executor
             )
 
             // Finish the current response channel by writing an empty message with last=true
@@ -139,7 +156,7 @@ public class JettyApplicationCall(
             // Start a job for handling the websocket connection and wait for it to finish
             upgrade.upgradeAndAwait(
                 websocketConnection,
-                appDispatcher
+                userContext
             )
         }
 

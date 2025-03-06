@@ -19,9 +19,9 @@ import kotlin.coroutines.CoroutineContext
 
 internal class JettyWebsocketConnection(
     private val endpoint: EndPoint,
-    private val executor: Executor,
     private val bufferPool: ByteBufferPool,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    executor: Executor
 ) : AbstractConnection(endpoint, executor), CoroutineScope {
     companion object {
         /**

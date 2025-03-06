@@ -49,14 +49,13 @@ public open class JettyApplicationEngineBase(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.jakarta.JettyApplicationEngineBase.Configuration.idleTimeout)
          */
-        public var idleTimeout: Duration = 5.seconds
+        public var idleTimeout: Duration = 30.seconds
     }
 
     private var cancellationJob: CompletableJob? = null
 
     /**
      * Jetty server instance being configuring and starting
-     * TODO thread pool config
      */
     protected val server: Server =
         Server(QueuedThreadPool()).apply {

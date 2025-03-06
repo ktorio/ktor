@@ -18,6 +18,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.util.zip.*
 import kotlin.test.*

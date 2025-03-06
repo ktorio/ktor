@@ -15,10 +15,13 @@ import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
+import java.util.concurrent.*
 import java.util.concurrent.CancellationException
-import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicLong
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
+private val JettyKtorCounter = AtomicLong()
+private const val THREAD_KEEP_ALIVE_TIME = 1L
 
 @OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
@@ -27,8 +30,18 @@ internal class JettyKtorHandler(
     private val pipeline: EnginePipeline,
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
-    private val dispatcher = Dispatchers.IO
-    private val engineExecutor: Executor by lazy { server.threadPool }
+    private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
+    private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
+    private val executor = ThreadPoolExecutor(
+        configuration.callGroupSize,
+        configuration.callGroupSize * 8,
+        THREAD_KEEP_ALIVE_TIME,
+        TimeUnit.MINUTES,
+        queue
+    ) { r ->
+        Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
+    }
+    private val dispatcher = executor.asCoroutineDispatcher()
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
     private val coroutineScope: CoroutineScope get() =
@@ -37,6 +50,7 @@ internal class JettyKtorHandler(
     override fun destroy() {
         try {
             super.destroy()
+            executor.shutdownNow()
         } finally {
             handlerJob.cancel()
         }
@@ -53,10 +67,10 @@ internal class JettyKtorHandler(
                     applicationProvider(),
                     request,
                     response,
-                    engineExecutor = engineExecutor,
-                    appDispatcher = dispatcher,
-                    idleTimeout = configuration.idleTimeout,
-                    coroutineContext
+                    executor = executor,
+                    userContext = dispatcher,
+                    coroutineContext = this@launch.coroutineContext,
+                    idleTimeout = configuration.idleTimeout
                 )
 
                 try {
