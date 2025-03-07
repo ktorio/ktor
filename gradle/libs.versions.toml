@@ -69,7 +69,7 @@ ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.67"
+swagger-codegen = "3.0.68"
 swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.25"
 
