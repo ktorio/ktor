@@ -3,7 +3,8 @@
   "extends": [
     "config:recommended",
     ":semanticCommitsDisabled",
-    ":label(dependencies)"
+    ":label(dependencies)",
+    "schedule:automergeNonOfficeHours"
   ],
   "rebaseWhen": "conflicted",
   "packageRules": [
@@ -20,7 +21,8 @@
         "https://repo.maven.apache.org/maven2"
       ],
       "fetchChangeLogs": "off",
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$"
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$",
+      "automerge": true
     },
     {
       "description": "False positive dependency findings.",
@@ -57,6 +59,26 @@
         "com.gradle:develocity-gradle-plugin*"
       ],
       "enabled": false
+    },
+    {
+      "description": "Automerge non-major releases",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge test and infrastructure dependencies",
+      "matchDepNames": [
+        "ch.qos.logback:logback-classic",
+        "com.gradle:common-custom-user-data-gradle-plugin",
+        "com.osacky.doctor:doctor-plugin",
+        "gradle",
+        "io.mockk:mockk",
+        "org.jetbrains.kotlinx.kover",
+        "org.jetbrains.kotlinx:binary-compatibility-validator",
+        "org.jmailen.gradle:kotlinter-gradle",
+        "org.junit.jupiter:junit-jupiter"
+      ],
+      "automerge": true
     }
   ]
 }
