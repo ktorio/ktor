@@ -3,7 +3,7 @@
 kotlin = "2.1.10"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
-kotlinx-io = "0.6.0"
+kotlinx-io = "0.7.0"
 coroutines = "1.10.1"
 atomicfu = "0.27.0"
 serialization = "1.8.0"
