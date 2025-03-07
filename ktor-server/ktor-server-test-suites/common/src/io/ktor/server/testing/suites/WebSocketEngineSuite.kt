@@ -509,7 +509,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testALotOfFrames() = runTest {
+    open fun testALotOfFrames() = runTest {
         val expectedCount = 100000L
 
         createAndStartServer {
@@ -524,6 +524,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             counter++
                         }
                     }
+                    println("All frames received, counter = $counter")
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
                 } catch (cancelled: CancellationException) {
@@ -540,6 +541,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 for (i in 1L..expectedCount) {
                     writeFrame(Frame.Text(true, i.toString().toByteArray()), false)
                 }
+                println("All frames written, sending close frame")
                 writeFrame(Frame.Close(), false)
                 flush()
             }

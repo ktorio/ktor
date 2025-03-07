@@ -36,6 +36,7 @@ internal class JettyWebsocketConnection(
             userContext: CoroutineContext
         ) {
             connection.endpoint.upgrade(connection)
+            println("Upgrading connection")
 
             val result = runCatching {
                 val job = upgrade(
@@ -47,6 +48,7 @@ internal class JettyWebsocketConnection(
                 job.join()
             }
 
+            println("Upgrade complete")
             connection.flushAndClose(result.exceptionOrNull())
         }
     }
@@ -62,7 +64,7 @@ internal class JettyWebsocketConnection(
     private val onFill = Channel<Boolean>(Channel.RENDEZVOUS)
 
     private val inputJob: WriterJob =
-        writer(Dispatchers.IO + coroutineContext + CoroutineName("websocket-input")) {
+        writer(Dispatchers.IO + coroutineContext + CoroutineName("jetty-ws-input")) {
             val buffer = bufferPool.borrow()
             try {
                 while (true) {
@@ -83,7 +85,7 @@ internal class JettyWebsocketConnection(
         }
 
     private val outputJob: ReaderJob =
-        reader(Dispatchers.IO + coroutineContext + CoroutineName("websocket-output")) {
+        reader(Dispatchers.IO + coroutineContext + CoroutineName("jetty-ws-output")) {
             val buffer = bufferPool.borrow()
             try {
                 while (true) {
@@ -115,8 +117,10 @@ internal class JettyWebsocketConnection(
 
     override fun onClose(cause: Throwable?) {
         runBlocking {
-            flushAndClose(cause)
+            inputJob.cancel()
+            outputJob.cancel()
         }
+        super.onClose(cause)
     }
 
     fun isClosed() = outputJob.isCancelled || outputJob.isCompleted
@@ -128,7 +132,4 @@ internal class JettyWebsocketConnection(
         outputJob.join()
     }
 
-    override fun close() {
-        super.close()
-    }
 }
