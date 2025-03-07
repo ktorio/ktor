@@ -2,6 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import java.time.Year
+
 plugins {
     id("ktorbuild.base")
     id("ktorbuild.dokka")
@@ -19,7 +21,13 @@ val projectVersion = project.version.toString()
 val dokkaVersionsDirectory = resolveVersionsDirectory()
 
 dokka {
+    moduleName = "Ktor"
+
     pluginsConfiguration {
+        html {
+            footerMessage = "© ${Year.now()} JetBrains s.r.o and contributors. Apache License 2.0"
+        }
+
         versioning {
             version = projectVersion
             if (dokkaVersionsDirectory != null) olderVersionsDir = dokkaVersionsDirectory
