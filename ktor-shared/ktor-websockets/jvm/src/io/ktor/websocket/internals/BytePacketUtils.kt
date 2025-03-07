@@ -7,8 +7,9 @@ package io.ktor.websocket.internals
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
+@OptIn(InternalIoApi::class)
 internal fun Source.endsWith(data: ByteArray): Boolean {
-    copy().apply {
+    buffer.copy().apply {
         discard(remaining - data.size)
         return readByteArray().contentEquals(data)
     }

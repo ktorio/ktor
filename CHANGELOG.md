@@ -1,3 +1,24 @@
+# 3.1.1
+> Published 24 February 2025
+
+### Improvements
+* Logging: messages are printed per line with OkHttp logger format ([KTOR-8218](https://youtrack.jetbrains.com/issue/KTOR-8218))
+* WebSocket and SSE don't respect connection timeout set in the HttpTimeout plugin ([KTOR-8206](https://youtrack.jetbrains.com/issue/KTOR-8206))
+
+### Bugfixes
+* formData: implementation of copying Source is broken ([KTOR-8210](https://youtrack.jetbrains.com/issue/KTOR-8210))
+* Race condition when writing to a buffer leads to NPE inside CIOReaderKt.readFrom ([KTOR-8105](https://youtrack.jetbrains.com/issue/KTOR-8105))
+* TLS client: IOException while writing to a closed TLS socket since 3.0.0 ([KTOR-7860](https://youtrack.jetbrains.com/issue/KTOR-7860))
+* Exception thrown in onCallRespond makes the client wait for response indefinitely ([KTOR-7139](https://youtrack.jetbrains.com/issue/KTOR-7139))
+* HttpCache: Cache isn't updated when Vary header for 304 response matches but not equal to Vary for 200 response ([KTOR-7104](https://youtrack.jetbrains.com/issue/KTOR-7104))
+* OOM on SourceByteReadChannel for large input ([KTOR-8190](https://youtrack.jetbrains.com/issue/KTOR-8190))
+* ArrayIndexOutOfBounds kotlinx-io ([KTOR-8096](https://youtrack.jetbrains.com/issue/KTOR-8096))
+* NPE in readBuffer ([KTOR-8086](https://youtrack.jetbrains.com/issue/KTOR-8086))
+* JS/WASM fails with "IllegalStateException: Content-Length mismatch" on requesting gzipped content ([KTOR-7934](https://youtrack.jetbrains.com/issue/KTOR-7934))
+* Resources: a / route isn't resolved when there is a sibling `staticResources` ([KTOR-6671](https://youtrack.jetbrains.com/issue/KTOR-6671))
+* Server accepts \r without a following \n as a valid line terminator in chunked transfer encoding ([KTOR-8015](https://youtrack.jetbrains.com/issue/KTOR-8015))
+
+
 # 3.1.0
 > Published 11 February 2025
 

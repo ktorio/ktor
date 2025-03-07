@@ -1,0 +1,26 @@
+name: Auto-Approve
+
+on:
+  pull_request_target:
+    types: [opened, labeled]
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    if: github.actor == 'renovate[bot]' || contains(github.event.pull_request.labels.*.name, '👍 ship!')
+    steps:
+      - name: Approve
+        run: gh pr review "${{ github.event.pull_request.number }}" --approve --body "Ship it! :shipit:"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository_owner }}/${{ github.event.repository.name }}
+
+      - name: Enable auto-merge
+        if: contains(github.event.pull_request.labels.*.name, '👍 ship!')
+        run: gh pr merge "${{ github.event.pull_request.number }}" --auto --squash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository_owner }}/${{ github.event.repository.name }}

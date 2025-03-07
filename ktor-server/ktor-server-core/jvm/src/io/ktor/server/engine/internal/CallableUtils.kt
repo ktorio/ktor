@@ -1,14 +1,18 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine.internal
 
 import io.ktor.server.application.*
-import java.lang.reflect.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Modifier
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.jvm.kotlinFunction
 
 internal fun executeModuleFunction(
     classLoader: ClassLoader,
@@ -40,10 +44,13 @@ internal fun executeModuleFunction(
 
     try {
         if (Function1::class.java.isAssignableFrom(clazz)) {
-            val constructor = clazz.declaredConstructors.single()
-            if (constructor.parameterCount != 0) {
-                throw ReloadingException("Module function with captured variables cannot be instantiated '$fqName'")
+            // Normally lambda has a single constructor, but this could change after R8/ProGuard optimizations
+            val constructors = clazz.declaredConstructors
+            if (constructors.isEmpty()) {
+                throw ReloadingException("Module function cannot be instantiated '$fqName'")
             }
+            val constructor = constructors.find { it.parameterCount == 0 }
+                ?: throw ReloadingException("Module function with captured variables cannot be instantiated '$fqName'")
 
             constructor.isAccessible = true
             @Suppress("UNCHECKED_CAST")

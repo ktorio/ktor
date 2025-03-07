@@ -1,17 +1,18 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.io.EOFException
+import kotlin.coroutines.CoroutineContext
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
@@ -34,7 +35,6 @@ public typealias DecoderJob = WriterJob
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  */
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION")
 @Deprecated(
     "Specify content length if known or pass -1L",
     ReplaceWith("decodeChunked(input, -1L)"),
@@ -48,7 +48,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  */
-@Suppress("UNUSED_PARAMETER", "TYPEALIAS_EXPANSION_DEPRECATION")
+@Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
     writer(coroutineContext) {
         decodeChunked(input, channel)
@@ -63,6 +63,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
  */
+@OptIn(InternalAPI::class)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
@@ -70,7 +71,7 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
     try {
         while (true) {
             chunkSizeBuffer.clear()
-            if (!input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH)) {
+            if (!input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH, httpLineEndings)) {
                 throw EOFException("Chunked stream has ended unexpectedly: no chunk size")
             } else if (chunkSizeBuffer.isEmpty()) {
                 throw EOFException("Invalid chunk size: empty")
@@ -86,7 +87,7 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
             }
 
             chunkSizeBuffer.clear()
-            if (!input.readUTF8LineTo(chunkSizeBuffer, 2)) {
+            if (!input.readUTF8LineTo(chunkSizeBuffer, 2, httpLineEndings)) {
                 throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
             }
             if (chunkSizeBuffer.isNotEmpty()) {
