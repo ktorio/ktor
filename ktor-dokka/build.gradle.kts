@@ -25,6 +25,7 @@ dokka {
 
     pluginsConfiguration {
         html {
+            customAssets.from("assets/logo-icon.svg")
             footerMessage = "© ${Year.now()} JetBrains s.r.o and contributors. Apache License 2.0"
         }
 
