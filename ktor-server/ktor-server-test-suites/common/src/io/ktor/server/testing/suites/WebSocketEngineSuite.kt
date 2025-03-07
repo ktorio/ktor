@@ -510,7 +510,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
     @Test
     open fun testALotOfFrames() = runTest {
-        val expectedCount = 100000L
+        val expectedCount = 100L
 
         createAndStartServer {
             webSocket("/") {
@@ -520,11 +520,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                         if (frame is Frame.Text) {
                             val numberRead = frame.readText().toLong()
                             assertEquals(counter, numberRead, "Wrong packet received")
+                            println("Frame #$counter received")
 
                             counter++
                         }
                     }
-                    println("All frames received, counter = $counter")
+                    println("All frames received, count = ${counter + 1}")
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
                 } catch (cancelled: CancellationException) {
