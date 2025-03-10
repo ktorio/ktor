@@ -5,7 +5,6 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import io.ktor.util.*
 
 /**
  * An adapter from CIO low-level headers map to ktor [Headers] interface
@@ -15,9 +14,9 @@ import io.ktor.util.*
 public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
 
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
-        LinkedHashSet<String>(headers.size).apply {
-            for (i in 0 until headers.size) {
-                add(headers.nameAt(i).toString())
+        LinkedHashSet<String>(headers.valuesCount).apply {
+            for (offset in headers.offsets()) {
+                add(headers.nameAtOffset(offset).toString())
             }
         }
     }
@@ -25,18 +24,18 @@ public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
     override val caseInsensitiveName: Boolean get() = true
 
     override fun names(): Set<String> = names
-    override fun get(name: String): String? = headers[name]?.toString()
+    override fun get(name: String): String? = headers[name]
 
     override fun getAll(name: String): List<String>? =
         headers.getAll(name).map { it.toString() }.toList().takeIf { it.isNotEmpty() }
 
-    override fun isEmpty(): Boolean = headers.size == 0
+    override fun isEmpty(): Boolean = headers.valuesCount == 0
     override fun entries(): Set<Map.Entry<String, List<String>>> {
-        return (0 until headers.size).map { idx -> Entry(idx) }.toSet()
+        return headers.offsets().map { idx -> Entry(idx) }.toSet()
     }
 
-    private inner class Entry(private val idx: Int) : Map.Entry<String, List<String>> {
-        override val key: String get() = headers.nameAt(idx).toString()
-        override val value: List<String> get() = listOf(headers.valueAt(idx).toString())
+    private inner class Entry(private val offset: Int) : Map.Entry<String, List<String>> {
+        override val key: String get() = headers.nameAtOffset(offset).toString()
+        override val value: List<String> get() = listOf(headers.valueAtOffset(offset).toString())
     }
 }

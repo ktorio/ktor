@@ -132,18 +132,16 @@ internal suspend fun parseHeaders(
 
             val nameStart = range.start
             val nameEnd = parseHeaderName(builder, range)
-
-            val nameHash = builder.hashCodeLowerCase(nameStart, nameEnd)
-
             val headerEnd = range.end
-            parseHeaderValue(builder, range)
 
-            val valueStart = range.start
-            val valueEnd = range.end
-            val valueHash = builder.hashCodeLowerCase(valueStart, valueEnd)
+            do {
+                val valueFullyRead = parseHeaderValue(builder, range)
+                headers.put(nameStart, nameEnd, range.start, range.end)
+                range.start = range.end + 1
+                range.end = headerEnd
+            } while (!valueFullyRead)
+
             range.start = headerEnd
-
-            headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
 
         val host = headers[HttpHeaders.Host]
@@ -280,7 +278,11 @@ private fun parseHeaderNameFailed(text: CharArrayBuilder, index: Int, start: Int
     characterIsNotAllowed(text, ch)
 }
 
-internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
+/**
+ * Returns true if the value was fully parsed or false if it is separated by comma,
+ * then the end of the range is the index of found comma
+ * */
+internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange): Boolean {
     val start = range.start
     val end = range.end
     var index = start
@@ -289,7 +291,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     if (index >= end) {
         range.start = end
-        return
+        return true
     }
 
     val valueStart = index
@@ -297,8 +299,13 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     while (index < end) {
         when (val ch = text[index]) {
-            HTAB, ' ' -> {
+            HTAB, ' ' -> {}
+            ',' -> {
+                range.start = valueStart
+                range.end = index
+                return false
             }
+
             '\r', '\n' -> characterIsNotAllowed(text, ch)
             else -> valueLastIndex = index
         }
@@ -308,6 +315,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     range.start = valueStart
     range.end = valueLastIndex + 1
+    return true
 }
 
 private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {
