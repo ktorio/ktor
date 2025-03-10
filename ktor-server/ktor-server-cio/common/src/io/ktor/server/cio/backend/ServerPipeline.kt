@@ -92,17 +92,14 @@ public fun CoroutineScope.startServerConnectionPipeline(
             }
 
             try {
-                val contentLengthIndex = request.headers.find("Content-Length")
+                val contentLengthHeaders = request.headers.getAll("Content-Length").toList()
                 connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
-
-                if (contentLengthIndex != -1) {
-                    contentLength = request.headers.valueAt(contentLengthIndex).parseDecLong()
-                    if (request.headers.find("Content-Length", contentLengthIndex + 1) != -1) {
-                        throw ParserException("Duplicate Content-Length header")
-                    }
-                } else {
-                    contentLength = -1
+                if (contentLengthHeaders.size > 1) {
+                    throw ParserException("Duplicate Content-Length header")
                 }
+
+                contentLength = if (contentLengthHeaders.size == 1) contentLengthHeaders[0].parseDecLong() else -1
+
                 expectedHttpBody = expectHttpBody(
                     request.method,
                     contentLength,

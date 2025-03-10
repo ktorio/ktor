@@ -23,7 +23,7 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(2, headers.size)
+            assertEquals(2, headers.valuesCount)
             assertEquals("value", headers["name"].toString())
             assertEquals("p1${HTAB}p2 p3", headers["name2"].toString())
         } finally {
@@ -55,7 +55,7 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(1, headers.size)
+            assertEquals(1, headers.valuesCount)
             assertEquals("value", headers["name"].toString())
         } finally {
             headers.release()
@@ -71,8 +71,57 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(1, headers.size)
+            assertEquals(1, headers.valuesCount)
             assertEquals("value", headers["name"].toString())
+        } finally {
+            headers.release()
+        }
+    }
+
+    @Test
+    fun parseHeadersWithMultipleValuesSeparatedWithComma(): Unit = test {
+        val encodedHeaders = """
+            name:value1,value2,value3
+        """.trimIndent() + "\r\n\r\n"
+        val channel = ByteReadChannel(encodedHeaders)
+        val headers = parseHeaders(channel)
+
+        try {
+            assertEquals(3, headers.valuesCount)
+            assertEquals("value1,value2,value3", headers["name"])
+            assertEquals(listOf("value1", "value2", "value3"), headers.getAll("name").map { it.toString() }.toList())
+        } finally {
+            headers.release()
+        }
+    }
+
+    @Test
+    fun parseHeadersWithEmptyValue(): Unit = test {
+        val encodedHeaders = """
+            name:
+        """.trimIndent() + "\r\n\r\n"
+        val channel = ByteReadChannel(encodedHeaders)
+        val headers = parseHeaders(channel)
+        try {
+            assertEquals(1, headers.valuesCount)
+            assertEquals("", headers["name"].toString())
+            assertEquals(headers.getAll("name").map { it.toString() }.toList(), listOf(""))
+        } finally {
+            headers.release()
+        }
+    }
+
+    @Test
+    fun parseHeadersWithMultipleEmptyValues(): Unit = test {
+        val encodedHeaders = """
+            name: ,,,
+        """.trimIndent() + "\r\n\r\n"
+        val channel = ByteReadChannel(encodedHeaders)
+        val headers = parseHeaders(channel)
+        try {
+            assertEquals(4, headers.valuesCount)
+            assertEquals(",,,", headers["name"].toString())
+            assertEquals(headers.getAll("name").map { it.toString() }.toList(), listOf("", "", "", ""))
         } finally {
             headers.release()
         }
