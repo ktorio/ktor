@@ -8,6 +8,7 @@ import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.CompletableJob
+import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import kotlin.time.Duration
