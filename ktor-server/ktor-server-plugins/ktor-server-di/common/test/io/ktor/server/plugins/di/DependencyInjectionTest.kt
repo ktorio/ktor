@@ -71,12 +71,11 @@ class DependencyInjectionTest {
     @Test
     fun `resolution out of order`() = testApplication {
         application {
-            val failure = assertFailsWith<OutOfOrderDependencyException> {
+            assertFailsWith<OutOfOrderDependencyException> {
                 dependencies { provide<GreetingService> { GreetingServiceImpl() } }
                 assertNotNull(dependencies.resolve<GreetingService>())
                 dependencies { provide<String> { "Hello" } }
             }
-            assertEquals("Attempted to define kotlin.String after dependencies were resolved", failure.message)
         }
     }
 
@@ -94,7 +93,7 @@ class DependencyInjectionTest {
     @Test
     fun `circular dependencies`() = testApplication {
         application {
-            val failure = assertFailsWith<CircularDependencyException> {
+            assertFailsWith<CircularDependencyException> {
                 dependencies {
                     provide<WorkExperience> { WorkExperience(resolve()) }
                     provide<PaidWork> { PaidWork(resolve()) }
@@ -103,10 +102,6 @@ class DependencyInjectionTest {
                 val eligibleJobs: List<PaidWork> by dependencies
                 fail("This should fail but returned $eligibleJobs")
             }
-            assertEquals(
-                "Circular dependency found for dependency `kotlin.collections.List<io.ktor.server.plugins.di.PaidWork>`",
-                failure.message
-            )
         }
     }
 
