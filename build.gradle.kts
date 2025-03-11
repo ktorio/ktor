@@ -35,6 +35,7 @@ val nonDefaultProjectStructure by extra {
 plugins {
     id("ktorbuild.doctor")
     id("ktorbuild.compatibility")
+    id("ktorbuild.publish.verifier")
 }
 
 println("Build version: ${project.version}")

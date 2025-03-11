@@ -2,16 +2,18 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import internal.*
-import org.gradle.api.*
-import org.gradle.api.publish.*
-import org.gradle.api.publish.maven.*
-import org.gradle.api.publish.maven.tasks.*
-import org.gradle.api.publish.plugins.*
-import org.gradle.jvm.tasks.*
+import internal.capitalized
+import org.gradle.api.Project
+import org.gradle.api.publish.Publication
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.publish.plugins.PublishingPlugin
+import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.signing.*
-import java.util.concurrent.locks.*
+import org.gradle.plugins.signing.Sign
+import org.gradle.plugins.signing.SigningExtension
+import java.util.concurrent.locks.ReentrantLock
 
 private val jvmAndCommonTargets = setOf(
     "jvm",
@@ -97,10 +99,6 @@ fun Project.configurePublication() {
                         password = publishingPassword
                     }
                 }
-            }
-            maven {
-                name = "testLocal"
-                setUrl(rootProject.layout.buildDirectory.dir("m2"))
             }
         }
 

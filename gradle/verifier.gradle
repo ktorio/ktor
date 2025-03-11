@@ -6,10 +6,6 @@ import org.xml.sax.SAXParseException
 
 import java.util.regex.Matcher
 
-task cleanPublications(type: Delete) {
-    delete new File(rootProject.buildDir, 'm2')
-}
-
 def isBadTextNode(node) {
     return node == null || node.size() != 1 || !node.text().trim()
 }
@@ -193,11 +189,5 @@ task verifyPublications(dependsOn: lookupTasks) {
                 throw new GradleException("No variants found in module file $file")
             }
         }
-    }
-}
-
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('publish') && task.name.endsWith('TestLocalRepository')) {
-        tasks.getByName('verifyPublications').dependsOn(task)
     }
 }
