@@ -10,4 +10,7 @@ import kotlin.test.Test
 
 class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
-)
+) {
+    @Test
+    fun test() {}
+}

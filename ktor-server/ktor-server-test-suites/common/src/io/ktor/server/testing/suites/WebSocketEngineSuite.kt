@@ -474,22 +474,29 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
         createAndStartServer {
             webSocket("/") {
+                println("ws server connected")
                 val f = incoming.receive()
+                println("ws server received")
 
                 val copied = f.copy()
                 outgoing.send(copied)
+                println("ws server sent")
 
                 flush()
+                println("ws server completed")
             }
         }
 
         useSocket {
+            println("ws client start")
             negotiateHttpWebSocket()
+            println("ws client negotiated")
 
             output.apply {
                 writeFrame(Frame.Binary(true, content), false)
                 flush()
             }
+            println("ws client sent")
 
             input.apply {
                 val frame = readFrame(Long.MAX_VALUE, 0)
@@ -498,13 +505,16 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 assertEquals(content.size, frame.data.size)
                 assertContentEquals(content, frame.data)
             }
+            println("ws client received")
 
             output.apply {
                 writeFrame(Frame.Close(), false)
                 flush()
             }
+            println("ws client send close")
 
             assertCloseFrame()
+            println("ws client close received")
         }
     }
 
@@ -520,12 +530,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                         if (frame is Frame.Text) {
                             val numberRead = frame.readText().toLong()
                             assertEquals(counter, numberRead, "Wrong packet received")
-                            println("Frame #$counter received")
 
                             counter++
                         }
                     }
-                    println("All frames received, count = ${counter + 1}")
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
                 } catch (cancelled: CancellationException) {

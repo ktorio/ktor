@@ -36,7 +36,6 @@ internal class JettyWebsocketConnection(
             userContext: CoroutineContext
         ) {
             connection.endpoint.upgrade(connection)
-            println("Upgrading connection")
 
             val result = runCatching {
                 val job = upgrade(
@@ -48,7 +47,6 @@ internal class JettyWebsocketConnection(
                 job.join()
             }
 
-            println("Upgrade complete")
             connection.flushAndClose(result.exceptionOrNull())
         }
     }
