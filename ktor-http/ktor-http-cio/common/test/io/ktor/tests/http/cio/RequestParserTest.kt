@@ -73,9 +73,9 @@ class RequestParserTest {
         assertEquals("/", request.uri.toString())
         assertEquals("HTTP/1.1", request.version.toString())
 
-        assertEquals(2, request.headers.valuesCount)
-        assertEquals("localhost", request.headers["Host"])
-        assertEquals("close", request.headers["Connection"])
+        assertEquals(2, request.headers.size)
+        assertEquals("localhost", request.headers["Host"].toString())
+        assertEquals("close", request.headers["Connection"].toString())
     }
 
     @Test
@@ -89,8 +89,8 @@ class RequestParserTest {
         assertEquals("/", request.uri.toString())
         assertEquals("HTTP/1.1", request.version.toString())
 
-        assertEquals(2, request.headers.valuesCount)
-        assertEquals("localhost", request.headers["Host"])
-        assertEquals("close", request.headers["Connection"])
+        assertEquals(2, request.headers.size)
+        assertEquals("localhost", request.headers["Host"].toString())
+        assertEquals("close", request.headers["Connection"].toString())
     }
 }

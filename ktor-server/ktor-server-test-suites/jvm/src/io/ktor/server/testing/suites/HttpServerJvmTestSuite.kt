@@ -399,8 +399,8 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             val response = parseResponse(ch)!!
 
             assertEquals(HttpStatusCode.SwitchingProtocols.value, response.status)
-            assertEquals("Upgrade", response.headers[HttpHeaders.Connection])
-            assertEquals("up", response.headers[HttpHeaders.Upgrade])
+            assertEquals("Upgrade", response.headers[HttpHeaders.Connection].toString())
+            assertEquals("up", response.headers[HttpHeaders.Upgrade].toString())
 
             response.headers.offsets()
                 .map { response.headers.nameAtOffset(it).toString() }

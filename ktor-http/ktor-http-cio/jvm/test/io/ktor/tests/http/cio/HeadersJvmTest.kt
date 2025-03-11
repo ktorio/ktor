@@ -221,7 +221,7 @@ class HeadersJvmTest {
     fun testBlankHeaderValue() = runBlocking {
         ch.writeStringUtf8("Host: \r\n\r\n")
         val headers = parseHeaders(ch, builder)!!
-        assertEquals("", headers["Host"])
+        assertEquals("", headers["Host"].toString())
 
         headers.release()
     }

@@ -43,7 +43,7 @@ internal suspend fun WinHttpResponseData.convert(
     )
 }
 
-private fun HttpHeadersHashMap.toMap(): Map<String, List<String>> {
+private fun HttpHeadersMap.toMap(): Map<String, List<String>> {
     val result = mutableMapOf<String, MutableList<String>>()
 
     for (offset in offsets()) {

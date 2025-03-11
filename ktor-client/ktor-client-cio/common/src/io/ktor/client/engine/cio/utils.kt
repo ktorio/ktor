@@ -173,8 +173,8 @@ internal suspend fun readResponse(
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
-        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toLong() ?: -1L
-        val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
+        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+        val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]?.toString()
         val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
         val rawHeaders = rawResponse.headers
@@ -243,7 +243,7 @@ internal suspend fun startTunnel(
                 throw IOException("Can not establish tunnel connection")
             }
             rawResponse.headers[HttpHeaders.ContentLength]?.let {
-                input.discard(it.toLong())
+                input.discard(it.toString().toLong())
             }
         }
     } finally {
@@ -251,7 +251,7 @@ internal suspend fun startTunnel(
     }
 }
 
-internal fun HttpHeadersHashMap.toMap(): Map<String, List<String>> {
+internal fun HttpHeadersMap.toMap(): Map<String, List<String>> {
     val result = mutableMapOf<String, MutableList<String>>()
 
     for (offset in offsets()) {

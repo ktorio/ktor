@@ -40,7 +40,7 @@ public interface StringValues {
     public val caseInsensitiveName: Boolean
 
     /**
-     * Gets all values associated with a [name] of the header separated by comma, or null if the name is not present
+     * Gets first value from the list of values associated with a [name], or null if the name is not present
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.get)
      */

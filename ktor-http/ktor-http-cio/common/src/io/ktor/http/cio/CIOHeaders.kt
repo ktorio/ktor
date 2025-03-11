@@ -11,10 +11,10 @@ import io.ktor.http.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.CIOHeaders)
  */
-public class CIOHeaders(private val headers: HttpHeadersHashMap) : Headers {
+public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
 
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
-        LinkedHashSet<String>(headers.valuesCount).apply {
+        LinkedHashSet<String>(headers.size).apply {
             for (offset in headers.offsets()) {
                 add(headers.nameAtOffset(offset).toString())
             }
@@ -24,12 +24,12 @@ public class CIOHeaders(private val headers: HttpHeadersHashMap) : Headers {
     override val caseInsensitiveName: Boolean get() = true
 
     override fun names(): Set<String> = names
-    override fun get(name: String): String? = headers[name]
+    override fun get(name: String): String? = headers[name]?.toString()
 
     override fun getAll(name: String): List<String>? =
         headers.getAll(name).map { it.toString() }.toList().takeIf { it.isNotEmpty() }
 
-    override fun isEmpty(): Boolean = headers.valuesCount == 0
+    override fun isEmpty(): Boolean = headers.size == 0
     override fun entries(): Set<Map.Entry<String, List<String>>> {
         return headers.offsets().map { idx -> Entry(idx) }.toSet()
     }

@@ -11,16 +11,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class HttpHeadersHashMapTest {
+class HttpHeadersMapTest {
 
     @Test
     fun testEmptyHeaders() {
         val rawHeaders = ""
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersHashMap(builder)
+        val headers = HttpHeadersMap(builder)
 
         try {
-            assertEquals(0, headers.valuesCount)
+            assertEquals(0, headers.size)
             assertEquals(null, headers["key1"])
             assertEquals(emptyList(), headers.getAll("key2").toList())
 
@@ -34,7 +34,7 @@ class HttpHeadersHashMapTest {
     fun testPutOneValuePerKey(): Unit = test {
         val rawHeaders = "key1: 1; key2: 2; key3: 3"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersHashMap(builder)
+        val headers = HttpHeadersMap(builder)
         val k1Start = rawHeaders.indexOf("key1")
         val k2Start = rawHeaders.indexOf("key2")
         val k3Start = rawHeaders.indexOf("key3")
@@ -69,7 +69,7 @@ class HttpHeadersHashMapTest {
     fun testPutMultipleValuesPerKey(): Unit = test {
         val rawHeaders = "keyEven: 0,2,4,6; keyOdd: 1,3,5,7"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersHashMap(builder)
+        val headers = HttpHeadersMap(builder)
         val kEvenStart = rawHeaders.indexOf("keyEven")
         val kOddStart = rawHeaders.indexOf("keyOdd")
         val v0Start = rawHeaders.indexOf("0")
@@ -91,10 +91,10 @@ class HttpHeadersHashMapTest {
             headers.put(kOddStart, kOddStart + 6, v5Start, v5Start + 1)
             headers.put(kOddStart, kOddStart + 6, v7Start, v7Start + 1)
 
-            assertEquals("0,2,4,6", headers["keyEven"].toString())
-            assertEquals(4, headers.getAll("keyEven").toList().size)
-            assertEquals("1,3,5,7", headers["keyOdd"].toString())
-            assertEquals(4, headers.getAll("keyOdd").toList().size)
+            assertEquals("0", headers["keyEven"].toString())
+            assertEquals(listOf("0", "2", "4", "6"), headers.getAll("keyEven").map { it.toString() }.toList())
+            assertEquals("1", headers["keyOdd"].toString())
+            assertEquals(listOf("1", "3", "5", "7"), headers.getAll("keyOdd").map { it.toString() }.toList())
 
             val offsets = headers.offsets()
             val keys = offsets.map { headers.nameAtOffset(it).toString() }.toList()
@@ -102,6 +102,17 @@ class HttpHeadersHashMapTest {
 
             assertTrue(keys.containsAll(listOf("keyEven", "keyOdd")))
             assertTrue(values.containsAll(listOf("0", "1", "2", "3", "4", "5", "6", "7")))
+
+            assertEquals(keys, (0 until headers.size).map { headers.nameAt(it).toString() }.toList())
+            assertEquals(values, (0 until headers.size).map { headers.valueAt(it).toString() }.toList())
+
+            val idxOfOne = (0 until headers.size).first { headers.valueAt(it).toString() == "1" }
+            assertEquals("3", headers.valueAt(headers.find("keyOdd", idxOfOne + 1)).toString())
+            val idxOfTwo = (0 until headers.size).first { headers.valueAt(it).toString() == "2" }
+            assertEquals("4", headers.valueAt(headers.find("keyEven", idxOfTwo + 1)).toString())
+
+            val idxOfSix = (0 until headers.size).first { headers.valueAt(it).toString() == "6" }
+            assertEquals(-1, headers.find("keyEven", idxOfSix + 1))
         } finally {
             headers.release()
         }
@@ -114,7 +125,7 @@ class HttpHeadersHashMapTest {
         val random = Random(42)
 
         val builder = CharArrayBuilder()
-        val headers = HttpHeadersHashMap(builder)
+        val headers = HttpHeadersMap(builder)
         val keys = mutableListOf<String>()
 
         try {
@@ -126,12 +137,12 @@ class HttpHeadersHashMapTest {
                 headers.put(i * keyLength, (i * keyLength) + keyLength, i * keyLength, (i * keyLength) + keyLength)
                 keys.add(randomKey)
             }
-            assertEquals(headersCount * 2, headers.valuesCount)
+            assertEquals(headersCount * 2, headers.size)
 
             for (i in 0 until headersCount) {
                 headers.put(i * keyLength, (i * keyLength) + keyLength, i * keyLength, (i * keyLength) + keyLength)
             }
-            assertEquals(headersCount * 3, headers.valuesCount)
+            assertEquals(headersCount * 3, headers.size)
 
             for (key in keys) {
                 val all = headers.getAll(key).toList()
@@ -157,7 +168,7 @@ class HttpHeadersHashMapTest {
         )
         val namesString = names.joinToString(";")
         val builder = CharArrayBuilder().also { it.append(namesString) }
-        val headers = HttpHeadersHashMap(builder)
+        val headers = HttpHeadersMap(builder)
 
         val origin1 = namesString.indexOf(names[0])
         val origin2 = namesString.indexOf(names[1])
@@ -190,7 +201,7 @@ class HttpHeadersHashMapTest {
 
             // check that values are not influenced
             for (name in names) {
-                assertEquals(name, headers[name])
+                assertEquals(name, headers[name].toString())
                 assertEquals(1, headers.getAll(name).toList().size)
             }
         } finally {

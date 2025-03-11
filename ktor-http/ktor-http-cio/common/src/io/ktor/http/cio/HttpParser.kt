@@ -87,7 +87,7 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
         val statusText = builder.subSequence(range.start, range.end)
         range.start = range.end
 
-        val headers = parseHeaders(input, builder, range) ?: HttpHeadersHashMap(builder)
+        val headers = parseHeaders(input, builder, range) ?: HttpHeadersMap(builder)
 
         return Response(version, statusCode, statusText, headers, builder)
     } catch (t: Throwable) {
@@ -101,9 +101,9 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHeaders)
  */
-public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersHashMap {
+public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()
-    return parseHeaders(input, builder) ?: HttpHeadersHashMap(builder)
+    return parseHeaders(input, builder) ?: HttpHeadersMap(builder)
 }
 
 /**
@@ -114,8 +114,8 @@ internal suspend fun parseHeaders(
     input: ByteReadChannel,
     builder: CharArrayBuilder,
     range: MutableRange = MutableRange(0, 0)
-): HttpHeadersHashMap? {
-    val headers = HttpHeadersHashMap(builder)
+): HttpHeadersMap? {
+    val headers = HttpHeadersMap(builder)
 
     try {
         while (true) {

@@ -7,7 +7,7 @@ package io.ktor.client.engine.curl
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.cio.*
 
-internal fun HttpHeadersHashMap.toBuilder(): HeadersBuilder {
+internal fun HttpHeadersMap.toBuilder(): HeadersBuilder {
     val builder = HeadersBuilder()
 
     for (offset in offsets()) {

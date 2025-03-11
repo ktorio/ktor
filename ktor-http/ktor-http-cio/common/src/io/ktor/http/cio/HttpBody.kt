@@ -7,7 +7,6 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 
 /**
  *
@@ -32,8 +31,8 @@ public fun expectHttpUpgrade(
  */
 public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
     request.method,
-    request.headers["Upgrade"],
-    ConnectionOptions.parse(request.headers["Connection"])
+    request.headers["Upgrade"]?.toString(),
+    ConnectionOptions.parse(request.headers["Connection"]?.toString())
 )
 
 /**
@@ -70,10 +69,10 @@ public fun expectHttpBody(
  */
 public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
     request.method,
-    request.headers["Content-Length"]?.parseDecLong() ?: -1,
-    request.headers["Transfer-Encoding"],
-    ConnectionOptions.parse(request.headers["Connection"]),
-    request.headers["Content-Type"]
+    request.headers["Content-Length"]?.toString()?.parseDecLong() ?: -1,
+    request.headers["Transfer-Encoding"]?.toString(),
+    ConnectionOptions.parse(request.headers["Connection"]?.toString()),
+    request.headers["Content-Type"]?.toString()
 )
 
 /**

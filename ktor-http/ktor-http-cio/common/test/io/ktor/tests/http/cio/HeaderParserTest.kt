@@ -23,7 +23,7 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(2, headers.valuesCount)
+            assertEquals(2, headers.size)
             assertEquals("value", headers["name"].toString())
             assertEquals("p1${HTAB}p2 p3", headers["name2"].toString())
         } finally {
@@ -55,7 +55,7 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(1, headers.valuesCount)
+            assertEquals(1, headers.size)
             assertEquals("value", headers["name"].toString())
         } finally {
             headers.release()
@@ -71,7 +71,7 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(1, headers.valuesCount)
+            assertEquals(1, headers.size)
             assertEquals("value", headers["name"].toString())
         } finally {
             headers.release()
@@ -87,8 +87,8 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(1, headers.valuesCount)
-            assertEquals("value1,value2,value3", headers["name"])
+            assertEquals(1, headers.size)
+            assertEquals("value1,value2,value3", headers["name"].toString())
             assertEquals(listOf("value1,value2,value3"), headers.getAll("name").map { it.toString() }.toList())
         } finally {
             headers.release()
@@ -103,7 +103,7 @@ class HeaderParserTest {
         val channel = ByteReadChannel(encodedHeaders)
         val headers = parseHeaders(channel)
         try {
-            assertEquals(1, headers.valuesCount)
+            assertEquals(1, headers.size)
             assertEquals("", headers["name"].toString())
             assertEquals(headers.getAll("name").map { it.toString() }.toList(), listOf(""))
         } finally {
@@ -119,7 +119,7 @@ class HeaderParserTest {
         val channel = ByteReadChannel(encodedHeaders)
         val headers = parseHeaders(channel)
         try {
-            assertEquals(1, headers.valuesCount)
+            assertEquals(1, headers.size)
             assertEquals(",,,", headers["name"].toString())
         } finally {
             headers.release()
