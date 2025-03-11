@@ -11,13 +11,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class HttpHeadersMapTest {
+class HttpHeadersHashMapTest {
 
     @Test
     fun testEmptyHeaders() {
         val rawHeaders = ""
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersMap(builder)
+        val headers = HttpHeadersHashMap(builder)
 
         try {
             assertEquals(0, headers.valuesCount)
@@ -34,7 +34,7 @@ class HttpHeadersMapTest {
     fun testPutOneValuePerKey(): Unit = test {
         val rawHeaders = "key1: 1; key2: 2; key3: 3"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersMap(builder)
+        val headers = HttpHeadersHashMap(builder)
         val k1Start = rawHeaders.indexOf("key1")
         val k2Start = rawHeaders.indexOf("key2")
         val k3Start = rawHeaders.indexOf("key3")
@@ -69,7 +69,7 @@ class HttpHeadersMapTest {
     fun testPutMultipleValuesPerKey(): Unit = test {
         val rawHeaders = "keyEven: 0,2,4,6; keyOdd: 1,3,5,7"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
-        val headers = HttpHeadersMap(builder)
+        val headers = HttpHeadersHashMap(builder)
         val kEvenStart = rawHeaders.indexOf("keyEven")
         val kOddStart = rawHeaders.indexOf("keyOdd")
         val v0Start = rawHeaders.indexOf("0")
@@ -114,13 +114,13 @@ class HttpHeadersMapTest {
         val random = Random(42)
 
         val builder = CharArrayBuilder()
-        val headers = HttpHeadersMap(builder)
+        val headers = HttpHeadersHashMap(builder)
         val keys = mutableListOf<String>()
 
         try {
             for (i in 0 until headersCount) {
-                val randomKey = ByteArray(keyLength).also { random.nextBytes(it) }
-                    .map { it.toInt().toChar() }.joinToString("")
+                val randomKey =
+                    ByteArray(keyLength).also { random.nextBytes(it) }.map { it.toInt().toChar() }.joinToString("")
                 builder.append(randomKey)
                 headers.put(i * keyLength, (i * keyLength) + keyLength, i * keyLength, (i * keyLength) + keyLength)
                 headers.put(i * keyLength, (i * keyLength) + keyLength, i * keyLength, (i * keyLength) + keyLength)
@@ -147,10 +147,17 @@ class HttpHeadersMapTest {
 
     @Test
     fun testHashCollisions() = test {
-        val names = listOf("origin", "q4igin", "content-length", "3chh57k-length", "transfer-encoding", "trc25fer-encoding")
+        val names = listOf(
+            "origin",
+            "q4igin",
+            "content-length",
+            "3chh57k-length",
+            "transfer-encoding",
+            "trc25fer-encoding"
+        )
         val namesString = names.joinToString(";")
         val builder = CharArrayBuilder().also { it.append(namesString) }
-        val headers = HttpHeadersMap(builder)
+        val headers = HttpHeadersHashMap(builder)
 
         val origin1 = namesString.indexOf(names[0])
         val origin2 = namesString.indexOf(names[1])
@@ -189,6 +196,5 @@ class HttpHeadersMapTest {
         } finally {
             headers.release()
         }
-
     }
 }

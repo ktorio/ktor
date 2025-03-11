@@ -251,7 +251,7 @@ internal suspend fun startTunnel(
     }
 }
 
-internal fun HttpHeadersMap.toMap(): Map<String, List<String>> {
+internal fun HttpHeadersHashMap.toMap(): Map<String, List<String>> {
     val result = mutableMapOf<String, MutableList<String>>()
 
     for (offset in offsets()) {

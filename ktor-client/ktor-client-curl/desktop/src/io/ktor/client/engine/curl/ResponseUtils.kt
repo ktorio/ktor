@@ -7,12 +7,12 @@ package io.ktor.client.engine.curl
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.cio.*
 
-internal fun HttpHeadersMap.toBuilder(): HeadersBuilder {
+internal fun HttpHeadersHashMap.toBuilder(): HeadersBuilder {
     val builder = HeadersBuilder()
 
-    for (index in 0 until size) {
-        val key = nameAt(index).toString()
-        val value = valueAt(index).toString()
+    for (offset in offsets()) {
+        val key = nameAtOffset(offset).toString()
+        val value = valueAtOffset(offset).toString()
 
         builder.append(key, value)
     }

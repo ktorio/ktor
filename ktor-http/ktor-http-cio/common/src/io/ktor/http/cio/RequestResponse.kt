@@ -16,7 +16,7 @@ import io.ktor.utils.io.core.*
  * @property headers request/response headers
  */
 public abstract class HttpMessage internal constructor(
-    public val headers: HttpHeadersMap,
+    public val headers: HttpHeadersHashMap,
     private val builder: CharArrayBuilder
 ) : Closeable {
 
@@ -53,7 +53,7 @@ public class Request internal constructor(
     public val method: HttpMethod,
     public val uri: CharSequence,
     public val version: CharSequence,
-    headers: HttpHeadersMap,
+    headers: HttpHeadersHashMap,
     builder: CharArrayBuilder
 ) : HttpMessage(headers, builder)
 
@@ -70,6 +70,6 @@ public class Response internal constructor(
     public val version: CharSequence,
     public val status: Int,
     public val statusText: CharSequence,
-    headers: HttpHeadersMap,
+    headers: HttpHeadersHashMap,
     builder: CharArrayBuilder
 ) : HttpMessage(headers, builder)

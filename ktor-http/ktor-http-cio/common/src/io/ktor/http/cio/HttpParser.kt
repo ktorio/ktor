@@ -87,7 +87,7 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
         val statusText = builder.subSequence(range.start, range.end)
         range.start = range.end
 
-        val headers = parseHeaders(input, builder, range) ?: HttpHeadersMap(builder)
+        val headers = parseHeaders(input, builder, range) ?: HttpHeadersHashMap(builder)
 
         return Response(version, statusCode, statusText, headers, builder)
     } catch (t: Throwable) {
@@ -101,9 +101,9 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHeaders)
  */
-public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
+public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersHashMap {
     val builder = CharArrayBuilder()
-    return parseHeaders(input, builder) ?: HttpHeadersMap(builder)
+    return parseHeaders(input, builder) ?: HttpHeadersHashMap(builder)
 }
 
 /**
@@ -114,8 +114,8 @@ internal suspend fun parseHeaders(
     input: ByteReadChannel,
     builder: CharArrayBuilder,
     range: MutableRange = MutableRange(0, 0)
-): HttpHeadersMap? {
-    val headers = HttpHeadersMap(builder)
+): HttpHeadersHashMap? {
+    val headers = HttpHeadersHashMap(builder)
 
     try {
         while (true) {
@@ -133,15 +133,13 @@ internal suspend fun parseHeaders(
             val nameStart = range.start
             val nameEnd = parseHeaderName(builder, range)
             val headerEnd = range.end
+            parseHeaderValue(builder, range)
 
-            do {
-                val valueFullyRead = parseHeaderValue(builder, range)
-                headers.put(nameStart, nameEnd, range.start, range.end)
-                range.start = range.end + 1
-                range.end = headerEnd
-            } while (!valueFullyRead)
-
+            val valueStart = range.start
+            val valueEnd = range.end
             range.start = headerEnd
+
+            headers.put(nameStart, nameEnd, valueStart, valueEnd)
         }
 
         val host = headers[HttpHeaders.Host]
@@ -278,11 +276,7 @@ private fun parseHeaderNameFailed(text: CharArrayBuilder, index: Int, start: Int
     characterIsNotAllowed(text, ch)
 }
 
-/**
- * Returns true if the value was fully parsed or false if it is separated by comma,
- * then the end of the range is the index of found comma
- * */
-internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange): Boolean {
+internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
     val start = range.start
     val end = range.end
     var index = start
@@ -291,7 +285,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange): Bool
 
     if (index >= end) {
         range.start = end
-        return true
+        return
     }
 
     val valueStart = index
@@ -300,12 +294,6 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange): Bool
     while (index < end) {
         when (val ch = text[index]) {
             HTAB, ' ' -> {}
-            ',' -> {
-                range.start = valueStart
-                range.end = index
-                return false
-            }
-
             '\r', '\n' -> characterIsNotAllowed(text, ch)
             else -> valueLastIndex = index
         }
@@ -315,7 +303,6 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange): Bool
 
     range.start = valueStart
     range.end = valueLastIndex + 1
-    return true
 }
 
 private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {

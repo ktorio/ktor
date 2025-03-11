@@ -1,5 +1,5 @@
 public final class io/ktor/http/cio/CIOHeaders : io/ktor/http/Headers {
-	public fun <init> (Lio/ktor/http/cio/HttpHeadersMap;)V
+	public fun <init> (Lio/ktor/http/cio/HttpHeadersHashMap;)V
 	public fun contains (Ljava/lang/String;)Z
 	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
 	public fun entries ()Ljava/util/Set;
@@ -57,6 +57,18 @@ public final class io/ktor/http/cio/HttpBodyKt {
 	public static final fun parseHttpBody (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/cio/HttpHeadersHashMap {
+	public final fun get (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAll (Ljava/lang/String;)Lkotlin/sequences/Sequence;
+	public final fun getValuesCount ()I
+	public final fun nameAtOffset (I)Ljava/lang/CharSequence;
+	public final fun offsets ()Lkotlin/sequences/Sequence;
+	public final fun put (IIII)V
+	public final fun release ()V
+	public fun toString ()Ljava/lang/String;
+	public final fun valueAtOffset (I)Ljava/lang/CharSequence;
+}
+
 public final class io/ktor/http/cio/HttpHeadersMap {
 	public final fun find (Ljava/lang/String;I)I
 	public static synthetic fun find$default (Lio/ktor/http/cio/HttpHeadersMap;Ljava/lang/String;IILjava/lang/Object;)I
@@ -72,7 +84,7 @@ public final class io/ktor/http/cio/HttpHeadersMap {
 
 public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
 	public fun close ()V
-	public final fun getHeaders ()Lio/ktor/http/cio/HttpHeadersMap;
+	public final fun getHeaders ()Lio/ktor/http/cio/HttpHeadersHashMap;
 	public final fun release ()V
 }
 
@@ -106,9 +118,9 @@ public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/M
 }
 
 public final class io/ktor/http/cio/MultipartKt {
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;J)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersHashMap;J)Lkotlinx/coroutines/channels/ReceiveChannel;
 	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;J)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static synthetic fun parseMultipart$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;JILjava/lang/Object;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static synthetic fun parseMultipart$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersHashMap;JILjava/lang/Object;)Lkotlinx/coroutines/channels/ReceiveChannel;
 	public static synthetic fun parseMultipart$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;JILjava/lang/Object;)Lkotlinx/coroutines/channels/ReceiveChannel;
 }
 

@@ -60,7 +60,7 @@ public sealed class MultipartEvent {
      * @property body a channel of part content
      */
     public class MultipartPart(
-        public val headers: Deferred<HttpHeadersMap>,
+        public val headers: Deferred<HttpHeadersHashMap>,
         public val body: ByteReadChannel
     ) : MultipartEvent() {
         @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,7 +107,7 @@ private suspend fun parsePreambleImpl(
 /**
  * Parse multipart part headers
  */
-private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap {
+private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersHashMap {
     val builder = CharArrayBuilder()
 
     try {
@@ -126,7 +126,7 @@ private suspend fun parsePartBodyImpl(
     boundaryPrefixed: ByteString,
     input: ByteReadChannel,
     output: ByteWriteChannel,
-    headers: HttpHeadersMap,
+    headers: HttpHeadersHashMap,
     limit: Long,
 ): Long {
     val byteCount = when (val contentLength = headers["Content-Length"]?.parseDecLong()) {
@@ -155,7 +155,7 @@ private suspend fun ByteReadChannel.skipIfFoundReadCount(prefix: ByteString): Lo
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
-    headers: HttpHeadersMap,
+    headers: HttpHeadersHashMap,
     maxPartSize: Long = Long.MAX_VALUE
 ): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw UnsupportedMediaTypeExceptionCIO(
@@ -216,11 +216,11 @@ private fun CoroutineScope.parseMultipart(
         countedInput.skipIfFound(CrLf)
 
         val body = ByteChannel()
-        val headers = CompletableDeferred<HttpHeadersMap>()
+        val headers = CompletableDeferred<HttpHeadersHashMap>()
         val part = MultipartEvent.MultipartPart(headers, body)
         send(part)
 
-        var headersMap: HttpHeadersMap? = null
+        var headersMap: HttpHeadersHashMap? = null
         try {
             headersMap = parsePartHeadersImpl(countedInput)
             if (!headers.complete(headersMap)) {

@@ -44,7 +44,7 @@ public interface StringValues {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValues.get)
      */
-    public operator fun get(name: String): String? = getAll(name)?.joinToString(",")
+    public operator fun get(name: String): String? = getAll(name)?.firstOrNull()
 
     /**
      * Gets all values associated with the [name], or null if the name is not present

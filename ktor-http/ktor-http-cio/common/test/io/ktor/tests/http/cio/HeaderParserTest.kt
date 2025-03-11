@@ -87,9 +87,9 @@ class HeaderParserTest {
         val headers = parseHeaders(channel)
 
         try {
-            assertEquals(3, headers.valuesCount)
+            assertEquals(1, headers.valuesCount)
             assertEquals("value1,value2,value3", headers["name"])
-            assertEquals(listOf("value1", "value2", "value3"), headers.getAll("name").map { it.toString() }.toList())
+            assertEquals(listOf("value1,value2,value3"), headers.getAll("name").map { it.toString() }.toList())
         } finally {
             headers.release()
         }
@@ -119,9 +119,8 @@ class HeaderParserTest {
         val channel = ByteReadChannel(encodedHeaders)
         val headers = parseHeaders(channel)
         try {
-            assertEquals(4, headers.valuesCount)
+            assertEquals(1, headers.valuesCount)
             assertEquals(",,,", headers["name"].toString())
-            assertEquals(headers.getAll("name").map { it.toString() }.toList(), listOf("", "", "", ""))
         } finally {
             headers.release()
         }

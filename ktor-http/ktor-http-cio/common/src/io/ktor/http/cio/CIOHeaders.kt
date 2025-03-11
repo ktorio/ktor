@@ -11,7 +11,7 @@ import io.ktor.http.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.CIOHeaders)
  */
-public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
+public class CIOHeaders(private val headers: HttpHeadersHashMap) : Headers {
 
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
         LinkedHashSet<String>(headers.valuesCount).apply {
