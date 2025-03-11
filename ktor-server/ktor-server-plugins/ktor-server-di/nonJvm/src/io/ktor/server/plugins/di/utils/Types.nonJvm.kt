@@ -5,6 +5,13 @@
 package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.TypeInfo
+import io.ktor.utils.io.InternalAPI
 
+/**
+ * This kind of reflection is currently only supported for the JVM platform.
+ *
+ * For non-JVM platforms, we omit support for resolving covariant types of declared dependencies.
+ */
+@InternalAPI
 public actual fun TypeInfo.hierarchy(): List<TypeInfo> =
     emptyList()

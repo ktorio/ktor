@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.utils.hierarchy
+import io.ktor.utils.io.InternalAPI
 
 /**
  * Functional interface for mapping a dependency key to its covariant types.
@@ -18,6 +19,7 @@ public fun interface DependencyKeyCovariance {
 /**
  * Standard covariance mapping for matching dependency keys to supertypes and implemented interfaces.
  */
+@OptIn(InternalAPI::class)
 public val Supertypes: DependencyKeyCovariance =
     DependencyKeyCovariance { key ->
         key.type.hierarchy().map { DependencyKey(it, key.name) }

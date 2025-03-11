@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -14,6 +15,7 @@ interface Pet : Companion
 open class Animal
 class Cat : Animal(), Pet
 
+@OptIn(InternalAPI::class)
 class TypesTest {
 
     @Test

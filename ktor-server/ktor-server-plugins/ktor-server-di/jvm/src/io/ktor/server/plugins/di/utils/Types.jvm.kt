@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
@@ -17,6 +18,7 @@ import kotlin.reflect.full.createType
  * When type arguments are encountered, they are included in parent type arguments, so
  * for example, `Collection<Element>` is included for the root type `ArrayList<Element>`.
  */
+@InternalAPI
 public actual fun TypeInfo.hierarchy(): List<TypeInfo> {
     val supertypes = kotlinType?.hierarchy() ?: type.supertypes
     return supertypes.mapNotNull { it.toTypeInfo() }
