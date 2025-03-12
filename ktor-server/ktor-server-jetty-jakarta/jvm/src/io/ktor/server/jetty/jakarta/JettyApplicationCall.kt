@@ -150,6 +150,9 @@ public class JettyApplicationCall(
                 responseBodyJob.value.channel.flushAndClose()
                 responseBodyJob.value.join()
             }
+            suspendCancellableCoroutine { continuation ->
+                response.write(true, emptyBuffer, continuation.asCallback())
+            }
 
             // Note, the request body reading should not have
             // started at this point
@@ -162,12 +165,7 @@ public class JettyApplicationCall(
                 executor
             )
 
-            // 3. Complete the current response
-            suspendCancellableCoroutine { continuation ->
-                response.write(true, emptyBuffer, continuation.asCallback())
-            }
-
-            // 4. Handle the websocket upgrade
+            // 3. Handle the websocket upgrade
             upgrade.upgradeAndAwait(
                 websocketConnection,
                 userContext

@@ -10,14 +10,17 @@ import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.eclipse.jetty.io.AbstractConnection
 import org.eclipse.jetty.io.EndPoint
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 internal class JettyWebsocketConnection(
     private val endpoint: EndPoint,
@@ -35,19 +38,23 @@ internal class JettyWebsocketConnection(
             connection: JettyWebsocketConnection,
             userContext: CoroutineContext
         ) {
-            connection.endpoint.upgrade(connection)
-
-            val result = runCatching {
-                val job = upgrade(
-                    connection.inputChannel,
-                    connection.outputChannel,
-                    connection.coroutineContext,
-                    userContext,
-                )
-                job.join()
+            withContext(coroutineContext + CoroutineName("ws-upgrade")) {
+                connection.use { connection ->
+                    connection.endpoint.upgrade(connection)
+                    try {
+                        val job = upgrade(
+                            connection.inputChannel,
+                            connection.outputChannel,
+                            connection.coroutineContext,
+                            userContext,
+                        )
+                        job.join()
+                        connection.flushAndClose()
+                    } catch (cause: Throwable) {
+                        connection.flushAndClose(cause)
+                    }
+                }
             }
-
-            connection.flushAndClose(result.exceptionOrNull())
         }
     }
 
@@ -67,7 +74,9 @@ internal class JettyWebsocketConnection(
             try {
                 while (true) {
                     fillInterested()
+                    println("fillInterested")
                     onFill.receive()
+                    println("received")
                     when (endpoint.fill(buffer.flip())) {
                         -1 -> break
                         0 -> continue
