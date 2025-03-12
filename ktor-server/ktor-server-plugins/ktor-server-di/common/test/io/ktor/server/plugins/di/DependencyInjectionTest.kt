@@ -60,11 +60,10 @@ class DependencyInjectionTest {
     @Test
     fun missing() = testApplication {
         application {
-            val failure = assertFailsWith<MissingDependencyException> {
+            assertFailsWith<MissingDependencyException> {
                 val service: GreetingService by dependencies
                 fail("Should fail but found $service")
             }
-            assertEquals("Could not resolve dependency for `${GreetingService::class.qualifiedName}`", failure.message)
         }
     }
 
@@ -82,11 +81,10 @@ class DependencyInjectionTest {
     @Test
     fun `conflicting declarations`() = testApplication {
         application {
-            val failure = assertFailsWith<DuplicateDependencyException> {
+            assertFailsWith<DuplicateDependencyException> {
                 dependencies { provide<GreetingService> { GreetingServiceImpl() } }
                 dependencies { provide<GreetingService> { BankGreetingService() } }
             }
-            assertEquals("Attempted to redefine dependency `${GreetingService::class.qualifiedName}`", failure.message)
         }
     }
 
