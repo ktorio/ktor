@@ -1,9 +1,13 @@
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 plugins {
     id("java-platform")
     id("maven-publish")
 }
 
-the<PublishingExtension>().publications {
+publishing.publications {
     create<MavenPublication>("maven") {
         from(components.findByName("javaPlatform"))
     }
@@ -15,7 +19,7 @@ dependencies {
     constraints {
         rootProject.subprojects.forEach subprojects@{
             if (!it.plugins.hasPlugin("maven-publish") || it.name == name) return@subprojects
-            it.the<PublishingExtension>().publications.forEach { publication ->
+            it.publishing.publications.forEach { publication ->
                 if (publication !is MavenPublication) return@forEach
 
                 val artifactId = publication.artifactId
@@ -29,4 +33,4 @@ dependencies {
     }
 }
 
-configurePublication()
+apply(plugin = "ktorbuild.publish")

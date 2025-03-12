@@ -49,8 +49,15 @@ public fun Source.readAvailable(out: kotlinx.io.Buffer): Int {
     return result.toInt()
 }
 
+/**
+ * Returns a copy of the current buffer attached to this Source.
+ */
+@Deprecated(
+    "Use peek() or buffer.copy() instead, depending on your use case.",
+    ReplaceWith("peek()", "kotlinx.io.Source")
+)
 @OptIn(InternalIoApi::class)
-public fun Source.copy(): Source = buffer.copy()
+public fun Source.copy(): Source = peek()
 
 @OptIn(InternalIoApi::class)
 public fun Source.readShortLittleEndian(): Short {

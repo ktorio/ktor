@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
@@ -61,7 +62,7 @@ public class DefaultClientSSESession(
     }.catch { cause ->
         when (cause) {
             is CancellationException -> {
-                close()
+                // CancellationException will be handled by onCompletion operator
             }
 
             else -> {
@@ -69,6 +70,12 @@ public class DefaultClientSSESession(
                 close()
                 throw cause
             }
+        }
+    }.onCompletion { cause ->
+        // Because catch operator only catch throwable occurs in upstream flow, so we use onCompletion operator instead
+        // to handle CancellationException occurs in either upstream flow or downstream flow.
+        if (cause is CancellationException) {
+            close()
         }
     }
 

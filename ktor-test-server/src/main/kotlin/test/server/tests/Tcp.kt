@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server.tests
@@ -75,7 +75,7 @@ internal suspend fun tcpServerHandler(socket: Socket) {
     }
 
     output.writeStringUtf8(response)
-    output.close()
+    output.flushAndClose()
 
     while (!input.isClosedForRead) {
         input.readUTF8Line()

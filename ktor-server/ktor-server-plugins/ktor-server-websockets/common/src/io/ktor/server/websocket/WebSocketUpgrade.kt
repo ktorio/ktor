@@ -131,7 +131,7 @@ public class WebSocketUpgrade(
         }
 
         if (extensionHeaders.isNotEmpty()) {
-            append(HttpHeaders.SecWebSocketExtensions, extensionHeaders.joinToString(";"))
+            append(HttpHeaders.SecWebSocketExtensions, extensionHeaders.joinToString(","))
         }
 
         return extensionsToUse
