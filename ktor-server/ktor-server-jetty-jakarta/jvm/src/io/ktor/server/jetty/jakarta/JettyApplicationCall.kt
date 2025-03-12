@@ -60,8 +60,9 @@ public class JettyApplicationCall(
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
 
         // See https://jetty.org/docs/jetty/12/programming-guide/arch/io.html#content-source
-        internal val requestBodyJob: WriterJob =
+        private val requestBodyJob: WriterJob by lazy {
             call.bodyReader(request, call.application.log, idleTimeout)
+        }
 
         override val cookies: RequestCookies = object : RequestCookies(this@JettyApplicationRequest) {
             override fun fetchCookies(): Map<String, String> =
@@ -70,7 +71,9 @@ public class JettyApplicationCall(
 
         override val engineHeaders: Headers = JettyHeaders(request)
 
-        override val engineReceiveChannel: ByteReadChannel by lazy { requestBodyJob.channel }
+        override val engineReceiveChannel: ByteReadChannel by lazy {
+            requestBodyJob.channel
+        }
 
         override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 
@@ -136,12 +139,13 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-            // 1. Stop request / response jobs
-            request.requestBodyJob.cancel()
+            // 1. Stop processing the response
             if (responseBodyJob.isInitialized()) {
                 responseBodyJob.value.channel.flushAndClose()
                 responseBodyJob.value.join()
             }
+            // Note, the request body reading should not have
+            // started at this point
 
             // 2. Redirect socket I/O to jetty connection
             val websocketConnection = JettyWebsocketConnection(
