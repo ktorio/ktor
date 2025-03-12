@@ -5,6 +5,7 @@
 import ktorbuild.createCInterop
 
 plugins {
+    id("ktorbuild.project.library")
     alias(libs.plugins.kover)
 }
 

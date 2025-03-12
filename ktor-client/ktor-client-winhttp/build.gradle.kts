@@ -5,6 +5,7 @@
 import ktorbuild.createCInterop
 
 plugins {
+    id("ktorbuild.project.library")
     id("kotlinx-serialization")
     id("test-server")
 }

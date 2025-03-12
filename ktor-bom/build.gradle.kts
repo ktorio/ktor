@@ -3,6 +3,7 @@
  */
 
 plugins {
+    id("ktorbuild.base")
     id("java-platform")
     id("maven-publish")
 }

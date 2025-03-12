@@ -4,14 +4,20 @@
 
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
-kotlin.sourceSets {
-    jvmTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-test-base"))
-            api(project(":ktor-server:ktor-server-test-suites"))
-            api(libs.jetty.servlet)
-            api(project(":ktor-server:ktor-server-core"))
-            api(project(":ktor-server:ktor-server-jetty"))
+plugins {
+    id("ktorbuild.project.internal")
+}
+
+kotlin {
+    sourceSets {
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-test-base"))
+                api(project(":ktor-server:ktor-server-test-suites"))
+                api(libs.jetty.servlet)
+                api(project(":ktor-server:ktor-server-core"))
+                api(project(":ktor-server:ktor-server-jetty"))
+            }
         }
     }
 }

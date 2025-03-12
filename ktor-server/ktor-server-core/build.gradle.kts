@@ -6,6 +6,10 @@ import ktorbuild.createCInterop
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 kotlin {
     createCInterop("host_common", sourceSet = "nix")
 

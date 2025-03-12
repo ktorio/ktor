@@ -4,23 +4,29 @@
 
 description = ""
 
-kotlin.sourceSets {
-    commonMain {
-        dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-shared:ktor-test-base"))
+plugins {
+    id("ktorbuild.project.internal")
+}
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(project(":ktor-server:ktor-server-test-host"))
+                api(project(":ktor-shared:ktor-test-base"))
+            }
         }
-    }
 
-    jvmMain {
-        dependencies {
-            api(project(":ktor-network:ktor-network-tls"))
+        jvmMain {
+            dependencies {
+                api(project(":ktor-network:ktor-network-tls"))
 
-            api(project(":ktor-client:ktor-client-apache"))
-            api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
+                api(project(":ktor-client:ktor-client-apache"))
+                api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
 
-            api(libs.logback.classic)
+                api(libs.logback.classic)
+            }
         }
     }
 }

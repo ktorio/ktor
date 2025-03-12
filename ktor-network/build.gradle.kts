@@ -6,6 +6,10 @@ import ktorbuild.createCInterop
 
 description = "Ktor network utilities"
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 kotlin {
     createCInterop("network", sourceSet = "nix")
     createCInterop("un", sourceSet = "androidNative")

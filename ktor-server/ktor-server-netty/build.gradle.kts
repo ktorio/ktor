@@ -6,6 +6,10 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 val enableAlpnProp = project.hasProperty("enableAlpn")
 val osName = System.getProperty("os.name").lowercase()
 val nativeClassifier: String? = if (enableAlpnProp) {
@@ -19,30 +23,32 @@ val nativeClassifier: String? = if (enableAlpnProp) {
     null
 }
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
-            api(project(":ktor-server:ktor-server-core"))
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api(project(":ktor-server:ktor-server-core"))
 
-            api(libs.netty.codec.http2)
-            api(libs.jetty.alpn.api)
+                api(libs.netty.codec.http2)
+                api(libs.jetty.alpn.api)
 
-            api(libs.netty.transport.native.kqueue)
-            api(libs.netty.transport.native.epoll)
-            if (nativeClassifier != null) {
-                api(libs.netty.tcnative.boringssl.static)
+                api(libs.netty.transport.native.kqueue)
+                api(libs.netty.transport.native.epoll)
+                if (nativeClassifier != null) {
+                    api(libs.netty.tcnative.boringssl.static)
+                }
             }
         }
-    }
-    jvmTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-test-base"))
-            api(project(":ktor-server:ktor-server-test-suites"))
-            api(project(":ktor-server:ktor-server-core"))
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-test-base"))
+                api(project(":ktor-server:ktor-server-test-suites"))
+                api(project(":ktor-server:ktor-server-core"))
 
-            api(libs.netty.tcnative)
-            api(libs.netty.tcnative.boringssl.static)
-            api(libs.mockk)
+                api(libs.netty.tcnative)
+                api(libs.netty.tcnative.boringssl.static)
+                api(libs.mockk)
+            }
         }
     }
 }

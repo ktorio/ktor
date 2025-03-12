@@ -4,19 +4,25 @@
 
 description = "Common extensions for testing Ktor"
 
-kotlin.sourceSets {
-    commonMain {
-        dependencies {
-            api(libs.kotlin.test)
-            api(project(":ktor-test-dispatcher"))
-        }
-    }
+plugins {
+    id("ktorbuild.project.internal")
+}
 
-    jvmMain {
-        dependencies {
-            api(libs.kotlin.test.junit5)
-            api(libs.junit)
-            api(libs.kotlinx.coroutines.debug)
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(libs.kotlin.test)
+                api(project(":ktor-test-dispatcher"))
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                api(libs.kotlin.test.junit5)
+                api(libs.junit)
+                api(libs.kotlinx.coroutines.debug)
+            }
         }
     }
 }
