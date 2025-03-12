@@ -60,7 +60,7 @@ public class JettyApplicationCall(
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
 
         // See https://jetty.org/docs/jetty/12/programming-guide/arch/io.html#content-source
-        private val requestBodyJob: WriterJob =
+        internal val requestBodyJob: WriterJob =
             call.bodyReader(request, call.application.log, idleTimeout)
 
         override val cookies: RequestCookies = object : RequestCookies(this@JettyApplicationRequest) {
@@ -98,8 +98,8 @@ public class JettyApplicationCall(
                 if (completed) return@intercept
                 completed = true
 
-                if (responseJob.isInitialized()) {
-                    responseJob.value.apply {
+                if (responseBodyJob.isInitialized()) {
+                    responseBodyJob.value.apply {
                         runCatching {
                             channel.flushAndClose()
                         }
@@ -119,7 +119,7 @@ public class JettyApplicationCall(
         }
 
         @OptIn(InternalCoroutinesApi::class, InternalIoApi::class)
-        private val responseJob: Lazy<ReaderJob> = lazy {
+        private val responseBodyJob: Lazy<ReaderJob> = lazy {
             call.bodyWriter(response, idleTimeout)
         }
 
@@ -136,13 +136,14 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-            // Close response job
-            if (responseJob.isInitialized()) {
-                responseJob.value.channel.flushAndClose()
-                responseJob.value.join()
+            // 1. Stop request / response jobs
+            request.requestBodyJob.cancel()
+            if (responseBodyJob.isInitialized()) {
+                responseBodyJob.value.channel.flushAndClose()
+                responseBodyJob.value.join()
             }
 
-            // An [AbstractConnection] implementation for translating Jetty I/O
+            // 2. Redirect socket I/O to jetty connection
             val websocketConnection = JettyWebsocketConnection(
                 endpoint,
                 bufferPool,
@@ -150,13 +151,13 @@ public class JettyApplicationCall(
                 executor
             )
 
-            // Ensure the current response is finished
+            // 3. Complete the current response
             suspendCancellableCoroutine { continuation ->
                 response.write(true, emptyBuffer, continuation.asCallback())
             }
             completed = true
 
-            // Start a job for handling the websocket connection and wait for it to finish
+            // 4. Handle the websocket upgrade
             upgrade.upgradeAndAwait(
                 websocketConnection,
                 userContext
@@ -172,7 +173,7 @@ public class JettyApplicationCall(
         }
 
         override suspend fun responseChannel(): ByteWriteChannel =
-            responseJob.value.channel
+            responseBodyJob.value.channel
 
         override fun setStatus(statusCode: HttpStatusCode) {
             response.status = statusCode.value
