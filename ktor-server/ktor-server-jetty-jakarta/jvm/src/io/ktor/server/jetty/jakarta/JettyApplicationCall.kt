@@ -143,12 +143,13 @@ public class JettyApplicationCall(
 
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
             // 1. Stop processing the response
+            completed = true
+            request.upgraded()
+
             if (responseBodyJob.isInitialized()) {
                 responseBodyJob.value.channel.flushAndClose()
                 responseBodyJob.value.join()
             }
-            completed = true
-            request.upgraded()
 
             // Note, the request body reading should not have
             // started at this point
