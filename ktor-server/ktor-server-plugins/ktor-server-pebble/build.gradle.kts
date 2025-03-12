@@ -1,18 +1,24 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
-            api(libs.pebble)
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api(libs.pebble)
+            }
         }
-    }
-    jvmTest {
-        dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+        jvmTest {
+            dependencies {
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+                api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
+                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            }
         }
     }
 }

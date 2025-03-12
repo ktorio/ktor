@@ -5,6 +5,7 @@
 import ktorbuild.targets.javaModuleName
 
 plugins {
+    id("ktorbuild.base")
     id("java-library")
 }
 

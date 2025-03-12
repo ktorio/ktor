@@ -3,11 +3,11 @@
  */
 
 plugins {
+    id("ktorbuild.project.library")
     id("test-server")
 }
 
 kotlin {
-
     sourceSets {
         darwinMain {
             dependencies {

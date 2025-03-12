@@ -4,6 +4,10 @@
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 kotlin {
     sourceSets {
         jvmMain {
