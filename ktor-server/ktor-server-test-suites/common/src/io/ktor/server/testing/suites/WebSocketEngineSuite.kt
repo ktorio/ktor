@@ -468,7 +468,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testBigFrame() = runTest {
+    open fun testBigFrame() = runTest {
         val content = ByteArray(20 * 1024 * 1024)
         Random.nextBytes(content)
 

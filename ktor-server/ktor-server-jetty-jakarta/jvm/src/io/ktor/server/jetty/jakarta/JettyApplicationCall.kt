@@ -59,9 +59,10 @@ public class JettyApplicationCall(
     @InternalAPI
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
 
-        // See https://jetty.org/docs/jetty/12/programming-guide/arch/io.html#content-source
-        private val requestBodyJob: WriterJob by lazy {
-            call.bodyReader(request, call.application.log, idleTimeout)
+        private var upgraded: Boolean = false
+        private val requestBodyChannel: ByteReadChannel by lazy {
+            if (upgraded) return@lazy ByteReadChannel.Empty
+            call.bodyReader(request, call.application.log, idleTimeout).channel
         }
 
         override val cookies: RequestCookies = object : RequestCookies(this@JettyApplicationRequest) {
@@ -71,9 +72,7 @@ public class JettyApplicationCall(
 
         override val engineHeaders: Headers = JettyHeaders(request)
 
-        override val engineReceiveChannel: ByteReadChannel by lazy {
-            requestBodyJob.channel
-        }
+        override val engineReceiveChannel: ByteReadChannel get() = requestBodyChannel
 
         override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 
@@ -84,6 +83,10 @@ public class JettyApplicationCall(
         override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
             val queryString = request.httpURI.query ?: return@lazy Parameters.Empty
             parseQueryString(queryString, decode = false)
+        }
+
+        internal fun upgraded() {
+            upgraded = true
         }
     }
 
@@ -144,6 +147,9 @@ public class JettyApplicationCall(
                 responseBodyJob.value.channel.flushAndClose()
                 responseBodyJob.value.join()
             }
+            completed = true
+            request.upgraded()
+
             // Note, the request body reading should not have
             // started at this point
 
@@ -159,7 +165,6 @@ public class JettyApplicationCall(
             suspendCancellableCoroutine { continuation ->
                 response.write(true, emptyBuffer, continuation.asCallback())
             }
-            completed = true
 
             // 4. Handle the websocket upgrade
             upgrade.upgradeAndAwait(

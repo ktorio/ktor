@@ -6,11 +6,14 @@ package io.ktor.tests.server.jetty.jakarta
 
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
+import kotlinx.coroutines.test.TestResult
 import kotlin.test.Test
 
 class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
 ) {
     @Test
-    fun test() {}
+    override fun testBigFrame(): TestResult {
+        return super.testBigFrame()
+    }
 }
