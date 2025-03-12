@@ -166,13 +166,16 @@ class DependencyInjectionTest {
     fun parameterized() = testApplication {
         application {
             dependencies {
-                provide<List<GreetingService>> { listOf(GreetingServiceImpl()) }
+                provide<GreetingService> { GreetingServiceImpl() }
+                provide<List<GreetingService>> { listOf(resolve(), resolve()) }
             }
 
-            val service: List<GreetingService> by dependencies
-            assertEquals(HELLO, service.single().hello())
-            assertFailsWith<MissingDependencyException> {
-                dependencies.resolve<List<BankService>>()
+            val services: List<GreetingService> by dependencies
+            for (service in services) {
+                assertEquals(HELLO, service.hello())
+                assertFailsWith<MissingDependencyException> {
+                    dependencies.resolve<List<BankService>>()
+                }
             }
         }
     }

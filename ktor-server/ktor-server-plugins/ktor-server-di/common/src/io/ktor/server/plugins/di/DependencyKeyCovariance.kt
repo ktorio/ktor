@@ -40,7 +40,9 @@ public val Unnamed: DependencyKeyCovariance =
 /**
  * Helper operator function for combining covariance logic.
  *
- * For example, for all supertypes to match for both named and unnamed:
+ * Returns a composed function that results in the cartesian product of the two outputs.
+ *
+ * For example, to match all supertypes, named or unnamed, including the input key:
  * ```
  * Supertypes * Unnamed
  * ```
@@ -51,7 +53,9 @@ public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance
 /**
  * Helper operator function for combining covariance logic.
  *
- * For example, for only unnamed of a given type, plus all named covariant types:
+ * Returns a composed function that results in the union of the two outputs.
+ *
+ * For example, to match only the unnamed key of the input, and the named supertypes:
  * ```
  * Supertypes + Unnamed
  * ```

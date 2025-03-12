@@ -15,16 +15,34 @@ import kotlin.reflect.jvm.jvmErasure
  * calls for inferring which constructors to use, and how to evaluate the parameters as dependency keys.
  */
 public open class DependencyReflectionJvm : DependencyReflection {
-    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T =
-        findConstructors(kClass).firstNotNullOf { constructor ->
+    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T {
+        if (kClass.isAbstract || kClass.java.isInterface) {
+            throw DependencyAbstractTypeConstructionException(kClass.qualifiedName ?: "<unknown>")
+        }
+
+        val constructors = findConstructors(kClass)
+        var lastFailure: Throwable? = null
+
+        // Try to create using available constructors
+        val instanceFromConstructors = constructors.firstNotNullOfOrNull { constructor ->
             runCatching {
                 constructor.callBy(
                     constructor.parameters.associateWith { parameter ->
                         init(toDependencyKey(parameter))
                     }
                 )
+            }.onFailure {
+                lastFailure = it
             }.getOrNull()
         }
+
+        // Throw if we were unable to create a new instance
+        return instanceFromConstructors
+            ?: throw DependencyConstructionException(
+                "Unable to find a suitable constructor for type: ${kClass.qualifiedName}",
+                lastFailure
+            )
+    }
 
     public open fun <T : Any> findConstructors(kClass: KClass<T>): Collection<KFunction<T>> =
         kClass.constructors

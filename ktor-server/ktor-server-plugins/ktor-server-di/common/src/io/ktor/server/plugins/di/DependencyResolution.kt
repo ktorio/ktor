@@ -72,13 +72,13 @@ public fun DependencyResolver.named(key: String) =
  * Property delegation operator for resolving dependencies.
  */
 public inline operator fun <reified T> DependencyMap.getValue(thisRef: Any?, property: KProperty<*>): T =
-    lazy<T> { resolve() }.getValue(thisRef, property)
+    resolve()
 
 /**
  * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
  */
 public inline operator fun <reified T> DependencyResolverContext.getValue(thisRef: Any?, property: KProperty<*>): T =
-    lazy<T> { resolver.resolve(key) }.getValue(thisRef, property)
+    resolver.resolve(key)
 
 /**
  * Context for property delegation with chaining (i.e., `dependencies.named("foo")`)

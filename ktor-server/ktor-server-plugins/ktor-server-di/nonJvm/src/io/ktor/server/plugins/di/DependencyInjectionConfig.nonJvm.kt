@@ -4,14 +4,8 @@
 
 package io.ktor.server.plugins.di
 
-import kotlin.reflect.KClass
-
+/**
+ * Reflection is currently disabled for all non-JVM platforms.
+ */
 public actual val DefaultReflection: DependencyReflection
-    get() = ReflectionUnavailable
-
-internal object ReflectionUnavailable : DependencyReflection {
-    override fun <T : Any> create(
-        kClass: KClass<T>,
-        init: (DependencyKey) -> Any
-    ): T = TODO("Reflection is currently unavailable for non-JVM targets")
-}
+    get() = NoReflection

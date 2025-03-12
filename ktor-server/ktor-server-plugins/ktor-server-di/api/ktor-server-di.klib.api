@@ -6,6 +6,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-server-di>
+abstract fun interface io.ktor.server.plugins.di/DependencyConflictPolicy { // io.ktor.server.plugins.di/DependencyConflictPolicy|null[0]
+    abstract fun resolve(io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction): io.ktor.server.plugins.di/DependencyConflictResult // io.ktor.server.plugins.di/DependencyConflictPolicy.resolve|resolve(io.ktor.server.plugins.di.DependencyCreateFunction;io.ktor.server.plugins.di.DependencyCreateFunction){}[0]
+}
+
 abstract fun interface io.ktor.server.plugins.di/DependencyKeyCovariance { // io.ktor.server.plugins.di/DependencyKeyCovariance|null[0]
     abstract fun map(io.ktor.server.plugins.di/DependencyKey): kotlin.collections/List<io.ktor.server.plugins.di/DependencyKey> // io.ktor.server.plugins.di/DependencyKeyCovariance.map|map(io.ktor.server.plugins.di.DependencyKey){}[0]
 }
@@ -83,6 +87,10 @@ final class io.ktor.server.plugins.di/CircularDependencyException : kotlin/Illeg
     constructor <init>(io.ktor.server.plugins.di/DependencyKey) // io.ktor.server.plugins.di/CircularDependencyException.<init>|<init>(io.ktor.server.plugins.di.DependencyKey){}[0]
 }
 
+final class io.ktor.server.plugins.di/DependencyAbstractTypeConstructionException : io.ktor.server.plugins.di/DependencyConstructionException { // io.ktor.server.plugins.di/DependencyAbstractTypeConstructionException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.server.plugins.di/DependencyAbstractTypeConstructionException.<init>|<init>(kotlin.String){}[0]
+}
+
 final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.server.plugins.di/DependencyInjectionConfig|null[0]
     constructor <init>() // io.ktor.server.plugins.di/DependencyInjectionConfig.<init>|<init>(){}[0]
 
@@ -99,11 +107,11 @@ final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.ser
     final fun provider(kotlin/Function1<io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyInjectionConfig.provider|provider(kotlin.Function1<io.ktor.server.plugins.di.DependencyInjectionConfig.ProviderScope,kotlin.Unit>){}[0]
 
     final class ProviderScope { // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope|null[0]
-        constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;kotlin.Function2<io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyConflictResult>;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
+        constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., io.ktor.server.plugins.di/DependencyConflictPolicy = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;io.ktor.server.plugins.di.DependencyConflictPolicy;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
 
         final var conflictPolicy // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.conflictPolicy|{}conflictPolicy[0]
-            final fun <get-conflictPolicy>(): kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.conflictPolicy.<get-conflictPolicy>|<get-conflictPolicy>(){}[0]
-            final fun <set-conflictPolicy>(kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult>) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.conflictPolicy.<set-conflictPolicy>|<set-conflictPolicy>(kotlin.Function2<io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyConflictResult>){}[0]
+            final fun <get-conflictPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.conflictPolicy.<get-conflictPolicy>|<get-conflictPolicy>(){}[0]
+            final fun <set-conflictPolicy>(io.ktor.server.plugins.di/DependencyConflictPolicy) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.conflictPolicy.<set-conflictPolicy>|<set-conflictPolicy>(io.ktor.server.plugins.di.DependencyConflictPolicy){}[0]
         final var keyMapping // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.keyMapping|{}keyMapping[0]
             final fun <get-keyMapping>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.keyMapping.<get-keyMapping>|<get-keyMapping>(){}[0]
             final fun <set-keyMapping>(io.ktor.server.plugins.di/DependencyKeyCovariance) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.keyMapping.<set-keyMapping>|<set-keyMapping>(io.ktor.server.plugins.di.DependencyKeyCovariance){}[0]
@@ -112,9 +120,9 @@ final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.ser
             final fun <set-onConflict>(kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.onConflict.<set-onConflict>|<set-onConflict>(kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
 
         final fun component1(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.component1|component1(){}[0]
-        final fun component2(): kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.component2|component2(){}[0]
+        final fun component2(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.component2|component2(){}[0]
         final fun component3(): kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.component3|component3(){}[0]
-        final fun copy(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...): io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.copy|copy(io.ktor.server.plugins.di.DependencyKeyCovariance;kotlin.Function2<io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyConflictResult>;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
+        final fun copy(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., io.ktor.server.plugins.di/DependencyConflictPolicy = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...): io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.copy|copy(io.ktor.server.plugins.di.DependencyKeyCovariance;io.ktor.server.plugins.di.DependencyConflictPolicy;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyInjectionConfig.ProviderScope.toString|toString(){}[0]
@@ -226,11 +234,19 @@ final class io.ktor.server.plugins.di/ProcessingDependencyResolver : io.ktor.ser
     final fun <#A1: kotlin/Any> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/ProcessingDependencyResolver.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any>}[0]
 }
 
+open class io.ktor.server.plugins.di/DependencyConstructionException : kotlin/IllegalArgumentException { // io.ktor.server.plugins.di/DependencyConstructionException|null[0]
+    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.server.plugins.di/DependencyConstructionException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+}
+
+open class io.ktor.server.plugins.di/DependencyReflectionDisabledException : io.ktor.server.plugins.di/DependencyConstructionException { // io.ktor.server.plugins.di/DependencyReflectionDisabledException|null[0]
+    constructor <init>() // io.ktor.server.plugins.di/DependencyReflectionDisabledException.<init>|<init>(){}[0]
+}
+
 open class io.ktor.server.plugins.di/MapDependencyProvider : io.ktor.server.plugins.di/DependencyProvider { // io.ktor.server.plugins.di/MapDependencyProvider|null[0]
-    constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...) // io.ktor.server.plugins.di/MapDependencyProvider.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;kotlin.Function2<io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyCreateFunction,io.ktor.server.plugins.di.DependencyConflictResult>;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
+    constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., io.ktor.server.plugins.di/DependencyConflictPolicy = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...) // io.ktor.server.plugins.di/MapDependencyProvider.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;io.ktor.server.plugins.di.DependencyConflictPolicy;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
 
     final val conflictPolicy // io.ktor.server.plugins.di/MapDependencyProvider.conflictPolicy|{}conflictPolicy[0]
-        final fun <get-conflictPolicy>(): kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> // io.ktor.server.plugins.di/MapDependencyProvider.conflictPolicy.<get-conflictPolicy>|<get-conflictPolicy>(){}[0]
+        final fun <get-conflictPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/MapDependencyProvider.conflictPolicy.<get-conflictPolicy>|<get-conflictPolicy>(){}[0]
     final val keyMapping // io.ktor.server.plugins.di/MapDependencyProvider.keyMapping|{}keyMapping[0]
         final fun <get-keyMapping>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/MapDependencyProvider.keyMapping.<get-keyMapping>|<get-keyMapping>(){}[0]
     final val onConflict // io.ktor.server.plugins.di/MapDependencyProvider.onConflict|{}onConflict[0]
@@ -241,10 +257,14 @@ open class io.ktor.server.plugins.di/MapDependencyProvider : io.ktor.server.plug
     open fun <#A1: kotlin/Any?> set(io.ktor.server.plugins.di/DependencyKey, kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1>) // io.ktor.server.plugins.di/MapDependencyProvider.set|set(io.ktor.server.plugins.di.DependencyKey;kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,0:0>){0§<kotlin.Any?>}[0]
 }
 
+final object io.ktor.server.plugins.di/NoReflection : io.ktor.server.plugins.di/DependencyReflection { // io.ktor.server.plugins.di/NoReflection|null[0]
+    final fun <#A1: kotlin/Any> create(kotlin.reflect/KClass<#A1>, kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Any>): #A1 // io.ktor.server.plugins.di/NoReflection.create|create(kotlin.reflect.KClass<0:0>;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Any>){0§<kotlin.Any>}[0]
+}
+
 final val io.ktor.server.plugins.di/DI // io.ktor.server.plugins.di/DI|{}DI[0]
     final fun <get-DI>(): io.ktor.server.application/ApplicationPlugin<io.ktor.server.plugins.di/DependencyInjectionConfig> // io.ktor.server.plugins.di/DI.<get-DI>|<get-DI>(){}[0]
 final val io.ktor.server.plugins.di/DefaultConflictPolicy // io.ktor.server.plugins.di/DefaultConflictPolicy|{}DefaultConflictPolicy[0]
-    final fun <get-DefaultConflictPolicy>(): kotlin/Function2<io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyCreateFunction, io.ktor.server.plugins.di/DependencyConflictResult> // io.ktor.server.plugins.di/DefaultConflictPolicy.<get-DefaultConflictPolicy>|<get-DefaultConflictPolicy>(){}[0]
+    final fun <get-DefaultConflictPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/DefaultConflictPolicy.<get-DefaultConflictPolicy>|<get-DefaultConflictPolicy>(){}[0]
 final val io.ktor.server.plugins.di/DefaultDependencyResolution // io.ktor.server.plugins.di/DefaultDependencyResolution|{}DefaultDependencyResolution[0]
     final fun <get-DefaultDependencyResolution>(): io.ktor.server.plugins.di/DependencyResolution // io.ktor.server.plugins.di/DefaultDependencyResolution.<get-DefaultDependencyResolution>|<get-DefaultDependencyResolution>(){}[0]
 final val io.ktor.server.plugins.di/DefaultReflection // io.ktor.server.plugins.di/DefaultReflection|{}DefaultReflection[0]

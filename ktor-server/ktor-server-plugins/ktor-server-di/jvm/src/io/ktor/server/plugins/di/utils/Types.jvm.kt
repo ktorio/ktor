@@ -35,10 +35,15 @@ private fun KType.toTypeInfo(): TypeInfo? =
 // List of generic classes to exclude from results
 private val ignoredSupertypes = setOf(
     Any::class,
+    Cloneable::class,
+    java.io.Closeable::class,
+    java.lang.AutoCloseable::class,
     java.io.Serializable::class,
     java.lang.Comparable::class,
-    // Add more general types here as needed
+    Enum::class,
+    java.lang.Enum::class,
     Object::class,
+    // Add more general types here as needed
 )
 
 private fun KType.hierarchy(): List<KType> {

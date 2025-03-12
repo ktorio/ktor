@@ -15,8 +15,23 @@ import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
  * This mechanism is used to manage dependency resolutions in scenarios where multiple
  * initializers are registered for the same dependency key.
  */
-public typealias DependencyConflictPolicy =
-    (DependencyCreateFunction, DependencyCreateFunction) -> DependencyConflictResult
+public fun interface DependencyConflictPolicy {
+
+    /**
+     * Resolves a conflict between two dependency creation functions.
+     *
+     * This method determines the appropriate `DependencyConflictResult` for handling
+     * the conflict between the previously registered dependency creation function
+     * and the currently provided one.
+     *
+     * @param prev The previously registered dependency creation function.
+     * @param current The newly provided dependency creation function.
+     * @return The result of the conflict resolution, encapsulated in a `DependencyConflictResult`.
+     *
+     * @see DependencyConflictResult
+     */
+    public fun resolve(prev: DependencyCreateFunction, current: DependencyCreateFunction): DependencyConflictResult
+}
 
 /**
  * Represents the result of a dependency conflict resolution within a dependency injection system.
@@ -45,7 +60,7 @@ public sealed interface DependencyConflictResult {
  * When two declarations are made for the same type, a duplicate exception is thrown.
  * When there are multiple declarations that match the same implicit keys, then an ambiguous exception is thrown.
  */
-public val DefaultConflictPolicy: DependencyConflictPolicy = { prev, current ->
+public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
     when (prev) {
         is AmbiguousCreateFunction,
