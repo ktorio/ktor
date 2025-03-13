@@ -132,18 +132,14 @@ internal suspend fun parseHeaders(
 
             val nameStart = range.start
             val nameEnd = parseHeaderName(builder, range)
-
-            val nameHash = builder.hashCodeLowerCase(nameStart, nameEnd)
-
             val headerEnd = range.end
             parseHeaderValue(builder, range)
 
             val valueStart = range.start
             val valueEnd = range.end
-            val valueHash = builder.hashCodeLowerCase(valueStart, valueEnd)
             range.start = headerEnd
 
-            headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
+            headers.put(nameStart, nameEnd, valueStart, valueEnd)
         }
 
         val host = headers[HttpHeaders.Host]
@@ -297,8 +293,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     while (index < end) {
         when (val ch = text[index]) {
-            HTAB, ' ' -> {
-            }
+            HTAB, ' ' -> {}
             '\r', '\n' -> characterIsNotAllowed(text, ch)
             else -> valueLastIndex = index
         }
