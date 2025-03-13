@@ -5,5 +5,5 @@
 description = "I18n support to Ktor"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.server-plugin")
 }
