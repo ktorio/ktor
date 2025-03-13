@@ -52,7 +52,6 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
                         }
 
                         loadJobs.clear()
-                        ref.value
                     }
 
                     ref.value
