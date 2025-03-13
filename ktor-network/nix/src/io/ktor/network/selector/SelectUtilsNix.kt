@@ -48,7 +48,7 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
     }
@@ -67,7 +67,7 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-    private fun selectionLoop() {
+    private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
@@ -80,6 +80,8 @@ internal actual class SelectorHelper {
             while (!interestQueue.isClosed) {
                 watchSet.add(wakeupSignalEvent)
                 val maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
+
+                yield()
 
                 try {
                     selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet)
