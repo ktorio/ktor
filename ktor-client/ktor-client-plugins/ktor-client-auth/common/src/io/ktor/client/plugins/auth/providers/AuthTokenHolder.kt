@@ -4,82 +4,122 @@
 
 package io.ktor.client.plugins.auth.providers
 
+import io.ktor.util.collections.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.*
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 
-internal class AuthTokenHolder<T>(
-    private val loadTokens: suspend () -> T?
-) {
-    private val refreshTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
-    private val loadTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
+/**
+ * Thread-safe
+ */
+internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
+    private val ref = atomic<T?>(null)
+    @OptIn(InternalAPI::class)
+    private val lock = SynchronizedObject()
 
-    internal fun clearToken() {
-        loadTokensDeferred.value = null
-        refreshTokensDeferred.value = null
-    }
+    private val loadJobs = ConcurrentSet<Deferred<T?>>()
+    private val setJobs = ConcurrentSet<Deferred<T?>>()
 
+    object JobCancelledException : CancellationException("Job cancelled")
+
+    /**
+     * Returns a cached reference if any. Otherwise, computes a value using [loadTokens] and caches it.
+     * If there are loadToken coroutines in-progress, the first resumed one wins and the other ones are cancelled.
+     */
+    @OptIn(InternalAPI::class)
     internal suspend fun loadToken(): T? {
-        var deferred: CompletableDeferred<T?>?
-        lateinit var newDeferred: CompletableDeferred<T?>
-        while (true) {
-            deferred = loadTokensDeferred.value
-            val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue)) {
-                newDeferred = newValue
-                break
+        if (ref.value != null) return ref.value
+
+        return coroutineScope {
+            val deferred = async {
+                loadTokens()
             }
-        }
 
-        // if there's already a pending loadTokens(), just wait for it to complete
-        if (deferred != null) {
-            return deferred.await()
-        }
+            loadJobs.add(deferred)
 
-        try {
-            val newTokens = loadTokens()
+            return@coroutineScope try {
+                val value = deferred.await()
 
-            // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
-            // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-            newDeferred.complete(newTokens)
+                synchronized(lock) {
+                    if (deferred in loadJobs) {
+                        ref.value = value
 
-            return newTokens
-        } catch (cause: Throwable) {
-            newDeferred.completeExceptionally(cause)
-            loadTokensDeferred.compareAndSet(newDeferred, null)
-            throw cause
+                        for (def in loadJobs) {
+                            def.cancel(JobCancelledException)
+                        }
+
+                        loadJobs.clear()
+                        ref.value
+                    }
+
+                    ref.value
+                }
+            } catch (_: JobCancelledException) {
+                ref.value
+            }
         }
     }
 
-    internal suspend fun setToken(block: suspend () -> T?): T? {
-        var deferred: CompletableDeferred<T?>?
-        lateinit var newDeferred: CompletableDeferred<T?>
-        while (true) {
-            deferred = refreshTokensDeferred.value
-            val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) {
-                newDeferred = newValue
-                break
-            }
+    /**
+     * Replaces the current cached value with one computed with [block].
+     * If there are loadToken and/or setToken coroutines in-progress, the first resumed setToken coroutine wins and the other are cancelled.
+     */
+    @OptIn(InternalAPI::class)
+    internal suspend fun setToken(block: suspend () -> T?): T? = coroutineScope {
+        val deferred = async {
+            block()
         }
 
-        try {
-            val newToken = if (deferred == null) {
-                val newTokens = block()
+        setJobs.add(deferred)
 
-                // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
-                // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-                newDeferred.complete(newTokens)
-                refreshTokensDeferred.value = null
-                newTokens
-            } else {
-                deferred.await()
+        return@coroutineScope try {
+            val value = deferred.await()
+
+            synchronized(lock) {
+                if (deferred in setJobs) {
+                    ref.value = value
+
+                    for (def in loadJobs) {
+                        def.cancel(JobCancelledException)
+                    }
+
+                    for (def in setJobs) {
+                        def.cancel(JobCancelledException)
+                    }
+
+                    loadJobs.clear()
+                    setJobs.clear()
+                }
+
+                ref.value
             }
-            loadTokensDeferred.value = CompletableDeferred(newToken)
-            return newToken
-        } catch (cause: Throwable) {
-            newDeferred.completeExceptionally(cause)
-            refreshTokensDeferred.compareAndSet(newDeferred, null)
-            throw cause
+        } catch (_: JobCancelledException) {
+            ref.value
+        }
+    }
+
+    /**
+     * Resets the cached value.
+     * Cancels all loadToken and setToken in-progress coroutines.
+     */
+    @OptIn(InternalAPI::class)
+    internal fun clearToken() {
+        synchronized(lock) {
+            ref.value = null
+
+            for (def in loadJobs) {
+                def.cancel(JobCancelledException)
+            }
+
+            for (def in setJobs) {
+                def.cancel(JobCancelledException)
+            }
+
+            loadJobs.clear()
+            setJobs.clear()
         }
     }
 }
