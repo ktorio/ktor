@@ -298,8 +298,6 @@ ktor-client-mock-watchossimulatorarm64
 ktor-client-mock-watchosx64
 ktor-client-okhttp
 ktor-client-okhttp-jvm
-ktor-client-plugins
-ktor-client-plugins-jvm
 ktor-client-resources
 ktor-client-resources-androidnativearm32
 ktor-client-resources-androidnativearm64
@@ -1080,10 +1078,6 @@ ktor-server-jetty
 ktor-server-jetty-jakarta
 ktor-server-jetty-jakarta-jvm
 ktor-server-jetty-jvm
-ktor-server-jetty-test-http2
-ktor-server-jetty-test-http2-jakarta
-ktor-server-jetty-test-http2-jakarta-jvm
-ktor-server-jetty-test-http2-jvm
 ktor-server-js
 ktor-server-jte
 ktor-server-jte-jvm
@@ -1144,8 +1138,6 @@ ktor-server-partial-content-watchossimulatorarm64
 ktor-server-partial-content-watchosx64
 ktor-server-pebble
 ktor-server-pebble-jvm
-ktor-server-plugins
-ktor-server-plugins-jvm
 ktor-server-rate-limit
 ktor-server-rate-limit-androidnativearm32
 ktor-server-rate-limit-androidnativearm64
@@ -1339,8 +1331,6 @@ ktor-server-websockets-watchosarm64
 ktor-server-websockets-watchosdevicearm64
 ktor-server-websockets-watchossimulatorarm64
 ktor-server-websockets-watchosx64
-ktor-shared
-ktor-shared-jvm
 ktor-sse
 ktor-sse-androidnativearm32
 ktor-sse-androidnativearm64
