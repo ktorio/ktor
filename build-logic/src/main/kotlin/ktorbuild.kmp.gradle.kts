@@ -5,7 +5,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import ktorbuild.internal.*
-import ktorbuild.maybeNamed
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion

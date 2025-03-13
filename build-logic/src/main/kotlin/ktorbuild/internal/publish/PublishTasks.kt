@@ -5,7 +5,7 @@
 package ktorbuild.internal.publish
 
 import ktorbuild.internal.capitalized
-import ktorbuild.maybeNamed
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
