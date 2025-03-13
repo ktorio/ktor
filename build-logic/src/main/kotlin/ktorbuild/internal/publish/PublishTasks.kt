@@ -8,7 +8,7 @@ import ktorbuild.internal.capitalized
 import ktorbuild.internal.gradle.isLinux
 import ktorbuild.internal.gradle.isMacOs
 import ktorbuild.internal.gradle.isWindows
-import ktorbuild.maybeNamed
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven

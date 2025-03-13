@@ -2,7 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import ktorbuild.findByName
+import ktorbuild.internal.gradle.findByName
 import ktorbuild.internal.ktorBuild
 import ktorbuild.internal.publish.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension

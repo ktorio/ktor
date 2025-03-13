@@ -6,7 +6,6 @@
 
 import ktorbuild.internal.*
 import ktorbuild.internal.gradle.*
-import ktorbuild.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion

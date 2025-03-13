@@ -5,9 +5,9 @@
 package ktorbuild.targets
 
 import ktorbuild.internal.capitalized
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.libs
-import ktorbuild.maybeNamed
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
