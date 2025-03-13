@@ -5,7 +5,7 @@
 description = "Ktor client CallId support"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.client-plugin")
 }
 
 kotlin {

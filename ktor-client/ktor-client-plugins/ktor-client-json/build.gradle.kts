@@ -5,7 +5,7 @@
 description = "Ktor client JSON support"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.client-plugin")
     id("kotlinx-serialization")
     id("test-server")
 }

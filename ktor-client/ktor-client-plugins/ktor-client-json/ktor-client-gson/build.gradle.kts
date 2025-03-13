@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.client-plugin")
 }
 
 kotlin {
