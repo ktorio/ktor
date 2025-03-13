@@ -9,21 +9,15 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-                api(libs.xmlutil.serialization)
-            }
+        commonMain.dependencies {
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(libs.xmlutil.serialization)
         }
-        commonTest {
-            dependencies {
-                implementation(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests")) // ktlint-disable max-line-length
-            }
+        commonTest.dependencies {
+            implementation(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
         }
-        jvmTest {
-            dependencies {
-                implementation(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")) // ktlint-disable max-line-length
-            }
+        jvmTest.dependencies {
+            implementation(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
         }
     }
 }

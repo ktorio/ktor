@@ -12,10 +12,8 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlinx.datetime)
-            }
+        commonMain.dependencies {
+            api(libs.kotlinx.datetime)
         }
     }
 }

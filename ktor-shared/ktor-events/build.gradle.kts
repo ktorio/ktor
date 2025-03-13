@@ -8,10 +8,8 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-utils"))
-            }
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
         }
     }
 }

@@ -10,14 +10,12 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmTest {
-            dependencies {
-                api(project(":ktor-server:ktor-server-test-base"))
-                api(project(":ktor-server:ktor-server-test-suites"))
-                api(libs.jetty.servlet)
-                api(project(":ktor-server:ktor-server-core"))
-                api(project(":ktor-server:ktor-server-jetty"))
-            }
+        jvmTest.dependencies {
+            api(project(":ktor-server:ktor-server-test-base"))
+            api(project(":ktor-server:ktor-server-test-suites"))
+            api(libs.jetty.servlet)
+            api(project(":ktor-server:ktor-server-core"))
+            api(project(":ktor-server:ktor-server-jetty"))
         }
     }
 }

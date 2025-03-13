@@ -17,23 +17,17 @@ kotlin {
     createCInterop("afunix", sourceSet = "windows")
 
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-utils"))
-            }
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
         }
 
-        commonTest {
-            dependencies {
-                api(project(":ktor-test-dispatcher"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-test-dispatcher"))
         }
 
-        jvmTest {
-            dependencies {
-                implementation(project(":ktor-shared:ktor-test-base"))
-                implementation(libs.mockk)
-            }
+        jvmTest.dependencies {
+            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(libs.mockk)
         }
     }
 }

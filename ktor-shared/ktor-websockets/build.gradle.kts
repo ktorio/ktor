@@ -5,11 +5,3 @@
 plugins {
     id("ktorbuild.project.library")
 }
-
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
-        }
-    }
-}

@@ -10,18 +10,14 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmMain {
-            dependencies {
-                implementation(libs.jansi)
-                implementation(libs.kotlinx.coroutines.slf4j)
-            }
+        jvmMain.dependencies {
+            implementation(libs.jansi)
+            implementation(libs.kotlinx.coroutines.slf4j)
         }
 
-        val jvmTest by getting {
-            dependencies {
-                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
-                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            }
+        jvmTest.dependencies {
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
         }
     }
 }

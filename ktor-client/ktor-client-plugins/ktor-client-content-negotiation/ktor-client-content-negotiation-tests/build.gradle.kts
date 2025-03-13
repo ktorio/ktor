@@ -10,8 +10,8 @@ plugins {
 }
 
 kotlin {
-    sourceSets.jvmMain {
-        dependencies {
+    sourceSets {
+        jvmMain.dependencies {
             api(libs.kotlin.test.junit5)
             api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
             api(project(":ktor-server:ktor-server-cio"))

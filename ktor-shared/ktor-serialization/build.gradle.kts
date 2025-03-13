@@ -10,10 +10,8 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-shared:ktor-websockets"))
-            }
+        commonMain.dependencies {
+            api(project(":ktor-shared:ktor-websockets"))
         }
     }
 }
