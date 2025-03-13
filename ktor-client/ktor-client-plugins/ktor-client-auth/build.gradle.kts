@@ -5,6 +5,6 @@
 description = "Ktor client Auth support"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.client-plugin")
     id("test-server")
 }

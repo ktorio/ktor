@@ -5,7 +5,7 @@
 description = "Ktor client Content Negotiation support"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.client-plugin")
     id("kotlinx-serialization")
 }
 
