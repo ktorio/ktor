@@ -17,8 +17,8 @@ import kotlinx.coroutines.CancellationException
  */
 internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
     private val ref = atomic<T?>(null)
-    @OptIn(InternalAPI::class)
-    private val lock = SynchronizedObject()
+
+    @OptIn(InternalAPI::class) private val lock = SynchronizedObject()
 
     private val loadJobs = ConcurrentSet<Deferred<T?>>()
     private val setJobs = ConcurrentSet<Deferred<T?>>()

@@ -250,5 +250,4 @@ class AuthTokenHolderTest {
         assertEquals(2, setToken.await())
         assertEquals(2, holder.loadToken())
     }
-
 }
