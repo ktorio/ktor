@@ -23,7 +23,7 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
     private val loadJobs = ConcurrentSet<Deferred<T?>>()
     private val setJobs = ConcurrentSet<Deferred<T?>>()
 
-    object JobCancelledException : CancellationException("Job cancelled")
+    private object JobCancelledException : CancellationException("Job cancelled")
 
     /**
      * Returns a cached reference if any. Otherwise, computes a value using [loadTokens] and caches it.
@@ -65,7 +65,8 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
 
     /**
      * Replaces the current cached value with one computed with [block].
-     * If there are loadToken and/or setToken coroutines in-progress, the first resumed setToken coroutine wins and the other are cancelled.
+     * If there are loadToken and/or setToken coroutines in-progress,
+     * the first resumed setToken coroutine wins and the other ones are cancelled.
      */
     @OptIn(InternalAPI::class)
     internal suspend fun setToken(block: suspend () -> T?): T? = coroutineScope {
@@ -103,7 +104,7 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
 
     /**
      * Resets the cached value.
-     * Cancels all loadToken and setToken in-progress coroutines.
+     * Cancels all in-progress loadToken and setToken coroutines.
      */
     @OptIn(InternalAPI::class)
     internal fun clearToken() {
