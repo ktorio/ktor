@@ -227,6 +227,11 @@ io.ktor:ktor-server-default-headers-mingwx64/.klib
 io.ktor:ktor-server-default-headers-mingwx64/javadoc.jar
 io.ktor:ktor-server-default-headers-mingwx64/kdoc.jar
 io.ktor:ktor-server-default-headers-mingwx64/sources.jar
+io.ktor:ktor-server-di-mingwx64/.jar
+io.ktor:ktor-server-di-mingwx64/.klib
+io.ktor:ktor-server-di-mingwx64/javadoc.jar
+io.ktor:ktor-server-di-mingwx64/kdoc.jar
+io.ktor:ktor-server-di-mingwx64/sources.jar
 io.ktor:ktor-server-double-receive-mingwx64/.jar
 io.ktor:ktor-server-double-receive-mingwx64/.klib
 io.ktor:ktor-server-double-receive-mingwx64/javadoc.jar
