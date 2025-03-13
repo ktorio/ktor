@@ -10,19 +10,15 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlin.test)
-                api(project(":ktor-test-dispatcher"))
-            }
+        commonMain.dependencies {
+            api(libs.kotlin.test)
+            api(project(":ktor-test-dispatcher"))
         }
 
-        jvmMain {
-            dependencies {
-                api(libs.kotlin.test.junit5)
-                api(libs.junit)
-                api(libs.kotlinx.coroutines.debug)
-            }
+        jvmMain.dependencies {
+            api(libs.kotlin.test.junit5)
+            api(libs.junit)
+            api(libs.kotlinx.coroutines.debug)
         }
     }
 }

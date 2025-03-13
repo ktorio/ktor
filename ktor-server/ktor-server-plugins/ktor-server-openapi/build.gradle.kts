@@ -13,14 +13,12 @@ ktorBuild {
 
 kotlin {
     sourceSets {
-        jvmMain {
-            dependencies {
-                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-html-builder"))
+        jvmMain.dependencies {
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-html-builder"))
 
-                implementation(libs.swagger.codegen)
-                implementation(libs.swagger.codegen.generators)
-                implementation(libs.swagger.parser)
-            }
+            implementation(libs.swagger.codegen)
+            implementation(libs.swagger.codegen.generators)
+            implementation(libs.swagger.parser)
         }
     }
 }

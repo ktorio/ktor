@@ -8,15 +8,11 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmMain {
-            dependencies {
-                api(project(":ktor-network:ktor-network-tls"))
-            }
+        jvmMain.dependencies {
+            api(project(":ktor-network:ktor-network-tls"))
         }
-        jvmTest {
-            dependencies {
-                implementation(libs.mockk)
-            }
+        jvmTest.dependencies {
+            implementation(libs.mockk)
         }
     }
 }

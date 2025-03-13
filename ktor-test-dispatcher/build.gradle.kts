@@ -8,15 +8,11 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlinx.coroutines.test)
-            }
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.test)
         }
-        posixMain {
-            dependencies {
-                implementation(project(":ktor-utils"))
-            }
+        posixMain.dependencies {
+            implementation(project(":ktor-utils"))
         }
     }
 }

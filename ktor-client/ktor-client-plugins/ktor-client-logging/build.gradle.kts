@@ -8,23 +8,17 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmMain {
-            dependencies {
-                compileOnly(libs.slf4j.simple)
-                api(libs.kotlinx.coroutines.slf4j)
-            }
+        jvmMain.dependencies {
+            compileOnly(libs.slf4j.simple)
+            api(libs.kotlinx.coroutines.slf4j)
         }
-        commonTest {
-            dependencies {
-                api(project(":ktor-client:ktor-client-mock"))
-                api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-client:ktor-client-mock"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
         }
-        jvmTest {
-            dependencies {
-                api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
-                api(project(":ktor-client:ktor-client-plugins:ktor-client-encoding"))
-            }
+        jvmTest.dependencies {
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-encoding"))
         }
     }
 }

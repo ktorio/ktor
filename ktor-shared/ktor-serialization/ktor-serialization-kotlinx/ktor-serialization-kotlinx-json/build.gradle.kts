@@ -11,12 +11,10 @@ plugins {
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.serialization.json.io)
-            }
+        commonMain.dependencies {
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(libs.kotlinx.serialization.json)
+            api(libs.kotlinx.serialization.json.io)
         }
         jvmTest {
             @Suppress("ktlint:standard:max-line-length")
@@ -28,10 +26,8 @@ kotlin {
                 )
             }
         }
-        commonTest {
-            dependencies {
-                api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
         }
     }
 }

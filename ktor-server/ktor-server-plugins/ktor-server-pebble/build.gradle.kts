@@ -8,17 +8,13 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmMain {
-            dependencies {
-                api(libs.pebble)
-            }
+        jvmMain.dependencies {
+            api(libs.pebble)
         }
-        jvmTest {
-            dependencies {
-                api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-                api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
-            }
+        jvmTest.dependencies {
+            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
+            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
         }
     }
 }

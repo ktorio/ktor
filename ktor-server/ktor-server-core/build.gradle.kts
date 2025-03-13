@@ -14,40 +14,32 @@ kotlin {
     createCInterop("host_common", sourceSet = "nix")
 
     sourceSets {
-        commonMain {
-            dependencies {
-                api(project(":ktor-utils"))
-                api(project(":ktor-http"))
-                api(project(":ktor-shared:ktor-serialization"))
-                api(project(":ktor-shared:ktor-events"))
-                api(project(":ktor-http:ktor-http-cio"))
-                api(project(":ktor-shared:ktor-websockets"))
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
+            api(project(":ktor-http"))
+            api(project(":ktor-shared:ktor-serialization"))
+            api(project(":ktor-shared:ktor-events"))
+            api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-shared:ktor-websockets"))
 
-                api(libs.kotlin.reflect)
-            }
+            api(libs.kotlin.reflect)
         }
 
-        jvmMain {
-            dependencies {
-                api(libs.typesafe.config)
-                implementation(libs.jansi)
-            }
+        jvmMain.dependencies {
+            api(libs.typesafe.config)
+            implementation(libs.jansi)
         }
 
-        commonTest {
-            dependencies {
-                api(project(":ktor-server:ktor-server-test-host"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-server:ktor-server-test-host"))
         }
 
-        jvmTest {
-            dependencies {
-                implementation(project(":ktor-server:ktor-server-config-yaml"))
-                implementation(project(":ktor-server:ktor-server-test-base"))
-                implementation(project(":ktor-server:ktor-server-test-suites"))
+        jvmTest.dependencies {
+            implementation(project(":ktor-server:ktor-server-config-yaml"))
+            implementation(project(":ktor-server:ktor-server-test-base"))
+            implementation(project(":ktor-server:ktor-server-test-suites"))
 
-                implementation(libs.mockk)
-            }
+            implementation(libs.mockk)
         }
     }
 }

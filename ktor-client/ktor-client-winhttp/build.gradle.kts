@@ -14,18 +14,14 @@ kotlin {
     createCInterop("winhttp", sourceSet = "windows")
 
     sourceSets {
-        windowsMain {
-            dependencies {
-                api(project(":ktor-client:ktor-client-core"))
-                api(project(":ktor-http:ktor-http-cio"))
-            }
+        windowsMain.dependencies {
+            api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-http:ktor-http-cio"))
         }
-        windowsTest {
-            dependencies {
-                implementation(project(":ktor-client:ktor-client-test-base"))
-                api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
-                api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
-            }
+        windowsTest.dependencies {
+            implementation(project(":ktor-client:ktor-client-test-base"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
+            api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
         }
     }
 }
