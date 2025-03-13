@@ -7,7 +7,7 @@ import java.time.Year
 description = ""
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.server-plugin")
 }
 
 kotlin {

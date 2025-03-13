@@ -5,5 +5,5 @@
 description = "Body Size Limit plugin for Ktor Server"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.server-plugin")
 }

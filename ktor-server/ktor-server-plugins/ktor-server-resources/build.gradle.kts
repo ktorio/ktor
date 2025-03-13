@@ -5,7 +5,7 @@
 description = "Server side Resources feature"
 
 plugins {
-    id("ktorbuild.project.library")
+    id("ktorbuild.project.server-plugin")
     id("kotlinx-serialization")
 }
 
