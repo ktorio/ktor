@@ -13,7 +13,7 @@ class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApp
     Jetty
 ) {
     @Test
-    override fun testBigFrame(): TestResult {
+    override fun testBigFrame() {
         return super.testBigFrame()
     }
 }

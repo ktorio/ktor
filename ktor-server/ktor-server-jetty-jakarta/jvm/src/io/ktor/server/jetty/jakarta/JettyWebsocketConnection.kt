@@ -4,17 +4,12 @@
 
 package io.ktor.server.jetty.jakarta
 
-import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.channels.onFailure
 import org.eclipse.jetty.io.AbstractConnection
 import org.eclipse.jetty.io.EndPoint
 import java.util.concurrent.Executor
@@ -74,9 +69,7 @@ internal class JettyWebsocketConnection(
             try {
                 while (true) {
                     fillInterested()
-                    println("fillInterested")
                     onFill.receive()
-                    println("received")
                     when (endpoint.fill(buffer.flip())) {
                         -1 -> break
                         0 -> continue
@@ -116,6 +109,11 @@ internal class JettyWebsocketConnection(
 
     override fun onFillable() {
         onFill.trySend(true)
+            .onFailure {
+                launch {
+                    onFill.send(true)
+                }
+            }
     }
 
     override fun onFillInterestedFailed(cause: Throwable?) {

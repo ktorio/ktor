@@ -142,22 +142,22 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-            // 1. Stop processing the response
+            // 1. Mark request / response as complete
             completed = true
             request.upgraded()
 
+            // 2. Close body writing job
             if (responseBodyJob.isInitialized()) {
                 responseBodyJob.value.channel.flushAndClose()
                 responseBodyJob.value.join()
             }
+
+            // 3. Close response output
             suspendCancellableCoroutine { continuation ->
                 response.write(true, emptyBuffer, continuation.asCallback())
             }
 
-            // Note, the request body reading should not have
-            // started at this point
-
-            // 2. Redirect socket I/O to jetty connection
+            // 4. Redirect socket I/O to jetty connection
             val websocketConnection = JettyWebsocketConnection(
                 endpoint,
                 bufferPool,
@@ -165,7 +165,7 @@ public class JettyApplicationCall(
                 executor
             )
 
-            // 3. Handle the websocket upgrade
+            // 5. Handle the websocket upgrade
             upgrade.upgradeAndAwait(
                 websocketConnection,
                 userContext
