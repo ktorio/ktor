@@ -5,4 +5,5 @@
 plugins {
     id("ktorbuild.kmp")
     id("ktorbuild.dokka")
+    id("ktorbuild.publish")
 }

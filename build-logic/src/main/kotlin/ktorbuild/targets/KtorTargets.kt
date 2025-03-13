@@ -74,6 +74,10 @@ abstract class KtorTargets internal constructor(
 
     val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
+    val hasLinux: Boolean get() = resolveTargets("linux").any(::isEnabled)
+    val hasWindows: Boolean get() = resolveTargets("windows").any(::isEnabled)
+    val hasDarwin: Boolean get() = resolveTargets("darwin").any(::isEnabled)
+    val hasAndroidNative: Boolean get() = resolveTargets("androidNative").any(::isEnabled)
 
     /**
      * Determines if the specified [target] is enabled.
