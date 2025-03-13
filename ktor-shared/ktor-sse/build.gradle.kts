@@ -7,3 +7,11 @@ description = "Server-sent events API for client and server"
 plugins {
     id("ktorbuild.project.library")
 }
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
+        }
+    }
+}
